@@ -28,6 +28,7 @@ namespace Runtime
 
         private void Start()
         {
+            Application.targetFrameRate = 60;
             _ = AssetManager.Load<GameObject>("Prefabs/Player");
         }
     }

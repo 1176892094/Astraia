@@ -33,6 +33,7 @@ namespace Runtime
 
                 if (Input.GetKeyDown(KeyCode.X))
                 {
+                    JumpButton();
                 }
 
                 if (Input.GetKeyDown(KeyCode.Z))
@@ -41,24 +42,9 @@ namespace Runtime
             }
         }
 
-        public void JumpButton()
+        private void JumpButton()
         {
-            if (attribute.state.HasFlag(StateType.Stop))
-            {
-                return;
-            }
-
-            if (attribute.state.HasFlag(StateType.Jump))
-            {
-                return;
-            }
-            
-            if (attribute.state.HasFlag(StateType.Jumping))
-            {
-                return;
-            }
-
-            attribute.state |= StateType.Jump;
+            attribute.SetFloat(Attribute.JumpInput, Time.time + 0.2f);
         }
     }
 }

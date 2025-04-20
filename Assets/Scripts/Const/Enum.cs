@@ -18,6 +18,9 @@ namespace Const
         Horizontal,
         Vertical,
         MoveSpeed,
+        JumpForce,
+        JumpInput,
+        JumpCount,
     }
 
     [Flags]
@@ -26,7 +29,8 @@ namespace Const
         None,
         Stop = 1 << 0,
         Jump = 1 << 1,
-        Jumping = 1 << 2,
+        Fall = 1 << 2,
+        Grab = 1 << 3,
         Ground = 1 << 4,
         Wall = 1 << 5,
         Dash = 1 << 6

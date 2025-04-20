@@ -32,6 +32,7 @@ namespace Runtime
         {
             machine.AddState<PlayerIdle>(typeof(PlayerIdle));
             machine.AddState<PlayerWalk>(typeof(PlayerWalk));
+            machine.AddState<PlayerJump>(typeof(PlayerJump));
             machine.ChangeState<PlayerIdle>();
         }
 
@@ -46,6 +47,7 @@ namespace Runtime
         {
             Gizmos.DrawRay(transform.position, Vector3.down * 0.11f);
             Gizmos.DrawRay(transform.position, Vector3.right * transform.localScale.x * 0.11f);
+            Gizmos.DrawRay(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x * 0.11f);
         }
     }
 }
