@@ -22,6 +22,9 @@ namespace Const
         JumpGrace,
         JumpInput,
         JumpCount,
+        DashInput,
+        DashCount,
+        DashSpeed,
     }
 
     [Flags]
@@ -37,6 +40,6 @@ namespace Const
         Grabbing = 1 << 6,
         Ground = 1 << 7,
         Wall = 1 << 8,
-        Dash = 1 << 9
+        Dash = 1 << 10
     }
 }

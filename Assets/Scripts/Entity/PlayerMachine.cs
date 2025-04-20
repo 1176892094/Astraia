@@ -11,6 +11,7 @@
 
 using System;
 using Astraia;
+using Astraia.Common;
 using Const;
 using UnityEngine;
 using Attribute = Const.Attribute;
@@ -43,7 +44,6 @@ namespace Runtime
                 transform.localScale = new Vector3(attribute.moveX, 1, 1);
             }
 
-
             if (rigidbody.linearVelocityY < 0)
             {
                 attribute.state |= StateType.Fall;
@@ -53,6 +53,8 @@ namespace Runtime
                 attribute.state &= ~StateType.Fall;
             }
 
+            DashUpdate();
+
             if (attribute.state.HasFlag(StateType.Ground))
             {
                 rigidbody.linearVelocityY = 0;
@@ -61,19 +63,17 @@ namespace Runtime
             }
             else if (attribute.state.HasFlag(StateType.Wall))
             {
-                if (attribute.moveX == 0)
+                if (!attribute.state.HasFlag(StateType.Grab))
                 {
                     FallUpdate();
                 }
 
-                rigidbody.linearVelocityY = Mathf.Max(-1, rigidbody.linearVelocityY);
                 attribute.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
                 JumpUpdate();
             }
             else
             {
                 FallUpdate();
-                rigidbody.linearVelocityY = Mathf.Max(-5, rigidbody.linearVelocityY);
             }
 
             if (attribute.GetFloat(Attribute.JumpGrace) > Time.time)
@@ -102,6 +102,11 @@ namespace Runtime
 
         private void FallUpdate()
         {
+            if (attribute.state.HasFlag(StateType.Dash))
+            {
+                return;
+            }
+
             if (attribute.state.HasFlag(StateType.Jumping))
             {
                 rigidbody.linearVelocityY -= 9.81f * Time.deltaTime;
@@ -110,6 +115,8 @@ namespace Runtime
             {
                 rigidbody.linearVelocityY -= 9.81f * Time.deltaTime * 2;
             }
+
+            rigidbody.linearVelocityY = Mathf.Max(-5, rigidbody.linearVelocityY);
         }
 
         private void JumpUpdate()
@@ -130,6 +137,26 @@ namespace Runtime
             }
 
             attribute.SetFloat(Attribute.JumpInput, Time.time);
+        }
+
+        private void DashUpdate()
+        {
+            if (attribute.GetInt(Attribute.DashCount) <= 0)
+            {
+                return;
+            }
+
+            if (attribute.GetFloat(Attribute.DashInput) < Time.time)
+            {
+                return;
+            }
+
+            if (!attribute.state.HasFlag(StateType.Dash))
+            {
+                ChangeState<PlayerDash>();
+            }
+
+            attribute.SetFloat(Attribute.DashInput, Time.time);
         }
     }
 
@@ -154,7 +181,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (attribute.state.HasFlag(StateType.Grab))
+            if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Grab))
             {
                 machine.ChangeState<PlayerGrab>();
             }
@@ -178,7 +205,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (attribute.state.HasFlag(StateType.Grab))
+            if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Grab))
             {
                 machine.ChangeState<PlayerGrab>();
             }
@@ -203,14 +230,7 @@ namespace Runtime
             renderer.color = Color.red;
             attribute.state |= StateType.Jump;
             attribute.SubInt(Attribute.JumpCount, 1);
-            if (attribute.state.HasFlag(StateType.Grab))
-            {
-                attribute.state |= StateType.Jumped;
-                rigidbody.linearVelocityY = attribute.jumpForce;
-                rigidbody.linearVelocityX = -transform.localScale.x * attribute.jumpForce * 0.7f;
-                transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
-            }
-            else if (attribute.state.HasFlag(StateType.Ground))
+            if (attribute.state.HasFlag(StateType.Ground))
             {
                 rigidbody.linearVelocityY = attribute.jumpForce;
             }
@@ -257,7 +277,7 @@ namespace Runtime
         {
             if (waitTime < Time.time)
             {
-                if (!attribute.state.HasFlag(StateType.Grab))
+                if (!attribute.state.HasFlag(StateType.Wall) || !attribute.state.HasFlag(StateType.Grab))
                 {
                     machine.ChangeState<PlayerIdle>();
                 }
@@ -273,6 +293,58 @@ namespace Runtime
         protected override void OnExit()
         {
             attribute.state &= ~StateType.Grabbing;
+        }
+    }
+
+    public class PlayerDash : PlayerState
+    {
+        private int frameWait;
+        private int frameCount;
+
+        protected override void OnEnter()
+        {
+            frameWait = 0;
+            frameCount = Time.frameCount + 10;
+            renderer.color = Color.cyan;
+            attribute.state |= StateType.Dash;
+            attribute.SubInt(Attribute.DashCount, 1);
+        }
+
+        protected override void OnUpdate()
+        {
+            if (frameWait % 4 == 0)
+            {
+                PoolManager.Show("Prefabs/Shadow", obj =>
+                {
+                    obj.transform.position = transform.position;
+                    var component = obj.GetComponent<SpriteRenderer>();
+                    component.color = new Color(0, 0, 0, 1);
+                    component.DOFade(0, 0.5f).OnComplete(() => PoolManager.Hide(obj));
+                });
+            }
+
+            frameWait++;
+            var direction = new Vector3(attribute.moveX, attribute.moveY).normalized;
+            var position = transform.position;
+            if (direction == Vector3.zero)
+            {
+                position += Vector3.right * (transform.localScale.x * attribute.dashSpeed * Time.fixedDeltaTime);
+            }
+            else
+            {
+                position += direction * (attribute.dashSpeed * Time.fixedDeltaTime);
+            }
+
+            rigidbody.MovePosition(position);
+            if (frameCount < Time.frameCount)
+            {
+                machine.ChangeState<PlayerIdle>();
+            }
+        }
+
+        protected override void OnExit()
+        {
+            attribute.state &= ~StateType.Dash;
         }
     }
 }

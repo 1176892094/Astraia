@@ -29,20 +29,27 @@ namespace Runtime
 
                 if (Input.GetKeyDown(KeyCode.C))
                 {
+                    DashButton();
                 }
 
                 if (Input.GetKeyDown(KeyCode.X))
                 {
                     JumpButton();
                 }
-                
+
                 if (Input.GetKeyUp(KeyCode.X))
                 {
-                    FallButton();
+                    JumpedButton();
                 }
 
                 if (Input.GetKeyDown(KeyCode.Z))
                 {
+                    GrabButton();
+                }
+
+                if (Input.GetKeyUp(KeyCode.Z))
+                {
+                    GrabbedButton();
                 }
             }
         }
@@ -52,10 +59,25 @@ namespace Runtime
             attribute.state |= StateType.Jumping;
             attribute.SetFloat(Attribute.JumpInput, Time.time + 0.2f);
         }
-        
-        private void FallButton()
+
+        private void JumpedButton()
         {
             attribute.state &= ~StateType.Jumping;
+        }
+
+        private void GrabButton()
+        {
+            attribute.state |= StateType.Grab;
+        }
+
+        private void GrabbedButton()
+        {
+            attribute.state &= ~StateType.Grab;
+        }
+
+        private void DashButton()
+        {
+            attribute.SetFloat(Attribute.DashInput, Time.time + 0.2f);
         }
     }
 }

@@ -9,7 +9,6 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
 using Astraia;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -34,6 +33,7 @@ namespace Runtime
             machine.AddState<PlayerWalk>(typeof(PlayerWalk));
             machine.AddState<PlayerJump>(typeof(PlayerJump));
             machine.AddState<PlayerGrab>(typeof(PlayerGrab));
+            machine.AddState<PlayerDash>(typeof(PlayerDash));
             machine.ChangeState<PlayerIdle>();
         }
 
