@@ -34,7 +34,9 @@ namespace Runtime
 
         public bool isWalk => moveX != 0 || moveY != 0;
         public RaycastHit2D downRay => Physics2D.Raycast(transform.position, Vector3.down, 0.11f, 1 << 6);
-        public RaycastHit2D rightRay => Physics2D.Raycast(transform.position, Vector3.right * moveX, 0.11f, 1 << 6);
+        public RaycastHit2D leftRay => Physics2D.Raycast(transform.position, Vector3.left, 0.11f, 1 << 6);
+        public RaycastHit2D rightRay => Physics2D.Raycast(transform.position, Vector3.right, 0.11f, 1 << 6);
+
 
         public override void OnShow(Component owner)
         {
@@ -55,14 +57,24 @@ namespace Runtime
                 state &= ~StateType.Ground;
             }
 
-            if (rightRay)
+            if (rightRay || leftRay)
             {
                 state |= StateType.Wall;
+                if (moveX != 0)
+                {
+                    state |= StateType.Grab;
+                }
+                else
+                {
+                    state &= ~StateType.Grab;
+                }
+
                 this.SetFloat(Attribute.JumpCount, 1);
             }
             else
             {
                 state &= ~StateType.Wall;
+                state &= ~StateType.Grab;
             }
         }
     }

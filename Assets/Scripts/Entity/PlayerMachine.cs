@@ -22,6 +22,7 @@ namespace Runtime
         private Transform transform => owner.transform;
         private PlayerAttribute attribute => owner.attribute;
 
+        private float gravity;
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
 
@@ -30,6 +31,7 @@ namespace Runtime
             base.OnShow(owner);
             rigidbody = owner.GetComponent<Rigidbody2D>();
             renderer = owner.GetComponent<SpriteRenderer>();
+            gravity = rigidbody.gravityScale;
         }
 
         public override void OnUpdate()
@@ -43,6 +45,16 @@ namespace Runtime
                 transform.localScale = new Vector3(attribute.moveX, 1, 1);
             }
 
+            if (attribute.state.HasFlag(StateType.Grab))
+            {
+                rigidbody.gravityScale = 0;
+                rigidbody.linearVelocityY = 0;
+            }
+            else
+            {
+                rigidbody.gravityScale = gravity;
+            }
+
             if (rigidbody.linearVelocityY < 0)
             {
                 attribute.state |= StateType.Fall;
@@ -52,40 +64,48 @@ namespace Runtime
                 attribute.state &= ~StateType.Fall;
             }
 
-            if (attribute.state.HasFlag(StateType.Wall))
-            {
-                if (attribute.jumpCount > 0 && attribute.jumpInput > Time.time)
-                {
-                    if (!attribute.state.HasFlag(StateType.Jump))
-                    {
-                        ChangeState<PlayerJump>();
-                    }
-                }
-            }
-
             if (attribute.state.HasFlag(StateType.Ground))
             {
                 rigidbody.linearVelocityY = 0;
-                if (attribute.jumpCount > 0 && attribute.jumpInput > Time.time)
-                {
-                    if (!attribute.state.HasFlag(StateType.Jump))
-                    {
-                        ChangeState<PlayerJump>();
-                    }
-                }
+                JumpUpdate();
             }
             else
             {
                 rigidbody.linearVelocityY = Mathf.Max(-10, rigidbody.linearVelocityY);
             }
 
-            rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
+            if (attribute.state.HasFlag(StateType.Wall))
+            {
+                rigidbody.linearVelocityY = Mathf.Max(-1, rigidbody.linearVelocityY);
+                JumpUpdate();
+            }
+
+            if (!attribute.state.HasFlag(StateType.Fly))
+            {
+                rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
+            }
+
+
             base.OnUpdate();
+        }
+
+        private void JumpUpdate()
+        {
+            if (attribute.jumpCount > 0 && attribute.jumpInput > Time.time)
+            {
+                if (!attribute.state.HasFlag(StateType.Jump))
+                {
+                    ChangeState<PlayerJump>();
+                }
+
+                attribute.SetFloat(Attribute.JumpInput, Time.time);
+            }
         }
     }
 
     public abstract class PlayerState : State<Player>
     {
+        protected Transform transform => owner.transform;
         protected Rigidbody2D rigidbody => machine.rigidbody;
         protected SpriteRenderer renderer => machine.renderer;
         protected PlayerMachine machine => owner.machine;
@@ -142,10 +162,20 @@ namespace Runtime
         protected override void OnEnter()
         {
             waitTime = Time.time + 0.2f;
-            renderer.color = Color.cyan;
+            renderer.color = Color.red;
             attribute.state |= StateType.Jump;
             attribute.SubFloat(Attribute.JumpCount, 1);
-            rigidbody.linearVelocityY = attribute.jumpForce;
+            if (attribute.state.HasFlag(StateType.Ground))
+            {
+                rigidbody.linearVelocityY = attribute.jumpForce;
+            }
+            else
+            {
+                attribute.state |= StateType.Fly;
+                rigidbody.linearVelocityY = attribute.jumpForce;
+                rigidbody.linearVelocityX = -transform.localScale.x * attribute.jumpForce;
+                transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
+            }
         }
 
         protected override void OnUpdate()
@@ -158,6 +188,7 @@ namespace Runtime
 
         protected override void OnExit()
         {
+            attribute.state &= ~StateType.Fly;
             attribute.state &= ~StateType.Jump;
         }
     }

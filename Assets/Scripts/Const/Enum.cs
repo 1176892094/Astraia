@@ -29,10 +29,11 @@ namespace Const
         None,
         Stop = 1 << 0,
         Jump = 1 << 1,
-        Fall = 1 << 2,
-        Grab = 1 << 3,
-        Ground = 1 << 4,
-        Wall = 1 << 5,
-        Dash = 1 << 6
+        Fly = 1 << 2,
+        Fall = 1 << 3,
+        Grab = 1 << 4,
+        Ground = 1 << 5,
+        Wall = 1 << 6,
+        Dash = 1 << 7
     }
 }
