@@ -26,6 +26,9 @@ namespace Const
         None,
         Stop = 1 << 0,
         Jump = 1 << 1,
-        Dash = 1 << 2
+        Jumping = 1 << 2,
+        Ground = 1 << 4,
+        Wall = 1 << 5,
+        Dash = 1 << 6
     }
 }

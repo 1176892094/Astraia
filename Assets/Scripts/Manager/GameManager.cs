@@ -28,10 +28,7 @@ namespace Runtime
 
         private void Start()
         {
-            AssetManager.Load<GameObject>("Prefabs/Player", player =>
-            {
-                
-            });
+            _ = AssetManager.Load<GameObject>("Prefabs/Player");
         }
     }
 }

@@ -35,16 +35,17 @@ namespace Runtime
             machine.ChangeState<PlayerIdle>();
         }
 
-        private void FixedUpdate()
-        {
-            machine.OnFixedUpdate();
-        }
-
         private void OnDestroy()
         {
             this.Hide<PlayerMachine>();
             this.Hide<PlayerAttribute>();
             this.Hide<PlayerOperation>();
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.DrawRay(transform.position, Vector3.down * 0.11f);
+            Gizmos.DrawRay(transform.position, Vector3.right * transform.localScale.x * 0.11f);
         }
     }
 }

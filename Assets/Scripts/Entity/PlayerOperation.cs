@@ -24,8 +24,8 @@ namespace Runtime
         {
             if (!attribute.state.HasFlag(StateType.Stop))
             {
-                attribute.SetFloat(Attribute.Horizontal, Input.GetAxis("Horizontal"));
-                attribute.SetFloat(Attribute.Vertical, Input.GetAxis("Vertical"));
+                attribute.SetFloat(Attribute.Horizontal, Input.GetAxisRaw("Horizontal"));
+                attribute.SetFloat(Attribute.Vertical, Input.GetAxisRaw("Vertical"));
 
                 if (Input.GetKeyDown(KeyCode.C))
                 {
@@ -39,6 +39,26 @@ namespace Runtime
                 {
                 }
             }
+        }
+
+        public void JumpButton()
+        {
+            if (attribute.state.HasFlag(StateType.Stop))
+            {
+                return;
+            }
+
+            if (attribute.state.HasFlag(StateType.Jump))
+            {
+                return;
+            }
+            
+            if (attribute.state.HasFlag(StateType.Jumping))
+            {
+                return;
+            }
+
+            attribute.state |= StateType.Jump;
         }
     }
 }

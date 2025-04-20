@@ -9,14 +9,17 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using Astraia;
+using Const;
 using UnityEngine;
 
 namespace Runtime
 {
     public class PlayerMachine : StateMachine<Player>
     {
-        public PlayerAttribute attribute => owner.attribute;
+        private PlayerAttribute attribute => owner.attribute;
+
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
 
@@ -27,14 +30,25 @@ namespace Runtime
             renderer = owner.GetComponent<SpriteRenderer>();
         }
 
-        public void OnFixedUpdate()
+        public override void OnUpdate()
         {
-            rigidbody.linearVelocity = new Vector2(attribute.moveX, attribute.moveY);
+            if (!attribute.state.HasFlag(StateType.Ground))
+            {
+                rigidbody.linearVelocityY = Mathf.Max(-10, rigidbody.linearVelocityY);
+            }
+            else
+            {
+                rigidbody.linearVelocityY = 0;
+            }
+
+            rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
+            base.OnUpdate();
         }
     }
 
     public abstract class PlayerState : State<Player>
     {
+        public Transform transform => owner.transform;
         public SpriteRenderer renderer => machine.renderer;
         public PlayerMachine machine => owner.machine;
         public PlayerAttribute attribute => owner.attribute;
@@ -72,6 +86,15 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
+            if (attribute.moveX > 0)
+            {
+                transform.localScale = new Vector3(attribute.moveX, 1, 1);
+            }
+            else if (attribute.moveX < 0)
+            {
+                transform.localScale = new Vector3(attribute.moveX, 1, 1);
+            }
+
             if (!attribute.isWalk)
             {
                 machine.ChangeState<PlayerIdle>();
