@@ -22,7 +22,6 @@ namespace Runtime
         private Transform transform => owner.transform;
         private PlayerAttribute attribute => owner.attribute;
 
-        private float gravity;
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
 
@@ -31,7 +30,6 @@ namespace Runtime
             base.OnShow(owner);
             rigidbody = owner.GetComponent<Rigidbody2D>();
             renderer = owner.GetComponent<SpriteRenderer>();
-            gravity = rigidbody.gravityScale;
         }
 
         public override void OnUpdate()
@@ -45,15 +43,6 @@ namespace Runtime
                 transform.localScale = new Vector3(attribute.moveX, 1, 1);
             }
 
-            if (attribute.state.HasFlag(StateType.Grab))
-            {
-                rigidbody.gravityScale = 0;
-                rigidbody.linearVelocityY = 0;
-            }
-            else
-            {
-                rigidbody.gravityScale = gravity;
-            }
 
             if (rigidbody.linearVelocityY < 0)
             {
@@ -67,39 +56,80 @@ namespace Runtime
             if (attribute.state.HasFlag(StateType.Ground))
             {
                 rigidbody.linearVelocityY = 0;
+                attribute.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
+                JumpUpdate();
+            }
+            else if (attribute.state.HasFlag(StateType.Wall))
+            {
+                if (attribute.moveX == 0)
+                {
+                    FallUpdate();
+                }
+
+                rigidbody.linearVelocityY = Mathf.Max(-1, rigidbody.linearVelocityY);
+                attribute.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
                 JumpUpdate();
             }
             else
             {
-                rigidbody.linearVelocityY = Mathf.Max(-10, rigidbody.linearVelocityY);
+                FallUpdate();
+                rigidbody.linearVelocityY = Mathf.Max(-5, rigidbody.linearVelocityY);
             }
 
-            if (attribute.state.HasFlag(StateType.Wall))
+            if (attribute.GetFloat(Attribute.JumpGrace) > Time.time)
             {
-                rigidbody.linearVelocityY = Mathf.Max(-1, rigidbody.linearVelocityY);
                 JumpUpdate();
             }
 
-            if (!attribute.state.HasFlag(StateType.Fly))
+            MoveUpdate();
+            base.OnUpdate();
+        }
+
+        private void MoveUpdate()
+        {
+            if (attribute.state.HasFlag(StateType.Jumped))
             {
-                rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
+                return;
             }
 
+            if (attribute.state.HasFlag(StateType.Grabbing))
+            {
+                return;
+            }
 
-            base.OnUpdate();
+            rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
+        }
+
+        private void FallUpdate()
+        {
+            if (attribute.state.HasFlag(StateType.Jumping))
+            {
+                rigidbody.linearVelocityY -= 9.81f * Time.deltaTime;
+            }
+            else
+            {
+                rigidbody.linearVelocityY -= 9.81f * Time.deltaTime * 2;
+            }
         }
 
         private void JumpUpdate()
         {
-            if (attribute.jumpCount > 0 && attribute.jumpInput > Time.time)
+            if (attribute.GetInt(Attribute.JumpCount) <= 0)
             {
-                if (!attribute.state.HasFlag(StateType.Jump))
-                {
-                    ChangeState<PlayerJump>();
-                }
-
-                attribute.SetFloat(Attribute.JumpInput, Time.time);
+                return;
             }
+
+            if (attribute.GetFloat(Attribute.JumpInput) < Time.time)
+            {
+                return;
+            }
+
+            if (!attribute.state.HasFlag(StateType.Jump))
+            {
+                ChangeState<PlayerJump>();
+            }
+
+            attribute.SetFloat(Attribute.JumpInput, Time.time);
         }
     }
 
@@ -124,7 +154,11 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (attribute.isWalk)
+            if (attribute.state.HasFlag(StateType.Grab))
+            {
+                machine.ChangeState<PlayerGrab>();
+            }
+            else if (attribute.isWalk)
             {
                 machine.ChangeState<PlayerWalk>();
             }
@@ -144,7 +178,11 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (!attribute.isWalk)
+            if (attribute.state.HasFlag(StateType.Grab))
+            {
+                machine.ChangeState<PlayerGrab>();
+            }
+            else if (!attribute.isWalk)
             {
                 machine.ChangeState<PlayerIdle>();
             }
@@ -164,17 +202,28 @@ namespace Runtime
             waitTime = Time.time + 0.2f;
             renderer.color = Color.red;
             attribute.state |= StateType.Jump;
-            attribute.SubFloat(Attribute.JumpCount, 1);
-            if (attribute.state.HasFlag(StateType.Ground))
+            attribute.SubInt(Attribute.JumpCount, 1);
+            if (attribute.state.HasFlag(StateType.Grab))
+            {
+                attribute.state |= StateType.Jumped;
+                rigidbody.linearVelocityY = attribute.jumpForce;
+                rigidbody.linearVelocityX = -transform.localScale.x * attribute.jumpForce * 0.7f;
+                transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
+            }
+            else if (attribute.state.HasFlag(StateType.Ground))
             {
                 rigidbody.linearVelocityY = attribute.jumpForce;
             }
+            else if (attribute.state.HasFlag(StateType.Wall))
+            {
+                attribute.state |= StateType.Jumped;
+                rigidbody.linearVelocityY = attribute.jumpForce;
+                rigidbody.linearVelocityX = -transform.localScale.x * attribute.jumpForce * 0.7f;
+                transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
+            }
             else
             {
-                attribute.state |= StateType.Fly;
                 rigidbody.linearVelocityY = attribute.jumpForce;
-                rigidbody.linearVelocityX = -transform.localScale.x * attribute.jumpForce;
-                transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
             }
         }
 
@@ -188,8 +237,42 @@ namespace Runtime
 
         protected override void OnExit()
         {
-            attribute.state &= ~StateType.Fly;
+            attribute.state &= ~StateType.Jumped;
             attribute.state &= ~StateType.Jump;
+        }
+    }
+
+    public class PlayerGrab : PlayerState
+    {
+        private float waitTime;
+
+        protected override void OnEnter()
+        {
+            waitTime = Time.time + 0.1f;
+            rigidbody.linearVelocityY = 0;
+            attribute.state |= StateType.Grabbing;
+        }
+
+        protected override void OnUpdate()
+        {
+            if (waitTime < Time.time)
+            {
+                if (!attribute.state.HasFlag(StateType.Grab))
+                {
+                    machine.ChangeState<PlayerIdle>();
+                }
+            }
+            else if (attribute.moveX != 0)
+            {
+                transform.position += Vector3.up * 0.02f;
+            }
+
+            rigidbody.linearVelocityY = attribute.moveY * attribute.moveSpeed / 2;
+        }
+
+        protected override void OnExit()
+        {
+            attribute.state &= ~StateType.Grabbing;
         }
     }
 }

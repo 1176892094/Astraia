@@ -19,6 +19,7 @@ namespace Const
         Vertical,
         MoveSpeed,
         JumpForce,
+        JumpGrace,
         JumpInput,
         JumpCount,
     }
@@ -29,11 +30,13 @@ namespace Const
         None,
         Stop = 1 << 0,
         Jump = 1 << 1,
-        Fly = 1 << 2,
-        Fall = 1 << 3,
-        Grab = 1 << 4,
-        Ground = 1 << 5,
-        Wall = 1 << 6,
-        Dash = 1 << 7
+        Jumping = 1 << 2,
+        Jumped = 1 << 3,
+        Fall = 1 << 4,
+        Grab = 1 << 5,
+        Grabbing = 1 << 6,
+        Ground = 1 << 7,
+        Wall = 1 << 8,
+        Dash = 1 << 9
     }
 }

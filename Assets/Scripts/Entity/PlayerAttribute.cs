@@ -28,14 +28,11 @@ namespace Runtime
         [ShowInInspector] public float moveX => this.GetFloat(Attribute.Horizontal);
         [ShowInInspector] public float moveY => this.GetFloat(Attribute.Vertical);
         [ShowInInspector] public float moveSpeed => this.GetFloat(Attribute.MoveSpeed);
-        [ShowInInspector] public float jumpInput => this.GetFloat(Attribute.JumpInput);
         [ShowInInspector] public float jumpForce => this.GetFloat(Attribute.JumpForce);
-        [ShowInInspector] public float jumpCount => this.GetFloat(Attribute.JumpCount);
 
         public bool isWalk => moveX != 0 || moveY != 0;
         public RaycastHit2D downRay => Physics2D.Raycast(transform.position, Vector3.down, 0.11f, 1 << 6);
-        public RaycastHit2D leftRay => Physics2D.Raycast(transform.position, Vector3.left, 0.11f, 1 << 6);
-        public RaycastHit2D rightRay => Physics2D.Raycast(transform.position, Vector3.right, 0.11f, 1 << 6);
+        public RaycastHit2D rightRay => Physics2D.Raycast(transform.position, transform.localScale.x * Vector3.right, 0.11f, 1 << 6);
 
 
         public override void OnShow(Component owner)
@@ -50,14 +47,14 @@ namespace Runtime
             if (downRay)
             {
                 state |= StateType.Ground;
-                this.SetFloat(Attribute.JumpCount, 1);
+                this.SetInt(Attribute.JumpCount, 1);
             }
             else
             {
                 state &= ~StateType.Ground;
             }
 
-            if (rightRay || leftRay)
+            if (rightRay)
             {
                 state |= StateType.Wall;
                 if (moveX != 0)
@@ -69,7 +66,7 @@ namespace Runtime
                     state &= ~StateType.Grab;
                 }
 
-                this.SetFloat(Attribute.JumpCount, 1);
+                this.SetInt(Attribute.JumpCount, 1);
             }
             else
             {

@@ -35,6 +35,11 @@ namespace Runtime
                 {
                     JumpButton();
                 }
+                
+                if (Input.GetKeyUp(KeyCode.X))
+                {
+                    FallButton();
+                }
 
                 if (Input.GetKeyDown(KeyCode.Z))
                 {
@@ -44,7 +49,13 @@ namespace Runtime
 
         private void JumpButton()
         {
+            attribute.state |= StateType.Jumping;
             attribute.SetFloat(Attribute.JumpInput, Time.time + 0.2f);
+        }
+        
+        private void FallButton()
+        {
+            attribute.state &= ~StateType.Jumping;
         }
     }
 }
