@@ -96,13 +96,19 @@ namespace Runtime
         {
             if (NetworkManager.Server.connections == 1)
             {
-                AssetManager.Load<GameObject>("Prefabs/SpawnManager", obj => { NetworkManager.Server.Spawn(obj); });
+                AssetManager.Load<GameObject>("Prefabs/SpawnManager", obj =>
+                {
+                    NetworkManager.Server.Spawn(obj);
+                });
             }
         }
 
         public void Execute(ServerReady message)
         {
-            AssetManager.Load<GameObject>("Prefabs/Player", obj => { NetworkManager.Server.Spawn(obj, message.client); });
+            AssetManager.Load<GameObject>("Prefabs/Player", obj =>
+            {
+                NetworkManager.Server.Spawn(obj, message.client);
+            });
         }
     }
 }
