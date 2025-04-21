@@ -37,8 +37,6 @@ namespace Runtime
 
         public void OnStartAuthority()
         {
-            GameManager.Instance.player = this;
-            GameManager.Instance.SetCamera(new Vector3(0, 3, 0), new Vector2(30, 8));
             machine.AddState<PlayerIdle>(typeof(PlayerIdle));
             machine.AddState<PlayerWalk>(typeof(PlayerWalk));
             machine.AddState<PlayerJump>(typeof(PlayerJump));
@@ -47,6 +45,7 @@ namespace Runtime
             machine.AddState<PlayerHop>(typeof(PlayerHop));
             machine.AddState<PlayerCrash>(typeof(PlayerCrash));
             machine.ChangeState<PlayerIdle>();
+            GameManager.Instance.SetCamera(this, new Vector3(0, 3, 0), new Vector2(30, 8));
         }
 
         private void OnDestroy()

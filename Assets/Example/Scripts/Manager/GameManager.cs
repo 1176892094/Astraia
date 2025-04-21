@@ -19,9 +19,9 @@ namespace Runtime
 {
     public class GameManager : Singleton<GameManager>, IEvent<ServerReady>, IEvent<ServerConnect>
     {
-        public Player player;
         private Vector2 center;
         private Vector2 content;
+        private Player player;
         private Camera mainCamera;
 
         protected override void Awake()
@@ -84,8 +84,9 @@ namespace Runtime
             UIManager.Show<LabelPanel>();
         }
 
-        public void SetCamera(Vector3 center, Vector2 sizeData)
+        public void SetCamera(Player player, Vector3 center, Vector2 sizeData)
         {
+            this.player = player;
             this.center = center;
             var height = sizeData.y / 2 - mainCamera.orthographicSize;
             var width = sizeData.x / 2 - mainCamera.orthographicSize * Screen.width / Screen.height;
