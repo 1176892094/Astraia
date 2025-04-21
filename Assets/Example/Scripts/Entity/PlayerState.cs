@@ -10,7 +10,6 @@
 // // *********************************************************************************
 
 using Astraia;
-using Astraia.Common;
 using UnityEngine;
 
 namespace Runtime
@@ -19,7 +18,6 @@ namespace Runtime
     {
         protected Transform transform => owner.transform;
         protected Rigidbody2D rigidbody => machine.rigidbody;
-        protected SpriteRenderer renderer => machine.renderer;
         protected PlayerMachine machine => owner.machine;
         protected PlayerAttribute attribute => owner.attribute;
         protected abstract override void OnEnter();
@@ -31,7 +29,7 @@ namespace Runtime
     {
         protected override void OnEnter()
         {
-            renderer.color = Color.white;
+            owner.SyncColorServerRpc(Color.white);
         }
 
         protected override void OnUpdate()
@@ -55,7 +53,7 @@ namespace Runtime
     {
         protected override void OnEnter()
         {
-            renderer.color = Color.green;
+            owner.SyncColorServerRpc(Color.green);
         }
 
         protected override void OnUpdate()
@@ -84,7 +82,7 @@ namespace Runtime
         protected override void OnEnter()
         {
             frameCount = Time.frameCount + 10;
-            renderer.color = Color.red;
+            owner.SyncColorServerRpc(Color.red);
             attribute.state |= StateType.Jump;
             attribute.SubInt(Attribute.JumpCount, 1);
             if (attribute.state.HasFlag(StateType.Ground))
@@ -110,6 +108,14 @@ namespace Runtime
             {
                 machine.ChangeState<PlayerIdle>();
             }
+
+            if (attribute.dashFrame > Time.frameCount)
+            {
+                if (attribute.moveX != 0)
+                {
+                    machine.ChangeState<PlayerCrash>();
+                }
+            }
         }
 
         protected override void OnExit()
@@ -123,18 +129,17 @@ namespace Runtime
     {
         private int frameCount;
 
-
         protected override void OnEnter()
         {
             frameCount = Time.frameCount + 5;
-            renderer.color = Color.cyan;
+            owner.SyncColorServerRpc(Color.cyan);
             attribute.state |= StateType.Grab;
             rigidbody.linearVelocityY = 0;
         }
 
         protected override void OnUpdate()
         {
-            if (attribute.rightRay && !attribute.rightUpRay)
+            if (attribute.rightDownRay && !attribute.rightUpRay)
             {
                 machine.ChangeState<PlayerHop>();
                 return;
@@ -170,7 +175,7 @@ namespace Runtime
         protected override void OnEnter()
         {
             frameCount = Time.frameCount + 10;
-            renderer.color = Color.red;
+            owner.SyncColorServerRpc(Color.red);
             attribute.state |= StateType.Grab;
             point = transform.position;
         }
@@ -204,33 +209,31 @@ namespace Runtime
 
     public class PlayerDash : PlayerState
     {
-        private int frameAwait;
-        private int frameCount;
         private Vector3 direction;
 
         protected override void OnEnter()
         {
-            frameCount = Time.frameCount + 10;
-            renderer.color = Color.magenta;
+            attribute.SetInt(Attribute.DashFrame, Time.frameCount + 10);
+            owner.SyncColorServerRpc(Color.magenta);
             attribute.state |= StateType.Dash;
             attribute.SubInt(Attribute.DashCount, 1);
             direction = new Vector3(attribute.moveX, attribute.moveY).normalized;
-            frameAwait = 0;
+            attribute.SetInt(Attribute.WaitFrame, 0);
         }
 
         protected override void OnUpdate()
         {
-            if (frameCount < Time.frameCount)
+            if (attribute.dashFrame < Time.frameCount)
             {
                 machine.ChangeState<PlayerIdle>();
             }
 
-            if (frameAwait % 4 == 0)
+            if (attribute.waitFrame % 4 == 0)
             {
                 owner.LoadEffectServerRpc(transform.position);
             }
 
-            frameAwait++;
+            attribute.AddInt(Attribute.WaitFrame, 1);
             var position = transform.position;
             if (direction == Vector3.zero)
             {
@@ -246,8 +249,38 @@ namespace Runtime
 
         protected override void OnExit()
         {
+            owner.SyncColorServerRpc(Color.magenta);
             rigidbody.linearVelocityY = 0;
             attribute.state &= ~StateType.Dash;
+        }
+    }
+
+    public class PlayerCrash : PlayerState
+    {
+        protected override void OnEnter()
+        {
+            attribute.state |= StateType.Crash;
+        }
+
+        protected override void OnUpdate()
+        {
+            if (attribute.state.HasFlag(StateType.Wall) || attribute.state.HasFlag(StateType.Ground))
+            {
+                machine.ChangeState<PlayerIdle>();
+            }
+
+            if (attribute.waitFrame % 4 == 0)
+            {
+                owner.LoadEffectServerRpc(transform.position);
+            }
+
+            attribute.AddInt(Attribute.WaitFrame, 1);
+            rigidbody.linearVelocityX = transform.localScale.x * attribute.moveSpeed * 2;
+        }
+
+        protected override void OnExit()
+        {
+            attribute.state &= ~StateType.Crash;
         }
     }
 }

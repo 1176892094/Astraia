@@ -26,9 +26,12 @@ namespace Runtime
         [ShowInInspector] public float moveSpeed => this.GetFloat(Attribute.MoveSpeed);
         [ShowInInspector] public float jumpForce => this.GetFloat(Attribute.JumpForce);
         [ShowInInspector] public float dashSpeed => this.GetFloat(Attribute.DashSpeed);
-        public RaycastHit2D rightRay => Physics2D.Raycast(owner.rightRay.origin, owner.rightRay.direction, 0.12f, 1 << 6);
+        [ShowInInspector] public float dashFrame => this.GetFloat(Attribute.DashFrame);
+        [ShowInInspector] public float waitFrame => this.GetFloat(Attribute.WaitFrame);
+
+        public RaycastHit2D downLeftRay => Physics2D.Raycast(owner.downLeftRay.origin, owner.downLeftRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D downRightRay => Physics2D.Raycast(owner.downRightRay.origin, owner.downRightRay.direction, 0.12f, 1 << 6);
         public RaycastHit2D rightUpRay => Physics2D.Raycast(owner.rightUpRay.origin, owner.rightUpRay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D leftDownRay => Physics2D.Raycast(owner.leftDownRay.origin, owner.leftDownRay.direction, 0.12f, 1 << 6);
         public RaycastHit2D rightDownRay => Physics2D.Raycast(owner.rightDownRay.origin, owner.rightDownRay.direction, 0.12f, 1 << 6);
 
 
@@ -43,7 +46,7 @@ namespace Runtime
         public override void OnUpdate()
         {
             if (!owner.isOwner) return;
-            if (rightDownRay || leftDownRay)
+            if (downRightRay || downLeftRay)
             {
                 state |= StateType.Ground;
                 this.SetInt(Attribute.JumpCount, 1);
@@ -54,7 +57,7 @@ namespace Runtime
                 state &= ~StateType.Ground;
             }
 
-            if (rightRay)
+            if (rightDownRay)
             {
                 state |= StateType.Wall;
                 this.SetInt(Attribute.JumpCount, 1);

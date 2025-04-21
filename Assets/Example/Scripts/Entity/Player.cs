@@ -10,20 +10,22 @@
 // // *********************************************************************************
 
 using Astraia;
+using Astraia.Common;
 using Astraia.Net;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Runtime
 {
-    public class Player : NetworkBehaviour
+    public class Player : NetworkBehaviour, IStartAuthority
     {
+        [SyncVar(nameof(OnColorValueChanged))] public Color syncColor;
         [ShowInInspector] public PlayerMachine machine => this.Find<PlayerMachine>();
         [ShowInInspector] public PlayerAttribute attribute => this.Find<PlayerAttribute>();
-        public Ray2D leftDownRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
-        public Ray2D rightDownRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
-        public Ray2D rightRay => new Ray2D(transform.position - Vector3.up * 0.075f, Vector3.right * transform.localScale.x);
+        public Ray2D downLeftRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
+        public Ray2D downRightRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
         public Ray2D rightUpRay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
+        public Ray2D rightDownRay => new Ray2D(transform.position - Vector3.up * 0.075f, Vector3.right * transform.localScale.x);
 
 
         private void Awake()
@@ -33,7 +35,7 @@ namespace Runtime
             this.Show<PlayerMachine>(typeof(PlayerMachine));
         }
 
-        private void Start()
+        public void OnStartAuthority()
         {
             machine.AddState<PlayerIdle>(typeof(PlayerIdle));
             machine.AddState<PlayerWalk>(typeof(PlayerWalk));
@@ -41,6 +43,7 @@ namespace Runtime
             machine.AddState<PlayerGrab>(typeof(PlayerGrab));
             machine.AddState<PlayerDash>(typeof(PlayerDash));
             machine.AddState<PlayerHop>(typeof(PlayerHop));
+            machine.AddState<PlayerCrash>(typeof(PlayerCrash));
             machine.ChangeState<PlayerIdle>();
         }
 
@@ -53,17 +56,27 @@ namespace Runtime
 
         private void OnDrawGizmos()
         {
-            Gizmos.DrawRay(rightRay.origin, rightRay.direction * 0.12f);
-            Gizmos.DrawRay(rightUpRay.origin, rightUpRay.direction * 0.12f);
-            Gizmos.DrawRay(leftDownRay.origin, rightDownRay.direction * 0.12f);
             Gizmos.DrawRay(rightDownRay.origin, rightDownRay.direction * 0.12f);
+            Gizmos.DrawRay(rightUpRay.origin, rightUpRay.direction * 0.12f);
+            Gizmos.DrawRay(downLeftRay.origin, downRightRay.direction * 0.12f);
+            Gizmos.DrawRay(downRightRay.origin, downRightRay.direction * 0.12f);
         }
-        
-        
+
+        private void OnColorValueChanged(Color oldValue, Color newValue)
+        {
+            machine.renderer.color = newValue;
+        }
+
         [ServerRpc]
         public void LoadEffectServerRpc(Vector3 position)
         {
             SpawnManager.Instance.LoadEffectClientRpc(position);
+        }
+
+        [ServerRpc]
+        public void SyncColorServerRpc(Color syncColor)
+        {
+            this.syncColor = syncColor;
         }
     }
 }

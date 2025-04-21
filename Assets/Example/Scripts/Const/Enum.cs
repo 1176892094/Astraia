@@ -23,6 +23,8 @@ namespace Runtime
         DashInput,
         DashCount,
         DashSpeed,
+        DashFrame,
+        WaitFrame,
     }
 
     [Flags]
@@ -33,10 +35,11 @@ namespace Runtime
         Jump = 1 << 1,
         Jumping = 1 << 2,
         Jumped = 1 << 3,
-        Climb  = 1 << 4,
+        Climb = 1 << 4,
         Grab = 1 << 5,
         Ground = 1 << 6,
         Wall = 1 << 8,
-        Dash = 1 << 9
+        Dash = 1 << 9,
+        Crash = 1 << 10,
     }
 }

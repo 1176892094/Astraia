@@ -40,7 +40,7 @@ namespace Runtime
             {
                 transform.localScale = new Vector3(attribute.moveX, 1, 1);
             }
-            
+
             DashUpdate();
 
             if (attribute.state.HasFlag(StateType.Ground))
@@ -67,7 +67,7 @@ namespace Runtime
             {
                 JumpUpdate();
             }
-            
+
             base.OnUpdate();
         }
 
