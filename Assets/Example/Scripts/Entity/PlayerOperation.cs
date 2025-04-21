@@ -17,15 +17,14 @@ namespace Runtime
 {
     public class PlayerOperation : Agent<Player>
     {
-        private PlayerMachine machine => owner.machine;
         private PlayerAttribute attribute => owner.attribute;
 
         public override void OnUpdate()
         {
             if (!attribute.state.HasFlag(StateType.Stop))
             {
-                attribute.SetFloat(Attribute.Horizontal, Input.GetAxisRaw("Horizontal"));
-                attribute.SetFloat(Attribute.Vertical, Input.GetAxisRaw("Vertical"));
+                attribute.moveY = Input.GetAxisRaw("Vertical");
+                attribute.moveX = Input.GetAxisRaw("Horizontal");
 
                 if (Input.GetKeyDown(KeyCode.C))
                 {

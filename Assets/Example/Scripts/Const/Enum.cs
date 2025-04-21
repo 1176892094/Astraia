@@ -15,8 +15,6 @@ namespace Const
 {
     public enum Attribute
     {
-        Horizontal,
-        Vertical,
         MoveSpeed,
         JumpForce,
         JumpGrace,

@@ -24,15 +24,16 @@ namespace Runtime
         private Transform transform => owner.transform;
         public StateType state;
 
-        [ShowInInspector] public float moveX => this.GetFloat(Attribute.Horizontal);
-        [ShowInInspector] public float moveY => this.GetFloat(Attribute.Vertical);
+        [ShowInInspector] public float moveX;
+        [ShowInInspector] public float moveY;
         [ShowInInspector] public float moveSpeed => this.GetFloat(Attribute.MoveSpeed);
         [ShowInInspector] public float jumpForce => this.GetFloat(Attribute.JumpForce);
         [ShowInInspector] public float dashSpeed => this.GetFloat(Attribute.DashSpeed);
 
         public bool isWalk => moveX != 0 || moveY != 0;
-        public RaycastHit2D groundRay => Physics2D.Raycast(transform.position, Vector3.down, 0.11f, 1 << 6);
-        public RaycastHit2D directRay => Physics2D.Raycast(transform.position, transform.localScale.x * Vector3.right, 0.11f, 1 << 6);
+        public RaycastHit2D groundRay => Physics2D.Raycast(transform.position, Vector3.down, 0.15f, 1 << 6);
+        public RaycastHit2D directRay => Physics2D.Raycast(transform.position, transform.localScale.x * Vector3.right, 0.15f, 1 << 6);
+        public RaycastHit2D heightRay => Physics2D.Raycast(transform.position + Vector3.up * 0.1f, transform.localScale.x * Vector3.right, 0.15f, 1 << 6);
 
 
         public override void OnShow(Component owner)
@@ -40,7 +41,7 @@ namespace Runtime
             base.OnShow(owner);
             this.SetFloat(Attribute.MoveSpeed, 2);
             this.SetFloat(Attribute.JumpForce, 4);
-            this.SetFloat(Attribute.DashSpeed, 6);
+            this.SetFloat(Attribute.DashSpeed, 5);
         }
 
         public override void OnUpdate()

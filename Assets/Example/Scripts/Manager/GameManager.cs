@@ -20,16 +20,17 @@ namespace Runtime
         protected override void Awake()
         {
             base.Awake();
+            Application.targetFrameRate = 60;
             var worldCamera = FindFirstObjectByType<Camera>();
             GlobalManager.Instance.canvas.worldCamera = worldCamera;
             GlobalManager.Instance.canvas.sortingOrder = 10;
             GlobalManager.Instance.gameObject.AddComponent<DebugManager>();
         }
 
-        private void Start()
+        private async void Start()
         {
-            Application.targetFrameRate = 60;
-            _ = AssetManager.Load<GameObject>("Prefabs/Player");
+            UIManager.Show<LabelPanel>();
+            await AssetManager.Load<GameObject>("Prefabs/Player");
         }
     }
 }

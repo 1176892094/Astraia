@@ -46,9 +46,9 @@ namespace Runtime
 
         private void OnDrawGizmos()
         {
-            Gizmos.DrawRay(transform.position, Vector3.down * 0.11f);
-            Gizmos.DrawRay(transform.position, transform.localScale.x * Vector3.right * 0.11f);
-            Gizmos.DrawRay(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x * 0.11f);
+            Gizmos.DrawRay(transform.position, Vector3.down * 0.15f);
+            Gizmos.DrawRay(transform.position, Vector3.right * transform.localScale.x  * 0.15f);
+            Gizmos.DrawRay(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x * 0.15f);
         }
     }
 }
