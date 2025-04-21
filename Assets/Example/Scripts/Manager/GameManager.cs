@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using Astraia;
 using Astraia.Common;
 using Astraia.Net;
@@ -18,14 +19,52 @@ namespace Runtime
 {
     public class GameManager : Singleton<GameManager>, IEvent<ServerReady>, IEvent<ServerConnect>
     {
+        public Player player;
+        private Vector2 center;
+        private Vector2 content;
+        private Camera mainCamera;
+
         protected override void Awake()
         {
             base.Awake();
             Application.targetFrameRate = 60;
-            var worldCamera = FindFirstObjectByType<Camera>();
-            GlobalManager.Instance.canvas.worldCamera = worldCamera;
+            mainCamera = FindFirstObjectByType<Camera>();
+            GlobalManager.Instance.canvas.worldCamera = mainCamera;
             GlobalManager.Instance.canvas.sortingOrder = 10;
             GlobalManager.Instance.gameObject.AddComponent<DebugManager>();
+        }
+
+        private void Update()
+        {
+            if (player == null)
+            {
+                return;
+            }
+
+            var position = player.transform.position;
+            var x = position.x;
+            if (x < center.x - content.x)
+            {
+                x = center.x - content.x;
+            }
+            else if (x > center.x + content.x)
+            {
+                x = center.x + content.x;
+            }
+
+            var y = position.y;
+            if (y < center.y - content.y)
+            {
+                y = center.y - content.y;
+            }
+            else if (y > center.y + content.y)
+            {
+                y = center.y + content.y;
+            }
+
+            position = new Vector3(x, y, 0);
+            var distance = Vector3.Distance(transform.position, position);
+            transform.position = Vector3.Lerp(transform.position, position, distance < 0.1f ? 0.5f - distance : 0.1f);
         }
 
         private void OnEnable()
@@ -45,23 +84,25 @@ namespace Runtime
             UIManager.Show<LabelPanel>();
         }
 
+        public void SetCamera(Vector3 center, Vector2 sizeData)
+        {
+            this.center = center;
+            var height = sizeData.y / 2 - mainCamera.orthographicSize;
+            var width = sizeData.x / 2 - mainCamera.orthographicSize * Screen.width / Screen.height;
+            content = new Vector2(Math.Max(0, width), Math.Max(0, height));
+        }
+
         public void Execute(ServerConnect message)
         {
             if (NetworkManager.Server.connections == 1)
             {
-                AssetManager.Load<GameObject>("Prefabs/SpawnManager", obj =>
-                {
-                    NetworkManager.Server.Spawn(obj);
-                });
+                AssetManager.Load<GameObject>("Prefabs/SpawnManager", obj => { NetworkManager.Server.Spawn(obj); });
             }
         }
 
         public void Execute(ServerReady message)
         {
-            AssetManager.Load<GameObject>("Prefabs/Player", obj =>
-            {
-                NetworkManager.Server.Spawn(obj, message.client);
-            });
+            AssetManager.Load<GameObject>("Prefabs/Player", obj => { NetworkManager.Server.Spawn(obj, message.client); });
         }
     }
 }

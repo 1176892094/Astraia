@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using Astraia;
 using Astraia.Common;
 using Astraia.Net;
@@ -37,6 +38,8 @@ namespace Runtime
 
         public void OnStartAuthority()
         {
+            GameManager.Instance.player = this;
+            GameManager.Instance.SetCamera(new Vector3(0, 3, 0), new Vector2(30, 8));
             machine.AddState<PlayerIdle>(typeof(PlayerIdle));
             machine.AddState<PlayerWalk>(typeof(PlayerWalk));
             machine.AddState<PlayerJump>(typeof(PlayerJump));

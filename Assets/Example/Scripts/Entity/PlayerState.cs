@@ -37,8 +37,10 @@ namespace Runtime
             if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Climb))
             {
                 machine.ChangeState<PlayerGrab>();
+                return;
             }
-            else if (attribute.isWalk)
+
+            if (attribute.isWalk)
             {
                 machine.ChangeState<PlayerWalk>();
             }
@@ -61,10 +63,13 @@ namespace Runtime
             if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Climb))
             {
                 machine.ChangeState<PlayerGrab>();
+                return;
             }
-            else if (!attribute.isWalk)
+
+            if (!attribute.isWalk)
             {
                 machine.ChangeState<PlayerIdle>();
+                return;
             }
 
             rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
@@ -72,6 +77,7 @@ namespace Runtime
 
         protected override void OnExit()
         {
+            rigidbody.linearVelocityX = 0;
         }
     }
 
@@ -107,6 +113,7 @@ namespace Runtime
             if (frameCount < Time.frameCount)
             {
                 machine.ChangeState<PlayerIdle>();
+                return;
             }
 
             if (attribute.dashFrame > Time.frameCount)
@@ -114,8 +121,11 @@ namespace Runtime
                 if (attribute.moveX != 0)
                 {
                     machine.ChangeState<PlayerCrash>();
+                    return;
                 }
             }
+
+            rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
         }
 
         protected override void OnExit()
@@ -150,6 +160,7 @@ namespace Runtime
                 if (!attribute.state.HasFlag(StateType.Wall) || !attribute.state.HasFlag(StateType.Climb))
                 {
                     machine.ChangeState<PlayerIdle>();
+                    return;
                 }
             }
             else if (attribute.moveX != 0)
@@ -185,6 +196,7 @@ namespace Runtime
             if (frameCount < Time.frameCount)
             {
                 machine.ChangeState<PlayerIdle>();
+                return;
             }
 
             var position = transform.position;
@@ -226,6 +238,7 @@ namespace Runtime
             if (attribute.dashFrame < Time.frameCount)
             {
                 machine.ChangeState<PlayerIdle>();
+                return;
             }
 
             if (attribute.waitFrame % 4 == 0)
@@ -239,6 +252,10 @@ namespace Runtime
             {
                 position += Vector3.right * (transform.localScale.x * attribute.dashSpeed * Time.fixedDeltaTime);
             }
+            else if (attribute.moveY < 0 && attribute.state.HasFlag(StateType.Ground))
+            {
+                position += Vector3.right * (transform.localScale.x * attribute.dashSpeed * Time.fixedDeltaTime);
+            }
             else
             {
                 position += direction * (attribute.dashSpeed * Time.fixedDeltaTime);
@@ -249,8 +266,7 @@ namespace Runtime
 
         protected override void OnExit()
         {
-            owner.SyncColorServerRpc(Color.magenta);
-            rigidbody.linearVelocityY = 0;
+            rigidbody.linearVelocityX = 0;
             attribute.state &= ~StateType.Dash;
         }
     }
@@ -260,6 +276,7 @@ namespace Runtime
         protected override void OnEnter()
         {
             attribute.state |= StateType.Crash;
+            owner.SyncColorServerRpc(Color.magenta);
         }
 
         protected override void OnUpdate()
@@ -267,9 +284,10 @@ namespace Runtime
             if (attribute.state.HasFlag(StateType.Wall) || attribute.state.HasFlag(StateType.Ground))
             {
                 machine.ChangeState<PlayerIdle>();
+                return;
             }
 
-            if (attribute.waitFrame % 4 == 0)
+            if (attribute.waitFrame % 5 == 0)
             {
                 owner.LoadEffectServerRpc(transform.position);
             }
@@ -280,6 +298,7 @@ namespace Runtime
 
         protected override void OnExit()
         {
+            rigidbody.linearVelocityX = 0;
             attribute.state &= ~StateType.Crash;
         }
     }

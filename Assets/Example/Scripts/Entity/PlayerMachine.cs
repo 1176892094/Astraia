@@ -18,7 +18,7 @@ namespace Runtime
     {
         private Transform transform => owner.transform;
         private PlayerAttribute attribute => owner.attribute;
-
+        
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
 
