@@ -11,11 +11,12 @@
 
 using Astraia;
 using Astraia.Common;
+using Astraia.Net;
 using UnityEngine;
 
 namespace Runtime
 {
-    public class GameManager : Singleton<GameManager>
+    public class GameManager : Singleton<GameManager>, IEvent<ServerReady>, IEvent<ServerConnect>
     {
         protected override void Awake()
         {
@@ -27,10 +28,40 @@ namespace Runtime
             GlobalManager.Instance.gameObject.AddComponent<DebugManager>();
         }
 
-        private async void Start()
+        private void OnEnable()
         {
-            await AssetManager.Load<GameObject>("Prefabs/Player");
+            EventManager.Listen<ServerReady>(this);
+            EventManager.Listen<ServerConnect>(this);
+        }
+
+        private void OnDisable()
+        {
+            EventManager.Remove<ServerReady>(this);
+            EventManager.Remove<ServerConnect>(this);
+        }
+
+        private void Start()
+        {
             UIManager.Show<LabelPanel>();
+        }
+
+        public void Execute(ServerConnect message)
+        {
+            if (NetworkManager.Server.connections == 1)
+            {
+                AssetManager.Load<GameObject>("Prefabs/SpawnManager", obj =>
+                {
+                    NetworkManager.Server.Spawn(obj);
+                });
+            }
+        }
+
+        public void Execute(ServerReady message)
+        {
+            AssetManager.Load<GameObject>("Prefabs/Player", obj =>
+            {
+                NetworkManager.Server.Spawn(obj, message.client);
+            });
         }
     }
 }

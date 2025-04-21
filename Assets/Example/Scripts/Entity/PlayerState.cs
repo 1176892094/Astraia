@@ -227,13 +227,7 @@ namespace Runtime
 
             if (frameAwait % 4 == 0)
             {
-                PoolManager.Show("Prefabs/Effect", obj =>
-                {
-                    var sprite = obj.GetComponent<SpriteRenderer>();
-                    sprite.transform.position = transform.position;
-                    sprite.color = new Color(0, 0, 0, 1);
-                    sprite.DOFade(0, 0.5f).OnComplete(() => PoolManager.Hide(obj));
-                });
+                owner.LoadEffectServerRpc(transform.position);
             }
 
             frameAwait++;

@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using Astraia.Common;
 using UnityEngine;
 #if UNITY_EDITOR
+using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
@@ -112,6 +113,12 @@ namespace Astraia.Net
                     if (!string.IsNullOrEmpty(importer.assetBundleName))
                     {
                         assetId = char.ToUpper(asset[0]) + asset.Substring(1) + "/" + name;
+                    }
+                    else
+                    {
+                        string directory = Path.GetDirectoryName(assetPath);
+                        string folderName = Path.GetFileName(directory);
+                        assetId = folderName + "/" + name;
                     }
                 }
             }

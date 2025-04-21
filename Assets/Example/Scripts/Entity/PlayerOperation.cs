@@ -20,6 +20,7 @@ namespace Runtime
 
         public override void OnUpdate()
         {
+            if (!owner.isOwner) return;
             if (!attribute.state.HasFlag(StateType.Stop))
             {
                 attribute.moveY = Input.GetAxisRaw("Vertical");

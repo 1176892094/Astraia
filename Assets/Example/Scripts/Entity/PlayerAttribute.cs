@@ -11,10 +11,8 @@
 
 using System;
 using Astraia;
-using Runtime;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using Attribute = Runtime.Attribute;
 
 namespace Runtime
 {
@@ -44,6 +42,7 @@ namespace Runtime
 
         public override void OnUpdate()
         {
+            if (!owner.isOwner) return;
             if (rightDownRay || leftDownRay)
             {
                 state |= StateType.Ground;

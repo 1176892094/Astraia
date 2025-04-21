@@ -10,12 +10,13 @@
 // // *********************************************************************************
 
 using Astraia;
+using Astraia.Net;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Runtime
 {
-    public class Player : MonoBehaviour
+    public class Player : NetworkBehaviour
     {
         [ShowInInspector] public PlayerMachine machine => this.Find<PlayerMachine>();
         [ShowInInspector] public PlayerAttribute attribute => this.Find<PlayerAttribute>();
@@ -56,6 +57,13 @@ namespace Runtime
             Gizmos.DrawRay(rightUpRay.origin, rightUpRay.direction * 0.12f);
             Gizmos.DrawRay(leftDownRay.origin, rightDownRay.direction * 0.12f);
             Gizmos.DrawRay(rightDownRay.origin, rightDownRay.direction * 0.12f);
+        }
+        
+        
+        [ServerRpc]
+        public void LoadEffectServerRpc(Vector3 position)
+        {
+            SpawnManager.Instance.LoadEffectClientRpc(position);
         }
     }
 }

@@ -31,6 +31,7 @@ namespace Runtime
 
         public override void OnUpdate()
         {
+            if (!owner.isOwner) return;
             if (attribute.moveX > 0)
             {
                 transform.localScale = new Vector3(attribute.moveX, 1, 1);
