@@ -29,6 +29,7 @@ namespace Runtime
     {
         protected override void OnEnter()
         {
+            rigidbody.linearVelocityX = 0;
             owner.SyncColorServerRpc(Color.white);
         }
 
@@ -77,7 +78,6 @@ namespace Runtime
 
         protected override void OnExit()
         {
-            rigidbody.linearVelocityX = 0;
         }
     }
 
@@ -99,7 +99,7 @@ namespace Runtime
             {
                 attribute.state |= StateType.Jumped;
                 rigidbody.linearVelocityY = attribute.jumpForce;
-                rigidbody.linearVelocityX = -transform.localScale.x * attribute.jumpForce * 0.7f;
+                rigidbody.linearVelocityX = -transform.localScale.x * attribute.jumpForce;
                 transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
             }
             else
@@ -125,7 +125,10 @@ namespace Runtime
                 }
             }
 
-            rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
+            if (!attribute.state.HasFlag(StateType.Jumped))
+            {
+                rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
+            }
         }
 
         protected override void OnExit()
@@ -266,7 +269,7 @@ namespace Runtime
 
         protected override void OnExit()
         {
-            rigidbody.linearVelocityX = 0;
+            rigidbody.linearVelocityY = 0;
             attribute.state &= ~StateType.Dash;
         }
     }
