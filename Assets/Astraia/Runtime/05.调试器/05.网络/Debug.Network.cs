@@ -24,7 +24,15 @@ namespace Astraia.Common
             GUILayout.EndHorizontal();
 
             screenView = GUILayout.BeginScrollView(screenView, "Box");
-            GUILayout.Label("网络地址: \t\t" + Transport.Instance.address + " : " + Transport.Instance.port);
+            if (Transport.Instance)
+            {
+                GUILayout.Label("网络地址: \t\t" + Transport.Instance.address + " : " + Transport.Instance.port);
+            }
+            else
+            {
+                GUILayout.Label("网络地址: \t\t" + "None");
+            }
+
             GUILayout.Label("网络模式: \t\t" + NetworkManager.Mode);
             GUILayout.Label("客户端: \t\t" + NetworkManager.Client.isActive);
             GUILayout.Label("服务器: \t\t" + NetworkManager.Server.isActive);
@@ -41,8 +49,17 @@ namespace Astraia.Common
             GUILayout.Label("连接状态: \t\t" + message);
             GUILayout.Label("消息传输: \t\t" + NetworkManager.Client.isReady);
             GUILayout.Label("往返时间: \t\t" + Math.Min((int)(framePing * 1000), 999) + "ms");
-            GUILayout.Label("连接数量: \t\t" + NetworkManager.Server.connections + "/" + NetworkManager.Instance.connection);
-            GUILayout.Label("同步帧率: \t\t" + NetworkManager.Instance.sendRate);
+            if (NetworkManager.Instance)
+            {
+                GUILayout.Label("连接数量: \t\t" + NetworkManager.Server.connections + "/" + NetworkManager.Instance.connection);
+                GUILayout.Label("同步帧率: \t\t" + NetworkManager.Instance.sendRate);
+            }
+            else
+            {
+                GUILayout.Label("连接数量: \t\t" + 0 + "/" + 0);
+                GUILayout.Label("同步帧率: \t\t" + 0);
+            }
+
             GUILayout.EndScrollView();
 
             GUILayout.BeginHorizontal();

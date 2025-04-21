@@ -12,7 +12,7 @@
 using Astraia;
 using UnityEngine;
 
-namespace Const
+namespace Runtime
 {
     public static class Extensions
     {

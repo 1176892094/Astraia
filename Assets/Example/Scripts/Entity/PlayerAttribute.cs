@@ -11,29 +11,27 @@
 
 using System;
 using Astraia;
-using Const;
+using Runtime;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using Attribute = Const.Attribute;
+using Attribute = Runtime.Attribute;
 
 namespace Runtime
 {
     [Serializable]
     public class PlayerAttribute : Attribute<Player, Attribute>
     {
-        private Transform transform => owner.transform;
-        public StateType state;
-
-        [ShowInInspector] public float moveX;
-        [ShowInInspector] public float moveY;
+        public StateType state = StateType.None;
+        public float moveX;
+        public float moveY;
+        [ShowInInspector] public bool isWalk => moveX != 0 || moveY != 0;
         [ShowInInspector] public float moveSpeed => this.GetFloat(Attribute.MoveSpeed);
         [ShowInInspector] public float jumpForce => this.GetFloat(Attribute.JumpForce);
         [ShowInInspector] public float dashSpeed => this.GetFloat(Attribute.DashSpeed);
-
-        public bool isWalk => moveX != 0 || moveY != 0;
-        public RaycastHit2D groundRay => Physics2D.Raycast(transform.position, Vector3.down, 0.15f, 1 << 6);
-        public RaycastHit2D directRay => Physics2D.Raycast(transform.position, transform.localScale.x * Vector3.right, 0.15f, 1 << 6);
-        public RaycastHit2D heightRay => Physics2D.Raycast(transform.position + Vector3.up * 0.1f, transform.localScale.x * Vector3.right, 0.15f, 1 << 6);
+        public RaycastHit2D rightRay => Physics2D.Raycast(owner.rightRay.origin, owner.rightRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D rightUpRay => Physics2D.Raycast(owner.rightUpRay.origin, owner.rightUpRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D leftDownRay => Physics2D.Raycast(owner.leftDownRay.origin, owner.leftDownRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D rightDownRay => Physics2D.Raycast(owner.rightDownRay.origin, owner.rightDownRay.direction, 0.12f, 1 << 6);
 
 
         public override void OnShow(Component owner)
@@ -46,7 +44,7 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (groundRay)
+            if (rightDownRay || leftDownRay)
             {
                 state |= StateType.Ground;
                 this.SetInt(Attribute.JumpCount, 1);
@@ -57,7 +55,7 @@ namespace Runtime
                 state &= ~StateType.Ground;
             }
 
-            if (directRay)
+            if (rightRay)
             {
                 state |= StateType.Wall;
                 this.SetInt(Attribute.JumpCount, 1);

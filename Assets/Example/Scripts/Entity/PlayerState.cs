@@ -11,7 +11,6 @@
 
 using Astraia;
 using Astraia.Common;
-using Const;
 using UnityEngine;
 
 namespace Runtime
@@ -37,7 +36,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Grab))
+            if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Climb))
             {
                 machine.ChangeState<PlayerGrab>();
             }
@@ -61,7 +60,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Grab))
+            if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Climb))
             {
                 machine.ChangeState<PlayerGrab>();
             }
@@ -69,6 +68,8 @@ namespace Runtime
             {
                 machine.ChangeState<PlayerIdle>();
             }
+
+            rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
         }
 
         protected override void OnExit()
@@ -78,11 +79,11 @@ namespace Runtime
 
     public class PlayerJump : PlayerState
     {
-        private float waitTime;
+        private int frameCount;
 
         protected override void OnEnter()
         {
-            waitTime = Time.time + 0.2f;
+            frameCount = Time.frameCount + 10;
             renderer.color = Color.red;
             attribute.state |= StateType.Jump;
             attribute.SubInt(Attribute.JumpCount, 1);
@@ -105,7 +106,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (waitTime < Time.time)
+            if (frameCount < Time.frameCount)
             {
                 machine.ChangeState<PlayerIdle>();
             }
@@ -113,27 +114,35 @@ namespace Runtime
 
         protected override void OnExit()
         {
-            attribute.state &= ~StateType.Jumped;
             attribute.state &= ~StateType.Jump;
+            attribute.state &= ~StateType.Jumped;
         }
     }
 
     public class PlayerGrab : PlayerState
     {
-        private float waitTime;
+        private int frameCount;
+
 
         protected override void OnEnter()
         {
-            waitTime = Time.time + 0.1f;
+            frameCount = Time.frameCount + 5;
+            renderer.color = Color.cyan;
+            attribute.state |= StateType.Grab;
             rigidbody.linearVelocityY = 0;
-            attribute.state |= StateType.Grabbing;
         }
 
         protected override void OnUpdate()
         {
-            if (waitTime < Time.time)
+            if (attribute.rightRay && !attribute.rightUpRay)
             {
-                if (!attribute.state.HasFlag(StateType.Wall) || !attribute.state.HasFlag(StateType.Grab))
+                machine.ChangeState<PlayerHop>();
+                return;
+            }
+
+            if (frameCount < Time.frameCount)
+            {
+                if (!attribute.state.HasFlag(StateType.Wall) || !attribute.state.HasFlag(StateType.Climb))
                 {
                     machine.ChangeState<PlayerIdle>();
                 }
@@ -144,50 +153,90 @@ namespace Runtime
             }
 
             rigidbody.linearVelocityY = attribute.moveY * attribute.moveSpeed / 2;
-
-            if (!attribute.heightRay)
-            {
-                rigidbody.linearVelocityY = attribute.moveY * attribute.moveSpeed;
-                rigidbody.linearVelocityX = transform.localScale.x * attribute.moveSpeed;
-            }
         }
 
         protected override void OnExit()
         {
-            attribute.state &= ~StateType.Grabbing;
+            attribute.state &= ~StateType.Grab;
+        }
+    }
+
+    public class PlayerHop : PlayerState
+    {
+        private int frameCount;
+        private Vector3 point;
+
+
+        protected override void OnEnter()
+        {
+            frameCount = Time.frameCount + 10;
+            renderer.color = Color.red;
+            attribute.state |= StateType.Grab;
+            point = transform.position;
+        }
+
+        protected override void OnUpdate()
+        {
+            if (frameCount < Time.frameCount)
+            {
+                machine.ChangeState<PlayerIdle>();
+            }
+
+            var position = transform.position;
+            if (position.y < point.y + 0.2f)
+            {
+                position += Vector3.up * (2 * Time.fixedDeltaTime);
+            }
+
+            if (position.x < point.x + 0.2f || position.x > point.x - 0.2f)
+            {
+                position += Vector3.right * (transform.localScale.x * Time.fixedDeltaTime);
+            }
+
+            rigidbody.MovePosition(position);
+        }
+
+        protected override void OnExit()
+        {
+            attribute.state &= ~StateType.Grab;
         }
     }
 
     public class PlayerDash : PlayerState
     {
-        private int frameWait;
+        private int frameAwait;
         private int frameCount;
         private Vector3 direction;
 
         protected override void OnEnter()
         {
-            frameWait = 0;
             frameCount = Time.frameCount + 10;
             renderer.color = Color.magenta;
             attribute.state |= StateType.Dash;
             attribute.SubInt(Attribute.DashCount, 1);
             direction = new Vector3(attribute.moveX, attribute.moveY).normalized;
+            frameAwait = 0;
         }
 
         protected override void OnUpdate()
         {
-            if (frameWait % 4 == 0)
+            if (frameCount < Time.frameCount)
+            {
+                machine.ChangeState<PlayerIdle>();
+            }
+
+            if (frameAwait % 4 == 0)
             {
                 PoolManager.Show("Prefabs/Effect", obj =>
                 {
-                    obj.transform.position = transform.position;
-                    var component = obj.GetComponent<SpriteRenderer>();
-                    component.color = new Color(0, 0, 0, 1);
-                    component.DOFade(0, 0.5f).OnComplete(() => PoolManager.Hide(obj));
+                    var sprite = obj.GetComponent<SpriteRenderer>();
+                    sprite.transform.position = transform.position;
+                    sprite.color = new Color(0, 0, 0, 1);
+                    sprite.DOFade(0, 0.5f).OnComplete(() => PoolManager.Hide(obj));
                 });
             }
 
-            frameWait++;
+            frameAwait++;
             var position = transform.position;
             if (direction == Vector3.zero)
             {
@@ -199,10 +248,6 @@ namespace Runtime
             }
 
             rigidbody.MovePosition(position);
-            if (frameCount < Time.frameCount)
-            {
-                machine.ChangeState<PlayerIdle>();
-            }
         }
 
         protected override void OnExit()

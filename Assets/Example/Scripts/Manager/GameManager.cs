@@ -29,8 +29,8 @@ namespace Runtime
 
         private async void Start()
         {
-            UIManager.Show<LabelPanel>();
             await AssetManager.Load<GameObject>("Prefabs/Player");
+            UIManager.Show<LabelPanel>();
         }
     }
 }

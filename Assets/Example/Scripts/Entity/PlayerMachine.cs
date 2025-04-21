@@ -10,9 +10,7 @@
 // // *********************************************************************************
 
 using Astraia;
-using Const;
 using UnityEngine;
-using Attribute = Const.Attribute;
 
 namespace Runtime
 {
@@ -41,27 +39,17 @@ namespace Runtime
             {
                 transform.localScale = new Vector3(attribute.moveX, 1, 1);
             }
-
-            if (rigidbody.linearVelocityY < 0)
-            {
-                attribute.state |= StateType.Fall;
-            }
-            else
-            {
-                attribute.state &= ~StateType.Fall;
-            }
-
+            
             DashUpdate();
 
             if (attribute.state.HasFlag(StateType.Ground))
             {
-                rigidbody.linearVelocityY = 0;
                 attribute.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
                 JumpUpdate();
             }
             else if (attribute.state.HasFlag(StateType.Wall))
             {
-                if (!attribute.state.HasFlag(StateType.Grab))
+                if (!attribute.state.HasFlag(StateType.Climb))
                 {
                     FallUpdate();
                 }
@@ -78,29 +66,8 @@ namespace Runtime
             {
                 JumpUpdate();
             }
-
-            MoveUpdate();
+            
             base.OnUpdate();
-        }
-
-        private void MoveUpdate()
-        {
-            if (attribute.state.HasFlag(StateType.Dash))
-            {
-                return;
-            }
-
-            if (attribute.state.HasFlag(StateType.Jumped))
-            {
-                return;
-            }
-
-            if (attribute.state.HasFlag(StateType.Grabbing))
-            {
-                return;
-            }
-
-            rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
         }
 
         private void FallUpdate()

@@ -11,7 +11,7 @@
 
 using System;
 
-namespace Const
+namespace Runtime
 {
     public enum Attribute
     {
@@ -33,11 +33,10 @@ namespace Const
         Jump = 1 << 1,
         Jumping = 1 << 2,
         Jumped = 1 << 3,
-        Fall = 1 << 4,
+        Climb  = 1 << 4,
         Grab = 1 << 5,
-        Grabbing = 1 << 6,
-        Ground = 1 << 7,
+        Ground = 1 << 6,
         Wall = 1 << 8,
-        Dash = 1 << 10
+        Dash = 1 << 9
     }
 }

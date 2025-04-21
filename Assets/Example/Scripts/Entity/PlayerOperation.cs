@@ -10,7 +10,6 @@
 // // *********************************************************************************
 
 using Astraia;
-using Const;
 using UnityEngine;
 
 namespace Runtime
@@ -38,17 +37,17 @@ namespace Runtime
 
                 if (Input.GetKeyUp(KeyCode.X))
                 {
-                    JumpedButton();
+                    FallButton();
                 }
 
                 if (Input.GetKeyDown(KeyCode.Z))
                 {
-                    GrabButton();
+                    ClimbButton();
                 }
 
                 if (Input.GetKeyUp(KeyCode.Z))
                 {
-                    GrabbedButton();
+                    GrabButton();
                 }
             }
         }
@@ -59,19 +58,19 @@ namespace Runtime
             attribute.SetFloat(Attribute.JumpInput, Time.time + 0.2f);
         }
 
-        private void JumpedButton()
+        private void FallButton()
         {
             attribute.state &= ~StateType.Jumping;
         }
 
-        private void GrabButton()
+        private void ClimbButton()
         {
-            attribute.state |= StateType.Grab;
+            attribute.state |= StateType.Climb;
         }
 
-        private void GrabbedButton()
+        private void GrabButton()
         {
-            attribute.state &= ~StateType.Grab;
+            attribute.state &= ~StateType.Climb;
         }
 
         private void DashButton()
