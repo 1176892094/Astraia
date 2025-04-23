@@ -49,7 +49,7 @@ namespace Astraia
 
             protected override void Receive(ArraySegment<byte> message, int channel) => OnReceive?.Invoke(message, channel);
 
-            protected override void Logger(Error error, string message) => OnError?.Invoke(error, message);
+            protected override void LogError(Error error, string message) => OnError?.Invoke(error, message);
 
             public void Input(ArraySegment<byte> segment)
             {
@@ -65,7 +65,7 @@ namespace Astraia
                 {
                     if (newCookie != cookie)
                     {
-                        Log.Info($"从 {endPoint} 删除无效cookie: {newCookie}预期:{cookie}。");
+                        Log.Info(Service.Text.Format(Logs.E127, endPoint, newCookie, cookie));
                         return;
                     }
                 }

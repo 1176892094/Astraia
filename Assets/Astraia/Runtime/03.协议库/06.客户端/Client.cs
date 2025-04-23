@@ -43,7 +43,7 @@ namespace Astraia
             {
                 if (state != State.Disconnect)
                 {
-                    Log.Warn("客户端已经连接！");
+                    Log.Warn(Logs.E128);
                     return;
                 }
 
@@ -56,17 +56,17 @@ namespace Astraia
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     Utils.SetBuffer(socket);
                     socket.Connect(endPoint);
-                    Log.Info($"客户端连接到：{addresses[0]} 端口：{port}。");
+                    Log.Info(Service.Text.Format(Logs.E130, addresses[0], port));
                     SendReliable(Reliable.Connect);
                 }
             }
             catch (SocketException e)
             {
-                Logger(Error.DnsResolve, $"无法解析主机地址：{address}\n" + e);
+                LogError(Error.DnsResolve, Service.Text.Format(Logs.E141, address, e));
                 OnDisconnect?.Invoke();
             }
         }
-        
+
         private bool TryReceive(out ArraySegment<byte> segment)
         {
             segment = default;
@@ -85,7 +85,7 @@ namespace Astraia
                     return false;
                 }
 
-                Log.Info($"客户端接收消息失败！\n{e}");
+                Log.Info(Service.Text.Format(Logs.E132, e));
                 Disconnect();
                 return false;
             }
@@ -95,13 +95,13 @@ namespace Astraia
         {
             if (state == State.Disconnect)
             {
-                Log.Warn("客户端没有连接，发送消息失败！");
+                Log.Warn(Logs.E129);
                 return;
             }
 
             SendData(segment, channel);
         }
-        
+
         private void Input(ArraySegment<byte> segment)
         {
             if (segment.Count <= 1 + 4)
@@ -113,7 +113,7 @@ namespace Astraia
             Utils.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
             if (newCookie == 0)
             {
-                Log.Error($"网络代理丢弃了无效的签名缓存。旧：{cookie} 新：{newCookie}");
+                Log.Error(Service.Text.Format(Logs.E133, cookie, newCookie));
             }
 
             if (cookie == 0)
@@ -122,7 +122,7 @@ namespace Astraia
             }
             else if (cookie != newCookie)
             {
-                Log.Info($"从 {endPoint} 删除无效cookie: {newCookie}预期:{cookie}。");
+                Log.Error(Service.Text.Format(Logs.E127, endPoint, cookie, newCookie));
                 return;
             }
 
@@ -131,7 +131,7 @@ namespace Astraia
 
         protected override void Connected()
         {
-            Log.Info("客户端连接成功。");
+            Log.Info(Logs.E134);
             OnConnect?.Invoke();
         }
 
@@ -152,7 +152,8 @@ namespace Astraia
                     return;
                 }
 
-                Log.Info($"客户端发送消息失败！\n{e}");
+
+                Log.Info(Service.Text.Format(Logs.E131, e));
             }
         }
 
@@ -161,14 +162,14 @@ namespace Astraia
             OnReceive?.Invoke(message, channel);
         }
 
-        protected override void Logger(Error error, string message)
+        protected override void LogError(Error error, string message)
         {
             OnError?.Invoke(error, message);
         }
 
         protected override void Disconnected()
         {
-            Log.Info("客户端断开连接。");
+            Log.Info(Logs.E135);
             OnDisconnect?.Invoke();
             endPoint = null;
             socket?.Close();

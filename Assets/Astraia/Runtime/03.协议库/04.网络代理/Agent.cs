@@ -82,21 +82,21 @@ namespace Astraia
 
             if (size > receiveBuffer.Length)
             {
-                Logger(Error.InvalidReceive, $"{GetType()}: 网络消息长度溢出 {receiveBuffer.Length} < {size}。");
+                LogError(Error.InvalidReceive, Service.Text.Format(Logs.E142, GetType(), receiveBuffer.Length, size));
                 Disconnect();
                 return false;
             }
 
             if (kcp.Receive(receiveBuffer, size) < 0)
             {
-                Logger(Error.InvalidReceive, $"{GetType()}: 接收网络消息失败。");
+                LogError(Error.InvalidReceive, Service.Text.Format(Logs.E143, GetType()));
                 Disconnect();
                 return false;
             }
 
             if (!Utils.ParseReliable(receiveBuffer[0], out header))
             {
-                Logger(Error.InvalidReceive, $"{GetType()}: 未知的网络消息头部 {header}");
+                LogError(Error.InvalidReceive, Service.Text.Format(Logs.E144, GetType(), header));
                 Disconnect();
                 return false;
             }
@@ -112,7 +112,7 @@ namespace Astraia
             {
                 if (kcp.Input(segment.Array, segment.Offset, segment.Count) != 0)
                 {
-                    Log.Warn($"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count - 1}");
+                    Log.Warn(Service.Text.Format(Logs.E112, GetType(), segment.Count - 1));
                 }
             }
             else if (channel == Channel.Unreliable)
@@ -121,7 +121,7 @@ namespace Astraia
                 var headerByte = segment.Array[segment.Offset];
                 if (!Utils.ParseUnreliable(headerByte, out var header))
                 {
-                    Logger(Error.InvalidReceive, $"{GetType()}: 未知的网络消息头部 {header}");
+                    LogError(Error.InvalidReceive, Service.Text.Format(Logs.E144, GetType(), header));
                     Disconnect();
                     return;
                 }
@@ -137,7 +137,7 @@ namespace Astraia
                 }
                 else if (header == Unreliable.Disconnect)
                 {
-                    // Log.Info($"{GetType()}: 接收到断开连接的消息");
+                    //Log.Info($"{GetType()}: 接收到断开连接的消息");
                     Disconnect();
                 }
             }
@@ -156,7 +156,7 @@ namespace Astraia
         {
             if (segment.Count > kcpSendBuffer.Length - 1)
             {
-                Logger(Error.InvalidSend, $"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count}");
+                LogError(Error.InvalidSend, Service.Text.Format(Logs.E145, GetType(), segment.Count));
                 return;
             }
 
@@ -168,7 +168,7 @@ namespace Astraia
 
             if (kcp.Send(kcpSendBuffer, 0, 1 + segment.Count) < 0)
             {
-                Logger(Error.InvalidSend, $"{GetType()}: 发送可靠消息失败。消息大小：{segment.Count}。");
+                LogError(Error.InvalidSend, Service.Text.Format(Logs.E146, GetType(), segment.Count));
             }
         }
 
@@ -176,7 +176,7 @@ namespace Astraia
         {
             if (segment.Count > unreliableSize)
             {
-                Log.Error($"{GetType()}: 发送不可靠消息失败。消息大小：{segment.Count}");
+                Log.Error(Service.Text.Format(Logs.E113, GetType(), segment.Count));
                 return;
             }
 
@@ -195,7 +195,7 @@ namespace Astraia
         {
             if (data.Count == 0)
             {
-                Logger(Error.InvalidSend, $"{GetType()} 尝试发送空消息。");
+                LogError(Error.InvalidSend, Service.Text.Format(Logs.E147, GetType()));
                 Disconnect();
                 return;
             }
@@ -209,7 +209,7 @@ namespace Astraia
                     SendUnreliable(Unreliable.Data, data);
                     break;
                 default:
-                    Log.Warn("试图在未知的传输通道传输消息!");
+                    Log.Warn(Logs.E111);
                     break;
             }
         }
@@ -235,7 +235,7 @@ namespace Astraia
         {
             if (kcp.state == -1)
             {
-                Logger(Error.Timeout, $"{GetType()}: 网络消息被重传了 {kcp.dead_link} 次而没有得到确认！");
+                LogError(Error.Timeout, Service.Text.Format(Logs.E148, GetType(), kcp.dead_link));
                 Disconnect();
                 return;
             }
@@ -243,7 +243,7 @@ namespace Astraia
             var time = (uint)watch.ElapsedMilliseconds;
             if (time >= receiveTime + timeout)
             {
-                Logger(Error.Timeout, $"{GetType()}: 在 {timeout}ms 内没有收到任何消息后的连接超时！");
+                LogError(Error.Timeout, Service.Text.Format(Logs.E149, GetType(), timeout));
                 Disconnect();
                 return;
             }
@@ -251,7 +251,7 @@ namespace Astraia
             var total = kcp.receiveQueue.Count + kcp.sendQueue.Count + kcp.receiveBuffer.Count + kcp.sendBuffer.Count;
             if (total >= 10000)
             {
-                Logger(Error.Congestion, $"{GetType()}: 断开连接，因为它处理数据的速度不够快！");
+                LogError(Error.Congestion, Service.Text.Format(Logs.E150, GetType()));
                 kcp.sendQueue.Clear();
                 Disconnect();
                 return;
@@ -276,7 +276,7 @@ namespace Astraia
                         }
                         else if (header == Reliable.Data)
                         {
-                            Logger(Error.InvalidReceive, $"{GetType()}: 收到未通过验证的网络消息。消息类型：{header}");
+                            LogError(Error.InvalidReceive, Service.Text.Format(Logs.E151, GetType(), header));
                             Disconnect();
                         }
                     }
@@ -287,14 +287,14 @@ namespace Astraia
                     {
                         if (header == Reliable.Connect)
                         {
-                            Log.Warn($"{GetType()}: 收到无效的网络消息。消息类型：{header}");
+                            Log.Warn(Service.Text.Format(Logs.E114, GetType(), header));
                             Disconnect();
                         }
                         else if (header == Reliable.Data)
                         {
                             if (segment.Count == 0)
                             {
-                                Logger(Error.InvalidReceive, $"{GetType()}: 收到无效的网络消息。消息类型：{header}");
+                                LogError(Error.InvalidReceive, Service.Text.Format(Logs.E152, GetType(), header));
                                 Disconnect();
                                 return;
                             }
@@ -306,17 +306,17 @@ namespace Astraia
             }
             catch (SocketException e)
             {
-                Logger(Error.ConnectionClosed, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                LogError(Error.ConnectionClosed, Service.Text.Format(Logs.E153, GetType(), e));
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                Logger(Error.ConnectionClosed, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                LogError(Error.ConnectionClosed, Service.Text.Format(Logs.E153, GetType(), e));
                 Disconnect();
             }
             catch (Exception e)
             {
-                Logger(Error.Unexpected, $"{GetType()}:网络发生异常，断开连接。\n{e}");
+                LogError(Error.Unexpected, Service.Text.Format(Logs.E153, GetType(), e));
                 Disconnect();
             }
         }
@@ -332,17 +332,17 @@ namespace Astraia
             }
             catch (SocketException e)
             {
-                Logger(Error.ConnectionClosed, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                LogError(Error.ConnectionClosed, Service.Text.Format(Logs.E153, GetType(), e));
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                Logger(Error.ConnectionClosed, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                LogError(Error.ConnectionClosed, Service.Text.Format(Logs.E153, GetType(), e));
                 Disconnect();
             }
             catch (Exception e)
             {
-                Logger(Error.Unexpected, $"{GetType()}: 网络发生异常，断开连接。\n{e}");
+                LogError(Error.Unexpected, Service.Text.Format(Logs.E153, GetType(), e));
                 Disconnect();
             }
         }
@@ -350,7 +350,7 @@ namespace Astraia
         protected abstract void Connected();
         protected abstract void Send(ArraySegment<byte> segment);
         protected abstract void Receive(ArraySegment<byte> message, int channel);
-        protected abstract void Logger(Error error, string message);
+        protected abstract void LogError(Error error, string message);
         protected abstract void Disconnected();
     }
 }

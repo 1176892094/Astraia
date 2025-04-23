@@ -46,7 +46,7 @@ namespace Astraia
         {
             if (socket != null)
             {
-                Log.Warn("服务器已经连接！");
+                Log.Warn(Logs.E121);
                 return;
             }
 
@@ -59,7 +59,7 @@ namespace Astraia
                 }
                 catch (NotSupportedException e)
                 {
-                    Log.Warn($"服务器不能设置成双模式！\n{e}");
+                    Log.Warn(Service.Text.Format(Logs.E122, e));
                 }
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -101,7 +101,7 @@ namespace Astraia
                     return false;
                 }
 
-                Log.Info($"服务器接收信息失败！\n{e}");
+                Log.Info(Service.Text.Format(Logs.E123, e));
                 return false;
             }
         }
@@ -129,7 +129,7 @@ namespace Astraia
             void OnConnect(Client client)
             {
                 clients.Add(clientId, client);
-                Log.Info($"客户端 {clientId} 连接到服务器。");
+                Log.Info(Service.Text.Format(Logs.E125, clientId));
                 this.OnConnect?.Invoke(clientId);
             }
 
@@ -137,7 +137,7 @@ namespace Astraia
             {
                 if (copies.Add(clientId))
                 {
-                    Log.Info($"客户端 {clientId} 从服务器断开。");
+                    Log.Info(Service.Text.Format(Logs.E126, clientId));
                 }
 
                 this.OnDisconnect?.Invoke(clientId);
@@ -175,7 +175,7 @@ namespace Astraia
                         return;
                     }
 
-                    Log.Error($"服务器发送消息失败！\n{e}");
+                    Log.Error(Service.Text.Format(Logs.E124, e));
                 }
             }
         }
@@ -209,7 +209,7 @@ namespace Astraia
 
             copies.Clear();
         }
-        
+
         public void AfterUpdate()
         {
             foreach (var client in clients.Values)
