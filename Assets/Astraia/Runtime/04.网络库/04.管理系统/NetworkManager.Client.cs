@@ -23,9 +23,9 @@ namespace Astraia.Net
     {
         public static partial class Client
         {
-            internal static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
+            private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
-            internal static readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
+            private static readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
 
             internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
