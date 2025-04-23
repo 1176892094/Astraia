@@ -65,7 +65,7 @@ namespace Astraia
                 {
                     if (newCookie != cookie)
                     {
-                        Log.Info(Service.Text.Format(Logs.E127, endPoint, newCookie, cookie));
+                        Logs.Info(Service.Text.Format(Log.E127, endPoint, newCookie, cookie));
                         return;
                     }
                 }

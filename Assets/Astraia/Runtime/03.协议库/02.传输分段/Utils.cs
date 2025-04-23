@@ -107,8 +107,8 @@ namespace Astraia
             }
             catch (SocketException)
             {
-                Log.Info(Service.Text.Format(Logs.E101, buffer, sendBuffer, sendBuffer / buffer));
-                Log.Info(Service.Text.Format(Logs.E102, buffer, receiveBuffer, receiveBuffer / buffer));
+                Logs.Info(Service.Text.Format(Log.E101, buffer, sendBuffer, sendBuffer / buffer));
+                Logs.Info(Service.Text.Format(Log.E102, buffer, receiveBuffer, receiveBuffer / buffer));
             }
         }
     }

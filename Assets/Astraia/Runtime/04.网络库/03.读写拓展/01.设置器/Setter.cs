@@ -119,7 +119,7 @@ namespace Astraia.Net
 
             if (value.objectId == 0)
             {
-                Debug.LogWarning(Logs.E209);
+                Debug.LogWarning(Log.E209);
                 setter.SetUInt(0);
                 return;
             }

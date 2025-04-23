@@ -82,21 +82,21 @@ namespace Astraia
 
             if (size > receiveBuffer.Length)
             {
-                LogError(Error.InvalidReceive, Service.Text.Format(Logs.E142, GetType(), receiveBuffer.Length, size));
+                LogError(Error.InvalidReceive, Service.Text.Format(Log.E142, GetType(), receiveBuffer.Length, size));
                 Disconnect();
                 return false;
             }
 
             if (kcp.Receive(receiveBuffer, size) < 0)
             {
-                LogError(Error.InvalidReceive, Service.Text.Format(Logs.E143, GetType()));
+                LogError(Error.InvalidReceive, Service.Text.Format(Log.E143, GetType()));
                 Disconnect();
                 return false;
             }
 
             if (!Utils.ParseReliable(receiveBuffer[0], out header))
             {
-                LogError(Error.InvalidReceive, Service.Text.Format(Logs.E144, GetType(), header));
+                LogError(Error.InvalidReceive, Service.Text.Format(Log.E144, GetType(), header));
                 Disconnect();
                 return false;
             }
@@ -112,7 +112,7 @@ namespace Astraia
             {
                 if (kcp.Input(segment.Array, segment.Offset, segment.Count) != 0)
                 {
-                    Log.Warn(Service.Text.Format(Logs.E112, GetType(), segment.Count - 1));
+                    Logs.Warn(Service.Text.Format(Log.E112, GetType(), segment.Count - 1));
                 }
             }
             else if (channel == Channel.Unreliable)
@@ -121,7 +121,7 @@ namespace Astraia
                 var headerByte = segment.Array[segment.Offset];
                 if (!Utils.ParseUnreliable(headerByte, out var header))
                 {
-                    LogError(Error.InvalidReceive, Service.Text.Format(Logs.E144, GetType(), header));
+                    LogError(Error.InvalidReceive, Service.Text.Format(Log.E144, GetType(), header));
                     Disconnect();
                     return;
                 }
@@ -156,7 +156,7 @@ namespace Astraia
         {
             if (segment.Count > kcpSendBuffer.Length - 1)
             {
-                LogError(Error.InvalidSend, Service.Text.Format(Logs.E145, GetType(), segment.Count));
+                LogError(Error.InvalidSend, Service.Text.Format(Log.E145, GetType(), segment.Count));
                 return;
             }
 
@@ -168,7 +168,7 @@ namespace Astraia
 
             if (kcp.Send(kcpSendBuffer, 0, 1 + segment.Count) < 0)
             {
-                LogError(Error.InvalidSend, Service.Text.Format(Logs.E146, GetType(), segment.Count));
+                LogError(Error.InvalidSend, Service.Text.Format(Log.E146, GetType(), segment.Count));
             }
         }
 
@@ -176,7 +176,7 @@ namespace Astraia
         {
             if (segment.Count > unreliableSize)
             {
-                Log.Error(Service.Text.Format(Logs.E113, GetType(), segment.Count));
+                Logs.Error(Service.Text.Format(Log.E113, GetType(), segment.Count));
                 return;
             }
 
@@ -195,7 +195,7 @@ namespace Astraia
         {
             if (data.Count == 0)
             {
-                LogError(Error.InvalidSend, Service.Text.Format(Logs.E147, GetType()));
+                LogError(Error.InvalidSend, Service.Text.Format(Log.E147, GetType()));
                 Disconnect();
                 return;
             }
@@ -209,7 +209,7 @@ namespace Astraia
                     SendUnreliable(Unreliable.Data, data);
                     break;
                 default:
-                    Log.Warn(Logs.E111);
+                    Logs.Warn(Log.E111);
                     break;
             }
         }
@@ -235,7 +235,7 @@ namespace Astraia
         {
             if (kcp.state == -1)
             {
-                LogError(Error.Timeout, Service.Text.Format(Logs.E148, GetType(), kcp.dead_link));
+                LogError(Error.Timeout, Service.Text.Format(Log.E148, GetType(), kcp.dead_link));
                 Disconnect();
                 return;
             }
@@ -243,7 +243,7 @@ namespace Astraia
             var time = (uint)watch.ElapsedMilliseconds;
             if (time >= receiveTime + timeout)
             {
-                LogError(Error.Timeout, Service.Text.Format(Logs.E149, GetType(), timeout));
+                LogError(Error.Timeout, Service.Text.Format(Log.E149, GetType(), timeout));
                 Disconnect();
                 return;
             }
@@ -251,7 +251,7 @@ namespace Astraia
             var total = kcp.receiveQueue.Count + kcp.sendQueue.Count + kcp.receiveBuffer.Count + kcp.sendBuffer.Count;
             if (total >= 10000)
             {
-                LogError(Error.Congestion, Service.Text.Format(Logs.E150, GetType()));
+                LogError(Error.Congestion, Service.Text.Format(Log.E150, GetType()));
                 kcp.sendQueue.Clear();
                 Disconnect();
                 return;
@@ -276,7 +276,7 @@ namespace Astraia
                         }
                         else if (header == Reliable.Data)
                         {
-                            LogError(Error.InvalidReceive, Service.Text.Format(Logs.E151, GetType(), header));
+                            LogError(Error.InvalidReceive, Service.Text.Format(Log.E151, GetType(), header));
                             Disconnect();
                         }
                     }
@@ -287,14 +287,14 @@ namespace Astraia
                     {
                         if (header == Reliable.Connect)
                         {
-                            Log.Warn(Service.Text.Format(Logs.E114, GetType(), header));
+                            Logs.Warn(Service.Text.Format(Log.E114, GetType(), header));
                             Disconnect();
                         }
                         else if (header == Reliable.Data)
                         {
                             if (segment.Count == 0)
                             {
-                                LogError(Error.InvalidReceive, Service.Text.Format(Logs.E152, GetType(), header));
+                                LogError(Error.InvalidReceive, Service.Text.Format(Log.E152, GetType(), header));
                                 Disconnect();
                                 return;
                             }
@@ -306,17 +306,17 @@ namespace Astraia
             }
             catch (SocketException e)
             {
-                LogError(Error.ConnectionClosed, Service.Text.Format(Logs.E153, GetType(), e));
+                LogError(Error.ConnectionClosed, Service.Text.Format(Log.E153, GetType(), e));
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                LogError(Error.ConnectionClosed, Service.Text.Format(Logs.E153, GetType(), e));
+                LogError(Error.ConnectionClosed, Service.Text.Format(Log.E153, GetType(), e));
                 Disconnect();
             }
             catch (Exception e)
             {
-                LogError(Error.Unexpected, Service.Text.Format(Logs.E153, GetType(), e));
+                LogError(Error.Unexpected, Service.Text.Format(Log.E153, GetType(), e));
                 Disconnect();
             }
         }
@@ -332,17 +332,17 @@ namespace Astraia
             }
             catch (SocketException e)
             {
-                LogError(Error.ConnectionClosed, Service.Text.Format(Logs.E153, GetType(), e));
+                LogError(Error.ConnectionClosed, Service.Text.Format(Log.E153, GetType(), e));
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                LogError(Error.ConnectionClosed, Service.Text.Format(Logs.E153, GetType(), e));
+                LogError(Error.ConnectionClosed, Service.Text.Format(Log.E153, GetType(), e));
                 Disconnect();
             }
             catch (Exception e)
             {
-                LogError(Error.Unexpected, Service.Text.Format(Logs.E153, GetType(), e));
+                LogError(Error.Unexpected, Service.Text.Format(Log.E153, GetType(), e));
                 Disconnect();
             }
         }

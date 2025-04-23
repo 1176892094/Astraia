@@ -35,15 +35,14 @@ namespace Runtime
         public RaycastHit2D rightDownRay => Physics2D.Raycast(owner.rightDownRay.origin, owner.rightDownRay.direction, 0.12f, 1 << 6);
 
 
-        public override void OnShow(Component owner)
+        protected override void OnShow()
         {
-            base.OnShow(owner);
             this.SetFloat(Attribute.MoveSpeed, 2);
             this.SetFloat(Attribute.JumpForce, 4);
             this.SetFloat(Attribute.DashSpeed, 5);
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             if (!owner.isOwner) return;
             if (downRightRay || downLeftRay)

@@ -17,8 +17,8 @@ namespace Runtime
     public class PlayerOperation : Agent<Player>
     {
         private PlayerAttribute attribute => owner.attribute;
-
-        public override void OnUpdate()
+        
+        protected override void OnUpdate()
         {
             if (!owner.isOwner) return;
             if (!attribute.state.HasFlag(StateType.Stop))

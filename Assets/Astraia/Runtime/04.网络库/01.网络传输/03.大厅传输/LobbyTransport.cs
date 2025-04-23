@@ -56,13 +56,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Lobby.isConnected)
             {
-                Debug.Log(Logs.E208);
+                Debug.Log(Log.E208);
                 return;
             }
 
             if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
             {
-                Debug.Log(Logs.E205);
+                Debug.Log(Log.E205);
                 return;
             }
             
@@ -102,13 +102,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Lobby.isConnected)
             {
-                Debug.Log(Logs.E208);
+                Debug.Log(Log.E208);
                 return;
             }
 
             if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
             {
-                Debug.Log(Logs.E205);
+                Debug.Log(Log.E205);
                 return;
             }
 

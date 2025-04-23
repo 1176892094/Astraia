@@ -47,7 +47,7 @@ namespace Astraia.Net
 
             if (setter.position > Transport.Instance.SendLength(channel))
             {
-                Debug.LogError(Service.Text.Format(Logs.E291, setter.position));
+                Debug.LogError(Service.Text.Format(Log.E291, setter.position));
                 return;
             }
 

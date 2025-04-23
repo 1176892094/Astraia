@@ -105,13 +105,13 @@ namespace Astraia.Net
             {
                 if (string.IsNullOrWhiteSpace(sceneName))
                 {
-                    Debug.LogError(Logs.E231);
+                    Debug.LogError(Log.E231);
                     return;
                 }
 
                 if (isLoadScene && Instance.sceneName == sceneName)
                 {
-                    Debug.LogError(Service.Text.Format(Logs.E232, sceneName));
+                    Debug.LogError(Service.Text.Format(Log.E232, sceneName));
                     return;
                 }
 
@@ -169,7 +169,7 @@ namespace Astraia.Net
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError(Service.Text.Format(Logs.E233, typeof(T).Name, channel, e));
+                        Debug.LogError(Service.Text.Format(Log.E233, typeof(T).Name, channel, e));
                         client.Disconnect();
                     }
                 };
@@ -186,7 +186,7 @@ namespace Astraia.Net
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError(Service.Text.Format(Logs.E233, typeof(T).Name, channel, e));
+                        Debug.LogError(Service.Text.Format(Log.E233, typeof(T).Name, channel, e));
                         client.Disconnect();
                     }
                 };
@@ -212,26 +212,26 @@ namespace Astraia.Net
             {
                 if (!spawns.TryGetValue(message.objectId, out var @object))
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E234, client.clientId, message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Log.E234, client.clientId, message.objectId));
                     return;
                 }
 
                 if (@object == null)
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E234, client.clientId, message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Log.E234, client.clientId, message.objectId));
                     return;
                 }
 
                 if (@object.connection != client)
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E234, client.clientId, message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Log.E234, client.clientId, message.objectId));
                     return;
                 }
 
                 using var getter = MemoryGetter.Pop(message.segment);
                 if (!@object.ServerDeserialize(getter))
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E235, client.clientId, message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Log.E235, client.clientId, message.objectId));
                     client.Disconnect();
                 }
             }
@@ -241,19 +241,19 @@ namespace Astraia.Net
                 if (!client.isReady)
                 {
                     if (channel != Channel.Reliable) return;
-                    Debug.LogWarning(Service.Text.Format(Logs.E236, client.clientId));
+                    Debug.LogWarning(Service.Text.Format(Log.E236, client.clientId));
                     return;
                 }
 
                 if (!spawns.TryGetValue(message.objectId, out var @object))
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E237, client.clientId, message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Log.E237, client.clientId, message.objectId));
                     return;
                 }
 
                 if (NetworkAttribute.RequireReady(message.methodHash) && @object.connection != client)
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E238, client.clientId, message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Log.E238, client.clientId, message.objectId));
                     return;
                 }
 
@@ -268,7 +268,7 @@ namespace Astraia.Net
             {
                 if (clientId == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E239, clientId));
+                    Debug.LogWarning(Service.Text.Format(Log.E239, clientId));
                     Transport.Instance.StopClient(clientId);
                 }
                 else if (clients.ContainsKey(clientId))
@@ -304,13 +304,13 @@ namespace Astraia.Net
             {
                 if (!clients.TryGetValue(clientId, out var client))
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E240, clientId));
+                    Debug.LogWarning(Service.Text.Format(Log.E240, clientId));
                     return;
                 }
 
                 if (!client.getter.AddBatch(segment))
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E241, clientId));
+                    Debug.LogWarning(Service.Text.Format(Log.E241, clientId));
                     client.Disconnect();
                     return;
                 }
@@ -320,7 +320,7 @@ namespace Astraia.Net
                     using var getter = MemoryGetter.Pop(result);
                     if (getter.buffer.Count - getter.position < sizeof(ushort))
                     {
-                        Debug.LogWarning(Service.Text.Format(Logs.E242, clientId));
+                        Debug.LogWarning(Service.Text.Format(Log.E242, clientId));
                         client.Disconnect();
                         return;
                     }
@@ -328,7 +328,7 @@ namespace Astraia.Net
                     var message = getter.GetUShort();
                     if (!messages.TryGetValue(message, out var action))
                     {
-                        Debug.LogWarning(Service.Text.Format(Logs.E243, clientId, message));
+                        Debug.LogWarning(Service.Text.Format(Log.E243, clientId, message));
                         client.Disconnect();
                         return;
                     }
@@ -339,7 +339,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && client.getter.Count > 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E244, clientId, client.getter.Count));
+                    Debug.LogWarning(Service.Text.Format(Log.E244, clientId, client.getter.Count));
                 }
             }
         }
@@ -367,19 +367,19 @@ namespace Astraia.Net
             {
                 if (!isActive)
                 {
-                    Debug.LogError(Logs.E245, obj);
+                    Debug.LogError(Log.E245, obj);
                     return;
                 }
 
                 if (!obj.TryGetComponent(out NetworkObject @object))
                 {
-                    Debug.LogError(Service.Text.Format(Logs.E246, obj), obj);
+                    Debug.LogError(Service.Text.Format(Log.E246, obj), obj);
                     return;
                 }
 
                 if (spawns.ContainsKey(@object.objectId))
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E247, @object), @object);
+                    Debug.LogWarning(Service.Text.Format(Log.E247, @object), @object);
                     return;
                 }
 
@@ -510,7 +510,7 @@ namespace Astraia.Net
                         {
                             if (@object == null)
                             {
-                                Debug.LogWarning(Service.Text.Format(Logs.E248, client.clientId));
+                                Debug.LogWarning(Service.Text.Format(Log.E248, client.clientId));
                                 return;
                             }
 

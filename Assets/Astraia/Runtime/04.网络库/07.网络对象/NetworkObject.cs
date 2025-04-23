@@ -48,13 +48,13 @@ namespace Astraia.Net
             entities = GetComponentsInChildren<NetworkBehaviour>(true);
             if (entities == null)
             {
-                Debug.LogError(Logs.E271, gameObject);
+                Debug.LogError(Log.E271, gameObject);
                 return;
             }
 
             if (entities.Length > 64)
             {
-                Debug.LogError(Logs.E272);
+                Debug.LogError(Log.E272);
                 return;
             }
 
@@ -138,7 +138,7 @@ namespace Astraia.Net
                 return true;
             }
 
-            Debug.LogError(Service.Text.Format(Logs.E273, name));
+            Debug.LogError(Service.Text.Format(Log.E273, name));
             return false;
         }
 
@@ -151,10 +151,10 @@ namespace Astraia.Net
                 sceneId = 0;
                 if (BuildPipeline.isBuildingPlayer)
                 {
-                    throw new InvalidOperationException(Logs.E274);
+                    throw new InvalidOperationException(Log.E274);
                 }
 
-                Undo.RecordObject(gameObject, Logs.E275);
+                Undo.RecordObject(gameObject, Log.E275);
                 var random = Service.Hash.Id();
                 duplicate = GlobalManager.objectData.TryGetValue(random, out @object) && @object != null && @object != gameObject;
                 if (!duplicate)
@@ -195,19 +195,19 @@ namespace Astraia.Net
         {
             if (this == null)
             {
-                Debug.LogWarning(Service.Text.Format(Logs.E276, mode, function, objectId));
+                Debug.LogWarning(Service.Text.Format(Log.E276, mode, function, objectId));
                 return;
             }
 
             if (index >= entities.Length)
             {
-                Debug.LogWarning(Service.Text.Format(Logs.E277, objectId, index));
+                Debug.LogWarning(Service.Text.Format(Log.E277, objectId, index));
                 return;
             }
 
             if (!NetworkAttribute.Invoke(function, mode, client, getter, entities[index]))
             {
-                Debug.LogError(Service.Text.Format(Logs.E278, mode, function, gameObject.name, objectId));
+                Debug.LogError(Service.Text.Format(Log.E278, mode, function, gameObject.name, objectId));
             }
         }
 

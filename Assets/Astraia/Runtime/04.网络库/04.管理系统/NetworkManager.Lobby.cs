@@ -71,30 +71,30 @@ namespace Astraia.Net
             {
                 if (!isConnected)
                 {
-                    Debug.Log(Logs.E251);
+                    Debug.Log(Log.E251);
                     return;
                 }
 
-                var uri = Service.Text.Format(Logs.E252, address, port);
+                var uri = Service.Text.Format(Log.E252, address, port);
                 using var request = UnityWebRequest.Get(uri);
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E253, address, port));
+                    Debug.LogWarning(Service.Text.Format(Log.E253, address, port));
                     return;
                 }
 
                 var rooms = Service.Zip.Decompress(request.downloadHandler.text);
-                var jsons = JsonManager.FromJson<RoomData[]>(Service.Text.Format(Logs.E254, rooms));
+                var jsons = JsonManager.FromJson<RoomData[]>(Service.Text.Format(Log.E254, rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
-                Debug.Log(Logs.E255);
+                Debug.Log(Service.Text.Format(Log.E255, rooms));
             }
 
             public static void UpdateRoom(string roomName, string roomData, RoomMode roomMode)
             {
                 if (!isServer)
                 {
-                    Debug.Log(Logs.E256);
+                    Debug.Log(Log.E256);
                     return;
                 }
 
@@ -124,7 +124,7 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Debug.LogError(Logs.E257);
+                    Debug.LogError(Log.E257);
                     return;
                 }
 

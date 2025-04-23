@@ -22,14 +22,13 @@ namespace Runtime
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
 
-        public override void OnShow(Component owner)
+        protected override void OnShow()
         {
-            base.OnShow(owner);
             rigidbody = owner.GetComponent<Rigidbody2D>();
             renderer = owner.GetComponent<SpriteRenderer>();
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             if (!owner.isOwner) return;
             if (attribute.moveX > 0)

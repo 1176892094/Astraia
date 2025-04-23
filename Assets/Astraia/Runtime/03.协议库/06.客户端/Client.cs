@@ -43,7 +43,7 @@ namespace Astraia
             {
                 if (state != State.Disconnect)
                 {
-                    Log.Warn(Logs.E128);
+                    Logs.Warn(Log.E128);
                     return;
                 }
 
@@ -56,13 +56,13 @@ namespace Astraia
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     Utils.SetBuffer(socket);
                     socket.Connect(endPoint);
-                    Log.Info(Service.Text.Format(Logs.E130, addresses[0], port));
+                    Logs.Info(Service.Text.Format(Log.E130, addresses[0], port));
                     SendReliable(Reliable.Connect);
                 }
             }
             catch (SocketException e)
             {
-                LogError(Error.DnsResolve, Service.Text.Format(Logs.E141, address, e));
+                LogError(Error.DnsResolve, Service.Text.Format(Log.E141, address, e));
                 OnDisconnect?.Invoke();
             }
         }
@@ -85,7 +85,7 @@ namespace Astraia
                     return false;
                 }
 
-                Log.Info(Service.Text.Format(Logs.E132, e));
+                Logs.Info(Service.Text.Format(Log.E132, e));
                 Disconnect();
                 return false;
             }
@@ -95,7 +95,7 @@ namespace Astraia
         {
             if (state == State.Disconnect)
             {
-                Log.Warn(Logs.E129);
+                Logs.Warn(Log.E129);
                 return;
             }
 
@@ -113,7 +113,7 @@ namespace Astraia
             Utils.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
             if (newCookie == 0)
             {
-                Log.Error(Service.Text.Format(Logs.E133, cookie, newCookie));
+                Logs.Error(Service.Text.Format(Log.E133, cookie, newCookie));
             }
 
             if (cookie == 0)
@@ -122,7 +122,7 @@ namespace Astraia
             }
             else if (cookie != newCookie)
             {
-                Log.Error(Service.Text.Format(Logs.E127, endPoint, cookie, newCookie));
+                Logs.Error(Service.Text.Format(Log.E127, endPoint, cookie, newCookie));
                 return;
             }
 
@@ -131,7 +131,7 @@ namespace Astraia
 
         protected override void Connected()
         {
-            Log.Info(Logs.E134);
+            Logs.Info(Log.E134);
             OnConnect?.Invoke();
         }
 
@@ -153,7 +153,7 @@ namespace Astraia
                 }
 
 
-                Log.Info(Service.Text.Format(Logs.E131, e));
+                Logs.Info(Service.Text.Format(Log.E131, e));
             }
         }
 
@@ -169,7 +169,7 @@ namespace Astraia
 
         protected override void Disconnected()
         {
-            Log.Info(Logs.E135);
+            Logs.Info(Log.E135);
             OnDisconnect?.Invoke();
             endPoint = null;
             socket?.Close();

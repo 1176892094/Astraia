@@ -106,7 +106,7 @@ namespace Astraia.Net
         {
             if (Server.isActive)
             {
-                Debug.LogWarning(Logs.E201);
+                Debug.LogWarning(Log.E201);
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace Astraia.Net
         {
             if (!Server.isActive)
             {
-                Debug.LogWarning(Logs.E202);
+                Debug.LogWarning(Log.E202);
                 return;
             }
 
@@ -128,7 +128,7 @@ namespace Astraia.Net
         {
             if (Client.isActive)
             {
-                Debug.LogWarning(Logs.E203);
+                Debug.LogWarning(Log.E203);
                 return;
             }
 
@@ -139,7 +139,7 @@ namespace Astraia.Net
         {
             if (Client.isActive)
             {
-                Debug.LogWarning(Logs.E203);
+                Debug.LogWarning(Log.E203);
                 return;
             }
 
@@ -150,7 +150,7 @@ namespace Astraia.Net
         {
             if (!Client.isActive)
             {
-                Debug.LogWarning(Logs.E204);
+                Debug.LogWarning(Log.E204);
                 return;
             }
 
@@ -166,7 +166,7 @@ namespace Astraia.Net
         {
             if (Server.isActive || Client.isActive)
             {
-                Debug.LogWarning(Logs.E205);
+                Debug.LogWarning(Log.E205);
                 return;
             }
 
@@ -184,7 +184,7 @@ namespace Astraia.Net
         {
             if (Lobby.isActive)
             {
-                Debug.LogWarning(Logs.E206);
+                Debug.LogWarning(Log.E206);
                 return;
             }
 
@@ -195,7 +195,7 @@ namespace Astraia.Net
         {
             if (!Lobby.isActive)
             {
-                Debug.LogWarning(Logs.E207);
+                Debug.LogWarning(Log.E207);
                 return;
             }
 

@@ -24,7 +24,7 @@ namespace Astraia.Net
         {
             if (Application.platform == RuntimePlatform.WebGLPlayer)
             {
-                Debug.LogError(Logs.E292);
+                Debug.LogError(Log.E292);
                 return;
             }
 
@@ -104,7 +104,7 @@ namespace Astraia.Net
                     using var getter = MemoryGetter.Pop(new ArraySegment<byte>(result.Buffer));
                     if (version != getter.GetInt())
                     {
-                        Debug.LogError(Logs.E293);
+                        Debug.LogError(Log.E293);
                         return;
                     }
 
@@ -153,7 +153,7 @@ namespace Astraia.Net
                     using var getter = MemoryGetter.Pop(new ArraySegment<byte>(result.Buffer));
                     if (version != getter.GetInt())
                     {
-                        Debug.LogError(Logs.E293);
+                        Debug.LogError(Log.E293);
                         return;
                     }
 

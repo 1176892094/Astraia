@@ -29,9 +29,9 @@ namespace Astraia.Net
 
         private void Awake()
         {
-            Log.Info = Debug.Log;
-            Log.Warn = Debug.LogWarning;
-            Log.Error = Debug.LogError;
+            Logs.Info = Debug.Log;
+            Logs.Warn = Debug.LogWarning;
+            Logs.Error = Debug.LogError;
             var setting = new Setting(maxUnit, timeout, interval, deadLink, fastResend, sendWindow, receiveWindow);
             client = new Client(setting, ClientConnect, ClientDisconnect, ClientError, ClientReceive);
             server = new Server(setting, ServerConnect, ServerDisconnect, ServerError, ServerReceive);
@@ -49,7 +49,7 @@ namespace Astraia.Net
 
             void ClientError(Error error, string message)
             {
-                Debug.LogWarning(Service.Text.Format(Logs.E210, error, message));
+                Debug.LogWarning(Service.Text.Format(Log.E210, error, message));
             }
 
             void ClientReceive(ArraySegment<byte> message, int channel)

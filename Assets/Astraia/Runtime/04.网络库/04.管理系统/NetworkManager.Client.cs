@@ -122,13 +122,13 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Debug.LogError(Logs.E211);
+                    Debug.LogError(Log.E211);
                     return;
                 }
 
                 if (isReady)
                 {
-                    Debug.LogError(Logs.E212);
+                    Debug.LogError(Log.E212);
                     return;
                 }
 
@@ -141,13 +141,13 @@ namespace Astraia.Net
             {
                 if (string.IsNullOrWhiteSpace(sceneName))
                 {
-                    Debug.LogError(Logs.E213);
+                    Debug.LogError(Log.E213);
                     return;
                 }
 
                 if (isLoadScene && Instance.sceneName == sceneName)
                 {
-                    Debug.LogError(Service.Text.Format(Logs.E214, sceneName));
+                    Debug.LogError(Service.Text.Format(Log.E214, sceneName));
                     return;
                 }
 
@@ -205,7 +205,7 @@ namespace Astraia.Net
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError(Service.Text.Format(Logs.E215, typeof(T).Name, channel, e));
+                        Debug.LogError(Service.Text.Format(Log.E215, typeof(T).Name, channel, e));
                         client.Disconnect();
                     }
                 };
@@ -246,13 +246,13 @@ namespace Astraia.Net
 
                 if (!spawns.TryGetValue(message.objectId, out var @object))
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E216, message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Log.E216, message.objectId));
                     return;
                 }
 
                 if (@object == null)
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E216, message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Log.E216, message.objectId));
                     return;
                 }
 
@@ -273,7 +273,7 @@ namespace Astraia.Net
             {
                 if (!isConnected)
                 {
-                    Debug.LogWarning(Logs.E217);
+                    Debug.LogWarning(Log.E217);
                     return;
                 }
 
@@ -313,7 +313,7 @@ namespace Astraia.Net
                     {
                         if (scenes.TryGetValue(@object.sceneId, out var obj))
                         {
-                            Service.Text.Format(Logs.E218, @object.name, obj.name);
+                            Service.Text.Format(Log.E218, @object.name, obj.name);
                             continue;
                         }
 
@@ -358,7 +358,7 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Debug.LogError(Logs.E219);
+                    Debug.LogError(Log.E219);
                     return;
                 }
 
@@ -377,13 +377,13 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Debug.LogError(Logs.E219);
+                    Debug.LogError(Log.E219);
                     return;
                 }
 
                 if (!connection.getter.AddBatch(segment))
                 {
-                    Debug.LogWarning(Logs.E220);
+                    Debug.LogWarning(Log.E220);
                     connection.Disconnect();
                     return;
                 }
@@ -393,7 +393,7 @@ namespace Astraia.Net
                     using var getter = MemoryGetter.Pop(result);
                     if (getter.buffer.Count - getter.position < sizeof(ushort))
                     {
-                        Debug.LogWarning(Logs.E221);
+                        Debug.LogWarning(Log.E221);
                         connection.Disconnect();
                         return;
                     }
@@ -401,7 +401,7 @@ namespace Astraia.Net
                     var message = getter.GetUShort();
                     if (!messages.TryGetValue(message, out var action))
                     {
-                        Debug.LogWarning(Service.Text.Format(Logs.E222, message));
+                        Debug.LogWarning(Service.Text.Format(Log.E222, message));
                         connection.Disconnect();
                         return;
                     }
@@ -412,7 +412,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && connection.getter.Count > 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Logs.E223, connection.getter.Count));
+                    Debug.LogWarning(Service.Text.Format(Log.E223, connection.getter.Count));
                 }
             }
         }
@@ -441,19 +441,19 @@ namespace Astraia.Net
 
                     if (!prefab.TryGetComponent(out @object))
                     {
-                        Debug.LogError(Service.Text.Format(Logs.E224, prefab.name));
+                        Debug.LogError(Service.Text.Format(Log.E224, prefab.name));
                         return;
                     }
 
                     if (@object.sceneId != 0)
                     {
-                        Debug.LogError(Service.Text.Format(Logs.E225, @object.name));
+                        Debug.LogError(Service.Text.Format(Log.E225, @object.name));
                         return;
                     }
 
                     if (@object.GetComponentsInChildren<NetworkObject>().Length > 1)
                     {
-                        Debug.LogError(Service.Text.Format(Logs.E226, @object.name));
+                        Debug.LogError(Service.Text.Format(Log.E226, @object.name));
                         return;
                     }
                 }
@@ -461,7 +461,7 @@ namespace Astraia.Net
                 {
                     if (!scenes.TryGetValue(message.sceneId, out @object))
                     {
-                        Debug.LogError(Service.Text.Format(Logs.E227, message.sceneId));
+                        Debug.LogError(Service.Text.Format(Log.E227, message.sceneId));
                         return;
                     }
 
