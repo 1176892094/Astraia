@@ -122,13 +122,13 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Debug.LogError("没有连接到有效的服务器！");
+                    Debug.LogError(Logs.E211);
                     return;
                 }
 
                 if (isReady)
                 {
-                    Debug.LogError("客户端已经准备就绪！");
+                    Debug.LogError(Logs.E212);
                     return;
                 }
 
@@ -141,13 +141,13 @@ namespace Astraia.Net
             {
                 if (string.IsNullOrWhiteSpace(sceneName))
                 {
-                    Debug.LogError("客户端不能加载空场景！");
+                    Debug.LogError(Logs.E213);
                     return;
                 }
 
                 if (isLoadScene && Instance.sceneName == sceneName)
                 {
-                    Debug.LogError(Service.Text.Format("客户端正在加载 {0} 场景", sceneName));
+                    Debug.LogError(Service.Text.Format(Logs.E214, sceneName));
                     return;
                 }
 
@@ -205,7 +205,7 @@ namespace Astraia.Net
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError(Service.Text.Format("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e));
+                        Debug.LogError(Service.Text.Format(Logs.E215, typeof(T).Name, channel, e));
                         client.Disconnect();
                     }
                 };
@@ -246,13 +246,13 @@ namespace Astraia.Net
 
                 if (!spawns.TryGetValue(message.objectId, out var @object))
                 {
-                    Debug.LogWarning(Service.Text.Format("无法同步网络对象: {0}", message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Logs.E216, message.objectId));
                     return;
                 }
 
                 if (@object == null)
                 {
-                    Debug.LogWarning(Service.Text.Format("无法同步网络对象: {0}", message.objectId));
+                    Debug.LogWarning(Service.Text.Format(Logs.E216, message.objectId));
                     return;
                 }
 
@@ -273,7 +273,7 @@ namespace Astraia.Net
             {
                 if (!isConnected)
                 {
-                    Debug.LogWarning("客户端没有通过验证，无法加载场景。");
+                    Debug.LogWarning(Logs.E217);
                     return;
                 }
 
@@ -313,7 +313,7 @@ namespace Astraia.Net
                     {
                         if (scenes.TryGetValue(@object.sceneId, out var obj))
                         {
-                            Service.Text.Format("客户端场景对象重复。网络对象: {0} {1}", @object.name, obj.name);
+                            Service.Text.Format(Logs.E218, @object.name, obj.name);
                             continue;
                         }
 
@@ -358,7 +358,7 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Debug.LogError("没有连接到有效的服务器！");
+                    Debug.LogError(Logs.E219);
                     return;
                 }
 
@@ -377,13 +377,13 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Debug.LogError("没有连接到有效的服务器！");
+                    Debug.LogError(Logs.E219);
                     return;
                 }
 
                 if (!connection.getter.AddBatch(segment))
                 {
-                    Debug.LogWarning("无法处理来自服务器的消息。");
+                    Debug.LogWarning(Logs.E220);
                     connection.Disconnect();
                     return;
                 }
@@ -393,7 +393,7 @@ namespace Astraia.Net
                     using var getter = MemoryGetter.Pop(result);
                     if (getter.buffer.Count - getter.position < sizeof(ushort))
                     {
-                        Debug.LogWarning("无法处理来自服务器的消息。没有头部。");
+                        Debug.LogWarning(Logs.E221);
                         connection.Disconnect();
                         return;
                     }
@@ -401,7 +401,7 @@ namespace Astraia.Net
                     var message = getter.GetUShort();
                     if (!messages.TryGetValue(message, out var action))
                     {
-                        Debug.LogWarning(Service.Text.Format("无法处理来自服务器的消息。未知的消息{0}", message));
+                        Debug.LogWarning(Service.Text.Format(Logs.E222, message));
                         connection.Disconnect();
                         return;
                     }
@@ -412,7 +412,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && connection.getter.Count > 0)
                 {
-                    Debug.LogWarning(Service.Text.Format("无法处理来自服务器的消息。残留消息: {0}", connection.getter.Count));
+                    Debug.LogWarning(Service.Text.Format(Logs.E223, connection.getter.Count));
                 }
             }
         }
@@ -441,19 +441,19 @@ namespace Astraia.Net
 
                     if (!prefab.TryGetComponent(out @object))
                     {
-                        Debug.LogError(Service.Text.Format("无法注册网络对象 {0}。没有 NetworkObject 组件。", prefab.name));
+                        Debug.LogError(Service.Text.Format(Logs.E224, prefab.name));
                         return;
                     }
 
                     if (@object.sceneId != 0)
                     {
-                        Debug.LogError(Service.Text.Format("无法注册网络对象 {0}。因为该预置体为场景对象。", @object.name));
+                        Debug.LogError(Service.Text.Format(Logs.E225, @object.name));
                         return;
                     }
 
                     if (@object.GetComponentsInChildren<NetworkObject>().Length > 1)
                     {
-                        Debug.LogError(Service.Text.Format("无法注册网络对象 {0}。持有多个 NetworkObject 组件。", @object.name));
+                        Debug.LogError(Service.Text.Format(Logs.E226, @object.name));
                         return;
                     }
                 }
@@ -461,7 +461,7 @@ namespace Astraia.Net
                 {
                     if (!scenes.TryGetValue(message.sceneId, out @object))
                     {
-                        Debug.LogError(Service.Text.Format("无法注册网络对象 {0}。场景标识无效。", message.sceneId));
+                        Debug.LogError(Service.Text.Format(Logs.E227, message.sceneId));
                         return;
                     }
 

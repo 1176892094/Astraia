@@ -69,7 +69,7 @@ namespace Astraia.Net
 
         private void OnApplicationQuit()
         {
-            if (Lobby.isConnected)
+            if (Lobby.isActive)
             {
                 StopLobby();
             }
@@ -106,7 +106,7 @@ namespace Astraia.Net
         {
             if (Server.isActive)
             {
-                Debug.LogWarning("服务器已经连接！");
+                Debug.LogWarning(Logs.E201);
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace Astraia.Net
         {
             if (!Server.isActive)
             {
-                Debug.LogWarning("服务器已经停止！");
+                Debug.LogWarning(Logs.E202);
                 return;
             }
 
@@ -128,7 +128,7 @@ namespace Astraia.Net
         {
             if (Client.isActive)
             {
-                Debug.LogWarning("客户端已经连接！");
+                Debug.LogWarning(Logs.E203);
                 return;
             }
 
@@ -139,7 +139,7 @@ namespace Astraia.Net
         {
             if (Client.isActive)
             {
-                Debug.LogWarning("客户端已经连接！");
+                Debug.LogWarning(Logs.E203);
                 return;
             }
 
@@ -150,7 +150,7 @@ namespace Astraia.Net
         {
             if (!Client.isActive)
             {
-                Debug.LogWarning("客户端已经停止！");
+                Debug.LogWarning(Logs.E204);
                 return;
             }
 
@@ -166,7 +166,7 @@ namespace Astraia.Net
         {
             if (Server.isActive || Client.isActive)
             {
-                Debug.LogWarning("客户端或服务器已经连接！");
+                Debug.LogWarning(Logs.E205);
                 return;
             }
 
@@ -184,7 +184,7 @@ namespace Astraia.Net
         {
             if (Lobby.isActive)
             {
-                Debug.LogWarning("大厅服务器已经连接！");
+                Debug.LogWarning(Logs.E206);
                 return;
             }
 
@@ -195,7 +195,7 @@ namespace Astraia.Net
         {
             if (!Lobby.isActive)
             {
-                Debug.LogWarning("大厅服务器已经停止！");
+                Debug.LogWarning(Logs.E207);
                 return;
             }
 

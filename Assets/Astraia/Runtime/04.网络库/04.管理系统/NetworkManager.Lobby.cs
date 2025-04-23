@@ -22,28 +22,28 @@ namespace Astraia.Net
         public static partial class Lobby
         {
             internal static readonly Dictionary<int, int> players = new Dictionary<int, int>();
-            
+
             private static readonly Dictionary<int, int> clients = new Dictionary<int, int>();
-            
+
             private static State state = State.Disconnect;
-            
+
             private static int objectId;
-            
+
             internal static bool isClient;
-            
+
             internal static bool isServer;
-            
+
             internal static Transport connection;
-            
+
             public static bool isActive => state != State.Disconnect;
-            
+
             public static bool isConnected => state == State.Connected;
-            
+
             private static ushort port => Transport.Instance.port;
-            
+
             private static string address => Transport.Instance.address;
 
-            
+
             internal static void Start()
             {
                 Register();
@@ -66,35 +66,35 @@ namespace Astraia.Net
                     connection.StopClient();
                 }
             }
-            
+
             public static async void UpdateLobby()
             {
                 if (!isConnected)
                 {
-                    Debug.Log("您必须连接到大厅以请求房间列表!");
+                    Debug.Log(Logs.E251);
                     return;
                 }
 
-                var uri = Service.Text.Format("http://{0}:{1}/api/compressed/servers", address, port);
+                var uri = Service.Text.Format(Logs.E252, address, port);
                 using var request = UnityWebRequest.Get(uri);
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogWarning(Service.Text.Format("无法获取服务器列表: {0}:{1}", address, port));
+                    Debug.LogWarning(Service.Text.Format(Logs.E253, address, port));
                     return;
                 }
 
                 var rooms = Service.Zip.Decompress(request.downloadHandler.text);
-                var jsons = JsonManager.FromJson<RoomData[]>("{" + "\"value\":" + rooms + "}");
+                var jsons = JsonManager.FromJson<RoomData[]>(Service.Text.Format(Logs.E254, rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
-                Debug.Log("房间信息：" + rooms);
+                Debug.Log(Logs.E255);
             }
 
             public static void UpdateRoom(string roomName, string roomData, RoomMode roomMode)
             {
                 if (!isServer)
                 {
-                    Debug.Log("您必须连接到大厅以更新房间信息!");
+                    Debug.Log(Logs.E256);
                     return;
                 }
 
@@ -124,7 +124,7 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Debug.LogError("没有连接到有效的传输！");
+                    Debug.LogError(Logs.E257);
                     return;
                 }
 

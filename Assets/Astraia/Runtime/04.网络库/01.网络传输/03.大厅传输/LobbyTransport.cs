@@ -56,13 +56,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Lobby.isConnected)
             {
-                Debug.Log("没有连接到大厅!");
+                Debug.Log(Logs.E208);
                 return;
             }
 
             if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
             {
-                Debug.Log("客户端或服务器已经连接!");
+                Debug.Log(Logs.E205);
                 return;
             }
             
@@ -102,13 +102,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Lobby.isConnected)
             {
-                Debug.Log("没有连接到大厅！");
+                Debug.Log(Logs.E208);
                 return;
             }
 
             if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
             {
-                Debug.Log("客户端或服务器已经连接!");
+                Debug.Log(Logs.E205);
                 return;
             }
 

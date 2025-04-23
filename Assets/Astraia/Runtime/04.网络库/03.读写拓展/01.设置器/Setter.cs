@@ -119,7 +119,7 @@ namespace Astraia.Net
 
             if (value.objectId == 0)
             {
-                Debug.LogWarning("NetworkObject的对象索引为0。\n");
+                Debug.LogWarning(Logs.E209);
                 setter.SetUInt(0);
                 return;
             }

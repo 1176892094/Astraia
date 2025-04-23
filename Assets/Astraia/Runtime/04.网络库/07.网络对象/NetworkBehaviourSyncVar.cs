@@ -102,7 +102,7 @@ namespace Astraia.Net
                     newValue = entity.objectId;
                     if (newValue == 0)
                     {
-                        Debug.LogWarning(Service.Text.Format("设置网络变量的对象未初始化。对象名称: {0}", newObject.name));
+                        Debug.LogWarning(Service.Text.Format(Logs.E269, newObject.name));
                     }
                 }
             }
@@ -136,7 +136,7 @@ namespace Astraia.Net
                     newValue = entity.objectId;
                     if (newValue == 0)
                     {
-                        Debug.LogWarning(Service.Text.Format("设置网络变量的对象未初始化。对象名称: {0}", newObject.name));
+                        Debug.LogWarning(Service.Text.Format(Logs.E269, newObject.name));
                     }
                 }
             }
@@ -186,7 +186,7 @@ namespace Astraia.Net
                 newValue = @object.objectId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format("设置网络变量的对象未初始化。对象名称: {0}", @object.name));
+                    Debug.LogWarning(Service.Text.Format(Logs.E269, @object.name));
                 }
             }
 
@@ -209,7 +209,7 @@ namespace Astraia.Net
                 newValue = @object.objectId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format("设置网络变量的对象未初始化。对象名称: {0}", @object.name));
+                    Debug.LogWarning(Service.Text.Format(Logs.E269, @object.name));
                 }
             }
 
@@ -260,7 +260,7 @@ namespace Astraia.Net
                 index = @object.componentId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format("设置网络变量的对象未初始化。对象名称: {0}", @object.name));
+                    Debug.LogWarning(Service.Text.Format(Logs.E269, @object.name));
                 }
             }
 
@@ -294,7 +294,7 @@ namespace Astraia.Net
                 index = @object.componentId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format("设置网络变量的对象未初始化。对象名称: {0}", @object.name));
+                    Debug.LogWarning(Service.Text.Format(Logs.E269, @object.name));
                 }
             }
 

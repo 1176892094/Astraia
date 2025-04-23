@@ -26,7 +26,7 @@ namespace Astraia.Net
 
         private Client client;
         private Server server;
-        
+
         private void Awake()
         {
             Log.Info = Debug.Log;
@@ -49,7 +49,7 @@ namespace Astraia.Net
 
             void ClientError(Error error, string message)
             {
-                Debug.LogWarning(Service.Text.Format("错误代码: {0} => {1}", error, message));
+                Debug.LogWarning(Service.Text.Format(Logs.E210, error, message));
             }
 
             void ClientReceive(ArraySegment<byte> message, int channel)
