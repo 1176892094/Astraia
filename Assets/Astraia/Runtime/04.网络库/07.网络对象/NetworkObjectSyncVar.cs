@@ -11,7 +11,6 @@
 
 
 using System;
-using System.Collections.Generic;
 
 namespace Astraia.Net
 {
@@ -20,9 +19,7 @@ namespace Astraia.Net
         internal void ServerSerialize(bool status, MemorySetter owner, MemorySetter observer)
         {
             var components = entities;
-            var ownerPair = ServerDirtyMasks(status);
-            var ownerMask = ownerPair.Key;
-            var observerMask = ownerPair.Value;
+            var (ownerMask, observerMask) = ServerDirtyMasks(status);
 
             if (ownerMask != 0)
             {
@@ -120,7 +117,7 @@ namespace Astraia.Net
             }
         }
 
-        private KeyValuePair<ulong, ulong> ServerDirtyMasks(bool status)
+        private (ulong, ulong) ServerDirtyMasks(bool status)
         {
             ulong ownerMask = 0;
             ulong observerMask = 0;
@@ -142,7 +139,7 @@ namespace Astraia.Net
                 }
             }
 
-            return new KeyValuePair<ulong, ulong>(ownerMask, observerMask);
+            return (ownerMask, observerMask);
         }
 
         private ulong ClientDirtyMask()

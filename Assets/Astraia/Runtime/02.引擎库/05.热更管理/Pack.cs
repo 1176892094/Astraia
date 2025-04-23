@@ -202,15 +202,15 @@ namespace Astraia.Common
 
         private static async Task<string> LoadClientRequest(string persistentData, string streamingAssets)
         {
-            var packData = await LoadRequest(persistentData, streamingAssets);
+            var (assetMode, assetPath) = await LoadRequest(persistentData, streamingAssets);
             string result = null;
-            if (packData.Key == 1)
+            if (assetMode == 1)
             {
-                result = await File.ReadAllTextAsync(packData.Value);
+                result = await File.ReadAllTextAsync(assetPath);
             }
-            else if (packData.Key == 2)
+            else if (assetMode == 2)
             {
-                using var request = UnityWebRequest.Get(packData.Value);
+                using var request = UnityWebRequest.Get(assetPath);
                 await request.SendWebRequest();
                 if (request.result == UnityWebRequest.Result.Success)
                 {
@@ -223,15 +223,15 @@ namespace Astraia.Common
 
         internal static async Task<AssetBundle> LoadAssetRequest(string persistentData, string streamingAssets)
         {
-            var packData = await LoadRequest(persistentData, streamingAssets);
+            var (assetMode, assetPath) = await LoadRequest(persistentData, streamingAssets);
             byte[] result = null;
-            if (packData.Key == 1)
+            if (assetMode == 1)
             {
-                result = await Task.Run(() => Service.Xor.Decrypt(File.ReadAllBytes(packData.Value)));
+                result = await Task.Run(() => Service.Xor.Decrypt(File.ReadAllBytes(assetPath)));
             }
-            else if (packData.Key == 2)
+            else if (assetMode == 2)
             {
-                using var request = UnityWebRequest.Get(packData.Value);
+                using var request = UnityWebRequest.Get(assetPath);
                 await request.SendWebRequest();
                 if (request.result == UnityWebRequest.Result.Success)
                 {
@@ -242,27 +242,31 @@ namespace Astraia.Common
             return GlobalSetting.Instance ? AssetBundle.LoadFromMemory(result) : null;
         }
 
-        private static async Task<KeyValuePair<int, string>> LoadRequest(string persistentData, string streamingAssets)
+        private static async Task<(int, string)> LoadRequest(string persistentData, string streamingAssets)
         {
             if (File.Exists(persistentData))
             {
-                return new KeyValuePair<int, string>(1, persistentData);
+                return (1, persistentData);
             }
 #if UNITY_ANDROID && !UNITY_EDITOR
+            if (!streamingAssets.StartsWith("jar:"))
+            {
+                streamingAssets = "jar:" + streamingAssets;
+            }
             using var request = UnityWebRequest.Head(streamingAssets);
             await request.SendWebRequest();
             if (request.result == UnityWebRequest.Result.Success)
             {
-                return new KeyValuePair<int, string>(2, streamingAssets);
+                return (2, streamingAssets);
             }
 #else
             if (File.Exists(streamingAssets))
             {
-                return new KeyValuePair<int, string>(1, streamingAssets);
+                return (1, streamingAssets);
             }
 #endif
             await Task.CompletedTask;
-            return new KeyValuePair<int, string>(0, string.Empty);
+            return (0, string.Empty);
         }
 
         internal static void Dispose()
