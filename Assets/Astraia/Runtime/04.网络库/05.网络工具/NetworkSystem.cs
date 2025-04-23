@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
@@ -69,6 +70,19 @@ namespace Astraia.Net
                         return true;
                     }
                 }
+            }
+
+            return false;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool Tick(float sendRate, ref double sendTime)
+        {
+            var duration = 1.0 / sendRate;
+            if (sendTime + duration <= Time.unscaledTimeAsDouble)
+            {
+                sendTime = (long)(Time.unscaledTimeAsDouble / duration) * duration;
+                return true;
             }
 
             return false;

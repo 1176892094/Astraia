@@ -34,14 +34,13 @@ namespace Astraia
         private int row => (int)assetRect.y + (direction == UIState.Vertical ? 1 : 0);
         private int column => (int)assetRect.x + (direction == UIState.Horizontal ? 1 : 0);
 
-        public override void OnShow(Component owner)
+        protected override void OnShow()
         {
-            base.OnShow(owner);
             selection = false;
             initialized = false;
         }
 
-        public override void OnHide()
+        void IAgent.OnHide()
         {
             items = null;
             oldMinIndex = -1;
@@ -59,15 +58,11 @@ namespace Astraia
             }
 
             grids.Clear();
+            OnHide();
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
-            if (owner == null)
-            {
-                return;
-            }
-
             if (!initialized)
             {
                 initialized = true;
@@ -211,7 +206,7 @@ namespace Astraia
             {
                 return;
             }
-            
+
             this.items = items;
             float value = items.Count;
             if (direction == UIState.Vertical)
@@ -224,7 +219,7 @@ namespace Astraia
                 value = Mathf.Ceil(value / row);
                 owner.sizeDelta = new Vector2(value * assetRect.width, 0);
             }
-            
+
             useSelected = selection;
             owner.anchoredPosition = Vector2.zero;
         }

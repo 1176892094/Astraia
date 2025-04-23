@@ -40,9 +40,8 @@ namespace Astraia
             attributes[key] = value;
         }
 
-        public override void OnHide()
+        protected override void OnHide()
         {
-            base.OnHide();
             attributes.Clear();
         }
 

@@ -17,13 +17,17 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [RequireComponent(typeof(KcpTransport))]
-    public partial class NetworkManager : MonoBehaviour, IEvent<SceneComplete>
+    public sealed partial class NetworkManager : MonoBehaviour, IEvent<SceneComplete>
     {
         public static NetworkManager Instance;
 
-        public int sendRate = 30;
+        public Transport transport;
+
+        [Range(30, 90)] public int sendRate = 30;
 
         public int connection = 100;
+
+        public string authorization;
 
         private string sceneName;
 
@@ -49,8 +53,8 @@ namespace Astraia.Net
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Transport.Instance = transport;
             Application.runInBackground = true;
-            Transport.Instance = GetComponent<Transport>();
         }
 
         private void OnEnable()
@@ -65,6 +69,11 @@ namespace Astraia.Net
 
         private void OnApplicationQuit()
         {
+            if (Lobby.isConnected)
+            {
+                StopLobby();
+            }
+
             if (Client.isConnected)
             {
                 StopClient();
@@ -171,6 +180,28 @@ namespace Astraia.Net
             StopServer();
         }
 
+        public static void StartLobby()
+        {
+            if (Lobby.isActive)
+            {
+                Debug.LogWarning("大厅服务器已经连接！");
+                return;
+            }
+
+            Lobby.Start();
+        }
+
+        public static void StopLobby()
+        {
+            if (!Lobby.isActive)
+            {
+                Debug.LogWarning("大厅服务器已经停止！");
+                return;
+            }
+
+            Lobby.Stop();
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NetworkObject GetNetworkObject(uint objectId)
         {
@@ -191,19 +222,6 @@ namespace Astraia.Net
             }
 
             return null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool Tick(float sendRate, ref double sendTime)
-        {
-            var duration = 1.0 / sendRate;
-            if (sendTime + duration <= Time.unscaledTimeAsDouble)
-            {
-                sendTime = (long)(Time.unscaledTimeAsDouble / duration) * duration;
-                return true;
-            }
-
-            return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

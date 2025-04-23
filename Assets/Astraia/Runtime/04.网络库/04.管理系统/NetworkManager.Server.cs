@@ -486,7 +486,7 @@ namespace Astraia.Net
             {
                 if (isActive)
                 {
-                    if (Tick(Instance.sendRate, ref sendTime))
+                    if (NetworkSystem.Tick(Instance.sendRate, ref sendTime))
                     {
                         Broadcast();
                     }

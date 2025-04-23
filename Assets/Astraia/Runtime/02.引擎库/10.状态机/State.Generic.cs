@@ -20,15 +20,39 @@ namespace Astraia
     {
         protected T owner { get; private set; }
 
-        void IAgent.OnHide() => owner = null;
+        void IAgent.OnShow(Component owner)
+        {
+            this.owner = (T)owner;
+        }
 
-        void IAgent.OnShow(Component owner) => this.owner = (T)owner;
-        
-        void IState.OnEnter() => OnEnter();
+        void IState.OnEnter()
+        {
+            if (owner != null)
+            {
+                OnEnter();
+            }
+        }
 
-        void IAgent.OnUpdate() => OnUpdate();
+        void IAgent.OnUpdate()
+        {
+            if (owner != null)
+            {
+                OnUpdate();
+            }
+        }
 
-        void IState.OnExit() => OnExit();
+        void IState.OnExit()
+        {
+            if (owner != null)
+            {
+                OnExit();
+            }
+        }
+
+        void IAgent.OnHide()
+        {
+            owner = null;
+        }
 
         protected abstract void OnEnter();
 

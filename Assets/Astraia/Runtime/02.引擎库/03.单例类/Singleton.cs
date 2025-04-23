@@ -56,7 +56,10 @@ namespace Astraia
 
             if (typeof(IPerpetual).IsAssignableFrom(typeof(T)))
             {
-                DontDestroyOnLoad(gameObject);
+                if (Application.isPlaying)
+                {
+                    DontDestroyOnLoad(gameObject);
+                }
             }
         }
 

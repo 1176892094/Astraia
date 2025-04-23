@@ -21,9 +21,8 @@ namespace Astraia
         private readonly Dictionary<Type, IState> states = new Dictionary<Type, IState>();
         private IState state;
 
-        public override void OnHide()
+        protected override void OnHide()
         {
-            base.OnHide();
             var copies = new List<IState>(states.Values);
             foreach (var item in copies)
             {
@@ -35,7 +34,7 @@ namespace Astraia
             state = null;
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             state?.OnUpdate();
         }

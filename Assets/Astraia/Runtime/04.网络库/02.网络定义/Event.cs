@@ -132,4 +132,44 @@ namespace Astraia.Common
             this.pingTime = pingTime;
         }
     }
+    
+    
+    [Serializable]
+    public struct RoomData
+    {
+        /// <summary>
+        /// 房间拥有者
+        /// </summary>
+        public int clientId;
+
+        /// <summary>
+        /// 是否显示
+        /// </summary>
+        public RoomMode roomMode;
+
+        /// <summary>
+        /// 房间最大人数
+        /// </summary>
+        public int maxCount;
+
+        /// <summary>
+        /// 额外房间数据
+        /// </summary>
+        public string roomData;
+
+        /// <summary>
+        /// 房间Id
+        /// </summary>
+        public string roomId;
+
+        /// <summary>
+        /// 房间名称
+        /// </summary>
+        public string roomName;
+
+        /// <summary>
+        /// 客户端数量
+        /// </summary>
+        public int[] clients;
+    }
 }

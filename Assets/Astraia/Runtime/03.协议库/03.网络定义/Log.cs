@@ -40,7 +40,7 @@ namespace Astraia
 
         public const string E128 = "客户端已经连接!";
         public const string E129 = "客户端没有连接，发送消息失败！";
-        public const string E130 = "客户端连接到: {0} : {1}。";
+        public const string E130 = "客户端连接到: {0} : {1}";
         public const string E131 = "客户端发送消息失败!\n{0}";
         public const string E132 = "客户端接收消息失败!\n{0}";
         public const string E133 = "客户端重新验证。旧: {0} 新: {1}";

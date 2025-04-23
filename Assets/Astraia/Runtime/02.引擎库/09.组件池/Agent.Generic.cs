@@ -18,18 +18,36 @@ namespace Astraia
     {
         public T owner { get; private set; }
 
-        public virtual void OnShow(Component owner)
+        void IAgent.OnShow(Component owner)
         {
             this.owner = (T)owner;
+            OnShow();
         }
 
-        public virtual void OnUpdate()
+        void IAgent.OnUpdate()
+        {
+            if (owner != null)
+            {
+                OnUpdate();
+            }
+        }
+
+        void IAgent.OnHide()
+        {
+            OnHide();
+            owner = null;
+        }
+
+        protected virtual void OnShow()
         {
         }
-        
-        public virtual void OnHide()
+
+        protected virtual void OnUpdate()
         {
-            owner = null;
+        }
+
+        protected virtual void OnHide()
+        {
         }
     }
 }
