@@ -36,11 +36,11 @@ namespace Astraia.Net
 
         public uint objectId => @object.objectId;
 
-        public bool isOwner => (@object.entityMode & EntityMode.Owner) != 0;
+        public bool isOwner => (@object?.entityMode & EntityMode.Owner) != 0;
 
-        public bool isServer => (@object.entityMode & EntityMode.Server) != 0;
+        public bool isServer => (@object?.entityMode & EntityMode.Server) != 0;
 
-        public bool isClient => (@object.entityMode & EntityMode.Client) != 0;
+        public bool isClient => (@object?.entityMode & EntityMode.Client) != 0;
 
         public bool isVerify
         {
