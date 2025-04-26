@@ -12,7 +12,6 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Text;
 
 namespace Astraia
 {
@@ -22,7 +21,7 @@ namespace Astraia
         {
             public static string Compress(string data)
             {
-                var bytes = Encoding.UTF8.GetBytes(data);
+                var bytes = Text.GetBytes(data);
                 using var buffer = new MemoryStream();
                 using (var stream = new GZipStream(buffer, CompressionMode.Compress, true))
                 {
@@ -37,7 +36,7 @@ namespace Astraia
                 var bytes = Convert.FromBase64String(data);
                 using var buffer = new MemoryStream(bytes);
                 using var stream = new GZipStream(buffer, CompressionMode.Decompress);
-                using var reader = new StreamReader(stream, Encoding.UTF8);
+                using var reader = new StreamReader(stream, Text.Encoding);
                 return reader.ReadToEnd();
             }
         }

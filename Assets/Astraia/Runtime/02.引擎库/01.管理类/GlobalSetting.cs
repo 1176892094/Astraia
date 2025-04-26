@@ -46,9 +46,13 @@ namespace Astraia
 
         public string assetBuildPath = "AssetBundles";
 
+        public string assetSourcePath = "Assets/Template";
+
         public string assetRemotePath = "http://192.168.0.3:8000/AssetBundles";
 
-        public string assetSourcePath = "Assets/Template";
+        public int assetJsonKey = 1;
+
+        public string assetJsonValue = "ABCDEFGHIJKLMNOP";
 
         public static GlobalSetting Instance
         {
@@ -80,7 +84,7 @@ namespace Astraia
 
         public static string assetPackData => Service.Text.Format("{0}.json", Instance.assetLoadName);
         public static string assetPackPath => Service.Text.Format("{0}/{1}", Application.persistentDataPath, Instance.assetBuildPath);
-        
+
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -209,6 +213,7 @@ namespace Astraia
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
+            Service.Xor.Register(Instance.assetJsonKey, Instance.assetJsonValue);
             var canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
             canvas.gameObject.layer = LayerMask.NameToLayer("UI");
             canvas.gameObject.AddComponent<GraphicRaycaster>();

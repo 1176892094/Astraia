@@ -16,42 +16,38 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static class Text
+        public static partial class Text
         {
-            [ThreadStatic] private static UTF8Encoding encoder;
-            [ThreadStatic] private static StringBuilder builder;
-            public static UTF8Encoding UTF8 => encoder ??= new UTF8Encoding(false, true);
+            [ThreadStatic]
+            private static StringBuilder builder;
+            private static StringBuilder Builder => builder ??= new StringBuilder(1024);
 
             public static string Format<T>(string format, T arg1)
             {
-                builder ??= new StringBuilder(1024);
-                builder.Length = 0;
-                builder.AppendFormat(format, arg1);
-                return builder.ToString();
+                Builder.Length = 0;
+                Builder.AppendFormat(format, arg1);
+                return Builder.ToString();
             }
 
             public static string Format<T1, T2>(string format, T1 arg1, T2 arg2)
             {
-                builder ??= new StringBuilder(1024);
-                builder.Length = 0;
-                builder.AppendFormat(format, arg1, arg2);
-                return builder.ToString();
+                Builder.Length = 0;
+                Builder.AppendFormat(format, arg1, arg2);
+                return Builder.ToString();
             }
 
             public static string Format<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
             {
-                builder ??= new StringBuilder(1024);
-                builder.Length = 0;
-                builder.AppendFormat(format, arg1, arg2, arg3);
-                return builder.ToString();
+                Builder.Length = 0;
+                Builder.AppendFormat(format, arg1, arg2, arg3);
+                return Builder.ToString();
             }
 
             public static string Format<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
             {
-                builder ??= new StringBuilder(1024);
-                builder.Length = 0;
-                builder.AppendFormat(format, arg1, arg2, arg3, arg4);
-                return builder.ToString();
+                Builder.Length = 0;
+                Builder.AppendFormat(format, arg1, arg2, arg3, arg4);
+                return Builder.ToString();
             }
         }
     }

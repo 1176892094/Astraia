@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System.IO;
-using System.Text;
 using UnityEngine;
 
 namespace Astraia.Common
@@ -41,8 +40,8 @@ namespace Astraia.Common
             var path = LoadPath(name);
             var json = ToJson(data);
             json = Service.Zip.Compress(json);
-            var item = Encoding.UTF8.GetBytes(json);
-            item = Service.Xor.Encrypt(item);
+            var item = Service.Text.GetBytes(json);
+            item = Service.Xor.Encrypt(item, GlobalSetting.Instance.assetJsonKey);
             File.WriteAllBytes(path, item);
         }
 
@@ -56,7 +55,7 @@ namespace Astraia.Common
 
             var item = File.ReadAllBytes(path);
             item = Service.Xor.Decrypt(item);
-            var json = Encoding.UTF8.GetString(item);
+            var json = Service.Text.GetString(item);
             json = Service.Zip.Decompress(json);
             FromJson(json, data);
         }
@@ -78,8 +77,11 @@ namespace Astraia.Common
             {
                 Directory.CreateDirectory(jsonPath);
             }
-                
+
             return Path.Combine(jsonPath, Service.Text.Format("{0}.json", fileName));
         }
     }
+    //保存 获取Key 加密
+    //读取 获取Key 解密
+    //Key改变
 }

@@ -12,7 +12,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Astraia.Common;
 using UnityEngine;
 using AssetData = System.Collections.Generic.KeyValuePair<string, string>;
 using EnumTable = System.Collections.Generic.Dictionary<System.Enum, Astraia.Common.IData>;

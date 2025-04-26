@@ -155,8 +155,8 @@ namespace Astraia.Net
                 return;
             }
 
-            setter.Resize(setter.position + 2 + Service.Text.UTF8.GetMaxByteCount(value.Length));
-            var count = Service.Text.UTF8.GetBytes(value, 0, value.Length, setter.buffer, setter.position + 2);
+            setter.Resize(setter.position + 2 + Service.Text.GetByteCount(value.Length));
+            var count = Service.Text.GetByteCount(value, value.Length, setter.buffer, setter.position + 2);
             if (count > ushort.MaxValue - 1)
             {
                 throw new EndOfStreamException("写入字符串过长!");
