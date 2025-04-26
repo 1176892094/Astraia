@@ -36,6 +36,10 @@ namespace Astraia
         public string smtpUsername = "1176892094@qq.com";
 
         public string smtpPassword;
+        
+        [Range(1, 255)] public int encryptionKey = 1;
+
+        public string encryptionValue = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.OnValueChanged("UpdateSceneSetting")]
@@ -49,10 +53,6 @@ namespace Astraia
         public string assetSourcePath = "Assets/Template";
 
         public string assetRemotePath = "http://192.168.0.3:8000/AssetBundles";
-
-        public int assetJsonKey = 1;
-
-        public string assetJsonValue = "ABCDEFGHIJKLMNOP";
 
         public static GlobalSetting Instance
         {
@@ -213,7 +213,7 @@ namespace Astraia
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            Service.Xor.Register(Instance.assetJsonKey, Instance.assetJsonValue);
+            Service.Xor.Register(Instance.encryptionKey, Instance.encryptionValue);
             var canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
             canvas.gameObject.layer = LayerMask.NameToLayer("UI");
             canvas.gameObject.AddComponent<GraphicRaycaster>();
