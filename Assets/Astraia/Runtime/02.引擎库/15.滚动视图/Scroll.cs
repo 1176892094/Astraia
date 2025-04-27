@@ -208,17 +208,21 @@ namespace Astraia
             }
 
             this.items = items;
-            float value = items.Count;
-            if (direction == UIState.Vertical)
+            if (items != null)
             {
-                value = Mathf.Ceil(value / column);
-                owner.sizeDelta = new Vector2(0, value * assetRect.height);
+                float value = items.Count;
+                if (direction == UIState.Vertical)
+                {
+                    value = Mathf.Ceil(value / column);
+                    owner.sizeDelta = new Vector2(0, value * assetRect.height);
+                }
+                else
+                {
+                    value = Mathf.Ceil(value / row);
+                    owner.sizeDelta = new Vector2(value * assetRect.width, 0);
+                }
             }
-            else
-            {
-                value = Mathf.Ceil(value / row);
-                owner.sizeDelta = new Vector2(value * assetRect.width, 0);
-            }
+
 
             useSelected = selection;
             owner.anchoredPosition = Vector2.zero;
