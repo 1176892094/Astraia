@@ -162,21 +162,25 @@ namespace Astraia.Common
             var index = (int)layer;
             if (!GlobalManager.layerData.TryGetValue(index, out var pool))
             {
-                var name = Service.Text.Format("Pool - Canvas/Layer-{0}", index);
-                var item = new GameObject(name, typeof(RectTransform));
-                item.transform.SetParent(GlobalManager.Instance.canvas.transform);
-                item.gameObject.layer = LayerMask.NameToLayer("UI");
-                pool = item.GetComponent<RectTransform>();
-                pool.anchorMin = Vector2.zero;
-                pool.anchorMax = Vector2.one;
-                pool.offsetMin = Vector2.zero;
-                pool.offsetMax = Vector2.zero;
-                pool.localScale = Vector3.one;
-                pool.localPosition = Vector3.zero;
-                GlobalManager.layerData.Add(index, pool);
-            }
+                for (var i = UILayer.Lowest; i <= UILayer.Highest; i++)
+                {
+                    var name = Service.Text.Format("Pool - Canvas/{0}", i);
+                    var item = new GameObject(name, typeof(RectTransform));
+                    item.transform.SetParent(GlobalManager.Instance.canvas.transform);
+                    item.gameObject.layer = LayerMask.NameToLayer("UI");
+                    pool = item.GetComponent<RectTransform>();
+                    pool.anchorMin = Vector2.zero;
+                    pool.anchorMax = Vector2.one;
+                    pool.offsetMin = Vector2.zero;
+                    pool.offsetMax = Vector2.zero;
+                    pool.localScale = Vector3.one;
+                    pool.localPosition = Vector3.zero;
+                    GlobalManager.layerData.Add((int)i, pool);
+                }
 
-            pool.SetSiblingIndex(index);
+                pool = GlobalManager.layerData[index];
+            }
+            
             var rect = (RectTransform)panel;
             rect.SetParent(pool);
             rect.anchorMin = Vector2.zero;
