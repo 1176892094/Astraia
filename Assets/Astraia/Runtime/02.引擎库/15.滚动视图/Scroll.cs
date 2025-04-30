@@ -34,13 +34,18 @@ namespace Astraia
         private int row => (int)assetRect.y + (direction == UIState.Vertical ? 1 : 0);
         private int column => (int)assetRect.x + (direction == UIState.Horizontal ? 1 : 0);
 
+        void IAgent.OnHide()
+        {
+            OnHide();
+        }
+
         protected override void OnShow()
         {
             selection = false;
             initialized = false;
         }
 
-        void IAgent.OnHide()
+        protected override void OnHide()
         {
             items = null;
             oldMinIndex = -1;
@@ -58,11 +63,15 @@ namespace Astraia
             }
 
             grids.Clear();
-            OnHide();
         }
 
         protected override void OnUpdate()
         {
+            if (owner == null)
+            {
+                return;
+            }
+
             if (!initialized)
             {
                 initialized = true;
