@@ -47,15 +47,15 @@ namespace Astraia
             public static string Replace(string text, char mask = '*')
             {
                 var chars = text.ToCharArray();
-                for (int i = 0; i < chars.Length; i++)
+                for (var i = 0; i < chars.Length; i++)
                 {
                     var current = root;
-                    int j = i;
+                    var j = i;
                     while (j < chars.Length && current.nodes.TryGetValue(chars[j], out var next))
                     {
                         if (next.finish)
                         {
-                            for (int k = i; k <= j; k++)
+                            for (var k = i; k <= j; k++)
                             {
                                 chars[k] = mask;
                             }
