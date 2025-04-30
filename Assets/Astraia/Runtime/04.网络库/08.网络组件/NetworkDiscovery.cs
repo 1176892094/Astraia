@@ -8,17 +8,24 @@ namespace Astraia.Net
 {
     public class NetworkDiscovery : MonoBehaviour
     {
+        public static NetworkDiscovery Instance;
+
         [SerializeField] private string address = IPAddress.Broadcast.ToString();
 
         [SerializeField] private ushort port = 47777;
 
         public int version;
-        
+
         public int duration = 1;
 
         private UdpClient udpClient;
 
         private UdpClient udpServer;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         public void StartDiscovery()
         {
@@ -174,7 +181,7 @@ namespace Astraia.Net
                 }
             }
         }
-        
+
 #if UNITY_ANDROID
         private bool multicast;
         private AndroidJavaObject multicastLock;
