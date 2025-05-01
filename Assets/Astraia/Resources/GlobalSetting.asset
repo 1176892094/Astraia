@@ -22,10 +22,11 @@ TextAsset:
   m_PrefabAsset: {fileID: 0}
   m_Name: Template1
   m_Script: "{\n  \"name\": \"HotUpdate.Data\",\n  \"rootNamespace\": \"\",\n  \"references\":
-    [\n    \"GUID:d7b5476ac52be4da88cfdfdc8b8c889a\"\n  ],\n  \"includePlatforms\":
-    [],\n  \"excludePlatforms\": [],\n  \"allowUnsafeCode\": false,\n  \"overrideReferences\":
-    false,\n  \"precompiledReferences\": [],\n  \"autoReferenced\": false,\n  \"defineConstraints\":
-    [],\n  \"versionDefines\": [],\n  \"noEngineReferences\": false\n}"
+    [\n    \"GUID:aa053e14409e744ee99695800f09a6fb\",\n    \"GUID:d7b5476ac52be4da88cfdfdc8b8c889a\"\n 
+    ],\n  \"includePlatforms\": [],\n  \"excludePlatforms\": [],\n  \"allowUnsafeCode\":
+    false,\n  \"overrideReferences\": false,\n  \"precompiledReferences\": [],\n 
+    \"autoReferenced\": true,\n  \"defineConstraints\": [],\n  \"versionDefines\":
+    [],\n  \"noEngineReferences\": false\n}"
 --- !u!49 &-1445054732543145985
 TextAsset:
   m_ObjectHideFlags: 0
@@ -56,11 +57,12 @@ MonoBehaviour:
   smtpPort: 587
   smtpUsername: 1176892094@qq.com
   smtpPassword: 
+  jsonVersion: 1
   assetLoadMode: 0
   assetLoadName: AssetBundle
   assetBuildPath: AssetBundles
-  assetRemotePath: http://192.168.1.2:8000/Documents/GitHub/Astraia-Game/AssetBundles
   assetSourcePath: Assets/Template
+  assetRemotePath: http://192.168.1.2:8000/Documents/GitHub/Astraia-Game/AssetBundles
   sceneAssets:
   - Assets/Template/Scenes/GameScene.unity
   - Assets/Template/Scenes/LevelScene.unity

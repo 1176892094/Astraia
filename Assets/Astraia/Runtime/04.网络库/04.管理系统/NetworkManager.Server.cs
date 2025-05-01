@@ -410,9 +410,12 @@ namespace Astraia.Net
 
             private static void SpawnToClients(NetworkObject @object)
             {
-                foreach (var client in clients.Values.Where(client => client.isReady))
+                foreach (var client in clients.Values)
                 {
-                    SpawnToClient(client, @object);
+                    if (client.isReady)
+                    {
+                        SpawnToClient(client, @object);
+                    }
                 }
             }
 
