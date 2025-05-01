@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -156,35 +157,17 @@ namespace Astraia.Common
             if (!GlobalManager.Instance) return null;
             if (GlobalManager.itemTable.TryGetValue(typeof(T), out var itemTable))
             {
-                var caches = new List<T>(itemTable.Values.Count);
-                foreach (T data in itemTable.Values)
-                {
-                    caches.Add(data);
-                }
-
-                return caches;
+                return itemTable.Values.Cast<T>().ToList();
             }
 
             if (GlobalManager.nameTable.TryGetValue(typeof(T), out var nameTable))
             {
-                var caches = new List<T>(nameTable.Values.Count);
-                foreach (T data in nameTable.Values)
-                {
-                    caches.Add(data);
-                }
-
-                return caches;
+                return nameTable.Values.Cast<T>().ToList();
             }
 
             if (GlobalManager.enumTable.TryGetValue(typeof(T), out var enumTable))
             {
-                var caches = new List<T>(enumTable.Values.Count);
-                foreach (T data in enumTable.Values)
-                {
-                    caches.Add(data);
-                }
-
-                return caches;
+                return enumTable.Values.Cast<T>().ToList();
             }
 
             Debug.LogError(Service.Text.Format("获取 {0} 失败!", typeof(T).Name));
