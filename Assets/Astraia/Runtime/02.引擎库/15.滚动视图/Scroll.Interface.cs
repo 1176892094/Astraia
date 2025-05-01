@@ -9,7 +9,7 @@ namespace Astraia.Common
         public Rect assetRect { get; set; }
         public string assetPath { get; set; }
         public UIState direction { get; set; }
-        void SetItem(List<TItem> items);
+        void SetItem(IList<TItem> items);
         void Move(Component grid, int direction);
     }
 }

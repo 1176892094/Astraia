@@ -151,12 +151,12 @@ namespace Astraia.Common
             return (T)data;
         }
 
-        public static List<T> GetTable<T>() where T : IData
+        public static IList<T> GetTable<T>() where T : IData
         {
             if (!GlobalManager.Instance) return null;
             if (GlobalManager.itemTable.TryGetValue(typeof(T), out var itemTable))
             {
-                var caches = new List<T>();
+                var caches = new List<T>(itemTable.Values.Count);
                 foreach (T data in itemTable.Values)
                 {
                     caches.Add(data);
@@ -167,7 +167,7 @@ namespace Astraia.Common
 
             if (GlobalManager.nameTable.TryGetValue(typeof(T), out var nameTable))
             {
-                var caches = new List<T>();
+                var caches = new List<T>(nameTable.Values.Count);
                 foreach (T data in nameTable.Values)
                 {
                     caches.Add(data);
@@ -178,7 +178,7 @@ namespace Astraia.Common
 
             if (GlobalManager.enumTable.TryGetValue(typeof(T), out var enumTable))
             {
-                var caches = new List<T>();
+                var caches = new List<T>(enumTable.Values.Count);
                 foreach (T data in enumTable.Values)
                 {
                     caches.Add(data);

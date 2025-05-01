@@ -61,17 +61,7 @@ namespace Astraia
 
             return false;
         }
-
-        public bool ContainsKey(TKey key)
-        {
-            return forward.ContainsKey(key);
-        }
-
-        public bool ContainsValue(TValue value)
-        {
-            return reverse.ContainsKey(value);
-        }
-
+        
         public void Clear()
         {
             forward.Clear();
