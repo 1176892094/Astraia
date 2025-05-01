@@ -193,38 +193,23 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            var itemTable = new List<Type>(GlobalManager.itemTable.Keys);
-            foreach (var data in itemTable)
+            for (int i = GlobalManager.itemTable.Count - 1; i >= 0; i--)
             {
-                if (GlobalManager.itemTable.TryGetValue(data, out var pool))
-                {
-                    pool.Clear();
-                    GlobalManager.itemTable.Remove(data);
-                }
+                GlobalManager.itemTable.Values[i].Clear();
             }
 
             GlobalManager.itemTable.Clear();
 
-            var enumTable = new List<Type>(GlobalManager.enumTable.Keys);
-            foreach (var data in enumTable)
+            for (int i = GlobalManager.enumTable.Count - 1; i >= 0; i--)
             {
-                if (GlobalManager.enumTable.TryGetValue(data, out var pool))
-                {
-                    pool.Clear();
-                    GlobalManager.enumTable.Remove(data);
-                }
+                GlobalManager.enumTable.Values[i].Clear();
             }
 
             GlobalManager.enumTable.Clear();
 
-            var nameTable = new List<Type>(GlobalManager.nameTable.Keys);
-            foreach (var data in nameTable)
+            for (int i = GlobalManager.nameTable.Count - 1; i >= 0; i--)
             {
-                if (GlobalManager.nameTable.TryGetValue(data, out var pool))
-                {
-                    pool.Clear();
-                    GlobalManager.nameTable.Remove(data);
-                }
+                GlobalManager.nameTable.Values[i].Clear();
             }
 
             GlobalManager.nameTable.Clear();

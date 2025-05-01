@@ -216,7 +216,7 @@ namespace Astraia.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition($"Write{Service.Hash.Id(tr.FullName)}", Const.RAW_ATTRS, module.Import(typeof(void)));
+            var md = new MethodDefinition($"Write{NetworkMessage.Id(tr.FullName)}", Const.RAW_ATTRS, module.Import(typeof(void)));
             md.Parameters.Add(new ParameterDefinition("setter", ParameterAttributes.None, module.Import<MemorySetter>()));
             md.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, tr));
             md.Body.InitLocals = true;

@@ -25,13 +25,11 @@ namespace Astraia.Net
         {
             private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
-            internal static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
+            internal static readonly LiDictionary<int, NetworkClient> clients = new LiDictionary<int, NetworkClient>();
 
             internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
 
             private static State state = State.Disconnect;
-
-            private static List<NetworkClient> copies = new List<NetworkClient>();
 
             private static uint objectId;
 
@@ -69,9 +67,9 @@ namespace Astraia.Net
             {
                 if (!isActive) return;
                 state = State.Disconnect;
-                copies = clients.Values.ToList();
-                foreach (var client in copies)
+                for (int i = clients.Count - 1; i >= 0; i--)
                 {
+                    var client = clients.Values[i];
                     client.Disconnect();
                     if (client.clientId != hostId)
                     {
@@ -94,7 +92,7 @@ namespace Astraia.Net
 
             internal static void Connect(NetworkClient client)
             {
-                if (!clients.ContainsKey(client.clientId))
+                if (!clients.Contains(client.clientId))
                 {
                     clients.Add(client.clientId, client);
                     EventManager.Invoke(new ServerConnect(client));
@@ -160,7 +158,7 @@ namespace Astraia.Net
 
             public static void Register<T>(Action<NetworkClient, T> handle) where T : struct, IMessage
             {
-                messages[Hash<T>.Id] = (client, getter, channel) =>
+                messages[NetworkMessage<T>.Id] = (client, getter, channel) =>
                 {
                     try
                     {
@@ -177,7 +175,7 @@ namespace Astraia.Net
 
             public static void Register<T>(Action<NetworkClient, T, int> handle) where T : struct, IMessage
             {
-                messages[Hash<T>.Id] = (client, getter, channel) =>
+                messages[NetworkMessage<T>.Id] = (client, getter, channel) =>
                 {
                     try
                     {
@@ -271,7 +269,7 @@ namespace Astraia.Net
                     Debug.LogWarning(Service.Text.Format(Log.E239, clientId));
                     Transport.Instance.StopClient(clientId);
                 }
-                else if (clients.ContainsKey(clientId))
+                else if (clients.Contains(clientId))
                 {
                     Transport.Instance.StopClient(clientId);
                 }
@@ -500,10 +498,9 @@ namespace Astraia.Net
 
             private static void Broadcast()
             {
-                copies.Clear();
-                copies.AddRange(clients.Values);
-                foreach (var client in copies)
+                for (int i = clients.Count - 1; i >= 0; i--)
                 {
+                    var client = clients.Values[i];
                     if (client.isReady)
                     {
                         foreach (var @object in spawns.Values)

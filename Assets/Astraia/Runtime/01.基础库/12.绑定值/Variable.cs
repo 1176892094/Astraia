@@ -81,13 +81,7 @@ namespace Astraia
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                var hashCode = (origin != null ? origin.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ buffer;
-                hashCode = (hashCode * 397) ^ offset;
-                return hashCode;
-            }
+            return HashCode.Combine(origin, buffer, offset);
         }
     }
 }

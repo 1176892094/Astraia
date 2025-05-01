@@ -19,24 +19,17 @@ namespace Astraia.Common
         [Serializable]
         private class HeapPool<T> : IPool
         {
-            private readonly HashSet<T> cached = new HashSet<T>();
             private readonly Queue<T> unused = new Queue<T>();
-
-            public HeapPool(Type type)
-            {
-                this.type = type;
-            }
-
+            public HeapPool(Type type) => this.type = type;
             public Type type { get; private set; }
             public string path { get; private set; }
-            public int acquire => cached.Count;
-            public int release => unused.Count;
+            public int acquire { get; private set; }
+            public int release { get; private set; }
             public int dequeue { get; private set; }
             public int enqueue { get; private set; }
 
             void IDisposable.Dispose()
             {
-                cached.Clear();
                 unused.Clear();
             }
 
@@ -55,7 +48,8 @@ namespace Astraia.Common
                         item = (T)Activator.CreateInstance(type);
                     }
 
-                    cached.Add(item);
+                    release--;
+                    acquire++;
                 }
 
                 return item;
@@ -65,11 +59,10 @@ namespace Astraia.Common
             {
                 lock (unused)
                 {
-                    if (cached.Remove(item))
-                    {
-                        enqueue++;
-                        unused.Enqueue(item);
-                    }
+                    enqueue++;
+                    acquire--;
+                    release++;
+                    unused.Enqueue(item);
                 }
             }
         }

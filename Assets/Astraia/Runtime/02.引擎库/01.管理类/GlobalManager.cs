@@ -69,19 +69,19 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, ItemTable> itemTable = new Dictionary<Type, ItemTable>();
+        internal static readonly LiDictionary<Type, ItemTable> itemTable = new LiDictionary<Type, ItemTable>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, NameTable> nameTable = new Dictionary<Type, NameTable>();
+        internal static readonly LiDictionary<Type, NameTable> nameTable = new LiDictionary<Type, NameTable>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, EnumTable> enumTable = new Dictionary<Type, EnumTable>();
+        internal static readonly LiDictionary<Type, EnumTable> enumTable = new LiDictionary<Type, EnumTable>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
+        internal static readonly LiDictionary<string, IPool> poolData = new LiDictionary<string, IPool>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -89,7 +89,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Component, AgentData> agentData = new Dictionary<Component, AgentData>();
+        internal static readonly LiDictionary<Component, AgentData> agentData = new LiDictionary<Component, AgentData>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -101,7 +101,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, HashSet<UIPanel>> groupData = new Dictionary<string, HashSet<UIPanel>>();
+        internal static readonly LiDictionary<string, HashSet<UIPanel>> groupData = new LiDictionary<string, HashSet<UIPanel>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif

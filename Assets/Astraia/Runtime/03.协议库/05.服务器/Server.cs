@@ -124,7 +124,8 @@ namespace Astraia
 
         private Client AddClient(int clientId)
         {
-            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, Service.Hash.Id(), endPoint);
+            var cookie = (uint)Service.Random.Next();
+            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, cookie, endPoint);
 
             void OnConnect(Client client)
             {

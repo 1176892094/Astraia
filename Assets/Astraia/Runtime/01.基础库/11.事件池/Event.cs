@@ -10,13 +10,12 @@
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 
 namespace Astraia.Common
 {
     public static partial class EventManager
     {
-        private static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
+        private static readonly LiDictionary<Type, IPool> poolData = new LiDictionary<Type, IPool>();
 
         public static void Listen<T>(IEvent<T> data) where T : struct, IEvent
         {
@@ -27,7 +26,7 @@ namespace Astraia.Common
         {
             LoadPool<T>().Remove(data);
         }
-        
+
         public static void Invoke<T>(T data) where T : struct, IEvent
         {
             LoadPool<T>().Invoke(data);
@@ -47,11 +46,10 @@ namespace Astraia.Common
 
         internal static Reference[] Reference()
         {
-            var index = 0;
             var results = new Reference[poolData.Count];
-            foreach (var value in poolData.Values)
+            for (var i = 0; i < results.Length; i++)
             {
-                results[index++] = new Reference(value.type, value.path, value.acquire, value.release, value.dequeue, value.enqueue);
+                results[i] = new Reference(poolData.Values[i]);
             }
 
             return results;
@@ -59,14 +57,9 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            var poolCaches = new List<Type>(poolData.Keys);
-            foreach (var cache in poolCaches)
+            for (int i = poolData.Count - 1; i >= 0; i--)
             {
-                if (poolData.TryGetValue(cache, out var pool))
-                {
-                    pool.Dispose();
-                    poolData.Remove(cache);
-                }
+                poolData.Values[i].Dispose();
             }
 
             poolData.Clear();

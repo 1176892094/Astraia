@@ -43,13 +43,7 @@ namespace Astraia
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                var hashCode = (code != null ? code.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (name != null ? name.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ size;
-                return hashCode;
-            }
+            return HashCode.Combine(code, name, size);
         }
     }
 }

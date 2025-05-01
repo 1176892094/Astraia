@@ -1,4 +1,5 @@
 using System;
+using Astraia.Common;
 
 namespace Astraia
 {
@@ -11,14 +12,14 @@ namespace Astraia
         public int dequeue;
         public int enqueue;
 
-        public Reference(Type type, string path, int acquire, int release, int dequeue, int enqueue)
+        public Reference(IPool pool)
         {
-            this.type = type;
-            this.path = path;
-            this.acquire = acquire;
-            this.release = release;
-            this.dequeue = dequeue;
-            this.enqueue = enqueue;
+            this.type = pool.type;
+            this.path = pool.path;
+            this.acquire = pool.acquire;
+            this.release = pool.release;
+            this.dequeue = pool.dequeue;
+            this.enqueue = pool.enqueue;
         }
 
         public override string ToString()

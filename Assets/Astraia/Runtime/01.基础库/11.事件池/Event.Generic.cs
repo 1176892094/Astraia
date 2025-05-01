@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 
 namespace Astraia.Common
 {
@@ -19,43 +18,32 @@ namespace Astraia.Common
         [Serializable]
         private class EventPool<T> : IPool where T : struct, IEvent
         {
-            private readonly HashSet<IEvent<T>> cached = new HashSet<IEvent<T>>();
             private event Action<T> OnExecute;
-            
-            public EventPool(Type type)
-            {
-                this.type = type;
-            }
-
+            public EventPool(Type type) => this.type = type;
             public Type type { get; private set; }
             public string path { get; private set; }
-            public int acquire => cached.Count;
+            public int acquire { get; private set; }
             public int release { get; private set; }
             public int dequeue { get; private set; }
             public int enqueue { get; private set; }
 
             void IDisposable.Dispose()
             {
-                cached.Clear();
                 OnExecute = null;
             }
 
             public void Listen(IEvent<T> @object)
             {
                 dequeue++;
-                if (cached.Add(@object))
-                {
-                    OnExecute += @object.Execute;
-                }
+                acquire++;
+                OnExecute += @object.Execute;
             }
 
             public void Remove(IEvent<T> @object)
             {
                 enqueue++;
-                if (cached.Remove(@object))
-                {
-                    OnExecute -= @object.Execute;
-                }
+                acquire--;
+                OnExecute -= @object.Execute;
             }
 
             public void Invoke(T message)

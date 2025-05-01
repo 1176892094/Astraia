@@ -34,68 +34,59 @@ namespace Astraia.Common
         internal static IAgent Find<T>(Component owner)
         {
             if (!GlobalManager.Instance) return null;
-            if (!GlobalManager.agentData.TryGetValue(owner, out var agents))
+            if (GlobalManager.agentData.TryGetValue(owner, out var agents))
             {
-                return null;
+                if (agents.TryGetValue(typeof(T), out var agent))
+                {
+                    return agent;
+                }
             }
 
-            if (!agents.TryGetValue(typeof(T), out var agent))
-            {
-                return null;
-            }
-
-            return agent;
+            return null;
         }
 
         internal static void UnRegister<T>(Component owner)
         {
             if (!GlobalManager.Instance) return;
-            if (!GlobalManager.agentData.TryGetValue(owner, out var agents))
+            if (GlobalManager.agentData.TryGetValue(owner, out var agents))
             {
-                return;
-            }
+                if (agents.TryGetValue(typeof(T), out var agent))
+                {
+                    agent.OnHide();
+                    agents.Remove(typeof(T));
+                    HeapManager.Enqueue(agent, agent.GetType());
+                }
 
-            if (agents.TryGetValue(typeof(T), out var agent))
-            {
-                agent.OnHide();
-                agents.Remove(typeof(T));
-                HeapManager.Enqueue(agent, agent.GetType());
-            }
-
-            if (agents.Count == 0)
-            {
-                GlobalManager.agentData.Remove(owner);
+                if (agents.Count == 0)
+                {
+                    GlobalManager.agentData.Remove(owner);
+                }
             }
         }
 
         internal static void Update()
         {
             if (!GlobalManager.Instance) return;
-            foreach (var agents in GlobalManager.agentData.Values)
+            for (int i = GlobalManager.agentData.Count - 1; i >= 0; i--)
             {
-                foreach (var agent in agents.Values)
+                foreach (var agent in GlobalManager.agentData.Values[i])
                 {
-                    agent.OnUpdate();
+                    agent.Value.OnUpdate();
                 }
             }
         }
 
         internal static void Dispose()
         {
-            var items = new List<Component>(GlobalManager.agentData.Keys);
-            foreach (var item in items)
+            for (int i = GlobalManager.agentData.Count - 1; i >= 0; i--)
             {
-                if (GlobalManager.agentData.TryGetValue(item, out var agents))
+                foreach (var agent in GlobalManager.agentData.Values[i])
                 {
-                    foreach (var agent in agents.Values)
-                    {
-                        agent.OnHide();
-                        HeapManager.Enqueue(agent, agent.GetType());
-                    }
-
-                    agents.Clear();
-                    GlobalManager.agentData.Remove(item);
+                    agent.Value.OnHide();
+                    HeapManager.Enqueue(agent, agent.GetType());
                 }
+
+                GlobalManager.agentData.Values[i].Clear();
             }
 
             GlobalManager.agentData.Clear();

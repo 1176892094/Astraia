@@ -97,17 +97,13 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            var groups = new List<string>(GlobalManager.groupData.Keys);
-            foreach (var group in groups)
+            for (int i = GlobalManager.groupData.Count - 1; i >= 0; i--)
             {
-                if (GlobalManager.groupData.TryGetValue(group, out var panel))
-                {
-                    panel.Clear();
-                }
+                GlobalManager.groupData.Values[i].Clear();
             }
 
-            GlobalManager.panelData.Clear();
             GlobalManager.groupData.Clear();
+            GlobalManager.panelData.Clear();
             GlobalManager.layerData.Clear();
         }
     }

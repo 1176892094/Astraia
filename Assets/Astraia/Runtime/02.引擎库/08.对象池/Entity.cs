@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -65,26 +64,20 @@ namespace Astraia.Common
 
         internal static Reference[] Reference()
         {
-            var index = 0;
-            var items = new Reference[GlobalManager.poolData.Count];
-            foreach (var value in GlobalManager.poolData.Values)
+            var results = new Reference[GlobalManager.poolData.Count];
+            for (var i = 0; i < results.Length; i++)
             {
-                items[index++] = new Reference(value.type, value.path, value.acquire, value.release, value.dequeue, value.enqueue);
+                results[i] = new Reference(GlobalManager.poolData.Values[i]);
             }
 
-            return items;
+            return results;
         }
 
         internal static void Dispose()
         {
-            var paths = new List<string>(GlobalManager.poolData.Keys);
-            foreach (var path in paths)
+            for (int i = GlobalManager.poolData.Count - 1; i >= 0; i--)
             {
-                if (GlobalManager.poolData.TryGetValue(path, out var pool))
-                {
-                    pool.Dispose();
-                    GlobalManager.poolData.Remove(path);
-                }
+                GlobalManager.poolData.Values[i].Dispose();
             }
 
             GlobalManager.poolData.Clear();

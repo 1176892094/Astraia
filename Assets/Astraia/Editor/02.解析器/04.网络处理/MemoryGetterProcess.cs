@@ -251,7 +251,7 @@ namespace Astraia.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition($"Read{Service.Hash.Id(tr.FullName)}", Const.RAW_ATTRS, tr);
+            var md = new MethodDefinition($"Read{NetworkMessage.Id(tr.FullName)}", Const.RAW_ATTRS, tr);
             md.Parameters.Add(new ParameterDefinition("getter", ParameterAttributes.None, module.Import<MemoryGetter>()));
             md.Body.InitLocals = true;
             Register(tr, md);
