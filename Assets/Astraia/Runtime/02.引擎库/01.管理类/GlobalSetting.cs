@@ -211,7 +211,6 @@ namespace Astraia
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            Service.Xor.Register(1, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
             var canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
             canvas.gameObject.layer = LayerMask.NameToLayer("UI");
             canvas.gameObject.AddComponent<GraphicRaycaster>();
