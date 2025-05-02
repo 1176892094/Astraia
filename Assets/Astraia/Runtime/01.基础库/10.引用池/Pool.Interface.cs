@@ -15,7 +15,7 @@ namespace Astraia.Common
 {
     internal interface IPool : IDisposable
     {
-        public Type source { get; }
+        public Type type { get; }
         public string path { get; }
         public int acquire { get; }
         public int release { get; }

@@ -19,17 +19,24 @@ namespace Astraia.Common
         [Serializable]
         private class HeapPool<T> : IPool
         {
+            private readonly HashSet<T> cached = new HashSet<T>();
             private readonly Queue<T> unused = new Queue<T>();
-            public HeapPool(Type type) => this.source = type;
-            public Type source { get; private set; }
+
+            public HeapPool(Type type)
+            {
+                this.type = type;
+            }
+
+            public Type type { get; private set; }
             public string path { get; private set; }
-            public int acquire { get; private set; }
-            public int release { get; private set; }
+            public int acquire => cached.Count;
+            public int release => unused.Count;
             public int dequeue { get; private set; }
             public int enqueue { get; private set; }
 
             void IDisposable.Dispose()
             {
+                cached.Clear();
                 unused.Clear();
             }
 
@@ -39,16 +46,16 @@ namespace Astraia.Common
                 lock (unused)
                 {
                     dequeue++;
-                    if (unused.TryDequeue(out item))
+                    if (unused.Count > 0)
                     {
-                        release--;
+                        item = unused.Dequeue();
                     }
                     else
                     {
-                        item = (T)Activator.CreateInstance(source);
+                        item = (T)Activator.CreateInstance(type);
                     }
-                  
-                    acquire++;
+
+                    cached.Add(item);
                 }
 
                 return item;
@@ -58,10 +65,11 @@ namespace Astraia.Common
             {
                 lock (unused)
                 {
-                    enqueue++;
-                    acquire--;
-                    release++;
-                    unused.Enqueue(item);
+                    if (cached.Remove(item))
+                    {
+                        enqueue++;
+                        unused.Enqueue(item);
+                    }
                 }
             }
         }

@@ -25,11 +25,11 @@ namespace Astraia.Common
 
             public AudioPool(Type type, string path)
             {
-                this.source = type;
+                this.type = type;
                 this.path = path;
             }
 
-            public Type source { get; }
+            public Type type { get; }
             public string path { get; }
             public int acquire => cached.Count;
             public int release => unused.Count;

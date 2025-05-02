@@ -86,10 +86,5 @@ namespace Astraia.Net
             isReady = false;
             Transport.Instance.StopClient(clientId);
         }
-
-        public static implicit operator int(NetworkClient client)
-        {
-            return client.clientId;
-        }
     }
 }
