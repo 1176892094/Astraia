@@ -42,10 +42,7 @@ namespace Astraia.Net
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                return ((int)objectId * 397) ^ componentId.GetHashCode();
-            }
+            return HashCode.Combine(objectId, componentId);
         }
     }
 }
