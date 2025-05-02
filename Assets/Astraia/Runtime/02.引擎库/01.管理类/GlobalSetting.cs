@@ -37,9 +37,7 @@ namespace Astraia
 
         public string smtpPassword;
         
-        [Range(1, 255)] public int encryptionKey = 1;
-
-        public string encryptionValue = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        [Range(1, 255)] public int jsonVersion = 1;
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.OnValueChanged("UpdateSceneSetting")]
@@ -213,7 +211,6 @@ namespace Astraia
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            Service.Xor.Register(Instance.encryptionKey, Instance.encryptionValue);
             var canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
             canvas.gameObject.layer = LayerMask.NameToLayer("UI");
             canvas.gameObject.AddComponent<GraphicRaycaster>();
