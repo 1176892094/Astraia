@@ -11,12 +11,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Astraia.Common
 {
     public static partial class HeapManager
     {
-        private static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
+        private static readonly IDictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
         public static T Dequeue<T>()
         {
@@ -50,28 +51,16 @@ namespace Astraia.Common
             return (HeapPool<T>)item;
         }
 
-        internal static Reference[] Reference()
+        internal static List<Pool> Reference()
         {
-            var index = 0;
-            var items = new Reference[poolData.Count];
-            foreach (var value in poolData.Values)
-            {
-                items[index++] = new Reference(value.type, value.path, value.acquire, value.release, value.dequeue, value.enqueue);
-            }
-
-            return items;
+            return poolData.Values.Select(value => new Pool(value)).ToList();
         }
 
         internal static void Dispose()
         {
-            var types = new List<Type>(poolData.Keys);
-            foreach (var type in types)
+            foreach (var item in poolData.Values)
             {
-                if (poolData.TryGetValue(type, out var item))
-                {
-                    item.Dispose();
-                    poolData.Remove(type);
-                }
+                item.Dispose();
             }
 
             poolData.Clear();

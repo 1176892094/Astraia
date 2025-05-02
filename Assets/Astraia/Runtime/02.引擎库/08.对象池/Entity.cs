@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -63,16 +64,9 @@ namespace Astraia.Common
             return (EntityPool)pool;
         }
 
-        internal static Reference[] Reference()
+        internal static IList<Pool> Reference()
         {
-            var index = 0;
-            var items = new Reference[GlobalManager.poolData.Count];
-            foreach (var value in GlobalManager.poolData.Values)
-            {
-                items[index++] = new Reference(value.type, value.path, value.acquire, value.release, value.dequeue, value.enqueue);
-            }
-
-            return items;
+            return GlobalManager.poolData.Values.Select(value => new Pool(value)).ToList();
         }
 
         internal static void Dispose()

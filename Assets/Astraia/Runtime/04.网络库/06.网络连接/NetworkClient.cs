@@ -22,8 +22,8 @@ namespace Astraia.Net
     {
         private Dictionary<int, SetterBatch> batches = new Dictionary<int, SetterBatch>();
         internal GetterBatch getter = new GetterBatch();
-        public int clientId;
-        public bool isReady;
+        internal int clientId;
+        internal bool isReady;
         internal double remoteTime;
 
         public NetworkClient(int clientId)

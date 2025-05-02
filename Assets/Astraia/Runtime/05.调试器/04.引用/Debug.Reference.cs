@@ -17,7 +17,7 @@ namespace Astraia.Common
 {
     public partial class DebugManager
     {
-        private readonly Dictionary<string, List<Reference>> poolData = new Dictionary<string, List<Reference>>();
+        private readonly Dictionary<string, List<Pool>> poolData = new Dictionary<string, List<Pool>>();
         private PoolMode windowOption = PoolMode.Heap;
 
 
@@ -58,7 +58,7 @@ namespace Astraia.Common
             }
         }
 
-        private void Draw(Reference[] references, string message, string module)
+        private void Draw(IList<Pool> references, string message, string module)
         {
             poolData.Clear();
             foreach (var reference in references)
@@ -66,7 +66,7 @@ namespace Astraia.Common
                 var assemblyName = Service.Text.Format("{0} - {1}", reference.type.Assembly.GetName().Name, message);
                 if (!poolData.TryGetValue(assemblyName, out var results))
                 {
-                    results = new List<Reference>();
+                    results = new List<Pool>();
                     poolData.Add(assemblyName, results);
                 }
 
@@ -109,7 +109,7 @@ namespace Astraia.Common
             GUILayout.EndScrollView();
         }
 
-        private static int Comparison(Reference origin, Reference target)
+        private static int Comparison(Pool origin, Pool target)
         {
             return string.Compare(origin.type.Name, target.type.Name, StringComparison.Ordinal);
         }

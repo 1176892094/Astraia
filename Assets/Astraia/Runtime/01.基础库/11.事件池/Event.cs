@@ -11,12 +11,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Astraia.Common
 {
     public static partial class EventManager
     {
-        private static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
+        private static readonly IDictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
         public static void Listen<T>(IEvent<T> data) where T : struct, IEvent
         {
@@ -45,28 +46,16 @@ namespace Astraia.Common
             return (EventPool<T>)pool;
         }
 
-        internal static Reference[] Reference()
+        internal static List<Pool> Reference()
         {
-            var index = 0;
-            var results = new Reference[poolData.Count];
-            foreach (var value in poolData.Values)
-            {
-                results[index++] = new Reference(value.type, value.path, value.acquire, value.release, value.dequeue, value.enqueue);
-            }
-
-            return results;
+            return poolData.Values.Select(value => new Pool(value)).ToList();
         }
 
         internal static void Dispose()
         {
-            var poolCaches = new List<Type>(poolData.Keys);
-            foreach (var cache in poolCaches)
+            foreach (var item in poolData.Values)
             {
-                if (poolData.TryGetValue(cache, out var pool))
-                {
-                    pool.Dispose();
-                    poolData.Remove(cache);
-                }
+                item.Dispose();
             }
 
             poolData.Clear();
