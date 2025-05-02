@@ -13,39 +13,37 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-// ReSharper disable All
-
 namespace Astraia
 {
     public static partial class Service
     {
         public static class Find
         {
-            public const BindingFlags Static = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-            public const BindingFlags Entity = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            private static readonly Dictionary<string, Type> cachedType = new Dictionary<string, Type>();
-            private static readonly Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
+            private static readonly IDictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
+            private static readonly IDictionary<string, Type> cacheTypes = new Dictionary<string, Type>();
+            public const BindingFlags Entity = (BindingFlags)52;
+            public const BindingFlags Static = (BindingFlags)56;
 
             public static Assembly Assembly(string name)
             {
-                if (Find.assemblies.TryGetValue(name, out var assembly))
+                if (assemblies.TryGetValue(name, out var assembly))
                 {
                     return assembly;
                 }
 
-                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                foreach (var current in assemblies)
+                var assemblyData = AppDomain.CurrentDomain.GetAssemblies();
+                foreach (var data in assemblyData)
                 {
-                    if (current.GetName().Name == name)
+                    if (data.GetName().Name == name)
                     {
-                        assembly = current;
+                        assembly = data;
                         break;
                     }
                 }
 
                 if (assembly != null)
                 {
-                    Find.assemblies[name] = assembly;
+                    assemblies[name] = assembly;
                 }
 
                 return assembly;
@@ -53,9 +51,9 @@ namespace Astraia
 
             public static Type Type(string name)
             {
-                if (Find.cachedType.TryGetValue(name, out var cachedType))
+                if (cacheTypes.TryGetValue(name, out var cacheType))
                 {
-                    return cachedType;
+                    return cacheType;
                 }
 
                 var index = name.LastIndexOf(',');
@@ -67,11 +65,11 @@ namespace Astraia
                 var assembly = Assembly(name.Substring(index + 1).Trim());
                 if (assembly != null)
                 {
-                    cachedType = assembly.GetType(name.Substring(0, index));
-                    Find.cachedType.Add(name, cachedType);
+                    cacheType = assembly.GetType(name.Substring(0, index));
+                    cacheTypes.Add(name, cacheType);
                 }
 
-                return cachedType;
+                return cacheType;
             }
         }
     }

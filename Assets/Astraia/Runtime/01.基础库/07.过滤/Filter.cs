@@ -19,7 +19,7 @@ namespace Astraia
         {
             private static readonly Node root = new Node();
 
-            public static void Load(IEnumerable<string> words)
+            public static void Register(IEnumerable<string> words)
             {
                 foreach (var word in words)
                 {

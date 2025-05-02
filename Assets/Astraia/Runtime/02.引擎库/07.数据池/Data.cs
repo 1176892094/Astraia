@@ -80,13 +80,13 @@ namespace Astraia.Common
                             {
                                 var data = assetData.GetData(i);
                                 var item = (T)property.GetValue(data);
-                                if (!items.ContainsKey(item))
+                                if (items.ContainsKey(item))
                                 {
-                                    items.Add(item, data);
+                                    Debug.LogWarning(Service.Text.Format("加载数据 {0} 失败。键值重复: {1}", shortName, item));
                                     continue;
                                 }
 
-                                Debug.LogWarning(Service.Text.Format("加载数据 {0} 失败。键值重复: {1}", shortName, item));
+                                items.Add(item, data);
                             }
 
                             return items;
@@ -152,7 +152,7 @@ namespace Astraia.Common
             return (T)data;
         }
 
-        public static IList<T> GetTable<T>() where T : IData
+        public static List<T> GetTable<T>() where T : IData
         {
             if (!GlobalManager.Instance) return null;
             if (GlobalManager.itemTable.TryGetValue(typeof(T), out var itemTable))
@@ -176,23 +176,21 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            for (int i = GlobalManager.itemTable.Count - 1; i >= 0; i--)
+            foreach (var dataTable in GlobalManager.itemTable.Values)
             {
-                GlobalManager.itemTable.Values[i].Clear();
+                dataTable.Clear();
             }
 
             GlobalManager.itemTable.Clear();
-
-            for (int i = GlobalManager.enumTable.Count - 1; i >= 0; i--)
+            foreach (var dataTable in GlobalManager.enumTable.Values)
             {
-                GlobalManager.enumTable.Values[i].Clear();
+                dataTable.Clear();
             }
 
             GlobalManager.enumTable.Clear();
-
-            for (int i = GlobalManager.nameTable.Count - 1; i >= 0; i--)
+            foreach (var dataTable in GlobalManager.nameTable.Values)
             {
-                GlobalManager.nameTable.Values[i].Clear();
+                dataTable.Clear();
             }
 
             GlobalManager.nameTable.Clear();

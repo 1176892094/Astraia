@@ -18,12 +18,12 @@ namespace Astraia
         public static class Random
         {
             private static readonly System.Random random = new System.Random(Environment.TickCount);
-
+            
             public static int Next()
             {
                 return random.Next();
             }
-
+            
             public static int Next(int max)
             {
                 return random.Next(max);

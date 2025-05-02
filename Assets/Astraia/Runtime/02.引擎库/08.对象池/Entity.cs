@@ -10,6 +10,8 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -62,22 +64,16 @@ namespace Astraia.Common
             return (EntityPool)pool;
         }
 
-        internal static Reference[] Reference()
+        internal static IList<Pool> Reference()
         {
-            var results = new Reference[GlobalManager.poolData.Count];
-            for (var i = 0; i < results.Length; i++)
-            {
-                results[i] = new Reference(GlobalManager.poolData.Values[i]);
-            }
-
-            return results;
+            return GlobalManager.poolData.Values.Select(value => new Pool(value)).ToList();
         }
 
         internal static void Dispose()
         {
-            for (int i = GlobalManager.poolData.Count - 1; i >= 0; i--)
+            foreach (var item in GlobalManager.poolData.Values)
             {
-                GlobalManager.poolData.Values[i].Dispose();
+                item.Dispose();
             }
 
             GlobalManager.poolData.Clear();
