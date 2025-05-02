@@ -56,11 +56,12 @@ MonoBehaviour:
   smtpPort: 587
   smtpUsername: 1176892094@qq.com
   smtpPassword: 
+  jsonVersion: 1
   assetLoadMode: 0
   assetLoadName: AssetBundle
   assetBuildPath: AssetBundles
-  assetRemotePath: http://192.168.1.2:8000/Documents/GitHub/Astraia-Game/AssetBundles
   assetSourcePath: Assets/Template
+  assetRemotePath: http://192.168.1.2:8000/Documents/GitHub/Astraia-Game/AssetBundles
   sceneAssets:
   - Assets/Template/Scenes/GameScene.unity
   - Assets/Template/Scenes/LevelScene.unity

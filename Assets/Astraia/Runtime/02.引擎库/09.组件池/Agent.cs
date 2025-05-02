@@ -20,21 +20,22 @@ namespace Astraia.Common
         internal static void Register<T>(Component owner, Type type)
         {
             if (!GlobalManager.Instance) return;
-            if (!GlobalManager.agentData.TryGetValue(owner, out var agents))
+            if (!GlobalManager.agentGroup.TryGetValue(owner, out var agents))
             {
                 agents = new Dictionary<Type, IAgent>();
-                GlobalManager.agentData.Add(owner, agents);
+                GlobalManager.agentGroup.Add(owner, agents);
             }
 
             var item = HeapManager.Dequeue<IAgent>(type);
-            agents[typeof(T)] = item;
+            GlobalManager.agentData.Add(item);
+            agents.Add(typeof(T), item);
             item.OnShow(owner);
         }
 
         internal static IAgent Find<T>(Component owner)
         {
             if (!GlobalManager.Instance) return null;
-            if (GlobalManager.agentData.TryGetValue(owner, out var agents))
+            if (GlobalManager.agentGroup.TryGetValue(owner, out var agents))
             {
                 if (agents.TryGetValue(typeof(T), out var agent))
                 {
@@ -48,18 +49,14 @@ namespace Astraia.Common
         internal static void UnRegister<T>(Component owner)
         {
             if (!GlobalManager.Instance) return;
-            if (GlobalManager.agentData.TryGetValue(owner, out var agents))
+            if (GlobalManager.agentGroup.TryGetValue(owner, out var agents))
             {
                 if (agents.TryGetValue(typeof(T), out var agent))
                 {
                     agent.OnHide();
                     agents.Remove(typeof(T));
+                    GlobalManager.agentData.Remove(agent);
                     HeapManager.Enqueue(agent, agent.GetType());
-                }
-
-                if (agents.Count == 0)
-                {
-                    GlobalManager.agentData.Remove(owner);
                 }
             }
         }
@@ -67,18 +64,15 @@ namespace Astraia.Common
         internal static void Update()
         {
             if (!GlobalManager.Instance) return;
-            foreach (var agents in GlobalManager.agentData.Values)
+            for (int i = GlobalManager.agentData.Count - 1; i >= 0; i--)
             {
-                foreach (var agent in agents.Values)
-                {
-                    agent.OnUpdate();
-                }
+                GlobalManager.agentData[i].OnUpdate();
             }
         }
 
         internal static void Dispose()
         {
-            foreach (var agents in GlobalManager.agentData.Values)
+            foreach (var agents in GlobalManager.agentGroup.Values)
             {
                 foreach (var agent in agents.Values)
                 {
@@ -90,6 +84,7 @@ namespace Astraia.Common
             }
 
             GlobalManager.agentData.Clear();
+            GlobalManager.agentGroup.Clear();
         }
     }
 }

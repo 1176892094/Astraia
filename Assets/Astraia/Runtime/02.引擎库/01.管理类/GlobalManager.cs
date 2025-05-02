@@ -41,6 +41,10 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
+        internal static readonly List<IAgent> agentData = new List<IAgent>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
         internal static readonly List<AudioSource> audioData = new List<AudioSource>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
@@ -89,7 +93,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Component, AgentData> agentData = new Dictionary<Component, AgentData>();
+        internal static readonly Dictionary<Component, AgentData> agentGroup = new Dictionary<Component, AgentData>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
