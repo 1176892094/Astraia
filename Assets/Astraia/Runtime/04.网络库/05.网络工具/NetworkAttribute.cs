@@ -33,7 +33,7 @@ namespace Astraia.Net
 
         private static void RegisterInvoke(Type component, int channel, string name, InvokeMode mode, InvokeDelegate func)
         {
-            var id = (ushort)(Service.Hash.Id(name) & 0xFFFF);
+            var id = (ushort)(NetworkMessage.Id(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
             {
                 message = new InvokeData

@@ -160,7 +160,7 @@ namespace Astraia.Net
 
             public static void Register<T>(Action<NetworkClient, T> handle) where T : struct, IMessage
             {
-                messages[Hash<T>.Id] = (client, getter, channel) =>
+                messages[NetworkMessage<T>.Id] = (client, getter, channel) =>
                 {
                     try
                     {
@@ -177,7 +177,7 @@ namespace Astraia.Net
 
             public static void Register<T>(Action<NetworkClient, T, int> handle) where T : struct, IMessage
             {
-                messages[Hash<T>.Id] = (client, getter, channel) =>
+                messages[NetworkMessage<T>.Id] = (client, getter, channel) =>
                 {
                     try
                     {

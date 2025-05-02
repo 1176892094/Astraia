@@ -196,7 +196,7 @@ namespace Astraia.Net
 
             public static void Register<T>(Action<T> handle) where T : struct, IMessage
             {
-                messages[Hash<T>.Id] = (client, getter, channel) =>
+                messages[NetworkMessage<T>.Id] = (client, getter, channel) =>
                 {
                     try
                     {

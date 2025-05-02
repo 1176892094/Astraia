@@ -42,7 +42,7 @@ namespace Astraia.Net
         public void Send<T>(T message, int channel = Channel.Reliable) where T : struct, IMessage
         {
             using var setter = MemorySetter.Pop();
-            setter.SetUShort(Hash<T>.Id);
+            setter.SetUShort(NetworkMessage<T>.Id);
             setter.Invoke(message);
 
             if (setter.position > Transport.Instance.SendLength(channel))
