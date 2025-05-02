@@ -20,7 +20,7 @@ namespace Astraia
         {
             [ThreadStatic] 
             private static UTF8Encoding encoding;
-            internal static UTF8Encoding Encoding => encoding ??= new UTF8Encoding(false, true);
+            private static UTF8Encoding Encoding => encoding ??= new UTF8Encoding(false, true);
 
             public static byte[] GetBytes(string message)
             {

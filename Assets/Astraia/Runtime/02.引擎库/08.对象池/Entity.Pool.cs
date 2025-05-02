@@ -26,11 +26,11 @@ namespace Astraia.Common
 
             public EntityPool(Type type, string path)
             {
-                this.type = type;
+                this.source = type;
                 this.path = path;
             }
 
-            public Type type { get; }
+            public Type source { get; }
             public string path { get; }
             public int acquire => cached.Count;
             public int release => unused.Count;

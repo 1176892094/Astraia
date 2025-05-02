@@ -63,7 +63,7 @@ namespace Astraia.Common
             poolData.Clear();
             foreach (var reference in references)
             {
-                var assemblyName = Service.Text.Format("{0} - {1}", reference.type.Assembly.GetName().Name, message);
+                var assemblyName = Service.Text.Format("{0} - {1}", reference.source.Assembly.GetName().Name, message);
                 if (!poolData.TryGetValue(assemblyName, out var results))
                 {
                     results = new List<Reference>();
@@ -83,10 +83,10 @@ namespace Astraia.Common
                 GUILayout.Label(poolPair.Key, GUILayout.Height(20));
                 foreach (var data in poolPair.Value)
                 {
-                    var assetName = data.type.Name;
+                    var assetName = data.source.Name;
                     if (!string.IsNullOrEmpty(data.path))
                     {
-                        assetName = Service.Text.Format("{0} - {1}", data.type.Name, data.path);
+                        assetName = Service.Text.Format("{0} - {1}", data.source.Name, data.path);
                     }
 
                     GUILayout.Label(assetName, GUILayout.Height(20));
@@ -111,7 +111,7 @@ namespace Astraia.Common
 
         private static int Comparison(Reference origin, Reference target)
         {
-            return string.Compare(origin.type.Name, target.type.Name, StringComparison.Ordinal);
+            return string.Compare(origin.source.Name, target.source.Name, StringComparison.Ordinal);
         }
 
         private enum PoolMode

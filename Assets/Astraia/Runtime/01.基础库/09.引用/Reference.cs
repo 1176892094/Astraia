@@ -5,8 +5,8 @@ namespace Astraia
 {
     internal struct Reference
     {
-        public Type type;
         public string path;
+        public Type source;
         public int acquire;
         public int release;
         public int dequeue;
@@ -14,8 +14,8 @@ namespace Astraia
 
         public Reference(IPool pool)
         {
-            this.type = pool.type;
             this.path = pool.path;
+            this.source = pool.source;
             this.acquire = pool.acquire;
             this.release = pool.release;
             this.dequeue = pool.dequeue;

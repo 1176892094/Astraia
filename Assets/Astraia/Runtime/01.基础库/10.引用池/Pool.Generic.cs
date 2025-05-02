@@ -20,8 +20,8 @@ namespace Astraia.Common
         private class HeapPool<T> : IPool
         {
             private readonly Queue<T> unused = new Queue<T>();
-            public HeapPool(Type type) => this.type = type;
-            public Type type { get; private set; }
+            public HeapPool(Type type) => this.source = type;
+            public Type source { get; private set; }
             public string path { get; private set; }
             public int acquire { get; private set; }
             public int release { get; private set; }
@@ -39,16 +39,15 @@ namespace Astraia.Common
                 lock (unused)
                 {
                     dequeue++;
-                    if (unused.Count > 0)
+                    if (unused.TryDequeue(out item))
                     {
-                        item = unused.Dequeue();
+                        release--;
                     }
                     else
                     {
-                        item = (T)Activator.CreateInstance(type);
+                        item = (T)Activator.CreateInstance(source);
                     }
-
-                    release--;
+                  
                     acquire++;
                 }
 

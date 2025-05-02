@@ -36,7 +36,7 @@ namespace Astraia
                 var bytes = Convert.FromBase64String(data);
                 using var buffer = new MemoryStream(bytes);
                 using var stream = new GZipStream(buffer, CompressionMode.Decompress);
-                using var reader = new StreamReader(stream, Text.Encoding);
+                using var reader = new StreamReader(stream);
                 return reader.ReadToEnd();
             }
         }

@@ -19,8 +19,8 @@ namespace Astraia.Common
         private class EventPool<T> : IPool where T : struct, IEvent
         {
             private event Action<T> OnExecute;
-            public EventPool(Type type) => this.type = type;
-            public Type type { get; private set; }
+            public EventPool(Type type) => this.source = type;
+            public Type source { get; private set; }
             public string path { get; private set; }
             public int acquire { get; private set; }
             public int release { get; private set; }
