@@ -24,7 +24,7 @@ namespace Astraia
         private int oldMaxIndex;
         private bool initialized;
         private bool useSelected;
-        private List<TItem> items;
+        private IList<TItem> items;
 
         public bool selection { get; set; }
         public Rect assetRect { get; set; }
@@ -208,7 +208,7 @@ namespace Astraia
             }
         }
 
-        public void SetItem(List<TItem> items)
+        public void SetItem(IList<TItem> items)
         {
             OnHide();
             if (owner == null)

@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -79,13 +80,13 @@ namespace Astraia.Common
                             {
                                 var data = assetData.GetData(i);
                                 var item = (T)property.GetValue(data);
-                                if (!items.ContainsKey(item))
+                                if (items.ContainsKey(item))
                                 {
-                                    items.Add(item, data);
+                                    Debug.LogWarning(Service.Text.Format("加载数据 {0} 失败。键值重复: {1}", shortName, item));
                                     continue;
                                 }
 
-                                Debug.LogWarning(Service.Text.Format("加载数据 {0} 失败。键值重复: {1}", shortName, item));
+                                items.Add(item, data);
                             }
 
                             return items;
@@ -156,35 +157,17 @@ namespace Astraia.Common
             if (!GlobalManager.Instance) return null;
             if (GlobalManager.itemTable.TryGetValue(typeof(T), out var itemTable))
             {
-                var caches = new List<T>();
-                foreach (T data in itemTable.Values)
-                {
-                    caches.Add(data);
-                }
-
-                return caches;
+                return itemTable.Values.Cast<T>().ToList();
             }
 
             if (GlobalManager.nameTable.TryGetValue(typeof(T), out var nameTable))
             {
-                var caches = new List<T>();
-                foreach (T data in nameTable.Values)
-                {
-                    caches.Add(data);
-                }
-
-                return caches;
+                return nameTable.Values.Cast<T>().ToList();
             }
 
             if (GlobalManager.enumTable.TryGetValue(typeof(T), out var enumTable))
             {
-                var caches = new List<T>();
-                foreach (T data in enumTable.Values)
-                {
-                    caches.Add(data);
-                }
-
-                return caches;
+                return enumTable.Values.Cast<T>().ToList();
             }
 
             Debug.LogError(Service.Text.Format("获取 {0} 失败!", typeof(T).Name));
@@ -193,38 +176,21 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            var itemTable = new List<Type>(GlobalManager.itemTable.Keys);
-            foreach (var data in itemTable)
+            foreach (var dataTable in GlobalManager.itemTable.Values)
             {
-                if (GlobalManager.itemTable.TryGetValue(data, out var pool))
-                {
-                    pool.Clear();
-                    GlobalManager.itemTable.Remove(data);
-                }
+                dataTable.Clear();
             }
 
             GlobalManager.itemTable.Clear();
-
-            var enumTable = new List<Type>(GlobalManager.enumTable.Keys);
-            foreach (var data in enumTable)
+            foreach (var dataTable in GlobalManager.enumTable.Values)
             {
-                if (GlobalManager.enumTable.TryGetValue(data, out var pool))
-                {
-                    pool.Clear();
-                    GlobalManager.enumTable.Remove(data);
-                }
+                dataTable.Clear();
             }
 
             GlobalManager.enumTable.Clear();
-
-            var nameTable = new List<Type>(GlobalManager.nameTable.Keys);
-            foreach (var data in nameTable)
+            foreach (var dataTable in GlobalManager.nameTable.Values)
             {
-                if (GlobalManager.nameTable.TryGetValue(data, out var pool))
-                {
-                    pool.Clear();
-                    GlobalManager.nameTable.Remove(data);
-                }
+                dataTable.Clear();
             }
 
             GlobalManager.nameTable.Clear();

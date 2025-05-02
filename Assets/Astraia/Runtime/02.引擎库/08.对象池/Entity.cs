@@ -71,14 +71,9 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            var paths = new List<string>(GlobalManager.poolData.Keys);
-            foreach (var path in paths)
+            foreach (var item in GlobalManager.poolData.Values)
             {
-                if (GlobalManager.poolData.TryGetValue(path, out var pool))
-                {
-                    pool.Dispose();
-                    GlobalManager.poolData.Remove(path);
-                }
+                item.Dispose();
             }
 
             GlobalManager.poolData.Clear();

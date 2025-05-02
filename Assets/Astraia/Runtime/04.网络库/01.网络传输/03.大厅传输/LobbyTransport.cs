@@ -33,7 +33,7 @@ namespace Astraia.Net
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
-            if (NetworkManager.Lobby.players.TryGetValue(clientId, out var playerId))
+            if (NetworkManager.Lobby.clients.TryGetByValue(clientId, out var playerId))
             {
                 using var setter = MemorySetter.Pop();
                 setter.SetByte((byte)OpCodes.UpdateData);
@@ -89,7 +89,7 @@ namespace Astraia.Net
 
         public override void StopClient(int clientId)
         {
-            if (NetworkManager.Lobby.players.TryGetValue(clientId, out var playerId))
+            if (NetworkManager.Lobby.clients.TryGetByValue(clientId, out var playerId))
             {
                 using var setter = MemorySetter.Pop();
                 setter.SetByte((byte)OpCodes.KickRoom);

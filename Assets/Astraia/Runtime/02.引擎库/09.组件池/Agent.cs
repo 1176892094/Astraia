@@ -34,37 +34,33 @@ namespace Astraia.Common
         internal static IAgent Find<T>(Component owner)
         {
             if (!GlobalManager.Instance) return null;
-            if (!GlobalManager.agentData.TryGetValue(owner, out var agents))
+            if (GlobalManager.agentData.TryGetValue(owner, out var agents))
             {
-                return null;
+                if (agents.TryGetValue(typeof(T), out var agent))
+                {
+                    return agent;
+                }
             }
 
-            if (!agents.TryGetValue(typeof(T), out var agent))
-            {
-                return null;
-            }
-
-            return agent;
+            return null;
         }
 
         internal static void UnRegister<T>(Component owner)
         {
             if (!GlobalManager.Instance) return;
-            if (!GlobalManager.agentData.TryGetValue(owner, out var agents))
+            if (GlobalManager.agentData.TryGetValue(owner, out var agents))
             {
-                return;
-            }
+                if (agents.TryGetValue(typeof(T), out var agent))
+                {
+                    agent.OnHide();
+                    agents.Remove(typeof(T));
+                    HeapManager.Enqueue(agent, agent.GetType());
+                }
 
-            if (agents.TryGetValue(typeof(T), out var agent))
-            {
-                agent.OnHide();
-                agents.Remove(typeof(T));
-                HeapManager.Enqueue(agent, agent.GetType());
-            }
-
-            if (agents.Count == 0)
-            {
-                GlobalManager.agentData.Remove(owner);
+                if (agents.Count == 0)
+                {
+                    GlobalManager.agentData.Remove(owner);
+                }
             }
         }
 
@@ -82,20 +78,15 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            var items = new List<Component>(GlobalManager.agentData.Keys);
-            foreach (var item in items)
+            foreach (var agents in GlobalManager.agentData.Values)
             {
-                if (GlobalManager.agentData.TryGetValue(item, out var agents))
+                foreach (var agent in agents.Values)
                 {
-                    foreach (var agent in agents.Values)
-                    {
-                        agent.OnHide();
-                        HeapManager.Enqueue(agent, agent.GetType());
-                    }
-
-                    agents.Clear();
-                    GlobalManager.agentData.Remove(item);
+                    agent.OnHide();
+                    HeapManager.Enqueue(agent, agent.GetType());
                 }
+
+                agents.Clear();
             }
 
             GlobalManager.agentData.Clear();
