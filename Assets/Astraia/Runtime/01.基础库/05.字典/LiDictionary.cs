@@ -24,6 +24,12 @@ namespace Astraia
         public IList<TValue> Values => reverse;
         public int Count => forward.Count;
 
+        public TValue this[TKey key]
+        {
+            get => forward[key];
+            set => forward[key] = value;
+        }
+
         public void Add(TKey key, TValue value)
         {
             reverse.Add(value);
