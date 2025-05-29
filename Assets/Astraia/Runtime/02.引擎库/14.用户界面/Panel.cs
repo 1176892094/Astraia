@@ -42,10 +42,10 @@ namespace Astraia.Common
             if (!GlobalManager.panelData.TryGetValue(typeof(T), out var panel))
             {
                 panel = await Load(assetPath, typeof(T));
+                ShowInGroup(panel);
                 panel.Show();
             }
-
-            if (ShowInGroup(panel))
+            else if (ShowInGroup(panel))
             {
                 panel.Show();
             }
@@ -94,10 +94,10 @@ namespace Astraia.Common
             if (!GlobalManager.panelData.TryGetValue(type, out var panel))
             {
                 panel = await Load(path, type);
+                ShowInGroup(panel);
                 panel.Show();
             }
-
-            if (ShowInGroup(panel))
+            else if (ShowInGroup(panel))
             {
                 panel.Show();
             }
@@ -180,7 +180,7 @@ namespace Astraia.Common
 
                 pool = GlobalManager.layerData[index];
             }
-            
+
             var rect = (RectTransform)panel;
             rect.SetParent(pool);
             rect.anchorMin = Vector2.zero;
