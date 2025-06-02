@@ -23,9 +23,11 @@ namespace Astraia.Net
         
         public Action OnClientConnect;
         public Action OnClientDisconnect;
+        public Action<ArraySegment<byte>, int> OnClientSend;
         public Action<ArraySegment<byte>, int> OnClientReceive;
         public Action<int> OnServerConnect;
         public Action<int> OnServerDisconnect;
+        public Action<int, ArraySegment<byte>, int> OnServerSend;
         public Action<int, ArraySegment<byte>, int> OnServerReceive;
         
         public abstract int SendLength(int channel);

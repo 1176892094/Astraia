@@ -100,6 +100,7 @@ namespace Astraia.Net
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
             server.Send(clientId, segment, channel);
+            OnServerSend?.Invoke(clientId, segment, channel);
         }
 
         public override void StartClient()
@@ -120,6 +121,7 @@ namespace Astraia.Net
         public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
             client.Send(segment, channel);
+            OnClientSend?.Invoke(segment, channel);
         }
 
         public override void ClientEarlyUpdate()
