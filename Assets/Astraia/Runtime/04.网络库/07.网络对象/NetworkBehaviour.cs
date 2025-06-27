@@ -22,9 +22,9 @@ namespace Astraia.Net
     {
         internal byte componentId;
 
-        public SyncMode syncDirection;
+        [SerializeField] internal SyncMode syncDirection;
 
-        public float syncInterval;
+        [SerializeField] internal float syncInterval;
 
         private ulong syncVarHook;
 
