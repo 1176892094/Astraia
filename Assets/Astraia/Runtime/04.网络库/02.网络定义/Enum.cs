@@ -21,17 +21,17 @@ namespace Astraia.Net
         Client = 3,
     }
 
-    public enum SyncMode : byte
-    {
-        Server,
-        Client
-    }
-    
     public enum RoomMode : byte
     {
         Public,
         Private,
         Locked,
+    }
+
+    internal enum SyncMode : byte
+    {
+        Server,
+        Client
     }
 
     internal enum InvokeMode : byte
@@ -57,7 +57,7 @@ namespace Astraia.Net
         Destroy = 1 << 1,
         Authority = 1 << 2,
     }
-    
+
     [Flags]
     internal enum TransformOption
     {
