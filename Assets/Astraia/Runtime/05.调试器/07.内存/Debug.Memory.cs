@@ -69,7 +69,7 @@ namespace Astraia.Common
                 minMemory[key] = value;
             }
 
-            return Service.Text.Format("{0}:  \t{1:F2} MB\t\t[ 最小值: {2:F2}]\t最大值: {3:F2}", key, value, minMemory[key], maxMemory[key]);
+            return Service.Text.Format("{0}:  \t{1:F2} MB\t\t[ 最小值: {2:F2}\t最大值: {3:F2} ]", key, value, minMemory[key], maxMemory[key]);
         }
     }
 }

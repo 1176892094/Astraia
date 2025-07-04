@@ -134,7 +134,7 @@ namespace Astraia
         private static void ProjectDirectories() => Process.Start(Environment.CurrentDirectory);
 
 
-        [MenuItem("Tools/Astraia/程序集编译路径", priority = 7)]
+        [MenuItem("Tools/Astraia/脚本编译路径", priority = 7)]
         private static void AssemblyDefinitionPath()
         {
             if (!Directory.Exists(Environment.CurrentDirectory + "/Library/ScriptAssemblies"))
@@ -146,7 +146,7 @@ namespace Astraia
             Process.Start(Environment.CurrentDirectory + "/Library/ScriptAssemblies");
         }
 
-        [MenuItem("Tools/Astraia/持久化存储路径", priority = 8)]
+        [MenuItem("Tools/Astraia/持久存储路径", priority = 8)]
         private static void PersistentDataPath() => Process.Start(Application.persistentDataPath);
 
         [MenuItem("Tools/Astraia/流动资源路径", priority = 9)]
