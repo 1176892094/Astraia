@@ -162,7 +162,7 @@ namespace Astraia.Common
             var index = (int)layer;
             if (!GlobalManager.layerData.TryGetValue(index, out var pool))
             {
-                for (var i = UILayer.Lowest; i <= UILayer.Highest; i++)
+                for (var i = UILayer.Layer1; i <= UILayer.Layer6; i++)
                 {
                     var name = Service.Text.Format("Pool - Canvas/{0}", i);
                     var item = new GameObject(name, typeof(RectTransform));

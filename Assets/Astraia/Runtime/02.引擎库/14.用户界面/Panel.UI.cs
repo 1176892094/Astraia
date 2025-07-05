@@ -16,7 +16,7 @@ namespace Astraia
 {
     public abstract class UIPanel : MonoBehaviour
     {
-        public UILayer layer = UILayer.Low;
+        public UILayer layer = UILayer.Layer2;
         
         public UIState state = UIState.Common;
         

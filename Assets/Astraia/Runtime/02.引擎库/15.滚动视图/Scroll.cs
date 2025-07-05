@@ -65,7 +65,7 @@ namespace Astraia
             grids.Clear();
         }
 
-        protected override void OnUpdate()
+        public void OnUpdate()
         {
             if (owner == null)
             {

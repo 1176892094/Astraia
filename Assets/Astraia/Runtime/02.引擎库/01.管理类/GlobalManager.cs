@@ -41,10 +41,6 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly List<IAgent> agentData = new List<IAgent>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
         internal static readonly List<AudioSource> audioData = new List<AudioSource>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
@@ -125,7 +121,6 @@ namespace Astraia.Common
 
         private void Update()
         {
-            AgentManager.Update();
             TimerManager.Update();
         }
 

@@ -20,11 +20,12 @@ namespace Astraia.Common
     public static class DataManager
     {
         public static async void LoadDataTable()
-        {
+        {         
             if (!GlobalManager.Instance) return;
             var assembly = Service.Find.Assembly(GlobalSetting.assemblyName);
             if (assembly == null)
             {
+                EventManager.Invoke(new DataComplete());
                 return;
             }
 
@@ -39,6 +40,7 @@ namespace Astraia.Common
 
             if (assetNames.Count == 0)
             {
+                EventManager.Invoke(new DataComplete());
                 return;
             }
 

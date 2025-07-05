@@ -34,7 +34,7 @@ namespace Astraia
             state = null;
         }
 
-        protected override void OnUpdate()
+        public void OnUpdate()
         {
             state?.OnUpdate();
         }

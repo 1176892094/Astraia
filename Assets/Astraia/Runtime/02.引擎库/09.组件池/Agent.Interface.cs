@@ -17,8 +17,6 @@ namespace Astraia.Common
     {
         void OnShow(Component owner);
 
-        void OnUpdate();
-
         void OnHide();
     }
 }

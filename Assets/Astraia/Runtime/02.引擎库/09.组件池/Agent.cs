@@ -27,7 +27,6 @@ namespace Astraia.Common
             }
 
             var item = HeapManager.Dequeue<IAgent>(type);
-            GlobalManager.agentData.Add(item);
             agents.Add(typeof(T), item);
             item.OnShow(owner);
         }
@@ -55,21 +54,11 @@ namespace Astraia.Common
                 {
                     agent.OnHide();
                     agents.Remove(typeof(T));
-                    GlobalManager.agentData.Remove(agent);
                     HeapManager.Enqueue(agent, agent.GetType());
                 }
             }
         }
-
-        internal static void Update()
-        {
-            if (!GlobalManager.Instance) return;
-            for (int i = GlobalManager.agentData.Count - 1; i >= 0; i--)
-            {
-                GlobalManager.agentData[i].OnUpdate();
-            }
-        }
-
+        
         internal static void Dispose()
         {
             foreach (var agents in GlobalManager.agentGroup.Values)
@@ -82,8 +71,7 @@ namespace Astraia.Common
 
                 agents.Clear();
             }
-
-            GlobalManager.agentData.Clear();
+            
             GlobalManager.agentGroup.Clear();
         }
     }

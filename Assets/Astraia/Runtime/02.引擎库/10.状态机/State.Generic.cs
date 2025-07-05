@@ -33,7 +33,7 @@ namespace Astraia
             }
         }
 
-        void IAgent.OnUpdate()
+        void IState.OnUpdate()
         {
             if (owner != null)
             {

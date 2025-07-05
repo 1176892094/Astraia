@@ -24,14 +24,6 @@ namespace Astraia
             OnShow();
         }
 
-        void IAgent.OnUpdate()
-        {
-            if (owner != null)
-            {
-                OnUpdate();
-            }
-        }
-
         void IAgent.OnHide()
         {
             OnHide();
@@ -41,11 +33,7 @@ namespace Astraia
         protected virtual void OnShow()
         {
         }
-
-        protected virtual void OnUpdate()
-        {
-        }
-
+        
         protected virtual void OnHide()
         {
         }

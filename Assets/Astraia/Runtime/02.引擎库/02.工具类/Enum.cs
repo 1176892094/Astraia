@@ -43,12 +43,11 @@ namespace Astraia
     
     public enum UILayer : byte
     {
-        Lowest,
-        Low,
-        Lower,
-        Middle,
-        Higher,
-        High,
-        Highest,
+        Layer1,
+        Layer2,
+        Layer3,
+        Layer4,
+        Layer5,
+        Layer6,
     }
 }
