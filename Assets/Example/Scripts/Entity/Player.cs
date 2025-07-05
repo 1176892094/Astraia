@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using Astraia;
 using Astraia.Common;
 using Astraia.Net;
@@ -22,6 +23,7 @@ namespace Runtime
         [SyncVar(nameof(OnColorValueChanged))] public Color syncColor;
         [ShowInInspector] public PlayerMachine machine => this.Find<PlayerMachine>();
         [ShowInInspector] public PlayerAttribute attribute => this.Find<PlayerAttribute>();
+        [ShowInInspector] public PlayerOperation operation => this.Find<PlayerOperation>();
         public Ray2D downLeftRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
         public Ray2D downRightRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
         public Ray2D rightUpRay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
@@ -33,6 +35,13 @@ namespace Runtime
             this.Show<PlayerAttribute>(typeof(PlayerAttribute));
             this.Show<PlayerOperation>(typeof(PlayerOperation));
             this.Show<PlayerMachine>(typeof(PlayerMachine));
+        }
+
+        private void Update()
+        {
+            operation.Update();
+            attribute.Update();
+            machine.Update();
         }
 
         public void OnStartAuthority()

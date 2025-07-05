@@ -42,7 +42,7 @@ namespace Runtime
             this.SetFloat(Attribute.DashSpeed, 5);
         }
 
-        protected override void OnUpdate()
+        public void Update()
         {
             if (!owner.isOwner) return;
             if (downRightRay || downLeftRay)

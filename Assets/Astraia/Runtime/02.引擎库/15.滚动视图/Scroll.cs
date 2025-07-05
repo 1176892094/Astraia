@@ -65,7 +65,7 @@ namespace Astraia
             grids.Clear();
         }
 
-        public void OnUpdate()
+        void IScroll<TItem>.OnUpdate()
         {
             if (owner == null)
             {

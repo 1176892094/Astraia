@@ -18,7 +18,7 @@ namespace Runtime
     {
         private PlayerAttribute attribute => owner.attribute;
         
-        protected override void OnUpdate()
+        public void Update()
         {
             if (!owner.isOwner) return;
             if (!attribute.state.HasFlag(StateType.Stop))

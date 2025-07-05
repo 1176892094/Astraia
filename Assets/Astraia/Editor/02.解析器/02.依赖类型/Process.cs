@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Astraia.Net;
 using Mono.Cecil;
 using UnityEngine;
@@ -155,10 +156,9 @@ namespace Astraia.Editor
         /// <param name="md"></param>
         /// <returns></returns>
         public static string GenerateMethodName(string prefix, MethodDefinition md)
-        {
+        { 
             prefix = md.Name + prefix;
-            // return md.Parameters.Aggregate(prefix, (s, parameter) => s + "_" + NetworkManager.GetStableId(parameter.ParameterType.Name));
-            return prefix;
+            return md.Parameters.Aggregate(prefix, (s, parameter) => s + "_" + NetworkMessage.Id(parameter.ParameterType.Name));
         }
     }
 }

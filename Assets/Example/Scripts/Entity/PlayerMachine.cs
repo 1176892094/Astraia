@@ -28,7 +28,7 @@ namespace Runtime
             renderer = owner.GetComponent<SpriteRenderer>();
         }
 
-        protected override void OnUpdate()
+        public void Update()
         {
             if (!owner.isOwner) return;
             if (attribute.moveX > 0)
