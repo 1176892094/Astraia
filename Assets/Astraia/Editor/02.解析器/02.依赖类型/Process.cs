@@ -56,15 +56,15 @@ namespace Astraia.Editor
                 setter = new Setter(assembly, module, process, logger);
                 getter = new Getter(assembly, module, process, logger);
                 change = RuntimeAttribute.Process(assembly, resolver, logger, setter, getter, ref failed);
-                
+
                 var mainModule = assembly.MainModule;
-                
+
                 change |= ProcessModule(mainModule);
                 if (failed)
                 {
                     return false;
                 }
-                
+
                 if (change)
                 {
                     SyncVarReplace.Process(mainModule, access);
@@ -100,6 +100,7 @@ namespace Astraia.Editor
 
                 return false;
             }
+
             var behaviours = new List<TypeDefinition>();
 
             TypeDefinition parent = td;
@@ -156,8 +157,8 @@ namespace Astraia.Editor
         /// <param name="md"></param>
         /// <returns></returns>
         public static string GenerateMethodName(string prefix, MethodDefinition md)
-        { 
-            prefix = md.Name + prefix;
+        {
+            prefix += md.Name;
             return md.Parameters.Aggregate(prefix, (s, parameter) => s + "_" + NetworkMessage.Id(parameter.ParameterType.Name));
         }
     }

@@ -330,6 +330,7 @@ namespace Astraia.Editor
         {
             if (serverRpcList.Count == 0 && clientRpcList.Count == 0 && targetRpcList.Count == 0) return;
             MethodDefinition cctor = generate.GetMethod(".cctor");
+            bool cctorFound = cctor != null;
             if (cctor != null)
             {
                 if (!RemoveFinalRetInstruction(cctor))
@@ -343,7 +344,7 @@ namespace Astraia.Editor
             {
                 cctor = new MethodDefinition(".cctor", Const.CTOR_ATTRS, module.Import(typeof(void)));
             }
-
+          
             ILProcessor worker = cctor.Body.GetILProcessor();
             for (int i = 0; i < serverRpcList.Count; ++i)
             {
@@ -361,7 +362,11 @@ namespace Astraia.Editor
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
-            generate.Methods.Add(cctor);
+            if (!cctorFound)
+            {
+                generate.Methods.Add(cctor);
+            }
+       
             generate.Attributes &= ~TypeAttributes.BeforeFieldInit;
         }
 
