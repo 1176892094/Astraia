@@ -156,7 +156,7 @@ namespace Astraia
 
         public static string GetTableName(string name) => Service.Text.Format("Astraia.Table.{0}DataTable", name);
 
-        private static void UpdateSceneSetting()
+        public static void UpdateSceneSetting()
         {
             var assets = EditorBuildSettings.scenes.Select(scene => scene.path).ToList();
             foreach (var scenePath in Instance.sceneAssets)
