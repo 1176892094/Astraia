@@ -171,6 +171,7 @@ namespace Astraia.Net
         {
             if ((entityMode & EntityMode.Server) == EntityMode.Server && (entityState & EntityState.Destroy) == 0)
             {
+                gameObject.name += " (Destroy)";
                 NetworkManager.Server.Despawn(gameObject);
             }
 
