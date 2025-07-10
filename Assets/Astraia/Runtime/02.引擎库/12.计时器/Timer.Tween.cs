@@ -87,7 +87,7 @@ namespace Astraia
 
         public Tween OnUpdate(Action<float> OnUpdated)
         {
-            this.OnUpdated = OnUpdated;
+            this.OnUpdated += OnUpdated;
             return this;
         }
 
