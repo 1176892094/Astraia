@@ -18,7 +18,16 @@ namespace Astraia.Common
     {
         public static float musicValue
         {
-            get => GlobalManager.settings.musicValue;
+            get
+            {
+                if (GlobalManager.settings == null)
+                {
+                    GlobalManager.settings = new AudioSetting();
+                    JsonManager.Load(GlobalManager.settings, nameof(AudioManager));
+                }
+
+                return GlobalManager.settings.musicValue;
+            }
             set
             {
                 GlobalManager.settings.musicValue = value;
@@ -29,7 +38,16 @@ namespace Astraia.Common
 
         public static float audioValue
         {
-            get => GlobalManager.settings.audioValue;
+            get
+            {
+                if (GlobalManager.settings == null)
+                {
+                    GlobalManager.settings = new AudioSetting();
+                    JsonManager.Load(GlobalManager.settings, nameof(AudioManager));
+                }
+
+                return GlobalManager.settings.audioValue;
+            }
             set
             {
                 GlobalManager.settings.audioValue = value;
@@ -116,12 +134,6 @@ namespace Astraia.Common
 
         private static AudioPool LoadPool(string path)
         {
-            if (GlobalManager.settings == null)
-            {
-                GlobalManager.settings = new AudioSetting();
-                JsonManager.Load(GlobalManager.settings, nameof(AudioManager));
-            }
-
             if (GlobalManager.poolData.TryGetValue(path, out var pool))
             {
                 return (AudioPool)pool;
