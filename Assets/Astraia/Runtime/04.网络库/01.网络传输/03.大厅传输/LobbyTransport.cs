@@ -35,21 +35,21 @@ namespace Astraia.Net
         {
             if (NetworkManager.Lobby.clients.TryGetByValue(clientId, out var playerId))
             {
-                using var setter = MemorySetter.Pop();
-                setter.SetByte((byte)OpCodes.UpdateData);
-                setter.SetArraySegment(segment);
-                setter.SetInt(playerId);
-                connection.SendToServer(setter);
+                using var writer = MemoryWriter.Pop();
+                writer.SetByte((byte)OpCodes.UpdateData);
+                writer.SetArraySegment(segment);
+                writer.SetInt(playerId);
+                connection.SendToServer(writer);
             }
         }
 
         public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
-            using var setter = MemorySetter.Pop();
-            setter.SetByte((byte)OpCodes.UpdateData);
-            setter.SetArraySegment(segment);
-            setter.SetInt(0);
-            connection.SendToServer(setter);
+            using var writer = MemoryWriter.Pop();
+            writer.SetByte((byte)OpCodes.UpdateData);
+            writer.SetArraySegment(segment);
+            writer.SetInt(0);
+            connection.SendToServer(writer);
         }
 
         public override void StartServer()
@@ -67,13 +67,13 @@ namespace Astraia.Net
             }
             
             NetworkManager.Lobby.isServer = true;
-            using var setter = MemorySetter.Pop();
-            setter.SetByte((byte)OpCodes.CreateRoom);
-            setter.SetString(roomName);
-            setter.SetString(roomData);
-            setter.SetInt(NetworkManager.Instance.connection);
-            setter.SetByte((byte)roomMode);
-            connection.SendToServer(setter);
+            using var writer = MemoryWriter.Pop();
+            writer.SetByte((byte)OpCodes.CreateRoom);
+            writer.SetString(roomName);
+            writer.SetString(roomData);
+            writer.SetInt(NetworkManager.Instance.connection);
+            writer.SetByte((byte)roomMode);
+            connection.SendToServer(writer);
         }
 
         public override void StopServer()
@@ -81,9 +81,9 @@ namespace Astraia.Net
             if (NetworkManager.Lobby.isServer)
             {
                 NetworkManager.Lobby.isServer = false;
-                using var setter = MemorySetter.Pop();
-                setter.SetByte((byte)OpCodes.LeaveRoom);
-                connection.SendToServer(setter);
+                using var writer = MemoryWriter.Pop();
+                writer.SetByte((byte)OpCodes.LeaveRoom);
+                connection.SendToServer(writer);
             }
         }
 
@@ -91,10 +91,10 @@ namespace Astraia.Net
         {
             if (NetworkManager.Lobby.clients.TryGetByValue(clientId, out var playerId))
             {
-                using var setter = MemorySetter.Pop();
-                setter.SetByte((byte)OpCodes.KickRoom);
-                setter.SetInt(playerId);
-                connection.SendToServer(setter);
+                using var writer = MemoryWriter.Pop();
+                writer.SetByte((byte)OpCodes.KickRoom);
+                writer.SetInt(playerId);
+                connection.SendToServer(writer);
             }
         }
 
@@ -113,10 +113,10 @@ namespace Astraia.Net
             }
 
             NetworkManager.Lobby.isClient = true;
-            using var setter = MemorySetter.Pop();
-            setter.SetByte((byte)OpCodes.JoinRoom);
-            setter.SetString(connection.address);
-            connection.SendToServer(setter);
+            using var writer = MemoryWriter.Pop();
+            writer.SetByte((byte)OpCodes.JoinRoom);
+            writer.SetString(connection.address);
+            connection.SendToServer(writer);
         }
 
         public override void StartClient(Uri uri)
@@ -134,9 +134,9 @@ namespace Astraia.Net
             if (NetworkManager.Lobby.isActive)
             {
                 NetworkManager.Lobby.isClient = false;
-                using var setter = MemorySetter.Pop();
-                setter.SetByte((byte)OpCodes.LeaveRoom);
-                connection.SendToServer(setter);
+                using var writer = MemoryWriter.Pop();
+                writer.SetByte((byte)OpCodes.LeaveRoom);
+                connection.SendToServer(writer);
             }
         }
 

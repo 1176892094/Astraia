@@ -10,7 +10,6 @@
 // // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -80,9 +79,9 @@ namespace Astraia.Common
         {
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
             {
-                var assetPair = await LoadAssetPair(assetPath);
-                var assetPack = await LoadAssetPack(assetPair.Key);
-                var assetData = LoadByAssetPack(assetPair.Value, assetType, assetPack);
+                var (assetItem, assetName) = await LoadAssetPair(assetPath);
+                var assetPack = await LoadAssetPack(assetItem);
+                var assetData = LoadByAssetPack(assetName, assetType, assetPack);
                 assetData ??= LoadByResources(assetPath, assetType);
                 return assetData;
             }
@@ -94,28 +93,28 @@ namespace Astraia.Common
             }
         }
 
-        private static async Task<KeyValuePair<string, string>> LoadAssetPair(string assetPath)
+        private static async Task<(string, string)> LoadAssetPair(string assetPath)
         {
             if (!GlobalManager.assetData.TryGetValue(assetPath, out var assetData))
             {
                 var index = assetPath.LastIndexOf('/');
                 if (index < 0)
                 {
-                    assetData = new KeyValuePair<string, string>(string.Empty, assetPath);
+                    assetData = (string.Empty, assetPath);
                 }
                 else
                 {
                     var assetPack = assetPath.Substring(0, index).ToLower();
-                    assetData = new KeyValuePair<string, string>(assetPack, assetPath.Substring(index + 1));
+                    assetData = (assetPack, assetPath.Substring(index + 1));
                 }
 
                 GlobalManager.assetData.Add(assetPath, assetData);
             }
-            
+
             var platform = await LoadAssetPack(GlobalSetting.Instance.assetPlatform.ToString());
             GlobalManager.manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
 
-            var assetPacks = GlobalManager.manifest.GetAllDependencies(assetData.Key);
+            var assetPacks = GlobalManager.manifest.GetAllDependencies(assetData.Item1);
             foreach (var assetPack in assetPacks)
             {
                 _ = LoadAssetPack(assetPack);

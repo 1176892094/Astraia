@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public delegate void InvokeDelegate(NetworkBehaviour component, MemoryGetter getter, NetworkClient client);
+    public delegate void InvokeDelegate(NetworkSource component, MemoryReader reader, NetworkClient client);
 
     public static class NetworkAttribute
     {
@@ -65,19 +65,19 @@ namespace Astraia.Net
             return false;
         }
 
-        internal static bool Invoke(ushort id, InvokeMode mode, NetworkClient client, MemoryGetter getter, NetworkBehaviour component)
+        internal static bool Invoke(ushort id, InvokeMode mode, NetworkClient client, MemoryReader reader, NetworkSource component)
         {
             if (!messages.TryGetValue(id, out var message) || message == null || message.mode != mode)
             {
                 return false;
             }
 
-            if (!message.component.IsInstanceOfType(component)) // 判断是否是NetworkBehaviour的实例或派生类型的实例
+            if (!message.component.IsInstanceOfType(component)) // 判断是否是 NetworkSource 的实例或派生类型的实例
             {
                 return false;
             }
 
-            message.func.Invoke(component, getter, client);
+            message.func.Invoke(component, reader, client);
             return true;
         }
 

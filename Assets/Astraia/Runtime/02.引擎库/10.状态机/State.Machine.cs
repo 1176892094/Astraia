@@ -16,34 +16,25 @@ using UnityEngine;
 
 namespace Astraia
 {
-    public abstract class StateMachine<TOwner> : Agent<TOwner> where TOwner : Component
+    [Serializable]
+    public abstract partial class StateMachine : Source
     {
-        private readonly Dictionary<Type, IState> states = new Dictionary<Type, IState>();
-        private IState state;
+        private readonly Dictionary<Type, State> states = new Dictionary<Type, State>();
+        [SerializeField] private State state;
 
-        protected override void OnHide()
-        {
-            var copies = new List<IState>(states.Values);
-            foreach (var item in copies)
-            {
-                item.OnHide();
-                HeapManager.Enqueue(item, item.GetType());
-            }
-
-            states.Clear();
-            state = null;
-        }
-
-        public void OnUpdate()
+        public override void OnUpdate()
         {
             state?.OnUpdate();
         }
-        
+
         public void AddState<T>(Type type)
         {
-            var item = HeapManager.Dequeue<IState>(type);
-            states[typeof(T)] = item;
-            item.OnShow(owner);
+            if (!states.TryGetValue(typeof(T), out var item))
+            {
+                item = HeapManager.Dequeue<State>(type);
+                states.Add(typeof(T), item);
+                item.Id = Id;
+            }
         }
 
         public void ChangeState<T>()
@@ -57,10 +48,20 @@ namespace Astraia
         {
             if (states.TryGetValue(typeof(T), out var item))
             {
-                item.OnHide();
                 states.Remove(typeof(T));
                 HeapManager.Enqueue(item, item.GetType());
             }
+        }
+
+        public override void OnDestroy()
+        {
+            var copies = new List<State>(states.Values);
+            foreach (var item in copies)
+            {
+                HeapManager.Enqueue(item, item.GetType());
+            }
+
+            states.Clear();
         }
     }
 }

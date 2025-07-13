@@ -53,12 +53,12 @@ namespace Astraia.Common
         {
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
             {
-                var assetPair = await LoadAssetPair(assetPath);
-                var assetPack = await LoadAssetPack(assetPair.Key);
+                var (assetItem, assetName) = await LoadAssetPair(assetPath);
+                var assetPack = await LoadAssetPack(assetItem);
                 var assetData = assetPack.GetAllScenePaths();
                 foreach (var data in assetData)
                 {
-                    if (data == assetPair.Value)
+                    if (data == assetName)
                     {
                         return data;
                     }

@@ -14,23 +14,23 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerMachine : StateMachine<Player>
+    public class PlayerMachine : StateMachine
     {
-        private Transform transform => owner.transform;
-        private PlayerAttribute attribute => owner.attribute;
+        public Player player => owner.GetSource<Player>();
+        private PlayerAttribute attribute => owner.GetSource<PlayerAttribute>();
         
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
 
-        protected override void OnShow()
+        public override void OnAwake()
         {
             rigidbody = owner.GetComponent<Rigidbody2D>();
             renderer = owner.GetComponent<SpriteRenderer>();
         }
 
-        public void Update()
+        public override void OnUpdate()
         {
-            if (!owner.isOwner) return;
+            if (!player.isOwner) return;
             if (attribute.moveX > 0)
             {
                 transform.localScale = new Vector3(attribute.moveX, 1, 1);

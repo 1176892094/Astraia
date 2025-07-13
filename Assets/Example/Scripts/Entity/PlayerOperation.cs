@@ -14,13 +14,14 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerOperation : Agent<Player>
+    public class PlayerOperation : Source
     {
-        private PlayerAttribute attribute => owner.attribute;
-        
-        public void Update()
+        public Player player => owner.GetSource<Player>();
+        private PlayerAttribute attribute => owner.GetSource<PlayerAttribute>();
+
+        public override void OnUpdate()
         {
-            if (!owner.isOwner) return;
+            if (!player.isOwner) return;
             if (!attribute.state.HasFlag(StateType.Stop))
             {
                 attribute.moveY = Input.GetAxisRaw("Vertical");

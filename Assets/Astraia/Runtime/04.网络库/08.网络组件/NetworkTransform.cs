@@ -1,11 +1,13 @@
+using System;
 using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkTransform : NetworkBehaviour
+    [Serializable]
+    public class NetworkTransform : NetworkSource
     {
         [SerializeField] private Transform target;
-
+        
         [SerializeField] private TransformOption option = TransformOption.Position;
 
         [SerializeField, Range(0f, 1)] private float positionPerceive = 0.01f;
@@ -18,7 +20,7 @@ namespace Astraia.Net
 
         [SerializeField, Range(0f, 1)] private float rotationSmooth = 0.5f;
 
-        [SerializeField, Range(0f, 1)] private float localScaleSmooth = 0.5f;
+        [SerializeField, Range(0f, 1)] private float scaleSmooth = 0.5f;
 
         private Vector3? cachedPosition;
 
@@ -79,32 +81,38 @@ namespace Astraia.Net
             }
         }
 
-        private void Awake()
+        public override void OnAwake()
         {
+            target = transform;
             originPosition = target.position;
             originRotation = target.rotation;
             originScale = target.localScale;
         }
 
-        private void Update()
+        public override void OnDestroy()
         {
+            ClearDirty();
+            sendTime = double.MinValue;
+        }
+
+        public override void OnUpdate()
+        {
+            if (target == null)
+            {
+                return;
+            }
+
             if (isServer && !isVerify)
             {
-                if ((option & TransformOption.Position) != 0)
-                    target.position = Vector3.Distance(target.position, originPosition) < positionSmooth
-                        ? Vector3.Lerp(target.position, originPosition, positionSmooth)
-                        : originPosition;
-                if ((option & TransformOption.Rotation) != 0)
-                    target.rotation = Quaternion.Angle(target.rotation, originRotation) < rotationSmooth
-                        ? Quaternion.Lerp(target.rotation, originRotation, rotationSmooth)
-                        : originRotation;
-                if ((option & TransformOption.Scale) != 0)
-                    target.localScale = Vector3.Distance(target.localScale, originScale) < localScaleSmooth
-                        ? Vector3.Lerp(target.localScale, originScale, localScaleSmooth)
-                        : originScale;
+                SyncPosition();
             }
             else if (isClient && !isVerify && NetworkManager.Client.isReady)
             {
+                SyncPosition();
+            }
+
+            void SyncPosition()
+            {
                 if ((option & TransformOption.Position) != 0)
                     target.position = Vector3.Distance(target.position, originPosition) < positionSmooth
                         ? Vector3.Lerp(target.position, originPosition, positionSmooth)
@@ -114,14 +122,19 @@ namespace Astraia.Net
                         ? Quaternion.Lerp(target.rotation, originRotation, rotationSmooth)
                         : originRotation;
                 if ((option & TransformOption.Scale) != 0)
-                    target.localScale = Vector3.Distance(target.localScale, originScale) < localScaleSmooth
-                        ? Vector3.Lerp(target.localScale, originScale, localScaleSmooth)
+                    target.localScale = Vector3.Distance(target.localScale, originScale) < scaleSmooth
+                        ? Vector3.Lerp(target.localScale, originScale, scaleSmooth)
                         : originScale;
             }
         }
 
-        private void LateUpdate()
+        public override void OnLateUpdate()
         {
+            if (target == null)
+            {
+                return;
+            }
+
             if (isServer && isVerify && isModify)
             {
                 SendToClientRpc(cachedPosition, cachedRotation, cachedScale);
@@ -132,14 +145,6 @@ namespace Astraia.Net
             }
         }
 
-        private void OnValidate()
-        {
-            if (target == null)
-            {
-                target = transform;
-            }
-        }
-
         public void SyncTransform(Vector3? position, Quaternion? rotation = null, Vector3? localScale = null)
         {
             target.position = originPosition = position ?? target.position;
@@ -147,20 +152,20 @@ namespace Astraia.Net
             target.localScale = originScale = localScale ?? target.localScale;
         }
 
-        protected override void OnSerialize(MemorySetter setter, bool status)
+        protected override void OnSerialize(MemoryWriter writer, bool status)
         {
             if (!status) return;
-            if ((option & TransformOption.Position) != 0) setter.SetVector3(target.localPosition);
-            if ((option & TransformOption.Rotation) != 0) setter.SetQuaternion(target.localRotation);
-            if ((option & TransformOption.Scale) != 0) setter.SetVector3(target.localScale);
+            if ((option & TransformOption.Position) != 0) writer.SetVector3(target.localPosition);
+            if ((option & TransformOption.Rotation) != 0) writer.SetQuaternion(target.localRotation);
+            if ((option & TransformOption.Scale) != 0) writer.SetVector3(target.localScale);
         }
 
-        protected override void OnDeserialize(MemoryGetter getter, bool status)
+        protected override void OnDeserialize(MemoryReader reader, bool status)
         {
             if (!status) return;
-            if ((option & TransformOption.Position) != 0) originPosition = getter.GetVector3();
-            if ((option & TransformOption.Rotation) != 0) originRotation = getter.GetQuaternion();
-            if ((option & TransformOption.Scale) != 0) originScale = getter.GetVector3();
+            if ((option & TransformOption.Position) != 0) originPosition = reader.GetVector3();
+            if ((option & TransformOption.Rotation) != 0) originRotation = reader.GetQuaternion();
+            if ((option & TransformOption.Scale) != 0) originScale = reader.GetVector3();
         }
 
         [ServerRpc]

@@ -17,16 +17,17 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class GameManager : Singleton<GameManager>, IEvent<ServerReady>, IEvent<ServerConnect>
+    public class GameManager : MonoBehaviour, IEvent<ServerReady>, IEvent<ServerConnect>
     {
+        public static GameManager Instance;
         private Vector2 center;
         private Vector2 content;
         private Player player;
         private Camera mainCamera;
 
-        protected override void Awake()
+        private void Awake()
         {
-            base.Awake();
+            Instance = this;
             Application.targetFrameRate = 60;
             mainCamera = FindFirstObjectByType<Camera>();
             GlobalManager.Instance.canvas.worldCamera = mainCamera;
@@ -36,7 +37,7 @@ namespace Runtime
 
         private void Update()
         {
-            if (player == null)
+            if (player == null || player.transform == null)
             {
                 return;
             }
@@ -97,19 +98,13 @@ namespace Runtime
         {
             if (NetworkManager.Server.connections == 1)
             {
-                AssetManager.Load<GameObject>("Prefabs/SpawnManager", obj =>
-                {
-                    NetworkManager.Server.Spawn(obj);
-                });
+                AssetManager.Load<GameObject>("Prefabs/SpawnManager", obj => { NetworkManager.Server.Spawn(obj); });
             }
         }
 
         public void Execute(ServerReady message)
         {
-            AssetManager.Load<GameObject>("Prefabs/Player", obj =>
-            {
-                NetworkManager.Server.Spawn(obj, message.client);
-            });
+            AssetManager.Load<GameObject>("Prefabs/Player", obj => { NetworkManager.Server.Spawn(obj, message.client); });
         }
     }
 }

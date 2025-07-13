@@ -82,13 +82,10 @@ namespace Astraia.Common
                             {
                                 var data = assetData.GetData(i);
                                 var item = (T)property.GetValue(data);
-                                if (items.ContainsKey(item))
+                                if (!items.TryAdd(item, data))
                                 {
                                     Debug.LogWarning(Service.Text.Format("加载数据 {0} 失败。键值重复: {1}", shortName, item));
-                                    continue;
                                 }
-
-                                items.Add(item, data);
                             }
 
                             return items;

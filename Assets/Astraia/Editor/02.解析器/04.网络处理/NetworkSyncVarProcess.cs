@@ -156,7 +156,7 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 处理每个NetworkBehaviour的SyncVar
+        /// 处理每个NetworkSource的SyncVar
         /// </summary>
         /// <param name="td"></param>
         /// <param name="failed"></param>
@@ -228,7 +228,7 @@ namespace Astraia.Editor
         private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarIds, long dirtyBits, ref bool failed)
         {
             FieldDefinition objectId = null;
-            if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
+            if (fd.FieldType.IsDerivedFrom<NetworkSource>() || fd.FieldType.Is<NetworkSource>())
             {
                 objectId = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, module.Import<NetworkVariable>())
                 {
@@ -297,7 +297,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, module.getSyncVarGameObject);
                 worker.Emit(OpCodes.Ret);
             }
-            else if (fd.FieldType.Is<NetworkObject>())
+            else if (fd.FieldType.Is<NetworkEntity>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_0);
@@ -307,14 +307,14 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, module.getSyncVarNetworkObject);
                 worker.Emit(OpCodes.Ret);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
+            else if (fd.FieldType.IsDerivedFrom<NetworkSource>() || fd.FieldType.Is<NetworkSource>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                var getFunc = module.getSyncVarNetworkBehaviour.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
+                var getFunc = module.getSyncVarNetworkSource.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
                 worker.Emit(OpCodes.Ret);
             }
@@ -378,17 +378,17 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
                 worker.Emit(OpCodes.Call, module.syncVarSetterGameObject);
             }
-            else if (fd.FieldType.Is<NetworkObject>())
+            else if (fd.FieldType.Is<NetworkEntity>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
                 worker.Emit(OpCodes.Call, module.syncVarSetterNetworkObject);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkBehaviour>() || fd.FieldType.Is<NetworkBehaviour>())
+            else if (fd.FieldType.IsDerivedFrom<NetworkSource>() || fd.FieldType.Is<NetworkSource>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                var getFunc = module.syncVarSetterNetworkBehaviour.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
+                var getFunc = module.syncVarSetterNetworkSource.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else

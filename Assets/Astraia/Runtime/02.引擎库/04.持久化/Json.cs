@@ -81,7 +81,4 @@ namespace Astraia.Common
             return Path.Combine(jsonPath, Service.Text.Format("{0}.json", fileName));
         }
     }
-    //保存 获取Key 加密
-    //读取 获取Key 解密
-    //Key改变
 }

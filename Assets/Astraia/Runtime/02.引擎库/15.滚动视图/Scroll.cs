@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public sealed class Scroll<TItem, TGrid> : Agent<RectTransform>, IScroll<TItem> where TGrid : Component, IGrid<TItem>
+    public sealed class Scroll<TItem, TGrid> : Source, IScroll<TItem> where TGrid : Component, IGrid<TItem>
     {
         private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
         private int oldMinIndex;
@@ -25,27 +25,21 @@ namespace Astraia
         private bool initialized;
         private bool useSelected;
         private IList<TItem> items;
-
         public bool selection { get; set; }
         public Rect assetRect { get; set; }
         public string assetPath { get; set; }
         public UIState direction { get; set; }
+        public RectTransform rect => transform as RectTransform;
+        private int row => (int)assetRect.y + (direction == UIState.InputY ? 1 : 0);
+        private int column => (int)assetRect.x + (direction == UIState.InputX ? 1 : 0);
 
-        private int row => (int)assetRect.y + (direction == UIState.Vertical ? 1 : 0);
-        private int column => (int)assetRect.x + (direction == UIState.Horizontal ? 1 : 0);
-
-        void IAgent.OnHide()
-        {
-            OnHide();
-        }
-
-        protected override void OnShow()
+        public override void OnShow()
         {
             selection = false;
             initialized = false;
         }
 
-        protected override void OnHide()
+        public override void OnHide()
         {
             items = null;
             oldMinIndex = -1;
@@ -65,9 +59,9 @@ namespace Astraia
             grids.Clear();
         }
 
-        void IScroll<TItem>.OnUpdate()
+        public override void OnUpdate()
         {
-            if (owner == null)
+            if (rect == null)
             {
                 return;
             }
@@ -75,18 +69,18 @@ namespace Astraia
             if (!initialized)
             {
                 initialized = true;
-                if (direction == UIState.Vertical)
+                if (direction == UIState.InputY)
                 {
-                    owner.anchorMin = Vector2.up;
-                    owner.anchorMax = Vector2.one;
+                    rect.anchorMin = Vector2.up;
+                    rect.anchorMax = Vector2.one;
                 }
                 else
                 {
-                    owner.anchorMin = Vector2.zero;
-                    owner.anchorMax = Vector2.up;
+                    rect.anchorMin = Vector2.zero;
+                    rect.anchorMax = Vector2.up;
                 }
 
-                owner.pivot = Vector2.up;
+                rect.pivot = Vector2.up;
             }
 
             if (items == null)
@@ -98,16 +92,16 @@ namespace Astraia
             int minIndex;
             int maxIndex;
             float position;
-            if (direction == UIState.Vertical)
+            if (direction == UIState.InputY)
             {
-                position = owner.anchoredPosition.y;
+                position = rect.anchoredPosition.y;
                 newIndex = (int)(position / assetRect.height);
                 minIndex = newIndex * column;
                 maxIndex = (newIndex + row) * column - 1;
             }
             else
             {
-                position = -owner.anchoredPosition.x;
+                position = -rect.anchoredPosition.x;
                 newIndex = (int)(position / assetRect.width);
                 minIndex = newIndex * row;
                 maxIndex = (newIndex + column) * row - 1;
@@ -164,14 +158,16 @@ namespace Astraia
                     float posY;
                     var index = i;
                     grids[index] = null;
-                    if (direction == UIState.Vertical)
+                    if (direction == UIState.InputY)
                     {
+                        var delta = index / column;
                         posX = index % column * assetRect.width + assetRect.width / 2;
-                        posY = -(index / column) * assetRect.height - assetRect.height / 2;
+                        posY = -delta * assetRect.height - assetRect.height / 2;
                     }
                     else
                     {
-                        posX = index / row * assetRect.width + assetRect.width / 2;
+                        var delta = index / row;
+                        posX = delta * assetRect.width + assetRect.width / 2;
                         posY = -(index % row) * assetRect.height - assetRect.height / 2;
                     }
 
@@ -184,7 +180,7 @@ namespace Astraia
                         }
 
                         var target = (RectTransform)grid.transform;
-                        target.SetParent(owner);
+                        target.SetParent(rect);
                         target.sizeDelta = new Vector2(assetRect.width, assetRect.height);
                         target.localScale = Vector3.one;
                         target.localPosition = new Vector3(posX, posY, 0);
@@ -211,7 +207,7 @@ namespace Astraia
         public void SetItem(IList<TItem> items)
         {
             OnHide();
-            if (owner == null)
+            if (rect == null)
             {
                 return;
             }
@@ -220,21 +216,20 @@ namespace Astraia
             if (items != null)
             {
                 float value = items.Count;
-                if (direction == UIState.Vertical)
+                if (direction == UIState.InputY)
                 {
                     value = Mathf.Ceil(value / column);
-                    owner.sizeDelta = new Vector2(0, value * assetRect.height);
+                    rect.sizeDelta = new Vector2(0, value * assetRect.height);
                 }
                 else
                 {
                     value = Mathf.Ceil(value / row);
-                    owner.sizeDelta = new Vector2(value * assetRect.width, 0);
+                    rect.sizeDelta = new Vector2(value * assetRect.width, 0);
                 }
             }
-
-
+            
             useSelected = selection;
-            owner.anchoredPosition = Vector2.zero;
+            rect.anchoredPosition = Vector2.zero;
         }
 
         public void Move(Component component, int direction)
@@ -244,45 +239,45 @@ namespace Astraia
                 TGrid current;
                 switch (direction)
                 {
-                    case 0 when this.direction == UIState.Horizontal: // 左
+                    case 0 when this.direction == UIState.InputX: // 左
                         for (int i = 0; i < row; i++)
                         {
                             if (grids.TryGetValue(oldMinIndex + i + row, out current) && current == grid)
                             {
-                                owner.anchoredPosition -= Vector2.left * assetRect.width;
+                                rect.anchoredPosition -= Vector2.left * assetRect.width;
                                 break;
                             }
                         }
 
                         return;
-                    case 1 when this.direction == UIState.Vertical: // 上
+                    case 1 when this.direction == UIState.InputY: // 上
                         for (int i = 0; i < column; i++)
                         {
                             if (grids.TryGetValue(oldMinIndex + i + column, out current) && current == grid)
                             {
-                                owner.anchoredPosition -= Vector2.up * assetRect.height;
+                                rect.anchoredPosition -= Vector2.up * assetRect.height;
                                 break;
                             }
                         }
 
                         return;
-                    case 2 when this.direction == UIState.Horizontal: // 右
+                    case 2 when this.direction == UIState.InputX: // 右
                         for (int i = 0; i < row; i++)
                         {
                             if (grids.TryGetValue(oldMaxIndex - i - row, out current) && current == grid)
                             {
-                                owner.anchoredPosition += Vector2.left * assetRect.width;
+                                rect.anchoredPosition += Vector2.left * assetRect.width;
                                 break;
                             }
                         }
 
                         return;
-                    case 3 when this.direction == UIState.Vertical: // 下
+                    case 3 when this.direction == UIState.InputY: // 下
                         for (int i = 0; i < column; i++)
                         {
                             if (grids.TryGetValue(oldMaxIndex - i - column, out current) && current == grid)
                             {
-                                owner.anchoredPosition += Vector2.up * assetRect.height;
+                                rect.anchoredPosition += Vector2.up * assetRect.height;
                                 break;
                             }
                         }

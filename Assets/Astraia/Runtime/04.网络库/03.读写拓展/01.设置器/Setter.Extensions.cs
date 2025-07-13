@@ -17,234 +17,234 @@ namespace Astraia.Net
 {
     public static partial class Extensions
     {
-        public static void SetByte(this MemorySetter setter, byte value)
+        public static void SetByte(this MemoryWriter writer, byte value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetByteNull(this MemorySetter setter, byte? value)
+        public static void SetByteNull(this MemoryWriter writer, byte? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetSByte(this MemorySetter setter, sbyte value)
+        public static void SetSByte(this MemoryWriter writer, sbyte value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetSByteNull(this MemorySetter setter, sbyte? value)
+        public static void SetSByteNull(this MemoryWriter writer, sbyte? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetChar(this MemorySetter setter, char value)
+        public static void SetChar(this MemoryWriter writer, char value)
         {
-            setter.Set((ushort)value);
+            writer.Set((ushort)value);
         }
 
-        public static void SetCharNull(this MemorySetter setter, char? value)
+        public static void SetCharNull(this MemoryWriter writer, char? value)
         {
-            setter.Setable((ushort?)value);
+            writer.Setable((ushort?)value);
         }
 
-        public static void SetBool(this MemorySetter setter, bool value)
+        public static void SetBool(this MemoryWriter writer, bool value)
         {
-            setter.Set((byte)(value ? 1 : 0));
+            writer.Set((byte)(value ? 1 : 0));
         }
 
-        public static void SetBoolNull(this MemorySetter setter, bool? value)
+        public static void SetBoolNull(this MemoryWriter writer, bool? value)
         {
-            setter.Setable(value.HasValue ? (byte)(value.Value ? 1 : 0) : new byte?());
+            writer.Setable(value.HasValue ? (byte)(value.Value ? 1 : 0) : new byte?());
         }
 
-        public static void SetShort(this MemorySetter setter, short value)
+        public static void SetShort(this MemoryWriter writer, short value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetShortNull(this MemorySetter setter, short? value)
+        public static void SetShortNull(this MemoryWriter writer, short? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetUShort(this MemorySetter setter, ushort value)
+        public static void SetUShort(this MemoryWriter writer, ushort value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetUShortNull(this MemorySetter setter, ushort? value)
+        public static void SetUShortNull(this MemoryWriter writer, ushort? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetInt(this MemorySetter setter, int value)
+        public static void SetInt(this MemoryWriter writer, int value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetIntNull(this MemorySetter setter, int? value)
+        public static void SetIntNull(this MemoryWriter writer, int? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetUInt(this MemorySetter setter, uint value)
+        public static void SetUInt(this MemoryWriter writer, uint value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetUIntNull(this MemorySetter setter, uint? value)
+        public static void SetUIntNull(this MemoryWriter writer, uint? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetLong(this MemorySetter setter, long value)
+        public static void SetLong(this MemoryWriter writer, long value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetLongNull(this MemorySetter setter, long? value)
+        public static void SetLongNull(this MemoryWriter writer, long? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetULong(this MemorySetter setter, ulong value)
+        public static void SetULong(this MemoryWriter writer, ulong value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetULongNull(this MemorySetter setter, ulong? value)
+        public static void SetULongNull(this MemoryWriter writer, ulong? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetFloat(this MemorySetter setter, float value)
+        public static void SetFloat(this MemoryWriter writer, float value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetFloatNull(this MemorySetter setter, float? value)
+        public static void SetFloatNull(this MemoryWriter writer, float? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetDouble(this MemorySetter setter, double value)
+        public static void SetDouble(this MemoryWriter writer, double value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetDoubleNull(this MemorySetter setter, double? value)
+        public static void SetDoubleNull(this MemoryWriter writer, double? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetDecimal(this MemorySetter setter, decimal value)
+        public static void SetDecimal(this MemoryWriter writer, decimal value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetDecimalNull(this MemorySetter setter, decimal? value)
+        public static void SetDecimalNull(this MemoryWriter writer, decimal? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetString(this MemorySetter setter, string value)
+        public static void SetString(this MemoryWriter writer, string value)
         {
             if (value == null)
             {
-                setter.SetUShort(0);
+                writer.SetUShort(0);
                 return;
             }
 
-            setter.Resize(setter.position + 2 + Service.Text.GetByteCount(value.Length));
-            var count = Service.Text.GetByteCount(value, value.Length, setter.buffer, setter.position + 2);
+            writer.Resize(writer.position + 2 + Service.Text.GetByteCount(value.Length));
+            var count = Service.Text.GetByteCount(value, value.Length, writer.buffer, writer.position + 2);
             if (count > ushort.MaxValue - 1)
             {
                 throw new EndOfStreamException("写入字符串过长!");
             }
 
-            setter.SetUShort(checked((ushort)(count + 1)));
-            setter.position += count;
+            writer.SetUShort(checked((ushort)(count + 1)));
+            writer.position += count;
         }
 
-        public static void SetBytes(this MemorySetter setter, byte[] value)
+        public static void SetBytes(this MemoryWriter writer, byte[] value)
         {
             if (value == null)
             {
-                setter.SetUInt(0);
+                writer.SetUInt(0);
                 return;
             }
 
-            setter.SetUInt(checked((uint)value.Length) + 1);
-            setter.SetBytes(value, 0, value.Length);
+            writer.SetUInt(checked((uint)value.Length) + 1);
+            writer.SetBytes(value, 0, value.Length);
         }
 
-        public static void SetArraySegment(this MemorySetter setter, ArraySegment<byte> value)
+        public static void SetArraySegment(this MemoryWriter writer, ArraySegment<byte> value)
         {
             if (value == default)
             {
-                setter.SetUInt(0);
+                writer.SetUInt(0);
                 return;
             }
 
-            setter.SetUInt(checked((uint)value.Count) + 1);
-            setter.SetBytes(value.Array, value.Offset, value.Count);
+            writer.SetUInt(checked((uint)value.Count) + 1);
+            writer.SetBytes(value.Array, value.Offset, value.Count);
         }
 
-        public static void SetDateTime(this MemorySetter setter, DateTime value)
+        public static void SetDateTime(this MemoryWriter writer, DateTime value)
         {
-            setter.SetDouble(value.ToOADate());
+            writer.SetDouble(value.ToOADate());
         }
 
-        public static void SetList<T>(this MemorySetter setter, List<T> values)
-        {
-            if (values == null)
-            {
-                setter.SetInt(-1);
-                return;
-            }
-
-            setter.SetInt(values.Count);
-            foreach (var value in values)
-            {
-                setter.Invoke(value);
-            }
-        }
-
-        public static void SetArray<T>(this MemorySetter setter, T[] values)
+        public static void SetList<T>(this MemoryWriter writer, List<T> values)
         {
             if (values == null)
             {
-                setter.SetInt(-1);
+                writer.SetInt(-1);
                 return;
             }
 
-            setter.SetInt(values.Length);
+            writer.SetInt(values.Count);
             foreach (var value in values)
             {
-                setter.Invoke(value);
+                writer.Invoke(value);
             }
         }
 
-        public static void SetUri(this MemorySetter setter, Uri value)
+        public static void SetArray<T>(this MemoryWriter writer, T[] values)
+        {
+            if (values == null)
+            {
+                writer.SetInt(-1);
+                return;
+            }
+
+            writer.SetInt(values.Length);
+            foreach (var value in values)
+            {
+                writer.Invoke(value);
+            }
+        }
+
+        public static void SetUri(this MemoryWriter writer, Uri value)
         {
             if (value == null)
             {
-                setter.SetString(null);
+                writer.SetString(null);
                 return;
             }
 
-            setter.SetString(value.ToString());
+            writer.SetString(value.ToString());
         }
         
-        public static void SetType(this MemorySetter setter, Type value)
+        public static void SetType(this MemoryWriter writer, Type value)
         {
             if (value == null)
             {
-                setter.SetString(null);
+                writer.SetString(null);
                 return;
             }
 
-            setter.SetString(value.FullName);
+            writer.SetString(value.FullName);
         }
     }
 }

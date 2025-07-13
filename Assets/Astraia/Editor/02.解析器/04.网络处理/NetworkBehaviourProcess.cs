@@ -17,14 +17,14 @@ using UnityEngine;
 
 namespace Astraia.Editor
 {
-    internal partial class NetworkBehaviourProcess
+    internal partial class NetworkSourceProcess
     {
         private Dictionary<FieldDefinition, FieldDefinition> syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
         private readonly Module module;
         private readonly Logger logger;
-        private readonly Setter setters;
-        private readonly Getter getters;
+        private readonly Writer writer;
+        private readonly Reader reader;
         private readonly SyncVarAccess access;
         private readonly TypeDefinition type;
         private readonly TypeDefinition generate;
@@ -37,7 +37,7 @@ namespace Astraia.Editor
         private readonly List<KeyValuePair<MethodDefinition, int>> targetRpcList = new List<KeyValuePair<MethodDefinition, int>>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
-        public NetworkBehaviourProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Setter setters, Getter getters,
+        public NetworkSourceProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader,
             Logger logger, TypeDefinition type)
         {
             generate = type;
@@ -45,8 +45,8 @@ namespace Astraia.Editor
             this.module = module;
             this.access = access;
             this.logger = logger;
-            this.setters = setters;
-            this.getters = getters;
+            this.writer = writer;
+            this.reader = reader;
             this.assembly = assembly;
             process = new SyncVarProcess(assembly, access, module, logger);
         }
@@ -95,7 +95,7 @@ namespace Astraia.Editor
         public static void WriteInitLocals(ILProcessor worker, Module module)
         {
             worker.Body.InitLocals = true;
-            worker.Body.Variables.Add(new VariableDefinition(module.Import<MemorySetter>()));
+            worker.Body.Variables.Add(new VariableDefinition(module.Import<MemoryWriter>()));
         }
 
         public static void WritePopSetter(ILProcessor worker, Module module)
@@ -112,13 +112,13 @@ namespace Astraia.Editor
 
         public static void AddInvokeParameters(Module module, ICollection<ParameterDefinition> collection)
         {
-            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, module.Import<NetworkBehaviour>()));
-            collection.Add(new ParameterDefinition("getter", ParameterAttributes.None, module.Import<MemoryGetter>()));
+            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, module.Import<NetworkSource>()));
+            collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             collection.Add(new ParameterDefinition("target", ParameterAttributes.None, module.Import<NetworkClient>()));
         }
     }
 
-    internal partial class NetworkBehaviourProcess
+    internal partial class NetworkSourceProcess
     {
         /// <summary>
         /// 处理Rpc方法
@@ -179,8 +179,8 @@ namespace Astraia.Editor
             {
                 case InvokeMode.ServerRpc:
                     serverRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkAttributeProcess.ProcessServerRpcInvoke(module, setters, logger, generate, md, rpc, ref failed);
-                    rpcFunc = NetworkAttributeProcess.ProcessServerRpc(module, getters, logger, generate, md, func, ref failed);
+                    func = NetworkAttributeProcess.ProcessServerRpcInvoke(module, writer, logger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkAttributeProcess.ProcessServerRpc(module, reader, logger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         serverRpcFuncList.Add(rpcFunc);
@@ -189,8 +189,8 @@ namespace Astraia.Editor
                     break;
                 case InvokeMode.ClientRpc:
                     clientRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkAttributeProcess.ProcessClientRpcInvoke(module, setters, logger, generate, md, rpc, ref failed);
-                    rpcFunc = NetworkAttributeProcess.ProcessClientRpc(module, getters, logger, generate, md, func, ref failed);
+                    func = NetworkAttributeProcess.ProcessClientRpcInvoke(module, writer, logger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkAttributeProcess.ProcessClientRpc(module, reader, logger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         clientRpcFuncList.Add(rpcFunc);
@@ -199,8 +199,8 @@ namespace Astraia.Editor
                     break;
                 case InvokeMode.TargetRpc:
                     targetRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkAttributeProcess.ProcessTargetRpcInvoke(module, setters, logger, generate, md, rpc, ref failed);
-                    rpcFunc = NetworkAttributeProcess.ProcessTargetRpc(module, getters, logger, generate, md, func, ref failed);
+                    func = NetworkAttributeProcess.ProcessTargetRpcInvoke(module, writer, logger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkAttributeProcess.ProcessTargetRpc(module, reader, logger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         targetRpcFuncList.Add(rpcFunc);
@@ -321,7 +321,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkBehaviourProcess
+    internal partial class NetworkSourceProcess
     {
         /// <summary>
         /// 注入静态构造函数
@@ -412,7 +412,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkBehaviourProcess
+    internal partial class NetworkSourceProcess
     {
         /// <summary>
         /// 生成SyncVar的序列化方法
@@ -422,7 +422,7 @@ namespace Astraia.Editor
             if (generate.GetMethod(Const.SER_METHOD) != null) return;
             if (syncVars.Count == 0) return;
             var serialize = new MethodDefinition(Const.SER_METHOD, Const.SER_ATTRS, module.Import(typeof(void)));
-            serialize.Parameters.Add(new ParameterDefinition("setter", ParameterAttributes.None, module.Import<MemorySetter>()));
+            serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
             serialize.Parameters.Add(new ParameterDefinition("status", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
@@ -451,8 +451,8 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
                 var writeFunc =
-                    setters.GetFunction(
-                        syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? module.Import<NetworkBehaviour>() : syncVar.FieldType,
+                    writer.GetFunction(
+                        syncVar.FieldType.IsDerivedFrom<NetworkSource>() ? module.Import<NetworkSource>() : syncVar.FieldType,
                         ref failed);
 
                 if (writeFunc != null)
@@ -471,8 +471,8 @@ namespace Astraia.Editor
             worker.Append(status);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, module.NetworkBehaviourDirtyRef);
-            var writeUint64Func = setters.GetFunction(module.Import<ulong>(), ref failed);
+            worker.Emit(OpCodes.Call, module.NetworkSourceDirtyRef);
+            var writeUint64Func = writer.GetFunction(module.Import<ulong>(), ref failed);
             worker.Emit(OpCodes.Call, writeUint64Func);
             int dirty = access.GetSyncVar(generate.BaseType.FullName);
             foreach (var syncVarDef in syncVars)
@@ -485,7 +485,7 @@ namespace Astraia.Editor
 
                 var varLabel = worker.Create(OpCodes.Nop);
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Call, module.NetworkBehaviourDirtyRef);
+                worker.Emit(OpCodes.Call, module.NetworkSourceDirtyRef);
                 worker.Emit(OpCodes.Ldc_I8, 1L << dirty);
                 worker.Emit(OpCodes.And);
                 worker.Emit(OpCodes.Brfalse, varLabel);
@@ -493,8 +493,8 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
-                var writeFunc = setters.GetFunction(
-                    syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() ? module.Import<NetworkBehaviour>() : syncVar.FieldType,
+                var writeFunc = writer.GetFunction(
+                    syncVar.FieldType.IsDerivedFrom<NetworkSource>() ? module.Import<NetworkSource>() : syncVar.FieldType,
                     ref failed);
 
                 if (writeFunc != null)
@@ -524,7 +524,7 @@ namespace Astraia.Editor
             if (generate.GetMethod(Const.DES_METHOD) != null) return;
             if (syncVars.Count == 0) return;
             var serialize = new MethodDefinition(Const.DES_METHOD, Const.SER_ATTRS, module.Import(typeof(void)));
-            serialize.Parameters.Add(new ParameterDefinition("getter", ParameterAttributes.None, module.Import<MemoryGetter>()));
+            serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             serialize.Parameters.Add(new ParameterDefinition("status", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
@@ -554,7 +554,7 @@ namespace Astraia.Editor
             worker.Append(worker.Create(OpCodes.Ret));
             worker.Append(status);
             worker.Append(worker.Create(OpCodes.Ldarg_1));
-            worker.Append(worker.Create(OpCodes.Call, getters.GetFunction(module.Import<ulong>(), ref failed)));
+            worker.Append(worker.Create(OpCodes.Call, reader.GetFunction(module.Import<ulong>(), ref failed)));
             worker.Append(worker.Create(OpCodes.Stloc_0));
 
             int dirtyBits = access.GetSyncVar(generate.BaseType.FullName);
@@ -606,7 +606,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldflda, objectId);
                 worker.Emit(OpCodes.Call, module.syncVarGetterGameObject);
             }
-            else if (syncVar.FieldType.Is<NetworkObject>())
+            else if (syncVar.FieldType.Is<NetworkEntity>())
             {
                 var objectId = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);
@@ -614,18 +614,18 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldflda, objectId);
                 worker.Emit(OpCodes.Call, module.syncVarGetterNetworkObject);
             }
-            else if (syncVar.FieldType.IsDerivedFrom<NetworkBehaviour>() || syncVar.FieldType.Is<NetworkBehaviour>())
+            else if (syncVar.FieldType.IsDerivedFrom<NetworkSource>() || syncVar.FieldType.Is<NetworkSource>())
             {
                 var objectId = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
-                var getFunc = module.syncVarGetterNetworkBehaviour.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
+                var getFunc = module.syncVarGetterNetworkSource.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
             {
-                var readFunc = getters.GetFunction(syncVar.FieldType, ref failed);
+                var readFunc = reader.GetFunction(syncVar.FieldType, ref failed);
                 if (readFunc == null)
                 {
                     logger.Error($"不支持 {syncVar.Name} 的类型。", syncVar);

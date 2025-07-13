@@ -16,183 +16,183 @@ namespace Astraia.Net
 {
     public static partial class Extensions
     {
-        public static void SetVector2(this MemorySetter setter, Vector2 value)
+        public static void SetVector2(this MemoryWriter writer, Vector2 value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetVector2Null(this MemorySetter setter, Vector2? value)
+        public static void SetVector2Null(this MemoryWriter writer, Vector2? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetVector3(this MemorySetter setter, Vector3 value)
+        public static void SetVector3(this MemoryWriter writer, Vector3 value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetVector3Null(this MemorySetter setter, Vector3? value)
+        public static void SetVector3Null(this MemoryWriter writer, Vector3? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetVector4(this MemorySetter setter, Vector4 value)
+        public static void SetVector4(this MemoryWriter writer, Vector4 value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetVector4Null(this MemorySetter setter, Vector4? value)
+        public static void SetVector4Null(this MemoryWriter writer, Vector4? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetVector2Int(this MemorySetter setter, Vector2Int value)
+        public static void SetVector2Int(this MemoryWriter writer, Vector2Int value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetVector2IntNull(this MemorySetter setter, Vector2Int? value)
+        public static void SetVector2IntNull(this MemoryWriter writer, Vector2Int? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetVector3Int(this MemorySetter setter, Vector3Int value)
+        public static void SetVector3Int(this MemoryWriter writer, Vector3Int value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetVector3IntNull(this MemorySetter setter, Vector3Int? value)
+        public static void SetVector3IntNull(this MemoryWriter writer, Vector3Int? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetQuaternion(this MemorySetter setter, Quaternion value)
+        public static void SetQuaternion(this MemoryWriter writer, Quaternion value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetQuaternionNull(this MemorySetter setter, Quaternion? value)
+        public static void SetQuaternionNull(this MemoryWriter writer, Quaternion? value)
         {
-            setter.Setable(value);
+            writer.Setable(value);
         }
 
-        public static void SetColor(this MemorySetter setter, Color value)
+        public static void SetColor(this MemoryWriter writer, Color value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetColor32(this MemorySetter setter, Color32 value)
+        public static void SetColor32(this MemoryWriter writer, Color32 value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetRect(this MemorySetter setter, Rect value)
+        public static void SetRect(this MemoryWriter writer, Rect value)
         {
-            setter.SetVector2(value.position);
-            setter.SetVector2(value.size);
+            writer.SetVector2(value.position);
+            writer.SetVector2(value.size);
         }
 
-        public static void SetPlane(this MemorySetter setter, Plane value)
+        public static void SetPlane(this MemoryWriter writer, Plane value)
         {
-            setter.SetVector3(value.normal);
-            setter.SetFloat(value.distance);
+            writer.SetVector3(value.normal);
+            writer.SetFloat(value.distance);
         }
 
-        public static void SetRay(this MemorySetter setter, Ray value)
+        public static void SetRay(this MemoryWriter writer, Ray value)
         {
-            setter.SetVector3(value.origin);
-            setter.SetVector3(value.direction);
+            writer.SetVector3(value.origin);
+            writer.SetVector3(value.direction);
         }
 
-        public static void SetMatrix4x4(this MemorySetter setter, Matrix4x4 value)
+        public static void SetMatrix4x4(this MemoryWriter writer, Matrix4x4 value)
         {
-            setter.Set(value);
+            writer.Set(value);
         }
 
-        public static void SetNetworkObject(this MemorySetter setter, NetworkObject value)
+        public static void SetNetworkObject(this MemoryWriter writer, NetworkEntity value)
         {
             if (value == null)
             {
-                setter.SetUInt(0);
+                writer.SetUInt(0);
                 return;
             }
 
             if (value.objectId == 0)
             {
                 Debug.LogWarning(Log.E209);
-                setter.SetUInt(0);
+                writer.SetUInt(0);
                 return;
             }
 
-            setter.SetUInt(value.objectId);
+            writer.SetUInt(value.objectId);
         }
 
-        public static void SetNetworkBehaviour(this MemorySetter setter, NetworkBehaviour value)
+        public static void SetNetworkSource(this MemoryWriter writer, NetworkSource value)
         {
             if (value == null)
             {
-                setter.SetUInt(0);
+                writer.SetUInt(0);
                 return;
             }
 
-            setter.SetNetworkObject(value.@object);
-            setter.SetByte(value.componentId);
+            writer.SetNetworkObject(value.entity);
+            writer.SetByte(value.sourceId);
         }
 
-        public static void SetTransform(this MemorySetter setter, Transform value)
+        public static void SetTransform(this MemoryWriter writer, Transform value)
         {
             if (value == null)
             {
-                setter.SetUInt(0);
+                writer.SetUInt(0);
                 return;
             }
 
-            setter.SetNetworkObject(value.GetComponent<NetworkObject>());
+            writer.SetNetworkObject(value.GetComponent<NetworkEntity>());
         }
 
-        public static void SetGameObject(this MemorySetter setter, GameObject value)
+        public static void SetGameObject(this MemoryWriter writer, GameObject value)
         {
             if (value == null)
             {
-                setter.SetUInt(0);
+                writer.SetUInt(0);
                 return;
             }
 
-            setter.SetNetworkObject(value.GetComponent<NetworkObject>());
+            writer.SetNetworkObject(value.GetComponent<NetworkEntity>());
         }
 
-        public static void SetTexture2D(this MemorySetter setter, Texture2D value)
+        public static void SetTexture2D(this MemoryWriter writer, Texture2D value)
         {
             if (value == null)
             {
-                setter.SetShort(-1);
+                writer.SetShort(-1);
                 return;
             }
 
-            setter.SetShort((short)value.width);
-            setter.SetShort((short)value.height);
-            setter.SetArray(value.GetPixels32());
+            writer.SetShort((short)value.width);
+            writer.SetShort((short)value.height);
+            writer.SetArray(value.GetPixels32());
         }
 
-        public static void SetSprite(this MemorySetter setter, Sprite value)
+        public static void SetSprite(this MemoryWriter writer, Sprite value)
         {
             if (value == null)
             {
-                setter.SetTexture2D(null);
+                writer.SetTexture2D(null);
                 return;
             }
 
-            setter.SetTexture2D(value.texture);
-            setter.SetRect(value.rect);
-            setter.SetVector2(value.pivot);
+            writer.SetTexture2D(value.texture);
+            writer.SetRect(value.rect);
+            writer.SetVector2(value.pivot);
         }
 
-        public static void SetArraySegment<T>(this MemorySetter setter, ArraySegment<T> value)
+        public static void SetArraySegment<T>(this MemoryWriter writer, ArraySegment<T> value)
         {
-            setter.SetInt(value.Count);
+            writer.SetInt(value.Count);
             for (var i = 0; i < value.Count; i++)
             {
-                setter.Invoke(value.Array[value.Offset + i]);
+                writer.Invoke(value.Array[value.Offset + i]);
             }
         }
     }

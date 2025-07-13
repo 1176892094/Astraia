@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4880443872429666158}
   - component: {fileID: 8087870240613574326}
-  - component: {fileID: 2096008054483716880}
   m_Layer: 0
   m_Name: SpawnManager
   m_TagString: Untagged
@@ -45,21 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sourcesData:
+  - Runtime.SpawnManager, Assembly-CSharp
   entityMode: 0
-  objectId: 0
+  entityPath: Prefabs/SpawnManager
   sceneId: 0
-  assetId: Prefabs/SpawnManager
---- !u!114 &2096008054483716880
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2268011501482705602}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 521c8cd80f574857bd4d26b4a9087c52, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncDirection: 0
-  syncInterval: 0
+  objectId: 0

@@ -36,7 +36,7 @@ namespace Astraia
         public string smtpUsername = "1176892094@qq.com";
 
         public string smtpPassword;
-        
+
         [Range(1, 255)] public int jsonVersion = 1;
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -213,6 +213,24 @@ namespace Astraia
         {
             var canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
             canvas.gameObject.layer = LayerMask.NameToLayer("UI");
+            for (var i = UILayer.Layer1; i <= UILayer.Layer6; i++)
+            {
+                var name = Service.Text.Format("Pool - Canvas/{0}", i);
+                var item = new GameObject(name, typeof(RectTransform))
+                {
+                    layer = canvas.gameObject.layer
+                };
+                var rect = item.GetComponent<RectTransform>();
+                rect.SetParent(canvas.transform);
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+                rect.localScale = Vector3.one;
+                rect.localPosition = Vector3.zero;
+                GlobalManager.layerData.Add(i, rect);
+            }
+
             canvas.gameObject.AddComponent<GraphicRaycaster>();
             var scaler = canvas.gameObject.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -221,6 +239,8 @@ namespace Astraia
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.referencePixelsPerUnit = 64;
             DontDestroyOnLoad(canvas);
+
+
             var manager = new GameObject(nameof(PoolManager)).AddComponent<GlobalManager>();
             manager.canvas = canvas;
             manager.canvas.renderMode = RenderMode.ScreenSpaceCamera;

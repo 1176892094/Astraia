@@ -25,22 +25,22 @@ namespace Astraia
         Simulate,
         Authentic
     }
-     
+
     internal enum BuildMode : byte
     {
         StreamingAssets,
         BuildPath,
     }
     
-    public enum UIState : byte
+    public enum UIState : short
     {
-        Common = 1 << 0,
-        Freeze = 1 << 1,
-        Stable = 1 << 2,
-        Vertical = 1 << 3,
-        Horizontal = 1 << 4,
+        Common,
+        Freeze,
+        Stable,
+        InputX,
+        InputY,
     }
-    
+
     public enum UILayer : byte
     {
         Layer1,

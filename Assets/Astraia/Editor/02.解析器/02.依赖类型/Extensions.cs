@@ -467,17 +467,17 @@ namespace Astraia.Editor
                 return true;
             }
 
-            if (tr.Is<NetworkObject>())
+            if (tr.Is<NetworkEntity>())
             {
                 return true;
             }
 
-            if (tr.IsDerivedFrom<NetworkBehaviour>())
+            if (tr.IsDerivedFrom<NetworkSource>())
             {
                 return true;
             }
 
-            return tr.Is<NetworkBehaviour>();
+            return tr.Is<NetworkSource>();
         }
     }
 }

@@ -13,8 +13,6 @@ GameObject:
   - component: {fileID: -6215146803019114342}
   - component: {fileID: 5490310625879060458}
   - component: {fileID: 2578763087886583997}
-  - component: {fileID: -1256705718928950608}
-  - component: {fileID: -9157424958153105523}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -167,43 +165,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sourcesData:
+  - Astraia.Net.NetworkTransform, Astraia.Net
+  - Runtime.Player, Assembly-CSharp
   entityMode: 0
-  objectId: 0
+  entityPath: Prefabs/Player
   sceneId: 0
-  assetId: Prefabs/Player
---- !u!114 &-1256705718928950608
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4745370882994828325}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b6683cc54dd4e4fbecc8152269a7d3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncDirection: 1
-  syncInterval: 0
-  target: {fileID: 7478125468919891840}
-  option: 1
-  positionPerceive: 0.01
-  rotationPerceive: 0.01
-  scalePerceive: 0.01
-  positionSmooth: 0.5
-  rotationSmooth: 0.5
-  localScaleSmooth: 0.5
---- !u!114 &-9157424958153105523
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4745370882994828325}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f46525886dd94e1cad6393357b1f3917, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncDirection: 0
-  syncInterval: 0
+  objectId: 0

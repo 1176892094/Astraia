@@ -94,7 +94,7 @@ namespace Astraia
 
         public Watch OnUpdate(Action OnUpdated)
         {
-            this.OnUpdated = OnUpdated;
+            this.OnUpdated += OnUpdated;
             return this;
         }
 

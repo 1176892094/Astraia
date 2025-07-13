@@ -40,21 +40,21 @@ namespace Astraia.Common
                 OnExecute = null;
             }
 
-            public void Listen(IEvent<T> @object)
+            public void Listen(IEvent<T> obj)
             {
                 dequeue++;
-                if (cached.Add(@object))
+                if (cached.Add(obj))
                 {
-                    OnExecute += @object.Execute;
+                    OnExecute += obj.Execute;
                 }
             }
 
-            public void Remove(IEvent<T> @object)
+            public void Remove(IEvent<T> obj)
             {
                 enqueue++;
-                if (cached.Remove(@object))
+                if (cached.Remove(obj))
                 {
-                    OnExecute -= @object.Execute;
+                    OnExecute -= obj.Execute;
                 }
             }
 

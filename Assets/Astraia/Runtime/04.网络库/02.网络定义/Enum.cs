@@ -28,7 +28,7 @@ namespace Astraia.Net
         Locked,
     }
 
-    internal enum SyncMode : byte
+    public enum SyncMode : byte
     {
         Server,
         Client

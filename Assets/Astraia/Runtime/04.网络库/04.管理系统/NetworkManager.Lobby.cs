@@ -18,6 +18,7 @@ namespace Astraia.Net
 {
     public partial class NetworkManager
     {
+        [Serializable]
         public static partial class Lobby
         {
             internal static readonly BiDictionary<int, int> clients = new BiDictionary<int, int>();
@@ -94,13 +95,13 @@ namespace Astraia.Net
                     return;
                 }
 
-                using var setter = MemorySetter.Pop();
-                setter.SetByte((byte)OpCodes.UpdateRoom);
-                setter.SetString(roomName);
-                setter.SetString(roomData);
-                setter.SetByte((byte)roomMode);
-                setter.SetInt(Instance.connection);
-                connection.SendToServer(setter);
+                using var writer = MemoryWriter.Pop();
+                writer.SetByte((byte)OpCodes.UpdateRoom);
+                writer.SetString(roomName);
+                writer.SetString(roomData);
+                writer.SetByte((byte)roomMode);
+                writer.SetInt(Instance.connection);
+                connection.SendToServer(writer);
             }
         }
 
@@ -136,14 +137,14 @@ namespace Astraia.Net
             {
                 try
                 {
-                    using var getter = MemoryGetter.Pop(segment);
-                    var opcode = (OpCodes)getter.GetByte();
+                    using var reader = MemoryReader.Pop(segment);
+                    var opcode = (OpCodes)reader.GetByte();
                     if (opcode == OpCodes.Connect)
                     {
-                        using var setter = MemorySetter.Pop();
-                        setter.SetByte((byte)OpCodes.Connected);
-                        setter.SetString(Instance.authorization);
-                        connection.SendToServer(setter);
+                        using var writer = MemoryWriter.Pop();
+                        writer.SetByte((byte)OpCodes.Connected);
+                        writer.SetString(Instance.authorization);
+                        connection.SendToServer(writer);
                     }
                     else if (opcode == OpCodes.Connected)
                     {
@@ -152,14 +153,14 @@ namespace Astraia.Net
                     }
                     else if (opcode == OpCodes.CreateRoom)
                     {
-                        connection.address = getter.GetString();
+                        connection.address = reader.GetString();
                     }
                     else if (opcode == OpCodes.JoinRoom)
                     {
                         if (isServer)
                         {
                             objectId++;
-                            var clientId = getter.GetInt();
+                            var clientId = reader.GetInt();
                             clients.Add(clientId, objectId);
                             Transport.Instance.OnServerConnect.Invoke(objectId);
                         }
@@ -179,10 +180,10 @@ namespace Astraia.Net
                     }
                     else if (opcode == OpCodes.UpdateData)
                     {
-                        var message = getter.GetArraySegment();
+                        var message = reader.GetArraySegment();
                         if (isServer)
                         {
-                            var clientId = getter.GetInt();
+                            var clientId = reader.GetInt();
                             if (clients.TryGetByKey(clientId, out var playerId))
                             {
                                 Transport.Instance.OnServerReceive.Invoke(playerId, message, channel);
@@ -198,7 +199,7 @@ namespace Astraia.Net
                     {
                         if (isServer)
                         {
-                            var clientId = getter.GetInt();
+                            var clientId = reader.GetInt();
                             if (clients.TryGetByKey(clientId, out var playerId))
                             {
                                 Transport.Instance.OnServerDisconnect.Invoke(playerId);

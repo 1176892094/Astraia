@@ -23,14 +23,19 @@ namespace Astraia.Common
             GUILayout.Label(" 网络信息", GUILayout.Height(25));
             GUILayout.EndHorizontal();
 
-            screenView = GUILayout.BeginScrollView(screenView, "Box");
+
+            GUILayout.BeginHorizontal();
+
+            screenView = GUILayout.BeginScrollView(screenView, "Box", GUILayout.Width((screenWidth - 20) / 2));
             if (Transport.Instance)
             {
-                GUILayout.Label("网络地址: \t\t" + Transport.Instance.address + " : " + Transport.Instance.port);
+                GUILayout.Label("网络地址: \t\t" + Transport.Instance.address);
+                GUILayout.Label("网络端口: \t\t" + Transport.Instance.port);
             }
             else
             {
-                GUILayout.Label("网络地址: \t\t" + "None");
+                GUILayout.Label("网络地址: \t\t" + "127.0.0.1");
+                GUILayout.Label("网络端口: \t\t" + 0);
             }
 
             GUILayout.Label("网络模式: \t\t" + NetworkManager.Mode);
@@ -45,7 +50,7 @@ namespace Astraia.Common
             }
 
             GUILayout.Label("连接状态: \t\t" + message);
-            GUILayout.Label("是否传输: \t\t" + NetworkManager.Client.isReady);
+            GUILayout.Label("传输状态: \t\t" + (NetworkManager.Client.isReady ? "传输中" : "未传输"));
             GUILayout.Label("往返时间: \t\t" + Math.Min((int)(framePing * 1000), 999) + "ms");
             if (NetworkManager.Instance)
             {
@@ -58,12 +63,14 @@ namespace Astraia.Common
                 GUILayout.Label("同步帧率: \t\t" + 0);
             }
 
-            if (NetworkProfiler.Instance)
-            {
-                NetworkProfiler.Instance.OnGUIWindow();
-            }
-
             GUILayout.EndScrollView();
+
+            windowView = GUILayout.BeginScrollView(windowView, "Box");
+            NetworkSimulator.Instance?.OnGUIWindow();
+            GUILayout.EndScrollView();
+
+            GUILayout.EndHorizontal();
+
 
             GUILayout.BeginHorizontal();
             if (!NetworkManager.Client.isConnected && !NetworkManager.Server.isActive)

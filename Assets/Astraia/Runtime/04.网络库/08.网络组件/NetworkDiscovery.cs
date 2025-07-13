@@ -89,10 +89,10 @@ namespace Astraia.Net
                     endPoint = new IPEndPoint(IPAddress.Parse(address), port);
                 }
 
-                using var setter = MemorySetter.Pop();
-                setter.SetInt(version);
-                setter.Invoke(new RequestMessage());
-                ArraySegment<byte> segment = setter;
+                using var writer = MemoryWriter.Pop();
+                writer.SetInt(version);
+                writer.Invoke(new RequestMessage());
+                ArraySegment<byte> segment = writer;
                 udpClient.Send(segment.Array, segment.Count, endPoint);
             }
             catch (Exception e)
@@ -108,14 +108,14 @@ namespace Astraia.Net
                 try
                 {
                     var result = await udpServer.ReceiveAsync();
-                    using var getter = MemoryGetter.Pop(new ArraySegment<byte>(result.Buffer));
-                    if (version != getter.GetInt())
+                    using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
+                    if (version != reader.GetInt())
                     {
                         Debug.LogError(Log.E293);
                         return;
                     }
 
-                    getter.Invoke<RequestMessage>();
+                    reader.Invoke<RequestMessage>();
                     ServerSend(result.RemoteEndPoint);
                 }
                 catch (ObjectDisposedException)
@@ -133,15 +133,15 @@ namespace Astraia.Net
         {
             try
             {
-                using var setter = MemorySetter.Pop();
-                setter.SetInt(version);
-                setter.Invoke(new ResponseMessage(new UriBuilder
+                using var writer = MemoryWriter.Pop();
+                writer.SetInt(version);
+                writer.Invoke(new ResponseMessage(new UriBuilder
                 {
                     Scheme = "https",
                     Host = Dns.GetHostName(),
                     Port = Transport.Instance.port
                 }.Uri));
-                ArraySegment<byte> segment = setter;
+                ArraySegment<byte> segment = writer;
                 udpServer.Send(segment.Array, segment.Count, endPoint);
             }
             catch (Exception e)
@@ -157,15 +157,15 @@ namespace Astraia.Net
                 try
                 {
                     var result = await udpClient.ReceiveAsync();
-                    using var getter = MemoryGetter.Pop(new ArraySegment<byte>(result.Buffer));
-                    if (version != getter.GetInt())
+                    using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
+                    if (version != reader.GetInt())
                     {
                         Debug.LogError(Log.E293);
                         return;
                     }
 
                     var endPoint = result.RemoteEndPoint;
-                    var response = getter.Invoke<ResponseMessage>();
+                    var response = reader.Invoke<ResponseMessage>();
                     EventManager.Invoke(new ServerResponse(new UriBuilder(response.uri)
                     {
                         Host = endPoint.Address.ToString()

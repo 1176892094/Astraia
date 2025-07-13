@@ -32,7 +32,7 @@ namespace Astraia.Editor
         /// <summary>
         /// 网络行为被标记改变
         /// </summary>
-        public readonly MethodReference NetworkBehaviourDirtyRef;
+        public readonly MethodReference NetworkSourceDirtyRef;
 
         /// <summary>
         /// Rpc委托的构造函数
@@ -65,79 +65,79 @@ namespace Astraia.Editor
         public readonly MethodReference CreateInstanceMethodRef;
 
         /// <summary>
-        /// 读取泛型的 NetworkBehaviour
+        /// 读取泛型的 NetworkSource
         /// </summary>
-        public readonly MethodReference ReadNetworkBehaviourGeneric;
+        public readonly MethodReference ReadNetworkSourceGeneric;
 
         /// <summary>
-        /// NetworkBehaviour.SendServerRpcInternal
+        /// NetworkSource.SendServerRpcInternal
         /// </summary>
         public readonly MethodReference sendServerRpcInternal;
 
         /// <summary>
-        /// NetworkBehaviour.SendTargetRpcInternal
+        /// NetworkSource.SendTargetRpcInternal
         /// </summary>
         public readonly MethodReference sendTargetRpcInternal;
 
         /// <summary>
-        /// NetworkBehaviour.SendClientRpcInternal
+        /// NetworkSource.SendClientRpcInternal
         /// </summary>
         public readonly MethodReference sendClientRpcInternal;
 
         /// <summary>
-        /// NetworkBehaviour.SyncVarSetterGeneral
+        /// NetworkSource.SyncVarSetterGeneral
         /// </summary>
         public readonly MethodReference syncVarSetterGeneral;
 
         /// <summary>
-        /// NetworkBehaviour.SyncVarSetterGameObject
+        /// NetworkSource.SyncVarSetterGameObject
         /// </summary>
         public readonly MethodReference syncVarSetterGameObject;
 
         /// <summary>
-        /// NetworkBehaviour.SyncVarSetterNetworkObject
+        /// NetworkSource.SyncVarSetterNetworkObject
         /// </summary>
         public readonly MethodReference syncVarSetterNetworkObject;
 
         /// <summary>
-        /// NetworkBehaviour.SyncVarSetterNetworkBehaviour
+        /// NetworkSource.SyncVarSetterNetworkSource
         /// </summary>
-        public readonly MethodReference syncVarSetterNetworkBehaviour;
+        public readonly MethodReference syncVarSetterNetworkSource;
 
         /// <summary>
-        /// NetworkBehaviour.SyncVarGetterGeneral
+        /// NetworkSource.SyncVarGetterGeneral
         /// </summary>
         public readonly MethodReference syncVarGetterGeneral;
 
         /// <summary>
-        /// NetworkBehaviour.SyncVarGetterGameObject
+        /// NetworkSource.SyncVarGetterGameObject
         /// </summary>
         public readonly MethodReference syncVarGetterGameObject;
 
         /// <summary>
-        /// NetworkBehaviour.SyncVarGetterNetworkObject
+        /// NetworkSource.SyncVarGetterNetworkObject
         /// </summary>
         public readonly MethodReference syncVarGetterNetworkObject;
 
         /// <summary>
-        /// NetworkBehaviour.SyncVarGetterNetworkBehaviour
+        /// NetworkSource.SyncVarGetterNetworkSource
         /// </summary>
-        public readonly MethodReference syncVarGetterNetworkBehaviour;
+        public readonly MethodReference syncVarGetterNetworkSource;
 
         /// <summary>
-        /// NetworkBehaviour.GetSyncVarGameObject
+        /// NetworkSource.GetSyncVarGameObject
         /// </summary>
         public readonly MethodReference getSyncVarGameObject;
 
         /// <summary>
-        /// NetworkBehaviour.GetSyncVarNetworkObject
+        /// NetworkSource.GetSyncVarNetworkObject
         /// </summary>
         public readonly MethodReference getSyncVarNetworkObject;
 
         /// <summary>
-        /// NetworkBehaviour.GetSyncVarNetworkBehaviour
+        /// NetworkSource.GetSyncVarNetworkSource
         /// </summary>
-        public readonly MethodReference getSyncVarNetworkBehaviour;
+        public readonly MethodReference getSyncVarNetworkSource;
 
         /// <summary>
         /// NetworkUtilsRpc.RegisterServerRpc
@@ -210,28 +210,28 @@ namespace Astraia.Editor
             NetworkServerActiveRef = Resolve.GetMethod(NetworkServerType, assembly, logger, "get_isActive", ref failed);
 
             var StreamExtensionType = Import(typeof(Net.Extensions));
-            ReadNetworkBehaviourGeneric = Resolve.GetMethod(StreamExtensionType, assembly, logger, method => method.Name == nameof(Net.Extensions.GetNetworkBehaviour) && method.HasGenericParameters, ref failed);
+            ReadNetworkSourceGeneric = Resolve.GetMethod(StreamExtensionType, assembly, logger, method => method.Name == nameof(Net.Extensions.GetNetworkSource) && method.HasGenericParameters, ref failed);
 
-            var NetworkBehaviourType = Import<NetworkBehaviour>();
-            NetworkBehaviourDirtyRef = Resolve.GetProperty(NetworkBehaviourType, assembly, "syncVarDirty");
+            var NetworkSourceType = Import<NetworkSource>();
+            NetworkSourceDirtyRef = Resolve.GetProperty(NetworkSourceType, assembly, "syncVarDirty");
 
-            syncVarSetterGeneral = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGeneral", ref failed);
-            syncVarSetterGameObject = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterGameObject", ref failed);
-            syncVarSetterNetworkObject = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkObject", ref failed);
-            syncVarSetterNetworkBehaviour = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SyncVarSetterNetworkBehaviour", ref failed);
+            syncVarSetterGeneral = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SyncVarSetterGeneral", ref failed);
+            syncVarSetterGameObject = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SyncVarSetterGameObject", ref failed);
+            syncVarSetterNetworkObject = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SyncVarSetterNetworkObject", ref failed);
+            syncVarSetterNetworkSource = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SyncVarSetterNetworkSource", ref failed);
 
-            syncVarGetterGeneral = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGeneral", ref failed);
-            syncVarGetterGameObject = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterGameObject", ref failed);
-            syncVarGetterNetworkObject = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkObject", ref failed);
-            syncVarGetterNetworkBehaviour = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SyncVarGetterNetworkBehaviour", ref failed);
+            syncVarGetterGeneral = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SyncVarGetterGeneral", ref failed);
+            syncVarGetterGameObject = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SyncVarGetterGameObject", ref failed);
+            syncVarGetterNetworkObject = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SyncVarGetterNetworkObject", ref failed);
+            syncVarGetterNetworkSource = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SyncVarGetterNetworkSource", ref failed);
 
-            getSyncVarGameObject = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarGameObject", ref failed);
-            getSyncVarNetworkObject = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkObject", ref failed);
-            getSyncVarNetworkBehaviour = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "GetSyncVarNetworkBehaviour", ref failed);
+            getSyncVarGameObject = Resolve.GetMethod(NetworkSourceType, assembly, logger, "GetSyncVarGameObject", ref failed);
+            getSyncVarNetworkObject = Resolve.GetMethod(NetworkSourceType, assembly, logger, "GetSyncVarNetworkObject", ref failed);
+            getSyncVarNetworkSource = Resolve.GetMethod(NetworkSourceType, assembly, logger, "GetSyncVarNetworkSource", ref failed);
 
-            sendServerRpcInternal = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SendServerRpcInternal", ref failed);
-            sendClientRpcInternal = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SendClientRpcInternal", ref failed);
-            sendTargetRpcInternal = Resolve.GetMethod(NetworkBehaviourType, assembly, logger, "SendTargetRpcInternal", ref failed);
+            sendServerRpcInternal = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SendServerRpcInternal", ref failed);
+            sendClientRpcInternal = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SendClientRpcInternal", ref failed);
+            sendTargetRpcInternal = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SendTargetRpcInternal", ref failed);
 
             var InvokeType = Import(typeof(NetworkAttribute));
             registerServerRpcRef = Resolve.GetMethod(InvokeType, assembly, logger, "RegisterServerRpc", ref failed);
@@ -249,7 +249,7 @@ namespace Astraia.Editor
             var Type = Import(typeof(Type));
             getTypeFromHandleRef = Resolve.GetMethod(Type, assembly, logger, "GetTypeFromHandle", ref failed);
 
-            var NetworkWriterType = Import(typeof(MemorySetter));
+            var NetworkWriterType = Import(typeof(MemoryWriter));
             PopSetterRef = Resolve.GetMethod(NetworkWriterType, assembly, logger, "Pop", ref failed);
             PushSetterRef = Resolve.GetMethod(NetworkWriterType, assembly, logger, "Push", ref failed);
 

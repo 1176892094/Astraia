@@ -16,14 +16,12 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    [RequireComponent(typeof(KcpTransport))]
+    [Serializable]
     public sealed partial class NetworkManager : MonoBehaviour, IEvent<SceneComplete>
     {
         public static NetworkManager Instance;
 
-        public Transport transport;
-
-        [Range(30, 90)] public int sendRate = 30;
+        public int sendRate = 30;
 
         public int connection = 100;
 
@@ -53,7 +51,7 @@ namespace Astraia.Net
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Transport.Instance = transport;
+            Transport.Instance = GetComponent<Transport>();
             Application.runInBackground = true;
         }
 
@@ -203,21 +201,21 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NetworkObject GetNetworkObject(uint objectId)
+        public static NetworkEntity GetNetworkObject(uint objectId)
         {
             if (Server.isActive)
             {
-                if (Server.spawns.TryGetValue(objectId, out var @object))
+                if (Server.spawns.TryGetValue(objectId, out var entity))
                 {
-                    return @object;
+                    return entity;
                 }
             }
 
             if (Client.isActive)
             {
-                if (Client.spawns.TryGetValue(objectId, out var @object))
+                if (Client.spawns.TryGetValue(objectId, out var entity))
                 {
-                    return @object;
+                    return entity;
                 }
             }
 
@@ -225,19 +223,19 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsSceneObject(NetworkObject @object)
+        private static bool IsSceneObject(NetworkEntity entity)
         {
-            if (@object.sceneId == 0)
+            if (entity.sceneId == 0)
             {
                 return false;
             }
 
-            if (@object.gameObject.hideFlags == HideFlags.NotEditable)
+            if (entity.gameObject.hideFlags == HideFlags.NotEditable)
             {
                 return false;
             }
 
-            return @object.gameObject.hideFlags != HideFlags.HideAndDontSave;
+            return entity.gameObject.hideFlags != HideFlags.HideAndDontSave;
         }
     }
 }

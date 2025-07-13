@@ -14,26 +14,24 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public abstract class PlayerState : State<Player>
+    public abstract class PlayerState : StateMachine.State
     {
         protected Transform transform => owner.transform;
         protected Rigidbody2D rigidbody => machine.rigidbody;
-        protected PlayerMachine machine => owner.machine;
-        protected PlayerAttribute attribute => owner.attribute;
-        protected abstract override void OnEnter();
-        protected abstract override void OnExit();
-        protected abstract override void OnUpdate();
+        protected PlayerMachine machine => base.owner.GetSource<PlayerMachine>();
+        protected PlayerAttribute attribute =>base.owner.GetSource<PlayerAttribute>();
+        protected new Player owner => base.owner.GetSource<Player>();
     }
 
     public class PlayerIdle : PlayerState
     {
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             rigidbody.linearVelocityX = 0;
             owner.SyncColorServerRpc(Color.white);
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Climb))
             {
@@ -47,19 +45,19 @@ namespace Runtime
             }
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
         }
     }
 
     public class PlayerWalk : PlayerState
     {
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             owner.SyncColorServerRpc(Color.green);
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Climb))
             {
@@ -76,7 +74,7 @@ namespace Runtime
             rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
         }
     }
@@ -85,7 +83,7 @@ namespace Runtime
     {
         private int frameCount;
 
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             frameCount = Time.frameCount + 10;
             owner.SyncColorServerRpc(Color.red);
@@ -108,7 +106,7 @@ namespace Runtime
             }
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (frameCount < Time.frameCount)
             {
@@ -131,7 +129,7 @@ namespace Runtime
             }
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             attribute.state &= ~StateType.Jump;
             attribute.state &= ~StateType.Jumped;
@@ -142,7 +140,7 @@ namespace Runtime
     {
         private int frameCount;
 
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             frameCount = Time.frameCount + 5;
             owner.SyncColorServerRpc(Color.cyan);
@@ -150,7 +148,7 @@ namespace Runtime
             rigidbody.linearVelocityY = 0;
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (attribute.rightDownRay && !attribute.rightUpRay)
             {
@@ -174,7 +172,7 @@ namespace Runtime
             rigidbody.linearVelocityY = attribute.moveY * attribute.moveSpeed / 2;
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             attribute.state &= ~StateType.Grab;
         }
@@ -186,7 +184,7 @@ namespace Runtime
         private Vector3 point;
 
 
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             frameCount = Time.frameCount + 10;
             owner.SyncColorServerRpc(Color.red);
@@ -194,7 +192,7 @@ namespace Runtime
             point = transform.position;
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (frameCount < Time.frameCount)
             {
@@ -216,7 +214,7 @@ namespace Runtime
             rigidbody.MovePosition(position);
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             attribute.state &= ~StateType.Grab;
         }
@@ -226,7 +224,7 @@ namespace Runtime
     {
         private Vector3 direction;
 
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             attribute.SetInt(Attribute.DashFrame, Time.frameCount + 10);
             owner.SyncColorServerRpc(Color.magenta);
@@ -236,7 +234,7 @@ namespace Runtime
             attribute.SetInt(Attribute.WaitFrame, 0);
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (attribute.dashFrame < Time.frameCount)
             {
@@ -267,7 +265,7 @@ namespace Runtime
             rigidbody.MovePosition(position);
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             rigidbody.linearVelocityY = 0;
             attribute.state &= ~StateType.Dash;
@@ -276,13 +274,13 @@ namespace Runtime
 
     public class PlayerCrash : PlayerState
     {
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             attribute.state |= StateType.Crash;
             owner.SyncColorServerRpc(Color.magenta);
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (attribute.state.HasFlag(StateType.Wall) || attribute.state.HasFlag(StateType.Ground))
             {
@@ -299,7 +297,7 @@ namespace Runtime
             rigidbody.linearVelocityX = transform.localScale.x * attribute.moveSpeed * 2;
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             rigidbody.linearVelocityX = 0;
             attribute.state &= ~StateType.Crash;

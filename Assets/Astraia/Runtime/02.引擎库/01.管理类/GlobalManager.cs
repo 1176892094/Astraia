@@ -13,11 +13,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using AssetData = System.Collections.Generic.KeyValuePair<string, string>;
 using EnumTable = System.Collections.Generic.Dictionary<System.Enum, Astraia.Common.IData>;
 using ItemTable = System.Collections.Generic.Dictionary<int, Astraia.Common.IData>;
 using NameTable = System.Collections.Generic.Dictionary<string, Astraia.Common.IData>;
-using AgentData = System.Collections.Generic.Dictionary<System.Type, Astraia.Common.IAgent>;
 
 namespace Astraia.Common
 {
@@ -53,7 +51,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, AssetData> assetData = new Dictionary<string, AssetData>();
+        internal static readonly Dictionary<string, (string, string)> assetData = new Dictionary<string, (string, string)>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -89,7 +87,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Component, AgentData> agentGroup = new Dictionary<Component, AgentData>();
+        internal static readonly Dictionary<int, Entity> entityData = new Dictionary<int, Entity>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -97,15 +95,15 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
+        internal static readonly Dictionary<UILayer, RectTransform> layerData = new Dictionary<UILayer, RectTransform>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, HashSet<UIPanel>> groupData = new Dictionary<string, HashSet<UIPanel>>();
+        internal static readonly Dictionary<string, List<UIPanel>> groupData = new Dictionary<string, List<UIPanel>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<ulong, GameObject> objectData = new Dictionary<ulong, GameObject>();
+        internal static readonly Dictionary<uint, GameObject> objectData = new Dictionary<uint, GameObject>();
 
 
         private void Awake()
@@ -124,20 +122,21 @@ namespace Astraia.Common
             TimerManager.Update();
         }
 
-        private void OnDestroy()
+        private async void OnDestroy()
         {
             manifest = null;
             Instance = null;
+            await Task.Yield();
             UIManager.Dispose();
             PackManager.Dispose();
             DataManager.Dispose();
             PoolManager.Dispose();
             AudioManager.Dispose();
             AssetManager.Dispose();
-            AgentManager.Dispose();
+            EntityManager.Dispose();
             TimerManager.Dispose();
             EventManager.Dispose();
-            HeapManager.Dispose();
+           // HeapManager.Dispose();
             GC.Collect();
         }
     }

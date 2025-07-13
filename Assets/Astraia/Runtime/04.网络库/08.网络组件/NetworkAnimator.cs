@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkAnimator : NetworkBehaviour
+    [Serializable]
+    public class NetworkAnimator : NetworkSource
     {
         public Animator animator;
 
@@ -24,8 +25,9 @@ namespace Astraia.Net
 
         private double sendTime;
 
-        private void Awake()
+        public override void OnAwake()
         {
+            animator = transform.GetComponent<Animator>();
             animatorParams = animator.parameters.Where(parameter => !animator.IsParameterControlledByCurve(parameter.nameHash)).ToArray();
             lastIntParams = new int[animatorParams.Length];
             lastBoolParams = new bool[animatorParams.Length];
@@ -35,40 +37,53 @@ namespace Astraia.Net
             layerWeight = new float[animator.layerCount];
         }
 
-        private void Update()
+        public override void OnDestroy()
         {
-            if (!animator.enabled) return;
+            animationHash = null;
+            lastIntParams = null;
+            lastBoolParams = null;
+            lastFloatParams = null;
+            animationHash = null;
+            transitionHash = null;
+            layerWeight = null;
+            ClearDirty();
+            sendTime = double.MinValue;
+        }
+
+        public override void OnUpdate()
+        {
+            if (animator == null || !animator.enabled)
+            {
+                return;
+            }
+
             if (isServer && isVerify)
             {
-                if (sendTime < Time.unscaledTimeAsDouble + syncInterval)
-                {
-                    sendTime = Time.unscaledTimeAsDouble + syncInterval;
-                    using var setter = MemorySetter.Pop();
-                    if (WriteParameter(setter))
-                    {
-                        ParameterClientRpc(setter);
-                    }
-                }
-
-                for (var layer = 0; layer < animator.layerCount; layer++)
-                {
-                    if (IsModify(layer, out var stateHash, out var stateTime))
-                    {
-                        using var setter = MemorySetter.Pop();
-                        WriteParameter(setter);
-                        AnimationClientRpc(stateHash, stateTime, layer, layerWeight[layer], setter);
-                    }
-                }
+                SyncAnimation(SyncMode.Server);
             }
             else if (isClient && isVerify && NetworkManager.Client.isReady)
             {
+                SyncAnimation(SyncMode.Client);
+            }
+
+            return;
+
+            void SyncAnimation(SyncMode mode)
+            {
                 if (sendTime < Time.unscaledTimeAsDouble + syncInterval)
                 {
                     sendTime = Time.unscaledTimeAsDouble + syncInterval;
-                    using var setter = MemorySetter.Pop();
-                    if (WriteParameter(setter))
+                    using var writer = MemoryWriter.Pop();
+                    if (WriteParameter(writer))
                     {
-                        ParameterServerRpc(setter);
+                        if (mode == SyncMode.Server)
+                        {
+                            ParameterServerRpc(writer);
+                        }
+                        else
+                        {
+                            ParameterClientRpc(writer);
+                        }
                     }
                 }
 
@@ -76,9 +91,16 @@ namespace Astraia.Net
                 {
                     if (IsModify(layer, out var stateHash, out var stateTime))
                     {
-                        using var setter = MemorySetter.Pop();
-                        WriteParameter(setter);
-                        AnimationServerRpc(stateHash, stateTime, layer, layerWeight[layer], setter);
+                        using var writer = MemoryWriter.Pop();
+                        WriteParameter(writer);
+                        if (mode == SyncMode.Server)
+                        {
+                            AnimationServerRpc(stateHash, stateTime, layer, layerWeight[layer], writer);
+                        }
+                        else
+                        {
+                            AnimationClientRpc(stateHash, stateTime, layer, layerWeight[layer], writer);
+                        }
                     }
                 }
             }
@@ -170,10 +192,10 @@ namespace Astraia.Net
             return dirty;
         }
 
-        private bool WriteParameter(MemorySetter setter, bool status = false)
+        private bool WriteParameter(MemoryWriter writer, bool status = false)
         {
             var dirtyBits = status ? ~0UL : NextDirty();
-            setter.SetULong(dirtyBits);
+            writer.SetULong(dirtyBits);
             for (var i = 0; i < animatorParams.Length; i++)
             {
                 if ((dirtyBits & (1UL << i)) == 0)
@@ -185,27 +207,27 @@ namespace Astraia.Net
                 if (parameter.type == AnimatorControllerParameterType.Int)
                 {
                     var newIntValue = animator.GetInteger(parameter.nameHash);
-                    setter.SetInt(newIntValue);
+                    writer.SetInt(newIntValue);
                 }
                 else if (parameter.type == AnimatorControllerParameterType.Float)
                 {
                     var newFloatValue = animator.GetFloat(parameter.nameHash);
-                    setter.SetFloat(newFloatValue);
+                    writer.SetFloat(newFloatValue);
                 }
                 else if (parameter.type == AnimatorControllerParameterType.Bool)
                 {
                     var newBoolValue = animator.GetBool(parameter.nameHash);
-                    setter.SetBool(newBoolValue);
+                    writer.SetBool(newBoolValue);
                 }
             }
 
             return dirtyBits != 0;
         }
 
-        private void ReadParameter(MemoryGetter getter)
+        private void ReadParameter(MemoryReader reader)
         {
             var status = animator.enabled;
-            var dirtyBits = getter.GetULong();
+            var dirtyBits = reader.GetULong();
             for (var i = 0; i < animatorParams.Length; i++)
             {
                 if ((dirtyBits & (1UL << i)) == 0)
@@ -216,7 +238,7 @@ namespace Astraia.Net
                 var parameter = animatorParams[i];
                 if (parameter.type == AnimatorControllerParameterType.Int)
                 {
-                    var newIntValue = getter.GetInt();
+                    var newIntValue = reader.GetInt();
                     if (status)
                     {
                         animator.SetInteger(parameter.nameHash, newIntValue);
@@ -224,7 +246,7 @@ namespace Astraia.Net
                 }
                 else if (parameter.type == AnimatorControllerParameterType.Float)
                 {
-                    var newFloatValue = getter.GetFloat();
+                    var newFloatValue = reader.GetFloat();
                     if (status)
                     {
                         animator.SetFloat(parameter.nameHash, newFloatValue);
@@ -232,7 +254,7 @@ namespace Astraia.Net
                 }
                 else if (parameter.type == AnimatorControllerParameterType.Bool)
                 {
-                    var newBoolValue = getter.GetBool();
+                    var newBoolValue = reader.GetBool();
                     if (status)
                     {
                         animator.SetBool(parameter.nameHash, newBoolValue);
@@ -241,44 +263,44 @@ namespace Astraia.Net
             }
         }
 
-        protected override void OnSerialize(MemorySetter setter, bool status)
+        protected override void OnSerialize(MemoryWriter writer, bool status)
         {
-            base.OnSerialize(setter, status);
+            base.OnSerialize(writer, status);
             if (!status) return;
             for (var i = 0; i < animator.layerCount; i++)
             {
                 if (animator.IsInTransition(i))
                 {
                     var stateInfo = animator.GetNextAnimatorStateInfo(i);
-                    setter.SetInt(stateInfo.fullPathHash);
-                    setter.SetFloat(stateInfo.normalizedTime);
+                    writer.SetInt(stateInfo.fullPathHash);
+                    writer.SetFloat(stateInfo.normalizedTime);
                 }
                 else
                 {
                     var stateInfo = animator.GetCurrentAnimatorStateInfo(i);
-                    setter.SetInt(stateInfo.fullPathHash);
-                    setter.SetFloat(stateInfo.normalizedTime);
+                    writer.SetInt(stateInfo.fullPathHash);
+                    writer.SetFloat(stateInfo.normalizedTime);
                 }
 
-                setter.SetFloat(animator.GetLayerWeight(i));
+                writer.SetFloat(animator.GetLayerWeight(i));
             }
 
-            WriteParameter(setter, true);
+            WriteParameter(writer, true);
         }
 
-        protected override void OnDeserialize(MemoryGetter getter, bool status)
+        protected override void OnDeserialize(MemoryReader reader, bool status)
         {
-            base.OnDeserialize(getter, status);
+            base.OnDeserialize(reader, status);
             if (!status) return;
             for (var i = 0; i < animator.layerCount; i++)
             {
-                var stateHash = getter.GetInt();
-                var stateTime = getter.GetFloat();
-                animator.SetLayerWeight(i, getter.GetFloat());
+                var stateHash = reader.GetInt();
+                var stateTime = reader.GetFloat();
+                animator.SetLayerWeight(i, reader.GetFloat());
                 animator.Play(stateHash, i, stateTime);
             }
 
-            ReadParameter(getter);
+            ReadParameter(reader);
         }
 
         [ServerRpc]
@@ -286,14 +308,14 @@ namespace Astraia.Net
         {
             if (syncDirection == SyncMode.Client && !isClient)
             {
-                using var getter = MemoryGetter.Pop(segment);
+                using var reader = MemoryReader.Pop(segment);
                 if (stateHash != 0 && animator.enabled)
                 {
                     animator.Play(stateHash, layer, stateTime);
                 }
 
                 animator.SetLayerWeight(layer, weight);
-                ReadParameter(getter);
+                ReadParameter(reader);
             }
 
             AnimationClientRpc(stateHash, stateTime, layer, weight, segment);
@@ -304,14 +326,14 @@ namespace Astraia.Net
         {
             if ((syncDirection == SyncMode.Server && !isServer) || (syncDirection == SyncMode.Client && !isOwner))
             {
-                using var getter = MemoryGetter.Pop(segment);
+                using var reader = MemoryReader.Pop(segment);
                 if (stateHash != 0 && animator.enabled)
                 {
                     animator.Play(stateHash, layer, stateTime);
                 }
 
                 animator.SetLayerWeight(layer, weight);
-                ReadParameter(getter);
+                ReadParameter(reader);
             }
         }
 
@@ -320,8 +342,8 @@ namespace Astraia.Net
         {
             if (syncDirection == SyncMode.Client && !isClient)
             {
-                using var getter = MemoryGetter.Pop(segment);
-                ReadParameter(getter);
+                using var reader = MemoryReader.Pop(segment);
+                ReadParameter(reader);
             }
 
             ParameterClientRpc(segment);
@@ -332,8 +354,8 @@ namespace Astraia.Net
         {
             if ((syncDirection == SyncMode.Server && !isServer) || (syncDirection == SyncMode.Client && !isOwner))
             {
-                using var getter = MemoryGetter.Pop(segment);
-                ReadParameter(getter);
+                using var reader = MemoryReader.Pop(segment);
+                ReadParameter(reader);
             }
         }
     }

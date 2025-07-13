@@ -25,10 +25,10 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="assembly"></param>
         /// <param name="module"></param>
-        /// <param name="setters"></param>
-        /// <param name="getters"></param>
+        /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <param name="td"></param>
-        public static void RuntimeInitializeOnLoad(AssemblyDefinition assembly, Module module, Setter setters, Getter getters, TypeDefinition td)
+        public static void RuntimeInitializeOnLoad(AssemblyDefinition assembly, Module module, Writer writer, Reader reader, TypeDefinition td)
         {
             var method = new MethodDefinition(nameof(RuntimeInitializeOnLoad), MethodAttributes.Public | MethodAttributes.Static, module.Import(typeof(void)));
 
@@ -40,8 +40,8 @@ namespace Astraia.Editor
             }
 
             var worker = method.Body.GetILProcessor();
-            setters.InitializeSetters(worker);
-            getters.InitializeGetters(worker);
+            writer.InitializeSetters(worker);
+            reader.InitializeGetters(worker);
             worker.Emit(OpCodes.Ret);
             td.Methods.Add(method);
         }
@@ -79,14 +79,14 @@ namespace Astraia.Editor
         /// <param name="assembly"></param>
         /// <param name="resolver"></param>
         /// <param name="logger"></param>
-        /// <param name="setter"></param>
-        /// <param name="getter"></param>
+        /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Setter setter, Getter getter, ref bool failed)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writer writer, Reader reader, ref bool failed)
         {
-            ProcessAssembly(assembly, resolver, logger, setter, getter, ref failed);
-            return ProcessCustomCode(assembly, assembly, setter, getter, ref failed);
+            ProcessAssembly(assembly, resolver, logger, writer, reader, ref failed);
+            return ProcessCustomCode(assembly, assembly, writer, reader, ref failed);
         }
 
         /// <summary>
@@ -95,10 +95,10 @@ namespace Astraia.Editor
         /// <param name="assembly"></param>
         /// <param name="resolver"></param>
         /// <param name="logger"></param>
-        /// <param name="setter"></param>
-        /// <param name="getter"></param>
+        /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <param name="failed"></param>
-        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Setter setter, Getter getter, ref bool failed)
+        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writer writer, Reader reader, ref bool failed)
         {
             AssemblyNameReference assemblyRef = null;
             foreach (var reference in assembly.MainModule.AssemblyReferences)
@@ -115,7 +115,7 @@ namespace Astraia.Editor
                 var assemblyDef = resolver.Resolve(assemblyRef);
                 if (assemblyDef != null)
                 {
-                    ProcessCustomCode(assembly, assemblyDef, setter, getter, ref failed);
+                    ProcessCustomCode(assembly, assemblyDef, writer, reader, ref failed);
                 }
                 else
                 {
@@ -133,25 +133,25 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="assembly"></param>
         /// <param name="assemblyDef"></param>
-        /// <param name="setter"></param>
-        /// <param name="getter"></param>
+        /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool ProcessCustomCode(AssemblyDefinition assembly, AssemblyDefinition assemblyDef, Setter setter, Getter getter, ref bool failed)
+        private static bool ProcessCustomCode(AssemblyDefinition assembly, AssemblyDefinition assemblyDef, Writer writer, Reader reader, ref bool failed)
         {
             var changed = false;
             foreach (var td in assemblyDef.MainModule.Types)
             {
                 if (td.IsAbstract && td.IsSealed)
                 {
-                    changed |= ProcessSetter(assembly, td, setter);
-                    changed |= ProcessGetter(assembly, td, getter);
+                    changed |= ProcessSetter(assembly, td, writer);
+                    changed |= ProcessGetter(assembly, td, reader);
                 }
             }
 
             foreach (var td in assemblyDef.MainModule.Types)
             {
-                changed |= ProcessMessage(assembly.MainModule, setter, getter, td, ref failed);
+                changed |= ProcessMessage(assembly.MainModule, writer, reader, td, ref failed);
             }
 
             return changed;
@@ -162,9 +162,9 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="assembly"></param>
         /// <param name="td"></param>
-        /// <param name="setter"></param>
+        /// <param name="writer"></param>
         /// <returns></returns>
-        private static bool ProcessSetter(AssemblyDefinition assembly, TypeDefinition td, Setter setter)
+        private static bool ProcessSetter(AssemblyDefinition assembly, TypeDefinition td, Writer writer)
         {
             var change = false;
             foreach (var md in td.Methods)
@@ -172,7 +172,7 @@ namespace Astraia.Editor
                 if (md.Parameters.Count != 2)
                     continue;
 
-                if (!md.Parameters[0].ParameterType.Is<MemorySetter>())
+                if (!md.Parameters[0].ParameterType.Is<MemoryWriter>())
                     continue;
 
                 if (!md.ReturnType.Is(typeof(void)))
@@ -184,7 +184,7 @@ namespace Astraia.Editor
                 if (md.HasGenericParameters)
                     continue;
 
-                setter.Register(md.Parameters[1].ParameterType, assembly.MainModule.ImportReference(md));
+                writer.Register(md.Parameters[1].ParameterType, assembly.MainModule.ImportReference(md));
                 change = true;
             }
 
@@ -196,9 +196,9 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="assembly"></param>
         /// <param name="td"></param>
-        /// <param name="getter"></param>
+        /// <param name="reader"></param>
         /// <returns></returns>
-        private static bool ProcessGetter(AssemblyDefinition assembly, TypeDefinition td, Getter getter)
+        private static bool ProcessGetter(AssemblyDefinition assembly, TypeDefinition td, Reader reader)
         {
             var change = false;
             foreach (var md in td.Methods)
@@ -206,7 +206,7 @@ namespace Astraia.Editor
                 if (md.Parameters.Count != 1)
                     continue;
 
-                if (!md.Parameters[0].ParameterType.Is<MemoryGetter>())
+                if (!md.Parameters[0].ParameterType.Is<MemoryReader>())
                     continue;
 
                 if (md.ReturnType.Is(typeof(void)))
@@ -218,7 +218,7 @@ namespace Astraia.Editor
                 if (md.HasGenericParameters)
                     continue;
 
-                getter.Register(md.ReturnType, assembly.MainModule.ImportReference(md));
+                reader.Register(md.ReturnType, assembly.MainModule.ImportReference(md));
                 change = true;
             }
 
@@ -229,24 +229,24 @@ namespace Astraia.Editor
         /// 加载读写流的信息
         /// </summary>
         /// <param name="module"></param>
-        /// <param name="setter"></param>
-        /// <param name="getter"></param>
+        /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <param name="td"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool ProcessMessage(ModuleDefinition module, Setter setter, Getter getter, TypeDefinition td, ref bool failed)
+        private static bool ProcessMessage(ModuleDefinition module, Writer writer, Reader reader, TypeDefinition td, ref bool failed)
         {
             var change = false;
             if (!td.IsAbstract && !td.IsInterface && td.IsImplement<IMessage>())
             {
-                getter.GetFunction(module.ImportReference(td), ref failed);
-                setter.GetFunction(module.ImportReference(td), ref failed);
+                reader.GetFunction(module.ImportReference(td), ref failed);
+                writer.GetFunction(module.ImportReference(td), ref failed);
                 change = true;
             }
 
             foreach (var nested in td.NestedTypes)
             {
-                change |= ProcessMessage(module, setter, getter, nested, ref failed);
+                change |= ProcessMessage(module, writer, reader, nested, ref failed);
             }
 
             return change;

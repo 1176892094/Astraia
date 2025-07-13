@@ -20,8 +20,8 @@ namespace Astraia.Net
     [Serializable]
     public sealed class NetworkClient
     {
-        private Dictionary<int, SetterBatch> batches = new Dictionary<int, SetterBatch>();
-        internal GetterBatch getter = new GetterBatch();
+        private Dictionary<int, WriterBatch> batches = new Dictionary<int, WriterBatch>();
+        internal ReaderBatch reader = new ReaderBatch();
         internal int clientId;
         internal bool isReady;
         internal double remoteTime;
@@ -35,11 +35,11 @@ namespace Astraia.Net
         {
             foreach (var batch in batches)
             {
-                using var setter = MemorySetter.Pop();
-                while (batch.Value.GetBatch(setter))
+                using var writer = MemoryWriter.Pop();
+                while (batch.Value.GetBatch(writer))
                 {
-                    Transport.Instance.SendToClient(clientId, setter, batch.Key);
-                    setter.Reset();
+                    Transport.Instance.SendToClient(clientId, writer, batch.Key);
+                    writer.Reset();
                 }
             }
         }
@@ -47,33 +47,33 @@ namespace Astraia.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Send<T>(T message, int channel = Channel.Reliable) where T : struct, IMessage
         {
-            using var setter = MemorySetter.Pop();
-            setter.SetUShort(NetworkMessage<T>.Id);
-            setter.Invoke(message);
+            using var writer = MemoryWriter.Pop();
+            writer.SetUShort(NetworkMessage<T>.Id);
+            writer.Invoke(message);
 
-            if (setter.position > Transport.Instance.SendLength(channel))
+            if (writer.position > Transport.Instance.SendLength(channel))
             {
-                Debug.LogError(Service.Text.Format(Log.E291, setter.position));
+                Debug.LogError(Service.Text.Format(Log.E291, writer.position));
                 return;
             }
 
-            AddMessage(setter, channel);
+            AddMessage(writer, channel);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void AddMessage(MemorySetter setter, int channel)
+        internal void AddMessage(MemoryWriter writer, int channel)
         {
             if (!batches.TryGetValue(channel, out var batch))
             {
-                batch = new SetterBatch(Transport.Instance.SendLength(channel));
+                batch = new WriterBatch(Transport.Instance.SendLength(channel));
                 batches[channel] = batch;
             }
 
-            batch.AddMessage(setter, Time.unscaledTimeAsDouble);
+            batch.AddMessage(writer, Time.unscaledTimeAsDouble);
 
             if (clientId == NetworkManager.Server.hostId)
             {
-                using var target = MemorySetter.Pop();
+                using var target = MemoryWriter.Pop();
                 if (batch.GetBatch(target))
                 {
                     NetworkManager.Client.OnClientReceive(target, Channel.Reliable);

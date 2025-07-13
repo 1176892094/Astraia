@@ -4,19 +4,28 @@
 // # Author: 云谷千羽
 // # Version: 1.0.0
 // # History: 2024-12-23 18:12:21
-// # Recently: 2025-01-08 17:01:35
+// # Recently: 2025-01-08 17:01:32
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-namespace Astraia.Common
+using System;
+
+namespace Astraia
 {
-    internal interface IState : IAgent
+    public abstract partial class StateMachine
     {
-        void OnEnter();
+        [Serializable]
+        public abstract class State
+        {
+            internal int Id;
+            public Entity owner => EntityManager.Find(Id);
 
-        void OnUpdate();
+            public abstract void OnEnter();
 
-        void OnExit();
+            public abstract void OnUpdate();
+
+            public abstract void OnExit();
+        }
     }
 }

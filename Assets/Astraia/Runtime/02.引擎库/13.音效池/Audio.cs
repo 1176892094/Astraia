@@ -63,8 +63,9 @@ namespace Astraia.Common
         public static async void PlayMain(string name, Action<AudioSource> action = null)
         {
             if (!GlobalManager.Instance) return;
+            var target = GlobalSetting.GetAudioPath(name);
             var source = GlobalManager.Instance.sounds;
-            source.clip = await AssetManager.Load<AudioClip>(GlobalSetting.GetAudioPath(name));
+            source.clip = await AssetManager.Load<AudioClip>(target);
             source.loop = true;
             source.volume = musicValue;
             action?.Invoke(source);

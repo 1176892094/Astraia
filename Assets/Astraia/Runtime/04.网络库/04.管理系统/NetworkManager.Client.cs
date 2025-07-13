@@ -17,17 +17,18 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    using MessageDelegate = Action<NetworkClient, MemoryGetter, int>;
+    using MessageDelegate = Action<NetworkClient, MemoryReader, int>;
 
     public partial class NetworkManager
     {
+        [Serializable]
         public static partial class Client
         {
             private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
-            private static readonly Dictionary<ulong, NetworkObject> scenes = new Dictionary<ulong, NetworkObject>();
+            private static readonly Dictionary<ulong, NetworkEntity> scenes = new Dictionary<ulong, NetworkEntity>();
 
-            internal static readonly Dictionary<uint, NetworkObject> spawns = new Dictionary<uint, NetworkObject>();
+            internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
             private static State state = State.Disconnect;
             
@@ -76,18 +77,18 @@ namespace Astraia.Net
             internal static void Stop()
             {
                 if (!isActive) return;
-                var objects = spawns.Values.Where(@object => @object != null).ToList();
-                foreach (var @object in objects)
+                var entities = spawns.Values.Where(entity => entity != null).ToList();
+                foreach (var entity in entities)
                 {
-                    @object.OnStopClient();
-                    if (@object.sceneId != 0)
+                    entity.OnStopClient();
+                    if (entity.sceneId != 0)
                     {
-                        @object.gameObject.SetActive(false);
-                        @object.Reset();
+                        entity.gameObject.SetActive(false);
+                        entity.Reset();
                     }
                     else
                     {
-                        Destroy(@object.gameObject);
+                        Destroy(entity.gameObject);
                     }
                 }
 
@@ -196,11 +197,11 @@ namespace Astraia.Net
 
             public static void Register<T>(Action<T> handle) where T : struct, IMessage
             {
-                messages[NetworkMessage<T>.Id] = (client, getter, channel) =>
+                messages[NetworkMessage<T>.Id] = (client, reader, channel) =>
                 {
                     try
                     {
-                        var message = getter.Invoke<T>();
+                        var message = reader.Invoke<T>();
                         handle?.Invoke(message);
                     }
                     catch (Exception e)
@@ -244,28 +245,28 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (!spawns.TryGetValue(message.objectId, out var @object))
+                if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
                     Debug.LogWarning(Service.Text.Format(Log.E216, message.objectId));
                     return;
                 }
 
-                if (@object == null)
+                if (entity == null)
                 {
                     Debug.LogWarning(Service.Text.Format(Log.E216, message.objectId));
                     return;
                 }
 
-                using var getter = MemoryGetter.Pop(message.segment);
-                @object.ClientDeserialize(getter, false);
+                using var reader = MemoryReader.Pop(message.segment);
+                entity.ClientDeserialize(reader, false);
             }
 
             private static void ClientRpcMessage(ClientRpcMessage message)
             {
-                if (spawns.TryGetValue(message.objectId, out var @object))
+                if (spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    using var getter = MemoryGetter.Pop(message.segment);
-                    @object.InvokeMessage(message.componentId, message.methodHash, InvokeMode.ClientRpc, getter);
+                    using var reader = MemoryReader.Pop(message.segment);
+                    entity.InvokeMessage(message.sourceId, message.methodHash, InvokeMode.ClientRpc, reader);
                 }
             }
 
@@ -284,40 +285,40 @@ namespace Astraia.Net
             {
                 if (Server.isActive)
                 {
-                    if (Server.spawns.TryGetValue(message.objectId, out var @object))
+                    if (Server.spawns.TryGetValue(message.objectId, out var entity))
                     {
-                        spawns[message.objectId] = @object;
-                        @object.gameObject.SetActive(true);
+                        spawns[message.objectId] = entity;
+                        entity.gameObject.SetActive(true);
                         if (message.isOwner)
                         {
-                            @object.entityMode |= EntityMode.Owner;
+                            entity.entityMode |= EntityMode.Owner;
                         }
                         else
                         {
-                            @object.entityMode &= ~EntityMode.Owner;
+                            entity.entityMode &= ~EntityMode.Owner;
                         }
 
-                        @object.entityMode |= EntityMode.Client;
-                        @object.OnNotifyAuthority();
-                        @object.OnStartClient();
+                        entity.entityMode |= EntityMode.Client;
+                        entity.OnNotifyAuthority();
+                        entity.OnStartClient();
                     }
 
                     return;
                 }
 
                 scenes.Clear();
-                var objects = Resources.FindObjectsOfTypeAll<NetworkObject>();
-                foreach (var @object in objects)
+                var entities = Resources.FindObjectsOfTypeAll<NetworkEntity>();
+                foreach (var entity in entities)
                 {
-                    if (IsSceneObject(@object))
+                    if (IsSceneObject(entity))
                     {
-                        if (scenes.TryGetValue(@object.sceneId, out var obj))
+                        if (scenes.TryGetValue(entity.sceneId, out var obj))
                         {
-                            Service.Text.Format(Log.E218, @object.name, obj.name);
+                            Service.Text.Format(Log.E218, entity.name, obj.name);
                             continue;
                         }
 
-                        scenes.Add(@object.sceneId, @object);
+                        scenes.Add(entity.sceneId, entity);
                     }
                 }
 
@@ -326,14 +327,14 @@ namespace Astraia.Net
 
             private static void DespawnMessage(DespawnMessage message)
             {
-                if (!spawns.TryGetValue(message.objectId, out var @object))
+                if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
                     return;
                 }
 
-                @object.OnStopClient();
-                @object.entityMode &= ~EntityMode.Owner;
-                @object.OnNotifyAuthority();
+                entity.OnStopClient();
+                entity.entityMode &= ~EntityMode.Owner;
+                entity.OnNotifyAuthority();
                 spawns.Remove(message.objectId);
 
                 if (Server.isActive)
@@ -341,14 +342,14 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (@object.assetId.Equals(@object.name, StringComparison.OrdinalIgnoreCase))
+                if (entity.entityPath.Equals(entity.name, StringComparison.OrdinalIgnoreCase))
                 {
-                    PoolManager.Hide(@object.gameObject);
-                    @object.Reset();
+                    PoolManager.Hide(entity.gameObject);
+                    entity.Reset();
                     return;
                 }
 
-                Destroy(@object.gameObject);
+                Destroy(entity.gameObject);
             }
         }
 
@@ -381,24 +382,24 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (!connection.getter.AddBatch(segment))
+                if (!connection.reader.AddBatch(segment))
                 {
                     Debug.LogWarning(Log.E220);
                     connection.Disconnect();
                     return;
                 }
 
-                while (!isLoadScene && connection.getter.GetMessage(out var result, out var remoteTime))
+                while (!isLoadScene && connection.reader.GetMessage(out var result, out var remoteTime))
                 {
-                    using var getter = MemoryGetter.Pop(result);
-                    if (getter.buffer.Count - getter.position < sizeof(ushort))
+                    using var reader = MemoryReader.Pop(result);
+                    if (reader.buffer.Count - reader.position < sizeof(ushort))
                     {
                         Debug.LogWarning(Log.E221);
                         connection.Disconnect();
                         return;
                     }
 
-                    var message = getter.GetUShort();
+                    var message = reader.GetUShort();
                     if (!messages.TryGetValue(message, out var action))
                     {
                         Debug.LogWarning(Service.Text.Format(Log.E222, message));
@@ -407,12 +408,12 @@ namespace Astraia.Net
                     }
 
                     connection.remoteTime = remoteTime;
-                    action.Invoke(null, getter, channel);
+                    action.Invoke(null, reader, channel);
                 }
 
-                if (!isLoadScene && connection.getter.Count > 0)
+                if (!isLoadScene && connection.reader.Count > 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E223, connection.getter.Count));
+                    Debug.LogWarning(Service.Text.Format(Log.E223, connection.reader.Count));
                 }
             }
         }
@@ -421,9 +422,9 @@ namespace Astraia.Net
         {
             private static async void SpawnObject(SpawnMessage message)
             {
-                if (spawns.TryGetValue(message.objectId, out var @object))
+                if (spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Spawn(message, @object);
+                    Spawn(message, entity);
                     return;
                 }
 
@@ -439,70 +440,59 @@ namespace Astraia.Net
                         prefab = await AssetManager.Load<GameObject>(message.assetId);
                     }
 
-                    if (!prefab.TryGetComponent(out @object))
+                    if (!prefab.TryGetComponent(out entity))
                     {
                         Debug.LogError(Service.Text.Format(Log.E224, prefab.name));
                         return;
                     }
 
-                    if (@object.sceneId != 0)
+                    if (entity.sceneId != 0)
                     {
-                        Debug.LogError(Service.Text.Format(Log.E225, @object.name));
+                        Debug.LogError(Service.Text.Format(Log.E225, entity.name));
                         return;
                     }
 
-                    if (@object.GetComponentsInChildren<NetworkObject>().Length > 1)
+                    if (entity.GetComponentsInChildren<NetworkEntity>().Length > 1)
                     {
-                        Debug.LogError(Service.Text.Format(Log.E226, @object.name));
+                        Debug.LogError(Service.Text.Format(Log.E226, entity.name));
                         return;
                     }
                 }
                 else
                 {
-                    if (!scenes.TryGetValue(message.sceneId, out @object))
+                    if (!scenes.Remove(message.sceneId, out entity))
                     {
                         Debug.LogError(Service.Text.Format(Log.E227, message.sceneId));
                         return;
                     }
-
-                    scenes.Remove(message.sceneId);
                 }
 
-                Spawn(message, @object);
+                Spawn(message, entity);
             }
 
-            private static void Spawn(SpawnMessage message, NetworkObject @object)
+            private static void Spawn(SpawnMessage message, NetworkEntity entity)
             {
-                if (!@object.gameObject.activeSelf)
+                if (!entity.gameObject.activeSelf)
                 {
-                    @object.gameObject.SetActive(true);
+                    entity.gameObject.SetActive(true);
                 }
 
-                @object.objectId = message.objectId;
-                if (message.isOwner)
-                {
-                    @object.entityMode |= EntityMode.Owner;
-                }
-                else
-                {
-                    @object.entityMode &= ~EntityMode.Owner;
-                }
-
-                @object.entityMode |= EntityMode.Client;
-                var transform = @object.transform;
-                transform.localPosition = message.position;
-                transform.localRotation = message.rotation;
-                transform.localScale = message.localScale;
+                entity.objectId = message.objectId;
+                entity.entityMode = message.isOwner ? entity.entityMode | EntityMode.Owner : entity.entityMode & ~EntityMode.Owner;
+                entity.entityMode |= EntityMode.Client;
+                entity.transform.localPosition = message.position;
+                entity.transform.localRotation = message.rotation;
+                entity.transform.localScale = message.localScale;
 
                 if (message.segment.Count > 0)
                 {
-                    using var getter = MemoryGetter.Pop(message.segment);
-                    @object.ClientDeserialize(getter, true);
+                    using var reader = MemoryReader.Pop(message.segment);
+                    entity.ClientDeserialize(reader, true);
                 }
 
-                spawns[message.objectId] = @object;
-                @object.OnNotifyAuthority();
-                @object.OnStartClient();
+                spawns[message.objectId] = entity;
+                entity.OnNotifyAuthority();
+                entity.OnStartClient();
             }
         }
 
@@ -560,14 +550,14 @@ namespace Astraia.Net
                     return;
                 }
 
-                foreach (var @object in spawns.Values)
+                foreach (var entity in spawns.Values)
                 {
-                    using var setter = MemorySetter.Pop();
-                    @object.ClientSerialize(setter);
-                    if (setter.position > 0)
+                    using var writer = MemoryWriter.Pop();
+                    entity.ClientSerialize(writer);
+                    if (writer.position > 0)
                     {
-                        connection.Send(new EntityMessage(@object.objectId, setter));
-                        @object.ClearDirty(false);
+                        connection.Send(new EntityMessage(entity.objectId, writer));
+                        entity.ClearDirty(false);
                     }
                 }
             }

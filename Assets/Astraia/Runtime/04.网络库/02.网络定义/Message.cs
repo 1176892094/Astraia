@@ -47,7 +47,7 @@ namespace Astraia.Common
     internal struct ServerRpcMessage : IMessage
     {
         public uint objectId;
-        public byte componentId;
+        public byte sourceId;
         public ushort methodHash;
         public ArraySegment<byte> segment;
     }
@@ -55,7 +55,7 @@ namespace Astraia.Common
     internal struct ClientRpcMessage : IMessage
     {
         public uint objectId;
-        public byte componentId;
+        public byte sourceId;
         public ushort methodHash;
         public ArraySegment<byte> segment;
     }

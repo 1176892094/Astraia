@@ -9,41 +9,31 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
-using Astraia;
 using Astraia.Common;
 using Astraia.Net;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Runtime
 {
-    public class Player : NetworkBehaviour, IStartAuthority
+    public class Player : NetworkSource, IStartAuthority
     {
         [SyncVar(nameof(OnColorValueChanged))] public Color syncColor;
-        [ShowInInspector] public PlayerMachine machine => this.Find<PlayerMachine>();
-        [ShowInInspector] public PlayerAttribute attribute => this.Find<PlayerAttribute>();
-        [ShowInInspector] public PlayerOperation operation => this.Find<PlayerOperation>();
+
+        private PlayerMachine machine => owner.GetSource<PlayerMachine>();
         public Ray2D downLeftRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
         public Ray2D downRightRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
         public Ray2D rightUpRay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
         public Ray2D rightDownRay => new Ray2D(transform.position - Vector3.up * 0.075f, Vector3.right * transform.localScale.x);
 
 
-        private void Awake()
+        public override void OnAwake()
         {
-            this.Show<PlayerAttribute>(typeof(PlayerAttribute));
-            this.Show<PlayerOperation>(typeof(PlayerOperation));
-            this.Show<PlayerMachine>(typeof(PlayerMachine));
+            owner.AddSource(HeapManager.Dequeue<PlayerAttribute>());
+            owner.AddSource(HeapManager.Dequeue<PlayerMachine>());
+            owner.AddSource(HeapManager.Dequeue<PlayerOperation>());
+            owner.GetSource<NetworkTransform>().syncDirection = SyncMode.Client;
         }
-
-        private void Update()
-        {
-            operation.Update();
-            attribute.Update();
-            machine.Update();
-        }
-
+        
         public void OnStartAuthority()
         {
             machine.AddState<PlayerIdle>(typeof(PlayerIdle));
@@ -55,13 +45,6 @@ namespace Runtime
             machine.AddState<PlayerCrash>(typeof(PlayerCrash));
             machine.ChangeState<PlayerIdle>();
             GameManager.Instance.SetCamera(this, new Vector3(0, 3, 0), new Vector2(30, 8));
-        }
-
-        private void OnDestroy()
-        {
-            this.Hide<PlayerMachine>();
-            this.Hide<PlayerOperation>();
-            this.Hide<PlayerAttribute>();
         }
 
         private void OnDrawGizmos()

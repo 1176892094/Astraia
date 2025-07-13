@@ -9,6 +9,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using UnityEngine;
 
 namespace Astraia.Common
@@ -43,5 +44,12 @@ namespace Astraia.Common
         {
             GlobalManager.timerData.Clear();
         }
+    }
+
+    internal interface ITimer : IDisposable
+    {
+        void Start(Component owner, float duration, Action OnDispose);
+
+        void Update();
     }
 }

@@ -134,8 +134,6 @@ namespace Astraia
         public const string E269 = "设置网络变量的对象未初始化。对象名称: {0}";
         
         //NetworkObject
-        public const string E271 = "网络对象持有的 网络行为组件 为空";
-        public const string E272 = "网络对象持有的 网络行为组件 的数量不能超过 64";
         public const string E273 = "找不到场景对象的预制父物体。对象名称: {0}";
         public const string E274 = "请保存场景后，再进行构建。";
         public const string E275 = "Assigned AssetId";
