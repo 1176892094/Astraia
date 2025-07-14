@@ -16,7 +16,7 @@ namespace Runtime
 {
     public class PlayerMachine : StateMachine
     {
-        public Player player => owner.GetSource<Player>();
+        private Player player => owner.GetSource<Player>();
         private PlayerAttribute attribute => owner.GetSource<PlayerAttribute>();
         
         public Rigidbody2D rigidbody;

@@ -49,13 +49,14 @@ namespace Astraia.Net
             using var writer = MemoryWriter.Pop();
             writer.SetUShort(NetworkMessage<T>.Id);
             writer.Invoke(message);
-         
+
             if (writer.position > Transport.Instance.SendLength(channel))
             {
                 Debug.LogError(Service.Text.Format(Log.E291, writer.position));
                 return;
             }
 
+            NetworkSimulator.Instance?.OnSend(message, writer.position);
             AddMessage(writer, channel);
         }
 

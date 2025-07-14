@@ -164,7 +164,9 @@ namespace Astraia.Net
                 {
                     try
                     {
+                        var position = reader.position;
                         var message = reader.Invoke<T>();
+                        NetworkSimulator.Instance?.OnReceive(message, reader.position - position);
                         handle?.Invoke(client, message);
                     }
                     catch (Exception e)
@@ -181,8 +183,11 @@ namespace Astraia.Net
                 {
                     try
                     {
+                        var position = reader.position;
                         var message = reader.Invoke<T>();
+                        NetworkSimulator.Instance?.OnReceive(message, reader.position - position);
                         handle?.Invoke(client, message, channel);
+                      
                     }
                     catch (Exception e)
                     {

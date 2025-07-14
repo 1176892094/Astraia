@@ -201,7 +201,9 @@ namespace Astraia.Net
                 {
                     try
                     {
+                        var position = reader.position;
                         var message = reader.Invoke<T>();
+                        NetworkSimulator.Instance?.OnReceive(message, reader.position - position);
                         handle?.Invoke(message);
                     }
                     catch (Exception e)

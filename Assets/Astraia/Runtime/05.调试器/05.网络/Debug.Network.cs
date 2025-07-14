@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using Astraia.Net;
 using UnityEngine;
 
@@ -17,60 +18,67 @@ namespace Astraia.Common
 {
     public partial class DebugManager
     {
+        private IList<Pool> sendList = new List<Pool>();
+        private IList<Pool> receiveList = new List<Pool>();
+        private float waitTime;
+        private string address;
+
         private void NetworkWindow()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(" 网络信息", GUILayout.Height(25));
-            GUILayout.EndHorizontal();
-
-
-            GUILayout.BeginHorizontal();
-
-            screenView = GUILayout.BeginScrollView(screenView, "Box", GUILayout.Width((screenWidth - 20) / 2));
+            string peer;
+            ushort port;
             if (Transport.Instance)
             {
-                GUILayout.Label("网络地址: \t\t" + Transport.Instance.address);
-                GUILayout.Label("网络端口: \t\t" + Transport.Instance.port);
+                peer = Transport.Instance.address;
+                if (peer == "localhost")
+                {
+                    peer = address;
+                }
+
+                port = Transport.Instance.port;
             }
             else
             {
-                GUILayout.Label("网络地址: \t\t" + "127.0.0.1");
-                GUILayout.Label("网络端口: \t\t" + 0);
+                peer = "127.0.0.1";
+                port = 20974;
             }
 
-            GUILayout.Label("网络模式: \t\t" + NetworkManager.Mode);
-            string message;
-            if (!NetworkManager.Client.isConnected && !NetworkManager.Server.isActive)
-            {
-                message = !NetworkManager.Client.isActive ? "未连接" : "连接中";
-            }
-            else
-            {
-                message = "已连接";
-            }
-
-            GUILayout.Label("连接状态: \t\t" + message);
-            GUILayout.Label("传输状态: \t\t" + (NetworkManager.Client.isReady ? "传输中" : "未传输"));
-            GUILayout.Label("往返时间: \t\t" + Math.Min((int)(framePing * 1000), 999) + "ms");
-            if (NetworkManager.Instance)
-            {
-                GUILayout.Label("连接数量: \t\t" + NetworkManager.Server.connections + "/" + NetworkManager.Instance.connection);
-                GUILayout.Label("同步帧率: \t\t" + NetworkManager.Instance.sendRate);
-            }
-            else
-            {
-                GUILayout.Label("连接数量: \t\t" + 0 + "/" + 0);
-                GUILayout.Label("同步帧率: \t\t" + 0);
-            }
-
-            GUILayout.EndScrollView();
-
-            windowView = GUILayout.BeginScrollView(windowView, "Box");
-            NetworkSimulator.Instance?.OnGUIWindow();
-            GUILayout.EndScrollView();
+            GUILayout.Label(Service.Text.Format("{0} : {1}", peer, port), "Button", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30));
+            var ping = NetworkManager.Mode is EntryMode.Client ? Service.Text.Format("Ping: {0} ms", Math.Min((int)(framePing * 1000), 999)) : "Client is not active!";
+            GUILayout.Label(ping, "Button", GUILayout.Height(30));
 
             GUILayout.EndHorizontal();
 
+            screenView = GUILayout.BeginScrollView(screenView, "Box");
+            GUILayout.BeginHorizontal();
+
+            GUILayout.BeginVertical("Box", GUILayout.Width((screenWidth - 28) / 2));
+            NetworkSimulator.Instance?.OnGUIServer();
+            GUILayout.EndVertical();
+
+            GUILayout.BeginVertical("Box");
+            NetworkSimulator.Instance?.OnGUIClient();
+            GUILayout.EndVertical();
+
+            GUILayout.EndHorizontal();
+
+            if (NetworkSimulator.Instance)
+            {
+                if (waitTime < Time.unscaledTime)
+                {
+                    waitTime = Time.unscaledTime + 1;
+                    sendList = NetworkSimulator.Instance.SendReference();
+                    receiveList = NetworkSimulator.Instance.ReceiveReference();
+                    NetworkSimulator.Instance.ItemReset();
+                }
+
+                NetworkMessage(sendList, "发送队列", "每秒发送\t每秒发送\t全局发送\t全局发送");
+                NetworkMessage(receiveList, "接收队列", "每秒接收\t每秒接收\t全局接收\t全局接收");
+            }
+
+
+            GUILayout.EndScrollView();
 
             GUILayout.BeginHorizontal();
             if (!NetworkManager.Client.isConnected && !NetworkManager.Server.isActive)
@@ -132,6 +140,76 @@ namespace Astraia.Common
             }
 
             GUILayout.EndHorizontal();
+        }
+
+        private void NetworkMessage(IList<Pool> references, string message, string module)
+        {
+            poolData.Clear();
+            foreach (var reference in references)
+            {
+                var assemblyName = Service.Text.Format("{0} - {1}", reference.type.Assembly.GetName().Name, message);
+                if (!poolData.TryGetValue(assemblyName, out var results))
+                {
+                    results = new List<Pool>();
+                    poolData.Add(assemblyName, results);
+                }
+
+                results.Add(reference);
+            }
+
+
+            foreach (var poolPair in poolData)
+            {
+                poolPair.Value.Sort(Comparison);
+                GUILayout.BeginHorizontal();
+
+                GUILayout.BeginVertical("Box", GUILayout.Width((screenWidth - 28) / 2));
+                GUILayout.Label(poolPair.Key, GUILayout.Height(20));
+                foreach (var data in poolPair.Value)
+                {
+                    var assetName = data.type.Name;
+                    if (!string.IsNullOrEmpty(data.path))
+                    {
+                        assetName = Service.Text.Format("{0} - {1}", data.type.Name, data.path);
+                    }
+
+                    GUILayout.Label(assetName, GUILayout.Height(20));
+                }
+
+                GUILayout.EndVertical();
+
+                GUILayout.BeginVertical("Box");
+                GUILayout.Label(module, GUILayout.Height(20));
+                foreach (var data in poolPair.Value)
+                {
+                    var result = Service.Text.Format("{0}\t\t{1}\t\t{2}\t\t{3}", data.release, PrettyBytes(data.acquire), data.dequeue, PrettyBytes(data.enqueue));
+                    GUILayout.Label(result, GUILayout.Height(20));
+                }
+
+                GUILayout.EndVertical();
+
+                GUILayout.EndHorizontal();
+            }
+        }
+
+        private static string PrettyBytes(long bytes)
+        {
+            if (bytes < 1024)
+            {
+                return Service.Text.Format("{0} B", bytes);
+            }
+
+            if (bytes < 1024 * 1024)
+            {
+                return Service.Text.Format("{0:F2} KB", bytes / 1024F);
+            }
+
+            if (bytes < 1024 * 1024 * 1024)
+            {
+                return Service.Text.Format("{0:F2} MB", bytes / 1024F / 1024F);
+            }
+
+            return Service.Text.Format("{0:F2} GB", bytes / 1024F / 1024F / 1024F);
         }
     }
 }

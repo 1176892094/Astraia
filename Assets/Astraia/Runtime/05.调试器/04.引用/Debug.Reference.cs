@@ -20,7 +20,6 @@ namespace Astraia.Common
         private readonly Dictionary<string, List<Pool>> poolData = new Dictionary<string, List<Pool>>();
         private PoolMode windowOption = PoolMode.Heap;
 
-
         private void ReferenceWindow()
         {
             GUILayout.BeginHorizontal();
@@ -73,13 +72,13 @@ namespace Astraia.Common
                 results.Add(reference);
             }
 
-            screenView = GUILayout.BeginScrollView(screenView,"Box");
+            screenView = GUILayout.BeginScrollView(screenView, "Box");
             foreach (var poolPair in poolData)
             {
                 poolPair.Value.Sort(Comparison);
                 GUILayout.BeginHorizontal();
 
-                GUILayout.BeginVertical("Box", GUILayout.Width((screenWidth - 30) / 2));
+                GUILayout.BeginVertical("Box", GUILayout.Width((screenWidth - 28) / 2));
                 GUILayout.Label(poolPair.Key, GUILayout.Height(20));
                 foreach (var data in poolPair.Value)
                 {

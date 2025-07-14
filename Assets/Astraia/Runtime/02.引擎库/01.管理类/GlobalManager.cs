@@ -136,7 +136,7 @@ namespace Astraia.Common
             EntityManager.Dispose();
             TimerManager.Dispose();
             EventManager.Dispose();
-           // HeapManager.Dispose();
+            HeapManager.Dispose();
             GC.Collect();
         }
     }

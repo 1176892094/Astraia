@@ -10,6 +10,9 @@
 // // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia.Net
@@ -39,6 +42,9 @@ namespace Astraia.Net
         public int serverSentPacketsPerSecond;
         public long serverSentBytesPerSecond;
 
+        private readonly Items sendItems = new Items();
+        private readonly Items receiveItems = new Items();
+
         private void Awake()
         {
             Instance = this;
@@ -64,6 +70,9 @@ namespace Astraia.Net
                 Transport.Instance.OnClientReceive -= OnClientReceive;
                 Transport.Instance.OnServerReceive -= OnServerReceive;
             }
+
+            sendItems.Clear();
+            receiveItems.Clear();
         }
 
         private void OnClientReceive(ArraySegment<byte> data, int channelId)
@@ -134,16 +143,27 @@ namespace Astraia.Net
             serverIntervalSentBytes = 0;
         }
 
-        public void OnGUIWindow()
+        public void OnGUIServer()
+        {
+            GUILayout.Label(Service.Text.Format("服务器发送数:\t\t{0}", clientSentPacketsPerSecond));
+            GUILayout.Label(Service.Text.Format("服务器发送量:\t\t{0}/s", PrettyBytes(clientSentBytesPerSecond)));
+            GUILayout.Label(Service.Text.Format("服务器接收数:\t\t{0}", clientReceivedPacketsPerSecond));
+            GUILayout.Label(Service.Text.Format("服务器接收量:\t\t{0}/s", PrettyBytes(clientReceivedBytesPerSecond)));
+        }
+
+        public void OnGUIClient()
         {
             GUILayout.Label(Service.Text.Format("客户端发送数:\t\t{0}", serverSentPacketsPerSecond));
             GUILayout.Label(Service.Text.Format("客户端发送量:\t\t{0}/s", PrettyBytes(serverSentBytesPerSecond)));
             GUILayout.Label(Service.Text.Format("客户端接收数:\t\t{0}", serverReceivedPacketsPerSecond));
             GUILayout.Label(Service.Text.Format("客户端接收量:\t\t{0}/s", PrettyBytes(serverReceivedBytesPerSecond)));
-            GUILayout.Label(Service.Text.Format("服务器发送数:\t\t{0}", clientSentPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("服务器发送量:\t\t{0}/s", PrettyBytes(clientSentBytesPerSecond)));
-            GUILayout.Label(Service.Text.Format("服务器接收数:\t\t{0}", clientReceivedPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("服务器接收量:\t\t{0}/s", PrettyBytes(clientReceivedBytesPerSecond)));
+        }
+
+
+        public void ItemReset()
+        {
+            sendItems.Reset();
+            receiveItems.Reset();
         }
 
         private static string PrettyBytes(long bytes)
@@ -164,6 +184,129 @@ namespace Astraia.Net
             }
 
             return Service.Text.Format("{0:F2} GB", bytes / 1024F / 1024F / 1024F);
+        }
+
+        internal IList<Pool> SendReference()
+        {
+            var pools = sendItems.messages.Values.Select(item => new Pool(item)).ToList();
+            pools.AddRange(sendItems.function.Values.Select(item => new Pool(item)));
+            return pools;
+        }
+
+        internal IList<Pool> ReceiveReference()
+        {
+            var pools = receiveItems.messages.Values.Select(item => new Pool(item)).ToList();
+            pools.AddRange(receiveItems.function.Values.Select(item => new Pool(item)));
+            return pools;
+        }
+
+        internal void OnSend<T>(T message, int bytes) where T : struct, IMessage
+        {
+            sendItems.Record(message, bytes);
+        }
+
+        internal void OnReceive<T>(T message, int bytes) where T : struct, IMessage
+        {
+            receiveItems.Record(message, bytes);
+        }
+
+        private class Items
+        {
+            public readonly Dictionary<Type, Item> messages = new Dictionary<Type, Item>();
+            public readonly Dictionary<ushort, Item> function = new Dictionary<ushort, Item>();
+
+            public void Record<T>(T message, int bytes) where T : struct, IMessage
+            {
+                if (!messages.TryGetValue(typeof(T), out var item))
+                {
+                    item = HeapManager.Dequeue<Item>();
+                    item.type = typeof(T);
+                    messages[typeof(T)] = item;
+                }
+
+                switch (message)
+                {
+                    case ServerRpcMessage server:
+                        Record(server.methodHash, bytes, typeof(T));
+                        break;
+                    case ClientRpcMessage client:
+                        Record(client.methodHash, bytes, typeof(T));
+                        break;
+                }
+
+                item.Add(bytes);
+            }
+
+            private void Record(ushort method, int bytes, Type type)
+            {
+                if (!function.TryGetValue(method, out var item))
+                {
+                    item = HeapManager.Dequeue<Item>();
+                    var data = NetworkAttribute.GetInvoke(method);
+                    item.type = type;
+                    item.path = Service.Text.Format("{0}.{1}", data.Method.DeclaringType, data.Method.Name.Replace("Cmd_", ""));
+                    function[method] = item;
+                }
+
+                item.Add(bytes);
+            }
+
+            public void Reset()
+            {
+                foreach (var item in function.Values)
+                {
+                    item.Dispose();
+                }
+
+                foreach (var item in messages.Values)
+                {
+                    item.Dispose();
+                }
+            }
+
+            public void Clear()
+            {
+                foreach (var item in messages.Values)
+                {
+                    item.Dispose();
+                    HeapManager.Enqueue(item);
+                }
+
+                messages.Clear();
+
+                foreach (var item in function.Values)
+                {
+                    item.Dispose();
+                    HeapManager.Enqueue(item);
+                }
+
+                function.Clear();
+            }
+
+            [Serializable]
+            public class Item : IPool
+            {
+                public Type type { get; set; }
+                public string path { get; set; }
+                public int acquire { get; set; }
+                public int release { get; set; }
+                public int dequeue { get; set; }
+                public int enqueue { get; set; }
+
+                public void Add(int bytes)
+                {
+                    release++;
+                    acquire += bytes;
+                    dequeue++;
+                    enqueue += bytes;
+                }
+
+                public void Dispose()
+                {
+                    acquire = 0;
+                    release = 0;
+                }
+            }
         }
     }
 }

@@ -38,6 +38,7 @@ namespace Astraia.Common
 
         private void Awake()
         {
+            address = Service.Host.Ip();
             screenColor = Color.white;
             screenRate = new Vector2(2560, 1440);
             screenRect = new Rect(10, 20, 100, 60);

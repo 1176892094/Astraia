@@ -81,6 +81,8 @@ namespace Astraia.Net
             return true;
         }
 
+        internal static InvokeDelegate GetInvoke(ushort methodHash) => messages.TryGetValue(methodHash, out var data) ? data.func : null;
+
         private class InvokeData
         {
             public int channel;
