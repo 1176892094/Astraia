@@ -44,8 +44,6 @@ namespace Astraia.Net
 
         private double sendTime = double.MinValue;
 
-        private double keepTime = double.MinValue;
-
         private bool isModify
         {
             get
@@ -55,9 +53,6 @@ namespace Astraia.Net
                     return false;
                 }
 
-                cachedPosition = target.position;
-                cachedRotation = target.rotation;
-                cachedScale = target.localScale;
                 positionChanged = Vector3.SqrMagnitude(originPosition - target.position) > positionPerceive * positionPerceive;
                 rotationChanged = Quaternion.Angle(originRotation, target.rotation) > rotationPerceive;
                 scaleChanged = Vector3.SqrMagnitude(originScale - target.localScale) > scalePerceive * scalePerceive;
@@ -65,26 +60,20 @@ namespace Astraia.Net
                 var unchanged = !positionChanged && !rotationChanged && !scaleChanged;
                 if (unchanged && sendUnchanged)
                 {
-                    if (keepTime > Time.unscaledTime)
-                    {
-                        return true;
-                    }
-
                     return false;
                 }
 
                 sendUnchanged = unchanged;
                 if (!sendUnchanged)
                 {
-                    keepTime = Time.unscaledTime + 0.1;
                     originPosition = target.position;
                     originRotation = target.rotation;
                     originScale = target.localScale;
                 }
 
-                cachedPosition = (option & TransformOption.Position) != 0 && positionChanged ? cachedPosition : null;
-                cachedRotation = (option & TransformOption.Rotation) != 0 && rotationChanged ? cachedRotation : null;
-                cachedScale = (option & TransformOption.Scale) != 0 && scaleChanged ? cachedScale : null;
+                cachedPosition = (option & TransformOption.Position) != 0 && positionChanged ? target.position : null;
+                cachedRotation = (option & TransformOption.Rotation) != 0 && rotationChanged ? target.rotation : null;
+                cachedScale = (option & TransformOption.Scale) != 0 && scaleChanged ? target.localScale : null;
                 return true;
             }
         }
@@ -140,19 +129,19 @@ namespace Astraia.Net
         {
             if ((option & TransformOption.Position) != 0)
             {
-                var isLerp = Vector3.Distance(target.position, originPosition) > 0.02f;
+                var isLerp = Vector3.Distance(target.position, originPosition) < 0.5f;
                 target.position = isLerp ? Vector3.Lerp(target.position, originPosition, positionSmooth) : originPosition;
             }
 
             if ((option & TransformOption.Rotation) != 0)
             {
-                var isLerp = Quaternion.Angle(target.rotation, originRotation) > 0.02f;
+                var isLerp = Quaternion.Angle(target.rotation, originRotation) < 0.5f;
                 target.rotation = isLerp ? Quaternion.Lerp(target.rotation, originRotation, rotationSmooth) : originRotation;
             }
 
             if ((option & TransformOption.Scale) != 0)
             {
-                var isLerp = Vector3.Distance(target.localScale, originScale) > 0.02f;
+                var isLerp = Vector3.Distance(target.localScale, originScale) < 0.5f;
                 target.localScale = isLerp ? Vector3.Lerp(target.localScale, originScale, scaleSmooth) : originScale;
             }
         }
@@ -181,28 +170,39 @@ namespace Astraia.Net
         }
 
         [ServerRpc(Channel.Unreliable)]
-        private void SendToServerRpc(Vector3? position, Quaternion? rotation, Vector3? localScale)
+        private void SendToServerRpc(Vector3? position, Quaternion? rotation, Vector3? scale)
         {
             if (syncDirection == SyncMode.Client && !isClient)
             {
-                originPosition = position ?? target.position;
-                originRotation = rotation ?? target.rotation;
-                originScale = localScale ?? target.localScale;
+                if (position != null) originPosition = position.Value;
+                if (rotation != null) originRotation = rotation.Value;
+                if (scale != null) originScale = scale.Value;
             }
 
-            SendToClientRpc(position, rotation, localScale);
+            SendToClientRpc(position, rotation, scale);
         }
 
         [ClientRpc(Channel.Unreliable)]
-        private void SendToClientRpc(Vector3? position, Quaternion? rotation, Vector3? localScale)
+        private void SendToClientRpc(Vector3? position, Quaternion? rotation, Vector3? scale)
         {
             if ((syncDirection == SyncMode.Server && !isServer) || (syncDirection == SyncMode.Client && !isOwner))
             {
-                Debug.LogWarning(position);
-                originPosition = position ?? target.position;
-                originRotation = rotation ?? target.rotation;
-                originScale = localScale ?? target.localScale;
+                if (position != null) originPosition = position.Value;
+                if (rotation != null) originRotation = rotation.Value;
+                if (scale != null) originScale = scale.Value;
+                // Debug.LogWarning((position != null ? position : "Null") + "    " + (rotation != null ? rotation : "Null") + "    " + (scale != null ? scale : "Null"));
             }
         }
+        // 总长：1B   ulong(压缩)
+        // 类型：2B   ushort
+        // 对象：4B   uint
+        // 组件：1B   byte
+        // 方法：2B   ushort
+        // 片段：4B   Segment
+        // 位置：12+1 Vector3? 
+        // 旋转：16+1 Quaternion? 
+        // 缩放：12+1 Vector3? 
+        // 同步位置：1+2+4+1+2+4+13+1+1 = 29B
+        // 每秒同步：29*30 = 870B
     }
 }
