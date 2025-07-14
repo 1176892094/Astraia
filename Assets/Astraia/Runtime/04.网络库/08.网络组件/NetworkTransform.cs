@@ -91,13 +91,8 @@ namespace Astraia.Net
             sendTime = double.MinValue;
         }
 
-        public override void OnUpdate()
+        public void OnUpdate()
         {
-            if (target == null)
-            {
-                return;
-            }
-
             if (isServer && !isVerify)
             {
                 SyncPosition();
@@ -108,13 +103,8 @@ namespace Astraia.Net
             }
         }
 
-        public override void OnLateUpdate()
+        public void OnLateUpdate()
         {
-            if (target == null)
-            {
-                return;
-            }
-
             if (isServer && isVerify && isModify)
             {
                 SendToClientRpc(cachedPosition, cachedRotation, cachedScale);

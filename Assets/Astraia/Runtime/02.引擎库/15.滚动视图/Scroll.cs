@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public sealed class Scroll<TItem, TGrid> : Source, IScroll<TItem> where TGrid : Component, IGrid<TItem>
+    public sealed class Scroll<TItem, TGrid> : Source where TGrid : Component, IGrid<TItem>
     {
         private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
         private int oldMinIndex;
@@ -25,11 +25,11 @@ namespace Astraia
         private bool initialized;
         private bool useSelected;
         private IList<TItem> items;
-        public bool selection { get; set; }
-        public Rect assetRect { get; set; }
-        public string assetPath { get; set; }
-        public UIState direction { get; set; }
-        public RectTransform rect => transform as RectTransform;
+        public bool selection;
+        public Rect assetRect;
+        public string assetPath;
+        public UIState direction;
+        public RectTransform component;
         private int row => (int)assetRect.y + (direction == UIState.InputY ? 1 : 0);
         private int column => (int)assetRect.x + (direction == UIState.InputX ? 1 : 0);
 
@@ -37,10 +37,13 @@ namespace Astraia
         {
             selection = false;
             initialized = false;
+            GlobalManager.OnUpdate += OnUpdate;
         }
 
         public override void OnHide()
         {
+            GlobalManager.OnUpdate -= OnUpdate;
+            
             items = null;
             oldMinIndex = -1;
             oldMaxIndex = -1;
@@ -59,9 +62,9 @@ namespace Astraia
             grids.Clear();
         }
 
-        public override void OnUpdate()
+        private void OnUpdate()
         {
-            if (rect == null)
+            if (component == null)
             {
                 return;
             }
@@ -71,16 +74,16 @@ namespace Astraia
                 initialized = true;
                 if (direction == UIState.InputY)
                 {
-                    rect.anchorMin = Vector2.up;
-                    rect.anchorMax = Vector2.one;
+                    component.anchorMin = Vector2.up;
+                    component.anchorMax = Vector2.one;
                 }
                 else
                 {
-                    rect.anchorMin = Vector2.zero;
-                    rect.anchorMax = Vector2.up;
+                    component.anchorMin = Vector2.zero;
+                    component.anchorMax = Vector2.up;
                 }
 
-                rect.pivot = Vector2.up;
+                component.pivot = Vector2.up;
             }
 
             if (items == null)
@@ -94,14 +97,14 @@ namespace Astraia
             float position;
             if (direction == UIState.InputY)
             {
-                position = rect.anchoredPosition.y;
+                position = component.anchoredPosition.y;
                 newIndex = (int)(position / assetRect.height);
                 minIndex = newIndex * column;
                 maxIndex = (newIndex + row) * column - 1;
             }
             else
             {
-                position = -rect.anchoredPosition.x;
+                position = -component.anchoredPosition.x;
                 newIndex = (int)(position / assetRect.width);
                 minIndex = newIndex * row;
                 maxIndex = (newIndex + column) * row - 1;
@@ -180,7 +183,7 @@ namespace Astraia
                         }
 
                         var target = (RectTransform)grid.transform;
-                        target.SetParent(rect);
+                        target.SetParent(component);
                         target.sizeDelta = new Vector2(assetRect.width, assetRect.height);
                         target.localScale = Vector3.one;
                         target.localPosition = new Vector3(posX, posY, 0);
@@ -207,7 +210,7 @@ namespace Astraia
         public void SetItem(IList<TItem> items)
         {
             OnHide();
-            if (rect == null)
+            if (component == null)
             {
                 return;
             }
@@ -219,17 +222,17 @@ namespace Astraia
                 if (direction == UIState.InputY)
                 {
                     value = Mathf.Ceil(value / column);
-                    rect.sizeDelta = new Vector2(0, value * assetRect.height);
+                    component.sizeDelta = new Vector2(0, value * assetRect.height);
                 }
                 else
                 {
                     value = Mathf.Ceil(value / row);
-                    rect.sizeDelta = new Vector2(value * assetRect.width, 0);
+                    component.sizeDelta = new Vector2(value * assetRect.width, 0);
                 }
             }
-            
+
             useSelected = selection;
-            rect.anchoredPosition = Vector2.zero;
+            component.anchoredPosition = Vector2.zero;
         }
 
         public void Move(Component component, int direction)
@@ -244,7 +247,7 @@ namespace Astraia
                         {
                             if (grids.TryGetValue(oldMinIndex + i + row, out current) && current == grid)
                             {
-                                rect.anchoredPosition -= Vector2.left * assetRect.width;
+                                this.component.anchoredPosition -= Vector2.left * assetRect.width;
                                 break;
                             }
                         }
@@ -255,7 +258,7 @@ namespace Astraia
                         {
                             if (grids.TryGetValue(oldMinIndex + i + column, out current) && current == grid)
                             {
-                                rect.anchoredPosition -= Vector2.up * assetRect.height;
+                                this.component.anchoredPosition -= Vector2.up * assetRect.height;
                                 break;
                             }
                         }
@@ -266,7 +269,7 @@ namespace Astraia
                         {
                             if (grids.TryGetValue(oldMaxIndex - i - row, out current) && current == grid)
                             {
-                                rect.anchoredPosition += Vector2.left * assetRect.width;
+                                this.component.anchoredPosition += Vector2.left * assetRect.width;
                                 break;
                             }
                         }
@@ -277,7 +280,7 @@ namespace Astraia
                         {
                             if (grids.TryGetValue(oldMaxIndex - i - column, out current) && current == grid)
                             {
-                                rect.anchoredPosition += Vector2.up * assetRect.height;
+                                this.component.anchoredPosition += Vector2.up * assetRect.height;
                                 break;
                             }
                         }

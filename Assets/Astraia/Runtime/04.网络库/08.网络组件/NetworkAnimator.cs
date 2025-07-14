@@ -10,7 +10,7 @@ namespace Astraia.Net
         public Animator animator;
 
         private AnimatorControllerParameter[] animatorParams;
-        
+
         private float[] layerWeight;
 
         private int[] animationHash;
@@ -27,7 +27,7 @@ namespace Astraia.Net
 
         public override void OnAwake()
         {
-            animator = transform.GetComponent<Animator>();
+            animator = transform.GetComponentInChildren<Animator>();
             animatorParams = animator.parameters.Where(parameter => !animator.IsParameterControlledByCurve(parameter.nameHash)).ToArray();
             layerWeight = new float[animator.layerCount];
             animationHash = new int[animator.layerCount];
@@ -48,9 +48,9 @@ namespace Astraia.Net
             sendTime = double.MinValue;
         }
 
-        public override void OnUpdate()
+        public void OnUpdate()
         {
-            if (animator == null || !animator.enabled)
+            if (!animator.enabled)
             {
                 return;
             }

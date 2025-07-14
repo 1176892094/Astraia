@@ -52,7 +52,7 @@ namespace Astraia
                 }
 
 
-                sourceTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+                sourceTypes.Sort((a, b) => string.Compare(a.FullName, b.FullName, StringComparison.Ordinal));
                 sourceNames = sourceTypes.Select(t => Service.Text.Format("{0}, {1}", t.FullName, t.Assembly.GetName().Name)).ToArray();
             }
 

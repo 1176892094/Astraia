@@ -31,14 +31,6 @@ namespace Astraia
         {
         }
 
-        public virtual void OnUpdate()
-        {
-        }
-
-        public virtual void OnLateUpdate()
-        {
-        }
-
         public virtual void OnHide()
         {
         }
@@ -57,6 +49,11 @@ namespace Astraia
 
         public virtual void OnExit(Collider2D other)
         {
+        }
+
+        public static implicit operator bool(Source source)
+        {
+            return source.owner != null && source.owner.isActiveAndEnabled;
         }
     }
 }

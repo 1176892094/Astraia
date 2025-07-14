@@ -22,7 +22,7 @@ namespace Astraia
         private readonly Dictionary<Type, State> states = new Dictionary<Type, State>();
         [SerializeField] private State state;
 
-        public override void OnUpdate()
+        public void OnUpdate()
         {
             state?.OnUpdate();
         }

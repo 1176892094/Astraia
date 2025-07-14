@@ -20,26 +20,15 @@ namespace Astraia
     public class Entity : MonoBehaviour
     {
         internal readonly Dictionary<Type, Source> sources = new Dictionary<Type, Source>();
-
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.PropertyOrder(0), Sirenix.OdinInspector.ShowInInspector]
-        public List<Source> sourceList
-        {
-            get => sources.Values.ToList();
-            set => Debug.Log("原始数据被修改" + value);
-        }
-
-        [Sirenix.OdinInspector.PropertyOrder(1)]
+        [Sirenix.OdinInspector.PropertyOrder(1), Source]
 #endif
-        [Source]
         public List<string> sourcesData = new List<string>();
 
-
         public event Action OnShow;
-        public event Action OnUpdate;
-        public event Action OnLateUpdate;
         public event Action OnHide;
         public event Action OnRelease;
+
         public event Action<Collider2D> OnEnter;
         public event Action<Collider2D> OnStay;
         public event Action<Collider2D> OnExit;
@@ -64,10 +53,8 @@ namespace Astraia
                 EntityManager.Show(this);
                 source.Id = this;
                 source.OnAwake();
-                
+
                 OnShow += source.OnShow;
-                OnUpdate += source.OnUpdate;
-                OnLateUpdate += source.OnLateUpdate;
                 OnHide += source.OnHide;
                 OnRelease += () =>
                 {
@@ -84,31 +71,19 @@ namespace Astraia
         {
             OnRelease?.Invoke();
             OnShow = null;
-            OnUpdate = null;
-            OnLateUpdate = null;
             OnHide = null;
             OnRelease = null;
             OnEnter = null;
             OnStay = null;
             OnExit = null;
-            sourcesData.Clear();
             sources.Clear();
+            sourcesData.Clear();
             EntityManager.Hide(this);
         }
 
         private void OnEnable()
         {
             OnShow?.Invoke();
-        }
-
-        private void Update()
-        {
-            OnUpdate?.Invoke();
-        }
-
-        private void LateUpdate()
-        {
-            OnLateUpdate?.Invoke();
         }
 
         private void OnDisable()
@@ -135,5 +110,13 @@ namespace Astraia
         {
             return entity.GetInstanceID();
         }
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.PropertyOrder(0), Sirenix.OdinInspector.ShowInInspector]
+        public List<Source> sourceList
+        {
+            get => sources.Values.ToList();
+            set => Debug.Log("原始数据被修改" + value);
+        }
+#endif
     }
 }
