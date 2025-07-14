@@ -25,7 +25,7 @@ namespace Astraia
             this.maxLength = maxLength;
         }
 
-        public void AddMessage(ArraySegment<byte> segment, double remoteTime)
+        public void AddMessage(ArraySegment<byte> segment)
         {
             var length = Service.Length.Invoke((ulong)segment.Count);
             if (writer != null && writer.position + length + segment.Count > maxLength)
@@ -34,12 +34,7 @@ namespace Astraia
                 writer = null;
             }
 
-            if (writer == null)
-            {
-                writer = MemoryWriter.Pop();
-                writer.Set(remoteTime);
-            }
-
+            writer ??= MemoryWriter.Pop();
             Service.Length.Encode(writer, (ulong)segment.Count);
             writer.SetBytes(segment.Array, segment.Offset, segment.Count);
         }

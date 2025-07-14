@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using Astraia;
 using Astraia.Common;
 using Astraia.Net;
 using UnityEngine;
@@ -25,15 +26,15 @@ namespace Runtime
         public Ray2D rightUpRay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
         public Ray2D rightDownRay => new Ray2D(transform.position - Vector3.up * 0.075f, Vector3.right * transform.localScale.x);
 
-
         public override void OnAwake()
         {
             owner.AddSource(HeapManager.Dequeue<PlayerAttribute>());
             owner.AddSource(HeapManager.Dequeue<PlayerMachine>());
             owner.AddSource(HeapManager.Dequeue<PlayerOperation>());
             owner.GetSource<NetworkTransform>().syncDirection = SyncMode.Client;
+          
         }
-        
+
         public void OnStartAuthority()
         {
             machine.AddState<PlayerIdle>(typeof(PlayerIdle));

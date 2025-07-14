@@ -16,10 +16,10 @@ namespace Astraia.Net
 {
     public sealed partial class NetworkEntity
     {
-        internal void ServerSerialize(bool status, MemoryWriter owner, MemoryWriter observer)
+        internal void ServerSerialize(bool initialize, MemoryWriter owner, MemoryWriter observer)
         {
             var components = entities;
-            var (ownerMask, observerMask) = ServerDirtyMasks(status);
+            var (ownerMask, observerMask) = ServerDirtyMasks(initialize);
 
             if (ownerMask != 0)
             {
@@ -41,7 +41,7 @@ namespace Astraia.Net
                     if (ownerDirty || observersDirty)
                     {
                         using var writer = MemoryWriter.Pop();
-                        component.Serialize(writer, status);
+                        component.Serialize(writer, initialize);
                         ArraySegment<byte> segment = writer;
                         if (ownerDirty)
                         {
@@ -102,7 +102,7 @@ namespace Astraia.Net
             return true;
         }
 
-        internal void ClientDeserialize(MemoryReader reader, bool status)
+        internal void ClientDeserialize(MemoryReader reader, bool initialize)
         {
             var components = entities;
             var mask = Service.Length.Decode(reader);
@@ -112,12 +112,12 @@ namespace Astraia.Net
                 if (IsDirty(mask, i))
                 {
                     var component = components[i];
-                    component.Deserialize(reader, status);
+                    component.Deserialize(reader, initialize);
                 }
             }
         }
 
-        private (ulong, ulong) ServerDirtyMasks(bool status)
+        private (ulong, ulong) ServerDirtyMasks(bool initialize)
         {
             ulong ownerMask = 0;
             ulong observerMask = 0;
@@ -128,12 +128,12 @@ namespace Astraia.Net
                 var component = components[i];
                 var dirty = component.IsDirty();
                 ulong mask = 1U << i;
-                if (status || (component.syncDirection == SyncMode.Server && dirty))
+                if (initialize || (component.syncDirection == SyncMode.Server && dirty))
                 {
                     ownerMask |= mask;
                 }
 
-                if (status || dirty)
+                if (initialize || dirty)
                 {
                     observerMask |= mask;
                 }
@@ -151,7 +151,10 @@ namespace Astraia.Net
                 var component = components[i];
                 if ((entityMode & EntityMode.Owner) != 0 && component.syncDirection == SyncMode.Client)
                 {
-                    if (component.IsDirty()) mask |= 1U << i;
+                    if (component.IsDirty())
+                    {
+                        mask |= 1U << i;
+                    }
                 }
             }
 

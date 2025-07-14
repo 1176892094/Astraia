@@ -389,7 +389,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                while (!isLoadScene && connection.reader.GetMessage(out var result, out var remoteTime))
+                while (!isLoadScene && connection.reader.GetMessage(out var result))
                 {
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
@@ -398,16 +398,17 @@ namespace Astraia.Net
                         connection.Disconnect();
                         return;
                     }
+                    
 
                     var message = reader.GetUShort();
+                    
                     if (!messages.TryGetValue(message, out var action))
                     {
                         Debug.LogWarning(Service.Text.Format(Log.E222, message));
                         connection.Disconnect();
                         return;
                     }
-
-                    connection.remoteTime = remoteTime;
+                    
                     action.Invoke(null, reader, channel);
                 }
 

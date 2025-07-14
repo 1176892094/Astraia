@@ -14,24 +14,24 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Astraia.Common;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Astraia.Net
 {
+    [Serializable]
     public abstract partial class NetworkSource : Source
     {
-       [ShowInInspector] internal byte sourceId;
+        internal byte sourceId;
 
         public SyncMode syncDirection;
 
         public float syncInterval;
 
-        [ShowInInspector]    private ulong syncVarHook;
+        private ulong syncVarHook;
 
-        [ShowInInspector]     protected double syncVarTime;
+        protected double syncVarTime;
 
-        [ShowInInspector]    protected ulong syncVarDirty { get; set; }
+        protected ulong syncVarDirty { get; set; }
 
         public NetworkEntity entity { get; internal set; }
 
@@ -79,7 +79,7 @@ namespace Astraia.Net
             syncVarTime = Time.unscaledTimeAsDouble;
         }
 
-        internal void Serialize(MemoryWriter writer, bool status)
+        internal void Serialize(MemoryWriter writer, bool initialize)
         {
             var headerPosition = writer.position;
             writer.SetByte(0);
@@ -87,7 +87,7 @@ namespace Astraia.Net
 
             try
             {
-                OnSerialize(writer, status);
+                OnSerialize(writer, initialize);
             }
             catch (Exception e)
             {
@@ -102,14 +102,14 @@ namespace Astraia.Net
             writer.position = endPosition;
         }
 
-        internal bool Deserialize(MemoryReader reader, bool status)
+        internal bool Deserialize(MemoryReader reader, bool initialize)
         {
             var result = true;
             var safety = reader.GetByte();
             var chunkStart = reader.position;
             try
             {
-                OnDeserialize(reader, status);
+                OnDeserialize(reader, initialize);
             }
             catch (Exception e)
             {
@@ -130,21 +130,21 @@ namespace Astraia.Net
             return result;
         }
 
-        protected virtual void OnSerialize(MemoryWriter writer, bool status)
+        protected virtual void OnSerialize(MemoryWriter writer, bool initialize)
         {
-            SerializeSyncVars(writer, status);
+            SerializeSyncVars(writer, initialize);
         }
 
-        protected virtual void OnDeserialize(MemoryReader reader, bool status)
+        protected virtual void OnDeserialize(MemoryReader reader, bool initialize)
         {
-            DeserializeSyncVars(reader, status);
+            DeserializeSyncVars(reader, initialize);
         }
 
-        protected virtual void SerializeSyncVars(MemoryWriter writer, bool status)
+        protected virtual void SerializeSyncVars(MemoryWriter writer, bool initialize)
         {
         }
 
-        protected virtual void DeserializeSyncVars(MemoryReader reader, bool status)
+        protected virtual void DeserializeSyncVars(MemoryReader reader, bool initialize)
         {
         }
 
@@ -233,10 +233,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if (client == null)
-            {
-                client = connection;
-            }
+            client ??= connection;
 
             if (client == null)
             {

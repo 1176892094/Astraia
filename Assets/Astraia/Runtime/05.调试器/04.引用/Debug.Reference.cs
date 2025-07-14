@@ -73,7 +73,7 @@ namespace Astraia.Common
                 results.Add(reference);
             }
 
-            screenView = GUILayout.BeginScrollView(screenView);
+            screenView = GUILayout.BeginScrollView(screenView,"Box");
             foreach (var poolPair in poolData)
             {
                 poolPair.Value.Sort(Comparison);

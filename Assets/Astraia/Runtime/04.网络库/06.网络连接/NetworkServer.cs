@@ -23,7 +23,6 @@ namespace Astraia.Net
         private Dictionary<int, WriterBatch> batches = new Dictionary<int, WriterBatch>();
         internal ReaderBatch reader = new ReaderBatch();
         internal bool isReady;
-        internal double remoteTime;
 
         internal void Update()
         {
@@ -44,7 +43,7 @@ namespace Astraia.Net
             using var writer = MemoryWriter.Pop();
             writer.SetUShort(NetworkMessage<T>.Id);
             writer.Invoke(message);
-
+         
             if (writer.position > Transport.Instance.SendLength(channel))
             {
                 Debug.LogError(Service.Text.Format(Log.E291, writer.position));
@@ -63,7 +62,7 @@ namespace Astraia.Net
                 batches[channel] = batch;
             }
 
-            batch.AddMessage(writer, Time.unscaledTimeAsDouble);
+            batch.AddMessage(writer);
 
             if (NetworkManager.Mode == EntryMode.Host)
             {

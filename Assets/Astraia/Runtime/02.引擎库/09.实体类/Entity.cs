@@ -64,8 +64,7 @@ namespace Astraia
                 EntityManager.Show(this);
                 source.Id = this;
                 source.OnAwake();
-
-                Debug.Log(source);
+                
                 OnShow += source.OnShow;
                 OnUpdate += source.OnUpdate;
                 OnLateUpdate += source.OnLateUpdate;

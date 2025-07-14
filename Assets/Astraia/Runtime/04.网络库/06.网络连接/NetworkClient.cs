@@ -24,7 +24,6 @@ namespace Astraia.Net
         internal ReaderBatch reader = new ReaderBatch();
         internal int clientId;
         internal bool isReady;
-        internal double remoteTime;
 
         public NetworkClient(int clientId)
         {
@@ -50,7 +49,7 @@ namespace Astraia.Net
             using var writer = MemoryWriter.Pop();
             writer.SetUShort(NetworkMessage<T>.Id);
             writer.Invoke(message);
-
+         
             if (writer.position > Transport.Instance.SendLength(channel))
             {
                 Debug.LogError(Service.Text.Format(Log.E291, writer.position));
@@ -69,7 +68,7 @@ namespace Astraia.Net
                 batches[channel] = batch;
             }
 
-            batch.AddMessage(writer, Time.unscaledTimeAsDouble);
+            batch.AddMessage(writer);
 
             if (clientId == NetworkManager.Server.hostId)
             {

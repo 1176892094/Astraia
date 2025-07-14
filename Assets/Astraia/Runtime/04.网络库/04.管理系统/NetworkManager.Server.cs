@@ -315,7 +315,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                while (!isLoadScene && client.reader.GetMessage(out var result, out var remoteTime))
+                while (!isLoadScene && client.reader.GetMessage(out var result))
                 {
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
@@ -326,14 +326,14 @@ namespace Astraia.Net
                     }
 
                     var message = reader.GetUShort();
+                    
                     if (!messages.TryGetValue(message, out var action))
                     {
                         Debug.LogWarning(Service.Text.Format(Log.E243, clientId, message));
                         client.Disconnect();
                         return;
                     }
-
-                    client.remoteTime = remoteTime;
+                    
                     action.Invoke(client, reader, channel);
                 }
 

@@ -423,7 +423,7 @@ namespace Astraia.Editor
             if (syncVars.Count == 0) return;
             var serialize = new MethodDefinition(Const.SER_METHOD, Const.SER_ATTRS, module.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
-            serialize.Parameters.Add(new ParameterDefinition("status", ParameterAttributes.None, module.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
@@ -436,9 +436,9 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, baseSerialize);
             }
 
-            Instruction status = worker.Create(OpCodes.Nop);
+            Instruction instruction = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Ldarg_2);
-            worker.Emit(OpCodes.Brfalse, status);
+            worker.Emit(OpCodes.Brfalse, instruction);
             foreach (var syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
@@ -468,7 +468,7 @@ namespace Astraia.Editor
             }
 
             worker.Emit(OpCodes.Ret);
-            worker.Append(status);
+            worker.Append(instruction);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, module.NetworkSourceDirtyRef);
@@ -525,7 +525,7 @@ namespace Astraia.Editor
             if (syncVars.Count == 0) return;
             var serialize = new MethodDefinition(Const.DES_METHOD, Const.SER_ATTRS, module.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
-            serialize.Parameters.Add(new ParameterDefinition("status", ParameterAttributes.None, module.Import<bool>()));
+            serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
@@ -541,10 +541,10 @@ namespace Astraia.Editor
                 worker.Append(worker.Create(OpCodes.Call, baseDeserialize));
             }
 
-            var status = worker.Create(OpCodes.Nop);
+            var instruction = worker.Create(OpCodes.Nop);
 
             worker.Append(worker.Create(OpCodes.Ldarg_2));
-            worker.Append(worker.Create(OpCodes.Brfalse, status));
+            worker.Append(worker.Create(OpCodes.Brfalse, instruction));
 
             foreach (var syncVar in syncVars)
             {
@@ -552,7 +552,7 @@ namespace Astraia.Editor
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
-            worker.Append(status);
+            worker.Append(instruction);
             worker.Append(worker.Create(OpCodes.Ldarg_1));
             worker.Append(worker.Create(OpCodes.Call, reader.GetFunction(module.Import<ulong>(), ref failed)));
             worker.Append(worker.Create(OpCodes.Stloc_0));

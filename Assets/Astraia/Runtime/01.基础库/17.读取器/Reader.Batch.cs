@@ -18,13 +18,12 @@ namespace Astraia
     {
         private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
         private readonly MemoryReader reader = new MemoryReader();
-        private double remoteTime;
         public int Count => writers.Count;
 
 
         public bool AddBatch(ArraySegment<byte> segment)
         {
-            if (segment.Count < sizeof(double))
+            if (segment.Count < sizeof(ushort))
             {
                 return false;
             }
@@ -34,16 +33,14 @@ namespace Astraia
             if (writers.Count == 0)
             {
                 reader.Reset(writer);
-                remoteTime = reader.Get<double>();
             }
 
             writers.Enqueue(writer);
             return true;
         }
 
-        public bool GetMessage(out ArraySegment<byte> segment, out double newTime)
+        public bool GetMessage(out ArraySegment<byte> segment)
         {
-            newTime = 0;
             segment = default;
             if (writers.Count == 0)
             {
@@ -63,22 +60,20 @@ namespace Astraia
                 {
                     writer = writers.Peek();
                     reader.Reset(writer);
-                    remoteTime = reader.Get<double>();
                 }
                 else
                 {
                     return false;
                 }
             }
-
-            newTime = remoteTime;
+            
             if (reader.buffer.Count - reader.position == 0)
             {
                 return false;
             }
 
             var length = (int)Service.Length.Decode(reader);
-
+            
             if (reader.buffer.Count - reader.position < length)
             {
                 return false;

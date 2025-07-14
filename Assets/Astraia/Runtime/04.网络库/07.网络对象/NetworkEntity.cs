@@ -189,21 +189,21 @@ namespace Astraia.Net
             return (mask & (ulong)(1 << index)) != 0;
         }
 
-        internal void InvokeMessage(byte index, ushort function, InvokeMode mode, MemoryReader reader, NetworkClient client = null)
+        internal void InvokeMessage(byte sourceId, ushort function, InvokeMode mode, MemoryReader reader, NetworkClient client = null)
         {
-            if (this == null)
+            if (transform == null)
             {
                 Debug.LogWarning(Service.Text.Format(Log.E276, mode, function, objectId));
                 return;
             }
 
-            if (index >= entities.Count)
+            if (sourceId >= entities.Count)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E277, objectId, index));
+                Debug.LogWarning(Service.Text.Format(Log.E277, objectId, sourceId));
                 return;
             }
 
-            if (!NetworkAttribute.Invoke(function, mode, client, reader, entities[index]))
+            if (!NetworkAttribute.Invoke(function, mode, client, reader, entities[sourceId]))
             {
                 Debug.LogError(Service.Text.Format(Log.E278, mode, function, gameObject.name, objectId));
             }

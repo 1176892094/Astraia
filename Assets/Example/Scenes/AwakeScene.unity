@@ -1342,7 +1342,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55c3b094877074c03a956c8a536c6a66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sendRate: 60
+  sendRate: 30
   connection: 4
   authorization: 
 --- !u!114 &584064305
