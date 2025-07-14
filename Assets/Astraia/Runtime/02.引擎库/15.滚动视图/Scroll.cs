@@ -35,31 +35,18 @@ namespace Astraia
 
         public override void OnShow()
         {
-            selection = false;
-            initialized = false;
             GlobalManager.OnUpdate += OnUpdate;
         }
 
         public override void OnHide()
         {
             GlobalManager.OnUpdate -= OnUpdate;
-            
-            items = null;
-            oldMinIndex = -1;
-            oldMaxIndex = -1;
-            foreach (var i in grids.Keys)
-            {
-                if (grids.TryGetValue(i, out var grid))
-                {
-                    if (grid != null)
-                    {
-                        grid.Dispose();
-                        PoolManager.Hide(grid.gameObject);
-                    }
-                }
-            }
+        }
 
-            grids.Clear();
+        public override void OnDestroy()
+        {
+            selection = false;
+            initialized = false;
         }
 
         private void OnUpdate()
@@ -209,11 +196,21 @@ namespace Astraia
 
         public void SetItem(IList<TItem> items)
         {
-            OnHide();
-            if (component == null)
+            oldMinIndex = -1;
+            oldMaxIndex = -1;
+            foreach (var i in grids.Keys)
             {
-                return;
+                if (grids.TryGetValue(i, out var grid))
+                {
+                    if (grid != null)
+                    {
+                        grid.Dispose();
+                        PoolManager.Hide(grid.gameObject);
+                    }
+                }
             }
+
+            grids.Clear();
 
             this.items = items;
             if (items != null)

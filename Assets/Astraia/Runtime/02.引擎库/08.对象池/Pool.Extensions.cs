@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
@@ -28,9 +29,9 @@ namespace Astraia
             return component;
         }
 
-        public static void Inject(this Source source)
+        public static void Inject(this Transform inject, object target)
         {
-            var fields = source.GetType().GetFields(Service.Find.Entity);
+            var fields = target.GetType().GetFields(Service.Find.Entity);
             foreach (var field in fields)
             {
                 if (field.GetCustomAttribute<InjectAttribute>(true) == null)
@@ -45,76 +46,115 @@ namespace Astraia
 
                 if (!typeof(Transform).IsAssignableFrom(field.FieldType))
                 {
-                    var component = source.transform.GetComponent(field.FieldType);
+                    var component = inject.GetComponent(field.FieldType);
                     if (component != null)
                     {
-                        field.SetValue(source, component);
+                        field.SetValue(target, component);
                         continue;
                     }
                 }
 
                 var name = char.ToUpper(field.Name[0]) + field.Name.Substring(1);
-                source.SetValue(field, name);
+                var child = inject.GetChild(name);
+                if (child != null)
+                {
+                    var component = child.GetComponent(field.FieldType);
+                    if (component == null)
+                    {
+                        Debug.Log(Service.Text.Format("没有找到依赖注入的组件: {0} {1} != {2}", field.FieldType, field.FieldType.Name, name));
+                        continue;
+                    }
+
+                    field.SetValue(target, component);
+
+                    var method = target.GetType().GetMethod(name, Service.Find.Entity);
+                    if (method == null)
+                    {
+                        continue;
+                    }
+
+                    var cacheType = Service.Find.Type("UnityEngine.UI.Button,UnityEngine.UI");
+                    if (component.TryGetComponent(cacheType, out var button))
+                    {
+                        var property = cacheType.GetProperty("onClick", Service.Find.Entity);
+                        if (property != null)
+                        {
+                            var func = (UnityAction)Delegate.CreateDelegate(typeof(UnityAction), target, method);
+                            var panel = inject.GetComponent<Entity>()?.GetSource<UIPanel>();
+                            if (panel == null)
+                            {
+                                ((UnityEvent)property.GetValue(button)).AddListener(func);
+                            }
+                            else
+                            {
+                                ((UnityEvent)property.GetValue(button)).AddListener(() =>
+                                {
+                                    if (panel.state != UIState.Freeze)
+                                    {
+                                        func.Invoke();
+                                    }
+                                });
+                            }
+                        }
+
+                        continue;
+                    }
+
+                    cacheType = Service.Find.Type("UnityEngine.UI.Toggle,UnityEngine.UI");
+                    if (component.TryGetComponent(cacheType, out var toggle))
+                    {
+                        var property = cacheType.GetProperty("onValueChanged", Service.Find.Entity);
+                        if (property != null)
+                        {
+                            var func = (UnityAction<bool>)Delegate.CreateDelegate(typeof(UnityAction<bool>), target, method);
+                            var panel = inject.GetComponent<Entity>()?.GetSource<UIPanel>();
+                            if (panel == null)
+                            {
+                                ((UnityEvent<bool>)property.GetValue(toggle)).AddListener(func);
+                            }
+                            else
+                            {
+                                ((UnityEvent<bool>)property.GetValue(toggle)).AddListener(value =>
+                                {
+                                    if (panel.state != UIState.Freeze)
+                                    {
+                                        func.Invoke(value);
+                                    }
+                                });
+                            }
+                        }
+
+                        continue;
+                    }
+
+                    cacheType = Service.Find.Type("TMPro.TMP_InputField,Unity.TextMeshPro");
+                    if (component.TryGetComponent(cacheType, out var inputField))
+                    {
+                        var property = cacheType.GetProperty("onSubmit", Service.Find.Entity);
+                        if (property != null)
+                        {
+                            var func = (UnityAction<string>)Delegate.CreateDelegate(typeof(UnityAction<string>), target, method);
+                            var panel = inject.GetComponent<Entity>()?.GetSource<UIPanel>();
+                            if (panel == null)
+                            {
+                                ((UnityEvent<string>)property.GetValue(inputField)).AddListener(func);
+                            }
+                            else
+                            {
+                                ((UnityEvent<string>)property.GetValue(inputField)).AddListener(value =>
+                                {
+                                    if (panel.state != UIState.Freeze)
+                                    {
+                                        func.Invoke(value);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        private static void SetValue(this Source inject, FieldInfo field, string name)
-        {
-            var child = inject.transform.GetChild(name);
-            if (child == null)
-            {
-                return;
-            }
-
-            var component = child.GetComponent(field.FieldType);
-            if (component == null)
-            {
-                Debug.Log(Service.Text.Format("没有找到依赖注入的组件: {0} {1} != {2}", field.FieldType, field.FieldType.Name, name));
-                return;
-            }
-
-            field.SetValue(inject, component);
-
-            var method = inject.GetType().GetMethod(name, Service.Find.Entity);
-            if (method == null)
-            {
-                return;
-            }
-
-            var injectType = Service.Find.Type("UnityEngine.UI.Button,UnityEngine.UI");
-            if (component.TryGetComponent(injectType, out var button))
-            {
-                var property = injectType.GetProperty("onClick", Service.Find.Entity);
-                if (property != null)
-                {
-                    inject.SetButton(name, (UnityEvent)property.GetValue(button));
-                }
-
-                return;
-            }
-
-            injectType = Service.Find.Type("UnityEngine.UI.Toggle,UnityEngine.UI");
-            if (component.TryGetComponent(injectType, out var toggle))
-            {
-                var property = injectType.GetProperty("onValueChanged", Service.Find.Entity);
-                if (property != null)
-                {
-                    inject.SetToggle(name, (UnityEvent<bool>)property.GetValue(toggle));
-                }
-
-                return;
-            }
-
-            injectType = Service.Find.Type("TMPro.TMP_InputField,Unity.TextMeshPro");
-            if (component.TryGetComponent(injectType, out var inputField))
-            {
-                var property = injectType.GetProperty("onSubmit", Service.Find.Entity);
-                if (property != null)
-                {
-                    inject.SetInputField(name, (UnityEvent<string>)property.GetValue(inputField));
-                }
-            }
-        }
 
         private static Transform GetChild(this Transform parent, string name)
         {
@@ -134,60 +174,6 @@ namespace Astraia
             }
 
             return null;
-        }
-
-        private static void SetButton(this Source inject, string name, UnityEvent button)
-        {
-            var panel = inject.owner.GetSource<UIPanel>();
-            if (panel == null)
-            {
-                button.AddListener(() => inject.transform.SendMessage(name));
-                return;
-            }
-
-            button.AddListener(() =>
-            {
-                if (panel.state != UIState.Freeze)
-                {
-                    inject.transform.SendMessage(name);
-                }
-            });
-        }
-
-        private static void SetToggle(this Source inject, string name, UnityEvent<bool> toggle)
-        {
-            var panel = inject.owner.GetSource<UIPanel>();
-            if (panel == null)
-            {
-                toggle.AddListener(value => inject.transform.SendMessage(name, value));
-                return;
-            }
-
-            toggle.AddListener(value =>
-            {
-                if (panel.state != UIState.Freeze)
-                {
-                    inject.transform.SendMessage(name, value);
-                }
-            });
-        }
-
-        private static void SetInputField(this Source inject, string name, UnityEvent<string> inputField)
-        {
-            var panel = inject.owner.GetSource<UIPanel>();
-            if (panel == null)
-            {
-                inputField.AddListener(value => inject.transform.SendMessage(name, value));
-                return;
-            }
-
-            inputField.AddListener(value =>
-            {
-                if (panel.state != UIState.Freeze)
-                {
-                    inject.transform.SendMessage(name, value);
-                }
-            });
         }
     }
 }
