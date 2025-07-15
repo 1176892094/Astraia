@@ -63,8 +63,8 @@ namespace Astraia.Common
     internal struct SpawnMessage : IMessage
     {
         public bool isOwner;
-        public uint sceneId;
         public uint assetId;
+        public uint sceneId;
         public uint objectId;
         public Vector3 position;
         public Quaternion rotation;

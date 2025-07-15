@@ -14,7 +14,7 @@ using System;
 
 namespace Astraia.Net
 {
-    public sealed partial class NetworkEntity
+    public partial class NetworkEntity
     {
         internal void ServerSerialize(bool initialize, MemoryWriter owner, MemoryWriter observer)
         {

@@ -13,19 +13,16 @@ using System;
 
 namespace Astraia
 {
-    public abstract partial class StateMachine
+    [Serializable]
+    public abstract class StateBase
     {
-        [Serializable]
-        public abstract class State
-        {
-            internal int Id;
-            public Entity owner => EntityManager.Find(Id);
+        internal int Id;
+        public Entity owner => EntityManager.Find(Id);
 
-            public abstract void OnEnter();
+        public abstract void OnEnter();
 
-            public abstract void OnUpdate();
+        public abstract void OnUpdate();
 
-            public abstract void OnExit();
-        }
+        public abstract void OnExit();
     }
 }

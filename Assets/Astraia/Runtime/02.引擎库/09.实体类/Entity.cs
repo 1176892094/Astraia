@@ -23,7 +23,7 @@ namespace Astraia
     public partial class Entity : MonoBehaviour
     {
         internal Dictionary<Type, Agent> agentDict = new Dictionary<Type, Agent>();
-
+     
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
@@ -49,6 +49,7 @@ namespace Astraia
             OnStay = null;
             OnExit = null;
             OnEnter = null;
+         
             agentDict.Clear();
             agentData.Clear();
             EntityManager.Hide(this);

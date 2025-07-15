@@ -15,6 +15,12 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
+    public abstract class Agent<TEntity> : Agent where TEntity : Entity
+    {
+        public new TEntity owner => (TEntity)base.owner;
+    }
+
+    [Serializable]
     public abstract class Agent
     {
         internal int Id;

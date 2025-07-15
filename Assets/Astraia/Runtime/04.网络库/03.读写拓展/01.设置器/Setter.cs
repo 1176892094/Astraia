@@ -135,7 +135,7 @@ namespace Astraia.Net
                 return;
             }
 
-            writer.SetNetworkObject(value.entity);
+            writer.SetNetworkObject(value.owner);
             writer.SetByte(value.sourceId);
         }
 

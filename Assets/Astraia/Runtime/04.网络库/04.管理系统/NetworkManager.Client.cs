@@ -193,6 +193,7 @@ namespace Astraia.Net
                 Register<SceneMessage>(SceneMessage);
                 Register<SpawnMessage>(SpawnMessage);
                 Register<DespawnMessage>(DespawnMessage);
+                Register<DestroyMessage>(DestroyMessage);
             }
 
             public static void Register<T>(Action<T> handle) where T : struct, IMessage

@@ -19,7 +19,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public abstract partial class NetworkAgent : Agent
+    public abstract partial class NetworkAgent : Agent<NetworkEntity>
     {
         internal byte sourceId;
 
@@ -33,15 +33,13 @@ namespace Astraia.Net
 
         protected ulong syncVarDirty { get; set; }
 
-        public NetworkEntity entity { get; internal set; }
+        public uint objectId => owner.objectId;
 
-        public uint objectId => entity.objectId;
+        public bool isOwner => (owner?.agentMode & AgentMode.Owner) != 0;
 
-        public bool isOwner => (entity?.agentMode & AgentMode.Owner) != 0;
+        public bool isServer => (owner?.agentMode & AgentMode.Server) != 0;
 
-        public bool isServer => (entity?.agentMode & AgentMode.Server) != 0;
-
-        public bool isClient => (entity?.agentMode & AgentMode.Client) != 0;
+        public bool isClient => (owner?.agentMode & AgentMode.Client) != 0;
 
         public bool isVerify
         {
@@ -61,7 +59,7 @@ namespace Astraia.Net
             }
         }
 
-        public NetworkClient connection => entity.connection;
+        public NetworkClient connection => owner.connection;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDirty() => syncVarDirty != 0UL && Time.unscaledTimeAsDouble - syncVarTime >= syncInterval;
@@ -91,7 +89,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Debug.LogError(Service.Text.Format(Log.E260, gameObject.name, GetType(), entity.sceneId, e));
+                Debug.LogError(Service.Text.Format(Log.E260, gameObject.name, GetType(), owner.sceneId, e));
             }
 
             var endPosition = writer.position;
@@ -113,7 +111,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Debug.LogError(Service.Text.Format(Log.E260, gameObject.name, GetType(), entity.sceneId, e));
+                Debug.LogError(Service.Text.Format(Log.E260, gameObject.name, GetType(), owner.sceneId, e));
                 result = false;
             }
 

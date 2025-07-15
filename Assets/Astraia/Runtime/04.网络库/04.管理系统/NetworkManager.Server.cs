@@ -431,7 +431,7 @@ namespace Astraia.Net
                 var message = new SpawnMessage
                 {
                     isOwner = isOwner,
-                    assetId = entity.assetId,
+                    assetId = entity.agentId,
                     sceneId = entity.sceneId,
                     objectId = entity.objectId,
                     position = transform.localPosition,
@@ -471,7 +471,7 @@ namespace Astraia.Net
                 spawns.Remove(entity.objectId);
                 foreach (var client in clients.Values)
                 {
-                    client.Send(new DespawnMessage(entity.objectId));
+                    client.Send(new DestroyMessage(entity.objectId));
                 }
 
                 entity.OnStopServer();
