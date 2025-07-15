@@ -29,7 +29,7 @@ namespace Astraia.Common
             var panel = HeapManager.Dequeue<UIPanel>(type);
             entity.transform.Inject(panel);
             entity.AddSource(panel);
-            entity.OnRelease += panel.groups.Clear;
+            entity.OnFade += panel.groups.Clear;
             
             Surface(panel.transform, panel.layer);
             GlobalManager.panelData.Add(type, panel);

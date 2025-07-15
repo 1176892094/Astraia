@@ -165,7 +165,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sourcesData:
+  sourceData:
   - Astraia.Net.NetworkTransform, Astraia.Net
   - Runtime.Player, Assembly-CSharp
   entityMode: 0

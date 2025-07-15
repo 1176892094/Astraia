@@ -21,8 +21,7 @@ namespace Astraia
         public Entity owner => EntityManager.Find(Id);
         public Transform transform => owner?.transform;
         public GameObject gameObject => owner?.gameObject;
-
-
+        
         public virtual void OnAwake()
         {
         }
@@ -36,18 +35,6 @@ namespace Astraia
         }
 
         public virtual void OnDestroy()
-        {
-        }
-
-        public virtual void OnEnter(Collider2D other)
-        {
-        }
-
-        public virtual void OnStay(Collider2D other)
-        {
-        }
-
-        public virtual void OnExit(Collider2D other)
         {
         }
 

@@ -25,9 +25,9 @@ namespace Astraia.Net
     [Serializable]
     public sealed partial class NetworkEntity : Entity
     {
-        [SerializeField] internal EntityMode entityMode;
-
         [SerializeField] internal string entityPath;
+        
+        [SerializeField] internal EntityMode entityMode;
         
         [SerializeField] [HideInInspector] internal uint sceneId;
 
@@ -48,7 +48,7 @@ namespace Astraia.Net
         protected override void Awake()
         {
             base.Awake();
-            foreach (var source in sources.Values)
+            foreach (var source in sourceDict.Values)
             {
                 if (source is NetworkSource entity)
                 {

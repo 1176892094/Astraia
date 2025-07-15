@@ -24,10 +24,6 @@ namespace Astraia
     {
     }
     
-    [AttributeUsage(AttributeTargets.Field)]
-    public class SourceAttribute : PropertyAttribute
-    {
-    }
     
     [AttributeUsage(AttributeTargets.Property)]
     public class PrimaryAttribute : Attribute

@@ -14,20 +14,19 @@ using System.Collections.Generic;
 using System.Linq;
 using Astraia.Common;
 using UnityEngine;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+using Sirenix.OdinInspector;
+#endif
 
 namespace Astraia
 {
-    public class Entity : MonoBehaviour
+    public partial class Entity : MonoBehaviour
     {
-        internal readonly Dictionary<Type, Source> sources = new Dictionary<Type, Source>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.PropertyOrder(1), Source]
-#endif
-        public List<string> sourcesData = new List<string>();
+        internal Dictionary<Type, Source> sourceDict = new Dictionary<Type, Source>();
 
         public event Action OnShow;
         public event Action OnHide;
-        public event Action OnRelease;
+        public event Action OnFade;
 
         public event Action<Collider2D> OnEnter;
         public event Action<Collider2D> OnStay;
@@ -35,49 +34,23 @@ namespace Astraia
 
         protected virtual void Awake()
         {
-            foreach (var source in sourcesData)
+            foreach (var source in sourceData)
             {
                 AddSource(HeapManager.Dequeue<Source>(Service.Find.Type(source)));
             }
         }
 
-        public T GetSource<T>() where T : Source
-        {
-            return (T)sources.GetValueOrDefault(typeof(T));
-        }
-
-        public void AddSource<T>(T source) where T : Source
-        {
-            if (sources.TryAdd(source.GetType(), source))
-            {
-                EntityManager.Show(this);
-                source.Id = this;
-                source.OnAwake();
-
-                OnShow += source.OnShow;
-                OnHide += source.OnHide;
-                OnRelease += () =>
-                {
-                    HeapManager.Enqueue(source, source.GetType());
-                    source.OnDestroy();
-                };
-                OnEnter += source.OnEnter;
-                OnStay += source.OnStay;
-                OnExit += source.OnExit;
-            }
-        }
-
         protected virtual void OnDestroy()
         {
-            OnRelease?.Invoke();
+            OnFade?.Invoke();
             OnShow = null;
             OnHide = null;
-            OnRelease = null;
-            OnEnter = null;
+            OnFade = null;
             OnStay = null;
             OnExit = null;
-            sources.Clear();
-            sourcesData.Clear();
+            OnEnter = null;
+            sourceDict.Clear();
+            sourceData.Clear();
             EntityManager.Hide(this);
         }
 
@@ -106,17 +79,55 @@ namespace Astraia
             OnExit?.Invoke(other);
         }
 
+        public T GetSource<T>() where T : Source
+        {
+            return (T)sourceDict.GetValueOrDefault(typeof(T));
+        }
+
+        public void AddSource<T>(T source) where T : Source
+        {
+            if (sourceDict.TryAdd(source.GetType(), source))
+            {
+                EntityManager.Show(this);
+                source.Id = this;
+                source.OnAwake();
+
+                OnFade += Remove;
+                OnShow += source.OnShow;
+                OnHide += source.OnHide;
+
+                void Remove()
+                {
+                    HeapManager.Enqueue(source, source.GetType());
+                    source.OnDestroy();
+                }
+            }
+        }
+
         public static implicit operator int(Entity entity)
         {
             return entity.GetInstanceID();
         }
+    }
+
+    public partial class Entity
+    {
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.PropertyOrder(0), Sirenix.OdinInspector.ShowInInspector]
-        public List<Source> sourceList
+        private static string[] sourceNames;
+        private static string[] SourceNames => sourceNames ??= AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+            .Where(type => !type.IsAbstract && !type.IsGenericType && typeof(Source).IsAssignableFrom(type)).OrderBy(t => t.FullName)
+            .Select(t => Service.Text.Format("{0}, {1}", t.FullName, t.Assembly.GetName().Name)).ToArray();
+
+        [HideInEditorMode, ShowInInspector]
+        private List<Source> sourceList
         {
-            get => sources.Values.ToList();
-            set => Debug.Log("原始数据被修改" + value);
+            get => sourceDict.Values.ToList();
+            set => sourceDict = value.ToDictionary(k => k.GetType(), v => v);
         }
+
+        [HideInPlayMode, ValueDropdown("SourceNames")]
 #endif
+        [SerializeField]
+        private List<string> sourceData = new List<string>();
     }
 }
