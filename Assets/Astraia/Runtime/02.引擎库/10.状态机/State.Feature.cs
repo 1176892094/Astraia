@@ -71,7 +71,7 @@ namespace Astraia
             SetInt(key, GetInt(key) - (int)value);
         }
 
-        public override void OnDestroy()
+        public override void OnFade()
         {
             features.Clear();
         }

@@ -90,7 +90,7 @@ namespace Astraia
             {
                 EntityManager.Show(this);
                 source.Id = this;
-                source.OnAwake();
+                source.OnLoad();
 
                 OnFade += Remove;
                 OnShow += source.OnShow;
@@ -99,7 +99,7 @@ namespace Astraia
                 void Remove()
                 {
                     HeapManager.Enqueue(source, source.GetType());
-                    source.OnDestroy();
+                    source.OnFade();
                 }
             }
         }

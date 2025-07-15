@@ -43,7 +43,7 @@ namespace Astraia
             GlobalManager.OnUpdate -= OnUpdate;
         }
 
-        public override void OnDestroy()
+        public override void OnFade()
         {
             selection = false;
             initialized = false;

@@ -53,7 +53,7 @@ namespace Astraia
             }
         }
 
-        public override void OnDestroy()
+        public override void OnFade()
         {
             var copies = new List<State>(states.Values);
             foreach (var item in copies)

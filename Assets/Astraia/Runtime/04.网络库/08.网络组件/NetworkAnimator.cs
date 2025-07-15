@@ -25,7 +25,7 @@ namespace Astraia.Net
 
         private double sendTime = double.MinValue;
 
-        public override void OnAwake()
+        public override void OnLoad()
         {
             animator = transform.GetComponentInChildren<Animator>();
             animatorParams = animator.parameters.Where(parameter => !animator.IsParameterControlledByCurve(parameter.nameHash)).ToArray();
@@ -37,7 +37,7 @@ namespace Astraia.Net
             lastFloatParams = new float[animatorParams.Length];
         }
 
-        public override void OnDestroy()
+        public override void OnFade()
         {
             layerWeight = null;
             animationHash = null;
