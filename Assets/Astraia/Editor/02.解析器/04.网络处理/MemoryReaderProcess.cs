@@ -100,7 +100,7 @@ namespace Astraia.Editor
 
             if (tr.IsDerivedFrom<NetworkAgent>() || tr.Is<NetworkAgent>())
             {
-                return AddNetworkSource(tr);
+                return AddNetworkAgent(tr);
             }
 
             if (td.IsDerivedFrom<Component>())
@@ -196,9 +196,9 @@ namespace Astraia.Editor
             return md;
         }
 
-        private MethodReference AddNetworkSource(TypeReference tr)
+        private MethodReference AddNetworkAgent(TypeReference tr)
         {
-            var generic = module.ReadNetworkSourceGeneric;
+            var generic = module.ReadNetworkAgentGeneric;
             var mr = generic.MakeGenericInstanceType(assembly.MainModule, tr);
             Register(tr, mr);
             return mr;

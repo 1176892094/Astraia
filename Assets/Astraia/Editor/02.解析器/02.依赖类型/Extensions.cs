@@ -460,7 +460,7 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="tr"></param>
         /// <returns></returns>
-        public static bool IsNetworkObject(this TypeReference tr)
+        public static bool IsNetworkEntity(this TypeReference tr)
         {
             if (tr.Is<GameObject>())
             {

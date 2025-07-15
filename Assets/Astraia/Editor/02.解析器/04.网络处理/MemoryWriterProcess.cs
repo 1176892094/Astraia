@@ -97,7 +97,7 @@ namespace Astraia.Editor
 
             if (tr.IsDerivedFrom<NetworkAgent>() || tr.Is<NetworkAgent>())
             {
-                return AddNetworkSource(tr);
+                return AddNetworkAgent(tr);
             }
 
             if (td.IsDerivedFrom<Component>())
@@ -183,7 +183,7 @@ namespace Astraia.Editor
             return md;
         }
 
-        private MethodReference AddNetworkSource(TypeReference tr)
+        private MethodReference AddNetworkAgent(TypeReference tr)
         {
             if (!methods.TryGetValue(module.Import<NetworkAgent>(), out var mr))
             {

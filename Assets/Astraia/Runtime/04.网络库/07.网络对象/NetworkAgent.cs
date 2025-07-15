@@ -18,6 +18,11 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
+    public abstract class NetworkAgent<TEntity> : NetworkAgent where TEntity : NetworkEntity
+    {
+        public new TEntity owner => (TEntity)base.owner;
+    }
+
     [Serializable]
     public abstract partial class NetworkAgent : Agent<NetworkEntity>
     {
@@ -35,11 +40,11 @@ namespace Astraia.Net
 
         public uint objectId => owner.objectId;
 
-        public bool isOwner => (owner?.agentMode & AgentMode.Owner) != 0;
+        public bool isOwner => owner.isOwner;
 
-        public bool isServer => (owner?.agentMode & AgentMode.Server) != 0;
+        public bool isServer => owner.isServer;
 
-        public bool isClient => (owner?.agentMode & AgentMode.Client) != 0;
+        public bool isClient => owner.isClient;
 
         public bool isVerify
         {

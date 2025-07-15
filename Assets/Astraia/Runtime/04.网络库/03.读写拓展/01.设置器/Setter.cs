@@ -109,7 +109,7 @@ namespace Astraia.Net
             writer.Set(value);
         }
 
-        public static void SetNetworkObject(this MemoryWriter writer, NetworkEntity value)
+        public static void SetNetworkEntity(this MemoryWriter writer, NetworkEntity value)
         {
             if (value == null)
             {
@@ -127,7 +127,7 @@ namespace Astraia.Net
             writer.SetUInt(value.objectId);
         }
 
-        public static void SetNetworkSource(this MemoryWriter writer, NetworkAgent value)
+        public static void SetNetworkAgent(this MemoryWriter writer, NetworkAgent value)
         {
             if (value == null)
             {
@@ -135,7 +135,7 @@ namespace Astraia.Net
                 return;
             }
 
-            writer.SetNetworkObject(value.owner);
+            writer.SetNetworkEntity(value.owner);
             writer.SetByte(value.sourceId);
         }
 
@@ -147,7 +147,7 @@ namespace Astraia.Net
                 return;
             }
 
-            writer.SetNetworkObject(value.GetComponent<NetworkEntity>());
+            writer.SetNetworkEntity(value.GetComponent<NetworkEntity>());
         }
 
         public static void SetGameObject(this MemoryWriter writer, GameObject value)
@@ -158,7 +158,7 @@ namespace Astraia.Net
                 return;
             }
 
-            writer.SetNetworkObject(value.GetComponent<NetworkEntity>());
+            writer.SetNetworkEntity(value.GetComponent<NetworkEntity>());
         }
 
         public static void SetTexture2D(this MemoryWriter writer, Texture2D value)

@@ -147,12 +147,12 @@ namespace Astraia.Net
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterNetworkObject(NetworkEntity value, ref NetworkEntity field, ulong dirty, Action<NetworkEntity, NetworkEntity> OnChanged, ref uint objectId)
+        public void SyncVarSetterNetworkEntity(NetworkEntity value, ref NetworkEntity field, ulong dirty, Action<NetworkEntity, NetworkEntity> OnChanged, ref uint objectId)
         {
-            if (!SyncVarEqualNetworkObject(value, objectId))
+            if (!SyncVarEqualNetworkEntity(value, objectId))
             {
                 var oldValue = field;
-                SetSyncVarNetworkObject(value, ref field, dirty, ref objectId);
+                SetSyncVarNetworkEntity(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.Mode == EntryMode.Host && !GetSyncVarHook(dirty))
@@ -166,19 +166,19 @@ namespace Astraia.Net
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterNetworkObject(ref NetworkEntity field, Action<NetworkEntity, NetworkEntity> OnChanged, MemoryReader reader, ref uint objectId)
+        public void SyncVarGetterNetworkEntity(ref NetworkEntity field, Action<NetworkEntity, NetworkEntity> OnChanged, MemoryReader reader, ref uint objectId)
         {
             var oldValue = objectId;
             var oldObject = field;
             objectId = reader.GetUInt();
-            field = GetSyncVarNetworkObject(objectId, ref field);
+            field = GetSyncVarNetworkEntity(objectId, ref field);
             if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref objectId))
             {
                 OnChanged(oldObject, field);
             }
         }
         
-        private static bool SyncVarEqualNetworkObject(NetworkEntity entity, uint objectId)
+        private static bool SyncVarEqualNetworkEntity(NetworkEntity entity, uint objectId)
         {
             uint newValue = 0;
             if (entity != null)
@@ -193,14 +193,14 @@ namespace Astraia.Net
             return newValue == objectId;
         }
         
-        private NetworkEntity GetSyncVarNetworkObject(uint objectId, ref NetworkEntity entity)
+        private NetworkEntity GetSyncVarNetworkEntity(uint objectId, ref NetworkEntity entity)
         {
             if (isServer || !isClient) return entity;
             NetworkManager.Client.spawns.TryGetValue(objectId, out entity);
             return entity;
         }
         
-        private void SetSyncVarNetworkObject(NetworkEntity entity, ref NetworkEntity field, ulong dirty, ref uint objectId)
+        private void SetSyncVarNetworkEntity(NetworkEntity entity, ref NetworkEntity field, ulong dirty, ref uint objectId)
         {
             if (GetSyncVarHook(dirty)) return;
             uint newValue = 0;
@@ -219,12 +219,12 @@ namespace Astraia.Net
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterNetworkSource<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable variable) where T : NetworkAgent
+        public void SyncVarSetterNetworkAgent<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable variable) where T : NetworkAgent
         {
-            if (!SyncVarEqualNetworkSource(value, variable))
+            if (!SyncVarEqualNetworkAgent(value, variable))
             {
                 var oldValue = field;
-                SetSyncVarNetworkSource(value, ref field, dirty, ref variable);
+                SetSyncVarNetworkAgent(value, ref field, dirty, ref variable);
                 if (OnChanged != null)
                 {
                     if (NetworkManager.Mode == EntryMode.Host && !GetSyncVarHook(dirty))
@@ -238,19 +238,19 @@ namespace Astraia.Net
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterNetworkSource<T>(ref T field, Action<T, T> OnChanged, MemoryReader reader, ref NetworkVariable variable) where T : NetworkAgent
+        public void SyncVarGetterNetworkAgent<T>(ref T field, Action<T, T> OnChanged, MemoryReader reader, ref NetworkVariable variable) where T : NetworkAgent
         {
             var oldValue = variable;
             var oldObject = field;
             variable = reader.GetNetworkVariable();
-            field = GetSyncVarNetworkSource(variable, ref field);
+            field = GetSyncVarNetworkAgent(variable, ref field);
             if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref variable))
             {
                 OnChanged(oldObject, field);
             }
         }
         
-        private static bool SyncVarEqualNetworkSource<T>(T entity, NetworkVariable variable) where T : NetworkAgent
+        private static bool SyncVarEqualNetworkAgent<T>(T entity, NetworkVariable variable) where T : NetworkAgent
         {
             uint newValue = 0;
             byte index = 0;
@@ -267,7 +267,7 @@ namespace Astraia.Net
             return variable.Equals(newValue, index);
         }
         
-        public T GetSyncVarNetworkSource<T>(NetworkVariable variable, ref T field) where T : NetworkAgent
+        public T GetSyncVarNetworkAgent<T>(NetworkVariable variable, ref T field) where T : NetworkAgent
         {
             if (isServer || !isClient)
             {
@@ -283,7 +283,7 @@ namespace Astraia.Net
             return field;
         }
         
-        private void SetSyncVarNetworkSource<T>(T entity, ref T field, ulong dirty, ref NetworkVariable variable) where T : NetworkAgent
+        private void SetSyncVarNetworkAgent<T>(T entity, ref T field, ulong dirty, ref NetworkVariable variable) where T : NetworkAgent
         {
             if (GetSyncVarHook(dirty)) return;
             uint newValue = 0;

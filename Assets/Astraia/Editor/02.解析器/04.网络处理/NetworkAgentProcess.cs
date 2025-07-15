@@ -17,7 +17,7 @@ using UnityEngine;
 
 namespace Astraia.Editor
 {
-    internal partial class NetworkSourceProcess
+    internal partial class NetworkAgentProcess
     {
         private Dictionary<FieldDefinition, FieldDefinition> syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
@@ -37,7 +37,7 @@ namespace Astraia.Editor
         private readonly List<KeyValuePair<MethodDefinition, int>> targetRpcList = new List<KeyValuePair<MethodDefinition, int>>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
-        public NetworkSourceProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader,
+        public NetworkAgentProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader,
             Logger logger, TypeDefinition type)
         {
             generate = type;
@@ -118,7 +118,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkSourceProcess
+    internal partial class NetworkAgentProcess
     {
         /// <summary>
         /// 处理Rpc方法
@@ -321,7 +321,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkSourceProcess
+    internal partial class NetworkAgentProcess
     {
         /// <summary>
         /// 注入静态构造函数
@@ -412,7 +412,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkSourceProcess
+    internal partial class NetworkAgentProcess
     {
         /// <summary>
         /// 生成SyncVar的序列化方法
@@ -471,7 +471,7 @@ namespace Astraia.Editor
             worker.Append(instruction);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, module.NetworkSourceDirtyRef);
+            worker.Emit(OpCodes.Call, module.NetworkAgentDirtyRef);
             var writeUint64Func = writer.GetFunction(module.Import<ulong>(), ref failed);
             worker.Emit(OpCodes.Call, writeUint64Func);
             int dirty = access.GetSyncVar(generate.BaseType.FullName);
@@ -485,7 +485,7 @@ namespace Astraia.Editor
 
                 var varLabel = worker.Create(OpCodes.Nop);
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Call, module.NetworkSourceDirtyRef);
+                worker.Emit(OpCodes.Call, module.NetworkAgentDirtyRef);
                 worker.Emit(OpCodes.Ldc_I8, 1L << dirty);
                 worker.Emit(OpCodes.And);
                 worker.Emit(OpCodes.Brfalse, varLabel);
@@ -612,7 +612,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
-                worker.Emit(OpCodes.Call, module.syncVarGetterNetworkObject);
+                worker.Emit(OpCodes.Call, module.syncVarGetterNetworkEntity);
             }
             else if (syncVar.FieldType.IsDerivedFrom<NetworkAgent>() || syncVar.FieldType.Is<NetworkAgent>())
             {
@@ -620,7 +620,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
-                var getFunc = module.syncVarGetterNetworkSource.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
+                var getFunc = module.syncVarGetterNetworkAgent.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else

@@ -125,7 +125,7 @@ namespace Astraia.Editor
             bool changed = false;
             foreach (TypeDefinition behaviour in behaviours)
             {
-                changed |= new NetworkSourceProcess(assembly, access, module, writer, reader, logger, behaviour).Process(ref failed);
+                changed |= new NetworkAgentProcess(assembly, access, module, writer, reader, logger, behaviour).Process(ref failed);
             }
 
             return changed;

@@ -202,7 +202,7 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NetworkEntity GetNetworkObject(uint objectId)
+        public static NetworkEntity GetNetworkEntity(uint objectId)
         {
             if (Server.isActive)
             {
