@@ -20,7 +20,7 @@ using Sirenix.OdinInspector;
 
 namespace Astraia
 {
-    public partial class Entity : MonoBehaviour
+    public class Entity : MonoBehaviour
     {
         internal Dictionary<Type, Agent> agentDict = new Dictionary<Type, Agent>();
 
@@ -28,9 +28,9 @@ namespace Astraia
         public event Action OnHide;
         public event Action OnFade;
 
-        public event Action<Collider2D> OnEnter;
-        public event Action<Collider2D> OnStay;
-        public event Action<Collider2D> OnExit;
+        public Action<Collider2D> OnEnter;
+        public Action<Collider2D> OnStay;
+        public Action<Collider2D> OnExit;
 
         protected virtual void Awake()
         {
@@ -109,7 +109,7 @@ namespace Astraia
 
                 void Faded()
                 {
-                    HeapManager.Enqueue(agent, agent.GetType());
+                    HeapManager.Enqueue(agent, type);
                     agent.OnFade();
                 }
             }
@@ -119,10 +119,7 @@ namespace Astraia
         {
             return entity.GetInstanceID();
         }
-    }
 
-    public partial class Entity
-    {
 #if UNITY_EDITOR && ODIN_INSPECTOR
         private static string[] agentNames;
 

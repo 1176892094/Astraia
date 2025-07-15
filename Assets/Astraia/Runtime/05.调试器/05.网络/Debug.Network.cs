@@ -73,8 +73,8 @@ namespace Astraia.Common
                     NetworkSimulator.Instance.ItemReset();
                 }
 
-                NetworkMessage(sendList, "发送队列", "每秒发送\t每秒发送\t全局发送\t全局发送");
-                NetworkMessage(receiveList, "接收队列", "每秒接收\t每秒接收\t全局接收\t全局接收");
+                NetworkMessage(sendList, "发送队列", "每秒发送\t\t每秒发送\t\t全局发送\t\t全局发送");
+                NetworkMessage(receiveList, "接收队列", "每秒接收\t\t每秒接收\t\t全局接收\t\t全局接收");
             }
 
 

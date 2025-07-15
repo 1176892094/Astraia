@@ -169,6 +169,12 @@ namespace Astraia.Common
                 window = Window.Memory;
             }
 
+            GUI.contentColor = window == Window.Time ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.Time.ToString(), GUILayout.Height(30)))
+            {
+                window = Window.Time;
+            }
+
             GUI.contentColor = window == Window.System ? Color.white : Color.gray;
             if (GUILayout.Button(Window.System.ToString(), GUILayout.Height(30)))
             {
@@ -179,12 +185,6 @@ namespace Astraia.Common
             if (GUILayout.Button(Window.Screen.ToString(), GUILayout.Height(30)))
             {
                 window = Window.Screen;
-            }
-
-            GUI.contentColor = window == Window.Time ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Time.ToString(), GUILayout.Height(30)))
-            {
-                window = Window.Time;
             }
 
             GUI.contentColor = window == Window.Project ? Color.white : Color.gray;
@@ -231,7 +231,7 @@ namespace Astraia.Common
         private void MinWindow(int id)
         {
             GUI.DragWindow(new Rect(0, 0, screenRect.width, 20f));
-            
+
             GUILayout.BeginHorizontal();
             GUI.contentColor = screenColor;
             if (GUILayout.Button(Service.Text.Format("FPS: {0}", frameData), GUILayout.Height(30), GUILayout.Width(80)))

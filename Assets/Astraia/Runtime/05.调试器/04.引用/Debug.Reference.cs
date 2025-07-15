@@ -46,13 +46,13 @@ namespace Astraia.Common
             switch (windowOption)
             {
                 case PoolMode.Heap:
-                    Draw(HeapManager.Reference(), "引用池", "未使用\t使用中\t使用次数\t释放次数");
+                    Draw(HeapManager.Reference(), "引用池", "未使用\t\t使用中\t\t使用次数\t\t释放次数");
                     break;
                 case PoolMode.Event:
-                    Draw(EventManager.Reference(), "事件池", "触发数\t事件数\t添加次数\t移除次数");
+                    Draw(EventManager.Reference(), "事件池", "触发数\t\t事件数\t\t添加次数\t\t移除次数");
                     break;
                 case PoolMode.Pool:
-                    Draw(PoolManager.Reference(), "对象池", "未激活\t激活中\t出队次数\t入队次数");
+                    Draw(PoolManager.Reference(), "对象池", "未激活\t\t激活中\t\t出队次数\t\t入队次数");
                     break;
             }
         }

@@ -18,8 +18,8 @@ namespace Astraia.Common
 {
     public partial class DebugManager
     {
-        private readonly Dictionary<string, float> minMemory = new Dictionary<string, float>();
-        private readonly Dictionary<string, float> maxMemory = new Dictionary<string, float>();
+        private readonly Dictionary<int, float> minMemory = new Dictionary<int, float>();
+        private readonly Dictionary<int, float> maxMemory = new Dictionary<int, float>();
 
         private void MemoryWindow()
         {
@@ -27,13 +27,35 @@ namespace Astraia.Common
             GUILayout.Label(" 内存信息", GUILayout.Height(25));
             GUILayout.EndHorizontal();
 
+            var pair1 = Calculate(1, Profiler.GetTotalReservedMemoryLong());
+            var pair2 = Calculate(2, Profiler.GetTotalAllocatedMemoryLong());
+            var pair3 = Calculate(3, Profiler.GetTotalUnusedReservedMemoryLong());
+            var pair4 = Calculate(4, Profiler.GetAllocatedMemoryForGraphicsDriver());
+            var pair5 = Calculate(5, Profiler.GetMonoHeapSizeLong());
+            var pair6 = Calculate(6, Profiler.GetMonoUsedSizeLong());
+            
             screenView = GUILayout.BeginScrollView(screenView, "Box");
-            GUILayout.Label(Calculate("已保留的内存总量", Profiler.GetTotalReservedMemoryLong()));
-            GUILayout.Label(Calculate("已分配的内存总量", Profiler.GetTotalAllocatedMemoryLong()));
-            GUILayout.Label(Calculate("未使用的内存总量", Profiler.GetTotalUnusedReservedMemoryLong()));
-            GUILayout.Label(Calculate("图形资源使用内存", Profiler.GetAllocatedMemoryForGraphicsDriver()));
-            GUILayout.Label(Calculate("Mono分配的托管堆", Profiler.GetMonoHeapSizeLong()));
-            GUILayout.Label(Calculate("Mono使用的托管堆", Profiler.GetMonoUsedSizeLong()));
+            
+            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical("Box", GUILayout.Width(300));
+            GUILayout.Label("已保留的内存总量: " + pair1.Item1);
+            GUILayout.Label("已分配的内存总量: " + pair2.Item1);
+            GUILayout.Label("未使用的内存总量: " + pair3.Item1);
+            GUILayout.Label("图形资源使用内存: " + pair4.Item1);
+            GUILayout.Label("Mono分配的托管堆: " + pair5.Item1);
+            GUILayout.Label("Mono使用的托管堆: " + pair6.Item1);
+            GUILayout.EndVertical();
+
+            GUILayout.BeginVertical("Box");
+            GUILayout.Label(pair1.Item2);
+            GUILayout.Label(pair2.Item2);
+            GUILayout.Label(pair3.Item2);
+            GUILayout.Label(pair4.Item2);
+            GUILayout.Label(pair5.Item2);
+            GUILayout.Label(pair6.Item2);
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+
             GUILayout.EndScrollView();
 
             GUILayout.BeginHorizontal();
@@ -45,7 +67,7 @@ namespace Astraia.Common
             GUILayout.EndHorizontal();
         }
 
-        private string Calculate(string key, long memory)
+        private (string, string) Calculate(int key, long memory)
         {
             var value = memory / 1024F / 1024F;
             if (!minMemory.TryGetValue(key, out var minValue))
@@ -69,7 +91,9 @@ namespace Astraia.Common
                 minMemory[key] = value;
             }
 
-            return Service.Text.Format("{0}:  \t{1:F2} MB\t\t[ 最小值: {2:F2}\t最大值: {3:F2} ]", key, value, minMemory[key], maxMemory[key]);
+            var item1 = Service.Text.Format("{0:F2} MB", value);
+            var item2 = Service.Text.Format("[ 最小值: {0:F2} MB  \t最大值: {1:F2} MB]", minMemory[key], maxMemory[key]);
+            return (item1, item2);
         }
     }
 }

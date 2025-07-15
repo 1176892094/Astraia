@@ -23,18 +23,41 @@ namespace Astraia.Common
             GUILayout.EndHorizontal();
 
             screenView = GUILayout.BeginScrollView(screenView, "Box");
-            GUILayout.Label("DataTime:\t\t\t\t" + DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"));
-            GUILayout.Label("Time.realtimeSinceStartup:\t" + Time.realtimeSinceStartup.ToString("F"));
-            GUILayout.Label("Time.timeScale:\t\t\t" + Time.timeScale);
-            GUILayout.Label("Time.time:\t\t\t\t" + Time.time.ToString("F"));
-            GUILayout.Label("Time.deltaTime:\t\t\t" + Time.deltaTime.ToString("F"));
-            GUILayout.Label("Time.unscaledTime:\t\t" + Time.unscaledTime.ToString("F"));
-            GUILayout.Label("Time.unscaledDeltaTime:\t" + Time.unscaledDeltaTime.ToString("F"));
-            GUILayout.Label("Time.fixedTime:\t\t\t" + Time.fixedTime.ToString("F"));
-            GUILayout.Label("Time.fixedDeltaTime:\t\t" + Time.fixedDeltaTime.ToString("F"));
-            GUILayout.Label("Time.fixedUnscaledTime:\t" + Time.fixedUnscaledTime.ToString("F"));
-            GUILayout.Label("Time.fixedUnscaledDeltaTime:\t" + Time.fixedUnscaledDeltaTime.ToString("F"));
-            GUILayout.Label("Time.frameCount:\t\t\t" + Time.frameCount);
+            GUILayout.BeginHorizontal();
+
+            GUILayout.BeginVertical("Box", GUILayout.Width(300));
+            GUILayout.Label("DataTime:");
+            GUILayout.Label("Time.frameCount:");
+            GUILayout.Label("Time.realtimeSinceStartup:");
+            GUILayout.Label("Time.timeScale:");
+            GUILayout.Label("Time.time:");
+            GUILayout.Label("Time.deltaTime:");
+            GUILayout.Label("Time.unscaledTime:");
+            GUILayout.Label("Time.unscaledDeltaTime:");
+            GUILayout.Label("Time.fixedTime:");
+            GUILayout.Label("Time.fixedDeltaTime:");
+            GUILayout.Label("Time.fixedUnscaledTime:");
+            GUILayout.Label("Time.fixedUnscaledDeltaTime:");
+        
+            GUILayout.EndVertical();
+
+            GUILayout.BeginVertical("Box");
+            GUILayout.Label(DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"));
+            GUILayout.Label(Time.frameCount.ToString());
+            GUILayout.Label(Time.realtimeSinceStartup.ToString("F"));
+            GUILayout.Label(Time.timeScale.ToString("F"));
+            GUILayout.Label(Time.time.ToString("F"));
+            GUILayout.Label(Time.deltaTime.ToString("F"));
+            GUILayout.Label(Time.unscaledTime.ToString("F"));
+            GUILayout.Label(Time.unscaledDeltaTime.ToString("F"));
+            GUILayout.Label(Time.fixedTime.ToString("F"));
+            GUILayout.Label(Time.fixedDeltaTime.ToString("F"));
+            GUILayout.Label(Time.fixedUnscaledTime.ToString("F"));
+            GUILayout.Label(Time.fixedUnscaledDeltaTime.ToString("F"));
+            GUILayout.EndVertical();
+
+            GUILayout.EndHorizontal();
+
             GUILayout.EndScrollView();
 
             GUILayout.BeginHorizontal();
