@@ -41,7 +41,7 @@ namespace Astraia.Net
     }
 
     [Flags]
-    internal enum EntityMode : byte
+    internal enum AgentMode : byte
     {
         None = 0,
         Owner = 1 << 0,
@@ -50,7 +50,7 @@ namespace Astraia.Net
     }
 
     [Flags]
-    internal enum EntityState : byte
+    internal enum AgentState : byte
     {
         None = 0,
         Spawn = 1 << 0,

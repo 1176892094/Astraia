@@ -22,7 +22,7 @@ namespace Astraia
 {
     public partial class Entity : MonoBehaviour
     {
-        internal Dictionary<Type, Source> sourceDict = new Dictionary<Type, Source>();
+        internal Dictionary<Type, Agent> agentDict = new Dictionary<Type, Agent>();
 
         public event Action OnShow;
         public event Action OnHide;
@@ -34,9 +34,9 @@ namespace Astraia
 
         protected virtual void Awake()
         {
-            foreach (var source in sourceData)
+            foreach (var agent in agentData)
             {
-                AddSource(HeapManager.Dequeue<Source>(Service.Find.Type(source)));
+                AddAgent(HeapManager.Dequeue<Agent>(Service.Find.Type(agent)));
             }
         }
 
@@ -49,8 +49,8 @@ namespace Astraia
             OnStay = null;
             OnExit = null;
             OnEnter = null;
-            sourceDict.Clear();
-            sourceData.Clear();
+            agentDict.Clear();
+            agentData.Clear();
             EntityManager.Hide(this);
         }
 
@@ -79,27 +79,27 @@ namespace Astraia
             OnExit?.Invoke(other);
         }
 
-        public T GetSource<T>() where T : Source
+        public T GetAgent<T>() where T : Agent
         {
-            return (T)sourceDict.GetValueOrDefault(typeof(T));
+            return (T)agentDict.GetValueOrDefault(typeof(T));
         }
 
-        public void AddSource<T>(T source) where T : Source
+        public void AddAgent<T>(T agent) where T : Agent
         {
-            if (sourceDict.TryAdd(source.GetType(), source))
+            if (agentDict.TryAdd(agent.GetType(), agent))
             {
                 EntityManager.Show(this);
-                source.Id = this;
-                source.OnLoad();
+                agent.Id = this;
+                agent.OnLoad();
 
-                OnFade += Remove;
-                OnShow += source.OnShow;
-                OnHide += source.OnHide;
+                OnFade += Faded;
+                OnShow += agent.OnShow;
+                OnHide += agent.OnHide;
 
-                void Remove()
+                void Faded()
                 {
-                    HeapManager.Enqueue(source, source.GetType());
-                    source.OnFade();
+                    HeapManager.Enqueue(agent, agent.GetType());
+                    agent.OnFade();
                 }
             }
         }
@@ -113,21 +113,21 @@ namespace Astraia
     public partial class Entity
     {
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        private static string[] sourceNames;
-        private static string[] SourceNames => sourceNames ??= AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
-            .Where(type => !type.IsAbstract && !type.IsGenericType && typeof(Source).IsAssignableFrom(type)).OrderBy(t => t.FullName)
+        private static string[] agentNames;
+        private static string[] AgentNames => agentNames ??= AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+            .Where(type => !type.IsAbstract && !type.IsGenericType && typeof(Agent).IsAssignableFrom(type)).OrderBy(t => t.FullName)
             .Select(t => Service.Text.Format("{0}, {1}", t.FullName, t.Assembly.GetName().Name)).ToArray();
 
         [HideInEditorMode, ShowInInspector]
-        private List<Source> sourceList
+        private List<Agent> agentList
         {
-            get => sourceDict.Values.ToList();
-            set => sourceDict = value.ToDictionary(k => k.GetType(), v => v);
+            get => agentDict.Values.ToList();
+            set => agentDict = value.ToDictionary(k => k.GetType(), v => v);
         }
 
-        [HideInPlayMode, ValueDropdown("SourceNames")]
+        [HideInPlayMode, ValueDropdown("AgentNames")]
 #endif
         [SerializeField]
-        private List<string> sourceData = new List<string>();
+        private List<string> agentData = new List<string>();
     }
 }

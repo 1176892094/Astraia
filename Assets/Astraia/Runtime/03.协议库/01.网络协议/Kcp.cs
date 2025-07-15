@@ -27,7 +27,8 @@ namespace Astraia
                 this.ts = ts;
             }
         }
-        
+        public const int PING_INTERVAL = 1000;
+        public const int METADATA_SIZE = sizeof(byte) + sizeof(int);
         public const int FRG_MAX = byte.MaxValue; // 最大分片数。KCP将分片编号编码为字节类型，因此最大分片数为255。
         public const int MTU_DEF = 1200;          // 默认的最大传输单元（MTU）。设置为1200以适应所有情况。
         public const int RTO_NDL = 30;            // 无延迟情况下的最小重传超时。用于在无延迟模式下，减少数据包的重传等待时间。
@@ -900,6 +901,16 @@ namespace Astraia
             {
                 rcv_wnd = Math.Max(receiveWindow, WND_RCV);
             }
+        }
+        
+        public static int ReliableSize(int mtu, uint rcv_wnd)
+        {
+            return (mtu - OVERHEAD - METADATA_SIZE) * ((int)Math.Min(rcv_wnd, FRG_MAX) - 1) - 1;
+        }
+
+        public static int UnreliableSize(int mtu)
+        {
+            return mtu - METADATA_SIZE - 1;
         }
     }
 }

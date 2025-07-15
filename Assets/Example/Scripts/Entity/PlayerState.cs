@@ -18,9 +18,9 @@ namespace Runtime
     {
         protected Transform transform => owner.transform;
         protected Rigidbody2D rigidbody => machine.rigidbody;
-        protected PlayerMachine machine => base.owner.GetSource<PlayerMachine>();
-        protected PlayerAttribute attribute =>base.owner.GetSource<PlayerAttribute>();
-        protected new Player owner => base.owner.GetSource<Player>();
+        protected PlayerMachine machine => base.owner.GetAgent<PlayerMachine>();
+        protected PlayerFeature feature =>base.owner.GetAgent<PlayerFeature>();
+        protected new Player owner => base.owner.GetAgent<Player>();
     }
 
     public class PlayerIdle : PlayerState
@@ -33,13 +33,13 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Climb))
+            if (feature.state.HasFlag(StateType.Wall) && feature.state.HasFlag(StateType.Climb))
             {
                 machine.ChangeState<PlayerGrab>();
                 return;
             }
 
-            if (attribute.isWalk)
+            if (feature.isWalk)
             {
                 machine.ChangeState<PlayerWalk>();
             }
@@ -59,19 +59,19 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (attribute.state.HasFlag(StateType.Wall) && attribute.state.HasFlag(StateType.Climb))
+            if (feature.state.HasFlag(StateType.Wall) && feature.state.HasFlag(StateType.Climb))
             {
                 machine.ChangeState<PlayerGrab>();
                 return;
             }
 
-            if (!attribute.isWalk)
+            if (!feature.isWalk)
             {
                 machine.ChangeState<PlayerIdle>();
                 return;
             }
 
-            rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
+            rigidbody.linearVelocityX = feature.moveX * feature.moveSpeed;
         }
 
         public override void OnExit()
@@ -87,22 +87,22 @@ namespace Runtime
         {
             frameCount = Time.frameCount + 10;
             owner.SyncColorServerRpc(Color.red);
-            attribute.state |= StateType.Jump;
-            attribute.SubInt(Attribute.JumpCount, 1);
-            if (attribute.state.HasFlag(StateType.Ground))
+            feature.state |= StateType.Jump;
+            feature.SubInt(Attribute.JumpCount, 1);
+            if (feature.state.HasFlag(StateType.Ground))
             {
-                rigidbody.linearVelocityY = attribute.jumpForce;
+                rigidbody.linearVelocityY = feature.jumpForce;
             }
-            else if (attribute.state.HasFlag(StateType.Wall))
+            else if (feature.state.HasFlag(StateType.Wall))
             {
-                attribute.state |= StateType.Jumped;
-                rigidbody.linearVelocityY = attribute.jumpForce;
-                rigidbody.linearVelocityX = -transform.localScale.x * attribute.jumpForce;
+                feature.state |= StateType.Jumped;
+                rigidbody.linearVelocityY = feature.jumpForce;
+                rigidbody.linearVelocityX = -transform.localScale.x * feature.jumpForce;
                 transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
             }
             else
             {
-                rigidbody.linearVelocityY = attribute.jumpForce;
+                rigidbody.linearVelocityY = feature.jumpForce;
             }
         }
 
@@ -114,25 +114,25 @@ namespace Runtime
                 return;
             }
 
-            if (attribute.dashFrame > Time.frameCount)
+            if (feature.dashFrame > Time.frameCount)
             {
-                if (attribute.moveX != 0)
+                if (feature.moveX != 0)
                 {
                     machine.ChangeState<PlayerCrash>();
                     return;
                 }
             }
 
-            if (!attribute.state.HasFlag(StateType.Jumped))
+            if (!feature.state.HasFlag(StateType.Jumped))
             {
-                rigidbody.linearVelocityX = attribute.moveX * attribute.moveSpeed;
+                rigidbody.linearVelocityX = feature.moveX * feature.moveSpeed;
             }
         }
 
         public override void OnExit()
         {
-            attribute.state &= ~StateType.Jump;
-            attribute.state &= ~StateType.Jumped;
+            feature.state &= ~StateType.Jump;
+            feature.state &= ~StateType.Jumped;
         }
     }
 
@@ -144,13 +144,13 @@ namespace Runtime
         {
             frameCount = Time.frameCount + 5;
             owner.SyncColorServerRpc(Color.cyan);
-            attribute.state |= StateType.Grab;
+            feature.state |= StateType.Grab;
             rigidbody.linearVelocityY = 0;
         }
 
         public override void OnUpdate()
         {
-            if (attribute.rightDownRay && !attribute.rightUpRay)
+            if (feature.rightDownRay && !feature.rightUpRay)
             {
                 machine.ChangeState<PlayerHop>();
                 return;
@@ -158,23 +158,23 @@ namespace Runtime
 
             if (frameCount < Time.frameCount)
             {
-                if (!attribute.state.HasFlag(StateType.Wall) || !attribute.state.HasFlag(StateType.Climb))
+                if (!feature.state.HasFlag(StateType.Wall) || !feature.state.HasFlag(StateType.Climb))
                 {
                     machine.ChangeState<PlayerIdle>();
                     return;
                 }
             }
-            else if (attribute.moveX != 0)
+            else if (feature.moveX != 0)
             {
                 transform.position += Vector3.up * 0.02f;
             }
 
-            rigidbody.linearVelocityY = attribute.moveY * attribute.moveSpeed / 2;
+            rigidbody.linearVelocityY = feature.moveY * feature.moveSpeed / 2;
         }
 
         public override void OnExit()
         {
-            attribute.state &= ~StateType.Grab;
+            feature.state &= ~StateType.Grab;
         }
     }
 
@@ -188,7 +188,7 @@ namespace Runtime
         {
             frameCount = Time.frameCount + 10;
             owner.SyncColorServerRpc(Color.red);
-            attribute.state |= StateType.Grab;
+            feature.state |= StateType.Grab;
             point = transform.position;
         }
 
@@ -216,7 +216,7 @@ namespace Runtime
 
         public override void OnExit()
         {
-            attribute.state &= ~StateType.Grab;
+            feature.state &= ~StateType.Grab;
         }
     }
 
@@ -226,40 +226,40 @@ namespace Runtime
 
         public override void OnEnter()
         {
-            attribute.SetInt(Attribute.DashFrame, Time.frameCount + 10);
+            feature.SetInt(Attribute.DashFrame, Time.frameCount + 10);
             owner.SyncColorServerRpc(Color.magenta);
-            attribute.state |= StateType.Dash;
-            attribute.SubInt(Attribute.DashCount, 1);
-            direction = new Vector3(attribute.moveX, attribute.moveY).normalized;
-            attribute.SetInt(Attribute.WaitFrame, 0);
+            feature.state |= StateType.Dash;
+            feature.SubInt(Attribute.DashCount, 1);
+            direction = new Vector3(feature.moveX, feature.moveY).normalized;
+            feature.SetInt(Attribute.WaitFrame, 0);
         }
 
         public override void OnUpdate()
         {
-            if (attribute.dashFrame < Time.frameCount)
+            if (feature.dashFrame < Time.frameCount)
             {
                 machine.ChangeState<PlayerIdle>();
                 return;
             }
 
-            if (attribute.waitFrame % 4 == 0)
+            if (feature.waitFrame % 4 == 0)
             {
                 owner.LoadEffectServerRpc(transform.position);
             }
 
-            attribute.AddInt(Attribute.WaitFrame, 1);
+            feature.AddInt(Attribute.WaitFrame, 1);
             var position = transform.position;
             if (direction == Vector3.zero)
             {
-                position += Vector3.right * (transform.localScale.x * attribute.dashSpeed * Time.fixedDeltaTime);
+                position += Vector3.right * (transform.localScale.x * feature.dashSpeed * Time.fixedDeltaTime);
             }
-            else if (attribute.moveY < 0 && attribute.state.HasFlag(StateType.Ground))
+            else if (feature.moveY < 0 && feature.state.HasFlag(StateType.Ground))
             {
-                position += Vector3.right * (transform.localScale.x * attribute.dashSpeed * Time.fixedDeltaTime);
+                position += Vector3.right * (transform.localScale.x * feature.dashSpeed * Time.fixedDeltaTime);
             }
             else
             {
-                position += direction * (attribute.dashSpeed * Time.fixedDeltaTime);
+                position += direction * (feature.dashSpeed * Time.fixedDeltaTime);
             }
 
             rigidbody.MovePosition(position);
@@ -268,7 +268,7 @@ namespace Runtime
         public override void OnExit()
         {
             rigidbody.linearVelocityY = 0;
-            attribute.state &= ~StateType.Dash;
+            feature.state &= ~StateType.Dash;
         }
     }
 
@@ -276,31 +276,31 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            attribute.state |= StateType.Crash;
+            feature.state |= StateType.Crash;
             owner.SyncColorServerRpc(Color.magenta);
         }
 
         public override void OnUpdate()
         {
-            if (attribute.state.HasFlag(StateType.Wall) || attribute.state.HasFlag(StateType.Ground))
+            if (feature.state.HasFlag(StateType.Wall) || feature.state.HasFlag(StateType.Ground))
             {
                 machine.ChangeState<PlayerIdle>();
                 return;
             }
 
-            if (attribute.waitFrame % 5 == 0)
+            if (feature.waitFrame % 5 == 0)
             {
                 owner.LoadEffectServerRpc(transform.position);
             }
 
-            attribute.AddInt(Attribute.WaitFrame, 1);
-            rigidbody.linearVelocityX = transform.localScale.x * attribute.moveSpeed * 2;
+            feature.AddInt(Attribute.WaitFrame, 1);
+            rigidbody.linearVelocityX = transform.localScale.x * feature.moveSpeed * 2;
         }
 
         public override void OnExit()
         {
             rigidbody.linearVelocityX = 0;
-            attribute.state &= ~StateType.Crash;
+            feature.state &= ~StateType.Crash;
         }
     }
 }

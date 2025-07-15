@@ -112,7 +112,7 @@ namespace Astraia.Editor
 
         public static void AddInvokeParameters(Module module, ICollection<ParameterDefinition> collection)
         {
-            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, module.Import<NetworkSource>()));
+            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, module.Import<NetworkAgent>()));
             collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             collection.Add(new ParameterDefinition("target", ParameterAttributes.None, module.Import<NetworkClient>()));
         }
@@ -452,7 +452,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldfld, syncVar);
                 var writeFunc =
                     writer.GetFunction(
-                        syncVar.FieldType.IsDerivedFrom<NetworkSource>() ? module.Import<NetworkSource>() : syncVar.FieldType,
+                        syncVar.FieldType.IsDerivedFrom<NetworkAgent>() ? module.Import<NetworkAgent>() : syncVar.FieldType,
                         ref failed);
 
                 if (writeFunc != null)
@@ -494,7 +494,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
                 var writeFunc = writer.GetFunction(
-                    syncVar.FieldType.IsDerivedFrom<NetworkSource>() ? module.Import<NetworkSource>() : syncVar.FieldType,
+                    syncVar.FieldType.IsDerivedFrom<NetworkAgent>() ? module.Import<NetworkAgent>() : syncVar.FieldType,
                     ref failed);
 
                 if (writeFunc != null)
@@ -614,7 +614,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldflda, objectId);
                 worker.Emit(OpCodes.Call, module.syncVarGetterNetworkObject);
             }
-            else if (syncVar.FieldType.IsDerivedFrom<NetworkSource>() || syncVar.FieldType.Is<NetworkSource>())
+            else if (syncVar.FieldType.IsDerivedFrom<NetworkAgent>() || syncVar.FieldType.Is<NetworkAgent>())
             {
                 var objectId = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);

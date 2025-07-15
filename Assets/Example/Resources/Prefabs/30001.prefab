@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5490310625879060458}
   - component: {fileID: 2578763087886583997}
   m_Layer: 7
-  m_Name: Player
+  m_Name: 30001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -165,10 +165,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sourceData:
+  agentData:
   - Astraia.Net.NetworkTransform, Astraia.Net
   - Runtime.Player, Assembly-CSharp
-  entityMode: 0
-  entityPath: Prefabs/Player
-  sceneId: 0
   objectId: 0
+  agentMode: 0
+  assetId: 30001
+  sceneId: 0

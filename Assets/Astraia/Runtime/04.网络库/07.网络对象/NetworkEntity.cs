@@ -15,7 +15,6 @@ using System.Runtime.CompilerServices;
 using Astraia.Common;
 using UnityEngine;
 #if UNITY_EDITOR
-using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
@@ -25,41 +24,41 @@ namespace Astraia.Net
     [Serializable]
     public sealed partial class NetworkEntity : Entity
     {
-        [SerializeField] internal string entityPath;
-        
-        [SerializeField] internal EntityMode entityMode;
-        
-        [SerializeField] [HideInInspector] internal uint sceneId;
+        [SerializeField] internal uint objectId;
 
-        [SerializeField] [HideInInspector] internal uint objectId;
+        [SerializeField] internal AgentMode agentMode;
+
+        [SerializeField] [HideInInspector] internal uint assetId;
+
+        [SerializeField] [HideInInspector] internal uint sceneId;
 
         private int frameCount;
 
-        internal EntityState entityState;
+        internal AgentState agentState;
 
         internal NetworkClient connection;
 
         internal MemoryWriter owner = new MemoryWriter();
 
-        internal MemoryWriter observer = new MemoryWriter();
+        internal MemoryWriter other = new MemoryWriter();
 
-        internal List<NetworkSource> entities = new List<NetworkSource>();
+        internal List<NetworkAgent> agents = new List<NetworkAgent>();
 
         protected override void Awake()
         {
             base.Awake();
-            foreach (var source in sourceDict.Values)
+            foreach (var agent in agentDict.Values)
             {
-                if (source is NetworkSource entity)
+                if (agent is NetworkAgent entity)
                 {
-                    entities.Add(entity);
+                    agents.Add(entity);
                 }
             }
 
-            for (byte i = 0; i < entities.Count; ++i)
+            for (byte i = 0; i < agents.Count; ++i)
             {
-                entities[i].entity = this;
-                entities[i].sourceId = i;
+                agents[i].entity = this;
+                agents[i].sourceId = i;
             }
         }
 
@@ -68,75 +67,45 @@ namespace Astraia.Net
             objectId = 0;
             connection = null;
             owner.position = 0;
-            observer.position = 0;
-            entityMode = EntityMode.None;
-            entityState = EntityState.None;
+            other.position = 0;
+            agentMode = AgentMode.None;
+            agentState = AgentState.None;
         }
 
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
+            try
             {
-                sceneId = 0;
-                AssignAssetId(AssetDatabase.GetAssetPath(gameObject));
-            }
-            else if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-            {
-                if (PrefabStageUtility.GetPrefabStage(gameObject) != null)
+                if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
                 {
                     sceneId = 0;
-                    AssignAssetId(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
+                    Undo.RecordObject(gameObject, Log.E275);
+                    assetId = uint.Parse(name);
                 }
-            }
-            else if (IsSceneWithParent(out var prefab))
-            {
-                AssignSceneId();
-                AssignAssetId(AssetDatabase.GetAssetPath(prefab));
-            }
-            else
-            {
-                AssignSceneId();
-            }
-        }
-
-        private void AssignAssetId(string assetPath)
-        {
-            if (!string.IsNullOrWhiteSpace(assetPath))
-            {
-                var importer = AssetImporter.GetAtPath(assetPath);
-                if (importer != null)
+                else if (PrefabStageUtility.GetCurrentPrefabStage() && PrefabStageUtility.GetPrefabStage(gameObject))
                 {
-                    var asset = importer.assetBundleName;
-                    if (!string.IsNullOrEmpty(importer.assetBundleName))
-                    {
-                        entityPath = char.ToUpper(asset[0]) + asset.Substring(1) + "/" + name;
-                    }
-                    else
-                    {
-                        entityPath = Path.GetFileName(Path.GetDirectoryName(assetPath)) + "/" + name;
-                    }
+                    sceneId = 0;
+                    Undo.RecordObject(gameObject, Log.E275);
+                    assetId = uint.Parse(name);
+                }
+                else if (PrefabUtility.IsPartOfPrefabInstance(gameObject) && PrefabUtility.GetCorrespondingObjectFromSource(gameObject))
+                {
+                    AssignSceneId();
+                    Undo.RecordObject(gameObject, Log.E275);
+                    assetId = uint.Parse(name);
+                }
+                else
+                {
+                    AssignSceneId();
                 }
             }
+            catch (Exception e)
+            {
+                Debug.LogWarning(Service.Text.Format("请将 {0} 名称修改为纯数字!\n{1}", gameObject, e), gameObject);
+            }
         }
 
-        private bool IsSceneWithParent(out GameObject prefab)
-        {
-            prefab = null;
-            if (!PrefabUtility.IsPartOfPrefabInstance(gameObject))
-            {
-                return false;
-            }
-
-            prefab = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
-            if (prefab != null)
-            {
-                return true;
-            }
-
-            Debug.LogError(Service.Text.Format(Log.E273, name));
-            return false;
-        }
 
         private void AssignSceneId()
         {
@@ -165,20 +134,19 @@ namespace Astraia.Net
 
         protected override void OnDestroy()
         {
-            if ((entityMode & EntityMode.Server) == EntityMode.Server && (entityState & EntityState.Destroy) == 0)
+            if ((agentMode & AgentMode.Server) == AgentMode.Server && (agentState & AgentState.Destroy) == 0)
             {
-                gameObject.name += " (Destroy)";
-                NetworkManager.Server.Despawn(gameObject);
+                NetworkManager.Server.Destroy(gameObject);
             }
 
-            if ((entityMode & EntityMode.Client) != 0)
+            if ((agentMode & AgentMode.Client) != 0)
             {
                 NetworkManager.Client.spawns.Remove(objectId);
             }
 
             owner = null;
-            observer = null;
-            entities = null;
+            other = null;
+            agents = null;
             connection = null;
             base.OnDestroy();
         }
@@ -189,23 +157,23 @@ namespace Astraia.Net
             return (mask & (ulong)(1 << index)) != 0;
         }
 
-        internal void InvokeMessage(byte sourceId, ushort function, InvokeMode mode, MemoryReader reader, NetworkClient client = null)
+        internal void InvokeMessage(byte agentId, ushort function, InvokeMode mode, MemoryReader reader, NetworkClient client = null)
         {
             if (transform == null)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E276, mode, function, objectId));
+                Debug.LogWarning(Service.Text.Format(Log.E276, mode, function, this.objectId));
                 return;
             }
 
-            if (sourceId >= entities.Count)
+            if (agentId >= agents.Count)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E277, objectId, sourceId));
+                Debug.LogWarning(Service.Text.Format(Log.E277, this.objectId, agentId));
                 return;
             }
 
-            if (!NetworkAttribute.Invoke(function, mode, client, reader, entities[sourceId]))
+            if (!NetworkAttribute.Invoke(function, mode, client, reader, agents[agentId]))
             {
-                Debug.LogError(Service.Text.Format(Log.E278, mode, function, gameObject.name, objectId));
+                Debug.LogError(Service.Text.Format(Log.E278, mode, function, gameObject.name, this.objectId));
             }
         }
 
@@ -215,143 +183,143 @@ namespace Astraia.Net
             {
                 frameCount = frame;
                 owner.position = 0;
-                observer.position = 0;
-                ServerSerialize(false, owner, observer);
+                other.position = 0;
+                ServerSerialize(false, owner, other);
                 ClearDirty(true);
             }
         }
 
         internal void ClearDirty(bool total)
         {
-            foreach (var source in entities)
+            foreach (var agent in agents)
             {
-                if (source.IsDirty() || total)
+                if (agent.IsDirty() || total)
                 {
-                    source.ClearDirty();
+                    agent.ClearDirty();
                 }
             }
         }
 
         internal void OnStartClient()
         {
-            if ((entityState & EntityState.Spawn) != 0)
+            if ((agentState & AgentState.Spawn) != 0)
             {
                 return;
             }
 
-            entityState |= EntityState.Spawn;
+            agentState |= AgentState.Spawn;
 
-            foreach (var source in entities)
+            foreach (var agent in agents)
             {
                 try
                 {
-                    (source as IStartClient)?.OnStartClient();
+                    (agent as IStartClient)?.OnStartClient();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning(e, source.gameObject);
+                    Debug.LogWarning(e, agent.gameObject);
                 }
             }
         }
 
         internal void OnStopClient()
         {
-            if ((entityState & EntityState.Spawn) == 0)
+            if ((agentState & AgentState.Spawn) == 0)
             {
                 return;
             }
 
-            foreach (var source in entities)
+            foreach (var agent in agents)
             {
                 try
                 {
-                    (source as IStopClient)?.OnStopClient();
+                    (agent as IStopClient)?.OnStopClient();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning(e, source.gameObject);
+                    Debug.LogWarning(e, agent.gameObject);
                 }
             }
         }
 
         internal void OnStartServer()
         {
-            foreach (var source in entities)
+            foreach (var agent in agents)
             {
                 try
                 {
-                    (source as IStartServer)?.OnStartServer();
+                    (agent as IStartServer)?.OnStartServer();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning(e, source.gameObject);
+                    Debug.LogWarning(e, agent.gameObject);
                 }
             }
         }
 
         internal void OnStopServer()
         {
-            foreach (var source in entities)
+            foreach (var agent in agents)
             {
                 try
                 {
-                    (source as IStopServer)?.OnStopServer();
+                    (agent as IStopServer)?.OnStopServer();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning(e, source.gameObject);
+                    Debug.LogWarning(e, agent.gameObject);
                 }
             }
         }
 
         private void OnStartAuthority()
         {
-            foreach (var source in entities)
+            foreach (var agent in agents)
             {
                 try
                 {
-                    (source as IStartAuthority)?.OnStartAuthority();
+                    (agent as IStartAuthority)?.OnStartAuthority();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning(e, source.gameObject);
+                    Debug.LogWarning(e, agent.gameObject);
                 }
             }
         }
 
         private void OnStopAuthority()
         {
-            foreach (var source in entities)
+            foreach (var agent in agents)
             {
                 try
                 {
-                    (source as IStopAuthority)?.OnStopAuthority();
+                    (agent as IStopAuthority)?.OnStopAuthority();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning(e, source.gameObject);
+                    Debug.LogWarning(e, agent.gameObject);
                 }
             }
         }
 
         internal void OnNotifyAuthority()
         {
-            if ((entityState & EntityState.Authority) == 0 && (entityMode & EntityMode.Owner) != 0)
+            if ((agentState & AgentState.Authority) == 0 && (agentMode & AgentMode.Owner) != 0)
             {
                 OnStartAuthority();
             }
-            else if ((entityState & EntityState.Authority) != 0 && (entityMode & EntityMode.Owner) == 0)
+            else if ((agentState & AgentState.Authority) != 0 && (agentMode & AgentMode.Owner) == 0)
             {
                 OnStopAuthority();
             }
 
-            if ((entityMode & EntityMode.Owner) != 0)
+            if ((agentMode & AgentMode.Owner) != 0)
             {
-                entityState |= EntityState.Authority;
+                agentState |= AgentState.Authority;
             }
             else
             {
-                entityState &= ~EntityState.Authority;
+                agentState &= ~AgentState.Authority;
             }
         }
     }

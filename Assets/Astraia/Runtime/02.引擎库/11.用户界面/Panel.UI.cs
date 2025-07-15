@@ -15,10 +15,10 @@ using System.Collections.Generic;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel : Source
+    public abstract class UIPanel : Agent
     {
+        public HashSet<string> groups = new HashSet<string>();
         public UIState state = UIState.Common;
         public UILayer layer = UILayer.Layer1;
-        public HashSet<string> groups = new HashSet<string>();
     }
 }

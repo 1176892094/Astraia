@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Astraia.Common;
 using UnityEngine;

@@ -15,7 +15,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public abstract class Source
+    public abstract class Agent
     {
         internal int Id;
         public Entity owner => EntityManager.Find(Id);
@@ -38,9 +38,9 @@ namespace Astraia
         {
         }
 
-        public static implicit operator bool(Source source)
+        public static implicit operator bool(Agent agent)
         {
-            return source.owner != null && source.owner.isActiveAndEnabled;
+            return agent.owner != null && agent.owner.isActiveAndEnabled;
         }
     }
 }

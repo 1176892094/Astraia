@@ -83,7 +83,7 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 处理 NetworkSource
+        /// 处理 NetworkAgent
         /// </summary>
         /// <param name="td"></param>
         /// <param name="failed"></param>
@@ -91,7 +91,7 @@ namespace Astraia.Editor
         private bool ProcessNetworkBehavior(TypeDefinition td, ref bool failed)
         {
             if (!td.IsClass) return false;
-            if (!td.IsDerivedFrom<NetworkSource>())
+            if (!td.IsDerivedFrom<NetworkAgent>())
             {
                 if (td.IsDerivedFrom<MonoBehaviour>())
                 {
@@ -106,7 +106,7 @@ namespace Astraia.Editor
             TypeDefinition parent = td;
             while (parent != null)
             {
-                if (parent.Is<NetworkSource>())
+                if (parent.Is<NetworkAgent>())
                 {
                     break;
                 }

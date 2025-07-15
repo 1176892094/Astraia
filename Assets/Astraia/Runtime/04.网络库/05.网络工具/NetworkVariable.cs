@@ -16,8 +16,9 @@ namespace Astraia.Net
     [Serializable]
     public struct NetworkVariable : IEquatable<NetworkVariable>
     {
-        public uint objectId;
         public byte sourceId;
+        public uint objectId;
+      
 
         public NetworkVariable(uint objectId, int sourceId)
         {

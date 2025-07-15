@@ -28,9 +28,7 @@ namespace Astraia.Common
         public AudioSource sounds;
 
         internal static AudioSetting settings;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
+        
         internal static AssetBundleManifest manifest;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]

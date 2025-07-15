@@ -80,7 +80,7 @@ namespace Astraia
                         if (property != null)
                         {
                             var func = (UnityAction)Delegate.CreateDelegate(typeof(UnityAction), target, method);
-                            var panel = inject.GetComponent<Entity>()?.GetSource<UIPanel>();
+                            var panel = inject.GetComponent<Entity>()?.GetAgent<UIPanel>();
                             if (panel == null)
                             {
                                 ((UnityEvent)property.GetValue(button)).AddListener(func);
@@ -107,7 +107,7 @@ namespace Astraia
                         if (property != null)
                         {
                             var func = (UnityAction<bool>)Delegate.CreateDelegate(typeof(UnityAction<bool>), target, method);
-                            var panel = inject.GetComponent<Entity>()?.GetSource<UIPanel>();
+                            var panel = inject.GetComponent<Entity>()?.GetAgent<UIPanel>();
                             if (panel == null)
                             {
                                 ((UnityEvent<bool>)property.GetValue(toggle)).AddListener(func);
@@ -134,7 +134,7 @@ namespace Astraia
                         if (property != null)
                         {
                             var func = (UnityAction<string>)Delegate.CreateDelegate(typeof(UnityAction<string>), target, method);
-                            var panel = inject.GetComponent<Entity>()?.GetSource<UIPanel>();
+                            var panel = inject.GetComponent<Entity>()?.GetAgent<UIPanel>();
                             if (panel == null)
                             {
                                 ((UnityEvent<string>)property.GetValue(inputField)).AddListener(func);

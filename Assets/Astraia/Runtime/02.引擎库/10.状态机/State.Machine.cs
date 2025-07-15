@@ -17,12 +17,12 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public abstract partial class StateMachine : Source
+    public abstract partial class StateMachine : Agent
     {
         private readonly Dictionary<Type, State> states = new Dictionary<Type, State>();
         [SerializeField] private State state;
 
-        public void OnUpdate()
+        public virtual void OnUpdate()
         {
             state?.OnUpdate();
         }
@@ -43,16 +43,7 @@ namespace Astraia
             state = states[typeof(T)];
             state?.OnEnter();
         }
-
-        public void RemoveState<T>()
-        {
-            if (states.TryGetValue(typeof(T), out var item))
-            {
-                states.Remove(typeof(T));
-                HeapManager.Enqueue(item, item.GetType());
-            }
-        }
-
+        
         public override void OnFade()
         {
             var copies = new List<State>(states.Values);

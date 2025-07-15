@@ -98,7 +98,7 @@ namespace Astraia.Editor
                 return AddCollection(tr, elementType, nameof(Net.Extensions.GetList), ref failed);
             }
 
-            if (tr.IsDerivedFrom<NetworkSource>() || tr.Is<NetworkSource>())
+            if (tr.IsDerivedFrom<NetworkAgent>() || tr.Is<NetworkAgent>())
             {
                 return AddNetworkSource(tr);
             }

@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Astraia.Common;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Astraia.Net
 {
@@ -297,7 +298,7 @@ namespace Astraia.Net
                     var entities = spawns.Values.Where(entity => entity.connection == client).ToList();
                     foreach (var entity in entities)
                     {
-                        Destroy(entity);
+                        Object.Destroy(entity);
                     }
 
                     clients.Remove(client.clientId);
@@ -392,14 +393,14 @@ namespace Astraia.Net
 
                 if (Mode == EntryMode.Host && client?.clientId == hostId)
                 {
-                    entity.entityMode |= EntityMode.Owner;
+                    entity.agentMode |= AgentMode.Owner;
                 }
 
-                if ((entity.entityMode & EntityMode.Server) == 0 && entity.objectId == 0)
+                if ((entity.agentMode & AgentMode.Server) == 0 && entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
-                    entity.entityMode |= EntityMode.Server;
-                    entity.entityMode = Client.isActive ? entity.entityMode | EntityMode.Client : entity.entityMode & ~EntityMode.Owner; 
+                    entity.agentMode |= AgentMode.Server;
+                    entity.agentMode = Client.isActive ? entity.agentMode | AgentMode.Client : entity.agentMode & ~AgentMode.Owner; 
                     spawns[entity.objectId] = entity;
                     entity.OnStartServer();
                 }
@@ -421,7 +422,7 @@ namespace Astraia.Net
                 var isOwner = entity.connection == client;
                 var transform = entity.transform;
                 ArraySegment<byte> segment = default;
-                if (entity.entities.Count != 0)
+                if (entity.agents.Count != 0)
                 {
                     entity.ServerSerialize(true, writer, observer);
                     segment = isOwner ? writer : observer;
@@ -430,8 +431,7 @@ namespace Astraia.Net
                 var message = new SpawnMessage
                 {
                     isOwner = isOwner,
-                    isPool = entity.entityPath.Equals(entity.name, StringComparison.OrdinalIgnoreCase),
-                    assetId = entity.entityPath,
+                    assetId = entity.assetId,
                     sceneId = entity.sceneId,
                     objectId = entity.objectId,
                     position = transform.localPosition,
@@ -457,17 +457,29 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopServer();
-                if (entity.entityPath.Equals(entity.name, StringComparison.OrdinalIgnoreCase))
+                PoolManager.Hide(entity.gameObject);
+                entity.Reset();
+            }
+            
+            public static void Destroy(GameObject gameObject)
+            {
+                if (!gameObject.TryGetComponent(out NetworkEntity entity))
                 {
-                    PoolManager.Hide(entity.gameObject);
-                    entity.Reset();
                     return;
                 }
 
-                entity.entityState |= EntityState.Destroy;
-                Destroy(entity.gameObject);
+                spawns.Remove(entity.objectId);
+                foreach (var client in clients.Values)
+                {
+                    client.Send(new DespawnMessage(entity.objectId));
+                }
+
+                entity.OnStopServer();
+                entity.agentState |= AgentState.Destroy;
+                Object.Destroy(entity.gameObject);
             }
         }
+    
 
         public partial class Server
         {
@@ -521,9 +533,9 @@ namespace Astraia.Net
                             }
                             else
                             {
-                                if (entity.observer.position > 0)
+                                if (entity.other.position > 0)
                                 {
-                                    client.Send(new EntityMessage(entity.objectId, entity.observer));
+                                    client.Send(new EntityMessage(entity.objectId, entity.other));
                                 }
                             }
                         }

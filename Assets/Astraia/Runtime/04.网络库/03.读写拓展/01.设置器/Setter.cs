@@ -127,7 +127,7 @@ namespace Astraia.Net
             writer.SetUInt(value.objectId);
         }
 
-        public static void SetNetworkSource(this MemoryWriter writer, NetworkSource value)
+        public static void SetNetworkSource(this MemoryWriter writer, NetworkAgent value)
         {
             if (value == null)
             {

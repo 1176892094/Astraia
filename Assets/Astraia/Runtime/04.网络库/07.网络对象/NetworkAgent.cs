@@ -19,7 +19,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public abstract partial class NetworkSource : Source
+    public abstract partial class NetworkAgent : Agent
     {
         internal byte sourceId;
 
@@ -29,7 +29,7 @@ namespace Astraia.Net
 
         private ulong syncVarHook;
 
-        protected double syncVarTime;
+        private double syncVarTime;
 
         protected ulong syncVarDirty { get; set; }
 
@@ -37,11 +37,11 @@ namespace Astraia.Net
 
         public uint objectId => entity.objectId;
 
-        public bool isOwner => (entity?.entityMode & EntityMode.Owner) != 0;
+        public bool isOwner => (entity?.agentMode & AgentMode.Owner) != 0;
 
-        public bool isServer => (entity?.entityMode & EntityMode.Server) != 0;
+        public bool isServer => (entity?.agentMode & AgentMode.Server) != 0;
 
-        public bool isClient => (entity?.entityMode & EntityMode.Client) != 0;
+        public bool isClient => (entity?.agentMode & AgentMode.Client) != 0;
 
         public bool isVerify
         {

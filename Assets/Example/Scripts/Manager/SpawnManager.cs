@@ -15,11 +15,11 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class SpawnManager : NetworkSource
+    public class SpawnManager : NetworkAgent
     {
         public static SpawnManager Instance;
 
-        public override void OnAwake()
+        public override void OnLoad()
         {
             Instance = this;
             Object.DontDestroyOnLoad(gameObject);

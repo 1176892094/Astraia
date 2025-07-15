@@ -228,7 +228,7 @@ namespace Astraia.Editor
         private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarIds, long dirtyBits, ref bool failed)
         {
             FieldDefinition objectId = null;
-            if (fd.FieldType.IsDerivedFrom<NetworkSource>() || fd.FieldType.Is<NetworkSource>())
+            if (fd.FieldType.IsDerivedFrom<NetworkAgent>() || fd.FieldType.Is<NetworkAgent>())
             {
                 objectId = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, module.Import<NetworkVariable>())
                 {
@@ -307,7 +307,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, module.getSyncVarNetworkObject);
                 worker.Emit(OpCodes.Ret);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkSource>() || fd.FieldType.Is<NetworkSource>())
+            else if (fd.FieldType.IsDerivedFrom<NetworkAgent>() || fd.FieldType.Is<NetworkAgent>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_0);
@@ -384,7 +384,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
                 worker.Emit(OpCodes.Call, module.syncVarSetterNetworkObject);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkSource>() || fd.FieldType.Is<NetworkSource>())
+            else if (fd.FieldType.IsDerivedFrom<NetworkAgent>() || fd.FieldType.Is<NetworkAgent>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);

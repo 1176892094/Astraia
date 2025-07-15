@@ -95,7 +95,7 @@ namespace Astraia.Editor
                 return AddCollection(tr, elementType, nameof(Net.Extensions.SetList), ref failed);
             }
 
-            if (tr.IsDerivedFrom<NetworkSource>() || tr.Is<NetworkSource>())
+            if (tr.IsDerivedFrom<NetworkAgent>() || tr.Is<NetworkAgent>())
             {
                 return AddNetworkSource(tr);
             }
@@ -185,9 +185,9 @@ namespace Astraia.Editor
 
         private MethodReference AddNetworkSource(TypeReference tr)
         {
-            if (!methods.TryGetValue(module.Import<NetworkSource>(), out var mr))
+            if (!methods.TryGetValue(module.Import<NetworkAgent>(), out var mr))
             {
-                throw new MissingMethodException("获取 NetworkSource 方法丢失");
+                throw new MissingMethodException("获取 NetworkAgent 方法丢失");
             }
 
             Register(tr, mr);

@@ -18,26 +18,26 @@ namespace Astraia.Net
     {
         internal void ServerSerialize(bool initialize, MemoryWriter owner, MemoryWriter observer)
         {
-            var components = entities;
-            var (ownerMask, observerMask) = ServerDirtyMasks(initialize);
+            var components = agents;
+            var (ownerMask, otherMask) = ServerDirtyMasks(initialize);
 
             if (ownerMask != 0)
             {
                 Service.Length.Encode(owner, ownerMask);
             }
 
-            if (observerMask != 0)
+            if (otherMask != 0)
             {
-                Service.Length.Encode(observer, observerMask);
+                Service.Length.Encode(observer, otherMask);
             }
 
-            if ((ownerMask | observerMask) != 0)
+            if ((ownerMask | otherMask) != 0)
             {
                 for (var i = 0; i < components.Count; ++i)
                 {
                     var component = components[i];
                     var ownerDirty = IsDirty(ownerMask, i);
-                    var observersDirty = IsDirty(observerMask, i);
+                    var observersDirty = IsDirty(otherMask, i);
                     if (ownerDirty || observersDirty)
                     {
                         using var writer = MemoryWriter.Pop();
@@ -59,7 +59,7 @@ namespace Astraia.Net
 
         internal void ClientSerialize(MemoryWriter writer)
         {
-            var components = entities;
+            var components = agents;
             var dirtyMask = ClientDirtyMask();
             if (dirtyMask != 0)
             {
@@ -78,7 +78,7 @@ namespace Astraia.Net
 
         internal bool ServerDeserialize(MemoryReader reader)
         {
-            var components = entities;
+            var components = agents;
             var mask = Service.Length.Decode(reader);
 
             for (var i = 0; i < components.Count; ++i)
@@ -104,7 +104,7 @@ namespace Astraia.Net
 
         internal void ClientDeserialize(MemoryReader reader, bool initialize)
         {
-            var components = entities;
+            var components = agents;
             var mask = Service.Length.Decode(reader);
 
             for (var i = 0; i < components.Count; ++i)
@@ -122,7 +122,7 @@ namespace Astraia.Net
             ulong ownerMask = 0;
             ulong observerMask = 0;
 
-            var components = entities;
+            var components = agents;
             for (var i = 0; i < components.Count; ++i)
             {
                 var component = components[i];
@@ -145,11 +145,11 @@ namespace Astraia.Net
         private ulong ClientDirtyMask()
         {
             ulong mask = 0;
-            var components = entities;
+            var components = agents;
             for (var i = 0; i < components.Count; ++i)
             {
                 var component = components[i];
-                if ((entityMode & EntityMode.Owner) != 0 && component.syncDirection == SyncMode.Client)
+                if ((agentMode & AgentMode.Owner) != 0 && component.syncDirection == SyncMode.Client)
                 {
                     if (component.IsDirty())
                     {

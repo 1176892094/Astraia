@@ -46,27 +46,26 @@ namespace Astraia.Common
 
     internal struct ServerRpcMessage : IMessage
     {
-        public uint objectId;
         public byte sourceId;
+        public uint objectId;
         public ushort methodHash;
         public ArraySegment<byte> segment;
     }
 
     internal struct ClientRpcMessage : IMessage
     {
-        public uint objectId;
         public byte sourceId;
+        public uint objectId;
         public ushort methodHash;
         public ArraySegment<byte> segment;
     }
 
     internal struct SpawnMessage : IMessage
     {
-        public bool isPool;
         public bool isOwner;
+        public uint sceneId;
+        public uint assetId;
         public uint objectId;
-        public ulong sceneId;
-        public string assetId;
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 localScale;
@@ -77,6 +76,12 @@ namespace Astraia.Common
     {
         public readonly uint objectId;
         public DespawnMessage(uint objectId) => this.objectId = objectId;
+    }
+    
+    internal struct DestroyMessage : IMessage
+    {
+        public readonly uint objectId;
+        public DestroyMessage(uint objectId) => this.objectId = objectId;
     }
 
     internal struct EntityMessage : IMessage

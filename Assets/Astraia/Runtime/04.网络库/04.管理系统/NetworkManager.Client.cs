@@ -31,7 +31,7 @@ namespace Astraia.Net
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
             private static State state = State.Disconnect;
-            
+
             private static double pingTime;
 
             private static double waitTime;
@@ -220,7 +220,7 @@ namespace Astraia.Net
                 {
                     return;
                 }
-                
+
                 if (pingTime <= 0)
                 {
                     pingTime = Time.unscaledTimeAsDouble - message.clientTime;
@@ -293,14 +293,14 @@ namespace Astraia.Net
                         entity.gameObject.SetActive(true);
                         if (message.isOwner)
                         {
-                            entity.entityMode |= EntityMode.Owner;
+                            entity.agentMode |= AgentMode.Owner;
                         }
                         else
                         {
-                            entity.entityMode &= ~EntityMode.Owner;
+                            entity.agentMode &= ~AgentMode.Owner;
                         }
 
-                        entity.entityMode |= EntityMode.Client;
+                        entity.agentMode |= AgentMode.Client;
                         entity.OnNotifyAuthority();
                         entity.OnStartClient();
                     }
@@ -335,7 +335,7 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopClient();
-                entity.entityMode &= ~EntityMode.Owner;
+                entity.agentMode &= ~AgentMode.Owner;
                 entity.OnNotifyAuthority();
                 spawns.Remove(message.objectId);
 
@@ -344,10 +344,24 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (entity.entityPath.Equals(entity.name, StringComparison.OrdinalIgnoreCase))
+                PoolManager.Hide(entity.gameObject);
+                entity.Reset();
+            }
+
+            private static void DestroyMessage(DestroyMessage message)
+            {
+                if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    PoolManager.Hide(entity.gameObject);
-                    entity.Reset();
+                    return;
+                }
+
+                entity.OnStopClient();
+                entity.agentMode &= ~AgentMode.Owner;
+                entity.OnNotifyAuthority();
+                spawns.Remove(message.objectId);
+
+                if (Server.isActive)
+                {
                     return;
                 }
 
@@ -400,17 +414,17 @@ namespace Astraia.Net
                         connection.Disconnect();
                         return;
                     }
-                    
+
 
                     var message = reader.GetUShort();
-                    
+
                     if (!messages.TryGetValue(message, out var action))
                     {
                         Debug.LogWarning(Service.Text.Format(Log.E222, message));
                         connection.Disconnect();
                         return;
                     }
-                    
+
                     action.Invoke(null, reader, channel);
                 }
 
@@ -433,16 +447,7 @@ namespace Astraia.Net
 
                 if (message.sceneId == 0)
                 {
-                    GameObject prefab;
-                    if (message.isPool)
-                    {
-                        prefab = await PoolManager.Show(message.assetId);
-                    }
-                    else
-                    {
-                        prefab = await AssetManager.Load<GameObject>(message.assetId);
-                    }
-
+                    var prefab = await AssetManager.Load<GameObject>("Prefabs/" + message.assetId);
                     if (!prefab.TryGetComponent(out entity))
                     {
                         Debug.LogError(Service.Text.Format(Log.E224, prefab.name));
@@ -481,8 +486,8 @@ namespace Astraia.Net
                 }
 
                 entity.objectId = message.objectId;
-                entity.entityMode = message.isOwner ? entity.entityMode | EntityMode.Owner : entity.entityMode & ~EntityMode.Owner;
-                entity.entityMode |= EntityMode.Client;
+                entity.agentMode = message.isOwner ? entity.agentMode | AgentMode.Owner : entity.agentMode & ~AgentMode.Owner;
+                entity.agentMode |= AgentMode.Client;
                 entity.transform.localPosition = message.position;
                 entity.transform.localRotation = message.rotation;
                 entity.transform.localScale = message.localScale;

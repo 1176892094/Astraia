@@ -17,7 +17,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public abstract partial class NetworkSource
+    public abstract partial class NetworkAgent
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SyncVarSetterGeneral<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged)
@@ -219,7 +219,7 @@ namespace Astraia.Net
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterNetworkSource<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable variable) where T : NetworkSource
+        public void SyncVarSetterNetworkSource<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable variable) where T : NetworkAgent
         {
             if (!SyncVarEqualNetworkSource(value, variable))
             {
@@ -238,7 +238,7 @@ namespace Astraia.Net
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterNetworkSource<T>(ref T field, Action<T, T> OnChanged, MemoryReader reader, ref NetworkVariable variable) where T : NetworkSource
+        public void SyncVarGetterNetworkSource<T>(ref T field, Action<T, T> OnChanged, MemoryReader reader, ref NetworkVariable variable) where T : NetworkAgent
         {
             var oldValue = variable;
             var oldObject = field;
@@ -250,7 +250,7 @@ namespace Astraia.Net
             }
         }
         
-        private static bool SyncVarEqualNetworkSource<T>(T entity, NetworkVariable variable) where T : NetworkSource
+        private static bool SyncVarEqualNetworkSource<T>(T entity, NetworkVariable variable) where T : NetworkAgent
         {
             uint newValue = 0;
             byte index = 0;
@@ -267,7 +267,7 @@ namespace Astraia.Net
             return variable.Equals(newValue, index);
         }
         
-        public T GetSyncVarNetworkSource<T>(NetworkVariable variable, ref T field) where T : NetworkSource
+        public T GetSyncVarNetworkSource<T>(NetworkVariable variable, ref T field) where T : NetworkAgent
         {
             if (isServer || !isClient)
             {
@@ -279,11 +279,11 @@ namespace Astraia.Net
                 return null;
             }
         
-            field = (T)oldObject.entities[variable.sourceId];
+            field = (T)oldObject.agents[variable.sourceId];
             return field;
         }
         
-        private void SetSyncVarNetworkSource<T>(T entity, ref T field, ulong dirty, ref NetworkVariable variable) where T : NetworkSource
+        private void SetSyncVarNetworkSource<T>(T entity, ref T field, ulong dirty, ref NetworkVariable variable) where T : NetworkAgent
         {
             if (GetSyncVarHook(dirty)) return;
             uint newValue = 0;

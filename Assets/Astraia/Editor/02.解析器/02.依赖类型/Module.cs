@@ -65,77 +65,77 @@ namespace Astraia.Editor
         public readonly MethodReference CreateInstanceMethodRef;
 
         /// <summary>
-        /// 读取泛型的 NetworkSource
+        /// 读取泛型的 NetworkAgent
         /// </summary>
         public readonly MethodReference ReadNetworkSourceGeneric;
 
         /// <summary>
-        /// NetworkSource.SendServerRpcInternal
+        /// NetworkAgent.SendServerRpcInternal
         /// </summary>
         public readonly MethodReference sendServerRpcInternal;
 
         /// <summary>
-        /// NetworkSource.SendTargetRpcInternal
+        /// NetworkAgent.SendTargetRpcInternal
         /// </summary>
         public readonly MethodReference sendTargetRpcInternal;
 
         /// <summary>
-        /// NetworkSource.SendClientRpcInternal
+        /// NetworkAgent.SendClientRpcInternal
         /// </summary>
         public readonly MethodReference sendClientRpcInternal;
 
         /// <summary>
-        /// NetworkSource.SyncVarSetterGeneral
+        /// NetworkAgent.SyncVarSetterGeneral
         /// </summary>
         public readonly MethodReference syncVarSetterGeneral;
 
         /// <summary>
-        /// NetworkSource.SyncVarSetterGameObject
+        /// NetworkAgent.SyncVarSetterGameObject
         /// </summary>
         public readonly MethodReference syncVarSetterGameObject;
 
         /// <summary>
-        /// NetworkSource.SyncVarSetterNetworkObject
+        /// NetworkAgent.SyncVarSetterNetworkObject
         /// </summary>
         public readonly MethodReference syncVarSetterNetworkObject;
 
         /// <summary>
-        /// NetworkSource.SyncVarSetterNetworkSource
+        /// NetworkAgent.SyncVarSetterNetworkSource
         /// </summary>
         public readonly MethodReference syncVarSetterNetworkSource;
 
         /// <summary>
-        /// NetworkSource.SyncVarGetterGeneral
+        /// NetworkAgent.SyncVarGetterGeneral
         /// </summary>
         public readonly MethodReference syncVarGetterGeneral;
 
         /// <summary>
-        /// NetworkSource.SyncVarGetterGameObject
+        /// NetworkAgent.SyncVarGetterGameObject
         /// </summary>
         public readonly MethodReference syncVarGetterGameObject;
 
         /// <summary>
-        /// NetworkSource.SyncVarGetterNetworkObject
+        /// NetworkAgent.SyncVarGetterNetworkObject
         /// </summary>
         public readonly MethodReference syncVarGetterNetworkObject;
 
         /// <summary>
-        /// NetworkSource.SyncVarGetterNetworkSource
+        /// NetworkAgent.SyncVarGetterNetworkSource
         /// </summary>
         public readonly MethodReference syncVarGetterNetworkSource;
 
         /// <summary>
-        /// NetworkSource.GetSyncVarGameObject
+        /// NetworkAgent.GetSyncVarGameObject
         /// </summary>
         public readonly MethodReference getSyncVarGameObject;
 
         /// <summary>
-        /// NetworkSource.GetSyncVarNetworkObject
+        /// NetworkAgent.GetSyncVarNetworkObject
         /// </summary>
         public readonly MethodReference getSyncVarNetworkObject;
 
         /// <summary>
-        /// NetworkSource.GetSyncVarNetworkSource
+        /// NetworkAgent.GetSyncVarNetworkSource
         /// </summary>
         public readonly MethodReference getSyncVarNetworkSource;
 
@@ -212,7 +212,7 @@ namespace Astraia.Editor
             var StreamExtensionType = Import(typeof(Net.Extensions));
             ReadNetworkSourceGeneric = Resolve.GetMethod(StreamExtensionType, assembly, logger, method => method.Name == nameof(Net.Extensions.GetNetworkSource) && method.HasGenericParameters, ref failed);
 
-            var NetworkSourceType = Import<NetworkSource>();
+            var NetworkSourceType = Import<NetworkAgent>();
             NetworkSourceDirtyRef = Resolve.GetProperty(NetworkSourceType, assembly, "syncVarDirty");
 
             syncVarSetterGeneral = Resolve.GetMethod(NetworkSourceType, assembly, logger, "SyncVarSetterGeneral", ref failed);

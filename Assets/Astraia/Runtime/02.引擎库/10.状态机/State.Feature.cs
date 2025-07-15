@@ -15,7 +15,7 @@ using System.Collections.Generic;
 namespace Astraia
 {
     [Serializable]
-    public abstract class Feature<T> : Source
+    public abstract class Feature<T> : Agent
     {
         private readonly Dictionary<T, Variable<float>> features = new Dictionary<T, Variable<float>>();
 

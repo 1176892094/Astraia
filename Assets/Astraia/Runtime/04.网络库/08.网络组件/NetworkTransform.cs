@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkTransform : NetworkSource
+    public class NetworkTransform : NetworkAgent
     {
         [SerializeField] private Transform target;
 

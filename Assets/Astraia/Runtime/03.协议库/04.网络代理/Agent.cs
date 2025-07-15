@@ -13,13 +13,10 @@ using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 
-namespace Astraia
+namespace Astraia.Common
 {
     internal abstract class Agent
     {
-        private const int PING_INTERVAL = 1000;
-        private const int METADATA_SIZE = sizeof(byte) + sizeof(int);
-
         private readonly byte[] kcpSendBuffer;
         private readonly byte[] rawSendBuffer;
         private readonly byte[] receiveBuffer;
@@ -36,8 +33,8 @@ namespace Astraia
         {
             Reset(setting);
             this.cookie = cookie;
-            unreliableSize = UnreliableSize(setting.MaxUnit);
-            var reliableSize = ReliableSize(setting.MaxUnit, setting.ReceiveWindow);
+            unreliableSize = Kcp.UnreliableSize(setting.MaxUnit);
+            var reliableSize = Kcp.ReliableSize(setting.MaxUnit, setting.ReceiveWindow);
             rawSendBuffer = new byte[setting.MaxUnit];
             receiveBuffer = new byte[1 + reliableSize];
             kcpSendBuffer = new byte[1 + reliableSize];
@@ -53,21 +50,11 @@ namespace Astraia
             watch.Restart();
 
             kcp = new Kcp(0, SendReliable);
-            kcp.SetMtu((uint)config.MaxUnit - METADATA_SIZE);
+            kcp.SetMtu((uint)config.MaxUnit - Kcp.METADATA_SIZE);
             kcp.SetWindowSize(config.SendWindow, config.ReceiveWindow);
             kcp.SetNoDelay(config.NoDelay ? 1U : 0U, config.Interval, config.FastResend, !config.Congestion);
             kcp.dead_link = config.DeadLink;
             timeout = config.Timeout;
-        }
-
-        public static int ReliableSize(int mtu, uint rcv_wnd)
-        {
-            return (mtu - Kcp.OVERHEAD - METADATA_SIZE) * ((int)Math.Min(rcv_wnd, Kcp.FRG_MAX) - 1) - 1;
-        }
-
-        public static int UnreliableSize(int mtu)
-        {
-            return mtu - METADATA_SIZE - 1;
         }
 
         private bool TryReceive(out Reliable header, out ArraySegment<byte> message)
@@ -257,7 +244,7 @@ namespace Astraia
                 return;
             }
 
-            if (time >= pingTime + PING_INTERVAL)
+            if (time >= pingTime + Kcp.PING_INTERVAL)
             {
                 SendReliable(Reliable.Ping);
                 pingTime = time;

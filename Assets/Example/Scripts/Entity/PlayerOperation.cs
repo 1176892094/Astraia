@@ -14,18 +14,18 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerOperation : Source
+    public class PlayerOperation : Agent
     {
-        public Player player => owner.GetSource<Player>();
-        private PlayerAttribute attribute => owner.GetSource<PlayerAttribute>();
+        public Player player => owner.GetAgent<Player>();
+        private PlayerFeature feature => owner.GetAgent<PlayerFeature>();
 
-        public override void OnUpdate()
+        public void OnUpdate()
         {
             if (!player.isOwner) return;
-            if (!attribute.state.HasFlag(StateType.Stop))
+            if (!feature.state.HasFlag(StateType.Stop))
             {
-                attribute.moveY = Input.GetAxisRaw("Vertical");
-                attribute.moveX = Input.GetAxisRaw("Horizontal");
+                feature.moveY = Input.GetAxisRaw("Vertical");
+                feature.moveX = Input.GetAxisRaw("Horizontal");
 
                 if (Input.GetKeyDown(KeyCode.C))
                 {
@@ -56,28 +56,28 @@ namespace Runtime
 
         private void JumpButton()
         {
-            attribute.state |= StateType.Jumping;
-            attribute.SetFloat(Attribute.JumpInput, Time.time + 0.2f);
+            feature.state |= StateType.Jumping;
+            feature.SetFloat(Attribute.JumpInput, Time.time + 0.2f);
         }
 
         private void FallButton()
         {
-            attribute.state &= ~StateType.Jumping;
+            feature.state &= ~StateType.Jumping;
         }
 
         private void ClimbButton()
         {
-            attribute.state |= StateType.Climb;
+            feature.state |= StateType.Climb;
         }
 
         private void GrabButton()
         {
-            attribute.state &= ~StateType.Climb;
+            feature.state &= ~StateType.Climb;
         }
 
         private void DashButton()
         {
-            attribute.SetFloat(Attribute.DashInput, Time.time + 0.2f);
+            feature.SetFloat(Attribute.DashInput, Time.time + 0.2f);
         }
     }
 }

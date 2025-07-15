@@ -40,7 +40,7 @@ namespace Astraia.Editor
             {
                 if (fd.HasCustomAttribute<SyncVarAttribute>())
                 {
-                    logger.Error($"网络变量 {fd.Name} 必须在 NetworkSource 中使用。", fd);
+                    logger.Error($"网络变量 {fd.Name} 必须在 NetworkAgent 中使用。", fd);
                     failed = true;
                 }
             }
@@ -58,19 +58,19 @@ namespace Astraia.Editor
             {
                 if (md.HasCustomAttribute<ServerRpcAttribute>())
                 {
-                    logger.Error($"ServerRpc {md.Name} 必须在 NetworkSource 中使用。", md);
+                    logger.Error($"ServerRpc {md.Name} 必须在 NetworkAgent 中使用。", md);
                     failed = true;
                 }
 
                 if (md.HasCustomAttribute<ClientRpcAttribute>())
                 {
-                    logger.Error($"ClientRpc {md.Name} 必须在 NetworkSource 中使用。", md);
+                    logger.Error($"ClientRpc {md.Name} 必须在 NetworkAgent 中使用。", md);
                     failed = true;
                 }
 
                 if (md.HasCustomAttribute<TargetRpcAttribute>())
                 {
-                    logger.Error($"TargetRpc {md.Name} 必须在 NetworkSource 中使用。", md);
+                    logger.Error($"TargetRpc {md.Name} 必须在 NetworkAgent 中使用。", md);
                     failed = true;
                 }
             }

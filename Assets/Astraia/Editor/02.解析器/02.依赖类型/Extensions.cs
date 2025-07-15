@@ -472,12 +472,12 @@ namespace Astraia.Editor
                 return true;
             }
 
-            if (tr.IsDerivedFrom<NetworkSource>())
+            if (tr.IsDerivedFrom<NetworkAgent>())
             {
                 return true;
             }
 
-            return tr.Is<NetworkSource>();
+            return tr.Is<NetworkAgent>();
         }
     }
 }

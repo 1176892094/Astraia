@@ -11,6 +11,7 @@
 
 using System;
 using System.Net;
+using Astraia.Common;
 
 namespace Astraia
 {

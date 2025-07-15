@@ -17,9 +17,9 @@ using UnityEngine;
 namespace Runtime
 {
     [Serializable]
-    public class PlayerAttribute : Feature<Attribute>
+    public class PlayerFeature : Feature<Attribute>
     {
-        public Player player => owner.GetSource<Player>();
+        public Player player => owner.GetAgent<Player>();
         public StateType state = StateType.None;
         public float moveX;
         public float moveY;
@@ -36,14 +36,14 @@ namespace Runtime
         public RaycastHit2D rightDownRay => Physics2D.Raycast(player.rightDownRay.origin, player.rightDownRay.direction, 0.12f, 1 << 6);
 
 
-        public override void OnAwake()
+        public override void OnLoad()
         {
             SetFloat(Attribute.MoveSpeed, 2);
             SetFloat(Attribute.JumpForce, 4);
             SetFloat(Attribute.DashSpeed, 5);
         }
 
-        public override void OnUpdate()
+        public void OnUpdate()
         {
             if (!player.isOwner) return;
             if (downRightRay || downLeftRay)

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4880443872429666158}
   - component: {fileID: 8087870240613574326}
   m_Layer: 0
-  m_Name: SpawnManager
+  m_Name: 10001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,9 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sourceData:
+  agentData:
   - Runtime.SpawnManager, Assembly-CSharp
-  entityMode: 0
-  entityPath: Prefabs/SpawnManager
-  sceneId: 0
   objectId: 0
+  agentMode: 0
+  assetId: 10001
+  sceneId: 0

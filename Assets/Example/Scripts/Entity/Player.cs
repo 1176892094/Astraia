@@ -16,23 +16,39 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class Player : NetworkSource, IStartAuthority
+    public class Player : NetworkAgent, IStartAuthority
     {
         [SyncVar(nameof(OnColorValueChanged))] public Color syncColor;
 
-        private PlayerMachine machine => owner.GetSource<PlayerMachine>();
+        private PlayerMachine machine => owner.GetAgent<PlayerMachine>();
         public Ray2D downLeftRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
         public Ray2D downRightRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
         public Ray2D rightUpRay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
         public Ray2D rightDownRay => new Ray2D(transform.position - Vector3.up * 0.075f, Vector3.right * transform.localScale.x);
 
-        public override void OnAwake()
+        public override void OnLoad()
         {
-            owner.AddSource(HeapManager.Dequeue<PlayerAttribute>());
-            owner.AddSource(HeapManager.Dequeue<PlayerMachine>());
-            owner.AddSource(HeapManager.Dequeue<PlayerOperation>());
-            owner.GetSource<NetworkTransform>().syncDirection = SyncMode.Client;
-          
+            owner.AddAgent(HeapManager.Dequeue<PlayerFeature>());
+            owner.AddAgent(HeapManager.Dequeue<PlayerMachine>());
+            owner.AddAgent(HeapManager.Dequeue<PlayerOperation>());
+            owner.GetAgent<NetworkTransform>().syncDirection = SyncMode.Client;
+        }
+
+        public override void OnShow()
+        {
+            GlobalManager.OnUpdate += OnUpdate;
+        }
+
+        public override void OnHide()
+        {
+            GlobalManager.OnUpdate -= OnUpdate;
+        }
+
+        private void OnUpdate()
+        {
+            owner.GetAgent<PlayerOperation>().OnUpdate();
+            owner.GetAgent<PlayerFeature>().OnUpdate();
+            owner.GetAgent<PlayerMachine>().OnUpdate();
         }
 
         public void OnStartAuthority()

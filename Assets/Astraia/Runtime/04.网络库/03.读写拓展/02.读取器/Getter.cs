@@ -111,10 +111,10 @@ namespace Astraia.Net
             return objectId != 0 ? NetworkManager.GetNetworkObject(objectId) : null;
         }
 
-        public static NetworkSource GetNetworkSource(this MemoryReader reader)
+        public static NetworkAgent GetNetworkSource(this MemoryReader reader)
         {
             var entity = reader.GetNetworkObject();
-            return entity != null ? entity.entities[reader.GetByte()] : null;
+            return entity != null ? entity.agents[reader.GetByte()] : null;
         }
 
         public static Transform GetTransform(this MemoryReader reader)
@@ -151,7 +151,7 @@ namespace Astraia.Net
             return texture == null ? null : Sprite.Create(texture, reader.GetRect(), reader.GetVector2());
         }
 
-        public static T GetNetworkSource<T>(this MemoryReader reader) where T : NetworkSource
+        public static T GetNetworkSource<T>(this MemoryReader reader) where T : NetworkAgent
         {
             return reader.GetNetworkSource() as T;
         }
@@ -159,14 +159,14 @@ namespace Astraia.Net
         public static NetworkVariable GetNetworkVariable(this MemoryReader reader)
         {
             var objectId = reader.GetUInt();
-            byte sourceId = 0;
+            byte agentId = 0;
 
             if (objectId != 0)
             {
-                sourceId = reader.GetByte();
+                agentId = reader.GetByte();
             }
 
-            return new NetworkVariable(objectId, sourceId);
+            return new NetworkVariable(objectId, agentId);
         }
     }
 }

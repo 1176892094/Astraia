@@ -134,7 +134,6 @@ namespace Astraia
         public const string E269 = "设置网络变量的对象未初始化。对象名称: {0}";
         
         //NetworkObject
-        public const string E273 = "找不到场景对象的预制父物体。对象名称: {0}";
         public const string E274 = "请保存场景后，再进行构建。";
         public const string E275 = "Assigned AssetId";
         public const string E276 = "调用了已经删除的网络对象。{0} [{1}] {2}";
