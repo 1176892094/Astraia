@@ -23,7 +23,7 @@ namespace Astraia
     public partial class Entity : MonoBehaviour
     {
         internal Dictionary<Type, Agent> agentDict = new Dictionary<Type, Agent>();
-     
+
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
@@ -36,7 +36,7 @@ namespace Astraia
         {
             foreach (var agent in agentData)
             {
-                AddAgent(HeapManager.Dequeue<Agent>(Service.Find.Type(agent)));
+                AddAgent(Service.Find.Type(agent));
             }
         }
 
@@ -49,7 +49,7 @@ namespace Astraia
             OnStay = null;
             OnExit = null;
             OnEnter = null;
-         
+
             agentDict.Clear();
             agentData.Clear();
             EntityManager.Hide(this);
@@ -85,9 +85,19 @@ namespace Astraia
             return (T)agentDict.GetValueOrDefault(typeof(T));
         }
 
-        public void AddAgent<T>(T agent) where T : Agent
+        public void AddAgent(Type type)
         {
-            if (agentDict.TryAdd(agent.GetType(), agent))
+            AddAgentInternal(HeapManager.Dequeue<Agent>(type), type);
+        }
+
+        public void AddAgent<T>(Type type) where T : Agent
+        {
+            AddAgentInternal(HeapManager.Dequeue<T>(type), typeof(T));
+        }
+
+        internal void AddAgentInternal(Agent agent, Type type)
+        {
+            if (agentDict.TryAdd(type, agent))
             {
                 EntityManager.Show(this);
                 agent.Id = this;
@@ -115,6 +125,7 @@ namespace Astraia
     {
 #if UNITY_EDITOR && ODIN_INSPECTOR
         private static string[] agentNames;
+
         private static string[] AgentNames => agentNames ??= AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
             .Where(type => !type.IsAbstract && !type.IsGenericType && typeof(Agent).IsAssignableFrom(type)).OrderBy(t => t.FullName)
             .Select(t => Service.Text.Format("{0}, {1}", t.FullName, t.Assembly.GetName().Name)).ToArray();

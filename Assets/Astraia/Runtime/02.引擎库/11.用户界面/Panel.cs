@@ -25,12 +25,12 @@ namespace Astraia.Common
             obj.SetActive(false);
             obj.name = path;
 
-            var entity = obj.GetOrAddComponent<Entity>();
+            var owner = obj.GetOrAddComponent<Entity>();
             var panel = HeapManager.Dequeue<UIPanel>(type);
-            entity.transform.Inject(panel);
-            entity.AddAgent(panel);
-            entity.OnFade += panel.groups.Clear;
-            
+            owner.transform.Inject(panel);
+            owner.AddAgentInternal(panel, type);
+            owner.OnFade += panel.groups.Clear;
+
             Surface(panel.transform, panel.layer);
             GlobalManager.panelData.Add(type, panel);
             return panel;

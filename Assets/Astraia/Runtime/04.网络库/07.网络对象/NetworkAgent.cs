@@ -18,11 +18,6 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public abstract class NetworkAgent<TEntity> : NetworkAgent where TEntity : NetworkEntity
-    {
-        public new TEntity owner => (TEntity)base.owner;
-    }
-
     [Serializable]
     public abstract partial class NetworkAgent : Agent<NetworkEntity>
     {

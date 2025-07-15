@@ -25,8 +25,8 @@ namespace Astraia
     {
         internal int Id;
         public Entity owner => EntityManager.Find(Id);
-        public Transform transform => owner != null ? owner.transform : null;
-        public GameObject gameObject => owner != null ? owner.gameObject : null;
+        public Transform transform => owner?.transform;
+        public GameObject gameObject => owner?.gameObject;
 
         public virtual void OnLoad()
         {
