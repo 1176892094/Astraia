@@ -20,7 +20,7 @@ namespace Runtime
         public SpriteRenderer renderer;
         private PlayerFeature Feature => owner.Feature;
 
-        public override void OnLoad()
+        public override void OnAwake()
         {
             rigidbody = owner.GetComponent<Rigidbody2D>();
             renderer = owner.GetComponent<SpriteRenderer>();

@@ -14,9 +14,9 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public abstract class PlayerState : StateBase
+    public abstract class PlayerState : State<Player>
     {
-        protected new Player owner => (Player)base.owner;
+        protected new Player owner => base.owner;
         protected Transform transform => owner.transform;
         protected Rigidbody2D rigidbody => machine.rigidbody;
         protected PlayerMachine machine => base.owner.GetAgent<PlayerMachine>();

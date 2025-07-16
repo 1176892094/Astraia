@@ -22,12 +22,12 @@ namespace Runtime
         public StateType state = StateType.None;
         public float moveX;
         public float moveY;
-        [ShowInInspector] public bool isWalk => moveX != 0 || moveY != 0;
-        [ShowInInspector] public float moveSpeed => GetFloat(Attribute.MoveSpeed);
-        [ShowInInspector] public float jumpForce => GetFloat(Attribute.JumpForce);
-        [ShowInInspector] public float dashSpeed => GetFloat(Attribute.DashSpeed);
-        [ShowInInspector] public float dashFrame => GetFloat(Attribute.DashFrame);
-        [ShowInInspector] public float waitFrame => GetFloat(Attribute.WaitFrame);
+        public bool isWalk => moveX != 0 || moveY != 0;
+        public float moveSpeed => GetFloat(Attribute.MoveSpeed);
+        public float jumpForce => GetFloat(Attribute.JumpForce);
+        public float dashSpeed => GetFloat(Attribute.DashSpeed);
+        public float dashFrame => GetFloat(Attribute.DashFrame);
+        public float waitFrame => GetFloat(Attribute.WaitFrame);
 
         public RaycastHit2D downLeftRay => Physics2D.Raycast(owner.downLeftRay.origin, owner.downLeftRay.direction, 0.12f, 1 << 6);
         public RaycastHit2D downRightRay => Physics2D.Raycast(owner.downRightRay.origin, owner.downRightRay.direction, 0.12f, 1 << 6);
@@ -35,7 +35,7 @@ namespace Runtime
         public RaycastHit2D rightDownRay => Physics2D.Raycast(owner.rightDownRay.origin, owner.rightDownRay.direction, 0.12f, 1 << 6);
 
 
-        public override void OnLoad()
+        public override void OnAwake()
         {
             SetFloat(Attribute.MoveSpeed, 2);
             SetFloat(Attribute.JumpForce, 4);

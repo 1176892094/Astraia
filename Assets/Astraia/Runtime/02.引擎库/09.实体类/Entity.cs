@@ -43,9 +43,9 @@ namespace Astraia
         protected virtual void OnDestroy()
         {
             OnFade?.Invoke();
+            OnFade = null;
             OnShow = null;
             OnHide = null;
-            OnFade = null;
             OnStay = null;
             OnExit = null;
             OnEnter = null;
@@ -92,25 +92,24 @@ namespace Astraia
 
         public void AddAgent<T>(Type type) where T : IAgent
         {
-            AddAgentInternal(HeapManager.Dequeue<T>(type), typeof(T));
+            AddAgentInternal(HeapManager.Dequeue<IAgent>(type), typeof(T));
         }
 
-        internal void AddAgentInternal(IAgent agent, Type type)
+        internal void AddAgentInternal(IAgent agent, Type key)
         {
-            if (agentDict.TryAdd(type, agent))
+            if (agentDict.TryAdd(key, agent))
             {
                 EntityManager.Show(this);
-                agent.OnInit(this);
-                agent.OnLoad();
-
-                OnFade += Faded;
+                agent.OnAwake(this);
+                agent.OnAwake();
                 OnShow += agent.OnShow;
                 OnHide += agent.OnHide;
+                OnFade += Faded;
 
                 void Faded()
                 {
-                    HeapManager.Enqueue(agent, type);
-                    agent.OnFade();
+                    HeapManager.Enqueue(agent, key);
+                    agent.OnDestroy();
                 }
             }
         }

@@ -22,12 +22,12 @@ namespace Astraia
         public Transform transform => owner?.transform;
         public GameObject gameObject => owner?.gameObject;
 
-        void IAgent.OnInit(int id)
+        void IAgent.OnAwake(int id)
         {
             owner = (T)EntityManager.Find(id);
         }
 
-        public virtual void OnLoad()
+        public virtual void OnAwake()
         {
         }
 
@@ -39,7 +39,7 @@ namespace Astraia
         {
         }
 
-        public virtual void OnFade()
+        public virtual void OnDestroy()
         {
         }
 

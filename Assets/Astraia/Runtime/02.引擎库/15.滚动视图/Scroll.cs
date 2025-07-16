@@ -34,7 +34,7 @@ namespace Astraia
         private int row => (int)assetRect.y + (direction == UIState.InputY ? 1 : 0);
         private int column => (int)assetRect.x + (direction == UIState.InputX ? 1 : 0);
 
-        public override void OnLoad()
+        public override void OnAwake()
         {
             selection = false;
             initialized = false;
@@ -50,7 +50,7 @@ namespace Astraia
             GlobalManager.OnUpdate -= OnUpdate;
         }
 
-        public override void OnFade()
+        public override void OnDestroy()
         {
             foreach (var i in grids.Keys)
             {

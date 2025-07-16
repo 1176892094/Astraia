@@ -19,7 +19,7 @@ namespace Astraia
     {
         public T owner;
 
-        void IState.OnInit(int id)
+        void IState.OnAwake(int id)
         {
             owner = (T)EntityManager.Find(id);
         }

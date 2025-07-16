@@ -19,7 +19,7 @@ namespace Runtime
     {
         public static SpawnManager Instance;
 
-        public override void OnLoad()
+        public override void OnAwake()
         {
             Instance = this;
             Object.DontDestroyOnLoad(gameObject);

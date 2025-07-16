@@ -27,24 +27,24 @@ namespace Astraia
             state?.OnUpdate();
         }
 
-        public void AddState<T>(Type type)
+        public void AddState<T>(Type type) where T : IState
         {
             if (!states.TryGetValue(typeof(T), out var item))
             {
                 item = HeapManager.Dequeue<IState>(type);
                 states.Add(typeof(T), item);
-                item.OnInit(owner);
+                item.OnAwake(owner);
             }
         }
 
-        public void ChangeState<T>()
+        public void ChangeState<T>() where T : IState
         {
             state?.OnExit();
             state = states[typeof(T)];
             state?.OnEnter();
         }
 
-        public override void OnFade()
+        public override void OnDestroy()
         {
             var copies = new List<IState>(states.Values);
             foreach (var item in copies)
