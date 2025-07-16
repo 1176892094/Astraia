@@ -35,10 +35,15 @@ namespace Astraia.Editor
             this.generate = generate;
         }
 
-        internal void Register(TypeReference tr, MethodReference md)
+        internal void Register(TypeReference tr, MethodReference mr)
         {
+            if (methods.TryGetValue(tr, out var existingMethod) && existingMethod.FullName != mr.FullName) 
+            {
+                return;
+            }
+            
             var imported = assembly.MainModule.ImportReference(tr);
-            methods[imported] = md;
+            methods[imported] = mr;
         }
 
         public MethodReference GetFunction(TypeReference tr, ref bool failed)

@@ -60,9 +60,7 @@ namespace Astraia.Editor
 
             MarkAsProcessed(type);
 
-            var syncPairs = process.ProcessSyncVars(type, ref failed);
-            syncVars = syncPairs.Key;
-            syncVarIds = syncPairs.Value;
+            (syncVars, syncVarIds) = process.ProcessSyncVars(type, ref failed);
 
             ProcessRpcMethods(ref failed);
 
@@ -180,6 +178,7 @@ namespace Astraia.Editor
                 case InvokeMode.ServerRpc:
                     serverRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
                     func = NetworkAttributeProcess.ProcessServerRpcInvoke(module, writer, logger, generate, md, rpc, ref failed);
+               
                     rpcFunc = NetworkAttributeProcess.ProcessServerRpc(module, reader, logger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
@@ -450,10 +449,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
-                var writeFunc =
-                    writer.GetFunction(
-                        syncVar.FieldType.IsDerivedFrom<NetworkAgent>() ? module.Import<NetworkAgent>() : syncVar.FieldType,
-                        ref failed);
+                var writeFunc = writer.GetFunction(syncVar.FieldType.IsDerivedFrom<NetworkAgent>() ? module.Import<NetworkAgent>() : syncVar.FieldType, ref failed);
 
                 if (writeFunc != null)
                 {

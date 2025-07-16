@@ -258,8 +258,7 @@ namespace Astraia.Editor
         /// <param name="mode"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool WriteArguments(ILProcessor worker, Writer writer, Logger logger, MethodDefinition method, InvokeMode mode,
-            ref bool failed)
+        private static bool WriteArguments(ILProcessor worker, Writer writer, Logger logger, MethodDefinition method, InvokeMode mode, ref bool failed)
         {
             var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
             var argument = 1;
@@ -304,8 +303,7 @@ namespace Astraia.Editor
         /// <param name="mode"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool ReadArguments(MethodDefinition method, Reader reader, Logger logger, ILProcessor worker, InvokeMode mode,
-            ref bool failed)
+        private static bool ReadArguments(MethodDefinition method, Reader reader, Logger logger, ILProcessor worker, InvokeMode mode, ref bool failed)
         {
             var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
             var argument = 1;

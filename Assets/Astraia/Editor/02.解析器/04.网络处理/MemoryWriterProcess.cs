@@ -35,10 +35,15 @@ namespace Astraia.Editor
             this.generate = generate;
         }
 
-        public void Register(TypeReference tr, MethodReference md)
+        public void Register(TypeReference tr, MethodReference mr)
         {
+            if (methods.TryGetValue(tr, out var existingMethod) && existingMethod.FullName != mr.FullName)
+            {
+                return;
+            }
+
             var imported = assembly.MainModule.ImportReference(tr);
-            methods[imported] = md;
+            methods[imported] = mr;
         }
 
         public MethodReference GetFunction(TypeReference tr, ref bool failed)
@@ -150,7 +155,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ret);
             return md;
         }
-        
+
         private MethodDefinition AddArraySegment(TypeReference tr, ref bool failed)
         {
             var genericInstance = (GenericInstanceType)tr;
@@ -169,7 +174,7 @@ namespace Astraia.Editor
                 failed = true;
                 return md;
             }
-            
+
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
             var mr = Resolve.GetMethod(extensions, assembly, logger, name, ref failed);
 

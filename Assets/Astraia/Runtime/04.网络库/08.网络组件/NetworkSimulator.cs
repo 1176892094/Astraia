@@ -243,8 +243,12 @@ namespace Astraia.Net
                 {
                     item = HeapManager.Dequeue<Item>();
                     var data = NetworkAttribute.GetInvoke(method);
+                    if (data != null)
+                    {
+                        item.path = Service.Text.Format("{0}.{1}", data.Method.DeclaringType, data.Method.Name.Replace("Cmd_", ""));
+                    }
+
                     item.type = type;
-                    item.path = Service.Text.Format("{0}.{1}", data.Method.DeclaringType, data.Method.Name.Replace("Cmd_", ""));
                     function[method] = item;
                 }
 

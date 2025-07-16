@@ -52,6 +52,9 @@ namespace Astraia
 
         public override void OnDestroy()
         {
+            items = null;
+            oldMinIndex = -1;
+            oldMaxIndex = -1;
             foreach (var i in grids.Keys)
             {
                 if (grids.TryGetValue(i, out var grid))
@@ -65,8 +68,6 @@ namespace Astraia
             }
 
             grids.Clear();
-            oldMinIndex = -1;
-            oldMaxIndex = -1;
         }
 
         private void OnUpdate()
@@ -212,6 +213,7 @@ namespace Astraia
 
         public void SetItem(IList<TItem> items)
         {
+            OnDestroy();
             this.items = items;
             if (items != null)
             {

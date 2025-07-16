@@ -87,19 +87,37 @@ namespace Astraia
 
         public void AddAgent(Type type)
         {
-            AddAgentInternal(HeapManager.Dequeue<IAgent>(type), type);
+            IAgent agent = null;
+            try
+            {
+                agent = HeapManager.Dequeue<IAgent>(type);
+                AddAgentInternal(agent, type);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, type, e), gameObject);
+            }
         }
 
         public void AddAgent<T>(Type type) where T : IAgent
         {
-            AddAgentInternal(HeapManager.Dequeue<IAgent>(type), typeof(T));
+            IAgent agent = null;
+            try
+            {
+                agent = HeapManager.Dequeue<IAgent>(type);
+                AddAgentInternal(agent, typeof(T));
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, type, e), gameObject);
+            }
         }
 
-        internal void AddAgentInternal(IAgent agent, Type key)
+        internal void AddAgentInternal(IAgent agent, Type type)
         {
             try
             {
-                if (agentDict.TryAdd(key, agent))
+                if (agentDict.TryAdd(type, agent))
                 {
                     EntityManager.Show(this);
                     agent.OnAwake(this);
@@ -110,14 +128,14 @@ namespace Astraia
 
                     void Faded()
                     {
-                        HeapManager.Enqueue(agent, key);
+                        HeapManager.Enqueue(agent, type);
                         agent.OnDestroy();
                     }
                 }
             }
             catch (Exception e)
             {
-                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, key, e));
+                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, type, e), gameObject);
             }
         }
 

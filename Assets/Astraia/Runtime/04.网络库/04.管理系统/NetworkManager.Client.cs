@@ -460,12 +460,6 @@ namespace Astraia.Net
                         Debug.LogError(Service.Text.Format(Log.E225, entity.name));
                         return;
                     }
-
-                    if (entity.GetComponentsInChildren<NetworkEntity>().Length > 1)
-                    {
-                        Debug.LogError(Service.Text.Format(Log.E226, entity.name));
-                        return;
-                    }
                 }
                 else
                 {
