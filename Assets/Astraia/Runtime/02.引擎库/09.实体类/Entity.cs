@@ -97,20 +97,27 @@ namespace Astraia
 
         internal void AddAgentInternal(IAgent agent, Type key)
         {
-            if (agentDict.TryAdd(key, agent))
+            try
             {
-                EntityManager.Show(this);
-                agent.OnAwake(this);
-                agent.OnAwake();
-                OnShow += agent.OnShow;
-                OnHide += agent.OnHide;
-                OnFade += Faded;
-
-                void Faded()
+                if (agentDict.TryAdd(key, agent))
                 {
-                    HeapManager.Enqueue(agent, key);
-                    agent.OnDestroy();
+                    EntityManager.Show(this);
+                    agent.OnAwake(this);
+                    agent.OnAwake();
+                    OnShow += agent.OnShow;
+                    OnHide += agent.OnHide;
+                    OnFade += Faded;
+
+                    void Faded()
+                    {
+                        HeapManager.Enqueue(agent, key);
+                        agent.OnDestroy();
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, key, e));
             }
         }
 

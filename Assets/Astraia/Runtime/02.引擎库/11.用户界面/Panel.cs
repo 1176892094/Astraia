@@ -117,7 +117,7 @@ namespace Astraia.Common
             {
                 if (GlobalManager.panelData.TryGetValue(type, out var panel))
                 {
-                    if (panel.state == UIState.Stable)
+                    if (panel.state != UIState.Stable)
                     {
                         panel.gameObject.SetActive(false);
                         GlobalManager.panelData.Remove(type);

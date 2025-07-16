@@ -27,7 +27,7 @@ namespace Astraia.Net
         private int frameCount;
 
         [SerializeField] internal AgentMode agentMode;
-        
+
         [HideInInspector] public uint objectId;
 
         [SerializeField] [HideInInspector] internal uint agentId;
@@ -43,7 +43,7 @@ namespace Astraia.Net
         internal MemoryWriter other = new MemoryWriter();
 
         internal List<NetworkAgent> agents = new List<NetworkAgent>();
-        
+
         public bool isOwner => (agentMode & AgentMode.Owner) != 0;
 
         public bool isServer => (agentMode & AgentMode.Server) != 0;
@@ -81,6 +81,8 @@ namespace Astraia.Net
             {
                 NetworkManager.Client.spawns.Remove(objectId);
             }
+
+            ClearDirty(true);
 
             owner = null;
             other = null;
