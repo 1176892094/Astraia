@@ -28,7 +28,6 @@ namespace Runtime
 
         protected override void Awake()
         {
-            AddAgent(typeof(PlayerSender));
             base.Awake();
             AddAgent(typeof(PlayerFeature));
             AddAgent(typeof(PlayerMachine));
@@ -40,9 +39,9 @@ namespace Runtime
         {
             if (isOwner)
             {
+                Operation.OnUpdate();
                 Machine.OnUpdate();
                 Feature.OnUpdate();
-                Operation.OnUpdate();
             }
 
             Transform.OnUpdate();
@@ -53,18 +52,7 @@ namespace Runtime
             Transform.OnLateUpdate();
         }
 
-        public void OnStartAuthority()
-        {
-            Machine.AddState<PlayerIdle>(typeof(PlayerIdle));
-            Machine.AddState<PlayerWalk>(typeof(PlayerWalk));
-            Machine.AddState<PlayerJump>(typeof(PlayerJump));
-            Machine.AddState<PlayerGrab>(typeof(PlayerGrab));
-            Machine.AddState<PlayerDash>(typeof(PlayerDash));
-            Machine.AddState<PlayerHop>(typeof(PlayerHop));
-            Machine.AddState<PlayerCrash>(typeof(PlayerCrash));
-            Machine.ChangeState<PlayerIdle>();
-            GameManager.Instance.SetCamera(this, new Vector3(0, 3, 0), new Vector2(30, 8));
-        }
+      
 
         private void OnDrawGizmos()
         {

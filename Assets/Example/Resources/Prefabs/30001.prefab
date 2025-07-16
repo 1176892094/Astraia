@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7821307471955094617}
   - component: {fileID: -6215146803019114342}
   - component: {fileID: 5490310625879060458}
-  - component: {fileID: 2578763087886583997}
+  - component: {fileID: 7699375650067373137}
   m_Layer: 7
   m_Name: 30001
   m_TagString: Untagged
@@ -153,7 +153,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!114 &2578763087886583997
+--- !u!114 &7699375650067373137
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -162,13 +162,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 4745370882994828325}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
+  m_Script: {fileID: 11500000, guid: f46525886dd94e1cad6393357b1f3917, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentData:
   - Astraia.Net.NetworkTransform, Astraia.Net
-  - Runtime.Player, Assembly-CSharp
-  objectId: 0
+  - Runtime.PlayerSender, Assembly-CSharp
   agentMode: 0
-  assetId: 30001
+  objectId: 0
+  agentId: 30001
   sceneId: 0

@@ -10,18 +10,20 @@
 // // *********************************************************************************
 
 
+using Astraia.Common;
 using Astraia.Net;
 using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerSender : NetworkAgent
+    public class PlayerSender : NetworkAgent, IStartAuthority
     {
         [SyncVar(nameof(OnColorValueChanged))] public Color syncColor;
+        private new Player owner => (Player)base.owner;
 
         private void OnColorValueChanged(Color oldValue, Color newValue)
         {
-            owner.GetAgent<PlayerMachine>().renderer.color = newValue;
+            owner.Machine.renderer.color = newValue;
         }
 
         [ServerRpc]
@@ -34,6 +36,19 @@ namespace Runtime
         public void SyncColorServerRpc(Color syncColor)
         {
             this.syncColor = syncColor;
+        }
+
+        public void OnStartAuthority()
+        {
+            owner.Machine.AddState<PlayerIdle>(typeof(PlayerIdle));
+            owner.Machine.AddState<PlayerWalk>(typeof(PlayerWalk));
+            owner.Machine.AddState<PlayerJump>(typeof(PlayerJump));
+            owner.Machine.AddState<PlayerGrab>(typeof(PlayerGrab));
+            owner.Machine.AddState<PlayerDash>(typeof(PlayerDash));
+            owner.Machine.AddState<PlayerHop>(typeof(PlayerHop));
+            owner.Machine.AddState<PlayerCrash>(typeof(PlayerCrash));
+            owner.Machine.ChangeState<PlayerIdle>();
+            GameManager.Instance.SetCamera(owner, new Vector3(0, 3, 0), new Vector2(30, 8));
         }
     }
 }
