@@ -17,17 +17,16 @@ using Astraia.Common;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Astraia
 {
-    internal class GlobalSetting : ScriptableObject
+    internal partial class GlobalSetting : ScriptableObject
     {
         private static GlobalSetting instance;
 
         public AssetPlatform assetPlatform = AssetPlatform.StandaloneWindows;
+
+        public int assetVersion = 1;
 
         public string smtpServer = "smtp.qq.com";
 
@@ -36,8 +35,6 @@ namespace Astraia
         public string smtpUsername = "1176892094@qq.com";
 
         public string smtpPassword;
-
-        [Range(1, 255)] public int jsonVersion = 1;
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.OnValueChanged("UpdateSceneSetting")]
@@ -72,8 +69,8 @@ namespace Astraia
                     }
 
                     assetPath = Service.Text.Format("{0}/{1}.asset", assetPath, nameof(GlobalSetting));
-                    AssetDatabase.CreateAsset(instance, assetPath);
-                    AssetDatabase.SaveAssets();
+                    UnityEditor.AssetDatabase.CreateAsset(instance, assetPath);
+                    UnityEditor.AssetDatabase.SaveAssets();
                 }
 #endif
                 return instance;
@@ -81,16 +78,69 @@ namespace Astraia
         }
 
         public static string assetPackData => Service.Text.Format("{0}.json", Instance.assetLoadName);
+
         public static string assetPackPath => Service.Text.Format("{0}/{1}", Application.persistentDataPath, Instance.assetBuildPath);
 
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
         public static string assemblyName => JsonUtility.FromJson<Name>(assemblyData.text).name;
 
         public static TextAsset assemblyData => Resources.Load<TextAsset>(nameof(GlobalSetting));
 
+        public static string GetScenePath(string assetName) => Service.Text.Format("Scenes/{0}", assetName);
+
+        public static string GetAudioPath(string assetName) => Service.Text.Format("Audios/{0}", assetName);
+
+        public static string GetPanelPath(string assetName) => Service.Text.Format("Prefabs/{0}", assetName);
+
+        public static string GetTablePath(string assetName) => Service.Text.Format("DataTable/{0}", assetName);
+
+        public static string GetPacketPath(string fileName) => Path.Combine(assetPackPath, fileName);
+
+        public static string GetServerPath(string fileName) => Path.Combine(Instance.assetRemotePath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
+
+        public static string GetClientPath(string fileName) => Path.Combine(Application.streamingAssetsPath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void RuntimeInitializeOnLoad()
+        {
+            var source = new GameObject(nameof(GlobalManager)).AddComponent<GlobalManager>();
+            source.canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
+            source.canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            source.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
+            for (var layer = UILayer.Layer1; layer <= UILayer.Layer6; layer++)
+            {
+                var format = Service.Text.Format("Pool - Canvas/{0}", layer);
+                var parent = new GameObject(format).AddComponent<RectTransform>();
+                parent.gameObject.layer = LayerMask.NameToLayer("UI");
+                parent.SetParent(source.canvas.transform);
+                parent.anchorMin = Vector2.zero;
+                parent.anchorMax = Vector2.one;
+                parent.offsetMin = Vector2.zero;
+                parent.offsetMax = Vector2.zero;
+                parent.localScale = Vector3.one;
+                parent.localPosition = Vector3.zero;
+                GlobalManager.layerData.Add(layer, parent);
+            }
+
+            source.canvas.gameObject.AddComponent<GraphicRaycaster>();
+            var canvas = source.canvas.gameObject.AddComponent<CanvasScaler>();
+            canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            canvas.matchWidthOrHeight = 0.5f;
+            canvas.referenceResolution = new Vector2(1920, 1080);
+            canvas.referencePixelsPerUnit = 64;
+            DontDestroyOnLoad(source.canvas);
+        }
+
+
+        [Serializable]
+        private struct Name
+        {
+            public string name;
+        }
+    }
 #if UNITY_EDITOR
+    internal partial class GlobalSetting
+    {
         [HideInInspector] public List<string> sceneAssets = new List<string>();
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -105,8 +155,8 @@ namespace Astraia
 #endif
         private static BuildMode BuildPath
         {
-            get => (BuildMode)EditorPrefs.GetInt(nameof(BuildPath), (int)BuildMode.StreamingAssets);
-            set => EditorPrefs.SetInt(nameof(BuildPath), (int)value);
+            get => (BuildMode)UnityEditor.EditorPrefs.GetInt(nameof(BuildPath), (int)BuildMode.StreamingAssets);
+            set => UnityEditor.EditorPrefs.SetInt(nameof(BuildPath), (int)value);
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -114,16 +164,16 @@ namespace Astraia
 #endif
         public static string EditorPath
         {
-            get => EditorPrefs.GetString(nameof(EditorPath), "Assets/Editor/Resources");
-            set => EditorPrefs.SetString(nameof(EditorPath), value);
+            get => UnityEditor.EditorPrefs.GetString(nameof(EditorPath), "Assets/Editor/Resources");
+            set => UnityEditor.EditorPrefs.SetString(nameof(EditorPath), value);
         }
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
         public static string ScriptPath
         {
-            get => EditorPrefs.GetString(nameof(ScriptPath), "Assets/Scripts/DataTable");
-            set => EditorPrefs.SetString(nameof(ScriptPath), value);
+            get => UnityEditor.EditorPrefs.GetString(nameof(ScriptPath), "Assets/Scripts/DataTable");
+            set => UnityEditor.EditorPrefs.SetString(nameof(ScriptPath), value);
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -158,99 +208,24 @@ namespace Astraia
 
         public static void UpdateSceneSetting()
         {
-            var assets = EditorBuildSettings.scenes.Select(scene => scene.path).ToList();
+            var assets = UnityEditor.EditorBuildSettings.scenes.Select(scene => scene.path).ToList();
             foreach (var scenePath in Instance.sceneAssets)
             {
                 if (assets.Contains(scenePath))
                 {
                     if (Instance.assetLoadMode == AssetMode.Simulate) continue;
-                    var scenes = EditorBuildSettings.scenes.Where(scene => scene.path != scenePath);
-                    EditorBuildSettings.scenes = scenes.ToArray();
+                    var scenes = UnityEditor.EditorBuildSettings.scenes.Where(scene => scene.path != scenePath);
+                    UnityEditor.EditorBuildSettings.scenes = scenes.ToArray();
                 }
                 else
                 {
                     if (Instance.assetLoadMode == AssetMode.Authentic) continue;
-                    var scenes = EditorBuildSettings.scenes.ToList();
-                    scenes.Add(new EditorBuildSettingsScene(scenePath, true));
-                    EditorBuildSettings.scenes = scenes.ToArray();
+                    var scenes = UnityEditor.EditorBuildSettings.scenes.ToList();
+                    scenes.Add(new UnityEditor.EditorBuildSettingsScene(scenePath, true));
+                    UnityEditor.EditorBuildSettings.scenes = scenes.ToArray();
                 }
             }
         }
-#endif
-        public static string GetScenePath(string assetName) => Service.Text.Format("Scenes/{0}", assetName);
-
-        public static string GetAudioPath(string assetName) => Service.Text.Format("Audios/{0}", assetName);
-
-        public static string GetPanelPath(string assetName) => Service.Text.Format("Prefabs/{0}", assetName);
-
-        public static string GetTablePath(string assetName) => Service.Text.Format("DataTable/{0}", assetName);
-
-        private static string GetPlatform(string fileName) => Path.Combine(Instance.assetPlatform.ToString(), fileName);
-
-        public static string GetPacketPath(string fileName) => Path.Combine(assetPackPath, fileName);
-
-        public static string GetServerPath(string fileName) => Path.Combine(Instance.assetRemotePath, GetPlatform(fileName));
-
-        public static string GetClientPath(string fileName) => Path.Combine(Application.streamingAssetsPath, GetPlatform(fileName));
-
-        public MailData MailData(string mailBody)
-        {
-            return new MailData
-            {
-                smtpServer = smtpServer,
-                smtpPort = smtpPort,
-                senderName = "Astraia",
-                senderAddress = smtpUsername,
-                senderPassword = smtpPassword,
-                targetAddress = smtpUsername,
-                mailName = "来自《Astraia》的调试日志:",
-                mailBody = mailBody
-            };
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void RuntimeInitializeOnLoad()
-        {
-            var canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
-            canvas.gameObject.layer = LayerMask.NameToLayer("UI");
-            for (var i = UILayer.Layer1; i <= UILayer.Layer6; i++)
-            {
-                var name = Service.Text.Format("Pool - Canvas/{0}", i);
-                var item = new GameObject(name, typeof(RectTransform))
-                {
-                    layer = canvas.gameObject.layer
-                };
-                var rect = item.GetComponent<RectTransform>();
-                rect.SetParent(canvas.transform);
-                rect.anchorMin = Vector2.zero;
-                rect.anchorMax = Vector2.one;
-                rect.offsetMin = Vector2.zero;
-                rect.offsetMax = Vector2.zero;
-                rect.localScale = Vector3.one;
-                rect.localPosition = Vector3.zero;
-                GlobalManager.layerData.Add(i, rect);
-            }
-
-            canvas.gameObject.AddComponent<GraphicRaycaster>();
-            var scaler = canvas.gameObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = 0.5f;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.referencePixelsPerUnit = 64;
-            DontDestroyOnLoad(canvas);
-
-
-            var manager = new GameObject(nameof(PoolManager)).AddComponent<GlobalManager>();
-            manager.canvas = canvas;
-            manager.canvas.renderMode = RenderMode.ScreenSpaceCamera;
-        }
-
-
-        [Serializable]
-        private struct Name
-        {
-            public string name;
-        }
     }
+#endif
 }

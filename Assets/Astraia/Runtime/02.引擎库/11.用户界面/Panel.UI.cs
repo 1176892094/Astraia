@@ -15,7 +15,7 @@ using System.Collections.Generic;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel : Agent
+    public abstract class UIPanel : Agent<Entity>
     {
         public HashSet<string> groups = new HashSet<string>();
         public UIState state = UIState.Common;

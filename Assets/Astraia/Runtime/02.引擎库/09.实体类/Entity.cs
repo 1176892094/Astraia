@@ -22,7 +22,7 @@ namespace Astraia
 {
     public class Entity : MonoBehaviour
     {
-        internal Dictionary<Type, Agent> agentDict = new Dictionary<Type, Agent>();
+        internal Dictionary<Type, IAgent> agentDict = new Dictionary<Type, IAgent>();
 
         public event Action OnShow;
         public event Action OnHide;
@@ -80,27 +80,27 @@ namespace Astraia
             OnExit?.Invoke(other);
         }
 
-        public T GetAgent<T>() where T : Agent
+        public T GetAgent<T>() where T : IAgent
         {
             return (T)agentDict.GetValueOrDefault(typeof(T));
         }
 
         public void AddAgent(Type type)
         {
-            AddAgentInternal(HeapManager.Dequeue<Agent>(type), type);
+            AddAgentInternal(HeapManager.Dequeue<IAgent>(type), type);
         }
 
-        public void AddAgent<T>(Type type) where T : Agent
+        public void AddAgent<T>(Type type) where T : IAgent
         {
             AddAgentInternal(HeapManager.Dequeue<T>(type), typeof(T));
         }
 
-        internal void AddAgentInternal(Agent agent, Type type)
+        internal void AddAgentInternal(IAgent agent, Type type)
         {
             if (agentDict.TryAdd(type, agent))
             {
                 EntityManager.Show(this);
-                agent.Id = this;
+                agent.OnInit(this);
                 agent.OnLoad();
 
                 OnFade += Faded;
@@ -124,11 +124,11 @@ namespace Astraia
         private static string[] agentNames;
 
         private static string[] AgentNames => agentNames ??= AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
-            .Where(type => !type.IsAbstract && !type.IsGenericType && typeof(Agent).IsAssignableFrom(type)).OrderBy(t => t.FullName)
+            .Where(type => !type.IsAbstract && !type.IsGenericType && typeof(IAgent).IsAssignableFrom(type)).OrderBy(t => t.FullName)
             .Select(t => Service.Text.Format("{0}, {1}", t.FullName, t.Assembly.GetName().Name)).ToArray();
 
         [HideInEditorMode, ShowInInspector]
-        private List<Agent> agentList
+        private List<IAgent> agentList
         {
             get => agentDict.Values.ToList();
             set => agentDict = value.ToDictionary(k => k.GetType(), v => v);

@@ -19,8 +19,8 @@ namespace Astraia
     [Serializable]
     public abstract class StateMachine<TEntity> : Agent<TEntity> where TEntity : Entity
     {
-        private readonly Dictionary<Type, StateBase> states = new Dictionary<Type, StateBase>();
-        [SerializeField] private StateBase state;
+        private readonly Dictionary<Type, IState> states = new Dictionary<Type, IState>();
+        [SerializeReference] private IState state;
 
         public virtual void OnUpdate()
         {
@@ -31,9 +31,9 @@ namespace Astraia
         {
             if (!states.TryGetValue(typeof(T), out var item))
             {
-                item = HeapManager.Dequeue<StateBase>(type);
+                item = HeapManager.Dequeue<IState>(type);
                 states.Add(typeof(T), item);
-                item.Id = Id;
+                item.OnInit(owner);
             }
         }
 
@@ -43,10 +43,10 @@ namespace Astraia
             state = states[typeof(T)];
             state?.OnEnter();
         }
-        
+
         public override void OnFade()
         {
-            var copies = new List<StateBase>(states.Values);
+            var copies = new List<IState>(states.Values);
             foreach (var item in copies)
             {
                 HeapManager.Enqueue(item, item.GetType());

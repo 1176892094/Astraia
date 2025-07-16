@@ -448,7 +448,7 @@ namespace Astraia.Net
 
                 if (message.sceneId == 0)
                 {
-                    var prefab = await AssetManager.Load<GameObject>("Prefabs/" + message.assetId);
+                    var prefab = await AssetManager.Load<GameObject>(GlobalSetting.GetPanelPath(message.assetId.ToString()));
                     if (!prefab.TryGetComponent(out entity))
                     {
                         Debug.LogError(Service.Text.Format(Log.E224, prefab.name));

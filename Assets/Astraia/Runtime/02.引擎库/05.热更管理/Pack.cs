@@ -53,8 +53,8 @@ namespace Astraia.Common
             }
 
             var persistentData = GlobalSetting.GetPacketPath(GlobalSetting.assetPackData);
-            var streamingAssets = GlobalSetting.GetClientPath(GlobalSetting.assetPackData);
-            var clientRequest = await LoadClientRequest(persistentData, streamingAssets);
+            var streamingAsset = GlobalSetting.GetClientPath(GlobalSetting.assetPackData);
+            var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
             if (!string.IsNullOrEmpty(clientRequest))
             {
                 var assetPacks = JsonManager.FromJson<List<PackData>>(clientRequest);
@@ -69,7 +69,7 @@ namespace Astraia.Common
             {
                 if (GlobalManager.clientPacks.TryGetValue(fileName, out var assetPack))
                 {
-                    if (assetPack != GlobalManager.serverPacks[fileName])
+                    if (GlobalManager.serverPacks[fileName] != assetPack)
                     {
                         fileNames.Add(fileName);
                     }
@@ -82,16 +82,16 @@ namespace Astraia.Common
                 }
             }
 
-            var sizes = new int[fileNames.Count];
+            var fileSizes = new int[fileNames.Count];
             for (int i = 0; i < fileNames.Count; i++)
             {
                 if (GlobalManager.serverPacks.TryGetValue(fileNames[i], out var assetPack))
                 {
-                    sizes[i] = assetPack.size;
+                    fileSizes[i] = assetPack.size;
                 }
             }
 
-            EventManager.Invoke(new PackAwake(sizes));
+            EventManager.Invoke(new PackAwake(fileSizes));
             foreach (var clientPack in GlobalManager.clientPacks.Keys)
             {
                 var filePath = GlobalSetting.GetPacketPath(clientPack);
@@ -101,14 +101,14 @@ namespace Astraia.Common
                 }
             }
 
-            var status = await LoadPacketRequest(fileNames);
-            if (status)
+            var success = await LoadPacketRequest(fileNames);
+            if (success)
             {
                 var filePath = GlobalSetting.GetPacketPath(GlobalSetting.assetPackData);
                 await File.WriteAllTextAsync(filePath, serverRequest);
             }
 
-            EventManager.Invoke(new PackComplete(1, status ? "更新完成!" : "更新失败!"));
+            EventManager.Invoke(new PackComplete(1, success ? "更新完成!" : "更新失败!"));
         }
 
         private static async Task<bool> LoadPacketRequest(List<string> fileNames)
@@ -200,9 +200,9 @@ namespace Astraia.Common
             }
         }
 
-        private static async Task<string> LoadClientRequest(string persistentData, string streamingAssets)
+        private static async Task<string> LoadClientRequest(string persistentData, string streamingAsset)
         {
-            var (assetMode, assetPath) = await LoadRequest(persistentData, streamingAssets);
+            var (assetMode, assetPath) = await LoadRequest(persistentData, streamingAsset);
             string result = null;
             if (assetMode == 1)
             {
@@ -221,9 +221,9 @@ namespace Astraia.Common
             return result;
         }
 
-        internal static async Task<AssetBundle> LoadAssetRequest(string persistentData, string streamingAssets)
+        internal static async Task<AssetBundle> LoadAssetRequest(string persistentData, string streamingAsset)
         {
-            var (assetMode, assetPath) = await LoadRequest(persistentData, streamingAssets);
+            var (assetMode, assetPath) = await LoadRequest(persistentData, streamingAsset);
             byte[] result = null;
             if (assetMode == 1)
             {
@@ -242,31 +242,32 @@ namespace Astraia.Common
             return GlobalSetting.Instance ? AssetBundle.LoadFromMemory(result) : null;
         }
 
-        private static async Task<(int, string)> LoadRequest(string persistentData, string streamingAssets)
+#pragma warning disable CS1998
+        private static async ValueTask<(int, string)> LoadRequest(string persistentData, string streamingAsset)
+#pragma warning restore CS1998
         {
             if (File.Exists(persistentData))
             {
                 return (1, persistentData);
             }
 #if UNITY_ANDROID && !UNITY_EDITOR
-            if (!streamingAssets.StartsWith("jar:"))
+            if (!streamingAsset.StartsWith("jar:"))
             {
-                streamingAssets = "jar:" + streamingAssets;
+                streamingAsset = "jar:" + streamingAsset;
             }
-            using var request = UnityWebRequest.Head(streamingAssets);
+            using var request = UnityWebRequest.Head(streamingAsset);
             await request.SendWebRequest();
             if (request.result == UnityWebRequest.Result.Success)
             {
-                return (2, streamingAssets);
+                return (2, streamingAsset);
             }
 #else
-            if (File.Exists(streamingAssets))
+            if (File.Exists(streamingAsset))
             {
-                return (1, streamingAssets);
+                return (1, streamingAsset);
             }
 #endif
-            await Task.CompletedTask;
-            return (0, string.Empty);
+            throw new FileNotFoundException(Service.Text.Format("未找到文件: {0}", streamingAsset));
         }
 
         internal static void Dispose()

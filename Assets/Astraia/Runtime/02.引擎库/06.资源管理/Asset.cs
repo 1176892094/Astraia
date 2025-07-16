@@ -141,8 +141,8 @@ namespace Astraia.Common
             }
 
             var persistentData = GlobalSetting.GetPacketPath(assetPath);
-            var streamingAssets = GlobalSetting.GetClientPath(assetPath);
-            assetTask = PackManager.LoadAssetRequest(persistentData, streamingAssets);
+            var streamingAsset = GlobalSetting.GetClientPath(assetPath);
+            assetTask = PackManager.LoadAssetRequest(persistentData, streamingAsset);
             GlobalManager.assetTask.Add(assetPath, assetTask);
             try
             {

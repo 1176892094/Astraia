@@ -10,14 +10,19 @@
 // *********************************************************************************
 
 using System;
+using Astraia.Common;
 
 namespace Astraia
 {
     [Serializable]
-    public abstract class StateBase
+    public abstract class State<T> : IState where T : Entity
     {
-        internal int Id;
-        public Entity owner => EntityManager.Find(Id);
+        public T owner;
+
+        void IState.OnInit(int id)
+        {
+            owner = (T)EntityManager.Find(id);
+        }
 
         public abstract void OnEnter();
 

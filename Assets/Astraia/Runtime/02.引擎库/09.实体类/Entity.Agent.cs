@@ -10,23 +10,22 @@
 // // *********************************************************************************
 
 using System;
+using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia
 {
     [Serializable]
-    public abstract class Agent<TEntity> : Agent where TEntity : Entity
+    public abstract class Agent<T> : IAgent where T : Entity
     {
-        public new TEntity owner => (TEntity)base.owner;
-    }
-
-    [Serializable]
-    public abstract class Agent
-    {
-        internal int Id;
-        public Entity owner => EntityManager.Find(Id);
+        public T owner;
         public Transform transform => owner?.transform;
         public GameObject gameObject => owner?.gameObject;
+
+        void IAgent.OnInit(int id)
+        {
+            owner = (T)EntityManager.Find(id);
+        }
 
         public virtual void OnLoad()
         {
@@ -44,9 +43,9 @@ namespace Astraia
         {
         }
 
-        public static implicit operator bool(Agent agent)
+        public static implicit operator bool(Agent<T> agent)
         {
-            return agent != null && agent.owner != null && agent.owner.isActiveAndEnabled;
+            return agent != null && agent.owner && agent.owner.isActiveAndEnabled;
         }
     }
 }

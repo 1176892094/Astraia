@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public sealed class Scroll<TItem> : Agent
+    public sealed class Scroll<TItem> : Agent<Entity>
     {
         private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
         private int oldMinIndex;

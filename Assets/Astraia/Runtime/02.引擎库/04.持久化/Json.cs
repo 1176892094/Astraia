@@ -41,7 +41,7 @@ namespace Astraia.Common
             var json = ToJson(data);
             json = Service.Zip.Compress(json);
             var item = Service.Text.GetBytes(json);
-            item = Service.Xor.Encrypt(item, GlobalSetting.Instance.jsonVersion);
+            item = Service.Xor.Encrypt(item, GlobalSetting.Instance.assetVersion);
             File.WriteAllBytes(path, item);
         }
 
