@@ -14,13 +14,13 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public abstract class PlayerState : StateMachine.State
-    {
+    public abstract class PlayerState : StateBase
+    {  protected new Player owner => (Player)base.owner;
         protected Transform transform => owner.transform;
         protected Rigidbody2D rigidbody => machine.rigidbody;
         protected PlayerMachine machine => base.owner.GetAgent<PlayerMachine>();
-        protected PlayerFeature feature =>base.owner.GetAgent<PlayerFeature>();
-        protected new Player owner => base.owner.GetAgent<Player>();
+        protected PlayerFeature feature => base.owner.GetAgent<PlayerFeature>();
+      
     }
 
     public class PlayerIdle : PlayerState
@@ -28,7 +28,7 @@ namespace Runtime
         public override void OnEnter()
         {
             rigidbody.linearVelocityX = 0;
-            owner.SyncColorServerRpc(Color.white);
+            owner.Sender.SyncColorServerRpc(Color.white);
         }
 
         public override void OnUpdate()
@@ -54,7 +54,7 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            owner.SyncColorServerRpc(Color.green);
+            owner.Sender.SyncColorServerRpc(Color.green);
         }
 
         public override void OnUpdate()
@@ -86,7 +86,7 @@ namespace Runtime
         public override void OnEnter()
         {
             frameCount = Time.frameCount + 10;
-            owner.SyncColorServerRpc(Color.red);
+            owner.Sender.SyncColorServerRpc(Color.red);
             feature.state |= StateType.Jump;
             feature.SubInt(Attribute.JumpCount, 1);
             if (feature.state.HasFlag(StateType.Ground))
@@ -143,7 +143,7 @@ namespace Runtime
         public override void OnEnter()
         {
             frameCount = Time.frameCount + 5;
-            owner.SyncColorServerRpc(Color.cyan);
+            owner.Sender.SyncColorServerRpc(Color.cyan);
             feature.state |= StateType.Grab;
             rigidbody.linearVelocityY = 0;
         }
@@ -187,7 +187,7 @@ namespace Runtime
         public override void OnEnter()
         {
             frameCount = Time.frameCount + 10;
-            owner.SyncColorServerRpc(Color.red);
+            owner.Sender.SyncColorServerRpc(Color.red);
             feature.state |= StateType.Grab;
             point = transform.position;
         }
@@ -227,7 +227,7 @@ namespace Runtime
         public override void OnEnter()
         {
             feature.SetInt(Attribute.DashFrame, Time.frameCount + 10);
-            owner.SyncColorServerRpc(Color.magenta);
+            owner.Sender.SyncColorServerRpc(Color.magenta);
             feature.state |= StateType.Dash;
             feature.SubInt(Attribute.DashCount, 1);
             direction = new Vector3(feature.moveX, feature.moveY).normalized;
@@ -244,7 +244,7 @@ namespace Runtime
 
             if (feature.waitFrame % 4 == 0)
             {
-                owner.LoadEffectServerRpc(transform.position);
+                owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
             feature.AddInt(Attribute.WaitFrame, 1);
@@ -277,7 +277,7 @@ namespace Runtime
         public override void OnEnter()
         {
             feature.state |= StateType.Crash;
-            owner.SyncColorServerRpc(Color.magenta);
+            owner.Sender.SyncColorServerRpc(Color.magenta);
         }
 
         public override void OnUpdate()
@@ -290,7 +290,7 @@ namespace Runtime
 
             if (feature.waitFrame % 5 == 0)
             {
-                owner.LoadEffectServerRpc(transform.position);
+                owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
             feature.AddInt(Attribute.WaitFrame, 1);

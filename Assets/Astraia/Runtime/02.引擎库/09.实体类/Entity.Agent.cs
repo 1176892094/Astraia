@@ -46,7 +46,7 @@ namespace Astraia
 
         public static implicit operator bool(Agent agent)
         {
-            return agent.owner != null && agent.owner.isActiveAndEnabled;
+            return agent != null && agent.owner != null && agent.owner.isActiveAndEnabled;
         }
     }
 }

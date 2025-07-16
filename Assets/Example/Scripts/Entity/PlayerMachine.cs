@@ -14,13 +14,11 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerMachine : StateMachine
+    public class PlayerMachine : StateMachine<Player>
     {
-        private Player player => owner.GetAgent<Player>();
-        private PlayerFeature feature => owner.GetAgent<PlayerFeature>();
-
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
+        private PlayerFeature Feature => owner.Feature;
 
         public override void OnLoad()
         {
@@ -30,31 +28,30 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (!player.isOwner) return;
-            if (feature.moveX > 0)
+            if (Feature.moveX > 0)
             {
-                transform.localScale = new Vector3(feature.moveX, 1, 1);
+                transform.localScale = new Vector3(Feature.moveX, 1, 1);
             }
-            else if (feature.moveX < 0)
+            else if (Feature.moveX < 0)
             {
-                transform.localScale = new Vector3(feature.moveX, 1, 1);
+                transform.localScale = new Vector3(Feature.moveX, 1, 1);
             }
 
             DashUpdate();
 
-            if (feature.state.HasFlag(StateType.Ground))
+            if (Feature.state.HasFlag(StateType.Ground))
             {
-                feature.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
+                Feature.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
                 JumpUpdate();
             }
-            else if (feature.state.HasFlag(StateType.Wall))
+            else if (Feature.state.HasFlag(StateType.Wall))
             {
-                if (!feature.state.HasFlag(StateType.Climb))
+                if (!Feature.state.HasFlag(StateType.Climb))
                 {
                     FallUpdate();
                 }
 
-                feature.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
+                Feature.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
                 JumpUpdate();
             }
             else
@@ -62,7 +59,7 @@ namespace Runtime
                 FallUpdate();
             }
 
-            if (feature.GetFloat(Attribute.JumpGrace) > Time.time)
+            if (Feature.GetFloat(Attribute.JumpGrace) > Time.time)
             {
                 JumpUpdate();
             }
@@ -72,12 +69,12 @@ namespace Runtime
 
         private void FallUpdate()
         {
-            if (feature.state.HasFlag(StateType.Dash))
+            if (Feature.state.HasFlag(StateType.Dash))
             {
                 return;
             }
 
-            if (feature.state.HasFlag(StateType.Jumping))
+            if (Feature.state.HasFlag(StateType.Jumping))
             {
                 rigidbody.linearVelocityY -= 9.81f * Time.deltaTime;
             }
@@ -91,42 +88,42 @@ namespace Runtime
 
         private void JumpUpdate()
         {
-            if (feature.GetInt(Attribute.JumpCount) <= 0)
+            if (Feature.GetInt(Attribute.JumpCount) <= 0)
             {
                 return;
             }
 
-            if (feature.GetFloat(Attribute.JumpInput) < Time.time)
+            if (Feature.GetFloat(Attribute.JumpInput) < Time.time)
             {
                 return;
             }
 
-            if (!feature.state.HasFlag(StateType.Jump))
+            if (!Feature.state.HasFlag(StateType.Jump))
             {
                 ChangeState<PlayerJump>();
             }
 
-            feature.SetFloat(Attribute.JumpInput, Time.time);
+            Feature.SetFloat(Attribute.JumpInput, Time.time);
         }
 
         private void DashUpdate()
         {
-            if (feature.GetInt(Attribute.DashCount) <= 0)
+            if (Feature.GetInt(Attribute.DashCount) <= 0)
             {
                 return;
             }
 
-            if (feature.GetFloat(Attribute.DashInput) < Time.time)
+            if (Feature.GetFloat(Attribute.DashInput) < Time.time)
             {
                 return;
             }
 
-            if (!feature.state.HasFlag(StateType.Dash))
+            if (!Feature.state.HasFlag(StateType.Dash))
             {
                 ChangeState<PlayerDash>();
             }
 
-            feature.SetFloat(Attribute.DashInput, Time.time);
+            Feature.SetFloat(Attribute.DashInput, Time.time);
         }
     }
 }

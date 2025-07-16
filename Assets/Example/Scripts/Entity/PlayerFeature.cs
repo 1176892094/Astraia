@@ -17,9 +17,8 @@ using UnityEngine;
 namespace Runtime
 {
     [Serializable]
-    public class PlayerFeature : Feature<Attribute>
+    public class PlayerFeature : Feature<Player, Attribute>
     {
-        public Player player => owner.GetAgent<Player>();
         public StateType state = StateType.None;
         public float moveX;
         public float moveY;
@@ -30,10 +29,10 @@ namespace Runtime
         [ShowInInspector] public float dashFrame => GetFloat(Attribute.DashFrame);
         [ShowInInspector] public float waitFrame => GetFloat(Attribute.WaitFrame);
 
-        public RaycastHit2D downLeftRay => Physics2D.Raycast(player.downLeftRay.origin, player.downLeftRay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D downRightRay => Physics2D.Raycast(player.downRightRay.origin, player.downRightRay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D rightUpRay => Physics2D.Raycast(player.rightUpRay.origin, player.rightUpRay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D rightDownRay => Physics2D.Raycast(player.rightDownRay.origin, player.rightDownRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D downLeftRay => Physics2D.Raycast(owner.downLeftRay.origin, owner.downLeftRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D downRightRay => Physics2D.Raycast(owner.downRightRay.origin, owner.downRightRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D rightUpRay => Physics2D.Raycast(owner.rightUpRay.origin, owner.rightUpRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D rightDownRay => Physics2D.Raycast(owner.rightDownRay.origin, owner.rightDownRay.direction, 0.12f, 1 << 6);
 
 
         public override void OnLoad()
@@ -45,7 +44,6 @@ namespace Runtime
 
         public void OnUpdate()
         {
-            if (!player.isOwner) return;
             if (downRightRay || downLeftRay)
             {
                 state |= StateType.Ground;

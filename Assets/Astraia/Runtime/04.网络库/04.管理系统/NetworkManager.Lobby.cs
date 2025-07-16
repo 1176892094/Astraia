@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using Astraia.Common;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -21,7 +22,8 @@ namespace Astraia.Net
         [Serializable]
         public static partial class Lobby
         {
-            internal static readonly BiDictionary<int, int> clients = new BiDictionary<int, int>();
+            internal static readonly Dictionary<int, int> clients = new Dictionary<int, int>();
+            internal static readonly Dictionary<int, int> players = new Dictionary<int, int>();
 
             private static State state = State.Disconnect;
 
@@ -56,6 +58,7 @@ namespace Astraia.Net
                 {
                     objectId = 0;
                     clients.Clear();
+                    players.Clear();
                     isServer = false;
                     isClient = false;
                     state = State.Disconnect;
@@ -162,6 +165,7 @@ namespace Astraia.Net
                             objectId++;
                             var clientId = reader.GetInt();
                             clients.Add(clientId, objectId);
+                            players.Add(objectId, clientId);
                             Transport.Instance.OnServerConnect.Invoke(objectId);
                         }
 
@@ -184,7 +188,7 @@ namespace Astraia.Net
                         if (isServer)
                         {
                             var clientId = reader.GetInt();
-                            if (clients.TryGetByKey(clientId, out var playerId))
+                            if (clients.TryGetValue(clientId, out var playerId))
                             {
                                 Transport.Instance.OnServerReceive.Invoke(playerId, message, channel);
                             }
@@ -200,10 +204,11 @@ namespace Astraia.Net
                         if (isServer)
                         {
                             var clientId = reader.GetInt();
-                            if (clients.TryGetByKey(clientId, out var playerId))
+                            if (clients.TryGetValue(clientId, out var playerId))
                             {
                                 Transport.Instance.OnServerDisconnect.Invoke(playerId);
-                                clients.RemoveByKey(clientId);
+                                clients.Remove(clientId);
+                                players.Remove(playerId);
                             }
                         }
                     }

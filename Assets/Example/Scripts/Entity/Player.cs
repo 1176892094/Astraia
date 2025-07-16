@@ -9,58 +9,60 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using Astraia;
-using Astraia.Common;
 using Astraia.Net;
 using UnityEngine;
 
 namespace Runtime
 {
-    public class Player : NetworkAgent, IStartAuthority
+    public class Player : NetworkEntity
     {
-        [SyncVar(nameof(OnColorValueChanged))] public Color syncColor;
-
-        private PlayerMachine machine => owner.GetAgent<PlayerMachine>();
+        public PlayerSender Sender => GetAgent<PlayerSender>();
+        public PlayerMachine Machine => GetAgent<PlayerMachine>();
+        public PlayerFeature Feature => GetAgent<PlayerFeature>();
+        public PlayerOperation Operation => GetAgent<PlayerOperation>();
+        public NetworkTransform Transform => GetAgent<NetworkTransform>();
         public Ray2D downLeftRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
         public Ray2D downRightRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
         public Ray2D rightUpRay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
         public Ray2D rightDownRay => new Ray2D(transform.position - Vector3.up * 0.075f, Vector3.right * transform.localScale.x);
 
-        public override void OnLoad()
+        protected override void Awake()
         {
-            owner.AddAgent(HeapManager.Dequeue<PlayerFeature>());
-            owner.AddAgent(HeapManager.Dequeue<PlayerMachine>());
-            owner.AddAgent(HeapManager.Dequeue<PlayerOperation>());
-            owner.GetAgent<NetworkTransform>().syncDirection = SyncMode.Client;
+            AddAgent(typeof(PlayerSender));
+            base.Awake();
+            AddAgent(typeof(PlayerFeature));
+            AddAgent(typeof(PlayerMachine));
+            AddAgent(typeof(PlayerOperation));
+            Transform.syncDirection = SyncMode.Client;
         }
 
-        public override void OnShow()
+        private void Update()
         {
-            GlobalManager.OnUpdate += OnUpdate;
+            if (isOwner)
+            {
+                Machine.OnUpdate();
+                Feature.OnUpdate();
+                Operation.OnUpdate();
+            }
+
+            Transform.OnUpdate();
         }
 
-        public override void OnHide()
+        private void LateUpdate()
         {
-            GlobalManager.OnUpdate -= OnUpdate;
-        }
-
-        private void OnUpdate()
-        {
-            owner.GetAgent<PlayerOperation>().OnUpdate();
-            owner.GetAgent<PlayerFeature>().OnUpdate();
-            owner.GetAgent<PlayerMachine>().OnUpdate();
+            Transform.OnLateUpdate();
         }
 
         public void OnStartAuthority()
         {
-            machine.AddState<PlayerIdle>(typeof(PlayerIdle));
-            machine.AddState<PlayerWalk>(typeof(PlayerWalk));
-            machine.AddState<PlayerJump>(typeof(PlayerJump));
-            machine.AddState<PlayerGrab>(typeof(PlayerGrab));
-            machine.AddState<PlayerDash>(typeof(PlayerDash));
-            machine.AddState<PlayerHop>(typeof(PlayerHop));
-            machine.AddState<PlayerCrash>(typeof(PlayerCrash));
-            machine.ChangeState<PlayerIdle>();
+            Machine.AddState<PlayerIdle>(typeof(PlayerIdle));
+            Machine.AddState<PlayerWalk>(typeof(PlayerWalk));
+            Machine.AddState<PlayerJump>(typeof(PlayerJump));
+            Machine.AddState<PlayerGrab>(typeof(PlayerGrab));
+            Machine.AddState<PlayerDash>(typeof(PlayerDash));
+            Machine.AddState<PlayerHop>(typeof(PlayerHop));
+            Machine.AddState<PlayerCrash>(typeof(PlayerCrash));
+            Machine.ChangeState<PlayerIdle>();
             GameManager.Instance.SetCamera(this, new Vector3(0, 3, 0), new Vector2(30, 8));
         }
 
@@ -70,23 +72,6 @@ namespace Runtime
             Gizmos.DrawRay(rightUpRay.origin, rightUpRay.direction * 0.12f);
             Gizmos.DrawRay(downLeftRay.origin, downRightRay.direction * 0.12f);
             Gizmos.DrawRay(downRightRay.origin, downRightRay.direction * 0.12f);
-        }
-
-        private void OnColorValueChanged(Color oldValue, Color newValue)
-        {
-            machine.renderer.color = newValue;
-        }
-
-        [ServerRpc]
-        public void LoadEffectServerRpc(Vector3 position)
-        {
-            SpawnManager.Instance.LoadEffectClientRpc(position);
-        }
-
-        [ServerRpc]
-        public void SyncColorServerRpc(Color syncColor)
-        {
-            this.syncColor = syncColor;
         }
     }
 }

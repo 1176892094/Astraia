@@ -17,21 +17,28 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public sealed class Scroll<TItem, TGrid> : Agent where TGrid : Component, IGrid<TItem>
+    public sealed class Scroll<TItem> : Agent
     {
-        private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
+        private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
         private int oldMinIndex;
         private int oldMaxIndex;
         private bool initialized;
         private bool useSelected;
         private IList<TItem> items;
+
         public bool selection;
+        public Type assetType;
         public Rect assetRect;
-        public string assetPath;
         public UIState direction;
-        public RectTransform component;
+        public RectTransform content;
         private int row => (int)assetRect.y + (direction == UIState.InputY ? 1 : 0);
         private int column => (int)assetRect.x + (direction == UIState.InputX ? 1 : 0);
+
+        public override void OnLoad()
+        {
+            selection = false;
+            initialized = false;
+        }
 
         public override void OnShow()
         {
@@ -45,13 +52,26 @@ namespace Astraia
 
         public override void OnFade()
         {
-            selection = false;
-            initialized = false;
+            foreach (var i in grids.Keys)
+            {
+                if (grids.TryGetValue(i, out var grid))
+                {
+                    if (grid != null)
+                    {
+                        grid.Dispose();
+                        PoolManager.Hide(grid.gameObject);
+                    }
+                }
+            }
+
+            grids.Clear();
+            oldMinIndex = -1;
+            oldMaxIndex = -1;
         }
 
         private void OnUpdate()
         {
-            if (component == null)
+            if (content == null)
             {
                 return;
             }
@@ -61,16 +81,16 @@ namespace Astraia
                 initialized = true;
                 if (direction == UIState.InputY)
                 {
-                    component.anchorMin = Vector2.up;
-                    component.anchorMax = Vector2.one;
+                    content.anchorMin = Vector2.up;
+                    content.anchorMax = Vector2.one;
                 }
                 else
                 {
-                    component.anchorMin = Vector2.zero;
-                    component.anchorMax = Vector2.up;
+                    content.anchorMin = Vector2.zero;
+                    content.anchorMax = Vector2.up;
                 }
 
-                component.pivot = Vector2.up;
+                content.pivot = Vector2.up;
             }
 
             if (items == null)
@@ -84,14 +104,14 @@ namespace Astraia
             float position;
             if (direction == UIState.InputY)
             {
-                position = component.anchoredPosition.y;
+                position = content.anchoredPosition.y;
                 newIndex = (int)(position / assetRect.height);
                 minIndex = newIndex * column;
                 maxIndex = (newIndex + row) * column - 1;
             }
             else
             {
-                position = -component.anchoredPosition.x;
+                position = -content.anchoredPosition.x;
                 newIndex = (int)(position / assetRect.width);
                 minIndex = newIndex * row;
                 maxIndex = (newIndex + column) * row - 1;
@@ -161,16 +181,12 @@ namespace Astraia
                         posY = -(index % row) * assetRect.height - assetRect.height / 2;
                     }
 
-                    PoolManager.Show(assetPath, obj =>
+                    PoolManager.Show("Prefabs/" + assetType.Name, obj =>
                     {
-                        var grid = obj.GetComponent<TGrid>();
-                        if (grid == null)
-                        {
-                            grid = obj.AddComponent<TGrid>();
-                        }
+                        var grid = obj.GetComponent<IGrid<TItem>>() ?? (IGrid<TItem>)obj.AddComponent(assetType);
 
                         var target = (RectTransform)grid.transform;
-                        target.SetParent(component);
+                        target.SetParent(content);
                         target.sizeDelta = new Vector2(assetRect.width, assetRect.height);
                         target.localScale = Vector3.one;
                         target.localPosition = new Vector3(posX, posY, 0);
@@ -196,22 +212,6 @@ namespace Astraia
 
         public void SetItem(IList<TItem> items)
         {
-            oldMinIndex = -1;
-            oldMaxIndex = -1;
-            foreach (var i in grids.Keys)
-            {
-                if (grids.TryGetValue(i, out var grid))
-                {
-                    if (grid != null)
-                    {
-                        grid.Dispose();
-                        PoolManager.Hide(grid.gameObject);
-                    }
-                }
-            }
-
-            grids.Clear();
-
             this.items = items;
             if (items != null)
             {
@@ -219,71 +219,68 @@ namespace Astraia
                 if (direction == UIState.InputY)
                 {
                     value = Mathf.Ceil(value / column);
-                    component.sizeDelta = new Vector2(0, value * assetRect.height);
+                    content.sizeDelta = new Vector2(0, value * assetRect.height);
                 }
                 else
                 {
                     value = Mathf.Ceil(value / row);
-                    component.sizeDelta = new Vector2(value * assetRect.width, 0);
+                    content.sizeDelta = new Vector2(value * assetRect.width, 0);
                 }
             }
 
             useSelected = selection;
-            component.anchoredPosition = Vector2.zero;
+            content.anchoredPosition = Vector2.zero;
         }
 
-        public void Move(Component component, int direction)
+        public void Move(IGrid<TItem> grid, int offset)
         {
-            if (component.TryGetComponent(out TGrid grid))
+            IGrid<TItem> current;
+            switch (offset)
             {
-                TGrid current;
-                switch (direction)
-                {
-                    case 0 when this.direction == UIState.InputX: // 左
-                        for (int i = 0; i < row; i++)
+                case 0 when direction == UIState.InputX: // 左
+                    for (int i = 0; i < row; i++)
+                    {
+                        if (grids.TryGetValue(oldMinIndex + i + row, out current) && current == grid)
                         {
-                            if (grids.TryGetValue(oldMinIndex + i + row, out current) && current == grid)
-                            {
-                                this.component.anchoredPosition -= Vector2.left * assetRect.width;
-                                break;
-                            }
+                            content.anchoredPosition -= Vector2.left * assetRect.width;
+                            break;
                         }
+                    }
 
-                        return;
-                    case 1 when this.direction == UIState.InputY: // 上
-                        for (int i = 0; i < column; i++)
+                    return;
+                case 1 when direction == UIState.InputY: // 上
+                    for (int i = 0; i < column; i++)
+                    {
+                        if (grids.TryGetValue(oldMinIndex + i + column, out current) && current == grid)
                         {
-                            if (grids.TryGetValue(oldMinIndex + i + column, out current) && current == grid)
-                            {
-                                this.component.anchoredPosition -= Vector2.up * assetRect.height;
-                                break;
-                            }
+                            content.anchoredPosition -= Vector2.up * assetRect.height;
+                            break;
                         }
+                    }
 
-                        return;
-                    case 2 when this.direction == UIState.InputX: // 右
-                        for (int i = 0; i < row; i++)
+                    return;
+                case 2 when direction == UIState.InputX: // 右
+                    for (int i = 0; i < row; i++)
+                    {
+                        if (grids.TryGetValue(oldMaxIndex - i - row, out current) && current == grid)
                         {
-                            if (grids.TryGetValue(oldMaxIndex - i - row, out current) && current == grid)
-                            {
-                                this.component.anchoredPosition += Vector2.left * assetRect.width;
-                                break;
-                            }
+                            content.anchoredPosition += Vector2.left * assetRect.width;
+                            break;
                         }
+                    }
 
-                        return;
-                    case 3 when this.direction == UIState.InputY: // 下
-                        for (int i = 0; i < column; i++)
+                    return;
+                case 3 when direction == UIState.InputY: // 下
+                    for (int i = 0; i < column; i++)
+                    {
+                        if (grids.TryGetValue(oldMaxIndex - i - column, out current) && current == grid)
                         {
-                            if (grids.TryGetValue(oldMaxIndex - i - column, out current) && current == grid)
-                            {
-                                this.component.anchoredPosition += Vector2.up * assetRect.height;
-                                break;
-                            }
+                            content.anchoredPosition += Vector2.up * assetRect.height;
+                            break;
                         }
+                    }
 
-                        return;
-                }
+                    return;
             }
         }
     }
