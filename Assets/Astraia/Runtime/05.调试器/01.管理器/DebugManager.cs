@@ -34,8 +34,6 @@ namespace Astraia.Common
         private float screenWidth => Screen.width / screenSize;
         private float screenHeight => Screen.height / screenSize;
         private float screenSize => Screen.width / screenRate.x + Screen.height / screenRate.y;
-        private Rect maxWindow => new Rect(screenRect.x, screenRect.y, screenWidth - screenRect.x * 2, screenHeight - screenRect.y / 2 * 3);
-        private Rect minWindow => new Rect(screenRect.x, screenRect.y, screenRect.width - screenRect.x * 2, screenRect.height - screenRect.y / 2 * 3);
 
         private void Awake()
         {
