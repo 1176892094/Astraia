@@ -13,7 +13,7 @@ using System.Runtime.CompilerServices;
 
 namespace Astraia
 {
-    public static partial class Extensions
+    public static class Extensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetBit(this Variable<byte> variable, int shift, int mask)
