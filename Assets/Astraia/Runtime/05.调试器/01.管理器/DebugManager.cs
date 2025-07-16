@@ -17,6 +17,7 @@ namespace Astraia.Common
     [DefaultExecutionOrder(-100)]
     public partial class DebugManager : MonoBehaviour, IEvent<PingUpdate>
     {
+        private Font font;
         private bool maximized;
         private float frameData;
         private double frameTime;
@@ -42,6 +43,7 @@ namespace Astraia.Common
             screenColor = Color.white;
             screenRate = new Vector2(2560, 1440);
             screenRect = new Rect(10, 20, 100, 60);
+            font = Resources.Load<Font>("Sarasa Mono SC");
         }
 
         private void Start()
@@ -99,10 +101,15 @@ namespace Astraia.Common
             var matrix = GUI.matrix;
             var labelAlignment = GUI.skin.label.alignment;
             var fieldAlignment = GUI.skin.textField.alignment;
-
+            
             GUI.matrix = Matrix4x4.Scale(new Vector3(screenSize, screenSize, 1));
             GUI.skin.label.alignment = TextAnchor.MiddleLeft;
             GUI.skin.textField.alignment = TextAnchor.MiddleLeft;
+            
+            if (font != null)
+            {
+                GUI.skin.font = font;
+            }
 
             if (maximized)
             {
@@ -114,7 +121,7 @@ namespace Astraia.Common
                 windowRect.size = screenRect.size;
                 windowRect = GUI.Window(0, windowRect, MinWindow, "调试器");
             }
-
+            
             GUI.matrix = matrix;
             GUI.skin.label.alignment = labelAlignment;
             GUI.skin.textField.alignment = fieldAlignment;
