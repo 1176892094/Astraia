@@ -55,12 +55,12 @@ namespace Astraia
             EntityManager.Hide(this);
         }
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             OnShow?.Invoke();
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             OnHide?.Invoke();
         }
