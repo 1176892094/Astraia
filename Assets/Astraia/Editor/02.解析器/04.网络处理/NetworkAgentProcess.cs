@@ -9,6 +9,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System.Collections;
 using System.Collections.Generic;
 using Astraia.Net;
 using Mono.Cecil;
@@ -123,6 +124,7 @@ namespace Astraia.Editor
         /// </summary>
         private void ProcessRpcMethods(ref bool failed)
         {
+            var names = new HashSet<string>();
             var methods = new List<MethodDefinition>(generate.Methods);
 
             foreach (var md in methods)
@@ -131,19 +133,19 @@ namespace Astraia.Editor
                 {
                     if (ca.AttributeType.Is<ServerRpcAttribute>())
                     {
-                        ProcessDelegate(md, ca, InvokeMode.ServerRpc, ref failed);
+                        ProcessDelegate(names, md, ca, InvokeMode.ServerRpc, ref failed);
                         break;
                     }
 
                     if (ca.AttributeType.Is<TargetRpcAttribute>())
                     {
-                        ProcessDelegate(md, ca, InvokeMode.TargetRpc, ref failed);
+                        ProcessDelegate(names, md, ca, InvokeMode.TargetRpc, ref failed);
                         break;
                     }
 
                     if (ca.AttributeType.Is<ClientRpcAttribute>())
                     {
-                        ProcessDelegate(md, ca, InvokeMode.ClientRpc, ref failed);
+                        ProcessDelegate(names, md, ca, InvokeMode.ClientRpc, ref failed);
                         break;
                     }
                 }
@@ -153,11 +155,12 @@ namespace Astraia.Editor
         /// <summary>
         /// 处理ClientRpc
         /// </summary>
+        /// <param name="names"></param>
         /// <param name="md"></param>
         /// <param name="rpc"></param>
         /// <param name="mode"></param>
         /// <param name="failed"></param>
-        private void ProcessDelegate(MethodDefinition md, CustomAttribute rpc, InvokeMode mode, ref bool failed)
+        private void ProcessDelegate(HashSet<string> names, MethodDefinition md, CustomAttribute rpc, InvokeMode mode, ref bool failed)
         {
             if (md.IsAbstract)
             {
@@ -171,6 +174,7 @@ namespace Astraia.Editor
                 return;
             }
 
+            names.Add(md.Name);
             MethodDefinition func;
             MethodDefinition rpcFunc;
             switch (mode)
@@ -178,7 +182,7 @@ namespace Astraia.Editor
                 case InvokeMode.ServerRpc:
                     serverRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
                     func = NetworkAttributeProcess.ProcessServerRpcInvoke(module, writer, logger, generate, md, rpc, ref failed);
-               
+
                     rpcFunc = NetworkAttributeProcess.ProcessServerRpc(module, reader, logger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
@@ -236,6 +240,13 @@ namespace Astraia.Editor
         /// <returns></returns>
         private bool IsValidFunc(MethodReference mr, ref bool failed)
         {
+            if (mr.ReturnType.Is<IEnumerator>())
+            {
+                logger.Error($"{mr.Name} 方法不能被迭代。", mr);
+                failed = true;
+                return false;
+            }
+
             if (!mr.ReturnType.Is(typeof(void)))
             {
                 logger.Error($"{mr.Name} 方法不能有返回值。", mr);
@@ -343,7 +354,7 @@ namespace Astraia.Editor
             {
                 cctor = new MethodDefinition(".cctor", Const.CTOR_ATTRS, module.Import(typeof(void)));
             }
-          
+
             ILProcessor worker = cctor.Body.GetILProcessor();
             for (int i = 0; i < serverRpcList.Count; ++i)
             {
@@ -365,7 +376,7 @@ namespace Astraia.Editor
             {
                 generate.Methods.Add(cctor);
             }
-       
+
             generate.Attributes &= ~TypeAttributes.BeforeFieldInit;
         }
 
