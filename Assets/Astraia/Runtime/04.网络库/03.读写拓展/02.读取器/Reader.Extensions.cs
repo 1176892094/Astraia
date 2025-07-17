@@ -55,7 +55,7 @@ namespace Astraia.Net
         public static bool? ReadBoolNullable(this MemoryReader reader)
         {
             var value = reader.ReadNullable<byte>();
-            return value.HasValue ? value.Value != 0 : null;
+            return value.HasValue ? value.Value != 0 : default(bool?);
         }
 
         public static short ReadShort(this MemoryReader reader)
@@ -228,6 +228,12 @@ namespace Astraia.Net
         {
             var uri = reader.ReadString();
             return string.IsNullOrWhiteSpace(uri) ? null : new Uri(uri);
+        }
+
+        public static Type ReadType(this MemoryReader reader)
+        {
+            var type = reader.ReadString();
+            return string.IsNullOrWhiteSpace(type) ? null : Service.Find.Type(type);
         }
     }
 }

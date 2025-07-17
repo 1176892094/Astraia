@@ -54,7 +54,7 @@ namespace Astraia.Net
 
         public static void WriteBoolNullable(this MemoryWriter writer, bool? value)
         {
-            writer.WriteNullable<byte>(value.HasValue ? (byte)(value.Value ? 1 : 0) : null);
+            writer.WriteNullable(value.HasValue ? (byte)(value.Value ? 1 : 0) : new byte?());
         }
 
         public static void WriteShort(this MemoryWriter writer, short value)
@@ -244,7 +244,7 @@ namespace Astraia.Net
                 return;
             }
 
-            writer.WriteString(value.FullName);
+            writer.WriteString(value.FullName + "," + value.Assembly.GetName().Name);
         }
     }
 }
