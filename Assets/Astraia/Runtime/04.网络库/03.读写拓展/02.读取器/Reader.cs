@@ -20,9 +20,9 @@ namespace Astraia.Net
             return reader.Read<Vector2>();
         }
 
-        public static Vector2? ReadVector2Null(this MemoryReader reader)
+        public static Vector2? ReadVector2Nullable(this MemoryReader reader)
         {
-            return reader.Readable<Vector2>();
+            return reader.ReadNullable<Vector2>();
         }
 
         public static Vector3 ReadVector3(this MemoryReader reader)
@@ -30,9 +30,9 @@ namespace Astraia.Net
             return reader.Read<Vector3>();
         }
 
-        public static Vector3? ReadVector3Null(this MemoryReader reader)
+        public static Vector3? ReadVector3Nullable(this MemoryReader reader)
         {
-            return reader.Readable<Vector3>();
+            return reader.ReadNullable<Vector3>();
         }
 
         public static Vector4 ReadVector4(this MemoryReader reader)
@@ -40,9 +40,9 @@ namespace Astraia.Net
             return reader.Read<Vector4>();
         }
 
-        public static Vector4? ReadVector4Null(this MemoryReader reader)
+        public static Vector4? ReadVector4Nullable(this MemoryReader reader)
         {
-            return reader.Readable<Vector4>();
+            return reader.ReadNullable<Vector4>();
         }
 
         public static Vector2Int ReadVector2Int(this MemoryReader reader)
@@ -50,9 +50,9 @@ namespace Astraia.Net
             return reader.Read<Vector2Int>();
         }
 
-        public static Vector2Int? ReadVector2IntNull(this MemoryReader reader)
+        public static Vector2Int? ReadVector2IntNullable(this MemoryReader reader)
         {
-            return reader.Readable<Vector2Int>();
+            return reader.ReadNullable<Vector2Int>();
         }
 
         public static Vector3Int ReadVector3Int(this MemoryReader reader)
@@ -60,9 +60,9 @@ namespace Astraia.Net
             return reader.Read<Vector3Int>();
         }
 
-        public static Vector3Int? ReadVector3IntNull(this MemoryReader reader)
+        public static Vector3Int? ReadVector3IntNullable(this MemoryReader reader)
         {
-            return reader.Readable<Vector3Int>();
+            return reader.ReadNullable<Vector3Int>();
         }
 
         public static Quaternion ReadQuaternion(this MemoryReader reader)
@@ -70,9 +70,9 @@ namespace Astraia.Net
             return reader.Read<Quaternion>();
         }
 
-        public static Quaternion? ReadQuaternionNull(this MemoryReader reader)
+        public static Quaternion? ReadQuaternionNullable(this MemoryReader reader)
         {
-            return reader.Readable<Quaternion>();
+            return reader.ReadNullable<Quaternion>();
         }
 
         public static Color ReadColor(this MemoryReader reader)

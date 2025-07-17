@@ -22,9 +22,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteByteNull(this MemoryWriter writer, byte? value)
+        public static void WriteByteNullable(this MemoryWriter writer, byte? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteSByte(this MemoryWriter writer, sbyte value)
@@ -32,9 +32,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteSByteNull(this MemoryWriter writer, sbyte? value)
+        public static void WriteSByteNullable(this MemoryWriter writer, sbyte? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteChar(this MemoryWriter writer, char value)
@@ -42,9 +42,9 @@ namespace Astraia.Net
             writer.Write((ushort)value);
         }
 
-        public static void WriteCharNull(this MemoryWriter writer, char? value)
+        public static void WriteCharNullable(this MemoryWriter writer, char? value)
         {
-            writer.Writable((ushort?)value);
+            writer.WriteNullable((ushort?)value);
         }
 
         public static void WriteBool(this MemoryWriter writer, bool value)
@@ -52,9 +52,9 @@ namespace Astraia.Net
             writer.Write((byte)(value ? 1 : 0));
         }
 
-        public static void WriteBoolNull(this MemoryWriter writer, bool? value)
+        public static void WriteBoolNullable(this MemoryWriter writer, bool? value)
         {
-            writer.Writable(value.HasValue ? (byte)(value.Value ? 1 : 0) : new byte?());
+            writer.WriteNullable<byte>(value.HasValue ? (byte)(value.Value ? 1 : 0) : null);
         }
 
         public static void WriteShort(this MemoryWriter writer, short value)
@@ -62,9 +62,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteShortNull(this MemoryWriter writer, short? value)
+        public static void WriteShortNullable(this MemoryWriter writer, short? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteUShort(this MemoryWriter writer, ushort value)
@@ -72,9 +72,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteUShortNull(this MemoryWriter writer, ushort? value)
+        public static void WriteUShortNullable(this MemoryWriter writer, ushort? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteInt(this MemoryWriter writer, int value)
@@ -82,9 +82,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteIntNull(this MemoryWriter writer, int? value)
+        public static void WriteIntNullable(this MemoryWriter writer, int? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteUInt(this MemoryWriter writer, uint value)
@@ -92,9 +92,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteUIntNull(this MemoryWriter writer, uint? value)
+        public static void WriteUIntNullable(this MemoryWriter writer, uint? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteLong(this MemoryWriter writer, long value)
@@ -102,9 +102,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteLongNull(this MemoryWriter writer, long? value)
+        public static void WriteLongNullable(this MemoryWriter writer, long? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteULong(this MemoryWriter writer, ulong value)
@@ -112,9 +112,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteULongNull(this MemoryWriter writer, ulong? value)
+        public static void WriteULongNullable(this MemoryWriter writer, ulong? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteFloat(this MemoryWriter writer, float value)
@@ -122,9 +122,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteFloatNull(this MemoryWriter writer, float? value)
+        public static void WriteFloatNullable(this MemoryWriter writer, float? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteDouble(this MemoryWriter writer, double value)
@@ -132,9 +132,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteDoubleNull(this MemoryWriter writer, double? value)
+        public static void WriteDoubleNullable(this MemoryWriter writer, double? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteDecimal(this MemoryWriter writer, decimal value)
@@ -142,9 +142,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteDecimalNull(this MemoryWriter writer, decimal? value)
+        public static void WriteDecimalNullable(this MemoryWriter writer, decimal? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteString(this MemoryWriter writer, string value)

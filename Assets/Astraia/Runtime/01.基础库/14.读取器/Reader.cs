@@ -41,7 +41,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? Readable<T>() where T : unmanaged
+        public T? ReadNullable<T>() where T : unmanaged
         {
             return Read<byte>() != 0 ? Read<T>() : default(T?);
         }

@@ -22,9 +22,9 @@ namespace Astraia.Net
             return reader.Read<byte>();
         }
 
-        public static byte? ReadByteNull(this MemoryReader reader)
+        public static byte? ReadByteNullable(this MemoryReader reader)
         {
-            return reader.Readable<byte>();
+            return reader.ReadNullable<byte>();
         }
 
         public static sbyte ReadSByte(this MemoryReader reader)
@@ -32,9 +32,9 @@ namespace Astraia.Net
             return reader.Read<sbyte>();
         }
 
-        public static sbyte? ReadSByteNull(this MemoryReader reader)
+        public static sbyte? ReadSByteNullable(this MemoryReader reader)
         {
-            return reader.Readable<sbyte>();
+            return reader.ReadNullable<sbyte>();
         }
 
         public static char ReadChar(this MemoryReader reader)
@@ -42,9 +42,9 @@ namespace Astraia.Net
             return (char)reader.Read<ushort>();
         }
 
-        public static char? ReadCharNull(this MemoryReader reader)
+        public static char? ReadCharNullable(this MemoryReader reader)
         {
-            return (char?)reader.Readable<ushort>();
+            return (char?)reader.ReadNullable<ushort>();
         }
 
         public static bool ReadBool(this MemoryReader reader)
@@ -52,10 +52,10 @@ namespace Astraia.Net
             return reader.Read<byte>() != 0;
         }
 
-        public static bool? ReadBoolNull(this MemoryReader reader)
+        public static bool? ReadBoolNullable(this MemoryReader reader)
         {
-            var value = reader.Readable<byte>();
-            return value.HasValue ? value.Value != 0 : default(bool?);
+            var value = reader.ReadNullable<byte>();
+            return value.HasValue ? value.Value != 0 : null;
         }
 
         public static short ReadShort(this MemoryReader reader)
@@ -63,9 +63,9 @@ namespace Astraia.Net
             return reader.Read<short>();
         }
 
-        public static short? ReadShortNull(this MemoryReader reader)
+        public static short? ReadShortNullable(this MemoryReader reader)
         {
-            return reader.Readable<short>();
+            return reader.ReadNullable<short>();
         }
 
         public static ushort ReadUShort(this MemoryReader reader)
@@ -73,9 +73,9 @@ namespace Astraia.Net
             return reader.Read<ushort>();
         }
 
-        public static ushort? ReadUShortNull(this MemoryReader reader)
+        public static ushort? ReadUShortNullable(this MemoryReader reader)
         {
-            return reader.Readable<ushort>();
+            return reader.ReadNullable<ushort>();
         }
 
         public static int ReadInt(this MemoryReader reader)
@@ -83,9 +83,9 @@ namespace Astraia.Net
             return reader.Read<int>();
         }
 
-        public static int? ReadIntNull(this MemoryReader reader)
+        public static int? ReadIntNullable(this MemoryReader reader)
         {
-            return reader.Readable<int>();
+            return reader.ReadNullable<int>();
         }
 
         public static uint ReadUInt(this MemoryReader reader)
@@ -93,9 +93,9 @@ namespace Astraia.Net
             return reader.Read<uint>();
         }
 
-        public static uint? ReadUIntNull(this MemoryReader reader)
+        public static uint? ReadUIntNullable(this MemoryReader reader)
         {
-            return reader.Readable<uint>();
+            return reader.ReadNullable<uint>();
         }
 
         public static long ReadLong(this MemoryReader reader)
@@ -103,9 +103,9 @@ namespace Astraia.Net
             return reader.Read<long>();
         }
 
-        public static long? ReadLongNull(this MemoryReader reader)
+        public static long? ReadLongNullable(this MemoryReader reader)
         {
-            return reader.Readable<long>();
+            return reader.ReadNullable<long>();
         }
 
         public static ulong ReadULong(this MemoryReader reader)
@@ -113,9 +113,9 @@ namespace Astraia.Net
             return reader.Read<ulong>();
         }
 
-        public static ulong? ReadULongNull(this MemoryReader reader)
+        public static ulong? ReadULongNullable(this MemoryReader reader)
         {
-            return reader.Readable<ulong>();
+            return reader.ReadNullable<ulong>();
         }
 
         public static float ReadFloat(this MemoryReader reader)
@@ -123,9 +123,9 @@ namespace Astraia.Net
             return reader.Read<float>();
         }
 
-        public static float? ReadFloatNull(this MemoryReader reader)
+        public static float? ReadFloatNullable(this MemoryReader reader)
         {
-            return reader.Readable<float>();
+            return reader.ReadNullable<float>();
         }
 
         public static double ReadDouble(this MemoryReader reader)
@@ -133,9 +133,9 @@ namespace Astraia.Net
             return reader.Read<double>();
         }
 
-        public static double? ReadDoubleNull(this MemoryReader reader)
+        public static double? ReadDoubleNullable(this MemoryReader reader)
         {
-            return reader.Readable<double>();
+            return reader.ReadNullable<double>();
         }
 
         public static decimal ReadDecimal(this MemoryReader reader)
@@ -143,9 +143,9 @@ namespace Astraia.Net
             return reader.Read<decimal>();
         }
 
-        public static decimal? ReadDecimalNull(this MemoryReader reader)
+        public static decimal? ReadDecimalNullable(this MemoryReader reader)
         {
-            return reader.Readable<decimal>();
+            return reader.ReadNullable<decimal>();
         }
 
         public static string ReadString(this MemoryReader reader)

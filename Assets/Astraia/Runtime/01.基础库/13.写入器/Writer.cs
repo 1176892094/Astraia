@@ -40,7 +40,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Writable<T>(T? value) where T : unmanaged
+        public void WriteNullable<T>(T? value) where T : unmanaged
         {
             if (!value.HasValue)
             {

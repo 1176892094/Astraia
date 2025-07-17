@@ -21,9 +21,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteVector2Null(this MemoryWriter writer, Vector2? value)
+        public static void WriteVector2Nullable(this MemoryWriter writer, Vector2? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteVector3(this MemoryWriter writer, Vector3 value)
@@ -31,9 +31,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteVector3Null(this MemoryWriter writer, Vector3? value)
+        public static void WriteVector3Nullable(this MemoryWriter writer, Vector3? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteVector4(this MemoryWriter writer, Vector4 value)
@@ -41,9 +41,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteVector4Null(this MemoryWriter writer, Vector4? value)
+        public static void WriteVector4Nullable(this MemoryWriter writer, Vector4? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteVector2Int(this MemoryWriter writer, Vector2Int value)
@@ -51,9 +51,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteVector2IntNull(this MemoryWriter writer, Vector2Int? value)
+        public static void WriteVector2IntNullable(this MemoryWriter writer, Vector2Int? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteVector3Int(this MemoryWriter writer, Vector3Int value)
@@ -61,9 +61,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteVector3IntNull(this MemoryWriter writer, Vector3Int? value)
+        public static void WriteVector3IntNullable(this MemoryWriter writer, Vector3Int? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteQuaternion(this MemoryWriter writer, Quaternion value)
@@ -71,9 +71,9 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        public static void WriteQuaternionNull(this MemoryWriter writer, Quaternion? value)
+        public static void WriteQuaternionNullable(this MemoryWriter writer, Quaternion? value)
         {
-            writer.Writable(value);
+            writer.WriteNullable(value);
         }
 
         public static void WriteColor(this MemoryWriter writer, Color value)
