@@ -193,7 +193,7 @@ namespace Astraia.Net
         private bool WriteParameter(MemoryWriter writer, bool initialize = false)
         {
             var dirtyBits = initialize ? ~0UL : NextDirty();
-            writer.SetULong(dirtyBits);
+            writer.WriteULong(dirtyBits);
             for (var i = 0; i < animatorParams.Length; i++)
             {
                 if ((dirtyBits & (1UL << i)) == 0)
@@ -205,17 +205,17 @@ namespace Astraia.Net
                 if (parameter.type == AnimatorControllerParameterType.Int)
                 {
                     var newIntValue = animator.GetInteger(parameter.nameHash);
-                    writer.SetInt(newIntValue);
+                    writer.WriteInt(newIntValue);
                 }
                 else if (parameter.type == AnimatorControllerParameterType.Float)
                 {
                     var newFloatValue = animator.GetFloat(parameter.nameHash);
-                    writer.SetFloat(newFloatValue);
+                    writer.WriteFloat(newFloatValue);
                 }
                 else if (parameter.type == AnimatorControllerParameterType.Bool)
                 {
                     var newBoolValue = animator.GetBool(parameter.nameHash);
-                    writer.SetBool(newBoolValue);
+                    writer.WriteBool(newBoolValue);
                 }
             }
 
@@ -225,7 +225,7 @@ namespace Astraia.Net
         private void ReadParameter(MemoryReader reader)
         {
             var initialize = animator.enabled;
-            var dirtyBits = reader.GetULong();
+            var dirtyBits = reader.ReadULong();
             for (var i = 0; i < animatorParams.Length; i++)
             {
                 if ((dirtyBits & (1UL << i)) == 0)
@@ -236,7 +236,7 @@ namespace Astraia.Net
                 var parameter = animatorParams[i];
                 if (parameter.type == AnimatorControllerParameterType.Int)
                 {
-                    var newIntValue = reader.GetInt();
+                    var newIntValue = reader.ReadInt();
                     if (initialize)
                     {
                         animator.SetInteger(parameter.nameHash, newIntValue);
@@ -244,7 +244,7 @@ namespace Astraia.Net
                 }
                 else if (parameter.type == AnimatorControllerParameterType.Float)
                 {
-                    var newFloatValue = reader.GetFloat();
+                    var newFloatValue = reader.ReadFloat();
                     if (initialize)
                     {
                         animator.SetFloat(parameter.nameHash, newFloatValue);
@@ -252,7 +252,7 @@ namespace Astraia.Net
                 }
                 else if (parameter.type == AnimatorControllerParameterType.Bool)
                 {
-                    var newBoolValue = reader.GetBool();
+                    var newBoolValue = reader.ReadBool();
                     if (initialize)
                     {
                         animator.SetBool(parameter.nameHash, newBoolValue);
@@ -270,17 +270,17 @@ namespace Astraia.Net
                 if (animator.IsInTransition(i))
                 {
                     var stateInfo = animator.GetNextAnimatorStateInfo(i);
-                    writer.SetInt(stateInfo.fullPathHash);
-                    writer.SetFloat(stateInfo.normalizedTime);
+                    writer.WriteInt(stateInfo.fullPathHash);
+                    writer.WriteFloat(stateInfo.normalizedTime);
                 }
                 else
                 {
                     var stateInfo = animator.GetCurrentAnimatorStateInfo(i);
-                    writer.SetInt(stateInfo.fullPathHash);
-                    writer.SetFloat(stateInfo.normalizedTime);
+                    writer.WriteInt(stateInfo.fullPathHash);
+                    writer.WriteFloat(stateInfo.normalizedTime);
                 }
 
-                writer.SetFloat(animator.GetLayerWeight(i));
+                writer.WriteFloat(animator.GetLayerWeight(i));
             }
 
             WriteParameter(writer, true);
@@ -292,9 +292,9 @@ namespace Astraia.Net
             if (!initialize) return;
             for (var i = 0; i < animator.layerCount; i++)
             {
-                var stateHash = reader.GetInt();
-                var stateTime = reader.GetFloat();
-                animator.SetLayerWeight(i, reader.GetFloat());
+                var stateHash = reader.ReadInt();
+                var stateTime = reader.ReadFloat();
+                animator.SetLayerWeight(i, reader.ReadFloat());
                 animator.Play(stateHash, i, stateTime);
             }
 

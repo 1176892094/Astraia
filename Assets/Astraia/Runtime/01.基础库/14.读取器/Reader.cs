@@ -28,7 +28,7 @@ namespace Astraia
         public int position;
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe T Get<T>() where T : unmanaged
+        public unsafe T Read<T>() where T : unmanaged
         {
             T value;
             fixed (byte* ptr = &buffer.Array[buffer.Offset + position])
@@ -41,9 +41,9 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? Getable<T>() where T : unmanaged
+        public T? Readable<T>() where T : unmanaged
         {
-            return Get<byte>() != 0 ? Get<T>() : default(T?);
+            return Read<byte>() != 0 ? Read<T>() : default(T?);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -83,7 +83,7 @@ namespace Astraia
             HeapManager.Enqueue(this);
         }
         
-        public byte[] GetBytes(byte[] bytes, int count)
+        public byte[] ReadBytes(byte[] bytes, int count)
         {
             if (buffer.Count - position < count)
             {
@@ -95,7 +95,7 @@ namespace Astraia
             return bytes;
         }
         
-        public ArraySegment<byte> GetArraySegment(int count)
+        public ArraySegment<byte> ReadArraySegment(int count)
         {
             if (buffer.Count - position < count)
             {

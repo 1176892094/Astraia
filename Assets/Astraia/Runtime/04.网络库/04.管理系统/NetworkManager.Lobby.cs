@@ -99,11 +99,11 @@ namespace Astraia.Net
                 }
 
                 using var writer = MemoryWriter.Pop();
-                writer.SetByte((byte)OpCodes.UpdateRoom);
-                writer.SetString(roomName);
-                writer.SetString(roomData);
-                writer.SetByte((byte)roomMode);
-                writer.SetInt(Instance.connection);
+                writer.WriteByte((byte)OpCodes.UpdateRoom);
+                writer.WriteString(roomName);
+                writer.WriteString(roomData);
+                writer.WriteByte((byte)roomMode);
+                writer.WriteInt(Instance.connection);
                 connection.SendToServer(writer);
             }
         }
@@ -141,12 +141,12 @@ namespace Astraia.Net
                 try
                 {
                     using var reader = MemoryReader.Pop(segment);
-                    var opcode = (OpCodes)reader.GetByte();
+                    var opcode = (OpCodes)reader.ReadByte();
                     if (opcode == OpCodes.Connect)
                     {
                         using var writer = MemoryWriter.Pop();
-                        writer.SetByte((byte)OpCodes.Connected);
-                        writer.SetString(Instance.authorization);
+                        writer.WriteByte((byte)OpCodes.Connected);
+                        writer.WriteString(Instance.authorization);
                         connection.SendToServer(writer);
                     }
                     else if (opcode == OpCodes.Connected)
@@ -156,14 +156,14 @@ namespace Astraia.Net
                     }
                     else if (opcode == OpCodes.CreateRoom)
                     {
-                        connection.address = reader.GetString();
+                        connection.address = reader.ReadString();
                     }
                     else if (opcode == OpCodes.JoinRoom)
                     {
                         if (isServer)
                         {
                             objectId++;
-                            var clientId = reader.GetInt();
+                            var clientId = reader.ReadInt();
                             clients.Add(clientId, objectId);
                             players.Add(objectId, clientId);
                             Transport.Instance.OnServerConnect.Invoke(objectId);
@@ -184,10 +184,10 @@ namespace Astraia.Net
                     }
                     else if (opcode == OpCodes.UpdateData)
                     {
-                        var message = reader.GetArraySegment();
+                        var message = reader.ReadArraySegment();
                         if (isServer)
                         {
-                            var clientId = reader.GetInt();
+                            var clientId = reader.ReadInt();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
                                 Transport.Instance.OnServerReceive.Invoke(playerId, message, channel);
@@ -203,7 +203,7 @@ namespace Astraia.Net
                     {
                         if (isServer)
                         {
-                            var clientId = reader.GetInt();
+                            var clientId = reader.ReadInt();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
                                 Transport.Instance.OnServerDisconnect.Invoke(playerId);

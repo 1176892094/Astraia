@@ -36,11 +36,11 @@ namespace Astraia
             {
                 while (length >= 0x80)
                 {
-                    writer.Set((byte)((length & 0x7F) | 0x80));
+                    writer.Write((byte)((length & 0x7F) | 0x80));
                     length >>= 7;
                 }
 
-                writer.Set((byte)length);
+                writer.Write((byte)length);
             }
 
             public static ulong Decode(MemoryReader reader)
@@ -49,7 +49,7 @@ namespace Astraia
                 var length = 0UL;
                 while (true)
                 {
-                    var bit = reader.Get<byte>();
+                    var bit = reader.Read<byte>();
                     length |= (ulong)(bit & 0x7F) << shift;
                     if ((bit & 0x80) == 0)
                     {

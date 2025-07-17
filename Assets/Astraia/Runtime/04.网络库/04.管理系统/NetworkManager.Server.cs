@@ -331,7 +331,7 @@ namespace Astraia.Net
                         return;
                     }
 
-                    var message = reader.GetUShort();
+                    var message = reader.ReadUShort();
                     
                     if (!messages.TryGetValue(message, out var action))
                     {

@@ -17,140 +17,140 @@ namespace Astraia.Net
 {
     public static partial class Extensions
     {
-        public static byte GetByte(this MemoryReader reader)
+        public static byte ReadByte(this MemoryReader reader)
         {
-            return reader.Get<byte>();
+            return reader.Read<byte>();
         }
 
-        public static byte? GetByteNull(this MemoryReader reader)
+        public static byte? ReadByteNull(this MemoryReader reader)
         {
-            return reader.Getable<byte>();
+            return reader.Readable<byte>();
         }
 
-        public static sbyte GetSByte(this MemoryReader reader)
+        public static sbyte ReadSByte(this MemoryReader reader)
         {
-            return reader.Get<sbyte>();
+            return reader.Read<sbyte>();
         }
 
-        public static sbyte? GetSByteNull(this MemoryReader reader)
+        public static sbyte? ReadSByteNull(this MemoryReader reader)
         {
-            return reader.Getable<sbyte>();
+            return reader.Readable<sbyte>();
         }
 
-        public static char GetChar(this MemoryReader reader)
+        public static char ReadChar(this MemoryReader reader)
         {
-            return (char)reader.Get<ushort>();
+            return (char)reader.Read<ushort>();
         }
 
-        public static char? GetCharNull(this MemoryReader reader)
+        public static char? ReadCharNull(this MemoryReader reader)
         {
-            return (char?)reader.Getable<ushort>();
+            return (char?)reader.Readable<ushort>();
         }
 
-        public static bool GetBool(this MemoryReader reader)
+        public static bool ReadBool(this MemoryReader reader)
         {
-            return reader.Get<byte>() != 0;
+            return reader.Read<byte>() != 0;
         }
 
-        public static bool? GetBoolNull(this MemoryReader reader)
+        public static bool? ReadBoolNull(this MemoryReader reader)
         {
-            var value = reader.Getable<byte>();
+            var value = reader.Readable<byte>();
             return value.HasValue ? value.Value != 0 : default(bool?);
         }
 
-        public static short GetShort(this MemoryReader reader)
+        public static short ReadShort(this MemoryReader reader)
         {
-            return reader.Get<short>();
+            return reader.Read<short>();
         }
 
-        public static short? GetShortNull(this MemoryReader reader)
+        public static short? ReadShortNull(this MemoryReader reader)
         {
-            return reader.Getable<short>();
+            return reader.Readable<short>();
         }
 
-        public static ushort GetUShort(this MemoryReader reader)
+        public static ushort ReadUShort(this MemoryReader reader)
         {
-            return reader.Get<ushort>();
+            return reader.Read<ushort>();
         }
 
-        public static ushort? GetUShortNull(this MemoryReader reader)
+        public static ushort? ReadUShortNull(this MemoryReader reader)
         {
-            return reader.Getable<ushort>();
+            return reader.Readable<ushort>();
         }
 
-        public static int GetInt(this MemoryReader reader)
+        public static int ReadInt(this MemoryReader reader)
         {
-            return reader.Get<int>();
+            return reader.Read<int>();
         }
 
-        public static int? GetIntNull(this MemoryReader reader)
+        public static int? ReadIntNull(this MemoryReader reader)
         {
-            return reader.Getable<int>();
+            return reader.Readable<int>();
         }
 
-        public static uint GetUInt(this MemoryReader reader)
+        public static uint ReadUInt(this MemoryReader reader)
         {
-            return reader.Get<uint>();
+            return reader.Read<uint>();
         }
 
-        public static uint? GetUIntNull(this MemoryReader reader)
+        public static uint? ReadUIntNull(this MemoryReader reader)
         {
-            return reader.Getable<uint>();
+            return reader.Readable<uint>();
         }
 
-        public static long GetLong(this MemoryReader reader)
+        public static long ReadLong(this MemoryReader reader)
         {
-            return reader.Get<long>();
+            return reader.Read<long>();
         }
 
-        public static long? GetLongNull(this MemoryReader reader)
+        public static long? ReadLongNull(this MemoryReader reader)
         {
-            return reader.Getable<long>();
+            return reader.Readable<long>();
         }
 
-        public static ulong GetULong(this MemoryReader reader)
+        public static ulong ReadULong(this MemoryReader reader)
         {
-            return reader.Get<ulong>();
+            return reader.Read<ulong>();
         }
 
-        public static ulong? GetULongNull(this MemoryReader reader)
+        public static ulong? ReadULongNull(this MemoryReader reader)
         {
-            return reader.Getable<ulong>();
+            return reader.Readable<ulong>();
         }
 
-        public static float GetFloat(this MemoryReader reader)
+        public static float ReadFloat(this MemoryReader reader)
         {
-            return reader.Get<float>();
+            return reader.Read<float>();
         }
 
-        public static float? GetFloatNull(this MemoryReader reader)
+        public static float? ReadFloatNull(this MemoryReader reader)
         {
-            return reader.Getable<float>();
+            return reader.Readable<float>();
         }
 
-        public static double GetDouble(this MemoryReader reader)
+        public static double ReadDouble(this MemoryReader reader)
         {
-            return reader.Get<double>();
+            return reader.Read<double>();
         }
 
-        public static double? GetDoubleNull(this MemoryReader reader)
+        public static double? ReadDoubleNull(this MemoryReader reader)
         {
-            return reader.Getable<double>();
+            return reader.Readable<double>();
         }
 
-        public static decimal GetDecimal(this MemoryReader reader)
+        public static decimal ReadDecimal(this MemoryReader reader)
         {
-            return reader.Get<decimal>();
+            return reader.Read<decimal>();
         }
 
-        public static decimal? GetDecimalNull(this MemoryReader reader)
+        public static decimal? ReadDecimalNull(this MemoryReader reader)
         {
-            return reader.Getable<decimal>();
+            return reader.Readable<decimal>();
         }
 
-        public static string GetString(this MemoryReader reader)
+        public static string ReadString(this MemoryReader reader)
         {
-            var count = reader.GetUShort();
+            var count = reader.ReadUShort();
             if (count == 0)
             {
                 return null;
@@ -162,37 +162,37 @@ namespace Astraia.Net
                 throw new EndOfStreamException("读取字符串过长!");
             }
 
-            var segment = reader.GetArraySegment(count);
+            var segment = reader.ReadArraySegment(count);
             return Service.Text.GetString(segment.Array, segment.Offset, segment.Count);
         }
 
-        public static byte[] GetBytes(this MemoryReader reader)
+        public static byte[] ReadBytes(this MemoryReader reader)
         {
-            var count = reader.GetUInt();
+            var count = reader.ReadUInt();
             if (count == 0)
             {
                 return null;
             }
 
             var bytes = new byte[count];
-            reader.GetBytes(bytes, checked((int)(count - 1)));
+            reader.ReadBytes(bytes, checked((int)(count - 1)));
             return bytes;
         }
 
-        public static ArraySegment<byte> GetArraySegment(this MemoryReader reader)
+        public static ArraySegment<byte> ReadArraySegment(this MemoryReader reader)
         {
-            var count = reader.GetUInt();
-            return count == 0 ? default : reader.GetArraySegment(checked((int)(count - 1)));
+            var count = reader.ReadUInt();
+            return count == 0 ? default : reader.ReadArraySegment(checked((int)(count - 1)));
         }
 
-        public static DateTime GetDateTime(this MemoryReader reader)
+        public static DateTime ReadDateTime(this MemoryReader reader)
         {
-            return DateTime.FromOADate(reader.GetDouble());
+            return DateTime.FromOADate(reader.ReadDouble());
         }
 
-        public static List<T> GetList<T>(this MemoryReader reader)
+        public static List<T> ReadList<T>(this MemoryReader reader)
         {
-            var length = reader.GetInt();
+            var length = reader.ReadInt();
             if (length < 0)
             {
                 return null;
@@ -207,9 +207,9 @@ namespace Astraia.Net
             return result;
         }
 
-        public static T[] GetArray<T>(this MemoryReader reader)
+        public static T[] ReadArray<T>(this MemoryReader reader)
         {
-            var length = reader.GetInt();
+            var length = reader.ReadInt();
             if (length < 0)
             {
                 return null;
@@ -224,9 +224,9 @@ namespace Astraia.Net
             return result;
         }
 
-        public static Uri GetUri(this MemoryReader reader)
+        public static Uri ReadUri(this MemoryReader reader)
         {
-            var uri = reader.GetString();
+            var uri = reader.ReadString();
             return string.IsNullOrWhiteSpace(uri) ? null : new Uri(uri);
         }
     }

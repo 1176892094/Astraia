@@ -68,7 +68,7 @@ namespace Astraia.Editor
                     return null;
                 }
 
-                return AddCollection(tr, tr.GetElementType(), nameof(Net.Extensions.GetArray), ref failed);
+                return AddCollection(tr, tr.GetElementType(), nameof(Net.Extensions.ReadArray), ref failed);
             }
 
             var td = tr.Resolve();
@@ -100,7 +100,7 @@ namespace Astraia.Editor
             {
                 var genericInstance = (GenericInstanceType)tr;
                 var elementType = genericInstance.GenericArguments[0];
-                return AddCollection(tr, elementType, nameof(Net.Extensions.GetList), ref failed);
+                return AddCollection(tr, elementType, nameof(Net.Extensions.ReadList), ref failed);
             }
 
             if (tr.IsDerivedFrom<NetworkAgent>() || tr.Is<NetworkAgent>())

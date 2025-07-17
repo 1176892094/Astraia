@@ -29,7 +29,7 @@ namespace Astraia
             }
 
             var writer = MemoryWriter.Pop();
-            writer.SetBytes(segment.Array, segment.Offset, segment.Count);
+            writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
             if (writers.Count == 0)
             {
                 reader.Reset(writer);
@@ -79,7 +79,7 @@ namespace Astraia
                 return false;
             }
 
-            segment = reader.GetArraySegment(length);
+            segment = reader.ReadArraySegment(length);
             return true;
         }
     }

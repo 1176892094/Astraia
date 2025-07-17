@@ -67,7 +67,7 @@ namespace Astraia.Editor
                     return null;
                 }
 
-                return AddCollection(tr, tr.GetElementType(), nameof(Net.Extensions.SetArray), ref failed);
+                return AddCollection(tr, tr.GetElementType(), nameof(Net.Extensions.WriteArray), ref failed);
             }
 
             var td = tr.Resolve();
@@ -97,7 +97,7 @@ namespace Astraia.Editor
             {
                 var genericInstance = (GenericInstanceType)tr;
                 var elementType = genericInstance.GenericArguments[0];
-                return AddCollection(tr, elementType, nameof(Net.Extensions.SetList), ref failed);
+                return AddCollection(tr, elementType, nameof(Net.Extensions.WriteList), ref failed);
             }
 
             if (tr.IsDerivedFrom<NetworkAgent>() || tr.Is<NetworkAgent>())
@@ -160,7 +160,7 @@ namespace Astraia.Editor
         {
             var genericInstance = (GenericInstanceType)tr;
             var elementType = genericInstance.GenericArguments[0];
-            return AddCollection(tr, elementType, nameof(Net.Extensions.SetArraySegment), ref failed);
+            return AddCollection(tr, elementType, nameof(Net.Extensions.WriteArraySegment), ref failed);
         }
 
         private MethodDefinition AddCollection(TypeReference tr, TypeReference element, string name, ref bool failed)

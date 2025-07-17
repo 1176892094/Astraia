@@ -210,7 +210,7 @@ namespace Astraia.Editor
             NetworkServerActiveRef = Resolve.GetMethod(NetworkServerType, assembly, logger, "get_isActive", ref failed);
 
             var StreamExtensionType = Import(typeof(Net.Extensions));
-            ReadNetworkAgentGeneric = Resolve.GetMethod(StreamExtensionType, assembly, logger, method => method.Name == nameof(Net.Extensions.GetNetworkAgent) && method.HasGenericParameters, ref failed);
+            ReadNetworkAgentGeneric = Resolve.GetMethod(StreamExtensionType, assembly, logger, method => method.Name == nameof(Net.Extensions.ReadNetworkAgent) && method.HasGenericParameters, ref failed);
 
             var NetworkAgentType = Import<NetworkAgent>();
             NetworkAgentDirtyRef = Resolve.GetProperty(NetworkAgentType, assembly, "syncVarDirty");

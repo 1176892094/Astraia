@@ -146,17 +146,17 @@ namespace Astraia.Net
         protected override void OnSerialize(MemoryWriter writer, bool initialize)
         {
             if (!initialize) return;
-            if ((option & TransformOption.Position) != 0) writer.SetVector3(target.localPosition);
-            if ((option & TransformOption.Rotation) != 0) writer.SetQuaternion(target.localRotation);
-            if ((option & TransformOption.Scale) != 0) writer.SetVector3(target.localScale);
+            if ((option & TransformOption.Position) != 0) writer.WriteVector3(target.localPosition);
+            if ((option & TransformOption.Rotation) != 0) writer.WriteQuaternion(target.localRotation);
+            if ((option & TransformOption.Scale) != 0) writer.WriteVector3(target.localScale);
         }
 
         protected override void OnDeserialize(MemoryReader reader, bool initialize)
         {
             if (!initialize) return;
-            if ((option & TransformOption.Position) != 0) originPosition = reader.GetVector3();
-            if ((option & TransformOption.Rotation) != 0) originRotation = reader.GetQuaternion();
-            if ((option & TransformOption.Scale) != 0) originScale = reader.GetVector3();
+            if ((option & TransformOption.Position) != 0) originPosition = reader.ReadVector3();
+            if ((option & TransformOption.Rotation) != 0) originRotation = reader.ReadQuaternion();
+            if ((option & TransformOption.Scale) != 0) originScale = reader.ReadVector3();
         }
 
         [ServerRpc(Channel.Unreliable)]

@@ -47,7 +47,7 @@ namespace Astraia.Net
         public void Send<T>(T message, int channel = Channel.Reliable) where T : struct, IMessage
         {
             using var writer = MemoryWriter.Pop();
-            writer.SetUShort(NetworkMessage<T>.Id);
+            writer.WriteUShort(NetworkMessage<T>.Id);
             writer.Invoke(message);
 
             if (writer.position > Transport.Instance.SendLength(channel))

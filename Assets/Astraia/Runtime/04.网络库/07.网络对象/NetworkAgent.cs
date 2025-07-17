@@ -80,7 +80,7 @@ namespace Astraia.Net
         internal void Serialize(MemoryWriter writer, bool initialize)
         {
             var headerPosition = writer.position;
-            writer.SetByte(0);
+            writer.WriteByte(0);
             var contentPosition = writer.position;
 
             try
@@ -96,14 +96,14 @@ namespace Astraia.Net
             writer.position = headerPosition;
             var size = endPosition - contentPosition;
             var safety = (byte)(size & 0xFF);
-            writer.SetByte(safety);
+            writer.WriteByte(safety);
             writer.position = endPosition;
         }
 
         internal bool Deserialize(MemoryReader reader, bool initialize)
         {
             var result = true;
-            var safety = reader.GetByte();
+            var safety = reader.ReadByte();
             var chunkStart = reader.position;
             try
             {

@@ -90,7 +90,7 @@ namespace Astraia.Net
                 }
 
                 using var writer = MemoryWriter.Pop();
-                writer.SetInt(version);
+                writer.WriteInt(version);
                 writer.Invoke(new RequestMessage());
                 ArraySegment<byte> segment = writer;
                 udpClient.Send(segment.Array, segment.Count, endPoint);
@@ -109,7 +109,7 @@ namespace Astraia.Net
                 {
                     var result = await udpServer.ReceiveAsync();
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
-                    if (version != reader.GetInt())
+                    if (version != reader.ReadInt())
                     {
                         Debug.LogError(Log.E293);
                         return;
@@ -134,7 +134,7 @@ namespace Astraia.Net
             try
             {
                 using var writer = MemoryWriter.Pop();
-                writer.SetInt(version);
+                writer.WriteInt(version);
                 writer.Invoke(new ResponseMessage(new UriBuilder
                 {
                     Scheme = "https",
@@ -158,7 +158,7 @@ namespace Astraia.Net
                 {
                     var result = await udpClient.ReceiveAsync();
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
-                    if (version != reader.GetInt())
+                    if (version != reader.ReadInt())
                     {
                         Debug.LogError(Log.E293);
                         return;

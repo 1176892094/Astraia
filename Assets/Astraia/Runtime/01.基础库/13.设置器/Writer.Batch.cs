@@ -36,7 +36,7 @@ namespace Astraia
 
             writer ??= MemoryWriter.Pop();
             Service.Length.Encode(writer, (ulong)segment.Count);
-            writer.SetBytes(segment.Array, segment.Offset, segment.Count);
+            writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 
         public bool GetBatch(MemoryWriter target)
@@ -50,7 +50,7 @@ namespace Astraia
                 }
 
                 ArraySegment<byte> segment = cached;
-                target.SetBytes(segment.Array, segment.Offset, segment.Count);
+                target.WriteBytes(segment.Array, segment.Offset, segment.Count);
                 MemoryWriter.Push(cached);
                 return true;
             }
@@ -63,7 +63,7 @@ namespace Astraia
                 }
 
                 ArraySegment<byte> segment = writer;
-                target.SetBytes(segment.Array, segment.Offset, segment.Count);
+                target.WriteBytes(segment.Array, segment.Offset, segment.Count);
                 MemoryWriter.Push(writer);
                 writer = null;
                 return true;

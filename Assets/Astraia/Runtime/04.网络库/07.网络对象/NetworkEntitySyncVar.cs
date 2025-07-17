@@ -45,12 +45,12 @@ namespace Astraia.Net
                         ArraySegment<byte> segment = writer;
                         if (ownerDirty)
                         {
-                            owner.SetBytes(segment.Array, segment.Offset, segment.Count);
+                            owner.WriteBytes(segment.Array, segment.Offset, segment.Count);
                         }
 
                         if (observersDirty)
                         {
-                            observer.SetBytes(segment.Array, segment.Offset, segment.Count);
+                            observer.WriteBytes(segment.Array, segment.Offset, segment.Count);
                         }
                     }
                 }

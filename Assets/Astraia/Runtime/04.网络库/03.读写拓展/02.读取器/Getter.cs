@@ -15,155 +15,155 @@ namespace Astraia.Net
 {
     public static partial class Extensions
     {
-        public static Vector2 GetVector2(this MemoryReader reader)
+        public static Vector2 ReadVector2(this MemoryReader reader)
         {
-            return reader.Get<Vector2>();
+            return reader.Read<Vector2>();
         }
 
-        public static Vector2? GetVector2Null(this MemoryReader reader)
+        public static Vector2? ReadVector2Null(this MemoryReader reader)
         {
-            return reader.Getable<Vector2>();
+            return reader.Readable<Vector2>();
         }
 
-        public static Vector3 GetVector3(this MemoryReader reader)
+        public static Vector3 ReadVector3(this MemoryReader reader)
         {
-            return reader.Get<Vector3>();
+            return reader.Read<Vector3>();
         }
 
-        public static Vector3? GetVector3Null(this MemoryReader reader)
+        public static Vector3? ReadVector3Null(this MemoryReader reader)
         {
-            return reader.Getable<Vector3>();
+            return reader.Readable<Vector3>();
         }
 
-        public static Vector4 GetVector4(this MemoryReader reader)
+        public static Vector4 ReadVector4(this MemoryReader reader)
         {
-            return reader.Get<Vector4>();
+            return reader.Read<Vector4>();
         }
 
-        public static Vector4? GetVector4Null(this MemoryReader reader)
+        public static Vector4? ReadVector4Null(this MemoryReader reader)
         {
-            return reader.Getable<Vector4>();
+            return reader.Readable<Vector4>();
         }
 
-        public static Vector2Int GetVector2Int(this MemoryReader reader)
+        public static Vector2Int ReadVector2Int(this MemoryReader reader)
         {
-            return reader.Get<Vector2Int>();
+            return reader.Read<Vector2Int>();
         }
 
-        public static Vector2Int? GetVector2IntNull(this MemoryReader reader)
+        public static Vector2Int? ReadVector2IntNull(this MemoryReader reader)
         {
-            return reader.Getable<Vector2Int>();
+            return reader.Readable<Vector2Int>();
         }
 
-        public static Vector3Int GetVector3Int(this MemoryReader reader)
+        public static Vector3Int ReadVector3Int(this MemoryReader reader)
         {
-            return reader.Get<Vector3Int>();
+            return reader.Read<Vector3Int>();
         }
 
-        public static Vector3Int? GetVector3IntNull(this MemoryReader reader)
+        public static Vector3Int? ReadVector3IntNull(this MemoryReader reader)
         {
-            return reader.Getable<Vector3Int>();
+            return reader.Readable<Vector3Int>();
         }
 
-        public static Quaternion GetQuaternion(this MemoryReader reader)
+        public static Quaternion ReadQuaternion(this MemoryReader reader)
         {
-            return reader.Get<Quaternion>();
+            return reader.Read<Quaternion>();
         }
 
-        public static Quaternion? GetQuaternionNull(this MemoryReader reader)
+        public static Quaternion? ReadQuaternionNull(this MemoryReader reader)
         {
-            return reader.Getable<Quaternion>();
+            return reader.Readable<Quaternion>();
         }
 
-        public static Color GetColor(this MemoryReader reader)
+        public static Color ReadColor(this MemoryReader reader)
         {
-            return reader.Get<Color>();
+            return reader.Read<Color>();
         }
 
-        public static Color32 GetColor32(this MemoryReader reader)
+        public static Color32 ReadColor32(this MemoryReader reader)
         {
-            return reader.Get<Color32>();
+            return reader.Read<Color32>();
         }
 
-        public static Rect GetRect(this MemoryReader reader)
+        public static Rect ReadRect(this MemoryReader reader)
         {
-            return new Rect(reader.GetVector2(), reader.GetVector2());
+            return new Rect(reader.ReadVector2(), reader.ReadVector2());
         }
 
-        public static Plane GetPlane(this MemoryReader reader)
+        public static Plane ReadPlane(this MemoryReader reader)
         {
-            return new Plane(reader.GetVector3(), reader.GetFloat());
+            return new Plane(reader.ReadVector3(), reader.ReadFloat());
         }
 
-        public static Ray GetRay(this MemoryReader reader)
+        public static Ray ReadRay(this MemoryReader reader)
         {
-            return new Ray(reader.GetVector3(), reader.GetVector3());
+            return new Ray(reader.ReadVector3(), reader.ReadVector3());
         }
 
-        public static Matrix4x4 GetMatrix4x4(this MemoryReader reader)
+        public static Matrix4x4 ReadMatrix4x4(this MemoryReader reader)
         {
-            return reader.Get<Matrix4x4>();
+            return reader.Read<Matrix4x4>();
         }
 
-        public static NetworkEntity GetNetworkEntity(this MemoryReader reader)
+        public static NetworkEntity ReadNetworkEntity(this MemoryReader reader)
         {
-            var objectId = reader.GetUInt();
+            var objectId = reader.ReadUInt();
             return objectId != 0 ? NetworkManager.GetNetworkEntity(objectId) : null;
         }
 
-        public static NetworkAgent GetNetworkAgent(this MemoryReader reader)
+        public static NetworkAgent ReadNetworkAgent(this MemoryReader reader)
         {
-            var entity = reader.GetNetworkEntity();
-            return entity != null ? entity.agents[reader.GetByte()] : null;
+            var entity = reader.ReadNetworkEntity();
+            return entity != null ? entity.agents[reader.ReadByte()] : null;
         }
 
-        public static Transform GetTransform(this MemoryReader reader)
+        public static Transform ReadTransform(this MemoryReader reader)
         {
-            var entity = reader.GetNetworkEntity();
+            var entity = reader.ReadNetworkEntity();
             return entity != null ? entity.transform : null;
         }
 
-        public static GameObject GetGameObject(this MemoryReader reader)
+        public static GameObject ReadGameObject(this MemoryReader reader)
         {
-            var entity = reader.GetNetworkEntity();
+            var entity = reader.ReadNetworkEntity();
             return entity != null ? entity.gameObject : null;
         }
 
-        public static Texture2D GetTexture2D(this MemoryReader reader)
+        public static Texture2D ReadTexture2D(this MemoryReader reader)
         {
-            var width = reader.GetShort();
+            var width = reader.ReadShort();
             if (width < 0)
             {
                 return null;
             }
 
-            var height = reader.GetShort();
+            var height = reader.ReadShort();
             var texture = new Texture2D(width, height);
-            var pixels = reader.GetArray<Color32>();
+            var pixels = reader.ReadArray<Color32>();
             texture.SetPixels32(pixels);
             texture.Apply();
             return texture;
         }
 
-        public static Sprite GetSprite(this MemoryReader reader)
+        public static Sprite ReadSprite(this MemoryReader reader)
         {
-            var texture = reader.GetTexture2D();
-            return texture == null ? null : Sprite.Create(texture, reader.GetRect(), reader.GetVector2());
+            var texture = reader.ReadTexture2D();
+            return texture == null ? null : Sprite.Create(texture, reader.ReadRect(), reader.ReadVector2());
         }
         
-        public static T GetNetworkAgent<T>(this MemoryReader reader) where T : NetworkAgent
+        public static T ReadNetworkAgent<T>(this MemoryReader reader) where T : NetworkAgent
         {
-            return reader.GetNetworkAgent() as T;
+            return reader.ReadNetworkAgent() as T;
         }
 
-        public static NetworkVariable GetNetworkVariable(this MemoryReader reader)
+        public static NetworkVariable ReadNetworkVariable(this MemoryReader reader)
         {
-            var objectId = reader.GetUInt();
+            var objectId = reader.ReadUInt();
             byte agentId = 0;
 
             if (objectId != 0)
             {
-                agentId = reader.GetByte();
+                agentId = reader.ReadByte();
             }
 
             return new NetworkVariable(objectId, agentId);

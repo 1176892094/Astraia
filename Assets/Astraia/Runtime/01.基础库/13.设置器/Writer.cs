@@ -28,7 +28,7 @@ namespace Astraia
         public int position;
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Set<T>(T value) where T : unmanaged
+        public unsafe void Write<T>(T value) where T : unmanaged
         {
             Resize(position + sizeof(T));
             fixed (byte* ptr = &buffer[position])
@@ -40,16 +40,16 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Setable<T>(T? value) where T : unmanaged
+        public void Writable<T>(T? value) where T : unmanaged
         {
             if (!value.HasValue)
             {
-                Set((byte)0);
+                Write((byte)0);
                 return;
             }
 
-            Set((byte)1);
-            Set(value.Value);
+            Write((byte)1);
+            Write(value.Value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -97,7 +97,7 @@ namespace Astraia
             }
         }
 
-        public void SetBytes(byte[] segment, int offset, int count)
+        public void WriteBytes(byte[] segment, int offset, int count)
         {
             Resize(position + count);
             Buffer.BlockCopy(segment, offset, buffer, position, count);
