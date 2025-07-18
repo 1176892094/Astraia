@@ -53,7 +53,7 @@ namespace Astraia.Common
             {
                 foreach (var panel in panels)
                 {
-                    panel.gameObject.SetActive(true);
+                    panel.gameObject?.SetActive(true);
                 }
             }
         }
@@ -65,7 +65,7 @@ namespace Astraia.Common
             {
                 foreach (var panel in panels)
                 {
-                    panel.gameObject.SetActive(false);
+                    panel.gameObject?.SetActive(false);
                 }
             }
         }
@@ -78,12 +78,12 @@ namespace Astraia.Common
                 {
                     foreach (var other in panels.Where(other => panel != other))
                     {
-                        other.gameObject.SetActive(false);
+                        other.gameObject?.SetActive(false);
                     }
                 }
             }
 
-            panel.gameObject.SetActive(true);
+            panel.gameObject?.SetActive(true);
         }
 
         internal static void Dispose()
