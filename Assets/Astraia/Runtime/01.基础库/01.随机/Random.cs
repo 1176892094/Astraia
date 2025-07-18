@@ -18,12 +18,16 @@ namespace Astraia
         public static class Random
         {
             private static readonly System.Random random = new System.Random(Environment.TickCount);
-            
+
+            public static float value => (float)random.NextDouble();
+
+            public static (float, float) circle => (Next(-1f, 1f), Next(-1f, 1f));
+
             public static int Next()
             {
                 return random.Next();
             }
-            
+
             public static int Next(int max)
             {
                 return random.Next(max);
@@ -42,6 +46,11 @@ namespace Astraia
             public static float Next(float min, float max)
             {
                 return (float)(random.NextDouble() * (max - min) + min);
+            }
+
+            public static float NextPart(float min, float max)
+            {
+                return Next(0, 2) == 0 ? Next(min, max) : Next(-max, -min);
             }
 
             public static double NextDouble()
