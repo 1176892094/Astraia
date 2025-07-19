@@ -158,11 +158,11 @@ namespace Astraia
                 builder.AppendFormat("#if ODIN_INSPECTOR && UNITY_EDITOR\n");
                 builder.AppendFormat("\t\t[Sirenix.OdinInspector.ShowInInspector]\n");
                 builder.AppendFormat("#endif\n");
-                builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private byte[] {0};\n", fieldData);
+                builder.AppendFormat("\t\tpublic {0} {1} => {2}.Value.Parse<{0}>();\n", fieldType, fieldName, fieldData);
+                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private VarBytes {0};\n", fieldData);
 #else
                 builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[SerializeField] private byte[] {0};\n", fieldData);
+                builder.AppendFormat("\t\t[SerializeField] private VarBytes {0};\n", fieldData);
 #endif
             }
 
@@ -203,11 +203,11 @@ namespace Astraia
                 builder.AppendFormat("#if ODIN_INSPECTOR && UNITY_EDITOR\n");
                 builder.AppendFormat("\t\t[Sirenix.OdinInspector.ShowInInspector]\n");
                 builder.AppendFormat("#endif\n");
-                builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private byte[] {0};\n", fieldData);
+                builder.AppendFormat("\t\tpublic {0} {1} => {2}.Value.Parse<{0}>();\n", fieldType, fieldName, fieldData);
+                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private VarBytes {0};\n", fieldData);
 #else
                 builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[SerializeField] private byte[] {0};\n", fieldData);
+                builder.AppendFormat("\t\t[SerializeField] private VarBytes {0};\n", fieldData);
 #endif
             }
 

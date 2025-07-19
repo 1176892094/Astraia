@@ -43,7 +43,7 @@ namespace Astraia
 
             return value.InputGeneric<T>();
         }
-
+        
         private static Vector2 InputVector2(this string reason)
         {
             var points = reason.Split(',');
@@ -190,7 +190,7 @@ namespace Astraia
             var fields = target.GetFields(Service.Find.Entity);
             for (var i = 0; i < fields.Length; i++)
             {
-                fields[i].SetValue(result, Service.Text.GetBytes(member[i]));
+                fields[i].SetValue(result, new SafeBytes(Service.Text.GetBytes(member[i])));
             }
 
             return result;
