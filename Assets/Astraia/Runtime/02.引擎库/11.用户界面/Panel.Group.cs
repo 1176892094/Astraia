@@ -9,14 +9,16 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Astraia.Common
 {
     public static partial class UIManager
     {
-        public static void Listen(string group, UIPanel panel)
+        public static void Listen(int group, UIPanel panel)
         {
             if (!GlobalManager.Instance) return;
             if (!GlobalManager.groupData.TryGetValue(group, out var panels))
@@ -31,7 +33,7 @@ namespace Astraia.Common
             }
         }
 
-        public static void Remove(string group, UIPanel panel)
+        public static void Remove(int group, UIPanel panel)
         {
             if (!GlobalManager.Instance) return;
             if (!GlobalManager.groupData.TryGetValue(group, out var panels))
@@ -46,26 +48,40 @@ namespace Astraia.Common
             }
         }
 
-        public static void Show(string group)
+        public static void Show(int group)
         {
             if (!GlobalManager.Instance) return;
             if (GlobalManager.groupData.TryGetValue(group, out var panels))
             {
                 foreach (var panel in panels)
                 {
-                    panel.gameObject?.SetActive(true);
+                    try
+                    {
+                        panel.gameObject.SetActive(true);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.Log(Service.Text.Format("游戏对象为空: {0}\n{1}", panel, e));
+                    }
                 }
             }
         }
 
-        public static void Hide(string group)
+        public static void Hide(int group)
         {
             if (!GlobalManager.Instance) return;
             if (GlobalManager.groupData.TryGetValue(group, out var panels))
             {
                 foreach (var panel in panels)
                 {
-                    panel.gameObject?.SetActive(false);
+                    try
+                    {
+                        panel.gameObject.SetActive(false);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.Log(Service.Text.Format("游戏对象为空: {0}\n{1}", panel, e));
+                    }
                 }
             }
         }
@@ -78,12 +94,19 @@ namespace Astraia.Common
                 {
                     foreach (var other in panels.Where(other => panel != other))
                     {
-                        other.gameObject?.SetActive(false);
+                        try
+                        {
+                            other.gameObject.SetActive(false);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.Log(Service.Text.Format("游戏对象为空: {0}\n{1}", other, e));
+                        }
                     }
                 }
             }
 
-            panel.gameObject?.SetActive(true);
+            panel.gameObject.SetActive(true);
         }
 
         internal static void Dispose()

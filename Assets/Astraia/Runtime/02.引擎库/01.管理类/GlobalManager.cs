@@ -97,7 +97,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, List<UIPanel>> groupData = new Dictionary<string, List<UIPanel>>();
+        internal static readonly Dictionary<int, List<UIPanel>> groupData = new Dictionary<int, List<UIPanel>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
