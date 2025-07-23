@@ -11,7 +11,6 @@
 
 using System;
 using Astraia;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Runtime

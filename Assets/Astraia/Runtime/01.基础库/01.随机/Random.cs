@@ -38,6 +38,11 @@ namespace Astraia
                 return random.Next(min, max);
             }
 
+            public static int Next(Enum min, Enum max)
+            {
+                return random.Next(Convert.ToInt32(min), Convert.ToInt32(max));
+            }
+
             public static float Next(float max)
             {
                 return Next(0, max);

@@ -16,11 +16,10 @@ namespace Runtime
 {
     public abstract class PlayerState : State<Player>
     {
-        protected new Player owner => base.owner;
         protected Transform transform => owner.transform;
         protected Rigidbody2D rigidbody => machine.rigidbody;
-        protected PlayerMachine machine => base.owner.GetAgent<PlayerMachine>();
-        protected PlayerFeature feature => base.owner.GetAgent<PlayerFeature>();
+        protected PlayerMachine machine => owner.Machine;
+        protected PlayerFeature feature => owner.Feature;
       
     }
 
