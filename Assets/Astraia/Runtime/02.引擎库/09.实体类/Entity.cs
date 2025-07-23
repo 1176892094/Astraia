@@ -28,31 +28,12 @@ namespace Astraia
         public event Action OnHide;
         public event Action OnFade;
 
-        public Action<Collider2D> OnEnter;
-        public Action<Collider2D> OnStay;
-        public Action<Collider2D> OnExit;
-
         protected virtual void Awake()
         {
             foreach (var agent in agentData)
             {
                 AddAgent(Service.Find.Type(agent));
             }
-        }
-
-        protected virtual void OnDestroy()
-        {
-            OnFade?.Invoke();
-            OnFade = null;
-            OnShow = null;
-            OnHide = null;
-            OnStay = null;
-            OnExit = null;
-            OnEnter = null;
-
-            agentDict.Clear();
-            agentData.Clear();
-            EntityManager.Hide(this);
         }
 
         protected virtual void OnEnable()
@@ -65,19 +46,15 @@ namespace Astraia
             OnHide?.Invoke();
         }
 
-        private void OnTriggerEnter2D(Collider2D other)
+        protected virtual void OnDestroy()
         {
-            OnEnter?.Invoke(other);
-        }
-
-        private void OnTriggerStay2D(Collider2D other)
-        {
-            OnStay?.Invoke(other);
-        }
-
-        private void OnTriggerExit2D(Collider2D other)
-        {
-            OnExit?.Invoke(other);
+            OnFade?.Invoke();
+            OnFade = null;
+            OnShow = null;
+            OnHide = null;
+            agentDict.Clear();
+            agentData.Clear();
+            EntityManager.Hide(this);
         }
 
         public T GetAgent<T>() where T : IAgent
