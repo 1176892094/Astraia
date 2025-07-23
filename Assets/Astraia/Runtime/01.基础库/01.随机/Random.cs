@@ -21,8 +21,6 @@ namespace Astraia
 
             public static float value => (float)random.NextDouble();
 
-            public static (float, float) circle => (Next(-1f, 1f), Next(-1f, 1f));
-
             public static int Next()
             {
                 return random.Next();
@@ -50,19 +48,14 @@ namespace Astraia
 
             public static float Next(float min, float max)
             {
-                return (float)(random.NextDouble() * (max - min) + min);
+                return value * (max - min) + min;
             }
 
             public static float NextPart(float min, float max)
             {
                 return Next(0, 2) == 0 ? Next(min, max) : Next(-max, -min);
             }
-
-            public static double NextDouble()
-            {
-                return random.NextDouble();
-            }
-
+            
             public static void NextBytes(byte[] bytes)
             {
                 random.NextBytes(bytes);

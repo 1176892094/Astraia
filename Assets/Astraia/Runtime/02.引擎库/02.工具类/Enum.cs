@@ -32,7 +32,7 @@ namespace Astraia
         BuildPath,
     }
     
-    public enum UIState : short
+    public enum UIState : byte
     {
         Common,
         Freeze,
