@@ -12,43 +12,57 @@
 using System;
 using System.Collections.Generic;
 using Astraia.Common;
-using UnityEngine;
 
 namespace Astraia
 {
     [Serializable]
     public abstract class StateMachine<TEntity> : Agent<TEntity> where TEntity : Entity
     {
-        private readonly Dictionary<Type, IState> states = new Dictionary<Type, IState>();
-        [SerializeReference] private IState state;
+        private readonly Dictionary<int, IState> states = new Dictionary<int, IState>();
+        private IState state;
 
         public virtual void OnUpdate()
         {
             state?.OnUpdate();
         }
 
-        public void AddState<T>(Type type) where T : IState
+        public IState GetState(int key)
         {
-            if (!states.TryGetValue(typeof(T), out var item))
+            return states.GetValueOrDefault(key);
+        }
+
+        public void AddState(int key, Type type)
+        {
+            if (!states.TryGetValue(key, out var item))
             {
                 item = HeapManager.Dequeue<IState>(type);
-                states.Add(typeof(T), item);
+                states.Add(key, item);
                 item.OnAwake(owner);
             }
         }
 
-        public void ChangeState<T>() where T : IState
+        public void ChangeState(int key)
         {
             state?.OnExit();
-            state = states[typeof(T)];
+            states.TryGetValue(key, out state);
             state?.OnEnter();
+        }
+
+        public void RemoveState(int key)
+        {
+            if (states.TryGetValue(key, out var item))
+            {
+                item.OnDestroy();
+                states.Remove(key);
+                HeapManager.Enqueue(item, item.GetType());
+            }
         }
 
         public override void OnDestroy()
         {
-            var copies = new List<IState>(states.Values);
-            foreach (var item in copies)
+            foreach (var item in states.Values)
             {
+                item.OnDestroy();
                 HeapManager.Enqueue(item, item.GetType());
             }
 

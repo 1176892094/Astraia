@@ -52,8 +52,6 @@ namespace Runtime
             Transform.OnLateUpdate();
         }
 
-      
-
         private void OnDrawGizmos()
         {
             Gizmos.DrawRay(rightDownRay.origin, rightDownRay.direction * 0.12f);

@@ -33,7 +33,6 @@ namespace Runtime
         public RaycastHit2D rightUpRay => Physics2D.Raycast(owner.rightUpRay.origin, owner.rightUpRay.direction, 0.12f, 1 << 6);
         public RaycastHit2D rightDownRay => Physics2D.Raycast(owner.rightDownRay.origin, owner.rightDownRay.direction, 0.12f, 1 << 6);
 
-
         public override void OnAwake()
         {
             SetFloat(Attribute.MoveSpeed, 2);

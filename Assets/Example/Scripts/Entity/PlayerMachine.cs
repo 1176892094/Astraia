@@ -100,7 +100,7 @@ namespace Runtime
 
             if (!Feature.state.HasFlag(StateType.Jump))
             {
-                ChangeState<PlayerJump>();
+                ChangeState(StateConst.Jump);
             }
 
             Feature.SetFloat(Attribute.JumpInput, Time.time);
@@ -120,7 +120,7 @@ namespace Runtime
 
             if (!Feature.state.HasFlag(StateType.Dash))
             {
-                ChangeState<PlayerDash>();
+                ChangeState(StateConst.Dash);
             }
 
             Feature.SetFloat(Attribute.DashInput, Time.time);

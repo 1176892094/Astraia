@@ -35,13 +35,13 @@ namespace Runtime
         {
             if (feature.state.HasFlag(StateType.Wall) && feature.state.HasFlag(StateType.Climb))
             {
-                machine.ChangeState<PlayerGrab>();
+                machine.ChangeState(StateConst.Grab);
                 return;
             }
 
             if (feature.isWalk)
             {
-                machine.ChangeState<PlayerWalk>();
+                machine.ChangeState(StateConst.Walk);
             }
         }
 
@@ -61,13 +61,13 @@ namespace Runtime
         {
             if (feature.state.HasFlag(StateType.Wall) && feature.state.HasFlag(StateType.Climb))
             {
-                machine.ChangeState<PlayerGrab>();
+                machine.ChangeState(StateConst.Grab);
                 return;
             }
 
             if (!feature.isWalk)
             {
-                machine.ChangeState<PlayerIdle>();
+                machine.ChangeState(StateConst.Idle);
                 return;
             }
 
@@ -110,7 +110,7 @@ namespace Runtime
         {
             if (frameCount < Time.frameCount)
             {
-                machine.ChangeState<PlayerIdle>();
+                machine.ChangeState(StateConst.Idle);
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace Runtime
             {
                 if (feature.moveX != 0)
                 {
-                    machine.ChangeState<PlayerCrash>();
+                    machine.ChangeState(StateConst.Crash);
                     return;
                 }
             }
@@ -152,7 +152,7 @@ namespace Runtime
         {
             if (feature.rightDownRay && !feature.rightUpRay)
             {
-                machine.ChangeState<PlayerHop>();
+                machine.ChangeState(StateConst.Hop);
                 return;
             }
 
@@ -160,7 +160,7 @@ namespace Runtime
             {
                 if (!feature.state.HasFlag(StateType.Wall) || !feature.state.HasFlag(StateType.Climb))
                 {
-                    machine.ChangeState<PlayerIdle>();
+                    machine.ChangeState(StateConst.Idle);
                     return;
                 }
             }
@@ -196,7 +196,7 @@ namespace Runtime
         {
             if (frameCount < Time.frameCount)
             {
-                machine.ChangeState<PlayerIdle>();
+                machine.ChangeState(StateConst.Idle);
                 return;
             }
 
@@ -238,7 +238,7 @@ namespace Runtime
         {
             if (feature.dashFrame < Time.frameCount)
             {
-                machine.ChangeState<PlayerIdle>();
+                machine.ChangeState(StateConst.Idle);
                 return;
             }
 
@@ -284,7 +284,7 @@ namespace Runtime
         {
             if (feature.state.HasFlag(StateType.Wall) || feature.state.HasFlag(StateType.Ground))
             {
-                machine.ChangeState<PlayerIdle>();
+                machine.ChangeState(StateConst.Idle);
                 return;
             }
 

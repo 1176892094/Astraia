@@ -19,10 +19,9 @@ namespace Astraia
     {
         public T owner;
 
-        void IState.OnAwake(int id)
-        {
-            owner = (T)EntityManager.Find(id);
-        }
+        void IState.OnAwake(int id) => owner = (T)EntityManager.Find(id);
+
+        void IState.OnDestroy() => owner = null;
 
         public abstract void OnEnter();
 
