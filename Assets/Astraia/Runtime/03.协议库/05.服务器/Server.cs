@@ -27,6 +27,7 @@ namespace Astraia
         private readonly Setting setting;
         private readonly byte[] endPoint;
         private Socket socket;
+        private int _size;
 
         ~Server()
         {
@@ -99,8 +100,8 @@ namespace Astraia
             {
                 if (!socket.Poll(0, SelectMode.SelectRead)) return false;
                 Span<byte> socketAddress = endPoint.AsSpan();
-                var size = UdpPal.ReceiveFrom(socket, buffer, ref socketAddress);
-                segment = new ArraySegment<byte>(buffer, 0, size);
+                _size = UdpPal.ReceiveFrom(socket, buffer, ref socketAddress);
+                segment = new ArraySegment<byte>(buffer, 0, _size);
                 var hashCode = new HashCode();
                 for (; socketAddress.Length >= 4; socketAddress = socketAddress.Slice(4))
                     hashCode.Add(MemoryMarshal.Read<int>(socketAddress));
@@ -140,7 +141,7 @@ namespace Astraia
         private Client AddClient(int clientId)
         {
             var cookie = (uint)Service.Random.Next();
-            UdpPal.CreateIPEndPoint(endPoint, out var ipEndPoint);
+            UdpPal.CreateIPEndPoint(endPoint.AsSpan(0, _size), out var ipEndPoint);
             return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, cookie, ipEndPoint);
 
             void OnConnect(Client client)
