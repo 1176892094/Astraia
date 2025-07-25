@@ -22,6 +22,7 @@ namespace Astraia
         private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
         private int oldMinIndex;
         private int oldMaxIndex;
+        private int cachedCount;
         private bool initialized;
         private bool useSelected;
         private IList<TItem> items;
@@ -52,22 +53,8 @@ namespace Astraia
 
         public override void OnDestroy()
         {
+            Reset();
             items = null;
-            oldMinIndex = -1;
-            oldMaxIndex = -1;
-            foreach (var i in grids.Keys)
-            {
-                if (grids.TryGetValue(i, out var grid))
-                {
-                    if (grid != null)
-                    {
-                        grid.Dispose();
-                        PoolManager.Hide(grid.gameObject);
-                    }
-                }
-            }
-
-            grids.Clear();
         }
 
         private void OnUpdate()
@@ -97,6 +84,12 @@ namespace Astraia
             if (items == null)
             {
                 return;
+            }
+
+            if (cachedCount != items.Count)
+            {
+                Reset();
+                cachedCount = items.Count;
             }
 
             int newIndex;
@@ -213,7 +206,6 @@ namespace Astraia
 
         public void SetItem(IList<TItem> items)
         {
-            OnDestroy();
             this.items = items;
             if (items != null)
             {
@@ -228,10 +220,32 @@ namespace Astraia
                     value = Mathf.Ceil(value / row);
                     content.sizeDelta = new Vector2(value * assetRect.width, 0);
                 }
+
+                cachedCount = items.Count;
             }
 
+            Reset();
             useSelected = selection;
             content.anchoredPosition = Vector2.zero;
+        }
+
+        private void Reset()
+        {
+            oldMinIndex = -1;
+            oldMaxIndex = -1;
+            foreach (var i in grids.Keys)
+            {
+                if (grids.TryGetValue(i, out var grid))
+                {
+                    if (grid != null)
+                    {
+                        grid.Dispose();
+                        PoolManager.Hide(grid.gameObject);
+                    }
+                }
+            }
+
+            grids.Clear();
         }
 
         public void Move(IGrid<TItem> grid, int offset)
