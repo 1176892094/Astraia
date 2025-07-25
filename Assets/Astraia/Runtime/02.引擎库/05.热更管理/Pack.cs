@@ -267,7 +267,7 @@ namespace Astraia.Common
                 return (1, streamingAsset);
             }
 #endif
-            throw new FileNotFoundException(Service.Text.Format("未找到文件: {0}", streamingAsset));
+            return (0, string.Empty);
         }
 
         internal static void Dispose()
