@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using NativeSockets;
+using NativeSockets.Udp;
 
 namespace Astraia
 {
@@ -23,18 +25,26 @@ namespace Astraia
         private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
         private readonly HashSet<int> copies = new HashSet<int>();
         private readonly Setting setting;
-        private EndPoint endPoint;
+        private readonly byte[] endPoint;
         private Socket socket;
+        private int _size;
 
+        ~Server()
+        {
+            SocketPal.Cleanup();
+        }
+        
         public Server(Setting setting, Action<int> OnConnect, Action<int> OnDisconnect, Action<int, Error, string> OnError, Action<int, ArraySegment<byte>, int> OnReceive)
         {
+            SocketPal.Initialize();
+
             this.setting = setting;
             this.OnError = OnError;
             this.OnReceive = OnReceive;
             this.OnConnect = OnConnect;
             this.OnDisconnect = OnDisconnect;
             buffer = new byte[setting.MaxUnit];
-            endPoint = setting.DualMode ? new IPEndPoint(IPAddress.IPv6Any, 0) : new IPEndPoint(IPAddress.Any, 0);
+            endPoint = new byte[28];
         }
 
         private event Action<int> OnConnect;
@@ -89,9 +99,15 @@ namespace Astraia
             try
             {
                 if (!socket.Poll(0, SelectMode.SelectRead)) return false;
-                var size = socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
-                segment = new ArraySegment<byte>(buffer, 0, size);
-                clientId = endPoint.GetHashCode();
+                Span<byte> socketAddress = endPoint.AsSpan();
+                _size = UdpPal.ReceiveFrom(socket, buffer, ref socketAddress);
+                segment = new ArraySegment<byte>(buffer, 0, _size);
+                var hashCode = new HashCode();
+                for (; socketAddress.Length >= 4; socketAddress = socketAddress.Slice(4))
+                    hashCode.Add(MemoryMarshal.Read<int>(socketAddress));
+                for (int i = 0; i < socketAddress.Length; ++i)
+                    hashCode.Add((int)socketAddress[i]);
+                clientId = hashCode.ToHashCode();
                 return true;
             }
             catch (SocketException e)
@@ -125,7 +141,8 @@ namespace Astraia
         private Client AddClient(int clientId)
         {
             var cookie = (uint)Service.Random.Next();
-            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, cookie, endPoint);
+            UdpPal.CreateIPEndPoint(endPoint.AsSpan(0, _size), out var ipEndPoint);
+            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, cookie, ipEndPoint);
 
             void OnConnect(Client client)
             {
@@ -166,7 +183,7 @@ namespace Astraia
 
                     if (socket.Poll(0, SelectMode.SelectWrite))
                     {
-                        socket.SendTo(segment.Array, segment.Offset, segment.Count, SocketFlags.None, client.endPoint);
+                        UdpPal.SendTo(socket, segment, (IPEndPoint)client.endPoint);
                     }
                 }
                 catch (SocketException e)
