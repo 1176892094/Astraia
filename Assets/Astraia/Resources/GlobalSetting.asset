@@ -53,19 +53,18 @@ MonoBehaviour:
   m_Name: GlobalSetting
   m_EditorClassIdentifier: 
   assetPlatform: 9
+  assetVersion: 1
   smtpServer: smtp.qq.com
   smtpPort: 587
   smtpUsername: 1176892094@qq.com
   smtpPassword: 
-  jsonVersion: 1
   assetLoadMode: 0
   assetLoadName: AssetBundle
   assetBuildPath: AssetBundles
   assetSourcePath: Assets/Template
-  assetRemotePath: http://192.168.1.2:8000/Documents/GitHub/Astraia-Game/AssetBundles
+  assetRemotePath: http://192.168.1.5:8000/Documents/GitHub/Astraia-Game/AssetBundles
   sceneAssets:
   - Assets/Template/Scenes/GameScene.unity
-  - Assets/Template/Scenes/LevelScene.unity
   - Assets/Template/Scenes/LoginScene.unity
   - Assets/Template/Scenes/TechScene.unity
   ignoreAssets:
@@ -82,8 +81,8 @@ TextAsset:
     # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
     20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
     is an automatically generated comment.\n// *********************************************************************************\n\nusing
-    System;\nusing UnityEngine;\nusing Astraia.Common;\n\nnamespace
-    Astraia.Table\n{\n    internal class TemplateDataTable : DataTable<TemplateData>
-    { }\n    \n    [Serializable]\n    public struct TemplateData : IData\n    {\n//TODO:1\n       
-    public void Create(string[] sheet, int column)\n        {\n#if UNITY_EDITOR\n//TODO:2\n#endif\n       
-    }\n    }\n}"
+    System;\nusing UnityEngine;\nusing Astraia.Common;\n\nnamespace Astraia.Table\n{\n   
+    internal class TemplateDataTable : DataTable<TemplateData> { }\n    \n    [Serializable]\n   
+    public struct TemplateData : IData\n    {\n//TODO:1\n        public void Create(string[]
+    sheet, int column)\n        {\n#if UNITY_EDITOR\n//TODO:2\n#endif\n        }\n   
+    }\n}"
