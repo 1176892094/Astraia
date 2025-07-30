@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System.Runtime.CompilerServices;
+using Astraia.Common;
 
 namespace Astraia
 {

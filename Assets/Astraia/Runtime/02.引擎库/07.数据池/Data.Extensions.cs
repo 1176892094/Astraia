@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia
