@@ -29,7 +29,7 @@ namespace Astraia
         private float waitTime;
 
         public bool IsCompleted => complete;
-        
+
         public void Dispose()
         {
             owner = null;
@@ -101,9 +101,14 @@ namespace Astraia
         {
             this.OnDispose += OnDispose;
         }
-        
+
         public Tween GetAwaiter()
         {
+            if (owner == null)
+            {
+                OnDispose.Invoke();
+            }
+
             return this;
         }
 

@@ -138,6 +138,11 @@ namespace Astraia
 
         public Watch GetAwaiter()
         {
+            if (owner == null)
+            {
+                OnDispose.Invoke();
+            }
+
             return this;
         }
 
