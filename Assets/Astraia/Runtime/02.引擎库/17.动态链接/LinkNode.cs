@@ -16,17 +16,17 @@ using Astraia;
 namespace Character
 {
     [Serializable]
-    internal abstract partial class Node
+    public abstract partial class LinkNode
     {
-        public Node[] nodes;
         public Entity owner;
+        public LinkNode[] nodes;
         public abstract ValueTask<bool> Execute(int id);
     }
 
-    internal partial class Node
+    public partial class LinkNode
     {
         [Serializable]
-        internal class Sequence : Node
+        public class Sequence : LinkNode
         {
             public override async ValueTask<bool> Execute(int id)
             {
@@ -43,7 +43,7 @@ namespace Character
         }
 
         [Serializable]
-        internal class Selector : Node
+        public class Selector : LinkNode
         {
             public override async ValueTask<bool> Execute(int id)
             {
@@ -60,7 +60,7 @@ namespace Character
         }
 
         [Serializable]
-        internal class Revealer : Node
+        public class Revealer : LinkNode
         {
             public override async ValueTask<bool> Execute(int id)
             {
@@ -70,7 +70,7 @@ namespace Character
         }
 
         [Serializable]
-        internal class Repeater : Node
+        public class Repeater : LinkNode
         {
             public int count;
 
@@ -92,7 +92,7 @@ namespace Character
         }
 
         [Serializable]
-        internal class WaitTime : Node
+        public class WaitTime : LinkNode
         {
             public float waitTime;
 
