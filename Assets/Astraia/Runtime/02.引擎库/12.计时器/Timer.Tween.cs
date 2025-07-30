@@ -10,14 +10,16 @@
 // *********************************************************************************
 
 using System;
+using System.Runtime.CompilerServices;
 using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia
 {
     [Serializable]
-    public sealed class Tween : ITimer
+    public sealed class Tween : ITimer, INotifyCompletion
     {
+        private bool complete;
         private float duration;
         private Action OnDispose;
         private Action<float> OnUpdated;
@@ -26,12 +28,15 @@ namespace Astraia
         private float progress;
         private float waitTime;
 
+        public bool IsCompleted => complete;
+        
         public void Dispose()
         {
             owner = null;
             progress = 0;
             duration = 0;
             waitTime = 0;
+            complete = true;
             OnUpdated = null;
         }
 
@@ -39,6 +44,7 @@ namespace Astraia
         {
             progress = 0;
             waitTime = 0;
+            complete = false;
             this.owner = owner;
             this.duration = duration;
             this.OnDispose = OnDispose;
@@ -94,6 +100,20 @@ namespace Astraia
         public void OnComplete(Action OnDispose)
         {
             this.OnDispose += OnDispose;
+        }
+        
+        public Tween GetAwaiter()
+        {
+            return this;
+        }
+
+        void INotifyCompletion.OnCompleted(Action OnDispose)
+        {
+            this.OnDispose += OnDispose;
+        }
+
+        public void GetResult()
+        {
         }
     }
 }

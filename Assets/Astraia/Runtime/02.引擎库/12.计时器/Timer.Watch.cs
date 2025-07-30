@@ -10,14 +10,16 @@
 // *********************************************************************************
 
 using System;
+using System.Runtime.CompilerServices;
 using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia
 {
     [Serializable]
-    public sealed class Watch : ITimer
+    public sealed class Watch : ITimer, INotifyCompletion
     {
+        private bool complete;
         private float duration;
         private float keepTime;
         private Action OnDispose;
@@ -28,12 +30,15 @@ namespace Astraia
         private bool unscaled;
         private float waitTime;
 
+        public bool IsCompleted => complete;
+
         public void Dispose()
         {
             owner = null;
             progress = 0;
             duration = 0;
             waitTime = 0;
+            complete = true;
             unscaled = false;
             OnUpdated = null;
         }
@@ -42,6 +47,7 @@ namespace Astraia
         {
             progress = 1;
             waitTime = 0;
+            complete = false;
             unscaled = false;
             this.owner = owner;
             this.duration = duration;
@@ -128,6 +134,20 @@ namespace Astraia
             this.unscaled = unscaled;
             waitTime = keepTime + duration;
             return this;
+        }
+
+        public Watch GetAwaiter()
+        {
+            return this;
+        }
+
+        void INotifyCompletion.OnCompleted(Action OnDispose)
+        {
+            this.OnDispose += OnDispose;
+        }
+
+        public void GetResult()
+        {
         }
     }
 }

@@ -100,7 +100,8 @@ namespace Astraia.Common
             source.volume = audioValue;
             action?.Invoke(source);
             source.Play();
-            source.Wait(source.clip.length).OnComplete(() => StopLoop(source));
+            await source.Wait(source.clip.length);
+            StopLoop(source);
         }
 
         public static void StopMain(bool pause = true)
