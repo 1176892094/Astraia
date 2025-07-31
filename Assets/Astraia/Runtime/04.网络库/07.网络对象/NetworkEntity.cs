@@ -109,20 +109,24 @@ namespace Astraia.Net
                 if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
                 {
                     sceneId = 0;
-                    Undo.RecordObject(gameObject, Log.E275);
-                    agentId = uint.Parse(name);
+                    AssignAssetId(AssetDatabase.GetAssetPath(gameObject));
                 }
-                else if (PrefabStageUtility.GetCurrentPrefabStage() && PrefabStageUtility.GetPrefabStage(gameObject))
+                else if (PrefabStageUtility.GetCurrentPrefabStage())
                 {
-                    sceneId = 0;
-                    Undo.RecordObject(gameObject, Log.E275);
-                    agentId = uint.Parse(name);
+                    if (PrefabStageUtility.GetPrefabStage(gameObject))
+                    {
+                        sceneId = 0;
+                        AssignAssetId(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
+                    }
                 }
-                else if (PrefabUtility.IsPartOfPrefabInstance(gameObject) && PrefabUtility.GetCorrespondingObjectFromSource(gameObject))
+                else if (PrefabUtility.IsPartOfPrefabInstance(gameObject))
                 {
-                    AssignSceneId();
-                    Undo.RecordObject(gameObject, Log.E275);
-                    agentId = uint.Parse(name);
+                    var prefab = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
+                    if (prefab != null)
+                    {
+                        AssignSceneId();
+                        AssignAssetId(AssetDatabase.GetAssetPath(prefab));
+                    }
                 }
                 else
                 {
@@ -135,6 +139,15 @@ namespace Astraia.Net
             }
 
             return;
+
+            void AssignAssetId(string assetPath)
+            {
+                if (!string.IsNullOrWhiteSpace(assetPath))
+                {
+                    Undo.RecordObject(gameObject, Log.E275);
+                    agentId = uint.Parse(name);
+                }
+            }
 
             void AssignSceneId()
             {
