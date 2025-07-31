@@ -11,14 +11,12 @@
 
 using System;
 using System.Threading.Tasks;
-using Astraia;
 
-namespace Character
+namespace Astraia
 {
     [Serializable]
     public abstract partial class LinkNode
     {
-        public Entity owner;
         public LinkNode[] nodes;
         public abstract ValueTask<bool> Execute(int id);
     }
@@ -94,10 +92,16 @@ namespace Character
         [Serializable]
         public class WaitTime : LinkNode
         {
+            public Entity owner;
             public float waitTime;
 
             public override async ValueTask<bool> Execute(int id)
             {
+                if (owner == null)
+                {
+                    return false;
+                }
+
                 await owner.Wait(waitTime);
                 foreach (var node in nodes)
                 {
