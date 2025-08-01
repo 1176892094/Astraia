@@ -168,20 +168,20 @@ namespace Astraia.Net
 
         public static byte[] ReadBytes(this MemoryReader reader)
         {
-            var count = reader.ReadUInt();
+            var count = Service.Length.Decode(reader);
             if (count == 0)
             {
                 return null;
             }
 
-            var bytes = new byte[count];
+            var bytes = new byte[count - 1];
             reader.ReadBytes(bytes, checked((int)(count - 1)));
             return bytes;
         }
 
         public static ArraySegment<byte> ReadArraySegment(this MemoryReader reader)
         {
-            var count = reader.ReadUInt();
+            var count = Service.Length.Decode(reader);
             return count == 0 ? default : reader.ReadArraySegment(checked((int)(count - 1)));
         }
 
@@ -192,13 +192,26 @@ namespace Astraia.Net
 
         public static List<T> ReadList<T>(this MemoryReader reader)
         {
-            var length = reader.ReadInt();
-            if (length < 0)
+            var length = (uint)Service.Length.Decode(reader);
+            if (length == 0) return null;
+
+            length--;
+            var result = new List<T>(checked((int)length));
+            for (var i = 0; i < length; i++)
             {
-                return null;
+                result.Add(reader.Invoke<T>());
             }
 
-            var result = new List<T>(length);
+            return result;
+        }
+
+        public static HashSet<T> ReadHashSet<T>(this MemoryReader reader)
+        {
+            var length = (uint)Service.Length.Decode(reader);
+            if (length == 0) return null;
+
+            length--;
+            var result = new HashSet<T>(checked((int)length));
             for (var i = 0; i < length; i++)
             {
                 result.Add(reader.Invoke<T>());
@@ -209,12 +222,10 @@ namespace Astraia.Net
 
         public static T[] ReadArray<T>(this MemoryReader reader)
         {
-            var length = reader.ReadInt();
-            if (length < 0)
-            {
-                return null;
-            }
+            var length = (uint)Service.Length.Decode(reader);
+            if (length == 0) return null;
 
+            length--;
             var result = new T[length];
             for (var i = 0; i < length; i++)
             {

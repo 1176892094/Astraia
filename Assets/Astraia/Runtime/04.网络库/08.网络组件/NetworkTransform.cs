@@ -180,7 +180,6 @@ namespace Astraia.Net
                 if (position != null) originPosition = position.Value;
                 if (rotation != null) originRotation = rotation.Value;
                 if (scale != null) originScale = scale.Value;
-                // Debug.LogWarning((position != null ? position : "Null") + "    " + (rotation != null ? rotation : "Null") + "    " + (scale != null ? scale : "Null"));
             }
         }
         // 总长：1B   ulong(压缩)
@@ -188,11 +187,11 @@ namespace Astraia.Net
         // 对象：4B   uint
         // 组件：1B   byte
         // 方法：2B   ushort
-        // 片段：4B   Segment
+        // 片段：1B   Segment(压缩) 13+17+13 = 43 不超过 127字节 长度为 1
         // 位置：12+1 Vector3? 
         // 旋转：16+1 Quaternion? 
         // 缩放：12+1 Vector3? 
-        // 同步位置：1+2+4+1+2+4+13+1+1 = 29B
-        // 每秒同步：29*30 = 870B
+        // 同步位置：1+2+4+1+2+1+13+1+1 = 26B
+        // 每秒同步：26*30 = 780B
     }
 }

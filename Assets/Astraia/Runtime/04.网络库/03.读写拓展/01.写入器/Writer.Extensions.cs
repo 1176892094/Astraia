@@ -170,11 +170,11 @@ namespace Astraia.Net
         {
             if (value == null)
             {
-                writer.WriteUInt(0);
+                Service.Length.Encode(writer, 0);
                 return;
             }
 
-            writer.WriteUInt(checked((uint)value.Length) + 1);
+            Service.Length.Encode(writer, checked((uint)value.Length) + 1);
             writer.WriteBytes(value, 0, value.Length);
         }
 
@@ -182,11 +182,11 @@ namespace Astraia.Net
         {
             if (value == default)
             {
-                writer.WriteUInt(0);
+                Service.Length.Encode(writer, 0);
                 return;
             }
 
-            writer.WriteUInt(checked((uint)value.Count) + 1);
+            Service.Length.Encode(writer, checked((uint)value.Count) + 1);
             writer.WriteBytes(value.Array, value.Offset, value.Count);
         }
 
@@ -199,11 +199,26 @@ namespace Astraia.Net
         {
             if (values == null)
             {
-                writer.WriteInt(-1);
+                Service.Length.Encode(writer, 0);
                 return;
             }
 
-            writer.WriteInt(values.Count);
+            Service.Length.Encode(writer, checked((uint)values.Count) + 1);
+            foreach (var value in values)
+            {
+                writer.Invoke(value);
+            }
+        }
+        
+        public static void WriteHashSet<T>(this MemoryWriter writer, HashSet<T> values)
+        {
+            if (values == null)
+            {
+                Service.Length.Encode(writer, 0);
+                return;
+            }
+
+            Service.Length.Encode(writer, checked((uint)values.Count) + 1);
             foreach (var value in values)
             {
                 writer.Invoke(value);
@@ -214,11 +229,11 @@ namespace Astraia.Net
         {
             if (values == null)
             {
-                writer.WriteInt(-1);
+                Service.Length.Encode(writer, 0);
                 return;
             }
 
-            writer.WriteInt(values.Length);
+            Service.Length.Encode(writer, checked((uint)values.Length) + 1);
             foreach (var value in values)
             {
                 writer.Invoke(value);
