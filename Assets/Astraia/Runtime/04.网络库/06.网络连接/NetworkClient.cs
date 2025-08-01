@@ -56,7 +56,11 @@ namespace Astraia.Net
                 return;
             }
 
-            NetworkSimulator.Instance?.OnSend(message, writer.position);
+            if (clientId != NetworkManager.HostId)
+            {
+                NetworkSimulator.Instance?.OnSend(message, writer.position);
+            }
+
             AddMessage(writer, channel);
         }
 
@@ -71,7 +75,7 @@ namespace Astraia.Net
 
             batch.AddMessage(writer);
 
-            if (clientId == NetworkManager.Server.hostId)
+            if (clientId == NetworkManager.HostId)
             {
                 using var target = MemoryWriter.Pop();
                 if (batch.GetBatch(target))

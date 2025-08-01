@@ -20,6 +20,8 @@ namespace Astraia.Net
     public sealed partial class NetworkManager : MonoBehaviour, IEvent<SceneComplete>
     {
         public static NetworkManager Instance;
+        
+        internal const int HostId = 0;
 
         public int sendRate = 30;
 
@@ -154,7 +156,7 @@ namespace Astraia.Net
 
             if (Mode == EntryMode.Host)
             {
-                Server.OnServerDisconnect(Server.hostId);
+                Server.OnServerDisconnect(HostId);
             }
 
             Client.Stop();

@@ -19,25 +19,25 @@ namespace Astraia.Net
         internal void ServerSerialize(bool initialize, MemoryWriter owner, MemoryWriter observer)
         {
             var components = agents;
-            var (ownerMask, otherMask) = ServerDirtyMasks(initialize);
+            var (ownerMask, observerMask) = ServerDirtyMasks(initialize);
 
             if (ownerMask != 0)
             {
                 Service.Length.Encode(owner, ownerMask);
             }
 
-            if (otherMask != 0)
+            if (observerMask != 0)
             {
-                Service.Length.Encode(observer, otherMask);
+                Service.Length.Encode(observer, observerMask);
             }
 
-            if ((ownerMask | otherMask) != 0)
+            if ((ownerMask | observerMask) != 0)
             {
                 for (var i = 0; i < components.Count; ++i)
                 {
                     var component = components[i];
                     var ownerDirty = IsDirty(ownerMask, i);
-                    var observersDirty = IsDirty(otherMask, i);
+                    var observersDirty = IsDirty(observerMask, i);
                     if (ownerDirty || observersDirty)
                     {
                         using var writer = MemoryWriter.Pop();

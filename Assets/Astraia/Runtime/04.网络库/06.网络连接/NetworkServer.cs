@@ -69,7 +69,7 @@ namespace Astraia.Net
                 using var target = MemoryWriter.Pop();
                 if (batch.GetBatch(target))
                 {
-                    NetworkManager.Server.OnServerReceive(NetworkManager.Server.hostId, target, Channel.Reliable);
+                    NetworkManager.Server.OnServerReceive(NetworkManager.HostId, target, Channel.Reliable);
                 }
             }
         }

@@ -104,7 +104,7 @@ namespace Astraia.Net
         {
             var result = true;
             var safety = reader.ReadByte();
-            var chunkStart = reader.position;
+            var startPosition = reader.position;
             try
             {
                 OnDeserialize(reader, initialize);
@@ -115,13 +115,13 @@ namespace Astraia.Net
                 result = false;
             }
 
-            var size = reader.position - chunkStart;
-            var sizeHash = (byte)(size & 0xFF);
-            if (sizeHash != safety)
+            var size = reader.position - startPosition;
+            var count = (byte)(size & 0xFF);
+            if (count != safety)
             {
-                Debug.LogError(Service.Text.Format(Log.E261, size, sizeHash, safety));
+                Debug.LogError(Service.Text.Format(Log.E261, size, count, safety));
                 var cleared = (uint)size & 0xFFFFFF00;
-                reader.position = chunkStart + (int)(cleared | safety);
+                reader.position = startPosition + (int)(cleared | safety);
                 result = false;
             }
 

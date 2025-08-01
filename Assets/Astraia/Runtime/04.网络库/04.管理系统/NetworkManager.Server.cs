@@ -45,8 +45,6 @@ namespace Astraia.Net
 
             public static bool isLoadScene { get; internal set; }
 
-            public static int hostId { get; private set; } = 0;
-
             public static int connections => clients.Count;
 
             internal static void Start(EntryMode mode)
@@ -75,7 +73,7 @@ namespace Astraia.Net
                 foreach (var client in copies)
                 {
                     client.Disconnect();
-                    if (client.clientId != hostId)
+                    if (client.clientId != HostId)
                     {
                         OnServerDisconnect(client.clientId);
                     }
@@ -391,7 +389,7 @@ namespace Astraia.Net
 
                 entity.connection = client;
 
-                if (Mode == EntryMode.Host && client?.clientId == hostId)
+                if (Mode == EntryMode.Host && client?.clientId == HostId)
                 {
                     entity.agentMode |= AgentMode.Owner;
                 }

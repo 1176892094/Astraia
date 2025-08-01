@@ -145,18 +145,18 @@ namespace Astraia.Net
 
         public void OnGUIServer()
         {
-            GUILayout.Label(Service.Text.Format("服务器发送数:\t\t{0}", clientSentPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("服务器发送量:\t\t{0}/s", PrettyBytes(clientSentBytesPerSecond)));
-            GUILayout.Label(Service.Text.Format("服务器接收数:\t\t{0}", clientReceivedPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("服务器接收量:\t\t{0}/s", PrettyBytes(clientReceivedBytesPerSecond)));
+            GUILayout.Label(Service.Text.Format("向服务器发送数量:\t\t{0}", clientSentPacketsPerSecond));
+            GUILayout.Label(Service.Text.Format("向服务器发送大小:\t\t{0}/s", PrettyBytes(clientSentBytesPerSecond)));
+            GUILayout.Label(Service.Text.Format("从服务器接收数量:\t\t{0}", clientReceivedPacketsPerSecond));
+            GUILayout.Label(Service.Text.Format("从服务器接收大小:\t\t{0}/s", PrettyBytes(clientReceivedBytesPerSecond)));
         }
 
         public void OnGUIClient()
         {
-            GUILayout.Label(Service.Text.Format("客户端发送数:\t\t{0}", serverSentPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("客户端发送量:\t\t{0}/s", PrettyBytes(serverSentBytesPerSecond)));
-            GUILayout.Label(Service.Text.Format("客户端接收数:\t\t{0}", serverReceivedPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("客户端接收量:\t\t{0}/s", PrettyBytes(serverReceivedBytesPerSecond)));
+            GUILayout.Label(Service.Text.Format("向客户端发送数量:\t\t{0}", serverSentPacketsPerSecond));
+            GUILayout.Label(Service.Text.Format("向客户端发送大小:\t\t{0}/s", PrettyBytes(serverSentBytesPerSecond)));
+            GUILayout.Label(Service.Text.Format("从客户端接收数量:\t\t{0}", serverReceivedPacketsPerSecond));
+            GUILayout.Label(Service.Text.Format("从客户端接收大小:\t\t{0}/s", PrettyBytes(serverReceivedBytesPerSecond)));
         }
 
 
@@ -202,12 +202,14 @@ namespace Astraia.Net
 
         internal void OnSend<T>(T message, int bytes) where T : struct, IMessage
         {
-            sendItems.Record(message, bytes);
+            var count = Service.Length.Invoke((uint)bytes);
+            sendItems.Record(message, count + bytes);
         }
 
         internal void OnReceive<T>(T message, int bytes) where T : struct, IMessage
         {
-            receiveItems.Record(message, bytes);
+            var count = Service.Length.Invoke((uint)bytes + 2);
+            receiveItems.Record(message, count + bytes + 2);
         }
 
         private class Items

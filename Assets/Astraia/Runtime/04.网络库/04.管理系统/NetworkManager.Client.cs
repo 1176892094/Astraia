@@ -55,7 +55,7 @@ namespace Astraia.Net
                     Register(EntryMode.Host);
                     state = State.Connected;
                     connection = new NetworkServer();
-                    Server.Connect(new NetworkClient(Server.hostId));
+                    Server.Connect(new NetworkClient(HostId));
                     Ready();
                     return;
                 }
