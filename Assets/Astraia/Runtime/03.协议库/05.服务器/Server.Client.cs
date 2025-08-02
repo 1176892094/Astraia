@@ -12,6 +12,7 @@
 using System;
 using System.Net;
 using Astraia.Common;
+using Astraia;
 
 namespace Astraia
 {
@@ -52,7 +53,7 @@ namespace Astraia
 
             protected override void LogError(Error error, string message) => OnError?.Invoke(error, message);
 
-            public void Input(ArraySegment<byte> segment)
+            public unsafe void Input(ArraySegment<byte> segment)
             {
                 if (segment.Count <= 1 + 4)
                 {
@@ -60,7 +61,12 @@ namespace Astraia
                 }
 
                 var channel = segment.Array[segment.Offset];
-                Utils.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
+
+                uint newCookie;
+                fixed (byte* ptr = &segment.Array[segment.Offset + 1])
+                {
+                    Kcp.ikcp_decode32u(ptr, &newCookie);
+                }
 
                 if (state == State.Connected)
                 {
