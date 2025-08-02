@@ -192,12 +192,12 @@ namespace Astraia.Net
 
         public static List<T> ReadList<T>(this MemoryReader reader)
         {
-            var length = (uint)Service.Length.Decode(reader);
-            if (length == 0) return null;
+            var count = (uint)Service.Length.Decode(reader);
+            if (count == 0) return null;
 
-            length--;
-            var result = new List<T>(checked((int)length));
-            for (var i = 0; i < length; i++)
+            count--;
+            var result = new List<T>(checked((int)count));
+            for (var i = 0; i < count; i++)
             {
                 result.Add(reader.Invoke<T>());
             }
@@ -207,12 +207,12 @@ namespace Astraia.Net
 
         public static HashSet<T> ReadHashSet<T>(this MemoryReader reader)
         {
-            var length = (uint)Service.Length.Decode(reader);
-            if (length == 0) return null;
+            var count = (uint)Service.Length.Decode(reader);
+            if (count == 0) return null;
 
-            length--;
-            var result = new HashSet<T>(checked((int)length));
-            for (var i = 0; i < length; i++)
+            count--;
+            var result = new HashSet<T>(checked((int)count));
+            for (var i = 0; i < count; i++)
             {
                 result.Add(reader.Invoke<T>());
             }
@@ -222,12 +222,12 @@ namespace Astraia.Net
 
         public static T[] ReadArray<T>(this MemoryReader reader)
         {
-            var length = (uint)Service.Length.Decode(reader);
-            if (length == 0) return null;
+            var count = (uint)Service.Length.Decode(reader);
+            if (count == 0) return null;
 
-            length--;
-            var result = new T[length];
-            for (var i = 0; i < length; i++)
+            count--;
+            var result = new T[count];
+            for (var i = 0; i < count; i++)
             {
                 result[i] = reader.Invoke<T>();
             }
