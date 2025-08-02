@@ -17,15 +17,18 @@ namespace Astraia.Common
 {
     internal abstract class Agent
     {
+        private const int PING_INTERVAL = 1000;
+        private const int METADATA_SIZE = sizeof(byte) + sizeof(int);
+        
         private readonly byte[] kcpSendBuffer;
         private readonly byte[] rawSendBuffer;
         private readonly byte[] receiveBuffer;
         private readonly int unreliableSize;
         private readonly Stopwatch watch = new Stopwatch();
-        private Kcp kcp;
         private uint timeout;
         private uint pingTime;
         private uint receiveTime;
+        private Protocol protocol;
         protected State state;
         protected uint cookie;
 
@@ -33,8 +36,8 @@ namespace Astraia.Common
         {
             Reset(setting);
             this.cookie = cookie;
-            unreliableSize = Kcp.UnreliableSize(setting.MaxUnit);
-            var reliableSize = Kcp.ReliableSize(setting.MaxUnit, setting.ReceiveWindow);
+            unreliableSize = UnreliableSize(setting.MaxUnit);
+            var reliableSize = ReliableSize(setting.MaxUnit, setting.ReceiveWindow);
             rawSendBuffer = new byte[setting.MaxUnit];
             receiveBuffer = new byte[1 + reliableSize];
             kcpSendBuffer = new byte[1 + reliableSize];
@@ -49,19 +52,27 @@ namespace Astraia.Common
             state = State.Disconnect;
             watch.Restart();
 
-            kcp = new Kcp(0, SendReliable);
-            kcp.SetMtu((uint)config.MaxUnit - Kcp.METADATA_SIZE);
-            kcp.SetWindowSize(config.SendWindow, config.ReceiveWindow);
-            kcp.SetNoDelay(config.NoDelay ? 1U : 0U, config.Interval, config.FastResend, !config.Congestion);
-            kcp.dead_link = config.DeadLink;
+            protocol = new Protocol(0, SendReliable);
+            protocol.SetMtu((int)config.MaxUnit - METADATA_SIZE);
+            protocol.SetWindowSize((int)config.SendWindow, (int)config.ReceiveWindow);
+            protocol.SetNoDelay(config.NoDelay ? 1 : 0, (int)config.Interval, (int)config.FastResend, 1);
             timeout = config.Timeout;
+        }
+        public static int ReliableSize(uint mtu, uint rcv_wnd)
+        {
+            return (int)(mtu - 24 - METADATA_SIZE) * ((int)Math.Min(rcv_wnd, byte.MaxValue) - 1) - 1;
+        }
+
+        public static int UnreliableSize(uint mtu)
+        {
+            return (int)mtu - METADATA_SIZE - 1;
         }
 
         private bool TryReceive(out Reliable header, out ArraySegment<byte> message)
         {
             message = default;
             header = Reliable.Ping;
-            var size = kcp.PeekSize();
+            var size = protocol.PeekSize();
             if (size <= 0)
             {
                 return false;
@@ -74,14 +85,14 @@ namespace Astraia.Common
                 return false;
             }
 
-            if (kcp.Receive(receiveBuffer, size) < 0)
+            if (protocol.Receive(receiveBuffer, size) < 0)
             {
                 LogError(Error.InvalidReceive, Service.Text.Format(Log.E143, GetType()));
                 Disconnect();
                 return false;
             }
 
-            if (!Utils.ParseReliable(receiveBuffer[0], out header))
+            if (!Utils.IsReliable(receiveBuffer[0], out header))
             {
                 LogError(Error.InvalidReceive, Service.Text.Format(Log.E144, GetType(), header));
                 Disconnect();
@@ -97,7 +108,7 @@ namespace Astraia.Common
         {
             if (channel == Channel.Reliable)
             {
-                if (kcp.Input(segment.Array, segment.Offset, segment.Count) != 0)
+                if (protocol.Input(segment.Array, segment.Offset, segment.Count) != 0)
                 {
                     Logs.Warn(Service.Text.Format(Log.E112, GetType(), segment.Count - 1));
                 }
@@ -106,7 +117,7 @@ namespace Astraia.Common
             {
                 if (segment.Count < 1) return;
                 var headerByte = segment.Array[segment.Offset];
-                if (!Utils.ParseUnreliable(headerByte, out var header))
+                if (!Utils.IsUnreliable(headerByte, out var header))
                 {
                     LogError(Error.InvalidReceive, Service.Text.Format(Log.E144, GetType(), header));
                     Disconnect();
@@ -153,7 +164,7 @@ namespace Astraia.Common
                 Buffer.BlockCopy(segment.Array, segment.Offset, kcpSendBuffer, 1, segment.Count);
             }
 
-            if (kcp.Send(kcpSendBuffer, 0, 1 + segment.Count) < 0)
+            if (protocol.Send(kcpSendBuffer, 0, 1 + segment.Count) < 0)
             {
                 LogError(Error.InvalidSend, Service.Text.Format(Log.E146, GetType(), segment.Count));
             }
@@ -220,9 +231,9 @@ namespace Astraia.Common
 
         public virtual void EarlyUpdate()
         {
-            if (kcp.state == -1)
+            if (protocol.State == uint.MaxValue)
             {
-                LogError(Error.Timeout, Service.Text.Format(Log.E148, GetType(), kcp.dead_link));
+                LogError(Error.Timeout, Service.Text.Format(Log.E148, GetType(), protocol.Death));
                 Disconnect();
                 return;
             }
@@ -235,16 +246,15 @@ namespace Astraia.Common
                 return;
             }
 
-            var total = kcp.receiveQueue.Count + kcp.sendQueue.Count + kcp.receiveBuffer.Count + kcp.sendBuffer.Count;
+            var total = protocol.Count;
             if (total >= 10000)
             {
                 LogError(Error.Congestion, Service.Text.Format(Log.E150, GetType()));
-                kcp.sendQueue.Clear();
                 Disconnect();
                 return;
             }
 
-            if (time >= pingTime + Kcp.PING_INTERVAL)
+            if (time >= pingTime + PING_INTERVAL)
             {
                 SendReliable(Reliable.Ping);
                 pingTime = time;
@@ -314,7 +324,7 @@ namespace Astraia.Common
             {
                 if (state != State.Disconnect)
                 {
-                    kcp.Update((uint)watch.ElapsedMilliseconds);
+                    protocol.Update((uint)watch.ElapsedMilliseconds);
                 }
             }
             catch (SocketException e)

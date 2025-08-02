@@ -78,7 +78,7 @@ namespace Astraia
                 socket.Bind(new IPEndPoint(IPAddress.Any, port));
             }
 
-            Utils.SetBuffer(socket);
+            Utils.SetSocket(socket);
         }
 
         private bool TryReceive(out ArraySegment<byte> segment, out int clientId)
