@@ -21,6 +21,8 @@ namespace Runtime
         public StateType state = StateType.None;
         public float moveX;
         public float moveY;
+        public int nextFrame;
+        public int lastFrame;
         public bool isWalk => moveX != 0 || moveY != 0;
         public float moveSpeed => GetFloat(Attribute.MoveSpeed);
         public float jumpForce => GetFloat(Attribute.JumpForce);

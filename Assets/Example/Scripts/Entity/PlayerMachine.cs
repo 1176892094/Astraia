@@ -20,6 +20,24 @@ namespace Runtime
         public SpriteRenderer renderer;
         private PlayerFeature Feature => owner.Feature;
 
+        public float velocityX
+        {
+            get => rigidbody.linearVelocityX;
+            set => rigidbody.linearVelocityX = value;
+        }
+
+        public float velocityY
+        {
+            get => rigidbody.linearVelocityY;
+            set => rigidbody.linearVelocityY = value;
+        }
+
+        public Vector2 velocity
+        {
+            get => rigidbody.linearVelocity;
+            set => rigidbody.linearVelocity = value;
+        }
+
         public override void OnAwake()
         {
             rigidbody = owner.GetComponent<Rigidbody2D>();
@@ -76,14 +94,14 @@ namespace Runtime
 
             if (Feature.state.HasFlag(StateType.Jumping))
             {
-                rigidbody.linearVelocityY -= 9.81f * Time.deltaTime;
+                velocityY -= 9.81f * Time.deltaTime;
             }
             else
             {
-                rigidbody.linearVelocityY -= 9.81f * Time.deltaTime * 2;
+                velocityY -= 9.81f * Time.deltaTime * 2;
             }
 
-            rigidbody.linearVelocityY = Mathf.Max(-5, rigidbody.linearVelocityY);
+            velocityY = Mathf.Max(-5, velocityY);
         }
 
         private void JumpUpdate()

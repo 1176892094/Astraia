@@ -27,6 +27,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("Astraia.Net")]
 [assembly: InternalsVisibleTo("Astraia.Log")]
 [assembly: InternalsVisibleTo("Astraia.Editor")]
+[assembly: InternalsVisibleTo("HotUpdate.Editor")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

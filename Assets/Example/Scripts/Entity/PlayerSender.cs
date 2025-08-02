@@ -38,15 +38,45 @@ namespace Runtime
             this.syncColor = syncColor;
         }
 
+        [ServerRpc]
+        public void SendInputServerRpc(PlayerInput input)
+        {
+            owner.Machine.velocityX = input.moveX;
+            owner.Feature.lastFrame = owner.Feature.nextFrame;
+            TargetUpdatePosition(connection, transform.position, owner.Feature.lastFrame);
+        }
+
+        [TargetRpc]
+        void TargetUpdatePosition(NetworkClient target, Vector3 position, int processedSeq)
+        {
+            if (!isOwner) return;
+
+            // // 服务器权威位置覆盖
+            // serverPosition = position;
+            // transform.position = serverPosition;
+            //
+            // // 移除已确认输入
+            // while (pendingInputs.Count > 0 && pendingInputs.Peek().seq <= processedSeq)
+            // {
+            //     pendingInputs.Dequeue();
+            // }
+            //
+            // // 重放未确认输入，修正预测
+            // foreach (var input in pendingInputs)
+            // {
+            //     ApplyInput(input);
+            // }
+        }
+
         public void OnStartAuthority()
         {
-            owner.Machine.AddState(StateConst.Hop,typeof(PlayerHop));
-            owner.Machine.AddState(StateConst.Idle,typeof(PlayerIdle));
-            owner.Machine.AddState(StateConst.Walk,typeof(PlayerWalk));
-            owner.Machine.AddState(StateConst.Jump,typeof(PlayerJump));
-            owner.Machine.AddState(StateConst.Grab,typeof(PlayerGrab));
-            owner.Machine.AddState(StateConst.Dash,typeof(PlayerDash));
-            owner.Machine.AddState(StateConst.Crash,typeof(PlayerCrash));
+            owner.Machine.AddState(StateConst.Hop, typeof(PlayerHop));
+            owner.Machine.AddState(StateConst.Idle, typeof(PlayerIdle));
+            owner.Machine.AddState(StateConst.Walk, typeof(PlayerWalk));
+            owner.Machine.AddState(StateConst.Jump, typeof(PlayerJump));
+            owner.Machine.AddState(StateConst.Grab, typeof(PlayerGrab));
+            owner.Machine.AddState(StateConst.Dash, typeof(PlayerDash));
+            owner.Machine.AddState(StateConst.Crash, typeof(PlayerCrash));
             owner.Machine.ChangeState(StateConst.Idle);
             GameManager.Instance.SetCamera(owner, new Vector3(0, 3, 0), new Vector2(30, 8));
         }
