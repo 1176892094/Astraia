@@ -36,11 +36,10 @@ namespace Astraia.Common
         {
             Reset(setting);
             this.cookie = cookie;
-            unreliableSize = UnreliableSize(setting.MaxUnit);
-            var reliableSize = ReliableSize(setting.MaxUnit, setting.ReceiveWindow);
             rawSendBuffer = new byte[setting.MaxUnit];
-            receiveBuffer = new byte[1 + reliableSize];
-            kcpSendBuffer = new byte[1 + reliableSize];
+            receiveBuffer = new byte[1 + ReliableSize(setting.MaxUnit, setting.ReceiveWindow)];
+            kcpSendBuffer = new byte[1 + ReliableSize(setting.MaxUnit, setting.ReceiveWindow)];
+            unreliableSize = UnreliableSize(setting.MaxUnit);
             state = State.Disconnect;
         }
 
