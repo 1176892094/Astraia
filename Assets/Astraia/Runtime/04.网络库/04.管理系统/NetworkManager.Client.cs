@@ -310,7 +310,7 @@ namespace Astraia.Net
                 }
 
                 scenes.Clear();
-                var entities = Resources.FindObjectsOfTypeAll<NetworkEntity>();
+                var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 foreach (var entity in entities)
                 {
                     if (IsSceneObject(entity))

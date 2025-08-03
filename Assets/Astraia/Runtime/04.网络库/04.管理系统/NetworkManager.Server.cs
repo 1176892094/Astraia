@@ -352,7 +352,7 @@ namespace Astraia.Net
         {
             internal static void SpawnObjects()
             {
-                var entities = Resources.FindObjectsOfTypeAll<NetworkEntity>();
+                var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 foreach (var entity in entities)
                 {
                     if (IsSceneObject(entity) && entity.objectId == 0)
