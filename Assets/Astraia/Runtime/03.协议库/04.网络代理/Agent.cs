@@ -19,7 +19,7 @@ namespace Astraia.Common
     {
         private const int PING_INTERVAL = 1000;
         private const int METADATA_SIZE = sizeof(byte) + sizeof(int);
-        
+
         private readonly byte[] kcpSendBuffer;
         private readonly byte[] rawSendBuffer;
         private readonly byte[] receiveBuffer;
@@ -57,6 +57,7 @@ namespace Astraia.Common
             protocol.SetNoDelay(config.NoDelay ? 1 : 0, (int)config.Interval, (int)config.FastResend, 1);
             timeout = config.Timeout;
         }
+
         public static int ReliableSize(uint mtu, uint rcv_wnd)
         {
             return (int)(mtu - 24 - METADATA_SIZE) * ((int)Math.Min(rcv_wnd, byte.MaxValue) - 1) - 1;
