@@ -10,14 +10,15 @@
 // // *********************************************************************************
 
 using System;
+using System.Threading;
 
 namespace Astraia.Common
 {
-    internal sealed unsafe class Protocol
+    internal sealed unsafe class Protocol : IDisposable
     {
         private byte[] buffer;
-        private readonly IKCPCB* kcp;
-        private readonly Action<byte[], int> output;
+        private IKCPCB* kcp;
+        private Action<byte[], int> output;
         public uint State => kcp->state;
         public uint Death => kcp->dead_link;
         public uint Count => kcp->nrcv_buf + kcp->nrcv_que + kcp->nsnd_buf + kcp->nsnd_que;
@@ -79,5 +80,23 @@ namespace Astraia.Common
         {
             Kcp.ikcp_wndsize(kcp, sendWindow, receiveWindow);
         }
+        
+        private int dispose;
+        
+        public void Dispose()
+        {
+            if (Interlocked.CompareExchange(ref dispose, 1, 0) != 0)
+            {
+                return;
+            }
+            
+            Kcp.ikcp_release(kcp);
+            kcp = null;
+            output = null;
+            buffer = null;
+            GC.SuppressFinalize(this);
+        }
+        
+        ~Protocol() => Dispose();
     }
 }
