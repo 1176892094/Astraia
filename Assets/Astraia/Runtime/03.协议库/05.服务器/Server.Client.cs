@@ -60,13 +60,13 @@ namespace Astraia
                 }
 
                 var channel = segment.Array[segment.Offset];
-                Utils.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
+                var result = Utils.Decode32U(segment.Array, segment.Offset + 1);
 
                 if (state == State.Connected)
                 {
-                    if (newCookie != cookie)
+                    if (result != cookie)
                     {
-                        Logs.Info(Service.Text.Format(Log.E127, endPoint, newCookie, cookie));
+                        Logs.Info(Service.Text.Format(Log.E127, endPoint, result, cookie));
                         return;
                     }
                 }

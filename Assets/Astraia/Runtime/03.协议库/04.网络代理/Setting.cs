@@ -10,13 +10,14 @@
 // *********************************************************************************
 
 using System;
+using Astraia;
 
 namespace Astraia
 {
     [Serializable]
     internal struct Setting
     {
-        public int MaxUnit;
+        public uint MaxUnit;
         public uint Timeout;
         public uint Interval;
         public uint DeadLink;
@@ -28,13 +29,13 @@ namespace Astraia
         public bool Congestion;
 
         public Setting(
-            int MaxUnit = Kcp.MTU_DEF,
-            uint Timeout = Kcp.TIME_OUT,
+            uint MaxUnit = Kcp.IKCP_MTU_DEF,
+            uint Timeout = 10000,
             uint Interval = 10,
-            uint DeadLink = Kcp.DEAD_LINK,
+            uint DeadLink = Kcp.IKCP_DEADLINK,
             uint FastResend = 0,
-            uint SendWindow = Kcp.WND_SND,
-            uint ReceiveWindow = Kcp.WND_RCV,
+            uint SendWindow = Kcp.IKCP_WND_SND,
+            uint ReceiveWindow = Kcp.IKCP_WND_RCV,
             bool NoDelay = true,
             bool DualMode = true,
             bool Congestion = false)

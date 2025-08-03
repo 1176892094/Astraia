@@ -1,168 +1,352 @@
-// *********************************************************************************
-// # Project: Astraia
-// # Unity: 6000.3.5f1
-// # Author: 云谷千羽
-// # Version: 1.0.0
-// # History: 2024-11-30 17:11:16
-// # Recently: 2024-12-22 20:12:11
-// # Copyright: 2024, 云谷千羽
-// # Description: This is an automatically generated comment.
-// *********************************************************************************
+// // *********************************************************************************
+// // # Project: Astraia
+// // # Unity: 6000.3.5f1
+// // # Author: Nevin
+// // # Version: 1.0.0
+// // # History: 2025-08-03 02:08:22
+// // # Recently: 2025-08-03 02:08:22
+// // # Copyright: 2024, Nevin
+// // # Description: This is an automatically generated comment.
+// // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+// ReSharper disable All
 
 namespace Astraia
 {
-    internal class Kcp
+    internal static unsafe partial class Kcp
     {
-        private struct AckItem
-        {
-            public readonly uint sn;
-            public readonly uint ts;
+        public const uint IKCP_RTO_NDL = 30;
+        public const uint IKCP_RTO_MIN = 100;
+        public const uint IKCP_RTO_DEF = 200;
+        public const uint IKCP_RTO_MAX = 60000;
+        public const uint IKCP_CMD_PUSH = 81;
+        public const uint IKCP_CMD_ACK = 82;
+        public const uint IKCP_CMD_WASK = 83;
+        public const uint IKCP_CMD_WINS = 84;
+        public const uint IKCP_ASK_SEND = 1;
+        public const uint IKCP_ASK_TELL = 2;
+        public const uint IKCP_WND_SND = 32;
+        public const uint IKCP_WND_RCV = 128;
+        public const uint IKCP_MTU_DEF = 1400;
+        public const uint IKCP_ACK_FAST = 3;
+        public const uint IKCP_INTERVAL = 100;
+        public const uint IKCP_OVERHEAD = 24;
+        public const uint IKCP_DEADLINK = 20;
+        public const uint IKCP_THRESH_INIT = 2;
+        public const uint IKCP_THRESH_MIN = 2;
+        public const uint IKCP_PROBE_INIT = 7000;
+        public const uint IKCP_PROBE_LIMIT = 120000;
+        public const uint IKCP_FASTACK_LIMIT = 5;
 
-            public AckItem(uint sn, uint ts)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte* ikcp_encode8u(byte* p, byte c)
+        {
+            *(byte*)p++ = c;
+            return p;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte* ikcp_decode8u(byte* p, byte* c)
+        {
+            *c = *(byte*)p++;
+            return p;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte* ikcp_encode16u(byte* p, ushort w)
+        {
+            memcpy(p, &w, (nuint)2);
+            p += 2;
+            return p;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte* ikcp_decode16u(byte* p, ushort* w)
+        {
+            memcpy(w, p, (nuint)2);
+            p += 2;
+            return p;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte* ikcp_encode32u(byte* p, uint l)
+        {
+            memcpy(p, &l, (nuint)4);
+            p += 4;
+            return p;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte* ikcp_decode32u(byte* p, uint* l)
+        {
+            memcpy(l, p, (nuint)4);
+            p += 4;
+            return p;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint _imin_(uint a, uint b)
+        {
+            return a <= b ? a : b;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint _imax_(uint a, uint b)
+        {
+            return a >= b ? a : b;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint _ibound_(uint lower, uint middle, uint upper)
+        {
+            return _imin_(_imax_(lower, middle), upper);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint _iceilpow2_(uint x)
+        {
+            --x;
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            ++x;
+            return x;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long _itimediff(uint later, uint earlier)
+        {
+            return ((int)(later - earlier));
+        }
+
+        public static delegate* managed<nuint, void*> ikcp_malloc_hook = null;
+        public static delegate* managed<void*, void> ikcp_free_hook = null;
+
+        public static void* ikcp_malloc(nuint size)
+        {
+            if (ikcp_malloc_hook != null)
             {
-                this.sn = sn;
-                this.ts = ts;
+                return ikcp_malloc_hook(size);
+            }
+
+            return malloc(size);
+        }
+
+        public static void ikcp_free(void* ptr)
+        {
+            if (ikcp_free_hook != null)
+            {
+                ikcp_free_hook(ptr);
+            }
+            else
+            {
+                free(ptr);
             }
         }
-        public const int PING_INTERVAL = 1000;
-        public const int METADATA_SIZE = sizeof(byte) + sizeof(int);
-        public const int FRG_MAX = byte.MaxValue; // 最大分片数。KCP将分片编号编码为字节类型，因此最大分片数为255。
-        public const int MTU_DEF = 1200;          // 默认的最大传输单元（MTU）。设置为1200以适应所有情况。
-        public const int RTO_NDL = 30;            // 无延迟情况下的最小重传超时。用于在无延迟模式下，减少数据包的重传等待时间。
-        public const int RTO_MIN = 100;           // 正常情况下的最小重传超时。确保即使网络环境很好，也不会频繁地重传数据包。
-        public const int RTO_DEF = 200;           // 默认的重传超时设置。用于在一般网络环境下设置初始重传等待时间。
-        public const int RTO_MAX = 60000;         // 最大重传超时。用于避免重传超时无限增长，设置一个合理的上限。
-        public const int CMD_PUSH = 81;           // 推送数据的命令。用于发送实际的数据包。
-        public const int CMD_ACK = 82;            // 确认收到的命令。用于确认收到数据包，通知发送方。
-        public const int CMD_W_ASK = 83;          // 窗口探测（询问）命令。用于探测接收方的窗口大小。
-        public const int CMD_W_INS = 84;          // 窗口大小（告诉/插入）命令。用于告知发送方当前的接收窗口大小。
-        public const int ASK_SEND = 1;            // 表示需要发送窗口探测命令（CMD_W_ASK）。
-        public const int ASK_TELL = 2;            // 表示需要发送窗口大小命令（CMD_W_INS）。
-        public const int WND_SND = 32;            // 默认的发送窗口大小。表示可以在发送窗口中未确认的数据包数。
-        public const int WND_RCV = 128;           // 默认的接收窗口大小。表示可以在接收窗口中接收的最大数据包数，必须大于或等于最大分片大小。
-        public const int INTERVAL = 100;          // KCP的更新间隔。表示KCP内部定时器的触发间隔。
-        public const int OVERHEAD = 24;           // 头部开销。表示每个KCP数据包的头部大小。
-        public const int THRESH_DEF = 2;          // 拥塞窗口初始阈值。用于设置拥塞窗口大小的初始值。
-        public const int THRESH_MIN = 2;          // 拥塞窗口最小阈值。用于设置拥塞窗口大小的下限。
-        public const int PROBE_DEF = 7000;        // 窗口探测的初始间隔。表示窗口探测的初始时间间隔。
-        public const int PROBE_LIM = 120000;      // 窗口探测的最大间隔。表示窗口探测的最大时间间隔。
-        public const int FAST_LIM = 5;            // 快速确认的阈值。表示在触发快速重传前，需要接收到的重复确认次数。
-        public const int TIME_OUT = 10000;        // 长时间未收到数据包。网络数据超时时间。
-        public const int DEAD_LINK = 20;          // 认为连接中断的最大重传次数。在尝试重传20次后，如果仍然未收到确认，将认为连接中断。
-        
-        public int state;                         // 当前连接的状态，表示连接的不同阶段（例如连接中、已连接、断开）。
-        public uint dead_link;                    // 重传次数的最大值，超过此值认为连接断开。
-        
-        private int rx_rto;                       // 当前的重传超时值，根据网络状况动态调整。
-        private int rx_rto_min;                   // 最小重传超时，防止RTO过小导致频繁重传。
-        private int rx_rtt_val;                   // RTT的平均偏差，用于测量RTT的抖动，影响RTO计算。
-        private int rx_rtt_avg;                   // 平滑的RTT值，是RTT的加权平均值，影响RTO计算。
-        
-        private uint mtu;                         // 最大传输单元，决定了每个数据包的最大字节数。
-        private uint mss;                         // 最大分段大小，计算方式为 MTU - OVERHEAD（头部开销）。
-        private uint snd_una;                     // 发送但未确认的最小序号。比如，snd_una为9，表示序号8已经确认，序号9和10已经发送但未确认。
-        private uint snd_nxt;                     // 发送序号的计数器，不断增长，用于生成新的序列号。
-        private uint rcv_nxt;                     // 接收序号的计数器，不断增长，用于确认接收到的序列号。
-        private uint ss_thresh;                   // 慢启动阈值，用于控制拥塞窗口的增长速率。
-        private uint snd_wnd;                     // 发送窗口大小，表示可以发送但未确认的数据包数。
-        private uint rcv_wnd;                     // 接收窗口大小，表示可以接收的数据包数。
-        private uint rmt_wnd;                     // 远端窗口大小，表示远端接收窗口的大小。
-        private uint cmd_wnd;                     // 拥塞窗口大小，用于控制发送速率，防止网络拥塞。
-        private uint probe;                       // 探测标志位，用于探测远端窗口大小。
-        private uint interval;                    // KCP内部状态更新的时间间隔。
-        private uint ts_flush;                    // 上次刷新时间戳，用于定时刷新状态。
-        private bool updated;                     // 是否已更新的标志位，用于标记KCP状态是否已更新。
-        private uint ts_probe;                    // 探测时间戳，用于窗口探测。
-        private uint probe_wait;                  // 探测等待时间，用于控制探测间隔。
-        private uint incr;                        // 增量值，用于拥塞控制计算。
-        private uint current;                     // 当前时间，KCP内部使用的时间戳。
-        private uint fast_resend;                 // 快速重传的设置，用于提高重传效率。
-        private uint no_delay;                    // 无延迟模式的设置，用于减少延迟但可能增加网络抖动。
-        private bool noc_wnd;                     // 是否启用拥塞控制，启用后会严重限制发送和接收窗口大小。
-        private byte[] buffer;                    // MTU可以在运行时改变，从而调整缓冲区的大小。
-        private readonly uint conv;               // 会话标识符，用于唯一标识一个会话，以区分不同的会话数据。
-        private readonly Action<byte[], int> output;
-        private readonly List<AckItem> ackList = new List<AckItem>(16);
-        
-        public readonly List<Segment> sendBuffer = new List<Segment>(16);
-        public readonly List<Segment> receiveBuffer = new List<Segment>(16);
-        public readonly Queue<Segment> sendQueue = new Queue<Segment>(16);
-        public readonly Queue<Segment> receiveQueue = new Queue<Segment>(16);
 
-        public Kcp(uint conv, Action<byte[], int> output)
+        public static void ikcp_allocator(delegate* managed<nuint, void*> new_malloc, delegate* managed<void*, void> new_free)
         {
-            this.conv = conv;
-            this.output = output;
-            snd_wnd = WND_SND;
-            rcv_wnd = WND_RCV;
-            rmt_wnd = WND_RCV;
-            mtu = MTU_DEF;
-            mss = mtu - OVERHEAD;
-            rx_rto = RTO_DEF;
-            rx_rto_min = RTO_MIN;
-            interval = INTERVAL;
-            ts_flush = INTERVAL;
-            ss_thresh = THRESH_DEF;
-            dead_link = DEAD_LINK;
-            buffer = new byte[(mtu + OVERHEAD) * 3];
+            ikcp_malloc_hook = new_malloc;
+            ikcp_free_hook = new_free;
         }
-        
-        public int Receive(byte[] buffer, int len)
-        {
-            if (len < 0)
-            {
-                throw new NotSupportedException("Receive is peek for negative len is not supported!");
-            }
 
-            if (receiveQueue.Count == 0)
+        public static IKCPSEG* ikcp_segment_new(IKCPCB* kcp, int size)
+        {
+            return (IKCPSEG*)ikcp_malloc((nuint)(sizeof(IKCPSEG) + size));
+        }
+
+        public static void ikcp_segment_delete(IKCPCB* kcp, IKCPSEG* seg)
+        {
+            ikcp_free(seg);
+        }
+
+        public static void ikcp_output(IKCPCB* kcp, int size, byte[] destination, Action<byte[], int> output)
+        {
+            assert(kcp != null);
+            assert(output != null);
+
+            if (size == 0) return;
+            output(destination, size);
+        }
+
+        public static IKCPCB* ikcp_create(uint conv, ref byte[] buffer)
+        {
+            IKCPCB* kcp = (IKCPCB*)ikcp_malloc((nuint)sizeof(IKCPCB));
+            if (kcp == null) return null;
+            kcp->conv = conv;
+            kcp->snd_una = 0;
+            kcp->snd_nxt = 0;
+            kcp->rcv_nxt = 0;
+            kcp->ts_recent = 0;
+            kcp->ts_lastack = 0;
+            kcp->ts_probe = 0;
+            kcp->probe_wait = 0;
+            kcp->snd_wnd = IKCP_WND_SND;
+            kcp->rcv_wnd = IKCP_WND_RCV;
+            kcp->rmt_wnd = IKCP_WND_RCV;
+            kcp->cwnd = 0;
+            kcp->incr = 0;
+            kcp->probe = 0;
+            kcp->mtu = IKCP_MTU_DEF;
+            kcp->mss = kcp->mtu - IKCP_OVERHEAD;
+            kcp->stream = 0;
+
+            buffer = new byte[(kcp->mtu + IKCP_OVERHEAD) * 3];
+
+            iqueue_init(&kcp->snd_queue);
+            iqueue_init(&kcp->rcv_queue);
+            iqueue_init(&kcp->snd_buf);
+            iqueue_init(&kcp->rcv_buf);
+            kcp->nrcv_buf = 0;
+            kcp->nsnd_buf = 0;
+            kcp->nrcv_que = 0;
+            kcp->nsnd_que = 0;
+            kcp->state = 0;
+            kcp->acklist = null;
+            kcp->ackblock = 0;
+            kcp->ackcount = 0;
+            kcp->rx_srtt = 0;
+            kcp->rx_rttval = 0;
+            kcp->rx_rto = (int)IKCP_RTO_DEF;
+            kcp->rx_minrto = (int)IKCP_RTO_MIN;
+            kcp->current = 0;
+            kcp->interval = IKCP_INTERVAL;
+            kcp->ts_flush = IKCP_INTERVAL;
+            kcp->nodelay = 0;
+            kcp->updated = 0;
+            kcp->ssthresh = IKCP_THRESH_INIT;
+            kcp->fastresend = 0;
+            kcp->fastlimit = (int)IKCP_FASTACK_LIMIT;
+            kcp->nocwnd = 0;
+            kcp->xmit = 0;
+            kcp->dead_link = IKCP_DEADLINK;
+
+            return kcp;
+        }
+
+        public static void ikcp_release(IKCPCB* kcp)
+        {
+            assert(kcp != null);
+            if (kcp != null)
             {
+                IKCPSEG* seg;
+                while (!iqueue_is_empty(&kcp->snd_buf))
+                {
+                    seg = iqueue_entry<IKCPSEG>(kcp->snd_buf.next);
+                    iqueue_del(&seg->node);
+                    ikcp_segment_delete(kcp, seg);
+                }
+
+                while (!iqueue_is_empty(&kcp->rcv_buf))
+                {
+                    seg = iqueue_entry<IKCPSEG>(kcp->rcv_buf.next);
+                    iqueue_del(&seg->node);
+                    ikcp_segment_delete(kcp, seg);
+                }
+
+                while (!iqueue_is_empty(&kcp->snd_queue))
+                {
+                    seg = iqueue_entry<IKCPSEG>(kcp->snd_queue.next);
+                    iqueue_del(&seg->node);
+                    ikcp_segment_delete(kcp, seg);
+                }
+
+                while (!iqueue_is_empty(&kcp->rcv_queue))
+                {
+                    seg = iqueue_entry<IKCPSEG>(kcp->rcv_queue.next);
+                    iqueue_del(&seg->node);
+                    ikcp_segment_delete(kcp, seg);
+                }
+
+                if (kcp->acklist != null)
+                {
+                    ikcp_free(kcp->acklist);
+                }
+
+                kcp->nrcv_buf = 0;
+                kcp->nsnd_buf = 0;
+                kcp->nrcv_que = 0;
+                kcp->nsnd_que = 0;
+                kcp->ackcount = 0;
+                kcp->acklist = null;
+                ikcp_free(kcp);
+            }
+        }
+
+        public static int ikcp_recv(IKCPCB* kcp, byte* buffer, int len)
+        {
+            IQUEUEHEAD* p;
+            int ispeek = (len < 0) ? 1 : 0;
+            int peeksize;
+            int recover = 0;
+            IKCPSEG* seg;
+            assert(kcp != null);
+
+            if (iqueue_is_empty(&kcp->rcv_queue))
                 return -1;
-            }
 
-            int peekSize = PeekSize();
+            if (len < 0) len = -len;
 
-            if (peekSize < 0)
-            {
+            peeksize = ikcp_peeksize(kcp);
+
+            if (peeksize < 0)
                 return -2;
-            }
 
-            if (peekSize > len)
-            {
+            if (peeksize > len)
                 return -3;
-            }
 
-            len = 0;
-            var offset = 0;
-            var recover = receiveQueue.Count >= rcv_wnd;
+            if (kcp->nrcv_que >= kcp->rcv_wnd)
+                recover = 1;
 
-            while (receiveQueue.Count > 0)
+
+            for (len = 0, p = kcp->rcv_queue.next; p != &kcp->rcv_queue;)
             {
-                var seg = receiveQueue.Dequeue();
-                Buffer.BlockCopy(seg.data.GetBuffer(), 0, buffer, offset, (int)seg.data.Position);
-                
-                offset += (int)seg.data.Position;
-                len += (int)seg.data.Position;
-                var fragment = seg.frg;
-                Segment.Enqueue(seg);
+                int fragment;
+                seg = iqueue_entry<IKCPSEG>(p);
+                p = p->next;
+
+                if (buffer != null)
+                {
+                    memcpy(buffer, seg->data, (nuint)seg->len);
+                    buffer += seg->len;
+                }
+
+                len += (int)seg->len;
+                fragment = (int)seg->frg;
+
+                if (ispeek == 0)
+                {
+                    iqueue_del(&seg->node);
+                    ikcp_segment_delete(kcp, seg);
+                    kcp->nrcv_que--;
+                }
 
                 if (fragment == 0)
-                {
                     break;
-                }
             }
 
+            assert(len == peeksize);
 
-            int removed = 0;
-            foreach (var seg in receiveBuffer)
+
+            while (!iqueue_is_empty(&kcp->rcv_buf))
             {
-                if (seg.sn == rcv_nxt && receiveQueue.Count < rcv_wnd)
+                seg = iqueue_entry<IKCPSEG>(kcp->rcv_buf.next);
+                if (seg->sn == kcp->rcv_nxt && kcp->nrcv_que < kcp->rcv_wnd)
                 {
-                    ++removed;
-                    receiveQueue.Enqueue(seg);
-                    rcv_nxt++;
+                    iqueue_del(&seg->node);
+                    kcp->nrcv_buf--;
+                    iqueue_add_tail(&seg->node, &kcp->rcv_queue);
+                    kcp->nrcv_que++;
+                    kcp->rcv_nxt++;
                 }
                 else
                 {
@@ -170,418 +354,476 @@ namespace Astraia
                 }
             }
 
-            receiveBuffer.RemoveRange(0, removed);
-            
-            if (receiveQueue.Count < rcv_wnd && recover)
+
+            if (kcp->nrcv_que < kcp->rcv_wnd && (recover != 0))
             {
-                probe |= ASK_TELL;
+                kcp->probe |= IKCP_ASK_TELL;
             }
 
             return len;
         }
 
-
-        public int PeekSize()
+        public static int ikcp_peeksize(IKCPCB* kcp)
         {
+            IQUEUEHEAD* p;
+            IKCPSEG* seg;
             int length = 0;
-            if (receiveQueue.Count == 0)
-            {
-                return -1;
-            }
-            
-            var seq = receiveQueue.Peek();
-            if (seq.frg == 0)
-            {
-                return (int)seq.data.Position;
-            }
 
-            if (receiveQueue.Count < seq.frg + 1)
+            assert(kcp != null);
+
+            if (iqueue_is_empty(&kcp->rcv_queue)) return -1;
+
+            seg = iqueue_entry<IKCPSEG>(kcp->rcv_queue.next);
+            if (seg->frg == 0) return (int)seg->len;
+
+            if (kcp->nrcv_que < seg->frg + 1) return -1;
+
+            for (p = kcp->rcv_queue.next; p != &kcp->rcv_queue; p = p->next)
             {
-                return -1;
-            }
-            
-            foreach (var seg in receiveQueue)
-            {
-                length += (int)seg.data.Position;
-                if (seg.frg == 0)
-                {
-                    break;
-                }
+                seg = iqueue_entry<IKCPSEG>(p);
+                length += (int)seg->len;
+                if (seg->frg == 0) break;
             }
 
             return length;
         }
 
-
-        public int Send(byte[] buffer, int offset, int len)
+        public static int ikcp_send(IKCPCB* kcp, byte* buffer, int len)
         {
-            int count;
+            IKCPSEG* seg;
+            int count, i;
+            int sent = 0;
 
-            if (len < 0)
+            assert(kcp->mss > 0);
+            if (len < 0) return -1;
+
+            if (kcp->stream != 0)
             {
-                return -1;
+                if (!iqueue_is_empty(&kcp->snd_queue))
+                {
+                    IKCPSEG* old = iqueue_entry<IKCPSEG>(kcp->snd_queue.prev);
+                    if (old->len < kcp->mss)
+                    {
+                        int capacity = (int)(kcp->mss - old->len);
+                        int extend = (len < capacity) ? len : capacity;
+                        seg = ikcp_segment_new(kcp, (int)(old->len + extend));
+                        assert(seg != null);
+                        if (seg == null)
+                        {
+                            return -2;
+                        }
+
+                        iqueue_add_tail(&seg->node, &kcp->snd_queue);
+                        memcpy(seg->data, old->data, (nuint)old->len);
+                        if (buffer != null)
+                        {
+                            memcpy(seg->data + old->len, buffer, (nuint)extend);
+                            buffer += extend;
+                        }
+
+                        seg->len = (uint)(old->len + extend);
+                        seg->frg = 0;
+                        len -= extend;
+                        iqueue_del_init(&old->node);
+                        ikcp_segment_delete(kcp, old);
+                        sent = extend;
+                    }
+                }
+
+                if (len <= 0)
+                {
+                    return sent;
+                }
             }
 
-            if (len <= mss)
-            {
-                count = 1;
-            }
-            else
-            {
-                count = (int)((len + mss - 1) / mss);
-            }
+            if (len <= (int)kcp->mss) count = 1;
+            else count = (int)((len + kcp->mss - 1) / kcp->mss);
 
-            if (count > FRG_MAX)
-            {
-                throw new Exception($"Send len={len} requires {count} fragments, but kcp can only handle up to {FRG_MAX} fragments.");
-            }
+            if (kcp->stream == 0 && count > 255) return -2;
 
-            if (count >= rcv_wnd)
+            if (count >= (int)kcp->rcv_wnd)
             {
+                if (kcp->stream != 0 && sent > 0)
+                    return sent;
                 return -2;
             }
 
-            if (count == 0)
+            if (count == 0) count = 1;
+
+            for (i = 0; i < count; i++)
             {
-                count = 1;
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                int size = len > (int)mss ? (int)mss : len;
-                var seg = Segment.Dequeue();
-                seg.Reset();
-
-                if (len > 0)
-                {
-                    seg.data.Write(buffer, offset, size);
-                }
-
-                seg.frg = (uint)(count - i - 1);
-                sendQueue.Enqueue(seg);
-                offset += size;
-                len -= size;
-            }
-
-            return 0;
-        }
-
-        private void UpdateAck(int rtt)
-        {
-            if (rx_rtt_avg == 0)
-            {
-                rx_rtt_avg = rtt;
-                rx_rtt_val = rtt / 2;
-            }
-            else
-            {
-                int delta = rtt - rx_rtt_avg;
-                if (delta < 0) delta = -delta;
-                rx_rtt_val = (3 * rx_rtt_val + delta) / 4;
-                rx_rtt_avg = (7 * rx_rtt_avg + rtt) / 8;
-                if (rx_rtt_avg < 1) rx_rtt_avg = 1;
-            }
-
-            int rto = rx_rtt_avg + Math.Max((int)interval, 4 * rx_rtt_val);
-
-            if (rto < rx_rto_min)
-            {
-                rto = rx_rto_min;
-            }
-            else if (rto > RTO_MAX)
-            {
-                rto = RTO_MAX;
-            }
-
-            rx_rto = rto;
-        }
-
-        private void ShrinkBuf()
-        {
-            if (sendBuffer.Count > 0)
-            {
-                var seg = sendBuffer[0];
-                snd_una = seg.sn;
-            }
-            else
-            {
-                snd_una = snd_nxt;
-            }
-        }
-
-        private void ParseAck(uint sn)
-        {
-            if (Utils.Compare(sn, snd_una) < 0 || Utils.Compare(sn, snd_nxt) >= 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < sendBuffer.Count; ++i)
-            {
-                var seg = sendBuffer[i];
-                if (sn == seg.sn)
-                {
-                    sendBuffer.RemoveAt(i);
-                    Segment.Enqueue(seg);
-                    break;
-                }
-
-                if (Utils.Compare(sn, seg.sn) < 0)
-                {
-                    break;
-                }
-            }
-        }
-
-
-        private void ParseUna(uint una)
-        {
-            int removed = 0;
-            foreach (Segment seg in sendBuffer)
-            {
-                if (seg.sn < una)
-                {
-                    ++removed;
-                    Segment.Enqueue(seg);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            sendBuffer.RemoveRange(0, removed);
-        }
-
-
-        private void ParseFastAck(uint sn, uint ts)
-        {
-            if (sn < snd_una)
-            {
-                return;
-            }
-
-            if (sn >= snd_nxt)
-            {
-                return;
-            }
-
-            foreach (var seg in sendBuffer)
-            {
-                if (sn < seg.sn)
-                {
-                    break;
-                }
-
-                if (sn != seg.sn)
-                {
-                    seg.fast_ack++;
-                }
-            }
-        }
-
-
-        private void ParseData(Segment segment)
-        {
-            var sn = segment.sn;
-            if (Utils.Compare(sn, rcv_nxt + rcv_wnd) >= 0 || Utils.Compare(sn, rcv_nxt) < 0)
-            {
-                Segment.Enqueue(segment);
-                return;
-            }
-
-            InsertSegmentInReceiveBuffer(segment);
-            MoveReceiveBufferReadySegmentsToQueue();
-        }
-
-
-        private void InsertSegmentInReceiveBuffer(Segment segment)
-        {
-            var repeat = false;
-            int i;
-            for (i = receiveBuffer.Count - 1; i >= 0; i--)
-            {
-                var seg = receiveBuffer[i];
-                if (seg.sn == segment.sn)
-                {
-                    repeat = true;
-                    break;
-                }
-
-                if (Utils.Compare(segment.sn, seg.sn) > 0)
-                {
-                    break;
-                }
-            }
-            
-            if (!repeat)
-            {
-                receiveBuffer.Insert(i + 1, segment);
-            }
-
-            else
-            {
-                Segment.Enqueue(segment);
-            }
-        }
-
-
-        private void MoveReceiveBufferReadySegmentsToQueue()
-        {
-            var removed = 0;
-            foreach (var seg in receiveBuffer)
-            {
-                if (seg.sn == rcv_nxt && receiveQueue.Count < rcv_wnd)
-                {
-                    ++removed;
-                    receiveQueue.Enqueue(seg);
-
-                    rcv_nxt++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            receiveBuffer.RemoveRange(0, removed);
-        }
-
-
-        public int Input(byte[] data, int offset, int size)
-        {
-            var flag = 0;
-            var prev_una = snd_una;
-            uint max_ack = 0;
-            uint latest_ts = 0;
-            
-            if (data == null || size < OVERHEAD)
-            {
-                return -1;
-            }
-
-            while (true)
-            {
-                if (size < OVERHEAD)
-                {
-                    break;
-                }
-
-                offset += Utils.Decode32U(data, offset, out uint conv_);
-                if (conv_ != conv) return -1;
-                offset += Utils.Decode8U(data, offset, out byte cmd);
-                offset += Utils.Decode8U(data, offset, out byte frg);
-                offset += Utils.Decode16U(data, offset, out ushort wnd);
-                offset += Utils.Decode32U(data, offset, out uint ts);
-                offset += Utils.Decode32U(data, offset, out uint sn);
-                offset += Utils.Decode32U(data, offset, out uint una);
-                offset += Utils.Decode32U(data, offset, out uint length);
-                size -= OVERHEAD;
-
-                if (size < length)
+                int size = len > (int)kcp->mss ? (int)kcp->mss : len;
+                seg = ikcp_segment_new(kcp, size);
+                assert(seg != null);
+                if (seg == null)
                 {
                     return -2;
                 }
 
-                if (cmd != CMD_PUSH && cmd != CMD_ACK && cmd != CMD_W_ASK && cmd != CMD_W_INS)
+                if ((buffer != null) && len > 0)
                 {
-                    return -3;
+                    memcpy(seg->data, buffer, (nuint)size);
                 }
 
-                rmt_wnd = wnd;
-                ParseUna(una);
-                ShrinkBuf();
-
-                if (cmd == CMD_ACK)
+                seg->len = (uint)size;
+                seg->frg = (uint)((kcp->stream == 0) ? (count - i - 1) : 0);
+                iqueue_init(&seg->node);
+                iqueue_add_tail(&seg->node, &kcp->snd_queue);
+                kcp->nsnd_que++;
+                if (buffer != null)
                 {
-                    if (Utils.Compare(current, ts) >= 0)
+                    buffer += size;
+                }
+
+                len -= size;
+                sent += size;
+            }
+
+            return sent;
+        }
+
+        public static void ikcp_update_ack(IKCPCB* kcp, int rtt)
+        {
+            int rto = 0;
+            if (kcp->rx_srtt == 0)
+            {
+                kcp->rx_srtt = rtt;
+                kcp->rx_rttval = rtt / 2;
+            }
+            else
+            {
+                long delta = rtt - kcp->rx_srtt;
+                if (delta < 0) delta = -delta;
+                kcp->rx_rttval = (int)((3 * kcp->rx_rttval + delta) / 4);
+                kcp->rx_srtt = (7 * kcp->rx_srtt + rtt) / 8;
+                if (kcp->rx_srtt < 1) kcp->rx_srtt = 1;
+            }
+
+            rto = (int)(kcp->rx_srtt + _imax_(kcp->interval, (uint)(4 * kcp->rx_rttval)));
+            kcp->rx_rto = (int)_ibound_((uint)kcp->rx_minrto, (uint)rto, IKCP_RTO_MAX);
+        }
+
+        public static void ikcp_shrink_buf(IKCPCB* kcp)
+        {
+            IQUEUEHEAD* p = kcp->snd_buf.next;
+            if (p != &kcp->snd_buf)
+            {
+                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                kcp->snd_una = seg->sn;
+            }
+            else
+            {
+                kcp->snd_una = kcp->snd_nxt;
+            }
+        }
+
+        public static void ikcp_parse_ack(IKCPCB* kcp, uint sn)
+        {
+            IQUEUEHEAD* p, next;
+
+            if (_itimediff(sn, kcp->snd_una) < 0 || _itimediff(sn, kcp->snd_nxt) >= 0)
+                return;
+
+            for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = next)
+            {
+                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                next = p->next;
+                if (sn == seg->sn)
+                {
+                    iqueue_del(p);
+                    ikcp_segment_delete(kcp, seg);
+                    kcp->nsnd_buf--;
+                    break;
+                }
+
+                if (_itimediff(sn, seg->sn) < 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        public static void ikcp_parse_una(IKCPCB* kcp, uint una)
+        {
+            IQUEUEHEAD* p, next;
+            for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = next)
+            {
+                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                next = p->next;
+                if (_itimediff(una, seg->sn) > 0)
+                {
+                    iqueue_del(p);
+                    ikcp_segment_delete(kcp, seg);
+                    kcp->nsnd_buf--;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        public static void ikcp_parse_fastack(IKCPCB* kcp, uint sn, uint ts)
+        {
+            IQUEUEHEAD* p, next;
+
+            if (_itimediff(sn, kcp->snd_una) < 0 || _itimediff(sn, kcp->snd_nxt) >= 0)
+                return;
+
+            for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = next)
+            {
+                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                next = p->next;
+                if (_itimediff(sn, seg->sn) < 0)
+                {
+                    break;
+                }
+                else if (sn != seg->sn)
+                {
+                    seg->fastack++;
+                }
+            }
+        }
+
+        public static void ikcp_ack_push(IKCPCB* kcp, uint sn, uint ts)
+        {
+            uint newsize = kcp->ackcount + 1;
+            uint* ptr;
+
+            if (newsize > kcp->ackblock)
+            {
+                uint* acklist;
+                uint newblock;
+
+                newblock = newsize <= 8 ? 8 : _iceilpow2_(newsize);
+                acklist = (uint*)ikcp_malloc((nuint)(newblock * sizeof(uint) * 2));
+
+                if (acklist == null)
+                {
+                    assert(acklist != null);
+                }
+
+                if (kcp->acklist != null)
+                {
+                    uint x;
+                    for (x = 0; x < kcp->ackcount; x++)
                     {
-                        UpdateAck(Utils.Compare(current, ts));
+                        acklist[x * 2 + 0] = kcp->acklist[x * 2 + 0];
+                        acklist[x * 2 + 1] = kcp->acklist[x * 2 + 1];
                     }
 
-                    ParseAck(sn);
-                    ShrinkBuf();
+                    ikcp_free(kcp->acklist);
+                }
+
+                kcp->acklist = acklist;
+                kcp->ackblock = newblock;
+            }
+
+            ptr = &kcp->acklist[kcp->ackcount * 2];
+            ptr[0] = sn;
+            ptr[1] = ts;
+            kcp->ackcount++;
+        }
+
+        public static void ikcp_ack_get(IKCPCB* kcp, int p, uint* sn, uint* ts)
+        {
+            if (sn != null) sn[0] = kcp->acklist[p * 2 + 0];
+            if (ts != null) ts[0] = kcp->acklist[p * 2 + 1];
+        }
+
+        public static void ikcp_parse_data(IKCPCB* kcp, IKCPSEG* newseg)
+        {
+            IQUEUEHEAD* p, prev;
+            uint sn = newseg->sn;
+            int repeat = 0;
+
+            if (_itimediff(sn, kcp->rcv_nxt + kcp->rcv_wnd) >= 0 ||
+                _itimediff(sn, kcp->rcv_nxt) < 0)
+            {
+                ikcp_segment_delete(kcp, newseg);
+                return;
+            }
+
+            for (p = kcp->rcv_buf.prev; p != &kcp->rcv_buf; p = prev)
+            {
+                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                prev = p->prev;
+                if (seg->sn == sn)
+                {
+                    repeat = 1;
+                    break;
+                }
+
+                if (_itimediff(sn, seg->sn) > 0)
+                {
+                    break;
+                }
+            }
+
+            if (repeat == 0)
+            {
+                iqueue_init(&newseg->node);
+                iqueue_add(&newseg->node, p);
+                kcp->nrcv_buf++;
+            }
+            else
+            {
+                ikcp_segment_delete(kcp, newseg);
+            }
+
+            while (!iqueue_is_empty(&kcp->rcv_buf))
+            {
+                IKCPSEG* seg = iqueue_entry<IKCPSEG>(kcp->rcv_buf.next);
+                if (seg->sn == kcp->rcv_nxt && kcp->nrcv_que < kcp->rcv_wnd)
+                {
+                    iqueue_del(&seg->node);
+                    kcp->nrcv_buf--;
+                    iqueue_add_tail(&seg->node, &kcp->rcv_queue);
+                    kcp->nrcv_que++;
+                    kcp->rcv_nxt++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        public static int ikcp_input(IKCPCB* kcp, byte* data, long size)
+        {
+            uint prev_una = kcp->snd_una;
+            uint maxack = 0, latest_ts = 0;
+            int flag = 0;
+
+            if (data == null || (int)size < (int)IKCP_OVERHEAD) return -1;
+
+            while (true)
+            {
+                uint ts, sn, len, una, conv;
+                ushort wnd;
+                byte cmd, frg;
+                IKCPSEG* seg;
+
+                if (size < (int)IKCP_OVERHEAD) break;
+
+                data = ikcp_decode32u(data, &conv);
+                if (conv != kcp->conv) return -1;
+
+                data = ikcp_decode8u(data, &cmd);
+                data = ikcp_decode8u(data, &frg);
+                data = ikcp_decode16u(data, &wnd);
+                data = ikcp_decode32u(data, &ts);
+                data = ikcp_decode32u(data, &sn);
+                data = ikcp_decode32u(data, &una);
+                data = ikcp_decode32u(data, &len);
+
+                size -= IKCP_OVERHEAD;
+
+                if ((long)size < (long)len || (int)len < 0) return -2;
+
+                if (cmd != IKCP_CMD_PUSH && cmd != IKCP_CMD_ACK &&
+                    cmd != IKCP_CMD_WASK && cmd != IKCP_CMD_WINS)
+                    return -3;
+
+                kcp->rmt_wnd = wnd;
+                ikcp_parse_una(kcp, una);
+                ikcp_shrink_buf(kcp);
+
+                if (cmd == IKCP_CMD_ACK)
+                {
+                    if (_itimediff(kcp->current, ts) >= 0)
+                    {
+                        ikcp_update_ack(kcp, (int)_itimediff(kcp->current, ts));
+                    }
+
+                    ikcp_parse_ack(kcp, sn);
+                    ikcp_shrink_buf(kcp);
                     if (flag == 0)
                     {
                         flag = 1;
-                        max_ack = sn;
+                        maxack = sn;
                         latest_ts = ts;
                     }
                     else
                     {
-                        if (Utils.Compare(sn, max_ack) > 0)
+                        if (_itimediff(sn, maxack) > 0)
                         {
-                            max_ack = sn;
+                            maxack = sn;
                             latest_ts = ts;
                         }
                     }
                 }
-                else if (cmd == CMD_PUSH)
+                else if (cmd == IKCP_CMD_PUSH)
                 {
-                    if (Utils.Compare(sn, rcv_nxt + rcv_wnd) < 0)
+                    if (_itimediff(sn, kcp->rcv_nxt + kcp->rcv_wnd) < 0)
                     {
-                        ackList.Add(new AckItem(sn, ts));
-                        if (Utils.Compare(sn, rcv_nxt) >= 0)
+                        ikcp_ack_push(kcp, sn, ts);
+                        if (_itimediff(sn, kcp->rcv_nxt) >= 0)
                         {
-                            var seg = Segment.Dequeue();
-                            seg.Reset();
-                            seg.conv = conv_;
-                            seg.cmd = cmd;
-                            seg.frg = frg;
-                            seg.wnd = wnd;
-                            seg.ts = ts;
-                            seg.sn = sn;
-                            seg.una = una;
-                            if (length > 0)
+                            seg = ikcp_segment_new(kcp, (int)len);
+                            seg->conv = conv;
+                            seg->cmd = cmd;
+                            seg->frg = frg;
+                            seg->wnd = wnd;
+                            seg->ts = ts;
+                            seg->sn = sn;
+                            seg->una = una;
+                            seg->len = len;
+
+                            if (len > 0)
                             {
-                                seg.data.Write(data, offset, (int)length);
+                                memcpy(seg->data, data, (nuint)len);
                             }
 
-                            ParseData(seg);
+                            ikcp_parse_data(kcp, seg);
                         }
                     }
                 }
-                else if (cmd == CMD_W_ASK)
+                else if (cmd == IKCP_CMD_WASK)
                 {
-                    probe |= ASK_TELL;
+                    kcp->probe |= IKCP_ASK_TELL;
+                }
+                else if (cmd == IKCP_CMD_WINS)
+                {
+                }
+                else
+                {
+                    return -3;
                 }
 
-                offset += (int)length;
-                size -= (int)length;
+                data += len;
+                size -= len;
             }
 
             if (flag != 0)
             {
-                ParseFastAck(max_ack, latest_ts);
+                ikcp_parse_fastack(kcp, maxack, latest_ts);
             }
 
-            if (Utils.Compare(snd_una, prev_una) > 0)
+            if (_itimediff(kcp->snd_una, prev_una) > 0)
             {
-                if (cmd_wnd < rmt_wnd)
+                if (kcp->cwnd < kcp->rmt_wnd)
                 {
-                    if (cmd_wnd < ss_thresh)
+                    uint mss = kcp->mss;
+                    if (kcp->cwnd < kcp->ssthresh)
                     {
-                        cmd_wnd++;
-                        incr += mss;
+                        kcp->cwnd++;
+                        kcp->incr += mss;
                     }
                     else
                     {
-                        if (incr < mss)
+                        if (kcp->incr < mss) kcp->incr = mss;
+                        kcp->incr += (mss * mss) / kcp->incr + (mss / 16);
+                        if ((kcp->cwnd + 1) * mss <= kcp->incr)
                         {
-                            incr = mss;
-                        }
-
-                        incr += mss * mss / incr + mss / 16;
-                        if ((cmd_wnd + 1) * mss <= incr)
-                        {
-                            cmd_wnd = (incr + mss - 1) / (mss > 0 ? mss : 1);
+                            kcp->cwnd = (kcp->incr + mss - 1) / ((mss > 0) ? mss : 1);
                         }
                     }
 
-                    if (cmd_wnd > rmt_wnd)
+                    if (kcp->cwnd > kcp->rmt_wnd)
                     {
-                        cmd_wnd = rmt_wnd;
-                        incr = rmt_wnd * mss;
+                        kcp->cwnd = kcp->rmt_wnd;
+                        kcp->incr = kcp->rmt_wnd * mss;
                     }
                 }
             }
@@ -589,328 +831,572 @@ namespace Astraia
             return 0;
         }
 
-        private uint WndUnused()
+        public static byte* ikcp_encode_seg(byte* ptr, IKCPSEG* seg)
         {
-            if (receiveQueue.Count < rcv_wnd)
+            ptr = ikcp_encode32u(ptr, seg->conv);
+            ptr = ikcp_encode8u(ptr, (byte)seg->cmd);
+            ptr = ikcp_encode8u(ptr, (byte)seg->frg);
+            ptr = ikcp_encode16u(ptr, (ushort)seg->wnd);
+            ptr = ikcp_encode32u(ptr, seg->ts);
+            ptr = ikcp_encode32u(ptr, seg->sn);
+            ptr = ikcp_encode32u(ptr, seg->una);
+            ptr = ikcp_encode32u(ptr, seg->len);
+            return ptr;
+        }
+
+        public static int ikcp_wnd_unused(IKCPCB* kcp)
+        {
+            if (kcp->nrcv_que < kcp->rcv_wnd)
             {
-                return rcv_wnd - (uint)receiveQueue.Count;
+                return (int)(kcp->rcv_wnd - kcp->nrcv_que);
             }
 
             return 0;
         }
 
-        private void MakeSpace(ref int size, int space)
+        public static void ikcp_flush(IKCPCB* kcp, byte* buffer, byte[] destination, Action<byte[], int> output)
         {
-            if (size + space > mtu)
+            uint current = kcp->current;
+            byte* ptr = buffer;
+            int count, size, i;
+            uint resent, cwnd;
+            uint rtomin;
+            IQUEUEHEAD* p;
+            int change = 0;
+            int lost = 0;
+            IKCPSEG seg;
+
+            if (kcp->updated == 0) return;
+
+            seg.conv = kcp->conv;
+            seg.cmd = IKCP_CMD_ACK;
+            seg.frg = 0;
+            seg.wnd = (uint)ikcp_wnd_unused(kcp);
+            seg.una = kcp->rcv_nxt;
+            seg.len = 0;
+            seg.sn = 0;
+            seg.ts = 0;
+
+            count = (int)kcp->ackcount;
+            for (i = 0; i < count; i++)
             {
-                output(buffer, size);
-                size = 0;
-            }
-        }
-
-
-        private void FlushBuffer(int size)
-        {
-            if (size > 0)
-            {
-                output(buffer, size);
-            }
-        }
-
-        private void Flush()
-        {
-            var size = 0;
-            var lost = false;
-
-            if (!updated)
-            {
-                return;
-            }
-            
-            var seg = Segment.Dequeue();
-            seg.Reset();
-            seg.conv = conv;
-            seg.cmd = CMD_ACK;
-            seg.wnd = WndUnused();
-            seg.una = rcv_nxt;
-
-            foreach (var ack in ackList)
-            {
-                MakeSpace(ref size, OVERHEAD);
-                seg.sn = ack.sn;
-                seg.ts = ack.ts;
-                size += seg.Encode(buffer, size);
-            }
-
-            ackList.Clear();
-
-            if (rmt_wnd == 0)
-            {
-                if (probe_wait == 0)
+                size = (int)(ptr - buffer);
+                if (size + (int)IKCP_OVERHEAD > (int)kcp->mtu)
                 {
-                    probe_wait = PROBE_DEF;
-                    ts_probe = current + probe_wait;
+                    ikcp_output(kcp, size, destination, output);
+                    ptr = buffer;
+                }
+
+                ikcp_ack_get(kcp, i, &seg.sn, &seg.ts);
+                ptr = ikcp_encode_seg(ptr, &seg);
+            }
+
+            kcp->ackcount = 0;
+
+            if (kcp->rmt_wnd == 0)
+            {
+                if (kcp->probe_wait == 0)
+                {
+                    kcp->probe_wait = IKCP_PROBE_INIT;
+                    kcp->ts_probe = kcp->current + kcp->probe_wait;
                 }
                 else
                 {
-                    if (Utils.Compare(current, ts_probe) >= 0)
+                    if (_itimediff(kcp->current, kcp->ts_probe) >= 0)
                     {
-                        if (probe_wait < PROBE_DEF)
-                        {
-                            probe_wait = PROBE_DEF;
-                        }
-
-                        probe_wait += probe_wait / 2;
-                        if (probe_wait > PROBE_LIM)
-                        {
-                            probe_wait = PROBE_LIM;
-                        }
-
-                        ts_probe = current + probe_wait;
-                        probe |= ASK_SEND;
+                        if (kcp->probe_wait < IKCP_PROBE_INIT)
+                            kcp->probe_wait = IKCP_PROBE_INIT;
+                        kcp->probe_wait += kcp->probe_wait / 2;
+                        if (kcp->probe_wait > IKCP_PROBE_LIMIT)
+                            kcp->probe_wait = IKCP_PROBE_LIMIT;
+                        kcp->ts_probe = kcp->current + kcp->probe_wait;
+                        kcp->probe |= IKCP_ASK_SEND;
                     }
                 }
             }
             else
             {
-                ts_probe = 0;
-                probe_wait = 0;
+                kcp->ts_probe = 0;
+                kcp->probe_wait = 0;
             }
 
-
-            if ((probe & ASK_SEND) != 0)
+            if ((kcp->probe & IKCP_ASK_SEND) != 0)
             {
-                seg.cmd = CMD_W_ASK;
-                MakeSpace(ref size, OVERHEAD);
-                size += seg.Encode(buffer, size);
-            }
-
-
-            if ((probe & ASK_TELL) != 0)
-            {
-                seg.cmd = CMD_W_INS;
-                MakeSpace(ref size, OVERHEAD);
-                size += seg.Encode(buffer, size);
-            }
-
-            probe = 0;
-            uint c_wnd_ = Math.Min(snd_wnd, rmt_wnd);
-
-            if (!noc_wnd)
-            {
-                c_wnd_ = Math.Min(cmd_wnd, c_wnd_);
-            }
-
-
-            while (Utils.Compare(snd_nxt, snd_una + c_wnd_) < 0)
-            {
-                if (sendQueue.Count == 0)
+                seg.cmd = IKCP_CMD_WASK;
+                size = (int)(ptr - buffer);
+                if (size + (int)IKCP_OVERHEAD > (int)kcp->mtu)
                 {
-                    break;
+                    ikcp_output(kcp, size, destination, output);
+                    ptr = buffer;
                 }
 
-                var segment = sendQueue.Dequeue();
-                segment.conv = conv;
-                segment.cmd = CMD_PUSH;
-                segment.wnd = seg.wnd;
-                segment.ts = current;
-                segment.sn = snd_nxt;
-                snd_nxt += 1;
-                segment.una = rcv_nxt;
-                segment.rsd_ts = current;
-                segment.rto = rx_rto;
-                segment.fast_ack = 0;
-                segment.rsd_c = 0;
-                sendBuffer.Add(segment);
+                ptr = ikcp_encode_seg(ptr, &seg);
             }
 
-            var resent = fast_resend > 0 ? fast_resend : 0xffffffff;
-            var rto_min = no_delay == 0 ? (uint)rx_rto >> 3 : 0;
-
-            int change = 0;
-            foreach (var segment in sendBuffer)
+            if ((kcp->probe & IKCP_ASK_TELL) != 0)
             {
-                var needSend = false;
-                if (segment.rsd_c == 0)
+                seg.cmd = IKCP_CMD_WINS;
+                size = (int)(ptr - buffer);
+                if (size + (int)IKCP_OVERHEAD > (int)kcp->mtu)
                 {
-                    needSend = true;
-                    segment.rsd_c++;
-                    segment.rto = rx_rto;
-                    segment.rsd_ts = current + (uint)segment.rto + rto_min;
+                    ikcp_output(kcp, size, destination, output);
+                    ptr = buffer;
                 }
 
-                else if (Utils.Compare(current, segment.rsd_ts) >= 0)
+                ptr = ikcp_encode_seg(ptr, &seg);
+            }
+
+            kcp->probe = 0;
+
+            cwnd = _imin_(kcp->snd_wnd, kcp->rmt_wnd);
+            if (kcp->nocwnd == 0) cwnd = _imin_(kcp->cwnd, cwnd);
+
+            while (_itimediff(kcp->snd_nxt, kcp->snd_una + cwnd) < 0)
+            {
+                IKCPSEG* newseg;
+                if (iqueue_is_empty(&kcp->snd_queue)) break;
+
+                newseg = iqueue_entry<IKCPSEG>(kcp->snd_queue.next);
+
+                iqueue_del(&newseg->node);
+                iqueue_add_tail(&newseg->node, &kcp->snd_buf);
+                kcp->nsnd_que--;
+                kcp->nsnd_buf++;
+
+                newseg->conv = kcp->conv;
+                newseg->cmd = IKCP_CMD_PUSH;
+                newseg->wnd = seg.wnd;
+                newseg->ts = current;
+                newseg->sn = kcp->snd_nxt++;
+                newseg->una = kcp->rcv_nxt;
+                newseg->resendts = current;
+                newseg->rto = (uint)kcp->rx_rto;
+                newseg->fastack = 0;
+                newseg->xmit = 0;
+            }
+
+            resent = (kcp->fastresend > 0) ? (uint)kcp->fastresend : 0xffffffff;
+            rtomin = (uint)((kcp->nodelay == 0) ? (kcp->rx_rto >> 3) : 0);
+
+            for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = p->next)
+            {
+                IKCPSEG* segment = iqueue_entry<IKCPSEG>(p);
+                int needsend = 0;
+                if (segment->xmit == 0)
                 {
-                    needSend = true;
-                    segment.rsd_c++;
-                    if (no_delay == 0)
+                    needsend = 1;
+                    segment->xmit++;
+                    segment->rto = (uint)kcp->rx_rto;
+                    segment->resendts = current + segment->rto + rtomin;
+                }
+                else if (_itimediff(current, segment->resendts) >= 0)
+                {
+                    needsend = 1;
+                    segment->xmit++;
+                    kcp->xmit++;
+                    if (kcp->nodelay == 0)
                     {
-                        segment.rto += Math.Max(segment.rto, rx_rto);
+                        segment->rto += _imax_(segment->rto, (uint)kcp->rx_rto);
                     }
                     else
                     {
-                        int step = no_delay < 2 ? segment.rto : rx_rto;
-                        segment.rto += step / 2;
+                        int step = (kcp->nodelay < 2) ? ((int)(segment->rto)) : kcp->rx_rto;
+                        segment->rto += (uint)(step / 2);
                     }
 
-                    segment.rsd_ts = current + (uint)segment.rto;
-                    lost = true;
+                    segment->resendts = current + segment->rto;
+                    lost = 1;
                 }
-
-                else if (segment.fast_ack >= resent)
+                else if (segment->fastack >= resent)
                 {
-                    if (segment.rsd_c <= FAST_LIM || FAST_LIM <= 0)
+                    if ((int)segment->xmit <= kcp->fastlimit ||
+                        kcp->fastlimit <= 0)
                     {
-                        needSend = true;
-                        segment.rsd_c++;
-                        segment.fast_ack = 0;
-                        segment.rsd_ts = current + (uint)segment.rto;
+                        needsend = 1;
+                        segment->xmit++;
+                        segment->fastack = 0;
+                        segment->resendts = current + segment->rto;
                         change++;
                     }
                 }
 
-                if (needSend)
+                if (needsend != 0)
                 {
-                    segment.ts = current;
-                    segment.wnd = seg.wnd;
-                    segment.una = rcv_nxt;
+                    int need;
+                    segment->ts = current;
+                    segment->wnd = seg.wnd;
+                    segment->una = kcp->rcv_nxt;
 
-                    var need = OVERHEAD + (int)segment.data.Position;
-                    MakeSpace(ref size, need);
+                    size = (int)(ptr - buffer);
+                    need = (int)(IKCP_OVERHEAD + segment->len);
 
-                    size += segment.Encode(buffer, size);
-
-                    if (segment.data.Position > 0)
+                    if (size + need > (int)kcp->mtu)
                     {
-                        Buffer.BlockCopy(segment.data.GetBuffer(), 0, buffer, size, (int)segment.data.Position);
-                        size += (int)segment.data.Position;
+                        ikcp_output(kcp, size, destination, output);
+                        ptr = buffer;
                     }
 
+                    ptr = ikcp_encode_seg(ptr, segment);
 
-                    if (segment.rsd_c >= dead_link)
+                    if (segment->len > 0)
                     {
-                        state = -1;
+                        memcpy(ptr, segment->data, (nuint)segment->len);
+                        ptr += segment->len;
+                    }
+
+                    if (segment->xmit >= kcp->dead_link)
+                    {
+                        kcp->state = unchecked((uint)(-1));
                     }
                 }
             }
-            
-            Segment.Enqueue(seg);
-            FlushBuffer(size);
 
-            if (change > 0)
+            size = (int)(ptr - buffer);
+            if (size > 0)
             {
-                var inflight = snd_nxt - snd_una;
-                ss_thresh = inflight / 2;
-                if (ss_thresh < THRESH_MIN)
-                {
-                    ss_thresh = THRESH_MIN;
-                }
-
-                cmd_wnd = ss_thresh + resent;
-                incr = cmd_wnd * mss;
+                ikcp_output(kcp, size, destination, output);
             }
 
-            if (lost)
+            if (change != 0)
             {
-                ss_thresh = c_wnd_ / 2;
-                if (ss_thresh < THRESH_MIN)
-                {
-                    ss_thresh = THRESH_MIN;
-                }
-
-                cmd_wnd = 1;
-                incr = mss;
+                uint inflight = kcp->snd_nxt - kcp->snd_una;
+                kcp->ssthresh = inflight / 2;
+                if (kcp->ssthresh < IKCP_THRESH_MIN)
+                    kcp->ssthresh = IKCP_THRESH_MIN;
+                kcp->cwnd = kcp->ssthresh + resent;
+                kcp->incr = kcp->cwnd * kcp->mss;
             }
 
-            if (cmd_wnd < 1)
+            if (lost != 0)
             {
-                cmd_wnd = 1;
-                incr = mss;
+                kcp->ssthresh = cwnd / 2;
+                if (kcp->ssthresh < IKCP_THRESH_MIN)
+                    kcp->ssthresh = IKCP_THRESH_MIN;
+                kcp->cwnd = 1;
+                kcp->incr = kcp->mss;
+            }
+
+            if (kcp->cwnd < 1)
+            {
+                kcp->cwnd = 1;
+                kcp->incr = kcp->mss;
             }
         }
 
-
-        public void Update(uint currentTime)
+        public static void ikcp_update(IKCPCB* kcp, uint current, byte* buffer, byte[] destination, Action<byte[], int> output)
         {
-            current = currentTime;
-            
-            if (!updated)
+            int slap;
+
+            kcp->current = current;
+
+            if (kcp->updated == 0)
             {
-                updated = true;
-                ts_flush = current;
+                kcp->updated = 1;
+                kcp->ts_flush = kcp->current;
             }
 
-            int slap = Utils.Compare(current, ts_flush);
+            slap = (int)_itimediff(kcp->current, kcp->ts_flush);
+
             if (slap >= 10000 || slap < -10000)
             {
-                ts_flush = current;
+                kcp->ts_flush = kcp->current;
                 slap = 0;
             }
 
             if (slap >= 0)
             {
-                ts_flush += interval;
-                if (current >= ts_flush)
+                kcp->ts_flush += kcp->interval;
+                if (_itimediff(kcp->current, kcp->ts_flush) >= 0)
                 {
-                    ts_flush = current + interval;
+                    kcp->ts_flush = kcp->current + kcp->interval;
                 }
 
-                Flush();
+                ikcp_flush(kcp, buffer, destination, output);
             }
         }
 
-        public void SetMtu(uint mtu)
+        public static uint ikcp_check(IKCPCB* kcp, uint current)
         {
-            if (mtu < 50)
+            uint ts_flush = kcp->ts_flush;
+            int tm_flush = 0x7fffffff;
+            int tm_packet = 0x7fffffff;
+            uint minimal = 0;
+            IQUEUEHEAD* p;
+
+            if (kcp->updated == 0)
             {
-                throw new ArgumentException("MTU must be higher than 50 and higher than OVERHEAD");
+                return current;
             }
 
-            buffer = new byte[(mtu + OVERHEAD) * 3];
-            this.mtu = mtu;
-            mss = mtu - OVERHEAD;
+            if (_itimediff(current, ts_flush) >= 10000 ||
+                _itimediff(current, ts_flush) < -10000)
+            {
+                ts_flush = current;
+            }
+
+            if (_itimediff(current, ts_flush) >= 0)
+            {
+                return current;
+            }
+
+            tm_flush = (int)_itimediff(ts_flush, current);
+
+            for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = p->next)
+            {
+                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                int diff = (int)_itimediff(seg->resendts, current);
+                if (diff <= 0)
+                {
+                    return current;
+                }
+
+                if (diff < tm_packet) tm_packet = diff;
+            }
+
+            minimal = (uint)(tm_packet < tm_flush ? tm_packet : tm_flush);
+            if (minimal >= kcp->interval) minimal = kcp->interval;
+
+            return current + minimal;
         }
 
-        public void SetNoDelay(uint no_delay, uint interval = INTERVAL, uint resend = 0, bool noc_wnd = false)
+        public static int ikcp_setmtu(IKCPCB* kcp, int mtu, ref byte[] buffer)
         {
-            this.no_delay = no_delay;
-            rx_rto_min = no_delay != 0 ? RTO_NDL : RTO_MIN;
-
-            if (interval > 5000)
-            {
-                interval = 5000;
-            }
-            else if (interval < 10)
-            {
-                interval = 10;
-            }
-
-            this.interval = interval;
-            fast_resend = resend;
-            this.noc_wnd = noc_wnd;
+            if (mtu < 50 || mtu < (int)IKCP_OVERHEAD)
+                return -1;
+            buffer = new byte[(mtu + IKCP_OVERHEAD) * 3];
+            if (buffer == null)
+                return -2;
+            kcp->mtu = (uint)mtu;
+            kcp->mss = kcp->mtu - IKCP_OVERHEAD;
+            return 0;
         }
 
-        public void SetWindowSize(uint sendWindow, uint receiveWindow)
+        public static int ikcp_interval(IKCPCB* kcp, int interval)
         {
-            if (sendWindow > 0)
-            {
-                snd_wnd = sendWindow;
-            }
-
-            if (receiveWindow > 0)
-            {
-                rcv_wnd = Math.Max(receiveWindow, WND_RCV);
-            }
-        }
-        
-        public static int ReliableSize(int mtu, uint rcv_wnd)
-        {
-            return (mtu - OVERHEAD - METADATA_SIZE) * ((int)Math.Min(rcv_wnd, FRG_MAX) - 1) - 1;
+            if (interval > 5000) interval = 5000;
+            else if (interval < 10) interval = 10;
+            kcp->interval = (uint)interval;
+            return 0;
         }
 
-        public static int UnreliableSize(int mtu)
+        public static int ikcp_nodelay(IKCPCB* kcp, int nodelay, int interval, int resend, int nc)
         {
-            return mtu - METADATA_SIZE - 1;
+            if (nodelay >= 0)
+            {
+                kcp->nodelay = (uint)nodelay;
+                if (nodelay != 0)
+                {
+                    kcp->rx_minrto = (int)IKCP_RTO_NDL;
+                }
+                else
+                {
+                    kcp->rx_minrto = (int)IKCP_RTO_MIN;
+                }
+            }
+
+            if (interval >= 0)
+            {
+                if (interval > 5000) interval = 5000;
+                else if (interval < 10) interval = 10;
+                kcp->interval = (uint)interval;
+            }
+
+            if (resend >= 0)
+            {
+                kcp->fastresend = resend;
+            }
+
+            if (nc >= 0)
+            {
+                kcp->nocwnd = nc;
+            }
+
+            return 0;
         }
+
+        public static int ikcp_wndsize(IKCPCB* kcp, int sndwnd, int rcvwnd)
+        {
+            if (kcp != null)
+            {
+                if (sndwnd > 0)
+                {
+                    kcp->snd_wnd = (uint)sndwnd;
+                }
+
+                if (rcvwnd > 0)
+                {
+                    kcp->rcv_wnd = _imax_((uint)rcvwnd, IKCP_WND_RCV);
+                }
+            }
+
+            return 0;
+        }
+
+        public static int ikcp_waitsnd(IKCPCB* kcp)
+        {
+            return (int)(kcp->nsnd_buf + kcp->nsnd_que);
+        }
+
+        public static uint ikcp_getconv(void* ptr)
+        {
+            uint conv;
+            ikcp_decode32u((byte*)ptr, &conv);
+            return conv;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe struct IQUEUEHEAD
+    {
+        public IQUEUEHEAD* next;
+        public IQUEUEHEAD* prev;
+    }
+
+    internal static unsafe partial class Kcp
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void iqueue_init(IQUEUEHEAD* head)
+        {
+            head->next = head;
+            head->prev = head;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T* iqueue_entry<T>(IQUEUEHEAD* ptr) where T : unmanaged => ((T*)(((byte*)((T*)ptr))));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void iqueue_add(IQUEUEHEAD* node, IQUEUEHEAD* head)
+        {
+            node->prev = head;
+            node->next = head->next;
+            head->next->prev = node;
+            head->next = node;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void iqueue_add_tail(IQUEUEHEAD* node, IQUEUEHEAD* head)
+        {
+            node->prev = head->prev;
+            node->next = head;
+            head->prev->next = node;
+            head->prev = node;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void iqueue_del(IQUEUEHEAD* entry)
+        {
+            entry->next->prev = entry->prev;
+            entry->prev->next = entry->next;
+            entry->next = (IQUEUEHEAD*)0;
+            entry->prev = (IQUEUEHEAD*)0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void iqueue_del_init(IQUEUEHEAD* entry)
+        {
+            iqueue_del(entry);
+            iqueue_init(entry);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool iqueue_is_empty(IQUEUEHEAD* entry) => entry == entry->next;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe struct IKCPSEG
+    {
+        public IQUEUEHEAD node;
+        public uint conv;
+        public uint cmd;
+        public uint frg;
+        public uint wnd;
+        public uint ts;
+        public uint sn;
+        public uint una;
+        public uint len;
+        public uint resendts;
+        public uint rto;
+        public uint fastack;
+        public uint xmit;
+        public fixed byte data[1];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe struct IKCPCB
+    {
+        public uint conv, mtu, mss, state;
+        public uint snd_una, snd_nxt, rcv_nxt;
+        public uint ts_recent, ts_lastack, ssthresh;
+        public int rx_rttval, rx_srtt, rx_rto, rx_minrto;
+        public uint snd_wnd, rcv_wnd, rmt_wnd, cwnd, probe;
+        public uint current, interval, ts_flush, xmit;
+        public uint nrcv_buf, nsnd_buf;
+        public uint nrcv_que, nsnd_que;
+        public uint nodelay, updated;
+        public uint ts_probe, probe_wait;
+        public uint dead_link, incr;
+        public IQUEUEHEAD snd_queue;
+        public IQUEUEHEAD rcv_queue;
+        public IQUEUEHEAD snd_buf;
+        public IQUEUEHEAD rcv_buf;
+        public uint* acklist;
+        public uint ackcount;
+        public uint ackblock;
+        public void* user;
+        public byte* buffer;
+        public int fastresend;
+        public int fastlimit;
+        public int nocwnd, stream;
+    }
+
+    internal static unsafe partial class Kcp
+    {
+        public static void* malloc(nuint size)
+        {
+            return (void*)Marshal.AllocHGlobal((nint)size);
+        }
+
+        public static void free(void* memory)
+        {
+            Marshal.FreeHGlobal((nint)memory);
+        }
+
+        public static unsafe void memcpy(void* dst, void* src, nuint length)
+        {
+            byte* d = (byte*)dst;
+            byte* s = (byte*)src;
+
+            while (length >= 8)
+            {
+                *(ulong*)d = *(ulong*)s;
+                d += 8;
+                s += 8;
+                length -= 8;
+            }
+
+            while (length >= 4)
+            {
+                *(uint*)d = *(uint*)s;
+                d += 4;
+                s += 4;
+                length -= 4;
+            }
+
+            while (length >= 2)
+            {
+                *(ushort*)d = *(ushort*)s;
+                d += 2;
+                s += 2;
+                length -= 2;
+            }
+
+            if (length >= 1)
+            {
+                *d = *s;
+            }
+        }
+
+        [Conditional("DEBUG")]
+        public static void assert(bool condition) => Debug.Assert(condition);
     }
 }

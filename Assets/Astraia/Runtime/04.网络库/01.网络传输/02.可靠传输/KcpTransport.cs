@@ -10,13 +10,14 @@
 // *********************************************************************************
 
 using System;
+using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia.Net
 {
     public sealed class KcpTransport : Transport
     {
-        public int maxUnit = 1200;
+        public uint maxUnit = 1200;
         public uint timeout = 10000;
         public uint interval = 10;
         public uint deadLink = 40;
@@ -79,7 +80,7 @@ namespace Astraia.Net
 
         public override int SendLength(int channel)
         {
-            return channel == Channel.Reliable ? Kcp.ReliableSize(maxUnit, receiveWindow) : Kcp.UnreliableSize(maxUnit);
+            return channel == Channel.Reliable ? Agent.ReliableSize(maxUnit, receiveWindow) : Agent.UnreliableSize(maxUnit);
         }
 
         public override void StartServer()

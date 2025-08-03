@@ -55,7 +55,7 @@ namespace Astraia
                     state = State.Connect;
                     endPoint = new IPEndPoint(addresses[0], port);
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-                    Utils.SetBuffer(socket);
+                    Utils.SetSocket(socket);
                     socket.Connect(endPoint);
                     Logs.Info(Service.Text.Format(Log.E130, addresses[0], port));
                     SendReliable(Reliable.Connect);
@@ -111,19 +111,19 @@ namespace Astraia
             }
 
             var channel = segment.Array[segment.Offset];
-            Utils.Decode32U(segment.Array, segment.Offset + 1, out var newCookie);
-            if (newCookie == 0)
+            var result =  Utils.Decode32U(segment.Array, segment.Offset + 1);
+            if (result == 0)
             {
-                Logs.Error(Service.Text.Format(Log.E133, cookie, newCookie));
+                Logs.Error(Service.Text.Format(Log.E133, cookie, result));
             }
 
             if (cookie == 0)
             {
-                cookie = newCookie;
+                cookie = result;
             }
-            else if (cookie != newCookie)
+            else if (cookie != result)
             {
-                Logs.Error(Service.Text.Format(Log.E127, endPoint, cookie, newCookie));
+                Logs.Error(Service.Text.Format(Log.E127, endPoint, cookie, result));
                 return;
             }
 
