@@ -10,12 +10,14 @@
 // // *********************************************************************************
 
 
+using System;
 using Astraia.Common;
 using Astraia.Net;
 using UnityEngine;
 
 namespace Runtime
 {
+    [Serializable]
     public class PlayerSender : NetworkAgent, IStartAuthority
     {
         [SyncVar(nameof(OnColorValueChanged))] public Color syncColor;
@@ -36,36 +38,6 @@ namespace Runtime
         public void SyncColorServerRpc(Color syncColor)
         {
             this.syncColor = syncColor;
-        }
-
-        [ServerRpc]
-        public void SendInputServerRpc(PlayerInput input)
-        {
-            owner.Machine.velocityX = input.moveX;
-            owner.Feature.lastFrame = owner.Feature.nextFrame;
-            TargetUpdatePosition(connection, transform.position, owner.Feature.lastFrame);
-        }
-
-        [TargetRpc]
-        void TargetUpdatePosition(NetworkClient target, Vector3 position, int processedSeq)
-        {
-            if (!isOwner) return;
-
-            // // 服务器权威位置覆盖
-            // serverPosition = position;
-            // transform.position = serverPosition;
-            //
-            // // 移除已确认输入
-            // while (pendingInputs.Count > 0 && pendingInputs.Peek().seq <= processedSeq)
-            // {
-            //     pendingInputs.Dequeue();
-            // }
-            //
-            // // 重放未确认输入，修正预测
-            // foreach (var input in pendingInputs)
-            // {
-            //     ApplyInput(input);
-            // }
         }
 
         public void OnStartAuthority()

@@ -9,34 +9,15 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System.Collections.Generic;
 using Astraia;
 using UnityEngine;
 
 namespace Runtime
 {
-    public struct PlayerInput
-    {
-        public int frame;
-        public float moveX;
-        public float moveY;
-        public StateType state;
-
-        public PlayerInput(int frame, float moveX, float moveY, StateType state)
-        {
-            this.frame = frame;
-            this.moveX = moveX;
-            this.moveY = moveY;
-            this.state = state;
-        }
-    }
-
     public class PlayerOperation : Agent<Player>
     {
         private PlayerFeature Feature => owner.Feature;
-
-        private readonly Queue<PlayerInput> pendingInputs = new Queue<PlayerInput>();
-
+        
         public void OnUpdate()
         {
             if (!Feature.state.HasFlag(StateType.Stop))
@@ -70,10 +51,6 @@ namespace Runtime
                 {
                     GrabButton();
                 }
-
-                var input = new PlayerInput(++Feature.nextFrame, x, y, owner.Feature.state);
-                owner.Sender.SendInputServerRpc(input);
-                pendingInputs.Enqueue(input);
             }
         }
 
