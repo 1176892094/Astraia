@@ -11,7 +11,6 @@
 
 using System;
 using Astraia;
-using UnityEngine;
 
 namespace Runtime
 {
@@ -21,19 +20,12 @@ namespace Runtime
         public StateType state = StateType.None;
         public float moveX;
         public float moveY;
-        public int nextFrame;
-        public int lastFrame;
         public bool isWalk => moveX != 0 || moveY != 0;
         public float moveSpeed => GetFloat(Attribute.MoveSpeed);
         public float jumpForce => GetFloat(Attribute.JumpForce);
         public float dashSpeed => GetFloat(Attribute.DashSpeed);
         public float dashFrame => GetFloat(Attribute.DashFrame);
         public float waitFrame => GetFloat(Attribute.WaitFrame);
-
-        public RaycastHit2D downLeftRay => Physics2D.Raycast(owner.downLeftRay.origin, owner.downLeftRay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D downRightRay => Physics2D.Raycast(owner.downRightRay.origin, owner.downRightRay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D rightUpRay => Physics2D.Raycast(owner.rightUpRay.origin, owner.rightUpRay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D rightDownRay => Physics2D.Raycast(owner.rightDownRay.origin, owner.rightDownRay.direction, 0.12f, 1 << 6);
 
         public override void OnAwake()
         {
@@ -44,7 +36,7 @@ namespace Runtime
 
         public void OnUpdate()
         {
-            if (downRightRay || downLeftRay)
+            if (owner.DRHit || owner.DLHit)
             {
                 state |= StateType.Ground;
                 SetInt(Attribute.JumpCount, 1);
@@ -55,7 +47,7 @@ namespace Runtime
                 state &= ~StateType.Ground;
             }
 
-            if (rightDownRay)
+            if (owner.RDHit)
             {
                 state |= StateType.Wall;
                 SetInt(Attribute.JumpCount, 1);

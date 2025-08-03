@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerOperation : Agent<Player>
+    public class PlayerOperate : Agent<Player>
     {
         private PlayerFeature Feature => owner.Feature;
         

@@ -36,7 +36,7 @@ namespace Runtime
 
         private void Update()
         {
-            if (player == null || player.transform == null)
+            if (!player || !player.transform)
             {
                 return;
             }

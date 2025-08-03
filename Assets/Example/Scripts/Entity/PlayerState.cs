@@ -17,30 +17,29 @@ namespace Runtime
     public abstract class PlayerState : State<Player>
     {
         protected Transform transform => owner.transform;
-        protected PlayerMachine machine => owner.Machine;
-        protected PlayerFeature feature => owner.Feature;
-      
+        protected PlayerMachine Machine => owner.Machine;
+        protected PlayerFeature Feature => owner.Feature;
     }
 
     public class PlayerIdle : PlayerState
     {
         public override void OnEnter()
         {
-            machine.velocityX = 0;
+            Machine.velocityX = 0;
             owner.Sender.SyncColorServerRpc(Color.white);
         }
 
         public override void OnUpdate()
         {
-            if (feature.state.HasFlag(StateType.Wall) && feature.state.HasFlag(StateType.Climb))
+            if (Feature.state.HasFlag(StateType.Wall) && Feature.state.HasFlag(StateType.Climb))
             {
-                machine.ChangeState(StateConst.Grab);
+                Machine.ChangeState(StateConst.Grab);
                 return;
             }
 
-            if (feature.isWalk)
+            if (Feature.isWalk)
             {
-                machine.ChangeState(StateConst.Walk);
+                Machine.ChangeState(StateConst.Walk);
             }
         }
 
@@ -58,19 +57,19 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (feature.state.HasFlag(StateType.Wall) && feature.state.HasFlag(StateType.Climb))
+            if (Feature.state.HasFlag(StateType.Wall) && Feature.state.HasFlag(StateType.Climb))
             {
-                machine.ChangeState(StateConst.Grab);
+                Machine.ChangeState(StateConst.Grab);
                 return;
             }
 
-            if (!feature.isWalk)
+            if (!Feature.isWalk)
             {
-                machine.ChangeState(StateConst.Idle);
+                Machine.ChangeState(StateConst.Idle);
                 return;
             }
 
-            machine.velocityX = feature.moveX * feature.moveSpeed;
+            Machine.velocityX = Feature.moveX * Feature.moveSpeed;
         }
 
         public override void OnExit()
@@ -86,22 +85,22 @@ namespace Runtime
         {
             frameCount = Time.frameCount + 10;
             owner.Sender.SyncColorServerRpc(Color.red);
-            feature.state |= StateType.Jump;
-            feature.SubInt(Attribute.JumpCount, 1);
-            if (feature.state.HasFlag(StateType.Ground))
+            Feature.state |= StateType.Jump;
+            Feature.SubInt(Attribute.JumpCount, 1);
+            if (Feature.state.HasFlag(StateType.Ground))
             {
-                machine.velocityY = feature.jumpForce;
+                Machine.velocityY = Feature.jumpForce;
             }
-            else if (feature.state.HasFlag(StateType.Wall))
+            else if (Feature.state.HasFlag(StateType.Wall))
             {
-                feature.state |= StateType.Jumped;
-                machine.velocityY = feature.jumpForce;
-                machine.velocityX = -transform.localScale.x * feature.jumpForce;
+                Feature.state |= StateType.Jumped;
+                Machine.velocityY = Feature.jumpForce;
+                Machine.velocityX = -transform.localScale.x * Feature.jumpForce;
                 transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
             }
             else
             {
-                machine.velocityY = feature.jumpForce;
+                Machine.velocityY = Feature.jumpForce;
             }
         }
 
@@ -109,29 +108,29 @@ namespace Runtime
         {
             if (frameCount < Time.frameCount)
             {
-                machine.ChangeState(StateConst.Idle);
+                Machine.ChangeState(StateConst.Idle);
                 return;
             }
 
-            if (feature.dashFrame > Time.frameCount)
+            if (Feature.dashFrame > Time.frameCount)
             {
-                if (feature.moveX != 0)
+                if (Feature.moveX != 0)
                 {
-                    machine.ChangeState(StateConst.Crash);
+                    Machine.ChangeState(StateConst.Crash);
                     return;
                 }
             }
 
-            if (!feature.state.HasFlag(StateType.Jumped))
+            if (!Feature.state.HasFlag(StateType.Jumped))
             {
-                machine.velocityX = feature.moveX * feature.moveSpeed;
+                Machine.velocityX = Feature.moveX * Feature.moveSpeed;
             }
         }
 
         public override void OnExit()
         {
-            feature.state &= ~StateType.Jump;
-            feature.state &= ~StateType.Jumped;
+            Feature.state &= ~StateType.Jump;
+            Feature.state &= ~StateType.Jumped;
         }
     }
 
@@ -143,37 +142,37 @@ namespace Runtime
         {
             frameCount = Time.frameCount + 5;
             owner.Sender.SyncColorServerRpc(Color.cyan);
-            feature.state |= StateType.Grab;
-            machine.velocityY = 0;
+            Feature.state |= StateType.Grab;
+            Machine.velocityY = 0;
         }
 
         public override void OnUpdate()
         {
-            if (feature.rightDownRay && !feature.rightUpRay)
+            if (owner.RDHit && !owner.RUHit)
             {
-                machine.ChangeState(StateConst.Hop);
+                Machine.ChangeState(StateConst.Hop);
                 return;
             }
 
             if (frameCount < Time.frameCount)
             {
-                if (!feature.state.HasFlag(StateType.Wall) || !feature.state.HasFlag(StateType.Climb))
+                if (!Feature.state.HasFlag(StateType.Wall) || !Feature.state.HasFlag(StateType.Climb))
                 {
-                    machine.ChangeState(StateConst.Idle);
+                    Machine.ChangeState(StateConst.Idle);
                     return;
                 }
             }
-            else if (feature.moveX != 0)
+            else if (Feature.moveX != 0)
             {
                 transform.position += Vector3.up * 0.02f;
             }
 
-            machine.velocityY = feature.moveY * feature.moveSpeed / 2;
+            Machine.velocityY = Feature.moveY * Feature.moveSpeed / 2;
         }
 
         public override void OnExit()
         {
-            feature.state &= ~StateType.Grab;
+            Feature.state &= ~StateType.Grab;
         }
     }
 
@@ -187,7 +186,7 @@ namespace Runtime
         {
             frameCount = Time.frameCount + 10;
             owner.Sender.SyncColorServerRpc(Color.red);
-            feature.state |= StateType.Grab;
+            Feature.state |= StateType.Grab;
             point = transform.position;
         }
 
@@ -195,7 +194,7 @@ namespace Runtime
         {
             if (frameCount < Time.frameCount)
             {
-                machine.ChangeState(StateConst.Idle);
+                Machine.ChangeState(StateConst.Idle);
                 return;
             }
 
@@ -210,12 +209,12 @@ namespace Runtime
                 position += Vector3.right * (transform.localScale.x * Time.fixedDeltaTime);
             }
 
-            machine.rigidbody.MovePosition(position);
+            Machine.rigidbody.MovePosition(position);
         }
 
         public override void OnExit()
         {
-            feature.state &= ~StateType.Grab;
+            Feature.state &= ~StateType.Grab;
         }
     }
 
@@ -225,49 +224,49 @@ namespace Runtime
 
         public override void OnEnter()
         {
-            feature.SetInt(Attribute.DashFrame, Time.frameCount + 10);
+            Feature.SetInt(Attribute.DashFrame, Time.frameCount + 10);
             owner.Sender.SyncColorServerRpc(Color.magenta);
-            feature.state |= StateType.Dash;
-            feature.SubInt(Attribute.DashCount, 1);
-            direction = new Vector3(feature.moveX, feature.moveY).normalized;
-            feature.SetInt(Attribute.WaitFrame, 0);
+            Feature.state |= StateType.Dash;
+            Feature.SubInt(Attribute.DashCount, 1);
+            direction = new Vector3(Feature.moveX, Feature.moveY).normalized;
+            Feature.SetInt(Attribute.WaitFrame, 0);
         }
 
         public override void OnUpdate()
         {
-            if (feature.dashFrame < Time.frameCount)
+            if (Feature.dashFrame < Time.frameCount)
             {
-                machine.ChangeState(StateConst.Idle);
+                Machine.ChangeState(StateConst.Idle);
                 return;
             }
 
-            if (feature.waitFrame % 4 == 0)
+            if (Feature.waitFrame % 4 == 0)
             {
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            feature.AddInt(Attribute.WaitFrame, 1);
+            Feature.AddInt(Attribute.WaitFrame, 1);
             var position = transform.position;
             if (direction == Vector3.zero)
             {
-                position += Vector3.right * (transform.localScale.x * feature.dashSpeed * Time.fixedDeltaTime);
+                position += Vector3.right * (transform.localScale.x * Feature.dashSpeed * Time.fixedDeltaTime);
             }
-            else if (feature.moveY < 0 && feature.state.HasFlag(StateType.Ground))
+            else if (Feature.moveY < 0 && Feature.state.HasFlag(StateType.Ground))
             {
-                position += Vector3.right * (transform.localScale.x * feature.dashSpeed * Time.fixedDeltaTime);
+                position += Vector3.right * (transform.localScale.x * Feature.dashSpeed * Time.fixedDeltaTime);
             }
             else
             {
-                position += direction * (feature.dashSpeed * Time.fixedDeltaTime);
+                position += direction * (Feature.dashSpeed * Time.fixedDeltaTime);
             }
 
-            machine.rigidbody.MovePosition(position);
+            Machine.rigidbody.MovePosition(position);
         }
 
         public override void OnExit()
         {
-            machine.velocityY = 0;
-            feature.state &= ~StateType.Dash;
+            Machine.velocityY = 0;
+            Feature.state &= ~StateType.Dash;
         }
     }
 
@@ -275,31 +274,31 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            feature.state |= StateType.Crash;
+            Feature.state |= StateType.Crash;
             owner.Sender.SyncColorServerRpc(Color.magenta);
         }
 
         public override void OnUpdate()
         {
-            if (feature.state.HasFlag(StateType.Wall) || feature.state.HasFlag(StateType.Ground))
+            if (Feature.state.HasFlag(StateType.Wall) || Feature.state.HasFlag(StateType.Ground))
             {
-                machine.ChangeState(StateConst.Idle);
+                Machine.ChangeState(StateConst.Idle);
                 return;
             }
 
-            if (feature.waitFrame % 5 == 0)
+            if (Feature.waitFrame % 5 == 0)
             {
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            feature.AddInt(Attribute.WaitFrame, 1);
-            machine.velocityX = transform.localScale.x * feature.moveSpeed * 2;
+            Feature.AddInt(Attribute.WaitFrame, 1);
+            Machine.velocityX = transform.localScale.x * Feature.moveSpeed * 2;
         }
 
         public override void OnExit()
         {
-            machine.velocityX = 0;
-            feature.state &= ~StateType.Crash;
+            Machine.velocityX = 0;
+            Feature.state &= ~StateType.Crash;
         }
     }
 }

@@ -19,19 +19,23 @@ namespace Runtime
         public PlayerSender Sender => GetAgent<PlayerSender>();
         public PlayerMachine Machine => GetAgent<PlayerMachine>();
         public PlayerFeature Feature => GetAgent<PlayerFeature>();
-        public PlayerOperation Operation => GetAgent<PlayerOperation>();
+        public PlayerOperate Operate => GetAgent<PlayerOperate>();
         public NetworkTransform Transform => GetAgent<NetworkTransform>();
-        public Ray2D downLeftRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
-        public Ray2D downRightRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
-        public Ray2D rightUpRay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
-        public Ray2D rightDownRay => new Ray2D(transform.position - Vector3.up * 0.075f, Vector3.right * transform.localScale.x);
+        private Ray2D DLRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
+        private Ray2D DRRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
+        private Ray2D RURay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
+        private Ray2D RDRay => new Ray2D(transform.position - Vector3.up * 0.075f, Vector3.right * transform.localScale.x);
+        public RaycastHit2D DLHit => Physics2D.Raycast(DLRay.origin, DLRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D DRHit => Physics2D.Raycast(DRRay.origin, DRRay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D RUHit => Physics2D.Raycast(RURay.origin, RURay.direction, 0.12f, 1 << 6);
+        public RaycastHit2D RDHit => Physics2D.Raycast(RDRay.origin, RDRay.direction, 0.12f, 1 << 6);
 
         protected override void Awake()
         {
             base.Awake();
             AddAgent(typeof(PlayerFeature));
             AddAgent(typeof(PlayerMachine));
-            AddAgent(typeof(PlayerOperation));
+            AddAgent(typeof(PlayerOperate));
             Transform.syncDirection = SyncMode.Client;
         }
 
@@ -39,7 +43,7 @@ namespace Runtime
         {
             if (isOwner)
             {
-                Operation.OnUpdate();
+                Operate.OnUpdate();
                 Machine.OnUpdate();
                 Feature.OnUpdate();
             }
@@ -54,10 +58,10 @@ namespace Runtime
 
         private void OnDrawGizmos()
         {
-            Gizmos.DrawRay(rightDownRay.origin, rightDownRay.direction * 0.12f);
-            Gizmos.DrawRay(rightUpRay.origin, rightUpRay.direction * 0.12f);
-            Gizmos.DrawRay(downLeftRay.origin, downRightRay.direction * 0.12f);
-            Gizmos.DrawRay(downRightRay.origin, downRightRay.direction * 0.12f);
+            Gizmos.DrawRay(RDRay.origin, RDRay.direction * 0.12f);
+            Gizmos.DrawRay(RURay.origin, RURay.direction * 0.12f);
+            Gizmos.DrawRay(DLRay.origin, DRRay.direction * 0.12f);
+            Gizmos.DrawRay(DRRay.origin, DRRay.direction * 0.12f);
         }
     }
 }
