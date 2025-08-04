@@ -96,14 +96,16 @@ namespace Astraia
         {
             public override async Task<State> Execute(IDictionary<string, object> context)
             {
-                if (nodes.Length > 0)
+                if (nodes == null || nodes.Length == 0)
                 {
-                    var index = Service.Random.Next(nodes.Length);
-                    var state = await nodes[index].Execute(context);
-                    if (state == State.Success)
-                    {
-                        return State.Success;
-                    }
+                    return State.Success;
+                }
+
+                var index = Service.Random.Next(nodes.Length);
+                var state = await nodes[index].Execute(context);
+                if (state == State.Success)
+                {
+                    return State.Success;
                 }
 
                 return State.Failure;
@@ -122,6 +124,11 @@ namespace Astraia
                 }
 
                 await owner.Wait(waitTime);
+                if (nodes == null || nodes.Length == 0)
+                {
+                    return State.Success;
+                }
+
                 foreach (var node in nodes)
                 {
                     var state = await node.Execute(context);
