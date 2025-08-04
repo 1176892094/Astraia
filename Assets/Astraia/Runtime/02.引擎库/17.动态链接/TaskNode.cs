@@ -19,7 +19,7 @@ namespace Astraia
     public abstract partial class TaskNode
     {
         public TaskNode[] nodes;
-        public abstract Task<State> Execute(IDictionary<string,object> context);
+        public abstract Task<State> Execute(IDictionary<string, object> context);
 
         protected static class Task
         {
@@ -36,10 +36,9 @@ namespace Astraia
 
     public partial class TaskNode
     {
-        [Serializable]
-        public class Sequence : TaskNode
+        internal sealed class Sequence : TaskNode
         {
-            public override async Task<State> Execute(IDictionary<string,object> context)
+            public override async Task<State> Execute(IDictionary<string, object> context)
             {
                 foreach (var node in nodes)
                 {
@@ -54,10 +53,9 @@ namespace Astraia
             }
         }
 
-        [Serializable]
-        public class Selector : TaskNode
+        internal sealed class Selector : TaskNode
         {
-            public override async Task<State> Execute(IDictionary<string,object> context)
+            public override async Task<State> Execute(IDictionary<string, object> context)
             {
                 foreach (var node in nodes)
                 {
@@ -72,12 +70,11 @@ namespace Astraia
             }
         }
 
-        [Serializable]
-        public class Repeater : TaskNode
+        internal sealed class Repeater : TaskNode
         {
             public int count;
 
-            public override async Task<State> Execute(IDictionary<string,object> context)
+            public override async Task<State> Execute(IDictionary<string, object> context)
             {
                 foreach (var node in nodes)
                 {
@@ -95,14 +92,13 @@ namespace Astraia
             }
         }
 
-        [Serializable]
-        public class Operator : TaskNode
+        internal sealed class Operator : TaskNode
         {
-            public override async Task<State> Execute(IDictionary<string,object> context)
+            public override async Task<State> Execute(IDictionary<string, object> context)
             {
-                var index = Service.Random.Next(nodes.Length);
                 if (nodes.Length > 0)
                 {
+                    var index = Service.Random.Next(nodes.Length);
                     var state = await nodes[index].Execute(context);
                     if (state == State.Success)
                     {
@@ -114,15 +110,13 @@ namespace Astraia
             }
         }
 
-        [Serializable]
-        public class WaitTime : TaskNode
+        internal sealed class WaitTime : TaskNode
         {
-            public Entity owner;
             public float waitTime;
 
-            public override async Task<State> Execute(IDictionary<string,object> context)
+            public override async Task<State> Execute(IDictionary<string, object> context)
             {
-                if (!owner)
+                if (!context.Get<Entity>("owner", out var owner))
                 {
                     return State.Failure;
                 }

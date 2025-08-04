@@ -92,5 +92,38 @@ namespace Astraia
 
             return enumFlags[Service.Random.Next(enumFlags.Count)];
         }
+
+        public static bool Get<T>(this IDictionary<string, object> context, string key, out T value)
+        {
+            if (context.TryGetValue(key, out var obj))
+            {
+                if (obj is T result)
+                {
+                    value = result;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
+
+        public static T Get<T>(this IDictionary<string, object> context, string key)
+        {
+            if (context.TryGetValue(key, out var obj))
+            {
+                if (obj is T result)
+                {
+                    return result;
+                }
+            }
+
+            return default;
+        }
+
+        public static void Set<T>(this IDictionary<string, object> context, string key, T value)
+        {
+            context[key] = value;
+        }
     }
 }
