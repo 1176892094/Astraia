@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using Object = UnityEngine.Object;
 
 namespace Astraia
 {
@@ -95,9 +96,17 @@ namespace Astraia
 
         public static bool Get<T>(this IDictionary<string, object> context, string key, out T value)
         {
-            if (context.TryGetValue(key, out var obj))
+            if (context.TryGetValue(key, out var obj) && obj is T result)
             {
-                if (obj is T result)
+                if (obj is Object target)
+                {
+                    if (target)
+                    {
+                        value = result;
+                        return true;
+                    }
+                }
+                else
                 {
                     value = result;
                     return true;
@@ -110,9 +119,16 @@ namespace Astraia
 
         public static T Get<T>(this IDictionary<string, object> context, string key)
         {
-            if (context.TryGetValue(key, out var obj))
+            if (context.TryGetValue(key, out var obj) && obj is T result)
             {
-                if (obj is T result)
+                if (obj is Object target)
+                {
+                    if (target)
+                    {
+                        return result;
+                    }
+                }
+                else
                 {
                     return result;
                 }
