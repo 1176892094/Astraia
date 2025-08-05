@@ -93,7 +93,7 @@ namespace Astraia
 
                 if (!string.Equals(importer.assetBundleName, folder, StringComparison.Ordinal))
                 {
-                    Debug.Log(Service.Text.Format("设置 {0} 资源: {1}", folder, path));
+                    Debug.Log(Service.Text.Format("设置 {0} 资源: {1}", folder, path), asset);
                     importer.assetBundleName = folder;
                     importer.SaveAndReimport();
                 }
