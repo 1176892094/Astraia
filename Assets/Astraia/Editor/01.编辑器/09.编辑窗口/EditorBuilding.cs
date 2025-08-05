@@ -21,12 +21,11 @@ using UnityEngine;
 
 namespace Astraia
 {
-    internal partial class EditorSetting
+    internal static class EditorBuilding
     {
-        [MenuItem("Tools/Astraia/构建 AB 资源", priority = 3)]
+        [MenuItem("Tools/Astraia/热更资源构建", priority = 3)]
         private static async void BuildAsset()
         {
-            UpdateAsset();
             var folderPath = Directory.CreateDirectory(GlobalSetting.remoteAssetPath);
             var buildTarget = (BuildTarget)GlobalSetting.Instance.assetPlatform;
             BuildPipeline.BuildAssetBundles(GlobalSetting.remoteAssetPath, BuildAssetBundleOptions.None, buildTarget);

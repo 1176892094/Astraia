@@ -26,7 +26,7 @@ using Sirenix.Utilities.Editor;
 
 namespace Astraia
 {
-    internal partial class EditorSetting
+    internal class EditorSetting
 #if ODIN_INSPECTOR
         : OdinMenuEditorWindow
 #endif
@@ -72,7 +72,7 @@ namespace Astraia
             return menuTree;
         }
 #endif
-        [MenuItem("Tools/Astraia/转化表格数据", priority = 5)]
+        [MenuItem("Tools/Astraia/表格数据导入", priority = 5)]
         private static async void ExcelToScripts()
         {
             var folderPath = ExcelPathKey;
@@ -91,11 +91,6 @@ namespace Astraia
                     var sinceTime = EditorApplication.timeSinceStartup;
                     EditorUtility.DisplayProgressBar("", "", 0);
                     AssetLoadKey = await FormManager.WriteScripts(folderPath);
-                    if (!AssetLoadKey)
-                    {
-                        UpdateAsset();
-                    }
-
                     var elapsedTime = EditorApplication.timeSinceStartup - sinceTime;
                     Debug.Log(Service.Text.Format("自动生成脚本完成。耗时: {0}秒", elapsedTime.ToString("F").Color("G")));
                 }
@@ -118,7 +113,6 @@ namespace Astraia
                     EditorUtility.DisplayProgressBar("", "", 0);
                     AssetLoadKey = false;
                     await FormManager.WriteAssets(ExcelPathKey);
-                    UpdateAsset();
                     var elapsedTime = EditorApplication.timeSinceStartup - sinceTime;
                     Debug.Log(Service.Text.Format("自动生成资源完成。耗时: {0}秒", elapsedTime.ToString("F").Color("G")));
                 }
