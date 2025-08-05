@@ -202,15 +202,15 @@ namespace Astraia.Common
 
         private static async Task<string> LoadClientRequest(string persistentData, string streamingAsset)
         {
-            var (assetMode, assetPath) = await LoadRequest(persistentData, streamingAsset);
+            var assetData = await LoadRequest(persistentData, streamingAsset);
             string result = null;
-            if (assetMode == 1)
+            if (assetData.mode == 1)
             {
-                result = await File.ReadAllTextAsync(assetPath);
+                result = await File.ReadAllTextAsync(assetData.path);
             }
-            else if (assetMode == 2)
+            else if (assetData.mode == 2)
             {
-                using var request = UnityWebRequest.Get(assetPath);
+                using var request = UnityWebRequest.Get(assetData.path);
                 await request.SendWebRequest();
                 if (request.result == UnityWebRequest.Result.Success)
                 {
@@ -223,15 +223,15 @@ namespace Astraia.Common
 
         internal static async Task<AssetBundle> LoadAssetRequest(string persistentData, string streamingAsset)
         {
-            var (assetMode, assetPath) = await LoadRequest(persistentData, streamingAsset);
+            var assetData = await LoadRequest(persistentData, streamingAsset);
             byte[] result = null;
-            if (assetMode == 1)
+            if (assetData.mode == 1)
             {
-                result = await Task.Run(() => Service.Xor.Decrypt(File.ReadAllBytes(assetPath)));
+                result = await Task.Run(() => Service.Xor.Decrypt(File.ReadAllBytes(assetData.path)));
             }
-            else if (assetMode == 2)
+            else if (assetData.mode == 2)
             {
-                using var request = UnityWebRequest.Get(assetPath);
+                using var request = UnityWebRequest.Get(assetData.path);
                 await request.SendWebRequest();
                 if (request.result == UnityWebRequest.Result.Success)
                 {
@@ -243,7 +243,7 @@ namespace Astraia.Common
         }
 
 #pragma warning disable CS1998
-        private static async ValueTask<(int, string)> LoadRequest(string persistentData, string streamingAsset)
+        private static async Task<(int mode, string path)> LoadRequest(string persistentData, string streamingAsset)
 #pragma warning restore CS1998
         {
             if (File.Exists(persistentData))

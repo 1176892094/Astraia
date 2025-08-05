@@ -18,10 +18,10 @@ namespace Astraia
     {
         public static class Xor
         {
-            private static readonly Dictionary<int, byte[]> KeyMap = new Dictionary<int, byte[]>();
+            private static readonly Dictionary<byte, byte[]> KeyMap = new Dictionary<byte, byte[]>();
             private const int LENGTH = 16;
 
-            public static void Register(int version, string data)
+            public static void Register(byte version, string data)
             {
                 var item = Text.GetBytes(data);
                 if (item.Length != LENGTH)
@@ -32,11 +32,11 @@ namespace Astraia
                 KeyMap[version] = item;
             }
 
-            public static unsafe byte[] Encrypt(byte[] data, int version = 0)
+            public static unsafe byte[] Encrypt(byte[] data, byte version = 0)
             {
                 var iv = new byte[LENGTH];
                 Random.NextBytes(iv);
-                iv[0] = (byte)version;
+                iv[0] = version;
 
                 KeyMap.TryGetValue(iv[0], out var key);
                 var result = new byte[LENGTH + data.Length];

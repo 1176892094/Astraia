@@ -34,7 +34,7 @@ namespace Astraia
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("其他设置")] [LabelText("密钥版本")]
 #endif
-        public int assetVersion = 1;
+        public byte assetVersion = 1;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("邮件服务")]
 #endif

@@ -79,9 +79,9 @@ namespace Astraia.Common
         {
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
             {
-                var (assetItem, assetName) = await LoadAssetPair(assetPath);
-                var assetPack = await LoadAssetPack(assetItem);
-                var assetData = LoadByAssetPack(assetName, assetType, assetPack);
+                var assetItem = await LoadAssetData(assetPath);
+                var assetPack = await LoadAssetPack(assetItem.path);
+                var assetData = LoadByAssetPack(assetItem.name, assetType, assetPack);
                 assetData ??= LoadByResources(assetPath, assetType);
                 return assetData;
             }
@@ -93,7 +93,7 @@ namespace Astraia.Common
             }
         }
 
-        private static async Task<(string, string)> LoadAssetPair(string assetPath)
+        private static async Task<(string path, string name)> LoadAssetData(string assetPath)
         {
             if (!GlobalManager.assetData.TryGetValue(assetPath, out var assetData))
             {

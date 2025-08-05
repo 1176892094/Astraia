@@ -58,7 +58,7 @@ MonoBehaviour:
   smtpPort: 587
   smtpUsername: 1176892094@qq.com
   smtpPassword: 
-  assetLoadMode: 0
+  assetLoadMode: 1
   assetLoadName: AssetBundle
   assetBuildPath: AssetBundles
   assetSourcePath: Assets/Template

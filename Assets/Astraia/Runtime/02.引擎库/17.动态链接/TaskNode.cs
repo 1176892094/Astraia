@@ -124,20 +124,6 @@ namespace Astraia
                 }
 
                 await owner.Wait(waitTime);
-                if (nodes == null || nodes.Length == 0)
-                {
-                    return State.Success;
-                }
-
-                foreach (var node in nodes)
-                {
-                    var state = await node.Execute(context);
-                    if (state == State.Failure)
-                    {
-                        return State.Failure;
-                    }
-                }
-
                 return State.Success;
             }
         }
