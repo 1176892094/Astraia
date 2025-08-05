@@ -156,7 +156,7 @@ namespace Astraia.Net
                     sceneId = 0;
                     if (BuildPipeline.isBuildingPlayer)
                     {
-                        throw new InvalidOperationException(Log.E274);
+                        throw new InvalidOperationException(Service.Text.Format(Log.E274, gameObject.scene.path, name));
                     }
 
                     Undo.RecordObject(gameObject, Log.E275);

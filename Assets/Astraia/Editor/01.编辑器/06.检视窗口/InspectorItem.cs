@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using UnityEditor;
+using UnityEditor.Toolbars;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -174,9 +175,8 @@ namespace Astraia
 
         private static void SetButton(VisualElement parent, string submenu, string text)
         {
-            parent.Add(new ToolbarButton(() => EditorApplication.ExecuteMenuItem(submenu))
+            var button = new EditorToolbarButton(() => EditorApplication.ExecuteMenuItem(submenu))
             {
-                text = text,
                 style =
                 {
                     height = 20,
@@ -185,7 +185,9 @@ namespace Astraia
                     borderLeftWidth = 0,
                     borderRightWidth = 0
                 }
-            });
+            };
+            typeof(ToolbarButton).GetProperty("text", Service.Find.Entity)?.SetValue(button, text);
+            parent.Add(button);
         }
 
         private static VisualElement SetElement(VisualElement parent)

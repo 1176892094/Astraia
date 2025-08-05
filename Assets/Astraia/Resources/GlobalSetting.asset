@@ -68,7 +68,7 @@ MonoBehaviour:
   - Assets/Template/Scenes/LoginScene.unity
   - Assets/Template/Scenes/TechScene.unity
   ignoreAssets:
-  - Assets/Template/Scenes/AwakeScene.unity
+  - {fileID: 102900000, guid: 6433644f9a565454095902a6b0f4dd0e, type: 3}
 --- !u!49 &3450331790412130364
 TextAsset:
   m_ObjectHideFlags: 0

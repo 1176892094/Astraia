@@ -12,8 +12,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using Astraia.Common;
 using UnityEditor;
@@ -27,8 +25,7 @@ namespace Astraia
         private static async void BuildAsset()
         {
             var folderPath = Directory.CreateDirectory(GlobalSetting.remoteAssetPath);
-            var buildTarget = (BuildTarget)GlobalSetting.Instance.assetPlatform;
-            BuildPipeline.BuildAssetBundles(GlobalSetting.remoteAssetPath, BuildAssetBundleOptions.None, buildTarget);
+            BuildPipeline.BuildAssetBundles(GlobalSetting.remoteAssetPath, BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.assetPlatform);
             var elapseTime = EditorApplication.timeSinceStartup;
 
             var fileHash = new HashSet<string>();
@@ -48,41 +45,28 @@ namespace Astraia
                     continue;
                 }
 
-                if (isExists && fileHash.Contains(GetHashCode(fileInfo.FullName)))
+                var nameHash = Service.Hash.Compute(fileInfo.FullName).ToString("X8");
+                if (isExists && fileHash.Contains(nameHash))
                 {
-                    filePacks.Add(new PackData(GetHashCode(fileInfo.FullName), fileInfo.Name, (int)fileInfo.Length));
+                    filePacks.Add(new PackData(nameHash, fileInfo.Name, (int)fileInfo.Length));
                     continue;
                 }
-
+                
                 await Task.Run(() =>
                 {
                     var readBytes = File.ReadAllBytes(fileInfo.FullName);
                     readBytes = Service.Xor.Encrypt(readBytes);
                     File.WriteAllBytes(fileInfo.FullName, readBytes);
                 });
-                filePacks.Add(new PackData(GetHashCode(fileInfo.FullName), fileInfo.Name, (int)fileInfo.Length));
+                nameHash = Service.Hash.Compute(fileInfo.FullName).ToString("X8");
+                filePacks.Add(new PackData(nameHash, fileInfo.Name, (int)fileInfo.Length));
                 Debug.Log(Service.Text.Format("加密AB包: {0}", fileInfo.FullName));
             }
-
-            var saveJson = JsonManager.ToJson(filePacks);
-            await File.WriteAllTextAsync(GlobalSetting.remoteAssetData, saveJson);
+            
+            await File.WriteAllTextAsync(GlobalSetting.remoteAssetData, JsonManager.ToJson(filePacks));
             elapseTime = EditorApplication.timeSinceStartup - elapseTime;
             Debug.Log(Service.Text.Format("加密 AssetBundle 完成。耗时:<color=#00FF00> {0:F} </color>秒", elapseTime));
             AssetDatabase.Refresh();
-        }
-
-        private static string GetHashCode(string filePath)
-        {
-            using var provider = MD5.Create();
-            using var fileStream = File.OpenRead(filePath);
-            var computeHash = provider.ComputeHash(fileStream);
-            var builder = new StringBuilder();
-            foreach (var buffer in computeHash)
-            {
-                builder.Append(buffer.ToString("x2"));
-            }
-
-            return builder.ToString();
         }
     }
 }

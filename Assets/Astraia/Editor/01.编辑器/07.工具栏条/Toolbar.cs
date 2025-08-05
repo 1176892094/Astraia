@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEditor.Toolbars;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -166,7 +167,7 @@ namespace Astraia
 
         private static void SetButton(VisualElement parent, Texture texture, Action assetAction)
         {
-            var button = new ToolbarButton(assetAction)
+            var button = new EditorToolbarButton(assetAction)
             {
                 style =
                 {
