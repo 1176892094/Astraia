@@ -22,25 +22,32 @@ using UnityEngine.UIElements;
 
 namespace Astraia
 {
-    [InitializeOnLoad]
     internal sealed class Toolbar
     {
         private static Toolbar instance;
         private static List<string> scenes;
         private static ToolbarMenu toolbarMenu;
 
-        static Toolbar()
-        {
-            instance = new Toolbar();
-        }
-
         private Toolbar()
         {
             EditorApplication.delayCall += OnInitialized;
             EditorSceneManager.sceneOpened += OnSceneOpened;
+            Selection.selectionChanged += SelectionChanged;
         }
-        
-        private static void OnInitialized()
+
+
+        [InitializeOnLoadMethod]
+        private static void Enable() => instance ??= new Toolbar();
+
+        private void OnInitialized()
+        {
+            if (Selection.activeObject == null)
+            {
+                SelectionChanged();
+            }
+        }
+
+        private static void SelectionChanged()
         {
             var objects = Resources.FindObjectsOfTypeAll(Reflection.toolbar);
             foreach (var obj in objects)
@@ -48,8 +55,17 @@ namespace Astraia
                 if (obj is ScriptableObject window)
                 {
                     var parent = FindElement(Reflection.GetRoot(window), "unity-editor-toolbar-container");
-                    parent.Q<VisualElement>("ToolbarZoneLeftAlign").Add(LeftElement());
-                    parent.Q<VisualElement>("ToolbarZoneRightAlign").Add(RightElement());
+                    var element = parent.Q<VisualElement>("ToolbarLeftAlign");
+                    if (element == null)
+                    {
+                        parent.Q<VisualElement>("ToolbarZoneLeftAlign").Add(LeftElement("ToolbarLeftAlign"));
+                    }
+
+                    element = parent.Q<VisualElement>("RightLeftAlign");
+                    if (element == null)
+                    {
+                        parent.Q<VisualElement>("ToolbarZoneRightAlign").Add(RightElement("RightLeftAlign"));
+                    }
                 }
             }
         }
@@ -74,10 +90,11 @@ namespace Astraia
             return null;
         }
 
-        private static VisualElement LeftElement()
+        private static VisualElement LeftElement(string name)
         {
             var parent = new VisualElement
             {
+                name = name,
                 style =
                 {
                     flexGrow = 1,
@@ -192,10 +209,11 @@ namespace Astraia
         }
 
 
-        private static VisualElement RightElement()
+        private static VisualElement RightElement(string name)
         {
             var parent = new VisualElement
             {
+                name = name,
                 style =
                 {
                     flexGrow = 1,
