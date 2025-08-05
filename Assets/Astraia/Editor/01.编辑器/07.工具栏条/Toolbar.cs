@@ -22,24 +22,28 @@ using UnityEngine.UIElements;
 
 namespace Astraia
 {
+    [InitializeOnLoad]
     internal sealed class Toolbar
     {
         private static Toolbar instance;
         private static List<string> scenes;
         private static ToolbarMenu toolbarMenu;
 
+        static Toolbar()
+        {
+            instance = new Toolbar();
+        }
+
         private Toolbar()
         {
             EditorApplication.delayCall += OnInitialized;
             EditorSceneManager.sceneOpened += OnSceneOpened;
         }
-
-        [InitializeOnLoadMethod]
-        private static void Enable() => instance ??= new Toolbar();
-
+        
         private static void OnInitialized()
         {
-            foreach (var obj in Resources.FindObjectsOfTypeAll(Reflection.toolbar))
+            var objects = Resources.FindObjectsOfTypeAll(Reflection.toolbar);
+            foreach (var obj in objects)
             {
                 if (obj is ScriptableObject window)
                 {
@@ -158,7 +162,6 @@ namespace Astraia
                 dropdown.text = Time.timeScale.ToString("F2");
             });
             parent.Add(dropdown);
-            //TODO:
             SetButton(parent, Reflection.customIcon.image, EditorSetting.ShowWindow);
             SetButton(parent, Reflection.settingIcon.image, () => { EditorApplication.ExecuteMenuItem("Edit/Project Settings..."); });
             SetButton(parent, Reflection.buildIcon.image, () => { EditorApplication.ExecuteMenuItem("File/Build Profiles"); });
