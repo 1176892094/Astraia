@@ -17,6 +17,9 @@ using Astraia.Common;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+using Sirenix.OdinInspector;
+#endif
 
 namespace Astraia
 {
@@ -24,29 +27,50 @@ namespace Astraia
     {
         private static GlobalSetting instance;
 
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("资源加载")] [LabelText("资源构建平台")] [PropertyOrder(-3)]
+#endif
         public AssetPlatform assetPlatform = AssetPlatform.StandaloneWindows;
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("其他设置")] [LabelText("密钥版本")]
+#endif
         public int assetVersion = 1;
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("邮件服务")]
+#endif
         public string smtpServer = "smtp.qq.com";
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("邮件服务")]
+#endif
         public int smtpPort = 587;
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("邮件服务")]
+#endif
         public string smtpUsername = "1176892094@qq.com";
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("邮件服务")]
+#endif
         public string smtpPassword;
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.OnValueChanged("UpdateSceneSetting")]
+        [FoldoutGroup("资源加载")] [LabelText("资源加载模式")] [OnValueChanged("UpdateSceneSetting")]
 #endif
         public AssetMode assetLoadMode = AssetMode.Simulate;
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("资源构建")] [LabelText("资源校验文件")]
+#endif
         public string assetLoadName = "AssetBundle";
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("资源构建")] [LabelText("资源构建文件夹")]
+#endif
         public string assetBuildPath = "AssetBundles";
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("资源加载")] [LabelText("资源加载根目录")]
+#endif
         public string assetSourcePath = "Assets/Template";
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("资源加载")] [LabelText("资源服务器地址")]
+#endif
         public string assetRemotePath = "http://192.168.0.3:8000/AssetBundles";
 
         public static GlobalSetting Instance
@@ -131,7 +155,6 @@ namespace Astraia
             DontDestroyOnLoad(source.canvas);
         }
 
-
         [Serializable]
         private struct Name
         {
@@ -143,15 +166,18 @@ namespace Astraia
     {
         [HideInInspector] public List<string> sceneAssets = new List<string>();
 
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.PropertyOrder(1)]
+#if ODIN_INSPECTOR
+        [PropertyOrder(1)] [FoldoutGroup("资源加载")] [LabelText("忽略资源")]
 #endif
         public List<Object> ignoreAssets = new List<Object>();
 
         public static TextAsset[] templateData => Resources.LoadAll<TextAsset>(nameof(GlobalSetting));
 
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
+#if ODIN_INSPECTOR
+        [FoldoutGroup("资源构建")]
+        [LabelText("资源构建路径")]
+        [PropertyOrder(-2)]
+        [ShowInInspector]
 #endif
         private static BuildMode BuildPath
         {
@@ -159,38 +185,55 @@ namespace Astraia
             set => UnityEditor.EditorPrefs.SetInt(nameof(BuildPath), (int)value);
         }
 
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("其他设置")]
+        [LabelText("编辑器资源路径")]
 #endif
         public static string EditorPath
         {
             get => UnityEditor.EditorPrefs.GetString(nameof(EditorPath), "Assets/Editor/Resources");
             set => UnityEditor.EditorPrefs.SetString(nameof(EditorPath), value);
         }
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("数据表")]
+        [LabelText("脚本生成路径")]
+        [PropertyOrder(-1)]
 #endif
         public static string ScriptPath
         {
             get => UnityEditor.EditorPrefs.GetString(nameof(ScriptPath), "Assets/Scripts/DataTable");
             set => UnityEditor.EditorPrefs.SetString(nameof(ScriptPath), value);
         }
-
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("数据表")]
+        [LabelText("资源生成路径")]
+#endif
+        public static string dataTablePath => Instance.assetSourcePath + "/DataTable";
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("数据表")]
+        [LabelText("数据表程序集")]
 #endif
         public static string assemblyPath => Service.Text.Format("{0}/{1}.asmdef", ScriptPath, assemblyName);
-
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("资源构建")]
+        [LabelText("资源构建路径")]
 #endif
         public static string remoteBuildPath => BuildPath == BuildMode.BuildPath ? Instance.assetBuildPath : Application.streamingAssetsPath;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("资源构建")]
+        [LabelText("资源构建平台")]
 #endif
         public static string remoteAssetPath => Path.Combine(remoteBuildPath, Instance.assetPlatform.ToString());
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("资源构建")]
+        [LabelText("资源校验文件")]
 #endif
         public static string remoteAssetData => Service.Text.Format("{0}/{1}.json", remoteAssetPath, Instance.assetLoadName);
 
@@ -200,7 +243,7 @@ namespace Astraia
 
         public static string GetDataPath(string name) => Service.Text.Format("{0}/03.数据表/{1}DataTable.cs", ScriptPath, name);
 
-        public static string GetAssetPath(string name) => Service.Text.Format("{0}/DataTable/{1}DataTable.asset", Instance.assetSourcePath, name);
+        public static string GetAssetPath(string name) => Service.Text.Format("{0}/{1}DataTable.asset", dataTablePath, name);
 
         public static string GetDataName(string name) => Service.Text.Format("Astraia.Table.{0}Data,{1}", name, assemblyName);
 
