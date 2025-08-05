@@ -97,9 +97,10 @@ namespace Astraia
             return this;
         }
 
-        public void OnComplete(Action OnDispose)
+        public Tween OnComplete(Action OnDispose)
         {
             this.OnDispose += OnDispose;
+            return this;
         }
 
         public Tween GetAwaiter()
