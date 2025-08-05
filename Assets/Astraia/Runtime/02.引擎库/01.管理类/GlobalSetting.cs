@@ -61,7 +61,7 @@ namespace Astraia
 #endif
         public string assetLoadName = "AssetBundle";
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("资源构建")] [LabelText("资源构建文件夹")]
+        [FoldoutGroup("资源加载")] [LabelText("资源构建文件夹")]
 #endif
         public string assetBuildPath = "AssetBundles";
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -71,7 +71,7 @@ namespace Astraia
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("资源加载")] [LabelText("资源服务器地址")]
 #endif
-        public string assetRemotePath = "http://192.168.0.3:8000/AssetBundles";
+        public string assetRemoteData = "http://192.168.0.3:8000/AssetBundles";
 
         public static GlobalSetting Instance
         {
@@ -100,9 +100,23 @@ namespace Astraia
                 return instance;
             }
         }
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("资源加载")]
+        [LabelText("远端资源路径")]
+#endif
+        public static string assetRemotePath => Service.Text.Format("{0}/{1}", Instance.assetRemoteData, Instance.assetBuildPath);
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("资源构建")]
+        [LabelText("资源校验文件")]
+#endif
         public static string assetPackData => Service.Text.Format("{0}.json", Instance.assetLoadName);
-
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("资源加载")]
+        [LabelText("资源存储路径")]
+#endif
         public static string assetPackPath => Service.Text.Format("{0}/{1}", Application.persistentDataPath, Instance.assetBuildPath);
 
         public static string assemblyName => JsonUtility.FromJson<Name>(assemblyData.text).name;
@@ -119,7 +133,7 @@ namespace Astraia
 
         public static string GetPacketPath(string fileName) => Path.Combine(assetPackPath, fileName);
 
-        public static string GetServerPath(string fileName) => Path.Combine(Instance.assetRemotePath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
+        public static string GetServerPath(string fileName) => Path.Combine(assetRemotePath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
 
         public static string GetClientPath(string fileName) => Path.Combine(Application.streamingAssetsPath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
 
@@ -211,7 +225,7 @@ namespace Astraia
         [FoldoutGroup("数据表")]
         [LabelText("资源生成路径")]
 #endif
-        public static string dataTablePath => Instance.assetSourcePath + "/DataTable";
+        public static string dataTablePath => Service.Text.Format("{0}/DataTable", Instance.assetSourcePath);
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("数据表")]
@@ -233,7 +247,7 @@ namespace Astraia
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
-        [LabelText("资源校验文件")]
+        [LabelText("校验文件路径")]
 #endif
         public static string remoteAssetData => Service.Text.Format("{0}/{1}.json", remoteAssetPath, Instance.assetLoadName);
 

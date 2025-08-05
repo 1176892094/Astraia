@@ -62,7 +62,7 @@ MonoBehaviour:
   assetLoadName: AssetBundle
   assetBuildPath: AssetBundles
   assetSourcePath: Assets/Template
-  assetRemotePath: http://192.168.1.5:8000/Documents/GitHub/Astraia-Game/AssetBundles
+  assetRemoteData: http://192.168.1.5:8000/Documents/GitHub/Astraia-Game
   sceneAssets:
   - Assets/Template/Scenes/GameScene.unity
   - Assets/Template/Scenes/LoginScene.unity
