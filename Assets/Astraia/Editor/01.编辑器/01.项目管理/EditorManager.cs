@@ -18,11 +18,7 @@ namespace Astraia
     internal static partial class EditorManager
     {
         private static bool maximized;
-        private static bool initialized;
-        private static double sinceStartup;
         private static EditorWindow focusedWindow;
-        
-        public static event Action OnInitialized;
         public static event Action<EditorWindow> OnWindowFocused;
         public static event Action<EditorWindow> OnWindowMaximized;
 
@@ -40,16 +36,6 @@ namespace Astraia
             {
                 focusedWindow = EditorWindow.focusedWindow;
                 OnWindowFocused?.Invoke(focusedWindow);
-            }
-
-            if (!initialized)
-            {
-                if (sinceStartup < EditorApplication.timeSinceStartup)
-                {
-                    initialized = true;
-                    sinceStartup = EditorApplication.timeSinceStartup + 0.2;
-                    OnInitialized?.Invoke();
-                }
             }
 
             if (focusedWindow == null)
