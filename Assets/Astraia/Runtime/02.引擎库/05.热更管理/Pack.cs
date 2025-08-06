@@ -239,7 +239,13 @@ namespace Astraia.Common
                 }
             }
 
-            return GlobalSetting.Instance ? AssetBundle.LoadFromMemory(result) : null;
+            var assetTask = AssetBundle.LoadFromMemoryAsync(result);
+            while (!assetTask.isDone && GlobalSetting.Instance != null)
+            {
+                await Task.Yield();
+            }
+
+            return assetTask.assetBundle;
         }
 
 #pragma warning disable CS1998
