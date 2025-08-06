@@ -21,6 +21,11 @@ namespace Astraia
             private static readonly Dictionary<byte, byte[]> KeyMap = new Dictionary<byte, byte[]>();
             private const int LENGTH = 16;
 
+            static Xor()
+            {
+                Register(0, "A1B2C3D4E5F6G7H8");
+            }
+
             public static void Register(byte version, string data)
             {
                 var item = Text.GetBytes(data);
@@ -38,34 +43,20 @@ namespace Astraia
                 Random.NextBytes(iv);
                 iv[0] = version;
 
-                KeyMap.TryGetValue(iv[0], out var key);
-                var result = new byte[LENGTH + data.Length];
-                Buffer.BlockCopy(iv, 0, result, 0, LENGTH);
+                var key = KeyMap[iv[0]];
+                var buffer = new byte[LENGTH + data.Length];
+                Buffer.BlockCopy(iv, 0, buffer, 0, LENGTH);
 
-                fixed (byte* pData = data, pResult = result, pIv = iv)
+                fixed (byte* pData = data, pBuffer = buffer, pKey = key, pIv = iv)
                 {
-                    if (key != null)
+                    var pOutput = pBuffer + LENGTH;
+                    for (var i = 0; i < data.Length; i++)
                     {
-                        fixed (byte* pKey = key)
-                        {
-                            var pOutput = pResult + LENGTH;
-                            for (var i = 0; i < data.Length; i++)
-                            {
-                                pOutput[i] = (byte)(pData[i] ^ pKey[i % key.Length] ^ pIv[i % LENGTH]);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var pOutput = pResult + LENGTH;
-                        for (var i = 0; i < data.Length; i++)
-                        {
-                            pOutput[i] = (byte)(pData[i] ^ pIv[i % LENGTH]);
-                        }
+                        pOutput[i] = (byte)(pData[i] ^ pKey[i % key.Length] ^ pIv[i % LENGTH]);
                     }
                 }
 
-                return result;
+                return buffer;
             }
 
             public static unsafe byte[] Decrypt(byte[] data)
@@ -73,33 +64,19 @@ namespace Astraia
                 var iv = new byte[LENGTH];
 
                 Buffer.BlockCopy(data, 0, iv, 0, LENGTH);
-                var result = new byte[data.Length - LENGTH];
-                KeyMap.TryGetValue(iv[0], out var key);
+                var buffer = new byte[data.Length - LENGTH];
+                var key = KeyMap[iv[0]];
 
-                fixed (byte* pData = data, pResult = result, pIv = iv)
+                fixed (byte* pData = data, pBuffer = buffer, pKey = key, pIv = iv)
                 {
-                    if (key != null)
+                    var pInput = pData + LENGTH;
+                    for (var i = 0; i < buffer.Length; i++)
                     {
-                        fixed (byte* pKey = key)
-                        {
-                            var pInput = pData + LENGTH;
-                            for (var i = 0; i < result.Length; i++)
-                            {
-                                pResult[i] = (byte)(pInput[i] ^ pKey[i % key.Length] ^ pIv[i % LENGTH]);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var pInput = pData + LENGTH;
-                        for (var i = 0; i < result.Length; i++)
-                        {
-                            pResult[i] = (byte)(pInput[i] ^ pIv[i % LENGTH]);
-                        }
+                        pBuffer[i] = (byte)(pInput[i] ^ pKey[i % key.Length] ^ pIv[i % LENGTH]);
                     }
                 }
 
-                return result;
+                return buffer;
             }
         }
     }
