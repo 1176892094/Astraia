@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 47a84ebde4ec47fabb620b30cc7a3e5c
+guid: 74721b9f0af448f5ae2e91102a1a5edd
 timeCreated: 1488828285
 PluginImporter:
   serializedVersion: 1
@@ -49,5 +49,5 @@ AssetOrigin:
   productId: 89041
   packageName: Odin Inspector and Serializer
   packageVersion: 3.3.1.13
-  assetPath: Assets/Plugins/Sirenix/Assemblies/Sirenix.OdinInspector.Attributes.dll
+  assetPath: Assets/Plugins/Sirenix/Assemblies/Sirenix.Serialization.Config.dll
   uploadId: 758278

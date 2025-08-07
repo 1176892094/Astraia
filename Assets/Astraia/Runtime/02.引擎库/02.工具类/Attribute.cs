@@ -24,7 +24,6 @@ namespace Astraia
     {
     }
     
-    
     [AttributeUsage(AttributeTargets.Property)]
     public class PrimaryAttribute : Attribute
     {
