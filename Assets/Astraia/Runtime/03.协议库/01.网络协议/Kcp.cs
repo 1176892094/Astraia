@@ -1342,8 +1342,6 @@ namespace Astraia
         public uint* acklist;
         public uint ackcount;
         public uint ackblock;
-        public void* user;
-        public byte* buffer;
         public int fastresend;
         public int fastlimit;
         public int nocwnd, stream;
@@ -1361,39 +1359,9 @@ namespace Astraia
             Marshal.FreeHGlobal((nint)memory);
         }
 
-        public static unsafe void memcpy(void* dst, void* src, nuint length)
+        public static void memcpy(void* dst, void* src, nuint length)
         {
-            byte* d = (byte*)dst;
-            byte* s = (byte*)src;
-
-            while (length >= 8)
-            {
-                *(ulong*)d = *(ulong*)s;
-                d += 8;
-                s += 8;
-                length -= 8;
-            }
-
-            while (length >= 4)
-            {
-                *(uint*)d = *(uint*)s;
-                d += 4;
-                s += 4;
-                length -= 4;
-            }
-
-            while (length >= 2)
-            {
-                *(ushort*)d = *(ushort*)s;
-                d += 2;
-                s += 2;
-                length -= 2;
-            }
-
-            if (length >= 1)
-            {
-                *d = *s;
-            }
+            Buffer.MemoryCopy(src, dst, length, length);
         }
 
         [Conditional("DEBUG")]
