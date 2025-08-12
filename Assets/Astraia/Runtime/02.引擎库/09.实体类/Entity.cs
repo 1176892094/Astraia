@@ -132,7 +132,7 @@ namespace Astraia
         private List<IAgent> agentList
         {
             get => agentDict.Values.ToList();
-            set => agentDict = value.ToDictionary(k => k.GetType(), v => v);
+            set => agentDict = value.ToDictionary(t => t.GetType());
         }
 
         [HideInPlayMode, ValueDropdown("AgentNames")]

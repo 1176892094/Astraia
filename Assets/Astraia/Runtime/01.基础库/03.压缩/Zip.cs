@@ -28,7 +28,7 @@ namespace Astraia
                     stream.Write(bytes, 0, bytes.Length);
                 }
 
-                return Convert.ToBase64String(buffer.ToArray());
+                return Convert.ToBase64String(buffer.GetBuffer(), 0, (int)buffer.Length);
             }
 
             public static string Decompress(string data)
@@ -36,8 +36,9 @@ namespace Astraia
                 var bytes = Convert.FromBase64String(data);
                 using var buffer = new MemoryStream(bytes);
                 using var stream = new GZipStream(buffer, CompressionMode.Decompress);
-                using var reader = new StreamReader(stream, Text.Encoding);
-                return reader.ReadToEnd();
+                using var output = new MemoryStream();
+                stream.CopyTo(output);
+                return Text.GetString(output.GetBuffer(), 0, (int)output.Length);
             }
         }
     }
