@@ -122,11 +122,7 @@ namespace Astraia
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        private static string[] agentNames;
-
-        private static string[] AgentNames => agentNames ??= AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
-            .Where(type => !type.IsAbstract && !type.IsGenericType && typeof(IAgent).IsAssignableFrom(type)).OrderBy(t => t.FullName)
-            .Select(t => Service.Text.Format("{0}, {1}", t.FullName, t.Assembly.GetName().Name)).ToArray();
+        private static List<string> AgentNames => GlobalSetting.GetAgents();
 
         [HideInEditorMode, ShowInInspector]
         private List<IAgent> agentList

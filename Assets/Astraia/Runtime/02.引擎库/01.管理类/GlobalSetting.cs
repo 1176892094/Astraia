@@ -283,6 +283,46 @@ namespace Astraia
                 }
             }
         }
+
+        private static List<string> agents;
+
+        public static List<string> GetAgents()
+        {
+            if (agents != null)
+            {
+                return agents;
+            }
+
+            agents = new List<string>();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies)
+            {
+                var types = assembly.GetTypes();
+
+                foreach (var type in types)
+                {
+                    if (type.IsAbstract)
+                    {
+                        continue;
+                    }
+
+                    if (type.IsGenericType)
+                    {
+                        continue;
+                    }
+
+                    if (!typeof(IAgent).IsAssignableFrom(type))
+                    {
+                        continue;
+                    }
+
+                    agents.Add(Service.Text.Format("{0}, {1}", type.FullName, type.Assembly.GetName().Name));
+                }
+            }
+
+            agents.Sort(StringComparer.Ordinal);
+            return agents;
+        }
     }
 #endif
 }
