@@ -73,7 +73,12 @@ namespace Astraia
             HierarchyLast = cacheType.GetField("s_LastInteractedHierarchy", Service.Find.Static);
             cacheType = GetEditor("SceneHierarchy");
             hierarchyTree = cacheType.GetField("m_TreeView", Service.Find.Entity);
+#if UNITY_6000_2_OR_NEWER
+            cacheType = GetEditor("IMGUI.Controls.TreeViewController`1");
+            cacheType = cacheType.MakeGenericType(typeof(int));
+#else
             cacheType = GetEditor("IMGUI.Controls.TreeViewController");
+#endif
             importTreeItem = cacheType.GetProperty("gui", Service.Find.Entity);
             importTreeData = cacheType.GetProperty("data", Service.Find.Entity);
             cacheType = GetEditor("IMGUI.Controls.TreeViewGUI");
@@ -144,19 +149,31 @@ namespace Astraia
         {
             var window = importBrowser.GetValue(null) as EditorWindow;
             if (window == null) return false;
+#if UNITY_6000_2_OR_NEWER
+            IEnumerable<TreeViewItem<int>> items = null;
+#else
             IEnumerable<TreeViewItem> items = null;
+#endif
             var cached = importAssets.GetValue(window);
             if (cached != null)
             {
                 cached = importTreeData.GetValue(cached, null);
+#if UNITY_6000_2_OR_NEWER
+                items = (IEnumerable<TreeViewItem<int>>)folderGetRows.Invoke(cached, null);
+#else
                 items = (IEnumerable<TreeViewItem>)folderGetRows.Invoke(cached, null);
+#endif
             }
 
             cached = importFolder.GetValue(window);
             if (cached != null)
             {
                 cached = importTreeData.GetValue(cached, null);
+#if UNITY_6000_2_OR_NEWER
+                items = (IEnumerable<TreeViewItem<int>>)assetsGetRows.Invoke(cached, null);
+#else
                 items = (IEnumerable<TreeViewItem>)assetsGetRows.Invoke(cached, null);
+#endif
             }
 
             return items != null && items.Where(item => item.id == assetId).Any(item => item.hasChildren);
