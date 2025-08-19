@@ -20,6 +20,15 @@ namespace Astraia
         WebGL = 20
     }
 
+    internal enum AssetText : byte
+    {
+        Assembly,
+        Enum,
+        Struct,
+        DataTable,
+        BadWord,
+    }
+
     internal enum AssetMode : byte
     {
         Simulate,

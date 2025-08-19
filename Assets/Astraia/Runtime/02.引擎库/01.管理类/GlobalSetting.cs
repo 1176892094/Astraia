@@ -32,9 +32,9 @@ namespace Astraia
 #endif
         public AssetPlatform assetPlatform = AssetPlatform.StandaloneWindows;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("其他设置")] [LabelText("密钥版本")]
+        [FoldoutGroup("其他设置")] [LabelText("敏感词过滤")]
 #endif
-        public byte assetVersion = 1;
+        public BadWordFilter badWordFilter = BadWordFilter.Enable;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("邮件服务")]
 #endif
@@ -72,6 +72,14 @@ namespace Astraia
         [FoldoutGroup("资源加载")] [LabelText("资源服务器地址")]
 #endif
         public string assetRemoteData = "http://192.168.0.3:8000/AssetBundles";
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("其他设置")] [LabelText("密钥版本")]
+#endif
+        public byte secretVersion = 1;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [FoldoutGroup("其他设置")] [LabelText("密钥版本")] [PropertyOrder(1)]
+#endif
+        public string[] secretGroup;
 
         public static GlobalSetting Instance
         {
@@ -108,20 +116,14 @@ namespace Astraia
         public static string assetRemotePath => Service.Text.Format("{0}/{1}", Instance.assetRemoteData, Instance.assetBuildPath);
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("资源构建")]
-        [LabelText("资源校验文件")]
-#endif
-        public static string assetPackData => Service.Text.Format("{0}.json", Instance.assetLoadName);
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
         [FoldoutGroup("资源加载")]
         [LabelText("资源存储路径")]
 #endif
         public static string assetPackPath => Service.Text.Format("{0}/{1}", Application.persistentDataPath, Instance.assetBuildPath);
+        
+        public static string assetPackData => Service.Text.Format("{0}.json", Instance.assetLoadName);
 
-        public static string assemblyName => JsonUtility.FromJson<Name>(assemblyData.text).name;
-
-        public static TextAsset assemblyData => Resources.Load<TextAsset>(nameof(GlobalSetting));
+        public static string assemblyName => JsonUtility.FromJson<Name>(GetTextByIndex(AssetText.Assembly)).name;
 
         public static string GetScenePath(string assetName) => Service.Text.Format("Scenes/{0}", assetName);
 
@@ -136,6 +138,19 @@ namespace Astraia
         public static string GetServerPath(string fileName) => Path.Combine(assetRemotePath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
 
         public static string GetClientPath(string fileName) => Path.Combine(Application.streamingAssetsPath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
+
+        private static TextAsset[] assetTextArray;
+
+        public static string GetTextByIndex(AssetText option)
+        {
+            if (assetTextArray != null)
+            {
+                return assetTextArray[(int)option].text;
+            }
+
+            assetTextArray = Resources.LoadAll<TextAsset>(nameof(GlobalSetting));
+            return assetTextArray[(int)option].text;
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
@@ -167,12 +182,28 @@ namespace Astraia
             canvas.referenceResolution = new Vector2(1920, 1080);
             canvas.referencePixelsPerUnit = 64;
             DontDestroyOnLoad(source.canvas);
+
+            for (byte i = 1; i < Instance.secretGroup.Length; i++)
+            {
+                Service.Xor.Register(i, Instance.secretGroup[i]);
+            }
+
+            if (Instance.badWordFilter != BadWordFilter.Disable)
+            {
+                Service.Word.Register(GetTextByIndex(AssetText.BadWord));
+            }
         }
 
         [Serializable]
         private struct Name
         {
             public string name;
+        }
+
+        public enum BadWordFilter : byte
+        {
+            Enable,
+            Disable
         }
     }
 #if UNITY_EDITOR
@@ -184,8 +215,6 @@ namespace Astraia
         [PropertyOrder(1)] [FoldoutGroup("资源加载")] [LabelText("忽略资源")]
 #endif
         public List<Object> ignoreAssets = new List<Object>();
-
-        public static TextAsset[] templateData => Resources.LoadAll<TextAsset>(nameof(GlobalSetting));
 
 #if ODIN_INSPECTOR
         [FoldoutGroup("资源构建")]
@@ -201,8 +230,8 @@ namespace Astraia
 
 #if ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("其他设置")]
-        [LabelText("编辑器资源路径")]
+        [FoldoutGroup("资源构建")]
+        [LabelText("编辑资源路径")]
 #endif
         public static string EditorPath
         {

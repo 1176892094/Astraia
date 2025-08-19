@@ -9,18 +9,18 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System.Collections.Generic;
-
 namespace Astraia
 {
     public static partial class Service
     {
-        public static partial class Filter
+        public static partial class Word
         {
             private static readonly Node root = new Node();
 
-            public static void Register(IEnumerable<string> words)
+            public static void Register(string text)
             {
+                var cache = Zip.Decompress(text);
+                var words = cache.Split('\n');
                 foreach (var word in words)
                 {
                     Search(word);

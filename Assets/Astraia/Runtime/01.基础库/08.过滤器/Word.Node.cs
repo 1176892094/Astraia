@@ -15,7 +15,7 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static partial class Filter
+        public static partial class Word
         {
             private class Node
             {
