@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentData:
   - Runtime.SpawnManager, Assembly-CSharp
-  objectId: 0
   agentMode: 0
-  assetId: 10001
+  objectId: 0
+  agentId: 10001
   sceneId: 0
