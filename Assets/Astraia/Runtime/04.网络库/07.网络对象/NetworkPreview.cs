@@ -136,7 +136,7 @@ namespace Astraia.Net
         {
             var agentData = GetAgentData(entity);
             var agentSize = GetMaxAgentSize(agentData);
-            var agentRect = new Rect(width, height + 10, agentSize.x, agentSize.y);
+            var agentRect = new Rect(width, height, agentSize.x, agentSize.y);
 
             GUI.Label(agentRect, new GUIContent("Network Agent :"), styles.label);
             agentRect.x += 20;
@@ -219,12 +219,22 @@ namespace Astraia.Net
                 new EntityData("Scene ID :", entity.sceneId.ToString()),
                 new EntityData("Object ID :", entity.objectId.ToString()),
                 new EntityData("Is Owner :", entity.isOwner ? "Yes" : "No"),
-                new EntityData("Is Client :", entity.isClient ? "Yes" : "No"),
                 new EntityData("Is Server :", entity.isServer ? "Yes" : "No"),
+                new EntityData("Is Client :", entity.isClient ? "Yes" : "No")
             };
+            
             if (Application.isPlaying)
             {
-                copies.Add(new EntityData("Connection :", entity.connection == null ? "Null" : entity.connection.ToString()));
+                if (entity.connection == null)
+                {
+                    copies.Add(new EntityData("Client :", "Null"));
+                    copies.Add(new EntityData("Client ID :", "-1"));
+                }
+                else
+                {
+                    copies.Add(new EntityData("Client :", entity.connection.ToString()));
+                    copies.Add(new EntityData("Client ID :", entity.connection.clientId.ToString()));
+                }
             }
 
             return copies;
