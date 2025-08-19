@@ -144,7 +144,7 @@ namespace Astraia.Common
             {
                 window = Window.Console;
             }
-
+            
             GUI.contentColor = window == Window.Scene ? Color.white : Color.gray;
             if (GUILayout.Button(Window.Scene.ToString(), GUILayout.Height(30)))
             {
@@ -167,38 +167,41 @@ namespace Astraia.Common
 
             GUILayout.EndHorizontal();
 
-            GUILayout.BeginHorizontal();
-            GUI.contentColor = window == Window.Memory ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Memory.ToString(), GUILayout.Height(30)))
+            if (window != Window.Console)
             {
-                window = Window.Memory;
-            }
+                GUILayout.BeginHorizontal();
+                GUI.contentColor = window == Window.Memory ? Color.white : Color.gray;
+                if (GUILayout.Button(Window.Memory.ToString(), GUILayout.Height(30)))
+                {
+                    window = Window.Memory;
+                }
 
-            GUI.contentColor = window == Window.Time ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Time.ToString(), GUILayout.Height(30)))
-            {
-                window = Window.Time;
-            }
+                GUI.contentColor = window == Window.Time ? Color.white : Color.gray;
+                if (GUILayout.Button(Window.Time.ToString(), GUILayout.Height(30)))
+                {
+                    window = Window.Time;
+                }
 
-            GUI.contentColor = window == Window.System ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.System.ToString(), GUILayout.Height(30)))
-            {
-                window = Window.System;
-            }
+                GUI.contentColor = window == Window.System ? Color.white : Color.gray;
+                if (GUILayout.Button(Window.System.ToString(), GUILayout.Height(30)))
+                {
+                    window = Window.System;
+                }
 
-            GUI.contentColor = window == Window.Screen ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Screen.ToString(), GUILayout.Height(30)))
-            {
-                window = Window.Screen;
-            }
+                GUI.contentColor = window == Window.Screen ? Color.white : Color.gray;
+                if (GUILayout.Button(Window.Screen.ToString(), GUILayout.Height(30)))
+                {
+                    window = Window.Screen;
+                }
 
-            GUI.contentColor = window == Window.Project ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Project.ToString(), GUILayout.Height(30)))
-            {
-                window = Window.Project;
-            }
+                GUI.contentColor = window == Window.Project ? Color.white : Color.gray;
+                if (GUILayout.Button(Window.Project.ToString(), GUILayout.Height(30)))
+                {
+                    window = Window.Project;
+                }
 
-            GUILayout.EndHorizontal();
+                GUILayout.EndHorizontal();
+            }
 
             GUI.contentColor = Color.white;
             switch (window)
