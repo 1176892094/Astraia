@@ -429,7 +429,7 @@ namespace Astraia.Net
                 var message = new SpawnMessage
                 {
                     isOwner = isOwner,
-                    assetId = entity.agentId,
+                    assetId = entity.assetId,
                     sceneId = entity.sceneId,
                     objectId = entity.objectId,
                     position = transform.localPosition,

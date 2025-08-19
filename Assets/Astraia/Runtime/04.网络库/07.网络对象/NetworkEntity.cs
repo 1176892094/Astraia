@@ -26,13 +26,13 @@ namespace Astraia.Net
     {
         private int frameCount;
 
-        [SerializeField] internal AgentMode agentMode;
-
         [HideInInspector] public uint objectId;
 
-        [SerializeField] [HideInInspector] internal uint agentId;
+        [SerializeField] [HideInInspector] internal uint assetId;
 
         [SerializeField] [HideInInspector] internal uint sceneId;
+        
+        [SerializeField] [HideInInspector] internal AgentMode agentMode;
 
         internal AgentState agentState;
 
@@ -131,7 +131,7 @@ namespace Astraia.Net
                 AssignSceneId();
             }
 
-            if (sceneId == 0 && agentId == 0)
+            if (sceneId == 0 && assetId == 0)
             {
                 Debug.LogWarning(Service.Text.Format("请将 {0} 名称修改为纯数字!", gameObject), gameObject);
             }
@@ -143,7 +143,7 @@ namespace Astraia.Net
                 if (!string.IsNullOrWhiteSpace(assetPath))
                 {
                     Undo.RecordObject(gameObject, Log.E275);
-                    uint.TryParse(name, out agentId);
+                    uint.TryParse(name, out assetId);
                 }
             }
 

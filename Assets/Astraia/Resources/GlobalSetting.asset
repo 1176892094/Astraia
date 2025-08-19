@@ -54,7 +54,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   assetPlatform: 9
   badWordFilter: 0
-  secretVersion: 1
   smtpServer: smtp.qq.com
   smtpPort: 587
   smtpUsername: 1176892094@qq.com
@@ -64,6 +63,7 @@ MonoBehaviour:
   assetBuildPath: AssetBundles
   assetSourcePath: Assets/Template
   assetRemoteData: http://192.168.1.4:8000/Documents/GitHub/Astraia-Game
+  secretVersion: 1
   secretGroup:
   - I1J2K3L4M5N6O7P8
   - Q1R2S3T4U5V6W7X8
