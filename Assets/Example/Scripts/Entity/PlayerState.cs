@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using Astraia;
+using Astraia.Common;
 using UnityEngine;
 
 namespace Runtime
@@ -224,6 +225,7 @@ namespace Runtime
 
         public override void OnEnter()
         {
+            AudioManager.PlayOnce("30001");
             Feature.SetInt(Attribute.DashFrame, Time.frameCount + 10);
             owner.Sender.SyncColorServerRpc(Color.magenta);
             Feature.state |= StateType.Dash;
