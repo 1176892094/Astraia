@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Astraia.Common
 {
@@ -18,10 +19,11 @@ namespace Astraia.Common
         [Serializable]
         public struct Bytes : IEquatable<Bytes>
         {
+            private static readonly int Ticks = (int)DateTime.Now.Ticks;
             public byte[] origin;
             public int buffer;
             public int offset;
-
+            
             public byte[] Value
             {
                 get
@@ -33,9 +35,10 @@ namespace Astraia.Common
 
                     return origin;
                 }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set
                 {
-                    offset = Environment.TickCount;
+                    offset = Ticks;
                     origin = value;
                     buffer = GetHashCode();
                 }
@@ -43,9 +46,9 @@ namespace Astraia.Common
 
             public Bytes(byte[] value)
             {
-                offset = Environment.TickCount;
-                origin = value;
                 buffer = 0;
+                offset = Ticks;
+                origin = value;
                 buffer = GetHashCode();
             }
 

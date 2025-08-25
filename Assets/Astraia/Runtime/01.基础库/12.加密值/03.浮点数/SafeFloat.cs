@@ -11,6 +11,7 @@
 
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace Astraia.Common
 {
@@ -36,6 +37,7 @@ namespace Astraia.Common
 
                     return *(float*)&value;
                 }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set
                 {
                     var ptr = *(int*)&value;

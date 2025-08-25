@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Astraia.Common
 {
@@ -25,6 +26,7 @@ namespace Astraia.Common
 
             public int Value
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
                     var value = origin ^ offset;
@@ -35,6 +37,7 @@ namespace Astraia.Common
 
                     return value;
                 }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set
                 {
                     offset = Ticks;
