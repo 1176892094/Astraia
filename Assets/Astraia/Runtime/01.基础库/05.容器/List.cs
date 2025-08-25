@@ -16,11 +16,11 @@ using System.Collections.Generic;
 namespace Astraia
 {
     [Serializable]
-    public sealed class List<Key, Value> : IList<List<Key, Value>.Node>
+    public sealed partial class List<Key, Value> : IList<List<Key, Value>.Node>
     {
         private readonly IDictionary<Key, int> keyIndex = new Dictionary<Key, int>();
         private readonly IDictionary<Value, int> valueIndex = new Dictionary<Value, int>();
-
+        
         public List<Node> Nodes = new List<Node>();
         public bool Sorted;
         public int Count => Nodes.Count;
@@ -321,34 +321,6 @@ namespace Astraia
             for (var i = Nodes.Count - 1; i >= 0; i--)
             {
                 yield return Nodes[i];
-            }
-        }
-
-        [Serializable]
-        public struct Node : IEquatable<Node>
-        {
-            public Key Key;
-            public Value Value;
-
-            public Node(Key key, Value value)
-            {
-                Key = key;
-                Value = value;
-            }
-
-            public bool Equals(Node other)
-            {
-                return EqualityComparer<Key>.Default.Equals(Key, other.Key) && EqualityComparer<Value>.Default.Equals(Value, other.Value);
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is Node other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(Key, Value);
             }
         }
 
