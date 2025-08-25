@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace Astraia
 {
-    [CustomPropertyDrawer(typeof(SafeInt))]
+    [CustomPropertyDrawer(typeof(Safe.Int))]
     internal class VarIntDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -29,7 +29,8 @@ namespace Astraia
             GUI.color = color;
 
             var origin = property.FindPropertyRelative("origin");
-            var source = origin.intValue ^ int.MaxValue;
+            var offset = property.FindPropertyRelative("offset");
+            var source = origin.intValue ^ offset.intValue;
 
             GUI.enabled = false;
             EditorGUI.IntField(content, source);
@@ -39,7 +40,7 @@ namespace Astraia
         }
     }
 
-    [CustomPropertyDrawer(typeof(SafeLong))]
+    [CustomPropertyDrawer(typeof(Safe.Long))]
     internal class VarLongDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -52,7 +53,8 @@ namespace Astraia
             GUI.color = color;
 
             var origin = property.FindPropertyRelative("origin");
-            var source = origin.longValue ^ long.MaxValue;
+            var offset = property.FindPropertyRelative("offset");
+            var source = origin.longValue ^ offset.longValue;
 
             GUI.enabled = false;
             EditorGUI.LongField(content, source);
@@ -62,25 +64,26 @@ namespace Astraia
         }
     }
 
-    [CustomPropertyDrawer(typeof(SafeFloat))]
+    [CustomPropertyDrawer(typeof(Safe.Float))]
     internal class VarFloatDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
-    
+
             var color = GUI.color;
             GUI.color = Color.green;
             var content = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
             GUI.color = color;
-    
+
             var origin = property.FindPropertyRelative("origin");
-            var source = BitConverter.Int32BitsToSingle(origin.intValue ^ int.MaxValue);
-    
+            var offset = property.FindPropertyRelative("offset");
+            var source = BitConverter.Int32BitsToSingle(origin.intValue ^ offset.intValue);
+
             GUI.enabled = false;
             EditorGUI.FloatField(content, source);
             GUI.enabled = true;
-    
+
             EditorGUI.EndProperty();
         }
     }

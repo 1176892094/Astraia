@@ -159,10 +159,10 @@ namespace Astraia
                 builder.AppendFormat("\t\t[Sirenix.OdinInspector.ShowInInspector]\n");
                 builder.AppendFormat("#endif\n");
                 builder.AppendFormat("\t\tpublic {0} {1} => {2}.Value.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private SafeBytes {0};\n", fieldData);
+                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private Safe.Bytes {0};\n", fieldData);
 #else
                 builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[SerializeField] private SafeBytes {0};\n", fieldData);
+                builder.AppendFormat("\t\t[SerializeField] private Safe.Bytes {0};\n", fieldData);
 #endif
             }
 
@@ -177,7 +177,7 @@ namespace Astraia
                 var column = count < fields.Count ? "column++" : "column";
                 var fieldName = index < 0 ? field.Key : field.Key.Substring(0, index);
                 var fieldData = char.ToLower(fieldName[0]) + fieldName.Substring(1);
-                builder.AppendFormat("\t\t\t{0} = Service.Text.GetBytes(sheet[{1}]);\n", fieldData, column);
+                builder.AppendFormat("\t\t\t{0} = Service.Text.GetSafe.Bytes(sheet[{1}]);\n", fieldData, column);
             }
 
             builder.Length -= 1;
@@ -204,10 +204,10 @@ namespace Astraia
                 builder.AppendFormat("\t\t[Sirenix.OdinInspector.ShowInInspector]\n");
                 builder.AppendFormat("#endif\n");
                 builder.AppendFormat("\t\tpublic {0} {1} => {2}.Value.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private SafeBytes {0};\n", fieldData);
+                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private Safe.Bytes {0};\n", fieldData);
 #else
                 builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[SerializeField] private SafeBytes {0};\n", fieldData);
+                builder.AppendFormat("\t\t[SerializeField] private Safe.Bytes {0};\n", fieldData);
 #endif
             }
 

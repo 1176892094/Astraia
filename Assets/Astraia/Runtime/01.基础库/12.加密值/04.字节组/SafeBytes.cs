@@ -10,62 +10,83 @@
 // // *********************************************************************************
 
 using System;
-using System.Linq;
 
 namespace Astraia.Common
 {
-    [Serializable]
-    public struct SafeBytes
+    public static partial class Safe
     {
-        public byte[] origin;
-        public int buffer;
-        public int offset;
-
-        public byte[] Value
+        [Serializable]
+        public struct Bytes : IEquatable<Bytes>
         {
-            get
-            {
-                if (origin == null)
-                {
-                    return null;
-                }
+            public byte[] origin;
+            public int buffer;
+            public int offset;
 
-                if (buffer == unchecked(origin.Aggregate(offset, (current, t) => (current * 31) ^ t)))
+            public byte[] Value
+            {
+                get
                 {
+                    if (buffer != GetHashCode())
+                    {
+                        throw new InvalidOperationException();
+                    }
+
                     return origin;
                 }
-
-                EventManager.Invoke(new VariableEvent());
-                return null;
+                set
+                {
+                    offset = Environment.TickCount;
+                    origin = value;
+                    buffer = GetHashCode();
+                }
             }
-            set
+
+            public Bytes(byte[] value)
             {
+                offset = Environment.TickCount;
                 origin = value;
-                offset = Service.Random.Next(1, int.MaxValue);
-                buffer = unchecked(origin.Aggregate(offset, (current, t) => (current * 31) ^ t));
+                buffer = 0;
+                buffer = GetHashCode();
             }
-        }
 
-        public SafeBytes(byte[] value)
-        {
-            origin = value;
-            offset = Service.Random.Next(1, int.MaxValue);
-            buffer = unchecked(origin.Aggregate(offset, (current, t) => (current * 31) ^ t));
-        }
+            public static implicit operator byte[](Bytes variable)
+            {
+                return variable.Value;
+            }
 
-        public static implicit operator byte[](SafeBytes variable)
-        {
-            return variable.Value;
-        }
+            public static implicit operator Bytes(byte[] value)
+            {
+                return new Bytes(value);
+            }
 
-        public static implicit operator SafeBytes(byte[] value)
-        {
-            return new SafeBytes(value);
-        }
+            public bool Equals(Bytes other)
+            {
+                return buffer - offset == other.buffer - other.offset;
+            }
 
-        public override string ToString()
-        {
-            return BitConverter.ToString(Value, 0, origin.Length);
+            public override bool Equals(object obj)
+            {
+                return obj is Bytes other && Equals(other);
+            }
+
+            public override string ToString()
+            {
+                return BitConverter.ToString(Value, 0, origin.Length);
+            }
+
+            public override int GetHashCode()
+            {
+                var result = offset;
+                unchecked
+                {
+                    foreach (var b in origin)
+                    {
+                        result = (result * 31) ^ b;
+                    }
+
+                    return result;
+                }
+            }
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Astraia
     [Serializable]
     public abstract class Feature<TEntity, T> : Agent<TEntity> where TEntity : Entity
     {
-        private readonly Dictionary<T, SafeFloat> features = new Dictionary<T, SafeFloat>();
+        private readonly Dictionary<T, Safe.Float> features = new Dictionary<T, Safe.Float>();
 
         private float Get(T key)
         {

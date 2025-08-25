@@ -13,73 +13,72 @@ using System;
 
 namespace Astraia.Common
 {
-    [Serializable]
-    public struct SafeInt: IEquatable<SafeInt>
+    public static partial class Safe
     {
-        public int origin;
-        public int buffer;
-        public int offset;
-
-        public int Value
+        [Serializable]
+        public struct Int : IEquatable<Int>
         {
-            get
+            private static readonly int Ticks = (int)DateTime.Now.Ticks;
+            public int origin;
+            public int buffer;
+            public int offset;
+
+            public int Value
             {
-                if (offset == 0 && buffer == 0)
+                get
                 {
-                    Value = origin;
-                }
+                    var value = origin ^ offset;
+                    if (buffer != ((offset >> 8) ^ value))
+                    {
+                        throw new InvalidOperationException();
+                    }
 
-                if (buffer == (origin ^ offset))
+                    return value;
+                }
+                set
                 {
-                    return origin ^ int.MaxValue;
+                    offset = Ticks;
+                    origin = value ^ offset;
+                    buffer = (offset >> 8) ^ value;
                 }
-
-                EventManager.Invoke(new VariableEvent());
-                return 0;
             }
-            set
+
+            public Int(int value = 0)
             {
-                origin = value ^ int.MaxValue;
-                offset = Service.Random.Next(1, int.MaxValue);
-                buffer = origin ^ offset;
+                offset = Ticks;
+                origin = value ^ offset;
+                buffer = (offset >> 8) ^ value;
             }
-        }
 
-        public SafeInt(int value = 0)
-        {
-            origin = value ^ int.MaxValue;
-            offset = Service.Random.Next(1, int.MaxValue);
-            buffer = origin ^ offset;
-        }
+            public static implicit operator int(Int data)
+            {
+                return data.Value;
+            }
 
-        public static implicit operator int(SafeInt variable)
-        {
-            return variable.Value;
-        }
+            public static implicit operator Int(int data)
+            {
+                return new Int(data);
+            }
 
-        public static implicit operator SafeInt(int value)
-        {
-            return new SafeInt(value);
-        }
+            public bool Equals(Int other)
+            {
+                return Value == other.Value;
+            }
 
-        public override string ToString()
-        {
-            return Value.ToString();
-        }
+            public override bool Equals(object obj)
+            {
+                return obj is Int other && Equals(other);
+            }
 
-        public bool Equals(SafeInt other)
-        {
-            return Value == other.Value;
-        }
+            public override string ToString()
+            {
+                return Value.ToString();
+            }
 
-        public override bool Equals(object obj)
-        {
-            return obj is SafeInt other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(origin);
+            public override int GetHashCode()
+            {
+                return Value.GetHashCode();
+            }
         }
     }
 }

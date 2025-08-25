@@ -14,58 +14,74 @@ using System.Globalization;
 
 namespace Astraia.Common
 {
-    [Serializable]
-    public struct SafeFloat
+    public static partial class Safe
     {
-        public int origin;
-        public int buffer;
-        public int offset;
-
-        public float Value
+        [Serializable]
+        public struct Float : IEquatable<Float>
         {
-            get
+            private static readonly int Ticks = (int)DateTime.Now.Ticks;
+            public int origin;
+            public int buffer;
+            public int offset;
+
+            public unsafe float Value
             {
-                if (offset == 0 && buffer == 0)
+                get
                 {
-                    Value = origin;
-                }
+                    var value = origin ^ offset;
+                    if (buffer != ((offset >> 8) ^ value))
+                    {
+                        throw new InvalidOperationException();
+                    }
 
-                if (buffer == (origin ^ offset))
+                    return *(float*)&value;
+                }
+                set
                 {
-                    return BitConverter.Int32BitsToSingle(origin ^ int.MaxValue);
+                    var ptr = *(int*)&value;
+                    offset = Ticks;
+                    origin = ptr ^ offset;
+                    buffer = (offset >> 8) ^ ptr;
                 }
-
-                EventManager.Invoke(new VariableEvent());
-                return 0;
             }
-            set
+
+            public unsafe Float(float value = 0)
             {
-                origin = BitConverter.SingleToInt32Bits(value) ^ int.MaxValue;
-                offset = Service.Random.Next(1, int.MaxValue);
-                buffer = origin ^ offset;
+                var ptr = *(int*)&value;
+                offset = Ticks;
+                origin = ptr ^ offset;
+                buffer = (offset >> 8) ^ ptr;
             }
-        }
 
-        public SafeFloat(float value = 0)
-        {
-            origin = BitConverter.SingleToInt32Bits(value) ^ int.MaxValue;
-            offset = Service.Random.Next(1, int.MaxValue);
-            buffer = origin ^ offset;
-        }
+            public static implicit operator float(Float variable)
+            {
+                return variable.Value;
+            }
 
-        public static implicit operator float(SafeFloat variable)
-        {
-            return variable.Value;
-        }
+            public static implicit operator Float(float value)
+            {
+                return new Float(value);
+            }
 
-        public static implicit operator SafeFloat(float value)
-        {
-            return new SafeFloat(value);
-        }
+            public bool Equals(Float other)
+            {
+                return origin == other.origin;
+            }
 
-        public override string ToString()
-        {
-            return Value.ToString(CultureInfo.InvariantCulture);
+            public override bool Equals(object obj)
+            {
+                return obj is Float other && Equals(other);
+            }
+
+            public override string ToString()
+            {
+                return Value.ToString(CultureInfo.InvariantCulture);
+            }
+
+            public override int GetHashCode()
+            {
+                return Value.GetHashCode();
+            }
         }
     }
 }

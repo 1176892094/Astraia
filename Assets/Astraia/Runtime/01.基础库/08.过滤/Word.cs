@@ -9,11 +9,13 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System.Collections.Generic;
+
 namespace Astraia
 {
     public static partial class Service
     {
-        public static partial class Word
+        public static class Word
         {
             private static readonly Node root = new Node();
 
@@ -69,6 +71,12 @@ namespace Astraia
                 }
 
                 return new string(chars);
+            }
+
+            private class Node
+            {
+                public readonly Dictionary<char, Node> nodes = new Dictionary<char, Node>();
+                public bool finish;
             }
         }
     }

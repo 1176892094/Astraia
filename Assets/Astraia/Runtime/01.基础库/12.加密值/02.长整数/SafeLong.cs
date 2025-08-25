@@ -13,73 +13,72 @@ using System;
 
 namespace Astraia.Common
 {
-    [Serializable]
-    public struct SafeLong : IEquatable<SafeLong>
+    public static partial class Safe
     {
-        public long origin;
-        public long buffer;
-        public long offset;
-
-        public long Value
+        [Serializable]
+        public struct Long : IEquatable<Long>
         {
-            get
+            private static readonly long Ticks = DateTime.Now.Ticks;
+            public long origin;
+            public long buffer;
+            public long offset;
+
+            public long Value
             {
-                if (offset == 0 && buffer == 0)
+                get
                 {
-                    Value = origin;
-                }
+                    var value = origin ^ offset;
+                    if (buffer != ((offset >> 8) ^ value))
+                    {
+                        throw new InvalidOperationException();
+                    }
 
-                if (buffer == (origin ^ offset))
+                    return value;
+                }
+                set
                 {
-                    return origin ^ long.MaxValue;
+                    offset = Ticks;
+                    origin = value ^ offset;
+                    buffer = (offset >> 8) ^ value;
                 }
-
-                EventManager.Invoke(new VariableEvent());
-                return 0;
             }
-            set
+
+            public Long(long value = 0)
             {
-                origin = value ^ long.MaxValue;
-                offset = Service.Random.Next(1, int.MaxValue);
-                buffer = origin ^ offset;
+                offset = Ticks;
+                origin = value ^ offset;
+                buffer = (offset >> 8) ^ value;
             }
-        }
 
-        public SafeLong(long value = 0)
-        {
-            origin = value ^ long.MaxValue;
-            offset = Service.Random.Next(1, int.MaxValue);
-            buffer = origin ^ offset;
-        }
+            public static implicit operator long(Long data)
+            {
+                return data.Value;
+            }
 
-        public static implicit operator long(SafeLong variable)
-        {
-            return variable.Value;
-        }
+            public static implicit operator Long(long data)
+            {
+                return new Long(data);
+            }
 
-        public static implicit operator SafeLong(long value)
-        {
-            return new SafeLong(value);
-        }
+            public bool Equals(Long other)
+            {
+                return Value == other.Value;
+            }
 
-        public override string ToString()
-        {
-            return Value.ToString();
-        }
+            public override bool Equals(object obj)
+            {
+                return obj is Long other && Equals(other);
+            }
 
-        public bool Equals(SafeLong other)
-        {
-            return Value == other.Value;
-        }
+            public override string ToString()
+            {
+                return Value.ToString();
+            }
 
-        public override bool Equals(object obj)
-        {
-            return obj is SafeLong other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(origin);
+            public override int GetHashCode()
+            {
+                return Value.GetHashCode();
+            }
         }
     }
 }

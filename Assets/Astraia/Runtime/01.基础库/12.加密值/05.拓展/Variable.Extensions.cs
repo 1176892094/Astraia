@@ -17,25 +17,25 @@ namespace Astraia
     public static class Extensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBit(this SafeInt variable, int shift, int mask)
+        public static int GetBit(this Safe.Int variable, int shift, int mask)
         {
             return (variable >> shift) & (1 << mask) - 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static SafeInt SetBit(this SafeInt variable, int shift, int mask, int value)
+        public static Safe.Int SetBit(this Safe.Int variable, int shift, int mask, int value)
         {
             return (variable & ~((1 << mask) - 1 << shift)) | ((value & (1 << mask) - 1) << shift);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBit(this SafeLong variable, int shift, int mask)
+        public static int GetBit(this Safe.Long variable, int shift, int mask)
         {
             return (int)((variable >> shift) & (1L << mask) - 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static SafeLong SetBit(this SafeLong variable, int shift, int mask, int value)
+        public static Safe.Long SetBit(this Safe.Long variable, int shift, int mask, int value)
         {
             return (variable & ~((1L << mask) - 1 << shift)) | ((value & (1L << mask) - 1) << shift);
         }

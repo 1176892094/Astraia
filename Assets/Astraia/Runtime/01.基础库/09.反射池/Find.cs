@@ -17,7 +17,7 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static class Find
+        public static partial class Find
         {
             private static readonly IDictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
             private static readonly IDictionary<string, Type> cacheTypes = new Dictionary<string, Type>();
