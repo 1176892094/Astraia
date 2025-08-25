@@ -9,23 +9,20 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Astraia
 {
     internal sealed class Importer
     {
-        private static readonly Dictionary<string, Object> assetsCaches = new Dictionary<string, Object>();
         private static Importer instance;
 
         private Importer()
         {
-            EditorApplication.projectWindowItemOnGUI -= OnGUI;
-            EditorApplication.projectWindowItemOnGUI += OnGUI;
+            EditorApplication.projectWindowItemInstanceOnGUI -= OnGUI;
+            EditorApplication.projectWindowItemInstanceOnGUI += OnGUI;
         }
 
         [InitializeOnLoadMethod]
@@ -34,39 +31,19 @@ namespace Astraia
             instance ??= new Importer();
         }
 
-        private static void OnGUI(string guid, Rect rect)
+        private static void OnGUI(int id, Rect rect)
         {
             if (Event.current.type == EventType.Repaint)
             {
-                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                if (string.IsNullOrEmpty(assetPath))
-                {
-                    return;
-                }
-
-                if (!assetsCaches.TryGetValue(assetPath, out var assetData))
-                {
-                    assetData = AssetDatabase.LoadAssetAtPath<Object>(assetPath);
-                    if (assetData != null)
-                    {
-                        assetsCaches[assetPath] = assetData;
-                    }
-                }
-
-                if (assetData == null)
-                {
-                    if (assetsCaches.ContainsKey(assetPath))
-                    {
-                        assetsCaches.Remove(assetPath);
-                    }
-                }
+                var assetData = EditorUtility.InstanceIDToObject(id);
+                var assetPath = AssetDatabase.GetAssetPath(assetData);
 
                 if (rect.height > 16)
                 {
                     return;
                 }
 
-                DrawTexture(assetData == null ? 0 : assetData.GetInstanceID(), rect);
+                DrawTexture(id, rect, assetPath);
 
                 if (AssetDatabase.IsValidFolder(assetPath))
                 {
@@ -81,7 +58,7 @@ namespace Astraia
             }
         }
 
-        private static void DrawTexture(int guid, Rect rect)
+        private static void DrawTexture(int guid, Rect rect, string path)
         {
             var x = Mathf.Max(0, rect.x - 128 - 16);
             var width = Mathf.Min(128, rect.x - 16);
@@ -89,13 +66,16 @@ namespace Astraia
             var texCoords = new Rect(1 - width / 128, 0, width / 128, 1);
             GUI.DrawTextureWithTexCoords(position, EditorItem.GetImage(Item.Normal), texCoords);
 
-            if (!Reflection.HasChild(guid))
+            if (!string.IsNullOrEmpty(path))
             {
-                position.width = 16;
-                position.x = rect.x - 16;
-                GUI.DrawTexture(position, EditorItem.GetImage(Item.Middle));
+                if (!Reflection.HasChild(guid))
+                {
+                    position.width = 16;
+                    position.x = rect.x - 16;
+                    GUI.DrawTexture(position, EditorItem.GetImage(Item.Middle));
+                }
             }
-
+            
             if (Mathf.FloorToInt((rect.y - 4) / 16 % 2) != 0)
             {
                 var itemRect = new Rect(0, rect.y, rect.width + rect.x, rect.height);
