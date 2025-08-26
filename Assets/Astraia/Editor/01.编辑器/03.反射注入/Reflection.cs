@@ -24,13 +24,15 @@ namespace Astraia
 {
     internal static class Reflection
     {
-        public static readonly Type toolbar;
-        public static readonly Type importer;
-        public static readonly Type inspector;
+        public static readonly Type Toolbar;
+        public static readonly Type Importer;
+        public static readonly Type Inspector;
 
-        private static readonly Type browser;
-        private static readonly Type hierarchy;
-
+        private static readonly Type GUIClip;
+        private static readonly Type GUIView;
+        private static readonly Type Browser;
+        private static readonly Type Hierarchy;
+        
         public static readonly GUIContent collapse;
         public static readonly GUIContent expansion;
         public static readonly GUIContent buildIcon;
@@ -42,13 +44,17 @@ namespace Astraia
         public static readonly GUIContent customIcon;
         public static readonly GUIContent windowIcon;
 
+
         static Reflection()
         {
-            toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
-            browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
-            importer = typeof(Editor).Assembly.GetType("UnityEditor.PrefabImporter");
-            inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
-            hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
+            Toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
+            Browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
+            Importer = typeof(Editor).Assembly.GetType("UnityEditor.PrefabImporter");
+            Inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+            Hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
+
+            GUIClip = typeof(GUI).Assembly.GetType("UnityEngine.GUIClip");
+            GUIView = typeof(Editor).Assembly.GetType("UnityEditor.GUIView");
 
             unityIcon = EditorGUIUtility.IconContent("UnityLogo");
             prefabIcon = EditorGUIUtility.IconContent("Prefab Icon");
@@ -67,7 +73,7 @@ namespace Astraia
 
         public static EditorWindow ShowHierarchy()
         {
-            return hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
+            return Hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
         }
 
         public static void HideHierarchy(EditorWindow window)
@@ -90,7 +96,7 @@ namespace Astraia
 
         public static bool HasChild(int assetId)
         {
-            var window = browser.GetValue<EditorWindow>("s_LastInteractedProjectBrowser");
+            var window = Browser.GetValue<EditorWindow>("s_LastInteractedProjectBrowser");
             if (window == null) return false;
             IEnumerable<TreeViewItem> items = null;
             var cached = window.GetValue("m_AssetTree");
@@ -123,6 +129,12 @@ namespace Astraia
         public static VisualElement GetRoot(ScriptableObject instance)
         {
             return instance.GetValue<VisualElement>("m_Root");
+        }
+
+        public static void MarkInteractive(Rect rect)
+        {
+            rect = (Rect)GUIClip.Invoke("UnclipToWindow", rect);
+            GUIView.GetValue("current").Invoke("MarkHotRegion", rect);
         }
     }
 }

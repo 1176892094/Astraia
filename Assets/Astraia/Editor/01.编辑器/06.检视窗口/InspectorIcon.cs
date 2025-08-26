@@ -55,7 +55,7 @@ namespace Astraia
             }
     
             var target = editors[0].target;
-            if (target is not GameObject && target.GetType() != Reflection.importer)
+            if (target is not GameObject && target.GetType() != Reflection.Importer)
             {
                 return;
             }

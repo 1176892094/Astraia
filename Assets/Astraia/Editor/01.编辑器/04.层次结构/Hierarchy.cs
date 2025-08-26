@@ -17,37 +17,42 @@ using UnityEngine.UIElements;
 
 namespace Astraia
 {
+    using static EditorEvent;
+
     internal static class Hierarchy
     {
         private static readonly HashSet<int> windows = new HashSet<int>();
-        private static GUIContent content = new GUIContent();
-
+        private static readonly GUIContent content = new GUIContent();
 
         public static void OnGUI(int id, Rect rect)
         {
-            var cursor = Event.current.mousePosition;
+            var cursor = mousePosition;
             var target = (GameObject)EditorUtility.InstanceIDToObject(id);
-            var button = cursor.x >= 0 && cursor.x <= rect.xMax + 16 && cursor.y >= rect.y && cursor.y < rect.yMax;
 
-            switch (Event.current.type)
+            if (isLayout)
             {
-                case EventType.Layout:
-                    InitWindow();
-                    break;
-                case EventType.Repaint:
-                    DrawTexture(rect, target);
-                    DrawIcon(rect, target);
-                    break;
-                case EventType.MouseDown:
-                    DrawIcon(rect, target);
-                    break;
+                InitWindow();
+            }
+            else if (isRepaint)
+            {
+                DrawTexture(rect, target);
+                DrawIcon(rect, target);
+            }
+            else if (isMouseDown)
+            {
+                DrawIcon(rect, target);
             }
 
-            if (button && target != null)
+            var toggle = new Rect(rect)
             {
-                button = target.activeSelf;
-                target.SetActive(EditorGUI.Toggle(new Rect(32f, rect.y, 16f, rect.height), target.activeSelf));
-                if (button != target.activeSelf)
+                x = rect.x - 32,
+                width = rect.width + 32,
+            };
+            if (toggle.Contains(cursor) && target)
+            {
+                var oldState = target.activeSelf;
+                target.SetActive(EditorGUI.Toggle(new Rect(33F, rect.y, 16, rect.height), target.activeSelf));
+                if (oldState != target.activeSelf)
                 {
                     EditorUtility.SetDirty(target);
                 }
@@ -177,8 +182,8 @@ namespace Astraia
         {
             if (target == null) return;
             content.text = target.name;
-            var nameWidth = GUI.skin.label.CalcSize(content).x;
-            var nameRect = new Rect(rect.x, rect.y, nameWidth + 14, rect.height);
+            var nameSize = GUI.skin.label.CalcSize(content).x;
+            var nameRect = new Rect(rect.x, rect.y, nameSize + 14, rect.height);
             var distance = rect.xMax + 16;
 
             var render = target.GetComponent<Renderer>();
@@ -209,54 +214,61 @@ namespace Astraia
                         {
                             if (material != null)
                             {
-                                distance -= 14;
-                                var itemRect = new Rect(distance, rect.y, 12, rect.height);
-                                if (itemRect.xMax > nameRect.x && itemRect.x < nameRect.xMax)
+                                if (!DrawComponent())
                                 {
                                     break;
                                 }
-
-                                ItemIcon(itemRect, material);
                             }
                         }
 
                         break;
                     }
-                    else
+
+                    if (!DrawComponent())
+                    {
+                        break;
+                    }
+
+                    bool DrawComponent()
                     {
                         distance -= 14;
                         var itemRect = new Rect(distance, rect.y, 12, rect.height);
                         if (itemRect.xMax > nameRect.x && itemRect.x < nameRect.xMax)
                         {
-                            break;
+                            return false;
                         }
 
                         ItemIcon(itemRect, entity[i]);
+                        return true;
                     }
                 }
             }
         }
 
-
         private static void ItemIcon(Rect rect, Object item)
         {
-            switch (Event.current.type)
+            if (isRepaint)
             {
-                case EventType.Repaint:
-                    var icon = EditorGUIUtility.ObjectContent(item, item.GetType()).image;
-                    Color oldColor = GUI.color;
-                    GUI.color = new Color(1, 1, 1, 0.5f);
+                var icon = EditorGUIUtility.ObjectContent(item, item.GetType()).image;
+                if (rect.Contains(mousePosition))
+                {
                     GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit);
-                    GUI.color = oldColor;
-                    break;
-                case EventType.MouseDown:
-                    if (rect.Contains(Event.current.mousePosition) && Event.current.button == 1)
-                    {
-                        Reflection.ShowContext(rect, item);
-                        Event.current.Use();
-                    }
-
-                    break;
+                }
+                else
+                {
+                    var color = GUI.color;
+                    GUI.color = new Color(1, 1, 1, 0.3f);
+                    GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit);
+                    GUI.color = color;
+                }
+            }
+            else if (isMouseDown)
+            {
+                if (rect.Contains(mousePosition) && isAlt && mouseButton == 0)
+                {
+                    Reflection.ShowContext(rect, item);
+                    Use();
+                }
             }
         }
     }

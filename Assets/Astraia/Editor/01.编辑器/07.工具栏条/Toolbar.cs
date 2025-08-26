@@ -49,7 +49,7 @@ namespace Astraia
 
         private static void SelectionChanged()
         {
-            var objects = Resources.FindObjectsOfTypeAll(Reflection.toolbar);
+            var objects = Resources.FindObjectsOfTypeAll(Reflection.Toolbar);
             foreach (var obj in objects)
             {
                 if (obj is ScriptableObject window)

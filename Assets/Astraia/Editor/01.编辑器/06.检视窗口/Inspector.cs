@@ -19,7 +19,7 @@ namespace Astraia
     {
         protected void SelectionChanged()
         {
-            var objects = Resources.FindObjectsOfTypeAll(Reflection.inspector);
+            var objects = Resources.FindObjectsOfTypeAll(Reflection.Inspector);
             foreach (var obj in objects)
             {
                 if (obj is EditorWindow window)
@@ -61,7 +61,7 @@ namespace Astraia
 
         protected void OnWindowFocused(EditorWindow window)
         {
-            if (window != null && window.GetType() == Reflection.inspector)
+            if (window != null && window.GetType() == Reflection.Inspector)
             {
                 InitWindow(window);
             }
@@ -69,7 +69,7 @@ namespace Astraia
 
         protected void OnWindowMaximized(EditorWindow window)
         {
-            if (window != null && window.GetType() == Reflection.inspector)
+            if (window != null && window.GetType() == Reflection.Inspector)
             {
                 InitWindow(window);
             }
