@@ -86,16 +86,16 @@ namespace Astraia
             var width = Mathf.Min(128, rect.x - 28 - 16);
             var position = new Rect(x, rect.y, width, rect.height);
             var texCoords = new Rect(1 - width / 128, 0, width / 128, 1);
-            GUI.DrawTextureWithTexCoords(position, EditorIcon.GetIcon(Item.Normal), texCoords);
+            GUI.DrawTextureWithTexCoords(position, EditorIcon.GetIcon(Tree.Normal), texCoords);
             if (target.transform.childCount == 0)
             {
-                var item = Item.Height;
+                var item = Tree.Height;
                 var index = target.transform.GetSiblingIndex();
                 if (index != 0)
                 {
                     var parent = target.transform.parent;
                     var amount = parent != null ? parent.childCount : target.scene.rootCount;
-                    item = index == amount - 1 ? Item.Bottom : Item.Middle;
+                    item = index == amount - 1 ? Tree.Bottom : Tree.Middle;
                 }
 
                 position.width = 16;

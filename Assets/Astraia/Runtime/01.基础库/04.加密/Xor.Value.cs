@@ -230,6 +230,11 @@ namespace Astraia.Common
             {
                 get
                 {
+                    if (origin == null)
+                    {
+                        return null;
+                    }
+
                     if (buffer != GetHashCode())
                     {
                         throw new InvalidOperationException();

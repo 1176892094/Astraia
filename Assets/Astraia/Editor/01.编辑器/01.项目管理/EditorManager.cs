@@ -15,7 +15,7 @@ using UnityEditor;
 namespace Astraia
 {
     [InitializeOnLoad]
-    internal static partial class EditorManager
+    internal static class EditorManager
     {
         private static bool maximized;
         private static EditorWindow focusedWindow;
@@ -26,10 +26,10 @@ namespace Astraia
         {
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
-            EditorApplication.projectWindowItemInstanceOnGUI -= Folder.OnGUI;
-            EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
             EditorApplication.hierarchyWindowItemOnGUI -= Hierarchy.OnGUI;
             EditorApplication.hierarchyWindowItemOnGUI += Hierarchy.OnGUI;
+            EditorApplication.projectWindowItemInstanceOnGUI -= Folder.OnGUI;
+            EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
             focusedWindow = EditorWindow.focusedWindow;
             maximized = focusedWindow != null && focusedWindow.maximized;
         }

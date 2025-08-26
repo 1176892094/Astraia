@@ -177,7 +177,7 @@ namespace Astraia
                 var column = count < fields.Count ? "column++" : "column";
                 var fieldName = index < 0 ? field.Key : field.Key.Substring(0, index);
                 var fieldData = char.ToLower(fieldName[0]) + fieldName.Substring(1);
-                builder.AppendFormat("\t\t\t{0} = Service.Text.GetSafe.Bytes(sheet[{1}]);\n", fieldData, column);
+                builder.AppendFormat("\t\t\t{0} = Service.Text.GetBytes(sheet[{1}]);\n", fieldData, column);
             }
 
             builder.Length -= 1;

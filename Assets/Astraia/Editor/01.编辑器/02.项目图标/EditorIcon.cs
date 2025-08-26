@@ -94,7 +94,7 @@ namespace Astraia
         Windows = 22,
     }
 
-    internal enum Item
+    internal enum Tree
     {
         Normal = 23,
         Bottom = 24,
