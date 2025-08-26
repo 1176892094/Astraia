@@ -101,7 +101,7 @@ namespace Astraia
                 var width = Mathf.Min(128, rect.x - 28 - 16);
                 var position = new Rect(x, rect.y, width, rect.height);
                 var texCoords = new Rect(1 - width / 128, 0, width / 128, 1);
-                GUI.DrawTextureWithTexCoords(position, EditorItem.GetImage(Item.Normal), texCoords);
+                GUI.DrawTextureWithTexCoords(position, EditorIcon.GetIcon(Item.Normal), texCoords);
                 if (target.transform.childCount == 0)
                 {
                     var item = Item.Height;
@@ -115,7 +115,7 @@ namespace Astraia
 
                     position.width = 16;
                     position.x = rect.x - 16;
-                    GUI.DrawTexture(position, EditorItem.GetImage(item));
+                    GUI.DrawTexture(position, EditorIcon.GetIcon(item));
                 }
 
                 if (Mathf.FloorToInt((rect.y - 4) / 16 % 2) != 0)

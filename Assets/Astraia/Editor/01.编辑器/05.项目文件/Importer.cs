@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +19,41 @@ namespace Astraia
     internal sealed class Importer
     {
         private static Importer instance;
+
+        private static readonly Dictionary<string, Icon> icons = new Dictionary<string, Icon>()
+        {
+            { "Animations", Icon.Animations },
+            { "Resources", Icon.Resources },
+            { "Scenes", Icon.Scenes },
+            { "Scripts", Icon.Scripts },
+            { "Plugins", Icon.Plugins },
+            { "Materials", Icon.Materials },
+            { "Extensions", Icon.Editor },
+            { "Audios", Icon.Audios },
+            { "Prefabs", Icon.Prefabs },
+            { "Models", Icon.Meshes },
+            { "Settings", Icon.Project },
+            { "Shaders", Icon.Shaders },
+            { "Fonts", Icon.Fonts },
+            { "Textures", Icon.Textures },
+            { "StreamingAssets", Icon.Resources },
+            { "Physics", Icon.Physics },
+            { "Terrains", Icon.Terrains },
+            { "Tilemaps", Icon.Terrains },
+            { "Lights", Icon.Lights },
+            { "Process", Icon.Lights },
+            { "Editor", Icon.Editor },
+            { "Android", Icon.Android },
+            { "iOS", Icon.IPhone },
+            { "Windows", Icon.Windows },
+            { "MacOS", Icon.MacOS },
+            { "WebGL", Icon.WebGL },
+            { "DataTable", Icon.Project },
+            { "Atlas", Icon.Meshes },
+            { "Icons", Icon.Textures },
+            { "HotUpdate", Icon.Scripts },
+            { "Template", Icon.Resources },
+        };
 
         private Importer()
         {
@@ -49,10 +85,10 @@ namespace Astraia
                 {
                     var folder = Path.GetFileName(assetPath);
 
-                    if (EditorTool.icons.TryGetValue(folder, out var icon))
+                    if (icons.TryGetValue(folder, out var icon))
                     {
                         rect.width = rect.height;
-                        GUI.DrawTexture(rect, EditorIcon.GetImage(icon));
+                        GUI.DrawTexture(rect, EditorIcon.GetIcon(icon));
                     }
                 }
             }
@@ -64,7 +100,7 @@ namespace Astraia
             var width = Mathf.Min(128, rect.x - 16);
             var position = new Rect(x, rect.y, width, rect.height);
             var texCoords = new Rect(1 - width / 128, 0, width / 128, 1);
-            GUI.DrawTextureWithTexCoords(position, EditorItem.GetImage(Item.Normal), texCoords);
+            GUI.DrawTextureWithTexCoords(position, EditorIcon.GetIcon(Item.Normal), texCoords);
 
             if (!string.IsNullOrEmpty(path))
             {
@@ -72,10 +108,10 @@ namespace Astraia
                 {
                     position.width = 16;
                     position.x = rect.x - 16;
-                    GUI.DrawTexture(position, EditorItem.GetImage(Item.Middle));
+                    GUI.DrawTexture(position, EditorIcon.GetIcon(Item.Middle));
                 }
             }
-            
+
             if (Mathf.FloorToInt((rect.y - 4) / 16 % 2) != 0)
             {
                 var itemRect = new Rect(0, rect.y, rect.width + rect.x, rect.height);

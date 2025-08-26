@@ -27,6 +27,7 @@ namespace Astraia
         Struct,
         DataTable,
         BadWord,
+        Icons,
     }
 
     internal enum AssetMode : byte
