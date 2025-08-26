@@ -30,7 +30,7 @@ namespace Astraia
 
             public bool Equals(Node other)
             {
-                return EqualityComparer<Key>.Default.Equals(Key, other.Key) && EqualityComparer<Value>.Default.Equals(Value, other.Value);
+                return EqualityComparer<Key>.Default.Equals(Key, other.Key);
             }
 
             public override bool Equals(object obj)
@@ -40,7 +40,7 @@ namespace Astraia
 
             public override int GetHashCode()
             {
-                return HashCode.Combine(Key, Value);
+                return HashCode.Combine(Key);
             }
         }
     }
