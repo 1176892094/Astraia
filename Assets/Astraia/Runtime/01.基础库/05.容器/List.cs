@@ -24,46 +24,37 @@ namespace Astraia
 
         public Value this[Key key]
         {
-            get => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException(nameof(key));
-            set => Add(key, value);
-        }
-
-        public void Add(Key key, Value value)
-        {
-            if (items.TryGetValue(key, out var item))
+            get => items[key].Value.Value;
+            set
             {
-                var node = item.Value;
-                node.Value = value;
-                item.Value = node;
-            }
-            else
-            {
-                items[key] = nodes.AddLast(new Node(key, value));
+                if (items.TryGetValue(key, out var item))
+                {
+                    var node = item.Value;
+                    node.Value = value;
+                    item.Value = node;
+                }
+                else
+                {
+                    items[key] = nodes.AddLast(new Node(key, value));
+                }
             }
         }
 
-        public void AddFirst(Key key, Value value)
+        public void Reset(IEnumerable<Node> data)
         {
-            if (items.TryGetValue(key, out var item))
-            {
-                var node = item.Value;
-                node.Value = value;
-                item.Value = node;
-            }
-            else
-            {
-                items[key] = nodes.AddFirst(new Node(key, value));
-            }
+            items.Clear();
+            nodes.Clear();
+            AddRange(data);
         }
 
-        public void AddRange(IEnumerable<Node> items, Predicate<Node> match = null)
+        public void AddRange(IEnumerable<Node> data, Predicate<Node> match = null)
         {
-            if (items == null)
+            if (data == null)
             {
-                throw new ArgumentNullException(nameof(items));
+                throw new ArgumentNullException(nameof(data));
             }
 
-            foreach (var node in items)
+            foreach (var node in data)
             {
                 if (match == null || match(node))
                 {
@@ -72,31 +63,46 @@ namespace Astraia
             }
         }
 
+        public void Add(Key key, Value value)
+        {
+            if (items.ContainsKey(key))
+            {
+                throw new ArgumentException(nameof(key));
+            }
+
+            items[key] = nodes.AddLast(new Node(key, value));
+        }
+
+        public void AddFirst(Key key, Value value)
+        {
+            if (items.ContainsKey(key))
+            {
+                throw new ArgumentException(nameof(key));
+            }
+
+            items[key] = nodes.AddFirst(new Node(key, value));
+        }
+
         public void Insert(Key origin, Key key, Value value)
         {
+            if (items.ContainsKey(key))
+            {
+                throw new ArgumentException(nameof(key));
+            }
+
             if (!items.TryGetValue(origin, out var target))
             {
                 throw new KeyNotFoundException(nameof(origin));
             }
 
-            if (items.TryGetValue(key, out var item))
-            {
-                var node = item.Value;
-                node.Value = value;
-                item.Value = node;
-            }
-            else
-            {
-                items[key] = nodes.AddBefore(target, new Node(key, value));
-            }
+            items[key] = nodes.AddBefore(target, new Node(key, value));
         }
 
         public bool Remove(Key key)
         {
-            if (items.TryGetValue(key, out var node))
+            if (items.Remove(key, out var node))
             {
                 nodes.Remove(node);
-                items.Remove(key);
                 return true;
             }
 
@@ -143,15 +149,6 @@ namespace Astraia
 
             value = default;
             return false;
-        }
-
-        public void Reset(IList<Node> data)
-        {
-            Clear();
-            foreach (var item in data)
-            {
-                Add(item.Key, item.Value);
-            }
         }
 
         public void Clear()

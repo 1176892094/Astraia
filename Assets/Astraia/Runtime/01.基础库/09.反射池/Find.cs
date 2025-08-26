@@ -19,57 +19,72 @@ namespace Astraia
     {
         public static partial class Find
         {
-            private static readonly IDictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
-            private static readonly IDictionary<string, Type> cacheTypes = new Dictionary<string, Type>();
+            private static readonly Dictionary<string, Type> references = new();
+            private static readonly Dictionary<string, Assembly> assemblies = new();
             public const BindingFlags Entity = (BindingFlags)52;
             public const BindingFlags Static = (BindingFlags)56;
 
             public static Assembly Assembly(string name)
             {
-                if (assemblies.TryGetValue(name, out var assembly))
+                if (assemblies.TryGetValue(name, out var result))
                 {
-                    return assembly;
+                    return result;
                 }
 
                 var assemblyData = AppDomain.CurrentDomain.GetAssemblies();
-                foreach (var data in assemblyData)
+                foreach (var assembly in assemblyData)
                 {
-                    if (data.GetName().Name == name)
+                    if (assembly.GetName().Name == name)
                     {
-                        assembly = data;
+                        result = assembly;
                         break;
                     }
                 }
 
-                if (assembly != null)
+                if (result != null)
                 {
-                    assemblies[name] = assembly;
+                    assemblies[name] = result;
                 }
 
-                return assembly;
+                return result;
             }
 
             public static Type Type(string name)
             {
-                if (cacheTypes.TryGetValue(name, out var cacheType))
+                if (references.TryGetValue(name, out var result))
                 {
-                    return cacheType;
+                    return result;
                 }
 
                 var index = name.LastIndexOf(',');
                 if (index < 0)
                 {
-                    return System.Type.GetType(name);
+                    var assemblyData = AppDomain.CurrentDomain.GetAssemblies();
+                    foreach (var assembly in assemblyData)
+                    {
+                        result = assembly.GetType(name);
+                        if (result != null)
+                        {
+                            references[name] = result;
+                            assemblies[result.Assembly.GetName().Name] = result.Assembly;
+                            break;
+                        }
+                    }
                 }
-
-                var assembly = Assembly(name.Substring(index + 1).Trim());
-                if (assembly != null)
+                else
                 {
-                    cacheType = assembly.GetType(name.Substring(0, index));
-                    cacheTypes.Add(name, cacheType);
+                    var assembly = Assembly(name.Substring(index + 1).Trim());
+                    if (assembly != null)
+                    {
+                        result = assembly.GetType(name.Substring(0, index));
+                        if (result != null)
+                        {
+                            references[name] = result;
+                        }
+                    }
                 }
 
-                return cacheType;
+                return result;
             }
         }
     }
