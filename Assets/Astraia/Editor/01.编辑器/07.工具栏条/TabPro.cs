@@ -59,13 +59,11 @@ namespace Astraia
             public void Register()
             {
                 panel.visualTree.RegisterCallback<WheelEvent>(Event, TrickleDown.TrickleDown);
-                panel.visualTree.RegisterCallback<MouseMoveEvent>(Event, TrickleDown.TrickleDown);
             }
 
             public void Unregister()
             {
                 panel.visualTree.UnregisterCallback<WheelEvent>(Event);
-                panel.visualTree.UnregisterCallback<MouseMoveEvent>(Event);
                 Destroy();
             }
 
@@ -75,9 +73,9 @@ namespace Astraia
                 panel = null;
             }
 
-            private void Event(EventBase e)
+            private void Event(EventBase @event)
             {
-                if (e is not WheelEvent wheel)
+                if (@event is not WheelEvent result)
                 {
                     return;
                 }
@@ -87,13 +85,13 @@ namespace Astraia
                     return;
                 }
 
-                var move = wheel.delta.x;
+                var move = result.delta.x;
                 if (move == 0)
                 {
                     return;
                 }
 
-                e.StopPropagation();
+                result.StopPropagation();
                 var moveTab = panes.FirstOrDefault(r => r.hasFocus);
                 if (isCtrl)
                 {
