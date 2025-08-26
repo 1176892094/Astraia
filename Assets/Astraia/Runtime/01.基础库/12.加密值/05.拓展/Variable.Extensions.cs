@@ -14,7 +14,7 @@ using Astraia.Common;
 
 namespace Astraia
 {
-    public static class Extensions
+    public static partial class Extensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetBit(this Safe.Int data, int shift, int mask)

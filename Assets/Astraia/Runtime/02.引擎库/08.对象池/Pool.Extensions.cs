@@ -29,6 +29,17 @@ namespace Astraia
             return component;
         }
 
+        public static Component GetOrAddComponent(this GameObject gameObject, Type type)
+        {
+            var component = gameObject.GetComponent(type);
+            if (component == null)
+            {
+                component = gameObject.AddComponent(type);
+            }
+
+            return component;
+        }
+
         public static void Inject(this Transform inject, object target)
         {
             var fields = target.GetType().GetFields(Service.Find.Entity);
@@ -76,85 +87,64 @@ namespace Astraia
                     var cacheType = Service.Find.Type("UnityEngine.UI.Button,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var button))
                     {
-                        var property = cacheType.GetProperty("onClick", Service.Find.Entity);
-                        if (property != null)
+                        var panel = inject.GetComponent<Entity>()?.GetAgent<UIPanel>();
+                        if (panel != null)
                         {
-                            var func = (UnityAction)Delegate.CreateDelegate(typeof(UnityAction), target, method);
-                            var panel = inject.GetComponent<Entity>()?.GetAgent<UIPanel>();
-                            if (panel == null)
+                            button.GetValue<UnityEvent>("onClick").AddListener(() =>
                             {
-                                ((UnityEvent)property.GetValue(button)).AddListener(func);
-                            }
-                            else
-                            {
-                                ((UnityEvent)property.GetValue(button)).AddListener(() =>
+                                if (panel.state != UIState.Freeze)
                                 {
-                                    if (panel.state != UIState.Freeze)
-                                    {
-                                        func.Invoke();
-                                    }
-                                });
-                            }
+                                    target.Invoke(name);
+                                }
+                            });
+                            return;
                         }
 
+                        button.GetValue<UnityEvent>("onClick").AddListener(() => target.Invoke(name));
                         continue;
                     }
 
                     cacheType = Service.Find.Type("UnityEngine.UI.Toggle,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var toggle))
                     {
-                        var property = cacheType.GetProperty("onValueChanged", Service.Find.Entity);
-                        if (property != null)
+                        var panel = inject.GetComponent<Entity>()?.GetAgent<UIPanel>();
+                        if (panel != null)
                         {
-                            var func = (UnityAction<bool>)Delegate.CreateDelegate(typeof(UnityAction<bool>), target, method);
-                            var panel = inject.GetComponent<Entity>()?.GetAgent<UIPanel>();
-                            if (panel == null)
+                            toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value =>
                             {
-                                ((UnityEvent<bool>)property.GetValue(toggle)).AddListener(func);
-                            }
-                            else
-                            {
-                                ((UnityEvent<bool>)property.GetValue(toggle)).AddListener(value =>
+                                if (panel.state != UIState.Freeze)
                                 {
-                                    if (panel.state != UIState.Freeze)
-                                    {
-                                        func.Invoke(value);
-                                    }
-                                });
-                            }
+                                    target.Invoke(name, value);
+                                }
+                            });
+                            return;
                         }
 
+                        toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value => target.Invoke(name, value));
                         continue;
                     }
 
                     cacheType = Service.Find.Type("TMPro.TMP_InputField,Unity.TextMeshPro");
                     if (component.TryGetComponent(cacheType, out var inputField))
                     {
-                        var property = cacheType.GetProperty("onSubmit", Service.Find.Entity);
-                        if (property != null)
+                        var panel = inject.GetComponent<Entity>()?.GetAgent<UIPanel>();
+                        if (panel != null)
                         {
-                            var func = (UnityAction<string>)Delegate.CreateDelegate(typeof(UnityAction<string>), target, method);
-                            var panel = inject.GetComponent<Entity>()?.GetAgent<UIPanel>();
-                            if (panel == null)
+                            inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                             {
-                                ((UnityEvent<string>)property.GetValue(inputField)).AddListener(func);
-                            }
-                            else
-                            {
-                                ((UnityEvent<string>)property.GetValue(inputField)).AddListener(value =>
+                                if (panel.state != UIState.Freeze)
                                 {
-                                    if (panel.state != UIState.Freeze)
-                                    {
-                                        func.Invoke(value);
-                                    }
-                                });
-                            }
+                                    target.Invoke(name, value);
+                                }
+                            });
+                            return;
                         }
+
+                        inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => target.Invoke(name, value));
                     }
                 }
             }
         }
-
 
         private static Transform GetChild(this Transform parent, string name)
         {

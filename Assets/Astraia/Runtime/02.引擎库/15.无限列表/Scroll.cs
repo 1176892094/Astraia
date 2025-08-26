@@ -177,8 +177,7 @@ namespace Astraia
 
                     PoolManager.Show("Prefabs/" + assetType.Name, obj =>
                     {
-                        var grid = obj.GetComponent<IGrid<TItem>>() ?? (IGrid<TItem>)obj.AddComponent(assetType);
-
+                        var grid = (IGrid<TItem>)obj.GetOrAddComponent(assetType);
                         var target = (RectTransform)grid.transform;
                         target.SetParent(content);
                         target.sizeDelta = new Vector2(assetRect.width, assetRect.height);

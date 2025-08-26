@@ -26,7 +26,7 @@ namespace Astraia
             private static readonly Dictionary<Type, Dictionary<string, Action<object, object>>> setterCache = new();
             private static readonly Dictionary<Type, Dictionary<string, Func<object, object[], object>>> methodCache = new();
 
-            public static object Invoke(object target, string name, params object[] args)
+            internal static object Invoke(object target, string name, params object[] args)
             {
                 var targetType = target as Type ?? target.GetType();
                 if (!methodCache.TryGetValue(targetType, out var methods))
@@ -58,7 +58,7 @@ namespace Astraia
                 return method.Invoke(target is Type ? null : target, args);
             }
 
-            public static object GetValue(object target, string name)
+            internal static object GetValue(object target, string name)
             {
                 var targetType = target as Type ?? target.GetType();
                 if (!getterCache.TryGetValue(targetType, out var getters))
@@ -97,7 +97,7 @@ namespace Astraia
                 return getter.Invoke(target is Type ? null : target);
             }
 
-            public static void SetValue<T>(object target, string name, T value)
+            internal static void SetValue<T>(object target, string name, T value)
             {
                 var targetType = target as Type ?? target.GetType();
                 if (!setterCache.TryGetValue(targetType, out var setters))
