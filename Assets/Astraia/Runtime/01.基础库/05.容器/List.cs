@@ -24,7 +24,7 @@ namespace Astraia
 
         public Value this[Key key]
         {
-            get => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
+            get => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException(nameof(key));
             set => Add(key, value);
         }
 
@@ -55,12 +55,28 @@ namespace Astraia
                 items[key] = nodes.AddFirst(new Node(key, value));
             }
         }
-        
+
+        public void AddRange(IEnumerable<Node> items, Predicate<Node> match = null)
+        {
+            if (items == null)
+            {
+                throw new ArgumentNullException(nameof(items));
+            }
+
+            foreach (var node in items)
+            {
+                if (match == null || match(node))
+                {
+                    Add(node.Key, node.Value);
+                }
+            }
+        }
+
         public void Insert(Key origin, Key key, Value value)
         {
             if (!items.TryGetValue(origin, out var target))
             {
-                throw new KeyNotFoundException(origin.ToString());
+                throw new KeyNotFoundException(nameof(origin));
             }
 
             if (items.TryGetValue(key, out var item))
@@ -87,6 +103,31 @@ namespace Astraia
             return false;
         }
 
+        public int Remove(Predicate<Node> match)
+        {
+            if (match == null)
+            {
+                throw new ArgumentNullException(nameof(match));
+            }
+
+            var count = 0;
+            var node = nodes.First;
+            while (node != null)
+            {
+                var next = node.Next;
+                if (match.Invoke(node.Value))
+                {
+                    items.Remove(node.Value.Key);
+                    nodes.Remove(node);
+                    count++;
+                }
+
+                node = next;
+            }
+
+            return count;
+        }
+
         public bool ContainsKey(Key key)
         {
             return items.ContainsKey(key);
@@ -102,6 +143,15 @@ namespace Astraia
 
             value = default;
             return false;
+        }
+
+        public void Reset(IList<Node> data)
+        {
+            Clear();
+            foreach (var item in data)
+            {
+                Add(item.Key, item.Value);
+            }
         }
 
         public void Clear()
