@@ -20,7 +20,8 @@ namespace Astraia
     internal static class Hierarchy
     {
         private static readonly HashSet<int> windows = new HashSet<int>();
-        private static readonly GUIContent content = new GUIContent();
+        private static GUIContent content = new GUIContent();
+
 
         public static void OnGUI(int id, Rect rect)
         {
@@ -176,9 +177,10 @@ namespace Astraia
         {
             if (target == null) return;
             content.text = target.name;
-            rect.width = GUI.skin.label.CalcSize(content).x;
-            var distance = rect.x + rect.width + 14;
-            distance = (int)(distance / 14) * 14 + 14;
+            var nameWidth = GUI.skin.label.CalcSize(content).x;
+            var nameRect = new Rect(rect.x, rect.y, nameWidth + 14, rect.height);
+            var distance = rect.xMax + 16;
+
             var render = target.GetComponent<Renderer>();
             var entity = target.GetComponents<Component>().ToList<Object>();
             var shared = render != null && render.sharedMaterials != null;
@@ -187,38 +189,65 @@ namespace Astraia
                 entity.AddRange(render.sharedMaterials);
             }
 
+            var isPrefabAsset = PrefabUtility.IsPartOfPrefabAsset(target);
+            var isPrefabInstance = PrefabUtility.IsPartOfPrefabInstance(target);
+            var isPrefab = isPrefabAsset || isPrefabInstance;
+
             for (var i = 0; i < entity.Count; ++i)
             {
                 if (entity[i] != null)
                 {
-                    var itemRect = new Rect(distance, rect.y, 12, rect.height);
+                    if (isPrefab && i == 0)
+                    {
+                        distance -= 14;
+                        continue;
+                    }
+
                     if (shared && i == entity.Count - render.sharedMaterials.Length)
                     {
                         foreach (var material in render.sharedMaterials)
                         {
                             if (material != null)
                             {
-                                itemRect = new Rect(distance, rect.y, 12, rect.height);
+                                distance -= 14;
+                                var itemRect = new Rect(distance, rect.y, 12, rect.height);
+                                if (itemRect.xMax > nameRect.x && itemRect.x < nameRect.xMax)
+                                {
+                                    break;
+                                }
+
                                 ItemIcon(itemRect, material);
-                                distance += 14;
                             }
                         }
 
                         break;
                     }
+                    else
+                    {
+                        distance -= 14;
+                        var itemRect = new Rect(distance, rect.y, 12, rect.height);
+                        if (itemRect.xMax > nameRect.x && itemRect.x < nameRect.xMax)
+                        {
+                            break;
+                        }
 
-                    ItemIcon(itemRect, entity[i]);
-                    distance += 14;
+                        ItemIcon(itemRect, entity[i]);
+                    }
                 }
             }
         }
+
 
         private static void ItemIcon(Rect rect, Object item)
         {
             switch (Event.current.type)
             {
                 case EventType.Repaint:
-                    GUI.DrawTexture(rect, EditorGUIUtility.ObjectContent(item, item.GetType()).image, ScaleMode.ScaleToFit);
+                    var icon = EditorGUIUtility.ObjectContent(item, item.GetType()).image;
+                    Color oldColor = GUI.color;
+                    GUI.color = new Color(1, 1, 1, 0.5f);
+                    GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit);
+                    GUI.color = oldColor;
                     break;
                 case EventType.MouseDown:
                     if (rect.Contains(Event.current.mousePosition) && Event.current.button == 1)
