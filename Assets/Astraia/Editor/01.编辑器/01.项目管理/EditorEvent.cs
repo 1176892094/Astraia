@@ -115,7 +115,7 @@ namespace Astraia
 
                 var oldColor = GUI.color;
                 GUI.color *= color;
-                //     GUI.DrawTexture(iconRect, EditorIcons.GetIcon(iconName));
+                GUI.DrawTexture(iconRect, EditorIcon.GetIcon(iconName));
                 GUI.color = oldColor;
             }
 

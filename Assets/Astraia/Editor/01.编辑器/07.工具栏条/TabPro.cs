@@ -9,15 +9,10 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Astraia
 {
-    using static EditorEvent;
 
     public static class TabPro
     {
@@ -34,79 +29,13 @@ namespace Astraia
                     page.Register();
                 }
             }
-            
+
             foreach (var dockArea in DockAreas)
             {
                 if (!dockArea.Key)
                 {
                     dockArea.Value.Unregister();
                     DockAreas.Remove(dockArea.Key);
-                }
-            }
-        }
-
-        private class TabProPage
-        {
-            private List<EditorWindow> panes;
-            private IPanel panel;
-
-            public TabProPage(Object dockArea)
-            {
-                panes = dockArea.GetValue<List<EditorWindow>>("m_Panes");
-                panel = dockArea.GetValue<EditorWindow>("actualView").rootVisualElement.panel;
-            }
-
-            public void Register()
-            {
-                panel.visualTree.RegisterCallback<WheelEvent>(Event, TrickleDown.TrickleDown);
-            }
-
-            public void Unregister()
-            {
-                panel.visualTree.UnregisterCallback<WheelEvent>(Event);
-                Destroy();
-            }
-
-            private void Destroy()
-            {
-                panes = null;
-                panel = null;
-            }
-
-            private void Event(EventBase @event)
-            {
-                if (@event is not WheelEvent result)
-                {
-                    return;
-                }
-
-                if (!isShift)
-                {
-                    return;
-                }
-
-                var move = result.delta.x;
-                if (move == 0)
-                {
-                    return;
-                }
-
-                result.StopPropagation();
-                var moveTab = panes.FirstOrDefault(r => r.hasFocus);
-                if (isCtrl)
-                {
-                    var dir = move > 0 ? 1 : -1;
-                    var i0 = panes.IndexOf(moveTab);
-                    var i1 = Mathf.Clamp(i0 + dir, 0, panes.Count - 1);
-                    (panes[i0], panes[i1]) = (panes[i1], panes[i0]);
-                    panes[i1].Focus();
-                }
-                else
-                {
-                    var dir = move > 0 ? 1 : -1;
-                    var i0 = panes.IndexOf(moveTab);
-                    var i1 = Mathf.Clamp(i0 + dir, 0, panes.Count - 1);
-                    panes[i1].Focus();
                 }
             }
         }

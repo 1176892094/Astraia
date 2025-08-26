@@ -13,13 +13,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Astraia.Common;
+using UnityEditor;
 using UnityEngine;
 
 namespace Astraia
 {
     internal static class EditorIcon
     {
-        private static readonly Dictionary<int, Texture2D> icons = new Dictionary<int, Texture2D>();
+        private static readonly Dictionary<string, Texture2D> icons = new Dictionary<string, Texture2D>();
         private static readonly Dictionary<string, string> items;
         
         static EditorIcon()
@@ -30,7 +31,7 @@ namespace Astraia
 
         public static Texture2D GetIcon<T>(T value) where T : Enum
         {
-            var index = value.GetHashCode();
+            var index = value.ToString();
             if (icons.TryGetValue(index, out var icon))
             {
                 return icon;
@@ -52,6 +53,36 @@ namespace Astraia
             icon.LoadImage(Convert.FromBase64String(result));
             icons.Add(index, icon);
             return icon;
+        }
+        
+        public static Texture2D GetIcon(string reason)
+        {
+            if (icons.TryGetValue(reason, out var result) && result != null)
+            {
+                return result;
+            }
+
+            Texture2D icon = null;
+            if (items.TryGetValue(reason, out var bytes))
+            {
+                var pngBytes = bytes.Split("-").Select(r => Convert.ToByte(r, 16)).ToArray();
+                icon = new Texture2D(1, 1);
+                icon.LoadImage(pngBytes);
+            }
+
+            if (icon == null)
+            {
+                icon = typeof(EditorGUIUtility).Invoke<Texture2D>("LoadIcon", reason);
+            }
+
+            if (icon == null)
+            {
+                icon = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+                icon.SetPixel(0, 0, Color.clear);
+                icon.Apply();
+            }
+
+            return icons[reason] = icon;
         }
 
         [Serializable]
