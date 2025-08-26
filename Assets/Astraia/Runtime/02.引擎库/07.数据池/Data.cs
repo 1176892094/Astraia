@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -20,7 +19,7 @@ namespace Astraia.Common
     public static class DataManager
     {
         public static async void LoadDataTable()
-        {         
+        {
             if (!GlobalManager.Instance) return;
             var assembly = Service.Find.Assembly(GlobalSetting.assemblyName);
             if (assembly == null)
@@ -151,26 +150,34 @@ namespace Astraia.Common
             return (T)data;
         }
 
-        public static List<T> GetTable<T>() where T : IData
+        public static IEnumerable<T> GetTable<T>() where T : IData
         {
-            if (!GlobalManager.Instance) return null;
+            if (!GlobalManager.Instance) yield break;
             if (GlobalManager.itemTable.TryGetValue(typeof(T), out var itemTable))
             {
-                return itemTable.Values.Cast<T>().ToList();
+                foreach (var item in itemTable.Values)
+                {
+                    yield return (T)item;
+                }
             }
-
-            if (GlobalManager.nameTable.TryGetValue(typeof(T), out var nameTable))
+            else if (GlobalManager.nameTable.TryGetValue(typeof(T), out var nameTable))
             {
-                return nameTable.Values.Cast<T>().ToList();
+                foreach (var item in nameTable.Values)
+                {
+                    yield return (T)item;
+                }
             }
-
-            if (GlobalManager.enumTable.TryGetValue(typeof(T), out var enumTable))
+            else if (GlobalManager.enumTable.TryGetValue(typeof(T), out var enumTable))
             {
-                return enumTable.Values.Cast<T>().ToList();
+                foreach (var item in enumTable.Values)
+                {
+                    yield return (T)item;
+                }
             }
-
-            Debug.LogError(Service.Text.Format("获取 {0} 失败!", typeof(T).Name));
-            return null;
+            else
+            {
+                Debug.LogError(Service.Text.Format("获取 {0} 失败!", typeof(T).Name));
+            }
         }
 
         internal static void Dispose()
