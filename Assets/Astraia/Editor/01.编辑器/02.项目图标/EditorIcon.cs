@@ -21,8 +21,7 @@ namespace Astraia
     {
         private static readonly Dictionary<int, Texture2D> icons = new Dictionary<int, Texture2D>();
         private static readonly Dictionary<string, string> items;
-
-
+        
         static EditorIcon()
         {
             var data = Service.Zip.Decompress(GlobalSetting.GetTextByIndex(AssetText.Icons));

@@ -16,10 +16,8 @@ using UnityEngine;
 
 namespace Astraia
 {
-    internal sealed class Importer
+    internal static class Folder
     {
-        private static Importer instance;
-
         private static readonly Dictionary<string, Icon> icons = new Dictionary<string, Icon>()
         {
             { "Animations", Icon.Animations },
@@ -55,35 +53,23 @@ namespace Astraia
             { "Template", Icon.Resources },
         };
 
-        private Importer()
-        {
-            EditorApplication.projectWindowItemInstanceOnGUI -= OnGUI;
-            EditorApplication.projectWindowItemInstanceOnGUI += OnGUI;
-        }
-
-        [InitializeOnLoadMethod]
-        private static void Enable()
-        {
-            instance ??= new Importer();
-        }
-
-        private static void OnGUI(int id, Rect rect)
+        public static void OnGUI(int id, Rect rect)
         {
             if (Event.current.type == EventType.Repaint)
             {
-                var assetData = EditorUtility.InstanceIDToObject(id);
-                var assetPath = AssetDatabase.GetAssetPath(assetData);
+              
+                var path = AssetDatabase.GetAssetPath(EditorUtility.InstanceIDToObject(id));
 
                 if (rect.height > 16)
                 {
                     return;
                 }
 
-                DrawTexture(id, rect, assetPath);
+                DrawTexture(id, rect, path);
 
-                if (AssetDatabase.IsValidFolder(assetPath))
+                if (AssetDatabase.IsValidFolder(path))
                 {
-                    var folder = Path.GetFileName(assetPath);
+                    var folder = Path.GetFileName(path);
 
                     if (icons.TryGetValue(folder, out var icon))
                     {
@@ -94,7 +80,7 @@ namespace Astraia
             }
         }
 
-        private static void DrawTexture(int guid, Rect rect, string path)
+        private static void DrawTexture(int id, Rect rect, string path)
         {
             var x = Mathf.Max(0, rect.x - 128 - 16);
             var width = Mathf.Min(128, rect.x - 16);
@@ -104,7 +90,7 @@ namespace Astraia
 
             if (!string.IsNullOrEmpty(path))
             {
-                if (!Reflection.HasChild(guid))
+                if (!Reflection.HasChild(id))
                 {
                     position.width = 16;
                     position.x = rect.x - 16;

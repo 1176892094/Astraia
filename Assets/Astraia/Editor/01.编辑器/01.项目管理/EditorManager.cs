@@ -26,6 +26,10 @@ namespace Astraia
         {
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
+            EditorApplication.projectWindowItemInstanceOnGUI -= Folder.OnGUI;
+            EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
+            EditorApplication.hierarchyWindowItemOnGUI -= Hierarchy.OnGUI;
+            EditorApplication.hierarchyWindowItemOnGUI += Hierarchy.OnGUI;
             focusedWindow = EditorWindow.focusedWindow;
             maximized = focusedWindow != null && focusedWindow.maximized;
         }

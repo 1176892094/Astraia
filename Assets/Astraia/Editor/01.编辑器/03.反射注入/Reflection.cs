@@ -12,41 +12,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
+#if UNITY_6000_2_OR_NEWER
+using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+#endif
 
 namespace Astraia
 {
     internal static class Reflection
     {
-        private static readonly Assembly assembly;
-
         public static readonly Type toolbar;
         public static readonly Type importer;
         public static readonly Type inspector;
-        private static readonly FieldInfo iconWidth;
-        private static readonly FieldInfo iconLabel;
-        private static readonly FieldInfo hierarchyItem;
-        private static readonly FieldInfo HierarchyLast;
-        private static readonly FieldInfo hierarchyTree;
 
-        private static readonly FieldInfo toolbarRoot;
-        private static readonly FieldInfo importAssets;
-        private static readonly FieldInfo importFolder;
-        private static readonly FieldInfo importBrowser;
-
-        private static readonly PropertyInfo importTreeItem;
-        private static readonly PropertyInfo importTreeData;
-        private static readonly PropertyInfo inspectorElement;
-        private static readonly PropertyInfo inspectorTracker;
-
-        private static readonly MethodInfo folderGetRows;
-        private static readonly MethodInfo assetsGetRows;
-        private static readonly MethodInfo contextMenuMethod;
+        private static readonly Type browser;
+        private static readonly Type hierarchy;
 
         public static readonly GUIContent collapse;
         public static readonly GUIContent expansion;
@@ -61,41 +44,11 @@ namespace Astraia
 
         static Reflection()
         {
-            assembly = Assembly.Load("UnityEditor");
-
-            toolbar = GetEditor("Toolbar");
-            toolbarRoot = toolbar.GetField("m_Root", Service.Find.Entity);
-            importer = GetEditor("PrefabImporter");
-            inspector = GetEditor("InspectorWindow");
-            inspectorTracker = inspector.GetProperty("tracker", Service.Find.Entity);
-            var cacheType = GetEditor("SceneHierarchyWindow");
-            hierarchyItem = cacheType.GetField("m_SceneHierarchy", Service.Find.Entity);
-            HierarchyLast = cacheType.GetField("s_LastInteractedHierarchy", Service.Find.Static);
-            cacheType = GetEditor("SceneHierarchy");
-            hierarchyTree = cacheType.GetField("m_TreeView", Service.Find.Entity);
-#if UNITY_6000_2_OR_NEWER
-            cacheType = GetEditor("IMGUI.Controls.TreeViewController`1");
-            cacheType = cacheType.MakeGenericType(typeof(int));
-#else
-            cacheType = GetEditor("IMGUI.Controls.TreeViewController");
-#endif
-            importTreeItem = cacheType.GetProperty("gui", Service.Find.Entity);
-            importTreeData = cacheType.GetProperty("data", Service.Find.Entity);
-            cacheType = GetEditor("IMGUI.Controls.TreeViewGUI");
-            iconWidth = cacheType.GetField("k_IconWidth", Service.Find.Entity);
-            iconLabel = cacheType.GetField("k_SpaceBetweenIconAndText", Service.Find.Entity);
-            cacheType = GetEditor("ProjectBrowser");
-            importBrowser = cacheType.GetField("s_LastInteractedProjectBrowser", Service.Find.Static);
-            importAssets = cacheType.GetField("m_AssetTree", Service.Find.Entity);
-            importFolder = cacheType.GetField("m_FolderTree", Service.Find.Entity);
-            cacheType = GetEditor("ProjectBrowserColumnOneTreeViewDataSource");
-            folderGetRows = cacheType.GetMethod("GetRows", Service.Find.Entity);
-            cacheType = GetEditor("AssetsTreeViewDataSource");
-            assetsGetRows = cacheType.GetMethod("GetRows", Service.Find.Entity);
-            cacheType = GetEditor("UIElements.EditorElement");
-            inspectorElement = cacheType.GetProperty("m_Editors", Service.Find.Entity);
-
-            contextMenuMethod = GetMethod(typeof(EditorUtility), "DisplayObjectContextMenu", Service.Find.Static, new[] { typeof(Rect), typeof(Object), typeof(int) });
+            toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
+            browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
+            importer = typeof(Editor).Assembly.GetType("UnityEditor.PrefabImporter");
+            inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+            hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
 
             unityIcon = EditorGUIUtility.IconContent("UnityLogo");
             prefabIcon = EditorGUIUtility.IconContent("Prefab Icon");
@@ -112,86 +65,64 @@ namespace Astraia
             expansion = EditorGUIUtility.IconContent("Toolbar Plus More");
         }
 
-        private static Type GetEditor(string name)
-        {
-            return assembly.GetType("UnityEditor." + name);
-        }
-
-        private static MethodInfo GetMethod(Type type, string name, BindingFlags flags, Type[] types)
-        {
-            return type.GetMethod(name, flags, null, types, null);
-        }
-
         public static EditorWindow ShowHierarchy()
         {
-            return HierarchyLast.GetValue(null) as EditorWindow;
+            return hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
         }
 
         public static void HideHierarchy(EditorWindow window)
         {
             if (window == null) return;
-            var cached = hierarchyItem.GetValue(window);
+            var cached = window.GetValue("m_SceneHierarchy");
             if (cached == null) return;
-            cached = hierarchyTree.GetValue(cached);
+            cached = cached.GetValue("m_TreeView");
             if (cached == null) return;
-            cached = importTreeItem.GetValue(cached);
+            cached = cached.GetValue("gui");
             if (cached == null) return;
-            iconWidth.SetValue(cached, 0);
-            iconLabel.SetValue(cached, 18);
+            cached.SetValue("k_IconWidth", 0F);
+            cached.SetValue("k_SpaceBetweenIconAndText", 18F);
         }
 
         public static void ShowContext(Rect position, Object context)
         {
-            contextMenuMethod?.Invoke(null, new object[] { position, context, 0 });
+            typeof(EditorUtility).Invoke("DisplayObjectContextMenu", position, context, 0);
         }
 
         public static bool HasChild(int assetId)
         {
-            var window = importBrowser.GetValue(null) as EditorWindow;
+            var window = browser.GetValue<EditorWindow>("s_LastInteractedProjectBrowser");
             if (window == null) return false;
-#if UNITY_6000_2_OR_NEWER
-            IEnumerable<TreeViewItem<int>> items = null;
-#else
             IEnumerable<TreeViewItem> items = null;
-#endif
-            var cached = importAssets.GetValue(window);
+            var cached = window.GetValue("m_AssetTree");
             if (cached != null)
             {
-                cached = importTreeData.GetValue(cached, null);
-#if UNITY_6000_2_OR_NEWER
-                items = (IEnumerable<TreeViewItem<int>>)folderGetRows.Invoke(cached, null);
-#else
-                items = (IEnumerable<TreeViewItem>)folderGetRows.Invoke(cached, null);
-#endif
+                cached = cached.GetValue("data");
+                items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
             }
 
-            cached = importFolder.GetValue(window);
+            cached = window.GetValue("m_FolderTree");
             if (cached != null)
             {
-                cached = importTreeData.GetValue(cached, null);
-#if UNITY_6000_2_OR_NEWER
-                items = (IEnumerable<TreeViewItem<int>>)assetsGetRows.Invoke(cached, null);
-#else
-                items = (IEnumerable<TreeViewItem>)assetsGetRows.Invoke(cached, null);
-#endif
+                cached = cached.GetValue("data");
+                items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
             }
 
             return items != null && items.Where(item => item.id == assetId).Any(item => item.hasChildren);
         }
 
-        public static ActiveEditorTracker GetTracker(object obj)
-        {
-            return (ActiveEditorTracker)inspectorTracker.GetValue(obj);
-        }
-
         public static Editor[] GetEditors(object instance)
         {
-            return inspectorElement.GetValue(instance) as Editor[];
+            return instance.GetValue<Editor[]>("m_Editors");
         }
 
-        public static VisualElement GetRoot(ScriptableObject toolbar)
+        public static ActiveEditorTracker GetTracker(object instance)
         {
-            return (VisualElement)toolbarRoot.GetValue(toolbar);
+            return instance.GetValue<ActiveEditorTracker>("tracker");
+        }
+
+        public static VisualElement GetRoot(ScriptableObject instance)
+        {
+            return instance.GetValue<VisualElement>("m_Root");
         }
     }
 }
