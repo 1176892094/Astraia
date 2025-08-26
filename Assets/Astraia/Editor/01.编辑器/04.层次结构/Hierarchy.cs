@@ -26,9 +26,12 @@ namespace Astraia
 
         public static void OnGUI(int id, Rect rect)
         {
-            var cursor = mousePosition;
             var target = (GameObject)EditorUtility.InstanceIDToObject(id);
 
+            if (isMouseMove)
+            {
+                Debug.Log(isMouseMove );
+            }
             if (isLayout)
             {
                 InitWindow();
@@ -45,10 +48,11 @@ namespace Astraia
 
             var toggle = new Rect(rect)
             {
-                x = rect.x - 32,
-                width = rect.width + 32,
+                x = rect.x - 60,
+                width = rect.width + 76,
             };
-            if (toggle.Contains(cursor) && target)
+
+            if (toggle.Contains(mousePosition) && target)
             {
                 var oldState = target.activeSelf;
                 target.SetActive(EditorGUI.Toggle(new Rect(33F, rect.y, 16, rect.height), target.activeSelf));
@@ -250,7 +254,7 @@ namespace Astraia
             if (isRepaint)
             {
                 var icon = EditorGUIUtility.ObjectContent(item, item.GetType()).image;
-                if (rect.Contains(mousePosition))
+                if (rect.Contains(mousePosition) && isShift)
                 {
                     GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit);
                 }
@@ -264,7 +268,7 @@ namespace Astraia
             }
             else if (isMouseDown)
             {
-                if (rect.Contains(mousePosition) && isAlt && mouseButton == 0)
+                if (rect.Contains(mousePosition) && isShift && mouseButton == 0)
                 {
                     Reflection.ShowContext(rect, item);
                     Use();

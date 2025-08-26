@@ -25,13 +25,13 @@ namespace Astraia
     internal static class Reflection
     {
         public static readonly Type Toolbar;
+        public static readonly Type Browser;
         public static readonly Type Importer;
+        public static readonly Type Hierarchy;
         public static readonly Type Inspector;
 
         private static readonly Type GUIClip;
         private static readonly Type GUIView;
-        private static readonly Type Browser;
-        private static readonly Type Hierarchy;
         
         public static readonly GUIContent collapse;
         public static readonly GUIContent expansion;
@@ -43,7 +43,11 @@ namespace Astraia
         public static readonly GUIContent scriptIcon;
         public static readonly GUIContent customIcon;
         public static readonly GUIContent windowIcon;
+        
+        private static IEnumerable<EditorWindow> allEditorWindows;
+        public static IEnumerable<EditorWindow> AllEditorWindows => allEditorWindows ??= typeof(EditorWindow).GetValue<List<EditorWindow>>("activeEditorWindows");
 
+        public static IEnumerable<Object> AllDockAreas => AllEditorWindows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent"));
 
         static Reflection()
         {

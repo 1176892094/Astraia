@@ -26,6 +26,10 @@ namespace Astraia
         {
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
+            EditorApplication.update -= TabPro.Update;
+            EditorApplication.update += TabPro.Update;
+            EditorApplication.update -= EditorEvent.RepaintKeyboard;
+            EditorApplication.update += EditorEvent.RepaintKeyboard;
             EditorApplication.hierarchyWindowItemOnGUI -= Hierarchy.OnGUI;
             EditorApplication.hierarchyWindowItemOnGUI += Hierarchy.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI -= Folder.OnGUI;

@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Astraia
@@ -25,6 +26,7 @@ namespace Astraia
         public static bool isKeyDown => Event.type == EventType.KeyDown;
         public static bool isMouseUp => Event.type == EventType.MouseUp;
         public static bool isMouseDown => Event.type == EventType.MouseDown;
+        public static bool isMouseMove => Event.type == EventType.MouseMove;
         public static bool isMouseDrag => Event.type == EventType.MouseDrag;
         public static EventModifiers modifiers => Event.modifiers;
         public static bool isModifierKey => modifiers != EventModifiers.None;
@@ -32,8 +34,11 @@ namespace Astraia
         public static Vector2 mousePosition => Event.mousePosition;
         public static bool isAlt => Event.alt;
         public static bool isShift => Event.shift;
+        public static bool isCtrl => Event.control || Event.command;
         public static bool E => isKeyDown && keyCode == KeyCode.E && !isModifierKey;
 
+        private static bool wasAlt;
+        private static bool wasShift;
         private static int pressedId;
 
         public static void Use()
@@ -41,6 +46,29 @@ namespace Astraia
             Event?.Use();
         }
 
+        public static void RepaintKeyboard()
+        {
+            var keyboard = typeof(Event).GetValue<Event>("s_Current");
+            var window = EditorWindow.mouseOverWindow;
+            if (wasAlt && !keyboard.alt)
+            {
+                if (window && window.GetType() == Reflection.Browser)
+                {
+                    EditorApplication.RepaintProjectWindow();
+                }
+            }
+
+            if (wasShift && !keyboard.shift)
+            {
+                if (window && window.GetType() == Reflection.Hierarchy)
+                {
+                    EditorApplication.RepaintHierarchyWindow();
+                }
+            }
+
+            wasAlt = keyboard.alt;
+            wasShift = keyboard.shift;
+        }
 
         public static bool Button(Rect rect, string iconName, float iconSize = 0, Color color = default, Color colorHovered = default, Color colorPressed = default)
         {
