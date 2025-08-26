@@ -20,6 +20,7 @@ namespace Astraia
         {
             [ThreadStatic]
             private static StringBuilder builder;
+            
             private static StringBuilder Builder => builder ??= new StringBuilder(1024);
 
             public static string Format<T>(string format, T arg1)

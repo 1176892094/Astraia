@@ -191,7 +191,7 @@ namespace Astraia
             var fields = target.GetFields(Service.Find.Entity);
             for (var i = 0; i < fields.Length; i++)
             {
-                fields[i].SetValue(result, new Safe.Bytes(Service.Text.GetBytes(member[i])));
+                fields[i].SetValue(result, new Xor.Bytes(Service.Text.GetBytes(member[i])));
             }
 
             return result;

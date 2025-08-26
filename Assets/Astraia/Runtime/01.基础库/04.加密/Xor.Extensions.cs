@@ -9,33 +9,36 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using System.Runtime.CompilerServices;
-using Astraia.Common;
 
-namespace Astraia
+namespace Astraia.Common
 {
-    public static partial class Extensions
+    public static partial class Xor
     {
+        private static readonly int TickInt = (int)DateTime.Now.Ticks;
+        private static readonly long TickLong = DateTime.Now.Ticks;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBit(this Safe.Int data, int shift, int mask)
+        public static int GetBit(this Int data, int shift, int mask)
         {
             return (data >> shift) & (1 << mask) - 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Safe.Int SetBit(this Safe.Int data, int shift, int mask, int value)
+        public static Int SetBit(this Int data, int shift, int mask, int value)
         {
             return (data & ~((1 << mask) - 1 << shift)) | ((value & (1 << mask) - 1) << shift);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBit(this Safe.Long data, int shift, int mask)
+        public static int GetBit(this Long data, int shift, int mask)
         {
             return (int)((data >> shift) & (1L << mask) - 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Safe.Long SetBit(this Safe.Long data, int shift, int mask, int value)
+        public static Long SetBit(this Long data, int shift, int mask, int value)
         {
             return (data & ~((1L << mask) - 1 << shift)) | ((value & (1L << mask) - 1) << shift);
         }

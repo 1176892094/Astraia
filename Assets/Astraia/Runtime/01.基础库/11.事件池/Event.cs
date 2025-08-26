@@ -10,12 +10,13 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 
 namespace Astraia.Common
 {
     public static partial class EventManager
     {
-        internal static readonly List<Type, IPool> poolData = new List<Type, IPool>();
+        internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
         public static void Listen<T>(IEvent<T> data) where T : struct, IEvent
         {

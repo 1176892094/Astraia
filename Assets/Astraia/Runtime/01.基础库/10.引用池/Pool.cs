@@ -10,13 +10,14 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 
 
 namespace Astraia.Common
 {
     public static partial class HeapManager
     {
-        internal static readonly List<Type, IPool> poolData = new List<Type, IPool>();
+        internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
         public static T Dequeue<T>()
         {
