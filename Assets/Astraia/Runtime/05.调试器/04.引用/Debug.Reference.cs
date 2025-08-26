@@ -46,30 +46,30 @@ namespace Astraia.Common
             switch (windowOption)
             {
                 case PoolMode.Heap:
-                    Draw(HeapManager.Reference(), "引用池", "未使用\t\t使用中\t\t使用次数\t\t释放次数");
+                    Draw(HeapManager.poolData.Values, "引用池", "未使用\t\t使用中\t\t使用次数\t\t释放次数");
                     break;
                 case PoolMode.Event:
-                    Draw(EventManager.Reference(), "事件池", "触发数\t\t事件数\t\t添加次数\t\t移除次数");
+                    Draw(EventManager.poolData.Values, "事件池", "触发数\t\t事件数\t\t添加次数\t\t移除次数");
                     break;
                 case PoolMode.Pool:
-                    Draw(PoolManager.Reference(), "对象池", "未激活\t\t激活中\t\t出队次数\t\t入队次数");
+                    Draw(GlobalManager.poolData.Values, "对象池", "未激活\t\t激活中\t\t出队次数\t\t入队次数");
                     break;
             }
         }
 
-        private void Draw(IList<Pool> references, string message, string module)
+        private void Draw(IEnumerable<IPool> items, string message, string module)
         {
             poolData.Clear();
-            foreach (var reference in references)
+            foreach (var item in items)
             {
-                var assemblyName = Service.Text.Format("{0} - {1}", reference.type.Assembly.GetName().Name, message);
-                if (!poolData.TryGetValue(assemblyName, out var results))
+                var assembly = Service.Text.Format("{0} - {1}", item.type.Assembly.GetName().Name, message);
+                if (!poolData.TryGetValue(assembly, out var pool))
                 {
-                    results = new List<Pool>();
-                    poolData.Add(assemblyName, results);
+                    pool = new List<Pool>();
+                    poolData.Add(assembly, pool);
                 }
 
-                results.Add(reference);
+                pool.Add(new Pool(item));
             }
 
             screenView = GUILayout.BeginScrollView(screenView, "Box");

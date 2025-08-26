@@ -17,7 +17,7 @@ namespace Astraia.Common
 {
     public static partial class HeapManager
     {
-        private static readonly IDictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
+        internal static readonly List<Type, IPool> poolData = new List<Type, IPool>();
 
         public static T Dequeue<T>()
         {
@@ -50,12 +50,7 @@ namespace Astraia.Common
             poolData.Add(type, item);
             return (HeapPool<T>)item;
         }
-
-        internal static List<Pool> Reference()
-        {
-            return poolData.Values.Select(value => new Pool(value)).ToList();
-        }
-
+        
         internal static void Dispose()
         {
             foreach (var item in poolData.Values)

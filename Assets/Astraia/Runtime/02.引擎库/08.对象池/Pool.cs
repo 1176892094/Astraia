@@ -63,12 +63,7 @@ namespace Astraia.Common
             GlobalManager.poolData.Add(path, pool);
             return (EntityPool)pool;
         }
-
-        internal static IList<Pool> Reference()
-        {
-            return GlobalManager.poolData.Values.Select(value => new Pool(value)).ToList();
-        }
-
+        
         internal static void Dispose()
         {
             foreach (var item in GlobalManager.poolData.Values)

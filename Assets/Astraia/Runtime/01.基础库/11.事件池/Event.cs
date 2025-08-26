@@ -17,7 +17,7 @@ namespace Astraia.Common
 {
     public static partial class EventManager
     {
-        private static readonly IDictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
+        internal static readonly IDictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
         public static void Listen<T>(IEvent<T> data) where T : struct, IEvent
         {
@@ -45,12 +45,7 @@ namespace Astraia.Common
             poolData.Add(typeof(T), pool);
             return (EventPool<T>)pool;
         }
-
-        internal static List<Pool> Reference()
-        {
-            return poolData.Values.Select(value => new Pool(value)).ToList();
-        }
-
+        
         internal static void Dispose()
         {
             foreach (var item in poolData.Values)
