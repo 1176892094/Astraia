@@ -42,6 +42,39 @@ namespace Astraia
             }
         }
 
+        public void AddFirst(Key key, Value value)
+        {
+            if (items.TryGetValue(key, out var item))
+            {
+                var node = item.Value;
+                node.Value = value;
+                item.Value = node;
+            }
+            else
+            {
+                items[key] = nodes.AddFirst(new Node(key, value));
+            }
+        }
+        
+        public void Insert(Key origin, Key key, Value value)
+        {
+            if (!items.TryGetValue(origin, out var target))
+            {
+                throw new KeyNotFoundException(origin.ToString());
+            }
+
+            if (items.TryGetValue(key, out var item))
+            {
+                var node = item.Value;
+                node.Value = value;
+                item.Value = node;
+            }
+            else
+            {
+                items[key] = nodes.AddBefore(target, new Node(key, value));
+            }
+        }
+
         public bool Remove(Key key)
         {
             if (items.TryGetValue(key, out var node))
