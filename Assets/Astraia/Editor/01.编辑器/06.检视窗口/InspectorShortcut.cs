@@ -39,13 +39,13 @@ namespace Astraia
 
             if (isExpand)
             {
-                Set(window);
+                SetExpand(window);
                 window.Repaint();
                 Use();
             }
         }
 
-        private static void Set(EditorWindow window)
+        private static void SetExpand(EditorWindow window)
         {
             var editors = window.GetValue<ActiveEditorTracker>("m_Tracker").activeEditors;
             if (editors.Length == 0)
@@ -62,7 +62,7 @@ namespace Astraia
                     continue;
                 }
 
-                flag |= Get(window, target);
+                flag |= GetExpand(window, target);
                 if (editor.targets.Length != editors[0].targets.Length)
                 {
                     continue;
@@ -76,11 +76,11 @@ namespace Astraia
 
             foreach (var entity in components)
             {
-                Set(window, entity, !flag);
+                SetExpand(window, entity, !flag);
             }
         }
 
-        private static bool Get(EditorWindow window, Component component)
+        private static bool GetExpand(EditorWindow window, Component component)
         {
             var tracker = window.GetValue<ActiveEditorTracker>("m_Tracker");
             var index = Array.FindIndex(tracker.activeEditors, r => r.target == component);
@@ -92,7 +92,7 @@ namespace Astraia
             return tracker.GetVisible(index) == 1;
         }
 
-        private static void Set(EditorWindow window, Component component, bool state)
+        private static void SetExpand(EditorWindow window, Component component, bool state)
         {
             InternalEditorUtility.SetIsInspectorExpanded(component, state);
             var tracker = window.GetValue<ActiveEditorTracker>("m_Tracker");

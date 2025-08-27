@@ -21,7 +21,7 @@ namespace Astraia
 {
     using static EditorInput;
 
-    internal static class Folder
+    internal static partial class Folder
     {
         private static readonly Dictionary<string, string> icons = new()
         {

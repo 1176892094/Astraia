@@ -57,6 +57,7 @@ namespace Astraia
 
             var eventHandler = typeof(EditorApplication).GetValue<EditorApplication.CallbackFunction>("globalEventHandler");
             eventHandler = Inspector.Shortcuts + (eventHandler - Inspector.Shortcuts);
+            eventHandler = Folder.Shortcuts + (eventHandler - Folder.Shortcuts);
             typeof(EditorApplication).SetValue("globalEventHandler", eventHandler);
         }
 
