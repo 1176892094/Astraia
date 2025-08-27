@@ -15,7 +15,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 #if UNITY_6000_2_OR_NEWER
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
@@ -30,16 +29,15 @@ namespace Astraia
         public static readonly Type Property;
         public static readonly Type Hierarchy;
         public static readonly Type Inspector;
-
-        private static readonly Type GUIClip;
-        private static readonly Type GUIView;
-        private static readonly GUIContent content = new GUIContent();
+        
         public static readonly GUIContent buildIcon;
-        public static readonly GUIContent settingIcon;
         public static readonly GUIContent sceneIcon;
         public static readonly GUIContent customIcon;
         public static readonly GUIContent windowIcon;
+        public static readonly GUIContent settingIcon;
         public static readonly GUIContent packageIcon;
+        
+        private static readonly GUIContent content = new GUIContent();
 
         private static IEnumerable<EditorWindow> allInspectors;
         private static IEnumerable<EditorWindow> allEditorWindows;
@@ -56,11 +54,7 @@ namespace Astraia
             Inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
             Hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
 
-            GUIClip = typeof(GUI).Assembly.GetType("UnityEngine.GUIClip");
-            GUIView = typeof(Editor).Assembly.GetType("UnityEditor.GUIView");
-
             sceneIcon = EditorGUIUtility.IconContent("UnityLogo");
-
             buildIcon = EditorGUIUtility.IconContent("BuildSettings.Standalone");
             windowIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow");
             customIcon = EditorGUIUtility.IconContent("CustomTool");
@@ -117,22 +111,6 @@ namespace Astraia
             }
 
             return items;
-        }
-
-        public static Editor[] GetEditors(object instance)
-        {
-            return instance.GetValue<Editor[]>("m_Editors");
-        }
-
-        public static VisualElement GetRoot(ScriptableObject instance)
-        {
-            return instance.GetValue<VisualElement>("m_Root");
-        }
-
-        public static void MarkInteractive(Rect rect)
-        {
-            rect = (Rect)GUIClip.Invoke("UnclipToWindow", rect);
-            GUIView.GetValue("current").Invoke("MarkHotRegion", rect);
         }
     }
 }
