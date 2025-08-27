@@ -37,6 +37,34 @@ namespace Astraia
                 return;
             }
 
+            if (Q)
+            {
+                SetExpand(window, 1);
+                window.Repaint();
+                Use();
+            }
+            
+            if (W)
+            {
+                SetExpand(window, 2);
+                window.Repaint();
+                Use();
+            }
+
+            if (E)
+            {
+                SetExpand(window, 3);
+                window.Repaint();
+                Use();
+            }
+            
+            if (R)
+            {
+                SetExpand(window, 4);
+                window.Repaint();
+                Use();
+            }
+
             if (isExpand)
             {
                 SetExpand(window);
@@ -45,7 +73,7 @@ namespace Astraia
             }
         }
 
-        private static void SetExpand(EditorWindow window)
+        private static void SetExpand(EditorWindow window, int selected = 0)
         {
             var editors = window.GetValue<ActiveEditorTracker>("m_Tracker").activeEditors;
             if (editors.Length == 0)
@@ -74,9 +102,16 @@ namespace Astraia
                 }
             }
 
-            foreach (var entity in components)
+            for (int i = 0; i < components.Count; i++)
             {
-                SetExpand(window, entity, !flag);
+                if (i == components.Count - selected)
+                {
+                    SetExpand(window, components[i], true);
+                }
+                else
+                {
+                    SetExpand(window, components[i], !flag);
+                }
             }
         }
 
