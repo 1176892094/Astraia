@@ -28,12 +28,14 @@ namespace Astraia
             EditorApplication.update += Update;
             EditorApplication.update -= TabPro.Update;
             EditorApplication.update += TabPro.Update;
-            EditorApplication.update -= EditorEvent.RepaintKeyboard;
-            EditorApplication.update += EditorEvent.RepaintKeyboard;
+            EditorApplication.update -= InputEvent.Update;
+            EditorApplication.update += InputEvent.Update;
             EditorApplication.hierarchyWindowItemOnGUI -= Hierarchy.OnGUI;
             EditorApplication.hierarchyWindowItemOnGUI += Hierarchy.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI -= Folder.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
+            EditorApplication.projectChanged -= Folder.OnProjectChanged;
+            EditorApplication.projectChanged += Folder.OnProjectChanged;
             focusedWindow = EditorWindow.focusedWindow;
             maximized = focusedWindow != null && focusedWindow.maximized;
         }

@@ -15,11 +15,10 @@ using UnityEngine;
 
 namespace Astraia
 {
-    internal static class EditorEvent
+    internal static class InputEvent
     {
         private static readonly Event current;
         private static readonly Event Event = current ??= typeof(Event).GetValue<Event>("s_Current");
-
         public static bool isRepaint => Event.type == EventType.Repaint;
         public static bool isLayout => Event.type == EventType.Layout;
         public static KeyCode keyCode => Event.keyCode;
@@ -39,14 +38,8 @@ namespace Astraia
 
         private static bool wasAlt;
         private static bool wasShift;
-        private static int pressedId;
 
-        public static void Use()
-        {
-            Event?.Use();
-        }
-
-        public static void RepaintKeyboard()
+        public static void Update()
         {
             var keyboard = typeof(Event).GetValue<Event>("s_Current");
             var window = EditorWindow.mouseOverWindow;
@@ -70,87 +63,9 @@ namespace Astraia
             wasShift = keyboard.shift;
         }
 
-        public static bool Button(Rect rect, string iconName, float iconSize = 0, Color color = default, Color colorHovered = default, Color colorPressed = default)
+        public static void Use()
         {
-            var id = GUIUtility.GUIToScreenRect(rect).GetHashCode();
-            var isPressed = id == pressedId;
-
-            var isActive = false;
-
-            Reflection.MarkInteractive(rect);
-
-            if (isRepaint)
-            {
-                if (color == default)
-                {
-                    color = Color.white;
-                }
-
-                if (colorHovered == default)
-                {
-                    colorHovered = Color.white;
-                }
-
-                if (colorPressed == default)
-                {
-                    colorPressed = new Color(1, 1, 1, 0.5f);
-                }
-
-                if (rect.Contains(mousePosition))
-                {
-                    color = colorHovered;
-                }
-
-                if (isPressed)
-                {
-                    color = colorPressed;
-                }
-
-                if (iconSize == 0)
-                {
-                    iconSize = Mathf.Min(rect.width, rect.height);
-                }
-
-                var iconRect = new Rect(rect.center.x - iconSize / 2, rect.center.y - iconSize / 2, iconSize, iconSize);
-
-                var oldColor = GUI.color;
-                GUI.color *= color;
-                GUI.DrawTexture(iconRect, EditorIcon.GetIcon(iconName));
-                GUI.color = oldColor;
-            }
-
-            if (isMouseDown)
-            {
-                if (rect.Contains(mousePosition))
-                {
-                    pressedId = id;
-                    Use();
-                }
-            }
-
-            if (isMouseUp)
-            {
-                if (isPressed)
-                {
-                    pressedId = 0;
-                    if (rect.Contains(mousePosition))
-                    {
-                        isActive = true;
-                    }
-
-                    Use();
-                }
-            }
-
-            if (isMouseDrag)
-            {
-                if (isPressed)
-                {
-                    Use();
-                }
-            }
-
-            return isActive;
+            Event?.Use();
         }
     }
 }

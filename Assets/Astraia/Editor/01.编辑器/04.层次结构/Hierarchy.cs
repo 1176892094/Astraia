@@ -16,7 +16,7 @@ using UnityEngine.UIElements;
 
 namespace Astraia
 {
-    using static EditorEvent;
+    using static InputEvent;
 
     internal static class Hierarchy
     {
@@ -100,21 +100,20 @@ namespace Astraia
             };
             itemRect.y += (16 - rect.height) / 2;
             GUI.DrawTexture(itemRect, DrawIcon(), ScaleMode.ScaleToFit);
-            if (rect.y > 0)
-            {
-                if (Mathf.FloorToInt((rect.y - 4) / 16 % 2) != 0)
-                {
-                    itemRect.x = 32;
-                    itemRect.width = rect.width + rect.x - 16;
-                    EditorGUI.DrawRect(itemRect, Color.black * 0.05f);
-                }
 
-                rect.xMin = 32;
-                rect.width += 16;
-                rect.y += 15;
-                rect.height = 1;
-                EditorGUI.DrawRect(rect, Color.black * 0.2f);
+            if (!target) return;
+            if (Mathf.FloorToInt((rect.y - 4) / 16 % 2) != 0)
+            {
+                itemRect.x = 32;
+                itemRect.width = rect.width + rect.x - 16;
+                EditorGUI.DrawRect(itemRect, Color.black * 0.05f);
             }
+
+            rect.xMin = 32;
+            rect.width += 16;
+            rect.y += 15;
+            rect.height = 1;
+            EditorGUI.DrawRect(rect, Color.black * 0.2f);
 
             Texture DrawIcon()
             {
@@ -174,16 +173,16 @@ namespace Astraia
             var width = Mathf.Min(128, rect.x - 28 - 16);
             var position = new Rect(x, rect.y, width, rect.height);
             var texCoords = new Rect(1 - width / 128, 0, width / 128, 1);
-            GUI.DrawTextureWithTexCoords(position, EditorIcon.GetIcon(Tree.Normal), texCoords);
+            GUI.DrawTextureWithTexCoords(position, EditorIcon.GetIcon("Normal"), texCoords);
             if (target.transform.childCount == 0)
             {
-                var item = Tree.Height;
+                var item = "Height";
                 var index = target.transform.GetSiblingIndex();
                 if (index != 0)
                 {
                     var parent = target.transform.parent;
                     var amount = parent != null ? parent.childCount : target.scene.rootCount;
-                    item = index == amount - 1 ? Tree.Bottom : Tree.Middle;
+                    item = index == amount - 1 ? "Bottom" : "Middle";
                 }
 
                 position.width = 16;
@@ -191,7 +190,7 @@ namespace Astraia
                 GUI.DrawTexture(position, EditorIcon.GetIcon(item));
             }
         }
-        
+
         private static void DrawComponent(Rect rect, GameObject target)
         {
             if (!target) return;

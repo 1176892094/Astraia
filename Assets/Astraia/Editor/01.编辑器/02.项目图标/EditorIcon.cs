@@ -22,52 +22,29 @@ namespace Astraia
     {
         private static readonly Dictionary<string, Texture2D> icons = new Dictionary<string, Texture2D>();
         private static readonly Dictionary<string, string> items;
-        
+
         static EditorIcon()
         {
             var data = Service.Zip.Decompress(GlobalSetting.GetTextByIndex(AssetText.Icons));
             items = JsonManager.FromJson<List<KeyValue>>(data).ToDictionary(p => p.Key, p => p.Value);
         }
 
-        public static Texture2D GetIcon<T>(T value) where T : Enum
-        {
-            var index = value.ToString();
-            if (icons.TryGetValue(index, out var icon))
-            {
-                return icon;
-            }
-
-            if (!items.TryGetValue(value.ToString(), out var result))
-            {
-                icon = Texture2D.grayTexture;
-                icons.Add(index, icon);
-                return icon;
-            }
-
-            icon = new Texture2D(4, 4, TextureFormat.DXT5, false)
-            {
-                wrapMode = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Bilinear,
-                hideFlags = HideFlags.HideAndDontSave
-            };
-            icon.LoadImage(Convert.FromBase64String(result));
-            icons.Add(index, icon);
-            return icon;
-        }
-        
         public static Texture2D GetIcon(string reason)
         {
-            if (icons.TryGetValue(reason, out var result) && result != null)
+            if (icons.TryGetValue(reason, out var icon))
             {
-                return result;
+                return icon;
             }
 
-            Texture2D icon = null;
-            if (items.TryGetValue(reason, out var bytes))
+            if (items.TryGetValue(reason, out var result))
             {
-                var pngBytes = bytes.Split("-").Select(r => Convert.ToByte(r, 16)).ToArray();
-                icon = new Texture2D(1, 1);
-                icon.LoadImage(pngBytes);
+                icon = new Texture2D(4, 4, TextureFormat.DXT5, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp,
+                    filterMode = FilterMode.Bilinear,
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+                icon.LoadImage(Convert.FromBase64String(result));
             }
 
             if (icon == null)
@@ -99,37 +76,4 @@ namespace Astraia
         }
     }
 
-    internal enum Icon
-    {
-        Animations = 1,
-        Audios = 2,
-        Editor = 3,
-        Lights = 4,
-        Fonts = 5,
-        Materials = 6,
-        Meshes = 7,
-        Physics = 8,
-        Plugins = 9,
-        Prefabs = 10,
-        Project = 11,
-        Resources = 12,
-        Scenes = 13,
-        Scripts = 14,
-        Shaders = 15,
-        Terrains = 16,
-        Textures = 17,
-        Android = 18,
-        IPhone = 19,
-        MacOS = 20,
-        WebGL = 21,
-        Windows = 22,
-    }
-
-    internal enum Tree
-    {
-        Normal = 23,
-        Bottom = 24,
-        Middle = 25,
-        Height = 26,
-    }
 }

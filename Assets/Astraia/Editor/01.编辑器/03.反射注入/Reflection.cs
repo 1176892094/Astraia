@@ -104,10 +104,10 @@ namespace Astraia
             typeof(EditorUtility).Invoke("DisplayObjectContextMenu", position, context, 0);
         }
 
-        public static bool HasChild(int assetId)
+        public static IEnumerable<TreeViewItem> GetItems()
         {
             var window = Browser.GetValue<EditorWindow>("s_LastInteractedProjectBrowser");
-            if (window == null) return false;
+            if (window == null) return null;
             IEnumerable<TreeViewItem> items = null;
             var cached = window.GetValue("m_AssetTree");
             if (cached != null)
@@ -122,8 +122,8 @@ namespace Astraia
                 cached = cached.GetValue("data");
                 items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
             }
-
-            return items != null && items.Where(item => item.id == assetId).Any(item => item.hasChildren);
+            
+            return items;
         }
 
         public static Editor[] GetEditors(object instance)
