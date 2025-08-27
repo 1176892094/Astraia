@@ -31,6 +31,7 @@ namespace Astraia
         public static readonly Type Browser;
         public static readonly Type HostView;
         public static readonly Type Importer;
+        public static readonly Type Property;
         public static readonly Type Hierarchy;
         public static readonly Type Inspector;
         public static readonly Type GUIDelegate;
@@ -61,6 +62,7 @@ namespace Astraia
             Toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
 
             Browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
+            Property = typeof(Editor).Assembly.GetType("UnityEditor.PropertyEditor");
             Importer = typeof(Editor).Assembly.GetType("UnityEditor.PrefabImporter");
             Inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
             Hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");

@@ -18,7 +18,7 @@ namespace Astraia
 {
     using static Reflection;
 
-    internal static class Inspector
+    public static partial class Inspector
     {
         private static VisualElement inspector;
 
@@ -215,7 +215,7 @@ namespace Astraia
                     borderRightWidth = 0
                 }
             };
-            
+
             typeof(Button).GetProperty("text", Service.Find.Entity)?.SetValue(button, text);
             parent.Add(button);
         }

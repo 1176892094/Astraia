@@ -42,6 +42,10 @@ namespace Astraia
             EditorApplication.delayCall += Inspector.OnInitialized;
             focusedWindow = EditorWindow.focusedWindow;
             isMaximized = focusedWindow && focusedWindow.maximized;
+            
+            var eventHandler = typeof(EditorApplication).GetValue<EditorApplication.CallbackFunction>("globalEventHandler");
+            eventHandler = Inspector.Shortcuts + (eventHandler - Inspector.Shortcuts);
+            typeof(EditorApplication).SetValue("globalEventHandler", eventHandler);
         }
 
         private static void Update()

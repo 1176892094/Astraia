@@ -10,7 +10,6 @@
 // // *********************************************************************************
 
 
-using UnityEditor;
 using UnityEngine;
 
 namespace Astraia
@@ -34,7 +33,12 @@ namespace Astraia
         public static bool isAlt => Event.alt;
         public static bool isShift => Event.shift;
         public static bool isCtrl => Event.control || Event.command;
+        public static bool Q => isKeyDown && keyCode == KeyCode.Q && !isModifierKey;
+        public static bool W => isKeyDown && keyCode == KeyCode.W && !isModifierKey;
         public static bool E => isKeyDown && keyCode == KeyCode.E && !isModifierKey;
+        public static bool R => isKeyDown && keyCode == KeyCode.R && !isModifierKey;
+        public static bool isExpand => isKeyDown && keyCode == KeyCode.E && isShift;
+        public static bool isEscape => isKeyDown && keyCode == KeyCode.Escape && !isModifierKey;
 
         public static void Use()
         {
