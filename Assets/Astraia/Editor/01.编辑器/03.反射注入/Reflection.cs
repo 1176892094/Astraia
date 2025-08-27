@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -24,11 +25,14 @@ namespace Astraia
 {
     internal static class Reflection
     {
+        public const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
         public static readonly Type Toolbar;
         public static readonly Type Browser;
+        public static readonly Type HostView;
         public static readonly Type Importer;
         public static readonly Type Hierarchy;
         public static readonly Type Inspector;
+        public static readonly Type GUIDelegate;
 
         private static readonly Type GUIClip;
         private static readonly Type GUIView;
@@ -50,10 +54,13 @@ namespace Astraia
         static Reflection()
         {
             Toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
+          
             Browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
             Importer = typeof(Editor).Assembly.GetType("UnityEditor.PrefabImporter");
             Inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
             Hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
+            HostView = typeof(Editor).Assembly.GetType("UnityEditor.HostView");
+            GUIDelegate = HostView.GetNestedType("EditorWindowDelegate", FLAGS);
 
             GUIClip = typeof(GUI).Assembly.GetType("UnityEngine.GUIClip");
             GUIView = typeof(Editor).Assembly.GetType("UnityEditor.GUIView");
