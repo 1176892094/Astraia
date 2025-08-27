@@ -11,7 +11,6 @@
 
 using UnityEditor;
 using UnityEditor.Toolbars;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -154,7 +153,11 @@ namespace Astraia
             {
                 if (!status)
                 {
+#if UNITY_6000_2_OR_NEWER
+                    if (submenu.ToUpper() != "WINDOW/PACKAGE MANAGEMENT/PACKAGE MANAGER")
+#else
                     if (submenu.ToUpper() != "WINDOW/PACKAGE MANAGER")
+#endif
                     {
                         continue;
                     }
@@ -212,7 +215,8 @@ namespace Astraia
                     borderRightWidth = 0
                 }
             };
-            typeof(ToolbarButton).GetProperty("text", Service.Find.Entity)?.SetValue(button, text);
+            
+            typeof(Button).GetProperty("text", Service.Find.Entity)?.SetValue(button, text);
             parent.Add(button);
         }
 

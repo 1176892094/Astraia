@@ -46,6 +46,7 @@ namespace Astraia
         public static readonly GUIContent scriptIcon;
         public static readonly GUIContent customIcon;
         public static readonly GUIContent windowIcon;
+        public static readonly GUIContent packageIcon;
 
         private static IEnumerable<EditorWindow> allInspectors;
         private static IEnumerable<EditorWindow> allEditorWindows;
@@ -76,6 +77,7 @@ namespace Astraia
             windowIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow");
             customIcon = EditorGUIUtility.IconContent("CustomTool");
             settingIcon = EditorGUIUtility.IconContent("SettingsIcon");
+            packageIcon = EditorGUIUtility.IconContent("Package Manager");
 
             collapse = EditorGUIUtility.IconContent("Download-Available");
             expansion = EditorGUIUtility.IconContent("Toolbar Plus More");
