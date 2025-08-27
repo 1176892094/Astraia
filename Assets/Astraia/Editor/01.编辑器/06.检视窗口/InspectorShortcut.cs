@@ -65,7 +65,7 @@ namespace Astraia
                 Use();
             }
 
-            if (isExpand)
+            if (isShiftE)
             {
                 SetExpand(window);
                 window.Repaint();

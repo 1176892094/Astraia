@@ -34,29 +34,46 @@ namespace Astraia
                 return;
             }
 
-            if (isExpand)
+            if (isShiftE)
             {
-                var scene = window.GetValue("m_SceneHierarchy");
-                var tree = scene.GetValue("m_TreeView");
-                var data = tree.GetValue("data");
-                var item = tree.GetValue<TreeViewState>("state").expandedIDs;
+                Expand(window);
+            }
 
-                for (int i = item.Count - 1; i >= 0; i--)
+            if (isShiftR)
+            {
+                Expand(window, 1);
+            }
+
+            if (isEscape)
+            {
+                copiedData.Clear();
+            }
+        }
+
+        private static void Expand(EditorWindow window, int index = 0)
+        {
+            var scene = window.GetValue("m_SceneHierarchy");
+            var tree = scene.GetValue("m_TreeView");
+            var data = tree.GetValue("data");
+            var item = tree.GetValue<TreeViewState>("state").expandedIDs;
+
+            for (int i = item.Count - 1; i >= 0; i--)
+            {
+                var id = item[i];
+                if (EditorUtility.InstanceIDToObject(id) is GameObject o)
                 {
-                    var id = item[i];
-                    if (EditorUtility.InstanceIDToObject(id) is GameObject o)
+                    if (index == 0)
                     {
                         if (o.transform.parent)
                         {
                             data.Invoke("SetExpanded", id, false);
                         }
                     }
+                    else
+                    {
+                        data.Invoke("SetExpanded", id, false);
+                    }
                 }
-            }
-
-            if (isEscape)
-            {
-                copiedData.Clear();
             }
         }
     }

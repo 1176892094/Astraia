@@ -35,41 +35,63 @@ namespace Astraia
                 return;
             }
 
-            if (isExpand)
+            if (isShiftE)
             {
-                var mode = window.GetValue<int>("m_ViewMode") == 0;
-                var tree = window.GetValue(mode ? "m_AssetTree" : "m_FolderTree");
-                var data = tree.GetValue("data");
-                var item = tree.GetValue<TreeViewState>("state").expandedIDs;
+                Expand(window);
+                window.Repaint();
+                Use();
+            }
 
-                var roots = new HashSet<int>();
-                foreach (var id in item)
+            if (isShiftR)
+            {
+                Expand(window, 1);
+                window.Repaint();
+                Use();
+            }
+        }
+
+        private static void Expand(EditorWindow window, int index = 0)
+        {
+            var mode = window.GetValue<int>("m_ViewMode") == 0;
+            var tree = window.GetValue(mode ? "m_AssetTree" : "m_FolderTree");
+            var data = tree.GetValue("data");
+            var item = tree.GetValue<TreeViewState>("state").expandedIDs;
+
+            var roots = new HashSet<int>();
+            foreach (var id in item)
+            {
+                var path = AssetDatabase.GetAssetPath(EditorUtility.InstanceIDToObject(id));
+
+                if (path.LastIndexOf('/') > 0)
                 {
-                    var path = AssetDatabase.GetAssetPath(EditorUtility.InstanceIDToObject(id));
-                    if (path.LastIndexOf('/') > 0)
+                    if (index == 0)
                     {
                         if (path.Substring(0, path.LastIndexOf('/')) is "Assets" or "Packages")
                         {
                             roots.Add(id);
                         }
                     }
-                }
-
-                for (int i = item.Count - 1; i >= 0; i--)
-                {
-                    var id = item[i];
-                    var path = AssetDatabase.GetAssetPath(EditorUtility.InstanceIDToObject(id));
-                    if (!path.IsNullOrEmpty())
+                    else
                     {
-                        if (path != "Assets" && path != "Packages" && !roots.Contains(id))
+                        if (path is "Assets" or "Packages")
                         {
-                            data.Invoke("SetExpanded", id, false);
+                            roots.Add(id);
                         }
                     }
                 }
+            }
 
-                window.Repaint();
-                Use();
+            for (int i = item.Count - 1; i >= 0; i--)
+            {
+                var id = item[i];
+                var path = AssetDatabase.GetAssetPath(EditorUtility.InstanceIDToObject(id));
+                if (!path.IsNullOrEmpty())
+                {
+                    if (path != "Assets" && path != "Packages" && !roots.Contains(id))
+                    {
+                        data.Invoke("SetExpanded", id, false);
+                    }
+                }
             }
         }
     }
