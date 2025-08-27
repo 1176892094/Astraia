@@ -10,8 +10,6 @@
 // // *********************************************************************************
 
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -23,7 +21,8 @@ namespace Astraia
     internal static class Hierarchy
     {
         private static readonly HashSet<int> windows = new HashSet<int>();
-        private static readonly GUIContent content = new GUIContent();
+        private static readonly List<Object> items = new List<Object>();
+        private static bool pressed;
 
         public static void OnGUI(int id, Rect rect)
         {
@@ -31,64 +30,146 @@ namespace Astraia
 
             if (isLayout)
             {
-                InitWindow();
+                DrawWindow();
             }
             else if (isRepaint)
             {
-                DrawTexture(rect, target);
-                DrawIcon(rect, target);
+                DrawTransform(rect, target);
+                DrawTexCoords(rect, target);
+                DrawComponent(rect, target);
             }
-            else if (isMouseDown || isMouseUp || isMouseDrag)
+            else if (isMouseDown || isMouseUp)
             {
-                DrawIcon(rect, target);
+                DrawComponent(rect, target);
             }
 
-            var toggle = new Rect(rect)
-            {
-                x = rect.x - 60,
-                width = rect.width + 76,
-            };
+            DrawToggle();
+            return;
 
-            if (toggle.Contains(mousePosition) && target)
+            void DrawWindow()
             {
-                var oldState = target.activeSelf;
-                target.SetActive(EditorGUI.Toggle(new Rect(33F, rect.y, 16, rect.height), target.activeSelf));
-                if (oldState != target.activeSelf)
+                var window = Reflection.GetHierarchy();
+                if (window != null)
                 {
-                    EditorUtility.SetDirty(target);
+                    var instance = window.GetInstanceID();
+                    if (!windows.Contains(instance))
+                    {
+                        var root = window.rootVisualElement.parent.Query<IMGUIContainer>().First();
+                        root.onGUIHandler = HideIcon + root.onGUIHandler;
+                        Reflection.HideIcon(window);
+                        windows.Add(instance);
+                    }
+                }
+
+                return;
+
+                void HideIcon()
+                {
+                    if (isLayout)
+                    {
+                        Reflection.HideIcon(window);
+                    }
                 }
             }
-        }
 
-        private static void InitWindow()
-        {
-            var window = Reflection.ShowHierarchy();
-            if (window != null)
+            void DrawToggle()
             {
-                if (!windows.Contains(window.GetInstanceID()))
+                var button = new Rect(rect);
+                button.x -= 60;
+                button.width = rect.width + 76;
+                if (button.Contains(mousePosition) && target)
                 {
-                    var element = window.rootVisualElement.parent.Query<IMGUIContainer>().First();
-                    element.onGUIHandler = OnGUIHandler + element.onGUIHandler;
-                    Reflection.HideHierarchy(window);
-                    windows.Add(window.GetInstanceID());
-                    return;
-
-                    void OnGUIHandler()
+                    var activeSelf = target.activeSelf;
+                    button.x = 33;
+                    button.width = 16;
+                    target.SetActive(EditorGUI.Toggle(button, target.activeSelf));
+                    if (activeSelf != target.activeSelf)
                     {
-                        if (Event.current.type == EventType.Layout)
-                        {
-                            Reflection.HideHierarchy(window);
-                        }
+                        EditorUtility.SetDirty(target);
                     }
                 }
             }
         }
 
-        private static void DrawTexture(Rect rect, GameObject target)
+        private static void DrawTransform(Rect rect, GameObject target)
         {
-            var itemRect = new Rect(rect.x, rect.y + (16 - rect.height) / 2, 16, 16);
-            GUI.DrawTexture(itemRect, DrawImage(target), ScaleMode.ScaleToFit);
-            if (target == null) return;
+            var itemRect = new Rect(rect)
+            {
+                width = 16,
+                height = 16
+            };
+            itemRect.y += (16 - rect.height) / 2;
+            GUI.DrawTexture(itemRect, DrawIcon(), ScaleMode.ScaleToFit);
+            if (rect.y > 0)
+            {
+                if (Mathf.FloorToInt((rect.y - 4) / 16 % 2) != 0)
+                {
+                    itemRect.x = 32;
+                    itemRect.width = rect.width + rect.x - 16;
+                    EditorGUI.DrawRect(itemRect, Color.black * 0.05f);
+                }
+
+                rect.xMin = 32;
+                rect.width += 16;
+                rect.y += 15;
+                rect.height = 1;
+                EditorGUI.DrawRect(rect, Color.black * 0.2f);
+            }
+
+            Texture DrawIcon()
+            {
+                if (!target)
+                {
+                    return Reflection.unityIcon.image;
+                }
+
+                Texture icon = AssetPreview.GetMiniThumbnail(target);
+                if (icon.name is "d_Prefab Icon" or "Prefab Icon")
+                {
+                    if (PrefabUtility.IsAnyPrefabInstanceRoot(target))
+                    {
+                        return icon;
+                    }
+                }
+
+                Component component;
+                var components = target.GetComponents<Component>();
+                if (components.Length > 1)
+                {
+                    component = components[1];
+                    if (components.Length > 2 && component is CanvasRenderer)
+                    {
+                        component = components[2];
+                        if (components.Length > 3 && component is ICanvasRaycastFilter)
+                        {
+                            var image = components[3];
+                            icon = AssetPreview.GetMiniThumbnail(image);
+                            if (icon)
+                            {
+                                component = image;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    component = components[0];
+                }
+
+                icon = AssetPreview.GetMiniThumbnail(component);
+                if (icon.name is "cs Script Icon" or "d_cs Script Icon" or "dll Script Icon")
+                {
+                    return AssetPreview.GetMiniThumbnail(components[0]);
+                }
+
+                return icon;
+            }
+        }
+
+
+        private static void DrawTexCoords(Rect rect, GameObject target)
+        {
+            if (!target) return;
             var x = Mathf.Max(28, rect.x - 128 - 16);
             var width = Mathf.Min(128, rect.x - 28 - 16);
             var position = new Rect(x, rect.y, width, rect.height);
@@ -109,180 +190,86 @@ namespace Astraia
                 position.x = rect.x - 16;
                 GUI.DrawTexture(position, EditorIcon.GetIcon(item));
             }
-
-            if (Mathf.FloorToInt((rect.y - 4) / 16 % 2) != 0)
-            {
-                itemRect = new Rect(32, rect.y, rect.width + rect.x - 16, rect.height);
-                EditorGUI.DrawRect(itemRect, Color.black * 0.05f);
-            }
-
-            rect.width += 16;
-            rect.height = 1;
-            rect.xMin = 32;
-            rect.y += 15.5f;
-            EditorGUI.DrawRect(rect, Color.black * 0.2f);
         }
-
-        private static Texture DrawImage(GameObject target)
+        
+        private static void DrawComponent(Rect rect, GameObject target)
         {
-            if (target == null)
-            {
-                return Reflection.unityIcon.image;
-            }
-
-            Texture icon = AssetPreview.GetMiniThumbnail(target);
-
-            if (icon.name == "d_Prefab Icon" || icon.name == "Prefab Icon")
-            {
-                if (PrefabUtility.IsAnyPrefabInstanceRoot(target))
-                {
-                    return Reflection.prefabIcon.image;
-                }
-            }
-
-            var components = target.GetComponents<Component>();
-            Component component;
-            if (components.Length > 1)
-            {
-                component = components[1];
-                if (components.Length > 2 && component is CanvasRenderer)
-                {
-                    component = components[2];
-                    if (components.Length > 3 && component is ICanvasRaycastFilter)
-                    {
-                        var image = components[3];
-                        icon = AssetPreview.GetMiniThumbnail(image);
-                        if (icon != null)
-                        {
-                            component = image;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                component = components[0];
-            }
-
-            icon = AssetPreview.GetMiniThumbnail(component);
-
-            if (icon == null)
-            {
-                return Reflection.objectIcon.image;
-            }
-
-            if (icon.name == "cs Script Icon" || icon.name == "d_cs Script Icon" || icon.name == "dll Script Icon")
-            {
-                return AssetPreview.GetMiniThumbnail(components[0]);
-            }
-
-            return icon;
-        }
-
-        private static void DrawIcon(Rect rect, GameObject target)
-        {
-            if (target == null) return;
-            content.text = target.name;
-            var nameSize = GUI.skin.label.CalcSize(content).x;
-            var nameRect = new Rect(rect.x, rect.y, nameSize + 14, rect.height);
-            var distance = rect.xMax + 16;
+            if (!target) return;
+            items.Clear();
+            items.AddRange(target.GetComponents<Component>());
 
             var render = target.GetComponent<Renderer>();
-            var entity = target.GetComponents<Component>().ToList<Object>();
-            var shared = render != null && render.sharedMaterials != null;
+            var shared = render && render.sharedMaterials != null;
             if (shared)
             {
-                entity.AddRange(render.sharedMaterials);
+                items.AddRange(render.sharedMaterials);
             }
 
-            var isPrefabAsset = PrefabUtility.IsPartOfPrefabAsset(target);
-            var isPrefabInstance = PrefabUtility.IsPartOfPrefabInstance(target);
-            var isPrefab = isPrefabAsset || isPrefabInstance;
-
-            for (var i = 0; i < entity.Count; ++i)
+            var distance = rect.xMax + 16;
+            var nameSize = rect.x + Reflection.NameLength(target.name) + 15;
+            for (var i = 0; i < items.Count; ++i)
             {
-                if (entity[i] != null)
+                if (!items[i])
                 {
-                    if (isPrefab && i == 0)
-                    {
-                        distance -= 14;
-                        continue;
-                    }
+                    continue;
+                }
 
-                    if (shared && i == entity.Count - render.sharedMaterials.Length)
+                if (i == 0 && PrefabUtility.IsAnyPrefabInstanceRoot(target))
+                {
+                    distance -= 14;
+                    continue;
+                }
+
+                Rect itemRect;
+                if (shared && i == items.Count - render.sharedMaterials.Length)
+                {
+                    foreach (var material in render.sharedMaterials)
                     {
-                        foreach (var material in render.sharedMaterials)
+                        if (material)
                         {
-                            if (material != null)
-                            {
-                                if (!DrawComponent())
-                                {
-                                    break;
-                                }
-                            }
+                            LoadIcon();
                         }
-
-                        break;
                     }
 
-                    if (!DrawComponent())
-                    {
-                        break;
-                    }
+                    break;
+                }
 
-                    bool DrawComponent()
-                    {
-                        distance -= 14;
-                        var itemRect = new Rect(distance, rect.y, 12, rect.height);
-                        if (itemRect.xMax > nameRect.x && itemRect.x < nameRect.xMax)
-                        {
-                            return false;
-                        }
+                LoadIcon();
 
-                        ItemIcon(itemRect, entity[i]);
-                        return true;
+                void LoadIcon()
+                {
+                    distance -= 14;
+                    itemRect = new Rect(distance, rect.y, 12, rect.height);
+                    if (nameSize < itemRect.x)
+                    {
+                        Button(itemRect, items[i]);
                     }
                 }
             }
         }
 
-        private static bool isDown;
-
-        private static void ItemIcon(Rect rect, Object item)
+        private static void Button(Rect rect, Object item)
         {
-            if (isRepaint || isMouseDown || isMouseUp || isMouseDrag)
-            {
-                var icon = EditorGUIUtility.ObjectContent(item, item.GetType()).image;
-                if (rect.Contains(mousePosition) && isDown)
-                {
-                    GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit);
-                }
-                else
-                {
-                    var color = GUI.color;
-                    GUI.color = Color.white * 0.6F;
-                    GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit);
-                    GUI.color = color;
-                }
-            }
+            var color = GUI.color;
+            GUI.color = rect.Contains(mousePosition) && pressed ? Color.white : Color.white * 0.6F;
+            GUI.DrawTexture(rect, AssetPreview.GetMiniThumbnail(item), ScaleMode.ScaleToFit);
+            GUI.color = color;
 
             if (isMouseDown)
             {
-                if (rect.Contains(mousePosition) && mouseButton == 0)
-                {
-                    DrawAsync(rect);
-                    Use();
-                }
+                pressed = true;
             }
 
-            async void DrawAsync(Rect newRect)
+            if (isMouseUp)
             {
-                isDown = true;
-                newRect.x += 16;
-                newRect.y += 16;
-                await Task.Yield();
-                isDown = false;
-                Reflection.ShowContext(newRect, item);
+                pressed = false;
+                if (rect.Contains(mousePosition) && mouseButton == 0)
+                {
+                    rect.x += 16;
+                    rect.y -= 16;
+                    Reflection.ShowContext(rect, item);
+                    Use();
+                }
             }
         }
     }

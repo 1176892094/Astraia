@@ -32,7 +32,7 @@ namespace Astraia
 
         private static readonly Type GUIClip;
         private static readonly Type GUIView;
-        
+        private static readonly GUIContent content = new GUIContent();
         public static readonly GUIContent collapse;
         public static readonly GUIContent expansion;
         public static readonly GUIContent buildIcon;
@@ -43,7 +43,7 @@ namespace Astraia
         public static readonly GUIContent scriptIcon;
         public static readonly GUIContent customIcon;
         public static readonly GUIContent windowIcon;
-        
+
         private static IEnumerable<EditorWindow> allEditorWindows;
         public static IEnumerable<EditorWindow> AllEditorWindows => allEditorWindows ??= typeof(EditorWindow).GetValue<List<EditorWindow>>("activeEditorWindows");
 
@@ -75,22 +75,28 @@ namespace Astraia
             expansion = EditorGUIUtility.IconContent("Toolbar Plus More");
         }
 
-        public static EditorWindow ShowHierarchy()
+        public static float NameLength(string name)
+        {
+            content.text = name;
+            return GUI.skin.label.CalcSize(content).x;
+        }
+
+        public static EditorWindow GetHierarchy()
         {
             return Hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
         }
 
-        public static void HideHierarchy(EditorWindow window)
+        public static void HideIcon(EditorWindow window)
         {
-            if (window == null) return;
-            var cached = window.GetValue("m_SceneHierarchy");
-            if (cached == null) return;
-            cached = cached.GetValue("m_TreeView");
-            if (cached == null) return;
-            cached = cached.GetValue("gui");
-            if (cached == null) return;
-            cached.SetValue("k_IconWidth", 0F);
-            cached.SetValue("k_SpaceBetweenIconAndText", 18F);
+            if (!window) return;
+            var result = window.GetValue("m_SceneHierarchy");
+            if (result == null) return;
+            result = result.GetValue("m_TreeView");
+            if (result == null) return;
+            result = result.GetValue("gui");
+            if (result == null) return;
+            result.SetValue<float>("k_IconWidth", 0);
+            result.SetValue<float>("k_SpaceBetweenIconAndText", 18);
         }
 
         public static void ShowContext(Rect position, Object context)

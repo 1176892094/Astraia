@@ -54,7 +54,7 @@ namespace Astraia
             {
                 if (window && window.GetType() == Reflection.Browser)
                 {
-                    EditorApplication.RepaintProjectWindow();
+                    window.Repaint();
                 }
             }
 
@@ -62,7 +62,7 @@ namespace Astraia
             {
                 if (window && window.GetType() == Reflection.Hierarchy)
                 {
-                    EditorApplication.RepaintHierarchyWindow();
+                    window.Repaint();
                 }
             }
 

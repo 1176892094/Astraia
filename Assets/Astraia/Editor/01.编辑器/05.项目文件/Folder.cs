@@ -71,7 +71,6 @@ namespace Astraia
         };
 
         private static readonly Dictionary<string, List<string>> itemNames = new();
-        private static readonly GUIContent content = new GUIContent();
 
         public static void OnGUI(int id, Rect rect)
         {
@@ -104,8 +103,7 @@ namespace Astraia
 
                     void Minimap()
                     {
-                        content.text = Path.GetFileName(path);
-                        var minButtonX = rect.x + GUI.skin.label.CalcSize(content).x + 15;
+                        var minButtonX = rect.x + Reflection.NameLength(Path.GetFileName(path)) + 15;
                         var iconRect = new Rect(fullRect);
                         iconRect.x += iconRect.width - 2;
                         iconRect.width = 13;
@@ -153,9 +151,9 @@ namespace Astraia
             }
 
             rect.width += rect.x + 16;
-            rect.height = 1;
             rect.x = 0;
-            rect.y += 15.5f;
+            rect.y += 16;
+            rect.height = 1;
             EditorGUI.DrawRect(rect, Color.black * 0.1f);
         }
 
@@ -210,13 +208,13 @@ namespace Astraia
                     iconNames[i] = iconNames[i].Substring(2);
                 }
             }
-            
+
             iconNames.Remove("DefaultAsset Icon");
             if (iconNames.Contains("cs Script Icon"))
             {
                 iconNames.Remove("AssemblyDefinitionAsset Icon");
             }
-            
+
             if (iconNames.Contains("Shader Icon"))
             {
                 iconNames.Remove("ShaderInclude Icon");
