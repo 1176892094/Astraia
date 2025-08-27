@@ -18,7 +18,7 @@ namespace Astraia
 {
     using static EditorInput;
 
-    internal static class Hierarchy
+    internal static partial class Hierarchy
     {
         private static readonly HashSet<int> windows = new HashSet<int>();
         private static readonly List<Object> items = new List<Object>();
