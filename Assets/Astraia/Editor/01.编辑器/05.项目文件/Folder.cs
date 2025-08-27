@@ -9,8 +9,10 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,48 +20,64 @@ namespace Astraia
 {
     internal static class Folder
     {
-        private static readonly Dictionary<string, Icon> icons = new Dictionary<string, Icon>()
+        private static readonly Dictionary<string, Icon> icons = new()
         {
             { "Animations", Icon.Animations },
+            { "Audios", Icon.Audios },
+            { "Editor", Icon.Editor },
+            { "Lights", Icon.Lights },
+            { "Fonts", Icon.Fonts },
+            { "Materials", Icon.Materials },
+            { "Meshes", Icon.Meshes },
+            { "Physics", Icon.Physics },
+            { "Plugins", Icon.Plugins },
+            { "Prefabs", Icon.Prefabs },
+            { "Project", Icon.Project },
             { "Resources", Icon.Resources },
             { "Scenes", Icon.Scenes },
             { "Scripts", Icon.Scripts },
-            { "Plugins", Icon.Plugins },
-            { "Materials", Icon.Materials },
-            { "Extensions", Icon.Editor },
-            { "Audios", Icon.Audios },
-            { "Prefabs", Icon.Prefabs },
-            { "Models", Icon.Meshes },
-            { "Settings", Icon.Project },
             { "Shaders", Icon.Shaders },
-            { "Fonts", Icon.Fonts },
-            { "Textures", Icon.Textures },
-            { "StreamingAssets", Icon.Resources },
-            { "Physics", Icon.Physics },
             { "Terrains", Icon.Terrains },
-            { "Tilemaps", Icon.Terrains },
-            { "Lights", Icon.Lights },
-            { "Process", Icon.Lights },
-            { "Editor", Icon.Editor },
+            { "Textures", Icon.Textures },
             { "Android", Icon.Android },
             { "iOS", Icon.IPhone },
-            { "Windows", Icon.Windows },
             { "MacOS", Icon.MacOS },
             { "WebGL", Icon.WebGL },
-            { "DataTable", Icon.Project },
+            { "Windows", Icon.Windows },
+            
             { "Atlas", Icon.Meshes },
-            { "Icons", Icon.Textures },
+            { "Models", Icon.Meshes },
+            { "DataTable", Icon.Project },
             { "HotUpdate", Icon.Scripts },
+            { "Settings", Icon.Project },
+            { "Tilemaps", Icon.Terrains },
+            { "Extensions", Icon.Editor },
             { "Template", Icon.Resources },
+            { "StreamingAssets", Icon.Resources },
         };
+
+        private static readonly List<string> sorts = new List<string>
+        {
+            "SceneAsset Icon",
+            "Prefab Icon",
+            "Mesh Icon",
+            "Material Icon",
+            "Texture Icon",
+            "cs Script Icon",
+            "Shader Icon",
+            "ComputeShader Icon",
+            "ShaderInclude Icon",
+            "ScriptableObject Icon"
+        };
+        
+        private static readonly Dictionary<string, List<string>> itemNames = new();
+        private static readonly GUIContent content = new GUIContent();
 
         public static void OnGUI(int id, Rect rect)
         {
             if (Event.current.type == EventType.Repaint)
             {
-              
                 var path = AssetDatabase.GetAssetPath(EditorUtility.InstanceIDToObject(id));
-
                 if (rect.height > 16)
                 {
                     return;
@@ -69,12 +87,46 @@ namespace Astraia
 
                 if (AssetDatabase.IsValidFolder(path))
                 {
-                    var folder = Path.GetFileName(path);
-
-                    if (icons.TryGetValue(folder, out var icon))
+                    var name = Path.GetFileName(path);
+                    if (icons.TryGetValue(name, out var icon))
                     {
-                        rect.width = rect.height;
-                        GUI.DrawTexture(rect, EditorIcon.GetIcon(icon));
+                        var iconRect = new Rect(rect);
+                        iconRect.width = iconRect.height;
+                        GUI.DrawTexture(iconRect, EditorIcon.GetIcon(icon));
+                    }
+
+                    var iconNames = LoadIcon(AssetDatabase.AssetPathToGUID(path));
+                    var fullRect = new Rect(rect);
+                    fullRect.x += fullRect.width;
+                    fullRect.width = rect.width + rect.x;
+                    fullRect.x -= fullRect.width;
+                    Minimap();
+
+                    void Minimap()
+                    {
+                        var iconDistance = 14;
+                        content.text = Path.GetFileName(path);
+                        var minButtonX = rect.x + GUI.skin.label.CalcSize(content).x + iconDistance + 2;
+                        var iconRect = new Rect(fullRect);
+                        iconRect.x += iconRect.width - 2;
+                        iconRect.width = iconDistance;
+                        iconRect.x -= iconRect.width;
+
+
+                        foreach (var iconName in iconNames)
+                        {
+                            if (iconRect.x < minButtonX)
+                            {
+                                continue;
+                            }
+
+                            var color = GUI.color;
+                            GUI.color = new Color(1, 1, 1, 0.3f);
+                            GUI.DrawTexture(iconRect, EditorIcon.GetIcon(iconName), ScaleMode.ScaleToFit);
+                            GUI.color = color;
+
+                            iconRect.x -= iconDistance;
+                        }
                     }
                 }
             }
@@ -109,6 +161,87 @@ namespace Astraia
             rect.x = 0;
             rect.y += 15.5f;
             EditorGUI.DrawRect(rect, Color.black * 0.1f);
+        }
+
+        private static List<string> LoadIcon(string guid)
+        {
+            if (itemNames.TryGetValue(guid, out var state))
+            {
+                return state;
+            }
+
+            var paths = Directory.GetFiles(AssetDatabase.GUIDToAssetPath(guid), "*.*");
+
+            var iconNames = new List<string>();
+            foreach (var path in paths)
+            {
+                var result = AssetDatabase.GetMainAssetTypeAtPath(path);
+                if (result != null)
+                {
+                    if (result == typeof(Texture2D))
+                    {
+                        iconNames.Add("Texture Icon");
+                    }
+                    else if (result == typeof(GameObject))
+                    {
+                        iconNames.Add("Prefab Icon");
+                    }
+                    else if (typeof(ScriptableObject).IsAssignableFrom(result))
+                    {
+                        iconNames.Add("ScriptableObject Icon");
+                    }
+                    else if (result == typeof(MonoScript))
+                    {
+                        iconNames.Add("cs Script Icon");
+                    }
+                    else
+                    {
+                        var icon = AssetPreview.GetMiniTypeThumbnail(result);
+                        if (icon != null)
+                        {
+                            iconNames.Add(icon.name);
+                        }
+                    }
+                }
+            }
+
+            iconNames = iconNames.Distinct().ToList();
+
+            for (var i = 0; i < iconNames.Count; i++)
+            {
+                if (iconNames[i].StartsWith("d_"))
+                {
+                    iconNames[i] = iconNames[i].Substring(2);
+                }
+            }
+
+            iconNames.Remove("TextAsset Icon");
+            iconNames.Remove("DefaultAsset Icon");
+            if (iconNames.Contains("cs Script Icon"))
+            {
+                iconNames.Remove("AssemblyDefinitionAsset Icon");
+            }
+
+            if (iconNames.Contains("Shader Icon"))
+            {
+                iconNames.Remove("ShaderInclude Icon");
+            }
+
+            var sortedIcons = new List<string>(iconNames);
+
+            sortedIcons.Sort((a, b) =>
+            {
+                var indexA = sorts.IndexOf(a);
+                var indexB = sorts.IndexOf(b);
+                if (indexA == -1) indexA = 1232;
+                if (indexB == -1) indexB = 1232;
+                var compare = indexA.CompareTo(indexB);
+                return compare != 0 ? compare : string.Compare(a, b, StringComparison.Ordinal);
+            });
+
+            iconNames = sortedIcons;
+            itemNames.Add(guid, iconNames);
+            return iconNames;
         }
     }
 }

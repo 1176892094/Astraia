@@ -11,6 +11,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -28,10 +29,6 @@ namespace Astraia
         {
             var target = (GameObject)EditorUtility.InstanceIDToObject(id);
 
-            if (isMouseMove)
-            {
-                Debug.Log(isMouseMove );
-            }
             if (isLayout)
             {
                 InitWindow();
@@ -41,7 +38,7 @@ namespace Astraia
                 DrawTexture(rect, target);
                 DrawIcon(rect, target);
             }
-            else if (isMouseDown)
+            else if (isMouseDown || isMouseUp || isMouseDrag)
             {
                 DrawIcon(rect, target);
             }
@@ -249,12 +246,14 @@ namespace Astraia
             }
         }
 
+        private static bool isDown;
+
         private static void ItemIcon(Rect rect, Object item)
         {
-            if (isRepaint)
+            if (isRepaint || isMouseDown || isMouseUp || isMouseDrag)
             {
                 var icon = EditorGUIUtility.ObjectContent(item, item.GetType()).image;
-                if (rect.Contains(mousePosition) && isShift)
+                if (rect.Contains(mousePosition) && isDown)
                 {
                     GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit);
                 }
@@ -266,13 +265,24 @@ namespace Astraia
                     GUI.color = color;
                 }
             }
-            else if (isMouseDown)
+
+            if (isMouseDown)
             {
-                if (rect.Contains(mousePosition) && isShift && mouseButton == 0)
+                if (rect.Contains(mousePosition) && mouseButton == 0)
                 {
-                    Reflection.ShowContext(rect, item);
+                    DrawAsync(rect);
                     Use();
                 }
+            }
+
+            async void DrawAsync(Rect newRect)
+            {
+                isDown = true;
+                newRect.x += 16;
+                newRect.y += 16;
+                await Task.Yield();
+                isDown = false;
+                Reflection.ShowContext(newRect, item);
             }
         }
     }
