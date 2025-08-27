@@ -260,7 +260,7 @@ namespace Astraia
                 else
                 {
                     var color = GUI.color;
-                    GUI.color = new Color(1, 1, 1, 0.3f);
+                    GUI.color = Color.white * 0.6F;
                     GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit);
                     GUI.color = color;
                 }

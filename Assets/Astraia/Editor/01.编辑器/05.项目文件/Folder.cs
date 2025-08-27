@@ -44,7 +44,7 @@ namespace Astraia
             { "MacOS", Icon.MacOS },
             { "WebGL", Icon.WebGL },
             { "Windows", Icon.Windows },
-            
+
             { "Atlas", Icon.Meshes },
             { "Models", Icon.Meshes },
             { "DataTable", Icon.Project },
@@ -69,7 +69,7 @@ namespace Astraia
             "ShaderInclude Icon",
             "ScriptableObject Icon"
         };
-        
+
         private static readonly Dictionary<string, List<string>> itemNames = new();
         private static readonly GUIContent content = new GUIContent();
 
@@ -104,28 +104,24 @@ namespace Astraia
 
                     void Minimap()
                     {
-                        var iconDistance = 14;
                         content.text = Path.GetFileName(path);
-                        var minButtonX = rect.x + GUI.skin.label.CalcSize(content).x + iconDistance + 2;
+                        var minButtonX = rect.x + GUI.skin.label.CalcSize(content).x + 15;
                         var iconRect = new Rect(fullRect);
                         iconRect.x += iconRect.width - 2;
-                        iconRect.width = iconDistance;
+                        iconRect.width = 13;
                         iconRect.x -= iconRect.width;
 
 
                         foreach (var iconName in iconNames)
                         {
-                            if (iconRect.x < minButtonX)
+                            if (iconRect.x > minButtonX)
                             {
-                                continue;
+                                var color = GUI.color;
+                                GUI.color = Color.white * 0.6F;
+                                GUI.DrawTexture(iconRect, EditorIcon.GetIcon(iconName), ScaleMode.ScaleToFit);
+                                GUI.color = color;
+                                iconRect.x -= 13;
                             }
-
-                            var color = GUI.color;
-                            GUI.color = new Color(1, 1, 1, 0.3f);
-                            GUI.DrawTexture(iconRect, EditorIcon.GetIcon(iconName), ScaleMode.ScaleToFit);
-                            GUI.color = color;
-
-                            iconRect.x -= iconDistance;
                         }
                     }
                 }
@@ -214,22 +210,19 @@ namespace Astraia
                     iconNames[i] = iconNames[i].Substring(2);
                 }
             }
-
-            iconNames.Remove("TextAsset Icon");
+            
             iconNames.Remove("DefaultAsset Icon");
             if (iconNames.Contains("cs Script Icon"))
             {
                 iconNames.Remove("AssemblyDefinitionAsset Icon");
             }
-
+            
             if (iconNames.Contains("Shader Icon"))
             {
                 iconNames.Remove("ShaderInclude Icon");
             }
 
-            var sortedIcons = new List<string>(iconNames);
-
-            sortedIcons.Sort((a, b) =>
+            iconNames.Sort((a, b) =>
             {
                 var indexA = sorts.IndexOf(a);
                 var indexB = sorts.IndexOf(b);
@@ -238,8 +231,6 @@ namespace Astraia
                 var compare = indexA.CompareTo(indexB);
                 return compare != 0 ? compare : string.Compare(a, b, StringComparison.Ordinal);
             });
-
-            iconNames = sortedIcons;
             itemNames.Add(guid, iconNames);
             return iconNames;
         }
