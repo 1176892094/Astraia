@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -46,7 +47,10 @@ namespace Astraia
         public static readonly GUIContent customIcon;
         public static readonly GUIContent windowIcon;
 
+        private static IEnumerable<EditorWindow> allInspectors;
         private static IEnumerable<EditorWindow> allEditorWindows;
+        public static IEnumerable<EditorWindow> AllInspectors => allInspectors ??= Inspector.GetValue<IList>("m_AllInspectors").Cast<EditorWindow>().Where(r => r.GetType() == Inspector);
+
         public static IEnumerable<EditorWindow> AllEditorWindows => allEditorWindows ??= typeof(EditorWindow).GetValue<List<EditorWindow>>("activeEditorWindows");
 
         public static IEnumerable<Object> AllDockAreas => AllEditorWindows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent"));
@@ -54,7 +58,7 @@ namespace Astraia
         static Reflection()
         {
             Toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
-          
+
             Browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
             Importer = typeof(Editor).Assembly.GetType("UnityEditor.PrefabImporter");
             Inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
@@ -124,18 +128,13 @@ namespace Astraia
                 cached = cached.GetValue("data");
                 items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
             }
-            
+
             return items;
         }
 
         public static Editor[] GetEditors(object instance)
         {
             return instance.GetValue<Editor[]>("m_Editors");
-        }
-
-        public static ActiveEditorTracker GetTracker(object instance)
-        {
-            return instance.GetValue<ActiveEditorTracker>("tracker");
         }
 
         public static VisualElement GetRoot(ScriptableObject instance)

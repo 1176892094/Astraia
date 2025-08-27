@@ -9,18 +9,20 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
 using UnityEditor;
+using UnityEngine;
 
 namespace Astraia
 {
     [InitializeOnLoad]
     internal static class EditorManager
     {
-        private static bool maximized;
+        private static bool wasAlt;
+        private static bool wasShift;
+        private static bool isMaximized;
+        private static Event inputEventLast;
         private static EditorWindow focusedWindow;
-        public static event Action<EditorWindow> OnWindowFocused;
-        public static event Action<EditorWindow> OnWindowMaximized;
+        private static EditorWindow mouseOverWindow;
 
         static EditorManager()
         {
@@ -28,16 +30,18 @@ namespace Astraia
             EditorApplication.update += Update;
             EditorApplication.update -= TabPro.Update;
             EditorApplication.update += TabPro.Update;
-            EditorApplication.update -= EditorInput.Update;
-            EditorApplication.update += EditorInput.Update;
             EditorApplication.hierarchyWindowItemOnGUI -= Hierarchy.OnGUI;
             EditorApplication.hierarchyWindowItemOnGUI += Hierarchy.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI -= Folder.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
             EditorApplication.projectChanged -= Folder.OnProjectChanged;
             EditorApplication.projectChanged += Folder.OnProjectChanged;
+            Selection.selectionChanged -= Inspector.SelectionChanged;
+            Selection.selectionChanged += Inspector.SelectionChanged;
+            EditorApplication.delayCall -= Inspector.OnInitialized;
+            EditorApplication.delayCall += Inspector.OnInitialized;
             focusedWindow = EditorWindow.focusedWindow;
-            maximized = focusedWindow != null && focusedWindow.maximized;
+            isMaximized = focusedWindow && focusedWindow.maximized;
         }
 
         private static void Update()
@@ -45,19 +49,50 @@ namespace Astraia
             if (focusedWindow != EditorWindow.focusedWindow)
             {
                 focusedWindow = EditorWindow.focusedWindow;
-                OnWindowFocused?.Invoke(focusedWindow);
+                if (focusedWindow)
+                {
+                    if (focusedWindow.GetType() == Reflection.Inspector)
+                    {
+                        Inspector.InitWindow(focusedWindow);
+                    }
+                }
             }
 
-            if (focusedWindow == null)
+            if (focusedWindow)
             {
-                return;
+                if (isMaximized != focusedWindow.maximized)
+                {
+                    isMaximized = focusedWindow.maximized;
+                    if (focusedWindow.GetType() == Reflection.Inspector)
+                    {
+                        Inspector.InitWindow(focusedWindow);
+                    }
+                }
             }
 
-            if (maximized != focusedWindow.maximized)
+            inputEventLast = typeof(Event).GetValue<Event>("s_Current");
+            mouseOverWindow = EditorWindow.mouseOverWindow;
+            if (mouseOverWindow)
             {
-                maximized = focusedWindow.maximized;
-                OnWindowMaximized?.Invoke(focusedWindow);
+                if (wasAlt && !inputEventLast.alt)
+                {
+                    if (mouseOverWindow.GetType() == Reflection.Browser)
+                    {
+                        mouseOverWindow.Repaint();
+                    }
+                }
+
+                if (wasShift && !inputEventLast.shift)
+                {
+                    if (mouseOverWindow.GetType() == Reflection.Hierarchy)
+                    {
+                        mouseOverWindow.Repaint();
+                    }
+                }
             }
+
+            wasAlt = inputEventLast.alt;
+            wasShift = inputEventLast.shift;
         }
     }
 }

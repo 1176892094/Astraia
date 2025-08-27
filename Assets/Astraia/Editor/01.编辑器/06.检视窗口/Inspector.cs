@@ -10,32 +10,34 @@
 // // *********************************************************************************
 
 using UnityEditor;
+using UnityEditor.Toolbars;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Astraia
 {
-    internal abstract class Inspector
+    using static Reflection;
+
+    internal static class Inspector
     {
-        protected void SelectionChanged()
+        private static VisualElement inspector;
+
+        public static void SelectionChanged()
         {
-            var objects = Resources.FindObjectsOfTypeAll(Reflection.Inspector);
-            foreach (var obj in objects)
+            foreach (var window in AllInspectors)
             {
-                if (obj is EditorWindow window)
-                {
-                    InitWindow(window);
-                }
+                InitWindow(window);
             }
         }
 
-        private void InitWindow(EditorWindow window)
+        public static void InitWindow(EditorWindow window)
         {
             var parent = FindElement(window.rootVisualElement, "unity-inspector-main-container");
             var element = FindElement(window.rootVisualElement, "unity-inspector-editors-list");
             if (parent != null && parent.childCount >= 2)
             {
-                InitInspector(window, parent, element);
+                InitInspector(element);
             }
         }
 
@@ -59,22 +61,176 @@ namespace Astraia
             return null;
         }
 
-        protected void OnWindowFocused(EditorWindow window)
+        private static void InitInspector(VisualElement element)
         {
-            if (window != null && window.GetType() == Reflection.Inspector)
+            if (element.parent[0].name == "Astraia Settings")
             {
-                InitWindow(window);
+                element.parent.RemoveAt(0);
+            }
+
+            if (element.childCount != 0)
+            {
+                return;
+            }
+
+            inspector ??= InitInspector();
+            element.parent.Insert(0, inspector);
+        }
+
+        private static VisualElement InitInspector()
+        {
+            var element = new VisualElement
+            {
+                name = "Astraia Settings",
+            };
+            InitTitle(element);
+            InitTools(element);
+            InitSettings(element);
+            InitPackages(element);
+            return element;
+        }
+
+        internal static void OnInitialized()
+        {
+            if (Selection.activeObject == null)
+            {
+                SelectionChanged();
             }
         }
 
-        protected void OnWindowMaximized(EditorWindow window)
+        private static void InitTitle(VisualElement element)
         {
-            if (window != null && window.GetType() == Reflection.Inspector)
+            element.Add(new Label(element.name)
             {
-                InitWindow(window);
+                style =
+                {
+                    height = 21f,
+                    fontSize = 14f,
+                    borderBottomWidth = 1f,
+                    borderBottomColor = Color.black * 0.6f,
+                    backgroundColor = Color.gray * 0.6f,
+                    unityTextAlign = TextAnchor.MiddleCenter,
+                    unityFontStyleAndWeight = FontStyle.Bold
+                }
+            });
+        }
+
+        private static void InitSettings(VisualElement parent)
+        {
+            SetLabel(parent, "Settings");
+            var element = SetElement(parent);
+            SetButton(element, "File/Build Profiles", "Build Settings");
+            SetButton(element, "Edit/Project Settings...", "Project Settings");
+            SetButton(element, "Unity/Settings...", "Preferences");
+        }
+
+        private static void InitTools(VisualElement parent)
+        {
+            VisualElement element = null;
+            foreach (var submenu in Unsupported.GetSubmenus("Tools"))
+            {
+                var index = submenu.LastIndexOf('/');
+                if (submenu.Contains("Astraia"))
+                {
+                    if (element == null)
+                    {
+                        SetLabel(parent, "Astraia");
+                        element = SetElement(parent);
+                    }
+
+                    SetButton(element, submenu, submenu.Substring(index + 1));
+                }
             }
         }
 
-        protected abstract void InitInspector(EditorWindow window, VisualElement parent, VisualElement element);
+        private static void InitPackages(VisualElement parent)
+        {
+            SetLabel(parent, "Packages");
+            var element = SetElement(parent);
+            SetButton(element, "Assets/Import Package/Custom Package...", "Import Custom Package");
+            var status = false;
+            var window = string.Empty;
+            foreach (var submenu in Unsupported.GetSubmenus("Window"))
+            {
+                if (!status)
+                {
+                    if (submenu.ToUpper() != "WINDOW/PACKAGE MANAGER")
+                    {
+                        continue;
+                    }
+
+                    status = true;
+                }
+
+                var index = submenu.LastIndexOf('/');
+                var itemText = submenu.Substring(0, index);
+                var nameText = submenu.Substring(index + 1);
+                index = itemText.LastIndexOf('/');
+
+                if (index == -1)
+                {
+                    SetButton(element, submenu, nameText);
+                    continue;
+                }
+
+                if (window != itemText)
+                {
+                    window = itemText;
+                    SetLabel(parent, itemText.Substring(index + 1));
+                    element = SetElement(parent);
+                }
+
+                SetButton(element, submenu, nameText);
+            }
+        }
+
+        private static void SetLabel(VisualElement parent, string text)
+        {
+            parent.Add(new Label(text)
+            {
+                style =
+                {
+                    fontSize = 12f,
+                    marginTop = 3f,
+                    marginLeft = 3f,
+                    marginRight = 3f,
+                    paddingLeft = 5f
+                }
+            });
+        }
+
+        private static void SetButton(VisualElement parent, string submenu, string text)
+        {
+            var button = new EditorToolbarButton(() => EditorApplication.ExecuteMenuItem(submenu))
+            {
+                style =
+                {
+                    height = 20,
+                    unityTextAlign = TextAnchor.MiddleCenter,
+                    left = 0,
+                    borderLeftWidth = 0,
+                    borderRightWidth = 0
+                }
+            };
+            typeof(ToolbarButton).GetProperty("text", Service.Find.Entity)?.SetValue(button, text);
+            parent.Add(button);
+        }
+
+        private static VisualElement SetElement(VisualElement parent)
+        {
+            var element = new VisualElement
+            {
+                style =
+                {
+                    borderTopWidth = 1f,
+                    borderBottomWidth = 1f,
+                    borderTopColor = Color.black * 0.6f,
+                    borderBottomColor = Color.black * 0.6f,
+                    marginTop = 2f
+                }
+            };
+            parent.Add(element);
+            return element;
+        }
     }
 }

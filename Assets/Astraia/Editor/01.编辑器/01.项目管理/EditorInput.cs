@@ -36,33 +36,6 @@ namespace Astraia
         public static bool isCtrl => Event.control || Event.command;
         public static bool E => isKeyDown && keyCode == KeyCode.E && !isModifierKey;
 
-        private static bool wasAlt;
-        private static bool wasShift;
-
-        public static void Update()
-        {
-            var keyboard = typeof(Event).GetValue<Event>("s_Current");
-            var window = EditorWindow.mouseOverWindow;
-            if (wasAlt && !keyboard.alt)
-            {
-                if (window && window.GetType() == Reflection.Browser)
-                {
-                    window.Repaint();
-                }
-            }
-
-            if (wasShift && !keyboard.shift)
-            {
-                if (window && window.GetType() == Reflection.Hierarchy)
-                {
-                    window.Repaint();
-                }
-            }
-
-            wasAlt = keyboard.alt;
-            wasShift = keyboard.shift;
-        }
-
         public static void Use()
         {
             Event?.Use();
