@@ -53,6 +53,11 @@ namespace Astraia
                     }
                 }
             }
+
+            if (isEscape)
+            {
+                copiedData.Clear();
+            }
         }
     }
 }

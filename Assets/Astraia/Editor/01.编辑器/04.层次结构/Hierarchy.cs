@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -23,6 +24,7 @@ namespace Astraia
         private static readonly HashSet<int> windows = new HashSet<int>();
         private static readonly List<Object> items = new List<Object>();
         private static bool pressed;
+        private static bool command;
 
         public static void OnGUI(int id, Rect rect)
         {
@@ -249,26 +251,72 @@ namespace Astraia
 
         private static void Button(Rect rect, Object item)
         {
-            var color = GUI.color;
-            GUI.color = rect.Contains(mousePosition) && pressed ? Color.white : Color.white * 0.6F;
-            GUI.DrawTexture(rect, AssetPreview.GetMiniThumbnail(item), ScaleMode.ScaleToFit);
-            GUI.color = color;
+            if (copiedData.ContainsKey(item))
+            {
+                EditorGUI.DrawRect(rect, Color.green * 0.6f);
+                GUI.DrawTexture(rect, AssetPreview.GetMiniThumbnail(item), ScaleMode.ScaleToFit);
+            }
+            else
+            {
+                var color = GUI.color;
+                GUI.color = rect.Contains(mousePosition) && pressed ? Color.white : Color.white * 0.6F;
+                GUI.DrawTexture(rect, AssetPreview.GetMiniThumbnail(item), ScaleMode.ScaleToFit);
+                GUI.color = color;
+            }
+
 
             if (isMouseDown)
             {
                 pressed = true;
+                if (isAlt)
+                {
+                    command = true;
+                }
             }
 
             if (isMouseUp)
             {
                 pressed = false;
-                if (rect.Contains(mousePosition) && mouseButton == 0)
+                if (rect.Contains(mousePosition))
                 {
-                    rect.x += 16;
-                    rect.y -= 16;
-                    Reflection.ShowContext(rect, item);
-                    Use();
+                    if (isAlt && item is Component component && command && mouseButton == 0)
+                    {
+                        CopyOrPaste(component);
+                        command = false;
+                        Use();
+                        return;
+                    }
+
+                    if (mouseButton == 0)
+                    {
+                        rect.x += 16;
+                        rect.y -= 16;
+                        Reflection.ShowContext(rect, item);
+                        Use();
+                    }
                 }
+            }
+        }
+
+        private static void CopyOrPaste(Component component)
+        {
+            copiedData.TryGetValue(component, out var copies);
+            ComponentData pastes = null;
+            foreach (var pasted in copiedData.Values.Where(r => r.component.GetType() == component.GetType()))
+            {
+                pastes = pasted;
+            }
+
+            var canCopied = copies != null;
+            var canPasted = pastes != null && !canCopied;
+
+            if (canPasted)
+            {
+                Paste(pastes, component);
+            }
+            else
+            {
+                Copy(component);
             }
         }
     }

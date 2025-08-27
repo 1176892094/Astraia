@@ -19,8 +19,8 @@ namespace Astraia
 {
     using static EditorInput;
 
-    
-    public static class TabPro
+
+    internal static class TabPro
     {
         private static readonly List<Object, TabProPage> DockAreas = new List<Object, TabProPage>();
 

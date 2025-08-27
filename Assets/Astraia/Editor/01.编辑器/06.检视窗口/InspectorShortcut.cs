@@ -20,7 +20,7 @@ namespace Astraia
     using static Reflection;
     using static EditorInput;
 
-    public static partial class Inspector
+    internal static partial class Inspector
     {
         private static readonly List<Component> components = new List<Component>();
 

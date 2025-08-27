@@ -18,7 +18,7 @@ namespace Astraia
 {
     using static Reflection;
 
-    public static partial class Inspector
+    internal static partial class Inspector
     {
         private static VisualElement inspector;
 
