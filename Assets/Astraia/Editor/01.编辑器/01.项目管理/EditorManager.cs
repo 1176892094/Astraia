@@ -28,8 +28,6 @@ namespace Astraia
             EditorApplication.update += Update;
             EditorApplication.update -= TabPro.Update;
             EditorApplication.update += TabPro.Update;
-            EditorApplication.update -= Favourite.Update;
-            EditorApplication.update += Favourite.Update;
             EditorApplication.update -= EditorInput.Update;
             EditorApplication.update += EditorInput.Update;
             EditorApplication.hierarchyWindowItemOnGUI -= Hierarchy.OnGUI;
