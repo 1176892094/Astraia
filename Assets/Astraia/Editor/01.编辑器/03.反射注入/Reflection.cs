@@ -37,9 +37,7 @@ namespace Astraia
         public static readonly GUIContent expansion;
         public static readonly GUIContent buildIcon;
         public static readonly GUIContent settingIcon;
-        public static readonly GUIContent unityIcon;
-        public static readonly GUIContent prefabIcon;
-        public static readonly GUIContent objectIcon;
+        public static readonly GUIContent sceneIcon;
         public static readonly GUIContent scriptIcon;
         public static readonly GUIContent customIcon;
         public static readonly GUIContent windowIcon;
@@ -60,10 +58,7 @@ namespace Astraia
             GUIClip = typeof(GUI).Assembly.GetType("UnityEngine.GUIClip");
             GUIView = typeof(Editor).Assembly.GetType("UnityEditor.GUIView");
 
-            unityIcon = EditorGUIUtility.IconContent("UnityLogo");
-            prefabIcon = EditorGUIUtility.IconContent("Prefab Icon");
-
-            objectIcon = EditorGUIUtility.IconContent("GameObject Icon");
+            sceneIcon = EditorGUIUtility.IconContent("UnityLogo");
             scriptIcon = EditorGUIUtility.IconContent("cs Script Icon");
 
             buildIcon = EditorGUIUtility.IconContent("BuildSettings.Standalone");

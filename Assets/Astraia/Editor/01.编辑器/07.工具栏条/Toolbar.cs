@@ -249,7 +249,7 @@ namespace Astraia
                 {
                     width = 16,
                     height = 16,
-                    backgroundImage = Reflection.unityIcon.image as Texture2D,
+                    backgroundImage = Reflection.sceneIcon.image as Texture2D,
                 },
             };
             toolbarMenu.Insert(0, menuIcon);

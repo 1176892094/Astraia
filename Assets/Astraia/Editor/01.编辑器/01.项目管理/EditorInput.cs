@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Astraia
 {
-    internal static class InputEvent
+    internal static class EditorInput
     {
         private static readonly Event current;
         private static readonly Event Event = current ??= typeof(Event).GetValue<Event>("s_Current");

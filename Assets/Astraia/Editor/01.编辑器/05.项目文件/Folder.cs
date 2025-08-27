@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Astraia
 {
-    using static InputEvent;
+    using static EditorInput;
 
     internal static class Folder
     {

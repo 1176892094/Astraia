@@ -16,7 +16,7 @@ using UnityEngine.UIElements;
 
 namespace Astraia
 {
-    using static InputEvent;
+    using static EditorInput;
 
     internal static class Hierarchy
     {
@@ -119,7 +119,7 @@ namespace Astraia
             {
                 if (!target)
                 {
-                    return Reflection.unityIcon.image;
+                    return Reflection.sceneIcon.image;
                 }
 
                 Texture icon = AssetPreview.GetMiniThumbnail(target);

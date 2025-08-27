@@ -17,7 +17,7 @@ using UnityEngine.UIElements;
 
 namespace Astraia
 {
-    using static InputEvent;
+    using static EditorInput;
 
     public static class TabPro
     {
