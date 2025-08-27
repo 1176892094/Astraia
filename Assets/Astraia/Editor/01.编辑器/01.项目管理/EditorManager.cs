@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Astraia
@@ -36,13 +37,24 @@ namespace Astraia
             EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
             EditorApplication.projectChanged -= Folder.OnProjectChanged;
             EditorApplication.projectChanged += Folder.OnProjectChanged;
+            
+            Selection.selectionChanged -= Toolbar.SelectionChanged;
+            Selection.selectionChanged += Toolbar.SelectionChanged;
             Selection.selectionChanged -= Inspector.SelectionChanged;
             Selection.selectionChanged += Inspector.SelectionChanged;
-            EditorApplication.delayCall -= Inspector.OnInitialized;
-            EditorApplication.delayCall += Inspector.OnInitialized;
+            
+            EditorApplication.delayCall -= Toolbar.SelectionChanged;
+            EditorApplication.delayCall += Toolbar.SelectionChanged;
+            EditorApplication.delayCall -= Inspector.SelectionChanged;
+            EditorApplication.delayCall += Inspector.SelectionChanged;
+            
+            EditorSceneManager.sceneOpened -= Toolbar.OnSceneOpened;
+            EditorSceneManager.sceneOpened += Toolbar.OnSceneOpened;
+            
+
             focusedWindow = EditorWindow.focusedWindow;
             isMaximized = focusedWindow && focusedWindow.maximized;
-            
+
             var eventHandler = typeof(EditorApplication).GetValue<EditorApplication.CallbackFunction>("globalEventHandler");
             eventHandler = Inspector.Shortcuts + (eventHandler - Inspector.Shortcuts);
             typeof(EditorApplication).SetValue("globalEventHandler", eventHandler);

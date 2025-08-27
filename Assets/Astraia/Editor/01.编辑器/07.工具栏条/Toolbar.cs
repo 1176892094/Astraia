@@ -22,32 +22,12 @@ using UnityEngine.UIElements;
 
 namespace Astraia
 {
-    internal sealed class Toolbar
+    internal static class Toolbar
     {
-        private static Toolbar instance;
         private static List<string> scenes;
         private static ToolbarMenu toolbarMenu;
 
-        private Toolbar()
-        {
-            EditorApplication.delayCall += OnInitialized;
-            EditorSceneManager.sceneOpened += OnSceneOpened;
-            Selection.selectionChanged += SelectionChanged;
-        }
-
-
-        [InitializeOnLoadMethod]
-        private static void Enable() => instance ??= new Toolbar();
-
-        private void OnInitialized()
-        {
-            if (Selection.activeObject == null)
-            {
-                SelectionChanged();
-            }
-        }
-
-        private static void SelectionChanged()
+        public static void SelectionChanged()
         {
             var objects = Resources.FindObjectsOfTypeAll(Reflection.Toolbar);
             foreach (var obj in objects)
@@ -268,7 +248,7 @@ namespace Astraia
             return parent;
         }
 
-        private static void OnSceneOpened(Scene scene, OpenSceneMode mode)
+        public static void OnSceneOpened(Scene scene, OpenSceneMode mode)
         {
             if (EditorApplication.isPlaying) return;
             var assets = EditorPrefs.GetString(nameof(CacheScene));

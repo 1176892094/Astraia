@@ -89,14 +89,6 @@ namespace Astraia
             return element;
         }
 
-        internal static void OnInitialized()
-        {
-            if (Selection.activeObject == null)
-            {
-                SelectionChanged();
-            }
-        }
-
         private static void InitTitle(VisualElement element)
         {
             element.Add(new Label(element.name)
