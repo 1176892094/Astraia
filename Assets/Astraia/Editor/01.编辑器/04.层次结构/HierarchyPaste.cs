@@ -46,14 +46,9 @@ namespace Astraia
             EditorUtility.SetDirty(component);
         }
         
-        private static ComponentData GetData(Component component, bool save = false)
+        private static ComponentData GetData(Component component)
         {
             var data = new ComponentData(component);
-            if (save)
-            {
-                data.id = GlobalObjectId.GetGlobalObjectIdSlow(component);
-            }
-
             var property = new SerializedObject(component).GetIterator();
             if (!property.Next(true))
             {
@@ -96,7 +91,6 @@ namespace Astraia
         public class ComponentData
         {
             public Dictionary<string, object> properties = new();
-            public GlobalObjectId id;
             public Component component;
 
             public ComponentData(Component component)

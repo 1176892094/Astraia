@@ -9,8 +9,8 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
 #if UNITY_6000_2_OR_NEWER
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 #endif
@@ -37,60 +37,82 @@ namespace Astraia
 
             if (isShiftE)
             {
-                Expand(window);
-                window.Repaint();
-                Use();
-            }
-
-            if (isShiftR)
-            {
-                Expand(window, 1);
+                ExpandOrCompose(window);
                 window.Repaint();
                 Use();
             }
         }
 
-        private static void Expand(EditorWindow window, int index = 0)
+        private static void ExpandOrCompose(EditorWindow window)
         {
             var mode = window.GetValue<int>("m_ViewMode") == 0;
             var tree = window.GetValue(mode ? "m_AssetTree" : "m_FolderTree");
             var data = tree.GetValue("data");
-            var item = tree.GetValue<TreeViewState>("state").expandedIDs;
+            var state = tree.GetValue<TreeViewState>("state");
 
-            var roots = new HashSet<int>();
-            foreach (var id in item)
+            string[] roots = { "Assets", "Packages" };
+
+            foreach (var root in roots)
             {
-                var path = AssetDatabase.GetAssetPath(EditorUtility.InstanceIDToObject(id));
+                var rootObj = AssetDatabase.LoadAssetAtPath<Object>(root);
+                if (rootObj == null) continue;
 
-                if (path.LastIndexOf('/') > 0)
+                int rootId = rootObj.GetInstanceID();
+                if (!state.expandedIDs.Contains(rootId))
                 {
-                    if (index == 0)
+                    data.Invoke("SetExpanded", rootId, true);
+                }
+
+                var subDirs = AssetDatabase.GetSubFolders(root);
+                var hasChild = false;
+
+                foreach (var subDir in subDirs)
+                {
+                    var subObj = AssetDatabase.LoadAssetAtPath<Object>(subDir);
+                    if (subObj != null)
                     {
-                        if (path.Substring(0, path.LastIndexOf('/')) is "Assets" or "Packages")
+                        if (state.expandedIDs.Contains(subObj.GetInstanceID()))
                         {
-                            roots.Add(id);
+                            hasChild = true;
+                            break;
                         }
                     }
-                    else
+                }
+
+                if (!hasChild)
+                {
+                    foreach (var subDir in subDirs)
                     {
-                        if (path is "Assets" or "Packages")
+                        var subObj = AssetDatabase.LoadAssetAtPath<Object>(subDir);
+                        if (subObj != null)
                         {
-                            roots.Add(id);
+                            data.Invoke("SetExpanded", subObj.GetInstanceID(), true);
                         }
+                    }
+                }
+                else
+                {
+                    foreach (var subDir in subDirs)
+                    {
+                        CollapseRecursive(data, subDir);
                     }
                 }
             }
 
-            for (int i = item.Count - 1; i >= 0; i--)
+            window.Repaint();
+            Use();
+        }
+
+        private static void CollapseRecursive(object data, string folder)
+        {
+            var subObj = AssetDatabase.LoadAssetAtPath<Object>(folder);
+            if (subObj != null)
             {
-                var id = item[i];
-                var path = AssetDatabase.GetAssetPath(EditorUtility.InstanceIDToObject(id));
-                if (!path.IsNullOrEmpty())
+                data.Invoke("SetExpanded", subObj.GetInstanceID(), false);
+                var subDirs = AssetDatabase.GetSubFolders(folder);
+                foreach (var subDir in subDirs)
                 {
-                    if (path != "Assets" && path != "Packages" && !roots.Contains(id))
-                    {
-                        data.Invoke("SetExpanded", id, false);
-                    }
+                    CollapseRecursive(data, subDir);
                 }
             }
         }

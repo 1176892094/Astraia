@@ -38,7 +38,6 @@ namespace Astraia
         public static bool E => isKeyDown && keyCode == KeyCode.E && !isModifierKey;
         public static bool R => isKeyDown && keyCode == KeyCode.R && !isModifierKey;
         public static bool isShiftE => isKeyDown && keyCode == KeyCode.E && isShift;
-        public static bool isShiftR => isKeyDown && keyCode == KeyCode.R && isShift;
         public static bool isEscape => isKeyDown && keyCode == KeyCode.Escape && !isModifierKey;
 
         public static void Use()

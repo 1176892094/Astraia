@@ -9,8 +9,10 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 #if UNITY_6000_2_OR_NEWER
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 #endif
@@ -21,6 +23,9 @@ namespace Astraia
 
     internal static partial class Hierarchy
     {
+        private static readonly Dictionary<int, bool> sceneExpandState = new Dictionary<int, bool>();
+        private static readonly HashSet<int> expandedScenes = new HashSet<int>();
+
         public static void Shortcuts()
         {
             var window = EditorWindow.mouseOverWindow;
@@ -36,12 +41,7 @@ namespace Astraia
 
             if (isShiftE)
             {
-                Expand(window);
-            }
-
-            if (isShiftR)
-            {
-                Expand(window, 1);
+                ExpandOrCompose(window);
             }
 
             if (isEscape)
@@ -49,32 +49,57 @@ namespace Astraia
                 copiedData.Clear();
             }
         }
-
-        private static void Expand(EditorWindow window, int index = 0)
+        
+        
+        private static void ExpandOrCompose(EditorWindow window)
         {
             var scene = window.GetValue("m_SceneHierarchy");
             var tree = scene.GetValue("m_TreeView");
             var data = tree.GetValue("data");
-            var item = tree.GetValue<TreeViewState>("state").expandedIDs;
+            var state = tree.GetValue<TreeViewState>("state");
 
-            for (int i = item.Count - 1; i >= 0; i--)
+            var sceneActive = SceneManager.GetActiveScene();
+            int sceneId = sceneActive.handle;
+
+            bool isExpanded = sceneExpandState.ContainsKey(sceneId) && sceneExpandState[sceneId];
+
+            if (isExpanded)
             {
-                var id = item[i];
-                if (EditorUtility.InstanceIDToObject(id) is GameObject o)
+                for (int i = state.expandedIDs.Count - 1; i >= 0; i--)
                 {
-                    if (index == 0)
-                    {
-                        if (o.transform.parent)
-                        {
-                            data.Invoke("SetExpanded", id, false);
-                        }
-                    }
-                    else
+                    var id = state.expandedIDs[i];
+                    if (EditorUtility.InstanceIDToObject(id) is GameObject)
                     {
                         data.Invoke("SetExpanded", id, false);
                     }
                 }
+
+                sceneExpandState[sceneId] = false;
             }
+            else
+            {
+                if (!expandedScenes.Contains(sceneId))
+                {
+                    data.Invoke("SetExpanded", sceneId, true);
+                    expandedScenes.Add(sceneId);
+                }
+
+                foreach (var root in sceneActive.GetRootGameObjects())
+                {
+                    int rootId = root.GetInstanceID();
+                    data.Invoke("SetExpanded", rootId, true);
+                    foreach (Transform child in root.transform)
+                    {
+                        int childId = child.gameObject.GetInstanceID();
+                        data.Invoke("SetExpanded", childId, true);
+                    }
+                }
+
+                sceneExpandState[sceneId] = true;
+            }
+
+            window.Repaint();
+            Use();
         }
     }
 }
