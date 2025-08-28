@@ -88,11 +88,11 @@ namespace Astraia
                 {
                     int rootId = root.GetInstanceID();
                     data.Invoke("SetExpanded", rootId, true);
-                    foreach (Transform child in root.transform)
-                    {
-                        int childId = child.gameObject.GetInstanceID();
-                        data.Invoke("SetExpanded", childId, true);
-                    }
+                    // foreach (Transform child in root.transform)
+                    // {
+                    //     int childId = child.gameObject.GetInstanceID();
+                    //     data.Invoke("SetExpanded", childId, true);
+                    // }
                 }
 
                 sceneExpandState[sceneId] = true;
