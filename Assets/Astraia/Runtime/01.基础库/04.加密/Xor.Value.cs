@@ -32,6 +32,7 @@ namespace Astraia.Common
                     var value = origin ^ offset;
                     if (buffer != ((offset >> 8) ^ value))
                     {
+                        EventManager.Invoke(new Exception());
                         throw new InvalidOperationException();
                     }
 
@@ -99,6 +100,7 @@ namespace Astraia.Common
                     var value = origin ^ offset;
                     if (buffer != ((offset >> 8) ^ value))
                     {
+                        EventManager.Invoke(new Exception());
                         throw new InvalidOperationException();
                     }
 
@@ -165,6 +167,7 @@ namespace Astraia.Common
                     var value = origin ^ offset;
                     if (buffer != ((offset >> 8) ^ value))
                     {
+                        EventManager.Invoke(new Exception());
                         throw new InvalidOperationException();
                     }
 
@@ -237,6 +240,7 @@ namespace Astraia.Common
 
                     if (buffer != GetHashCode())
                     {
+                        EventManager.Invoke(new Exception());
                         throw new InvalidOperationException();
                     }
 

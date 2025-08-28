@@ -19,6 +19,10 @@ namespace Astraia.Common
         private static readonly int TickInt = (int)DateTime.Now.Ticks;
         private static readonly long TickLong = DateTime.Now.Ticks;
 
+        public struct Exception : IEvent
+        {
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetBit(this Int data, int shift, int mask)
         {
