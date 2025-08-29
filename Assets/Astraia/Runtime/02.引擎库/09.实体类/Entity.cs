@@ -128,7 +128,7 @@ namespace Astraia
         private List<IAgent> agentList
         {
             get => agentDict.Values.ToList();
-            set => agentDict = value.ToDictionary(t => t.GetType());
+            set => Debug.LogWarning(value, this);
         }
 
         [HideInPlayMode, ValueDropdown("AgentNames")]
