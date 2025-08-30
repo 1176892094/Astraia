@@ -20,19 +20,19 @@ namespace Astraia.Common
         public static async Task<GameObject> Show(string path)
         {
             if (!GlobalManager.Instance) return null;
-            var assetData = await LoadPool(path).Load();
-            assetData.transform.SetParent(null);
-            assetData.SetActive(true);
-            return assetData;
+            var item = await LoadPool(path).Load();
+            item.transform.SetParent(null);
+            item.SetActive(true);
+            return item;
         }
 
         public static async void Show(string path, Action<GameObject> action)
         {
             if (!GlobalManager.Instance) return;
-            var assetData = await LoadPool(path).Load();
-            assetData.transform.SetParent(null);
-            assetData.SetActive(true);
-            action.Invoke(assetData);
+            var item = await LoadPool(path).Load();
+            item.transform.SetParent(null);
+            item.SetActive(true);
+            action.Invoke(item);
         }
 
         public static void Hide(GameObject item)
