@@ -31,7 +31,7 @@ namespace Astraia.Net
         [SerializeField] [HideInInspector] internal uint assetId;
 
         [SerializeField] [HideInInspector] internal uint sceneId;
-        
+
         [SerializeField] [HideInInspector] internal AgentMode agentMode;
 
         internal AgentState agentState;
@@ -53,11 +53,14 @@ namespace Astraia.Net
         protected override void Awake()
         {
             base.Awake();
-            foreach (var agent in agentDict.Values)
+            if (GlobalManager.entityData.TryGetValue(this, out var agentData))
             {
-                if (agent is NetworkAgent entity)
+                foreach (var agent in agentData.Values)
                 {
-                    agents.Add(entity);
+                    if (agent is NetworkAgent entity)
+                    {
+                        agents.Add(entity);
+                    }
                 }
             }
 

@@ -85,7 +85,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<int, Entity> entityData = new Dictionary<int, Entity>();
+        internal static readonly Dictionary<int, List<Type, IAgent>> entityData = new Dictionary<int, List<Type, IAgent>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif

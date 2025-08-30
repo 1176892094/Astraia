@@ -11,6 +11,7 @@
 
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using Astraia.Common;
 using UnityEditor;
 using UnityEngine;
 
@@ -199,14 +200,18 @@ namespace Astraia.Net
         {
             var copies = new List<AgentData>();
 
-            var agents = entity.agentDict.Values;
-            foreach (var agent in agents)
+            if (GlobalManager.entityData.TryGetValue(entity, out var agentData))
             {
-                if (agent is NetworkAgent result)
+                var agents = agentData.Values;
+                foreach (var agent in agents)
                 {
-                    copies.Add(new AgentData(new GUIContent(result.GetType().FullName), result));
+                    if (agent is NetworkAgent result)
+                    {
+                        copies.Add(new AgentData(new GUIContent(result.GetType().FullName), result));
+                    }
                 }
             }
+
 
             return copies;
         }
@@ -222,7 +227,7 @@ namespace Astraia.Net
                 new EntityData("Is Server :", entity.isServer ? "Yes" : "No"),
                 new EntityData("Is Client :", entity.isClient ? "Yes" : "No")
             };
-            
+
             if (Application.isPlaying)
             {
                 if (entity.connection == null)

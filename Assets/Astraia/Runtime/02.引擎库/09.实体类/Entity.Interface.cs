@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+
 namespace Astraia.Common
 {
     public interface IAgent

@@ -36,12 +36,8 @@ namespace Astraia.Common
             }
 
             owner.transform.Inject(panel);
-            owner.AddAgentInternal(panel, type);
-            owner.OnFade += () =>
-            {
-                group.Clear();
-                panelData.Remove(panel);
-            };
+            owner.AddAgent(panel);
+            owner.OnFade += group.Clear;
 
             Surface(panel.transform, panel.layer);
             panelPage.Add(type, panel);
@@ -80,8 +76,9 @@ namespace Astraia.Common
             if (panelPage.TryGetValue(typeof(T), out var panel))
             {
                 panel.gameObject.SetActive(false);
-                panelPage.Remove(typeof(T));
                 Object.Destroy(panel.gameObject);
+                panelPage.Remove(typeof(T));
+                panelData.Remove(panel);
             }
         }
 
@@ -119,6 +116,7 @@ namespace Astraia.Common
                 panel.gameObject.SetActive(false);
                 Object.Destroy(panel.gameObject);
                 panelPage.Remove(type);
+                panelData.Remove(panel);
             }
         }
 

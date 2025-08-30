@@ -20,10 +20,10 @@ using Sirenix.OdinInspector;
 
 namespace Astraia
 {
+    using static GlobalManager;
+
     public class Entity : MonoBehaviour
     {
-        internal Dictionary<Type, IAgent> agentDict = new Dictionary<Type, IAgent>();
-
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
@@ -52,82 +52,41 @@ namespace Astraia
             OnFade = null;
             OnShow = null;
             OnHide = null;
-            agentDict.Clear();
             agentData.Clear();
-            EntityManager.Hide(this);
+        }
+
+        public void AddAgent(IAgent agent)
+        {
+            EntityManager.AddAgent(this, agent);
+        }
+
+        public void AddAgent(Type realType)
+        {
+            EntityManager.AddAgent(this, realType, realType);
+        }
+
+        public void AddAgent(Type baseType, Type realType)
+        {
+            EntityManager.AddAgent(this, baseType, realType);
         }
 
         public T GetAgent<T>() where T : IAgent
         {
-            return (T)agentDict.GetValueOrDefault(typeof(T));
-        }
-
-        public void AddAgent(Type type)
-        {
-            IAgent agent = null;
-            try
-            {
-                agent = HeapManager.Dequeue<IAgent>(type);
-                AddAgentInternal(agent, type);
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, type, e), gameObject);
-            }
-        }
-
-        public void AddAgent<T>(Type type) where T : IAgent
-        {
-            IAgent agent = null;
-            try
-            {
-                agent = HeapManager.Dequeue<IAgent>(type);
-                AddAgentInternal(agent, typeof(T));
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, type, e), gameObject);
-            }
-        }
-
-        internal void AddAgentInternal(IAgent agent, Type type)
-        {
-            try
-            {
-                if (agentDict.TryAdd(type, agent))
-                {
-                    EntityManager.Show(this);
-                    agent.OnAwake(this);
-                    agent.OnAwake();
-                    OnShow += agent.OnShow;
-                    OnHide += agent.OnHide;
-                    OnFade += Faded;
-
-                    void Faded()
-                    {
-                        HeapManager.Enqueue(agent, type);
-                        agent.OnDestroy();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, type, e), gameObject);
-            }
+            return EntityManager.GetAgent<T>(this);
         }
 
         public static implicit operator int(Entity entity)
         {
-            return entity.GetInstanceID();
+            return entity.GetEntityId();
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
         private static List<string> AgentNames => GlobalSetting.GetAgents();
 
         [HideInEditorMode, ShowInInspector]
-        private List<IAgent> agentList
+        private IEnumerable<IAgent> agentList
         {
-            get => agentDict.Values.ToList();
+            get => entityData.TryGetValue(this, out var agents) ? agents.Values.ToList() : null;
             set => Debug.LogWarning(value, this);
         }
 

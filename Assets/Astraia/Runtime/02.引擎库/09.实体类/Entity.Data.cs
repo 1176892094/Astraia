@@ -9,31 +9,93 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System.Collections.Generic;
+using System;
 using Astraia.Common;
+using UnityEngine;
 
 namespace Astraia
 {
+    using static GlobalManager;
+
     internal static class EntityManager
     {
-        public static void Show(Entity entity)
+        public static void AddAgent(int id, IAgent agent)
         {
-            GlobalManager.entityData[entity] = entity;
+            if (!entityData.TryGetValue(id, out var agents))
+            {
+                agents = new List<Type, IAgent>();
+                entityData.Add(id, agents);
+            }
+
+            var realType = agent.GetType();
+            if (!agents.ContainsKey(realType))
+            {
+                agents.Add(realType, agent);
+                AddEvent(id, agent, realType);
+            }
         }
 
-        public static Entity Find(int instanceID)
+        public static void AddAgent(int id, Type baseType, Type realType)
         {
-            return GlobalManager.entityData.GetValueOrDefault(instanceID);
+            if (!entityData.TryGetValue(id, out var agents))
+            {
+                agents = new List<Type, IAgent>();
+                entityData.Add(id, agents);
+            }
+
+            if (!agents.TryGetValue(baseType, out var agent))
+            {
+                agent = HeapManager.Dequeue<IAgent>(realType);
+                agents.Add(baseType, agent);
+                AddEvent(id, agent, realType);
+            }
         }
 
-        public static void Hide(int instanceID)
+        private static void AddEvent(int id, IAgent agent, Type type)
         {
-            GlobalManager.entityData.Remove(instanceID);
+            var owner = (Entity)Resources.EntityIdToObject(id);
+            try
+            {
+                agent.OnAwake(id);
+                agent.OnAwake();
+                owner.OnShow += agent.OnShow;
+                owner.OnHide += agent.OnHide;
+                owner.OnFade += Faded;
+
+                void Faded()
+                {
+                    agent.OnDestroy();
+                    HeapManager.Enqueue(agent, type);
+                    entityData.Remove(owner);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, type, e), owner);
+            }
+        }
+
+        public static T GetAgent<T>(int id) where T : IAgent
+        {
+            if (entityData.TryGetValue(id, out var agents))
+            {
+                if (agents.TryGetValue(typeof(T), out var agent))
+                {
+                    return (T)agent;
+                }
+            }
+
+            return default;
         }
 
         public static void Dispose()
         {
-            GlobalManager.entityData.Clear();
+            foreach (var agents in entityData.Values)
+            {
+                agents.Clear();
+            }
+
+            entityData.Clear();
         }
     }
 }

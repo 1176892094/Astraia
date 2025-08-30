@@ -24,7 +24,7 @@ namespace Astraia
 
         void IAgent.OnAwake(int id)
         {
-            owner = (T)EntityManager.Find(id);
+            owner = (T)Resources.EntityIdToObject(id);
         }
 
         public virtual void OnAwake()
