@@ -13,24 +13,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Astraia.Common
 {
     public static partial class PoolManager
     {
+        [Serializable]
         private class Pool : IPool
         {
             private readonly HashSet<GameObject> cached = new HashSet<GameObject>();
             private readonly Queue<GameObject> unused = new Queue<GameObject>();
-
-            public static Pool Create(Type type, string path)
-            {
-                var instance = Activator.CreateInstance<Pool>();
-                instance.Type = type;
-                instance.Path = path;
-                return instance;
-            }
 
             public Type Type { get; private set; }
             public string Path { get; private set; }
@@ -41,24 +33,23 @@ namespace Astraia.Common
 
             public async Task<GameObject> Load()
             {
+                Dequeue++;
+                Acquire++;
                 GameObject item;
                 if (unused.Count > 0)
                 {
                     item = unused.Dequeue();
                     cached.Remove(item);
+                    Release--;
                     if (item)
                     {
                         return item;
                     }
 
                     Enqueue++;
-                    Acquire--;
-                    Release++;
+                    Dequeue++;
                 }
 
-                Dequeue++;
-                Acquire++;
-                Release--;
                 item = await AssetManager.Load<GameObject>(Path);
                 item.name = Path;
                 return item;
@@ -66,9 +57,9 @@ namespace Astraia.Common
 
             public void Push(GameObject item)
             {
+                Enqueue++;
                 if (cached.Add(item))
                 {
-                    Enqueue++;
                     Acquire--;
                     Release++;
                     unused.Enqueue(item);
@@ -79,6 +70,14 @@ namespace Astraia.Common
             {
                 cached.Clear();
                 unused.Clear();
+            }
+
+            public static Pool Create(Type type, string path)
+            {
+                var instance = Activator.CreateInstance<Pool>();
+                instance.Type = type;
+                instance.Path = path;
+                return instance;
             }
         }
     }

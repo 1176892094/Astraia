@@ -183,7 +183,7 @@ namespace Astraia.Common
             using (var request = UnityWebRequest.Get(packUri))
             {
                 var result = request.SendWebRequest();
-                while (!result.isDone && GlobalSetting.Instance != null)
+                while (!result.isDone && GlobalSetting.Instance)
                 {
                     EventManager.Invoke(new PackUpdate(packName, request.downloadProgress));
                     await Task.Yield();
@@ -240,7 +240,7 @@ namespace Astraia.Common
             }
 
             var assetTask = AssetBundle.LoadFromMemoryAsync(result);
-            while (!assetTask.isDone && GlobalSetting.Instance != null)
+            while (!assetTask.isDone && GlobalSetting.Instance)
             {
                 await Task.Yield();
             }

@@ -22,14 +22,6 @@ namespace Astraia.Common
             private readonly HashSet<IEvent<T>> cached = new HashSet<IEvent<T>>();
             private event Action<T> OnExecute;
 
-            public static Pool<T> Create(Type type, string path)
-            {
-                var instance = Activator.CreateInstance<Pool<T>>();
-                instance.Type = type;
-                instance.Path = path;
-                return instance;
-            }
-
             public Type Type { get; private set; }
             public string Path { get; private set; }
             public int Acquire { get; private set; }
@@ -67,6 +59,14 @@ namespace Astraia.Common
             {
                 cached.Clear();
                 OnExecute = null;
+            }
+
+            public static Pool<T> Create(Type type, string path)
+            {
+                var instance = Activator.CreateInstance<Pool<T>>();
+                instance.Type = type;
+                instance.Path = path;
+                return instance;
             }
         }
     }

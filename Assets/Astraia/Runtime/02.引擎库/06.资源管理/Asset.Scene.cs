@@ -30,7 +30,7 @@ namespace Astraia.Common
                     var request = SceneManager.LoadSceneAsync(assetPath, LoadSceneMode.Single);
                     if (request != null)
                     {
-                        while (!request.isDone && GlobalSetting.Instance != null)
+                        while (!request.isDone && GlobalSetting.Instance)
                         {
                             EventManager.Invoke(new SceneUpdate(request.progress));
                             await Task.Yield();

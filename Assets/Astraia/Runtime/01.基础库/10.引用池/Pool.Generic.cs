@@ -22,14 +22,6 @@ namespace Astraia.Common
             private readonly HashSet<T> cached = new HashSet<T>();
             private readonly Queue<T> unused = new Queue<T>();
 
-            public static Pool<T> Create(Type type, string path)
-            {
-                var instance = Activator.CreateInstance<Pool<T>>();
-                instance.Type = type;
-                instance.Path = path;
-                return instance;
-            }
-
             public Type Type { get; private set; }
             public string Path { get; private set; }
             public int Acquire { get; private set; }
@@ -39,28 +31,28 @@ namespace Astraia.Common
 
             public T Load()
             {
+                Dequeue++;
+                Acquire++;
                 T item;
                 if (unused.Count > 0)
                 {
                     item = unused.Dequeue();
                     cached.Remove(item);
+                    Release--;
                 }
                 else
                 {
                     item = (T)Activator.CreateInstance(Type);
                 }
 
-                Dequeue++;
-                Acquire++;
-                Release--;
                 return item;
             }
 
             public void Push(T item)
             {
+                Enqueue++;
                 if (cached.Add(item))
                 {
-                    Enqueue++;
                     Acquire--;
                     Release++;
                     unused.Enqueue(item);
@@ -71,6 +63,14 @@ namespace Astraia.Common
             {
                 cached.Clear();
                 unused.Clear();
+            }
+            
+            public static Pool<T> Create(Type type, string path)
+            {
+                var instance = Activator.CreateInstance<Pool<T>>();
+                instance.Type = type;
+                instance.Path = path;
+                return instance;
             }
         }
     }
