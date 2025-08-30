@@ -22,10 +22,12 @@ namespace Astraia.Common
             private readonly HashSet<T> cached = new HashSet<T>();
             private readonly Queue<T> unused = new Queue<T>();
 
-            public Pool(Type type)
+            public static Pool<T> Create(Type type, string path)
             {
-                Type = type;
-                Path = type.Name;
+                var instance = Activator.CreateInstance<Pool<T>>();
+                instance.Type = type;
+                instance.Path = path;
+                return instance;
             }
 
             public Type Type { get; private set; }

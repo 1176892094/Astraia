@@ -40,7 +40,7 @@ namespace Astraia.Common
                 return (Pool<T>)pool;
             }
 
-            pool = new Pool<T>(typeof(T));
+            pool = Pool<T>.Create(typeof(T), typeof(T).Name);
             poolData.Add(typeof(T), pool);
             return (Pool<T>)pool;
         }

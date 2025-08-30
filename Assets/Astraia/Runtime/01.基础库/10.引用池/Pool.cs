@@ -46,11 +46,11 @@ namespace Astraia.Common
                 return (Pool<T>)item;
             }
 
-            item = new Pool<T>(type);
+            item = Pool<T>.Create(type, type.Name);
             poolData.Add(type, item);
             return (Pool<T>)item;
         }
-        
+
         internal static void Dispose()
         {
             foreach (var item in poolData.Values)
