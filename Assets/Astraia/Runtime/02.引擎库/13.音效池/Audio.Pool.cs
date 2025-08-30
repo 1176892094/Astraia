@@ -25,20 +25,20 @@ namespace Astraia.Common
 
             public AudioPool(Type type, string path)
             {
-                this.type = type;
-                this.path = path;
+                this.Type = type;
+                this.Path = path;
             }
 
-            public Type type { get; }
-            public string path { get; }
-            public int acquire => cached.Count;
-            public int release => unused.Count;
-            public int dequeue { get; private set; }
-            public int enqueue { get; private set; }
+            public Type Type { get; }
+            public string Path { get; }
+            public int Acquire => cached.Count;
+            public int Release => unused.Count;
+            public int Dequeue { get; private set; }
+            public int Enqueue { get; private set; }
 
-            public AudioSource Dequeue()
+            public AudioSource Load()
             {
-                dequeue++;
+                Dequeue++;
                 AudioSource item;
                 if (unused.Count > 0)
                 {
@@ -49,22 +49,22 @@ namespace Astraia.Common
                         return item;
                     }
 
-                    enqueue++;
+                    Enqueue++;
                     cached.Remove(item);
                 }
 
-                item = new GameObject(path).AddComponent<AudioSource>();
+                item = new GameObject(Path).AddComponent<AudioSource>();
                 Object.DontDestroyOnLoad(item.gameObject);
-                item.name = path;
+                item.name = Path;
                 cached.Add(item);
                 return item;
             }
 
-            public void Enqueue(AudioSource item)
+            public void Push(AudioSource item)
             {
                 if (cached.Remove(item))
                 {
-                    enqueue++;
+                    Enqueue++;
                     unused.Enqueue(item);
                 }
             }

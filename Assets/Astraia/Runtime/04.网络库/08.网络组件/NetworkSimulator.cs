@@ -222,7 +222,7 @@ namespace Astraia.Net
                 if (!messages.TryGetValue(typeof(T), out var item))
                 {
                     item = HeapManager.Dequeue<Item>();
-                    item.type = typeof(T);
+                    item.Type = typeof(T);
                     messages[typeof(T)] = item;
                 }
 
@@ -247,10 +247,10 @@ namespace Astraia.Net
                     var data = NetworkAttribute.GetInvoke(method);
                     if (data != null)
                     {
-                        item.path = Service.Text.Format("{0}.{1}", data.Method.DeclaringType, data.Method.Name.Replace("Cmd_", ""));
+                        item.Path = Service.Text.Format("{0}.{1}", data.Method.DeclaringType, data.Method.Name.Replace("Cmd_", ""));
                     }
 
-                    item.type = type;
+                    item.Type = type;
                     function[method] = item;
                 }
 
@@ -292,25 +292,25 @@ namespace Astraia.Net
             [Serializable]
             public class Item : IPool
             {
-                public Type type { get; set; }
-                public string path { get; set; }
-                public int acquire { get; set; }
-                public int release { get; set; }
-                public int dequeue { get; set; }
-                public int enqueue { get; set; }
+                public Type Type { get; set; }
+                public string Path { get; set; }
+                public int Acquire { get; set; }
+                public int Release { get; set; }
+                public int Dequeue { get; set; }
+                public int Enqueue { get; set; }
 
                 public void Add(int bytes)
                 {
-                    release++;
-                    acquire += bytes;
-                    dequeue++;
-                    enqueue += bytes;
+                    Release++;
+                    Acquire += bytes;
+                    Dequeue++;
+                    Enqueue += bytes;
                 }
 
                 public void Dispose()
                 {
-                    acquire = 0;
-                    release = 0;
+                    Acquire = 0;
+                    Release = 0;
                 }
             }
         }

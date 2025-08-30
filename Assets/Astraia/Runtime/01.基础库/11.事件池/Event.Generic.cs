@@ -24,15 +24,15 @@ namespace Astraia.Common
             
             public EventPool(Type type)
             {
-                this.type = type;
+                this.Type = type;
             }
 
-            public Type type { get; private set; }
-            public string path { get; private set; }
-            public int acquire => cached.Count;
-            public int release { get; private set; }
-            public int dequeue { get; private set; }
-            public int enqueue { get; private set; }
+            public Type Type { get; private set; }
+            public string Path { get; private set; }
+            public int Acquire => cached.Count;
+            public int Release { get; private set; }
+            public int Dequeue { get; private set; }
+            public int Enqueue { get; private set; }
 
             void IDisposable.Dispose()
             {
@@ -42,7 +42,7 @@ namespace Astraia.Common
 
             public void Listen(IEvent<T> obj)
             {
-                dequeue++;
+                Dequeue++;
                 if (cached.Add(obj))
                 {
                     OnExecute += obj.Execute;
@@ -51,7 +51,7 @@ namespace Astraia.Common
 
             public void Remove(IEvent<T> obj)
             {
-                enqueue++;
+                Enqueue++;
                 if (cached.Remove(obj))
                 {
                     OnExecute -= obj.Execute;
@@ -60,7 +60,7 @@ namespace Astraia.Common
 
             public void Invoke(T message)
             {
-                release++;
+                Release++;
                 OnExecute?.Invoke(message);
             }
         }

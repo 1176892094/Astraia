@@ -76,7 +76,7 @@ namespace Astraia.Common
         {
             if (!GlobalManager.Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
-            var source = LoadPool(target).Dequeue();
+            var source = LoadPool(target).Load();
             GlobalManager.audioData.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
@@ -91,7 +91,7 @@ namespace Astraia.Common
         {
             if (!GlobalManager.Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
-            var source = LoadPool(target).Dequeue();
+            var source = LoadPool(target).Load();
             GlobalManager.audioData.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
@@ -130,7 +130,7 @@ namespace Astraia.Common
             source.gameObject.SetActive(false);
             source.transform.SetParent(pool.transform);
             GlobalManager.audioData.Remove(source);
-            LoadPool(source.name).Enqueue(source);
+            LoadPool(source.name).Push(source);
         }
 
         private static AudioPool LoadPool(string path)

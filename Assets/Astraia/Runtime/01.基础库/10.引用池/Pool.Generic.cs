@@ -24,15 +24,15 @@ namespace Astraia.Common
 
             public HeapPool(Type type)
             {
-                this.type = type;
+                this.Type = type;
             }
 
-            public Type type { get; private set; }
-            public string path { get; private set; }
-            public int acquire => cached.Count;
-            public int release => unused.Count;
-            public int dequeue { get; private set; }
-            public int enqueue { get; private set; }
+            public Type Type { get; private set; }
+            public string Path { get; private set; }
+            public int Acquire => cached.Count;
+            public int Release => unused.Count;
+            public int Dequeue { get; private set; }
+            public int Enqueue { get; private set; }
 
             void IDisposable.Dispose()
             {
@@ -40,19 +40,19 @@ namespace Astraia.Common
                 unused.Clear();
             }
 
-            public T Dequeue()
+            public T Load()
             {
                 T item;
                 lock (unused)
                 {
-                    dequeue++;
+                    Dequeue++;
                     if (unused.Count > 0)
                     {
                         item = unused.Dequeue();
                     }
                     else
                     {
-                        item = (T)Activator.CreateInstance(type);
+                        item = (T)Activator.CreateInstance(Type);
                     }
 
                     cached.Add(item);
@@ -61,13 +61,13 @@ namespace Astraia.Common
                 return item;
             }
 
-            public void Enqueue(T item)
+            public void Push(T item)
             {
                 lock (unused)
                 {
                     if (cached.Remove(item))
                     {
-                        enqueue++;
+                        Enqueue++;
                         unused.Enqueue(item);
                     }
                 }

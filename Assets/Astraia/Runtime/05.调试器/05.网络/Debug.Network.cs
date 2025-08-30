@@ -147,7 +147,7 @@ namespace Astraia.Common
             poolData.Clear();
             foreach (var reference in references)
             {
-                var assemblyName = Service.Text.Format("{0} - {1}", reference.type.Assembly.GetName().Name, message);
+                var assemblyName = Service.Text.Format("{0} - {1}", reference.Type.Assembly.GetName().Name, message);
                 if (!poolData.TryGetValue(assemblyName, out var results))
                 {
                     results = new List<Pool>();
@@ -167,10 +167,10 @@ namespace Astraia.Common
                 GUILayout.Label(poolPair.Key, GUILayout.Height(20));
                 foreach (var data in poolPair.Value)
                 {
-                    var assetName = data.type.Name;
-                    if (!string.IsNullOrEmpty(data.path))
+                    var assetName = data.Type.Name;
+                    if (!string.IsNullOrEmpty(data.Path))
                     {
-                        assetName = Service.Text.Format("{0} - {1}", data.type.Name, data.path);
+                        assetName = Service.Text.Format("{0} - {1}", data.Type.Name, data.Path);
                     }
 
                     GUILayout.Label(assetName, GUILayout.Height(20));
@@ -182,7 +182,7 @@ namespace Astraia.Common
                 GUILayout.Label(module, GUILayout.Height(20));
                 foreach (var data in poolPair.Value)
                 {
-                    var result = Service.Text.Format("{0}\t\t{1}\t\t{2}\t\t{3}", data.release, PrettyBytes(data.acquire), data.dequeue, PrettyBytes(data.enqueue));
+                    var result = Service.Text.Format("{0}\t\t{1}\t\t{2}\t\t{3}", data.Release, PrettyBytes(data.Acquire), data.Dequeue, PrettyBytes(data.Enqueue));
                     GUILayout.Label(result, GUILayout.Height(20));
                 }
 

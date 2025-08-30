@@ -20,7 +20,7 @@ namespace Astraia.Common
         public static async Task<GameObject> Show(string path)
         {
             if (!GlobalManager.Instance) return null;
-            var assetData = await LoadPool(path).Dequeue();
+            var assetData = await LoadPool(path).Load();
             assetData.transform.SetParent(null);
             assetData.SetActive(true);
             return assetData;
@@ -29,7 +29,7 @@ namespace Astraia.Common
         public static async void Show(string path, Action<GameObject> action)
         {
             if (!GlobalManager.Instance) return;
-            var assetData = await LoadPool(path).Dequeue();
+            var assetData = await LoadPool(path).Load();
             assetData.transform.SetParent(null);
             assetData.SetActive(true);
             action.Invoke(assetData);
@@ -47,7 +47,7 @@ namespace Astraia.Common
 
             item.SetActive(false);
             item.transform.SetParent(pool.transform);
-            LoadPool(item.name).Enqueue(item);
+            LoadPool(item.name).Push(item);
         }
 
         private static EntityPool LoadPool(string path)

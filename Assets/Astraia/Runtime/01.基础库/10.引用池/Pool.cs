@@ -21,22 +21,22 @@ namespace Astraia.Common
 
         public static T Dequeue<T>()
         {
-            return LoadPool<T>(typeof(T)).Dequeue();
+            return LoadPool<T>(typeof(T)).Load();
         }
 
         public static T Dequeue<T>(Type type)
         {
-            return LoadPool<T>(type).Dequeue();
+            return LoadPool<T>(type).Load();
         }
 
         public static void Enqueue<T>(T item)
         {
-            LoadPool<T>(typeof(T)).Enqueue(item);
+            LoadPool<T>(typeof(T)).Push(item);
         }
 
         public static void Enqueue<T>(T item, Type type)
         {
-            LoadPool<T>(type).Enqueue(item);
+            LoadPool<T>(type).Push(item);
         }
 
         private static HeapPool<T> LoadPool<T>(Type type)
