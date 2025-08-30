@@ -17,6 +17,8 @@ using Object = UnityEngine.Object;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
+
     public static class UIManager
     {
         private static async Task<UIPanel> Load(string path, Type type)
@@ -27,10 +29,10 @@ namespace Astraia.Common
 
             var owner = obj.GetOrAddComponent<Entity>();
             var panel = (UIPanel)HeapManager.Dequeue<IAgent>(type);
-            if (!GlobalManager.panelData.TryGetValue(panel, out var group))
+            if (!panelData.TryGetValue(panel, out var group))
             {
                 group = new HashSet<int>();
-                GlobalManager.panelData.Add(panel, group);
+                panelData.Add(panel, group);
             }
 
             owner.transform.Inject(panel);
@@ -38,30 +40,30 @@ namespace Astraia.Common
             owner.OnFade += () =>
             {
                 group.Clear();
-                GlobalManager.panelData.Remove(panel);
+                panelData.Remove(panel);
             };
 
             Surface(panel.transform, panel.layer);
-            GlobalManager.panelPage.Add(type, panel);
+            panelPage.Add(type, panel);
             return panel;
         }
 
         public static async void Show<T>(Action<T> action = null) where T : UIPanel
         {
-            if (!GlobalManager.Instance) return;
-            if (!GlobalManager.panelPage.TryGetValue(typeof(T), out var panel))
+            if (!Instance) return;
+            if (!panelPage.TryGetValue(typeof(T), out var panel))
             {
                 panel = await Load(GlobalSetting.GetPanelPath(typeof(T).Name), typeof(T));
             }
 
-            UIGroup.ShowInGroup(panel);
+            UIGroup.Show(panel);
             action?.Invoke((T)panel);
         }
 
         public static void Hide<T>() where T : UIPanel
         {
-            if (!GlobalManager.Instance) return;
-            if (GlobalManager.panelPage.TryGetValue(typeof(T), out var panel))
+            if (!Instance) return;
+            if (panelPage.TryGetValue(typeof(T), out var panel))
             {
                 panel.gameObject.SetActive(false);
             }
@@ -69,36 +71,36 @@ namespace Astraia.Common
 
         public static T Find<T>() where T : UIPanel
         {
-            return (T)GlobalManager.panelPage.GetValueOrDefault(typeof(T));
+            return (T)panelPage.GetValueOrDefault(typeof(T));
         }
 
         public static void Destroy<T>()
         {
-            if (!GlobalManager.Instance) return;
-            if (GlobalManager.panelPage.TryGetValue(typeof(T), out var panel))
+            if (!Instance) return;
+            if (panelPage.TryGetValue(typeof(T), out var panel))
             {
                 panel.gameObject.SetActive(false);
-                GlobalManager.panelPage.Remove(typeof(T));
+                panelPage.Remove(typeof(T));
                 Object.Destroy(panel.gameObject);
             }
         }
 
         public static async void Show(Type type, Action<UIPanel> action = null)
         {
-            if (!GlobalManager.Instance) return;
-            if (!GlobalManager.panelPage.TryGetValue(type, out var panel))
+            if (!Instance) return;
+            if (!panelPage.TryGetValue(type, out var panel))
             {
                 panel = await Load(GlobalSetting.GetPanelPath(type.Name), type);
             }
 
-            UIGroup.ShowInGroup(panel);
+            UIGroup.Show(panel);
             action?.Invoke(panel);
         }
 
         public static void Hide(Type type)
         {
-            if (!GlobalManager.Instance) return;
-            if (GlobalManager.panelPage.TryGetValue(type, out var panel))
+            if (!Instance) return;
+            if (panelPage.TryGetValue(type, out var panel))
             {
                 panel.gameObject.SetActive(false);
             }
@@ -106,31 +108,31 @@ namespace Astraia.Common
 
         public static UIPanel Find(Type type)
         {
-            return GlobalManager.panelPage.GetValueOrDefault(type);
+            return panelPage.GetValueOrDefault(type);
         }
 
         public static void Destroy(Type type)
         {
-            if (!GlobalManager.Instance) return;
-            if (GlobalManager.panelPage.TryGetValue(type, out var panel))
+            if (!Instance) return;
+            if (panelPage.TryGetValue(type, out var panel))
             {
                 panel.gameObject.SetActive(false);
-                GlobalManager.panelPage.Remove(type);
                 Object.Destroy(panel.gameObject);
+                panelPage.Remove(type);
             }
         }
 
         public static void Clear()
         {
-            var types = new List<Type>(GlobalManager.panelPage.Keys);
+            var types = new List<Type>(panelPage.Keys);
             foreach (var type in types)
             {
-                if (GlobalManager.panelPage.TryGetValue(type, out var panel))
+                if (panelPage.TryGetValue(type, out var panel))
                 {
                     if (panel.state != UIState.Stable)
                     {
                         panel.gameObject.SetActive(false);
-                        GlobalManager.panelPage.Remove(type);
+                        panelPage.Remove(type);
                         Object.Destroy(panel.gameObject);
                     }
                 }
@@ -139,9 +141,9 @@ namespace Astraia.Common
 
         public static void Surface(Transform panel, UILayer layer)
         {
-            if (!GlobalManager.Instance) return;
+            if (!Instance) return;
             var transform = panel.GetComponent<RectTransform>();
-            transform.SetParent(GlobalManager.layerData[layer]);
+            transform.SetParent(layerData[layer]);
             transform.anchorMin = Vector2.zero;
             transform.anchorMax = Vector2.one;
             transform.offsetMin = Vector2.zero;
@@ -152,19 +154,19 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            foreach (var panel in GlobalManager.panelData.Values)
+            foreach (var panel in panelData.Values)
             {
                 panel.Clear();
             }
 
-            foreach (var group in GlobalManager.groupData.Values)
+            foreach (var group in groupData.Values)
             {
                 group.Clear();
             }
 
-            GlobalManager.groupData.Clear();
-            GlobalManager.layerData.Clear();
-            GlobalManager.panelPage.Clear();
+            groupData.Clear();
+            layerData.Clear();
+            panelPage.Clear();
         }
     }
 }

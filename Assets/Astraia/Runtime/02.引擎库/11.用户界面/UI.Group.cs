@@ -77,7 +77,7 @@ namespace Astraia.Common
             }
         }
 
-        internal static void ShowInGroup(UIPanel panel)
+        internal static void Show(UIPanel panel)
         {
             if (panelData.TryGetValue(panel, out var groups))
             {
