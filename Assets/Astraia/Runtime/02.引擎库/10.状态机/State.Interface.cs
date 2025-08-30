@@ -13,7 +13,7 @@ namespace Astraia.Common
 {
     public interface IState
     {
-        void OnAwake(int id);
+        void OnAwake(Entity id);
         void OnEnter();
         void OnUpdate();
         void OnExit();

@@ -85,7 +85,15 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<int, List<Type, IAgent>> entityData = new Dictionary<int, List<Type, IAgent>>();
+        internal static readonly List<Entity, List<Type, IAgent>> entityData = new List<Entity, List<Type, IAgent>>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly List<Type, List<Entity, IAgent>> agentData = new List<Type, List<Entity, IAgent>>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly List<Type, ISystem> systemData = new List<Type, ISystem>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -109,7 +117,6 @@ namespace Astraia.Common
 
         public static event Action OnUpdate;
         public static event Action OnLateUpdate;
-        public static event Action OnFixedUpdate;
 
         private void Awake()
         {
@@ -124,6 +131,7 @@ namespace Astraia.Common
 
         private void Update()
         {
+            SystemManager.Update(Time.deltaTime);
             try
             {
                 OnUpdate?.Invoke();
@@ -146,26 +154,13 @@ namespace Astraia.Common
                 Debug.LogWarning(e);
             }
         }
-
-        private void FixedUpdate()
-        {
-            try
-            {
-                OnFixedUpdate?.Invoke();
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning(e);
-            }
-        }
-
+        
         private async void OnDestroy()
         {
             manifest = null;
             Instance = null;
             OnUpdate = null;
             OnLateUpdate = null;
-            OnFixedUpdate = null;
             await Task.Yield();
             UIManager.Dispose();
             PackManager.Dispose();

@@ -11,7 +11,6 @@
 
 using System;
 using Astraia.Common;
-using UnityEngine;
 
 namespace Astraia
 {
@@ -20,7 +19,7 @@ namespace Astraia
     {
         public T owner;
 
-        void IState.OnAwake(int id) => owner = (T)Resources.EntityIdToObject(id);
+        void IState.OnAwake(Entity owner) => this.owner = (T)owner;
 
         void IState.OnDestroy() => owner = null;
 
