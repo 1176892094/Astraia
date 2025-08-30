@@ -55,9 +55,9 @@ namespace Astraia
             agentData.Clear();
         }
 
-        public void AddAgent(IAgent agent)
+        public T AddAgent<T>(T agent) where T : IAgent
         {
-            EntityManager.AddAgent(this, agent);
+            return (T)EntityManager.AddAgent(this, agent);
         }
 
         public T AddAgent<T>() where T : IAgent

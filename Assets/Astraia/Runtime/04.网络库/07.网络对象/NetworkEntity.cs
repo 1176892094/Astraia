@@ -112,13 +112,10 @@ namespace Astraia.Net
                 sceneId = 0;
                 AssignAssetId(AssetDatabase.GetAssetPath(gameObject));
             }
-            else if (PrefabStageUtility.GetCurrentPrefabStage())
+            else if (PrefabStageUtility.GetCurrentPrefabStage() && PrefabStageUtility.GetPrefabStage(gameObject))
             {
-                if (PrefabStageUtility.GetPrefabStage(gameObject))
-                {
-                    sceneId = 0;
-                    AssignAssetId(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
-                }
+                sceneId = 0;
+                AssignAssetId(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
             }
             else if (PrefabUtility.IsPartOfPrefabInstance(gameObject))
             {
