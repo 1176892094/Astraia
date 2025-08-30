@@ -89,19 +89,19 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, UIPanel> panelData = new Dictionary<Type, UIPanel>();
+        internal static readonly Dictionary<Type, UIPanel> panelPage = new Dictionary<Type, UIPanel>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly Dictionary<int, HashSet<UIPanel>> groupData = new Dictionary<int, HashSet<UIPanel>>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly Dictionary<UIPanel, HashSet<int>> panelData = new Dictionary<UIPanel, HashSet<int>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<UILayer, RectTransform> layerData = new Dictionary<UILayer, RectTransform>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly Dictionary<int, List<UIPanel>> groupData = new Dictionary<int, List<UIPanel>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly Dictionary<UIPanel, HashSet<int>> panelGroup = new Dictionary<UIPanel, HashSet<int>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
