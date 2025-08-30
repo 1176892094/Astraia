@@ -17,7 +17,6 @@ namespace Astraia
     [Serializable]
     public abstract class UIPanel : Agent<Entity>
     {
-        public HashSet<int> groups = new HashSet<int>();
         public UIState state = UIState.Common;
         public UILayer layer = UILayer.Layer1;
     }

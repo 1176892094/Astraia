@@ -27,9 +27,19 @@ namespace Astraia.Common
 
             var owner = obj.GetOrAddComponent<Entity>();
             var panel = (UIPanel)HeapManager.Dequeue<IAgent>(type);
+            if (!GlobalManager.panelGroup.TryGetValue(panel, out var group))
+            {
+                group = new HashSet<int>();
+                GlobalManager.panelGroup.Add(panel, group);
+            }
+
             owner.transform.Inject(panel);
             owner.AddAgentInternal(panel, type);
-            owner.OnFade += panel.groups.Clear;
+            owner.OnFade += () =>
+            {
+                group.Clear();
+                GlobalManager.panelGroup.Remove(panel);
+            };
 
             Surface(panel.transform, panel.layer);
             GlobalManager.panelData.Add(type, panel);

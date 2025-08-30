@@ -27,9 +27,12 @@ namespace Astraia.Common
                 GlobalManager.groupData.Add(group, panels);
             }
 
-            if (panel.groups.Add(group))
+            if (GlobalManager.panelGroup.TryGetValue(panel, out var groups))
             {
-                panels.Add(panel);
+                if (groups.Add(group))
+                {
+                    panels.Add(panel);
+                }
             }
         }
 
@@ -42,10 +45,14 @@ namespace Astraia.Common
                 GlobalManager.groupData.Add(group, panels);
             }
 
-            if (panel.groups.Remove(group))
+            if (GlobalManager.panelGroup.TryGetValue(panel, out var groups))
             {
-                panels.Remove(panel);
+                if (groups.Remove(group))
+                {
+                    panels.Remove(panel);
+                }
             }
+         
         }
 
         public static void Show(int group)
@@ -88,19 +95,22 @@ namespace Astraia.Common
 
         private static void ShowInGroup(UIPanel panel)
         {
-            foreach (var group in panel.groups)
+            if (GlobalManager.panelGroup.TryGetValue(panel, out var groups))
             {
-                if (GlobalManager.groupData.TryGetValue(group, out var panels))
+                foreach (var group in groups)
                 {
-                    foreach (var other in panels.Where(other => panel != other))
+                    if (GlobalManager.groupData.TryGetValue(group, out var panels))
                     {
-                        try
+                        foreach (var other in panels.Where(other => panel != other))
                         {
-                            other.gameObject.SetActive(false);
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.Log(Service.Text.Format("游戏对象为空: {0}\n{1}", other, e));
+                            try
+                            {
+                                other.gameObject.SetActive(false);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.Log(Service.Text.Format("游戏对象为空: {0}\n{1}", other, e));
+                            }
                         }
                     }
                 }

@@ -28,7 +28,7 @@ namespace Astraia.Common
         public AudioSource sounds;
 
         internal static AudioSetting settings;
-        
+
         internal static AssetBundleManifest manifest;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
@@ -98,6 +98,10 @@ namespace Astraia.Common
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<int, List<UIPanel>> groupData = new Dictionary<int, List<UIPanel>>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly Dictionary<UIPanel, HashSet<int>> panelGroup = new Dictionary<UIPanel, HashSet<int>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
