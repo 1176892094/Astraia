@@ -154,7 +154,7 @@ namespace Astraia.Common
                 Debug.LogWarning(e);
             }
         }
-        
+
         private async void OnDestroy()
         {
             manifest = null;
@@ -170,6 +170,7 @@ namespace Astraia.Common
             AssetManager.Dispose();
             TimerManager.Dispose();
             EventManager.Dispose();
+            SystemManager.Dispose();
             EntityManager.Dispose();
             // HeapManager.Dispose();
             GC.Collect();
