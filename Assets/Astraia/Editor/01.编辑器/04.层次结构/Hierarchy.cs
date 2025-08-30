@@ -157,13 +157,18 @@ namespace Astraia
                     component = components[0];
                 }
 
-                icon = AssetPreview.GetMiniThumbnail(component);
-                if (icon.name is "cs Script Icon" or "d_cs Script Icon" or "dll Script Icon")
+                var newIcon = AssetPreview.GetMiniThumbnail(component);
+                if (!newIcon)
+                {
+                    return icon;
+                }
+
+                if (newIcon.name is "cs Script Icon" or "d_cs Script Icon" or "dll Script Icon")
                 {
                     return AssetPreview.GetMiniThumbnail(components[0]);
                 }
 
-                return icon;
+                return newIcon;
             }
         }
 
