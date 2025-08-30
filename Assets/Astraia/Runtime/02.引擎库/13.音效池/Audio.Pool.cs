@@ -43,7 +43,7 @@ namespace Astraia.Common
                 if (unused.Count > 0)
                 {
                     item = unused.Dequeue();
-                    if (item != null)
+                    if (item)
                     {
                         cached.Add(item);
                         return item;
