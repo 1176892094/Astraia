@@ -35,7 +35,7 @@ namespace Astraia
         private int row => (int)assetRect.y + (direction == UIState.InputY ? 1 : 0);
         private int column => (int)assetRect.x + (direction == UIState.InputX ? 1 : 0);
 
-        public override void OnAwake()
+        public override void Dequeue()
         {
             selection = false;
             initialized = false;
@@ -51,7 +51,7 @@ namespace Astraia
             GlobalManager.OnUpdate -= OnUpdate;
         }
 
-        public override void OnDestroy()
+        public override void Enqueue()
         {
             Reset();
             items = null;

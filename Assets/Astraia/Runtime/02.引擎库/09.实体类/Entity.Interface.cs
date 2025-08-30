@@ -12,12 +12,5 @@
 
 namespace Astraia.Common
 {
-    public interface IAgent
-    {
-        void OnAwake(int id);
-        void OnAwake();
-        void OnShow();
-        void OnHide();
-        void OnDestroy();
-    }
+
 }

@@ -58,7 +58,7 @@ namespace Astraia
             }
         }
 
-        public override void OnDestroy()
+        public override void Enqueue()
         {
             foreach (var item in states.Values)
             {

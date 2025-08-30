@@ -78,7 +78,7 @@ namespace Astraia.Net
             }
         }
 
-        public override void OnAwake()
+        public override void Dequeue()
         {
             target = transform;
             originPosition = target.position;
@@ -86,7 +86,7 @@ namespace Astraia.Net
             originScale = target.localScale;
         }
 
-        public override void OnDestroy()
+        public override void Enqueue()
         {
             sendTime = double.MinValue;
         }

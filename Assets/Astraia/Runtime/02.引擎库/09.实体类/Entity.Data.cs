@@ -57,14 +57,14 @@ namespace Astraia
             try
             {
                 agent.OnAwake(id);
-                agent.OnAwake();
+                agent.Dequeue();
                 owner.OnShow += agent.OnShow;
                 owner.OnHide += agent.OnHide;
                 owner.OnFade += Faded;
 
                 void Faded()
                 {
-                    agent.OnDestroy();
+                    agent.Enqueue();
                     HeapManager.Enqueue(agent, type);
                     entityData.Remove(owner);
                 }

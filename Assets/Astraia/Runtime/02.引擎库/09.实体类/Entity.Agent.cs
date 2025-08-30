@@ -10,11 +10,19 @@
 // // *********************************************************************************
 
 using System;
-using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia
 {
+    public interface IAgent
+    {
+        void OnAwake(int id);
+        void Dequeue();
+        void OnShow();
+        void OnHide();
+        void Enqueue();
+    }
+
     [Serializable]
     public abstract class Agent<T> : IAgent where T : Entity
     {
@@ -27,7 +35,7 @@ namespace Astraia
             owner = (T)Resources.EntityIdToObject(id);
         }
 
-        public virtual void OnAwake()
+        public virtual void Dequeue()
         {
         }
 
@@ -39,7 +47,7 @@ namespace Astraia
         {
         }
 
-        public virtual void OnDestroy()
+        public virtual void Enqueue()
         {
         }
 
