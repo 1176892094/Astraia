@@ -33,16 +33,16 @@ namespace Astraia.Common
             LoadPool<T>().Invoke(data);
         }
 
-        private static EventPool<T> LoadPool<T>() where T : struct, IEvent
+        private static Pool<T> LoadPool<T>() where T : struct, IEvent
         {
             if (poolData.TryGetValue(typeof(T), out var pool))
             {
-                return (EventPool<T>)pool;
+                return (Pool<T>)pool;
             }
 
-            pool = new EventPool<T>(typeof(T));
+            pool = new Pool<T>(typeof(T));
             poolData.Add(typeof(T), pool);
-            return (EventPool<T>)pool;
+            return (Pool<T>)pool;
         }
         
         internal static void Dispose()

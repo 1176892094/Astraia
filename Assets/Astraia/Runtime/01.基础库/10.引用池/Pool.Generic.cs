@@ -17,60 +17,58 @@ namespace Astraia.Common
     public static partial class HeapManager
     {
         [Serializable]
-        private class HeapPool<T> : IPool
+        private class Pool<T> : IPool
         {
             private readonly HashSet<T> cached = new HashSet<T>();
             private readonly Queue<T> unused = new Queue<T>();
 
-            public HeapPool(Type type)
+            public Pool(Type type)
             {
-                this.Type = type;
+                Type = type;
+                Path = type.Name;
             }
 
             public Type Type { get; private set; }
             public string Path { get; private set; }
-            public int Acquire => cached.Count;
-            public int Release => unused.Count;
+            public int Acquire { get; private set; }
+            public int Release { get; private set; }
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
-
-            void IDisposable.Dispose()
-            {
-                cached.Clear();
-                unused.Clear();
-            }
 
             public T Load()
             {
                 T item;
-                lock (unused)
+                if (unused.Count > 0)
                 {
-                    Dequeue++;
-                    if (unused.Count > 0)
-                    {
-                        item = unused.Dequeue();
-                    }
-                    else
-                    {
-                        item = (T)Activator.CreateInstance(Type);
-                    }
-
-                    cached.Add(item);
+                    item = unused.Dequeue();
+                    cached.Remove(item);
+                }
+                else
+                {
+                    item = (T)Activator.CreateInstance(Type);
                 }
 
+                Dequeue++;
+                Acquire++;
+                Release--;
                 return item;
             }
 
             public void Push(T item)
             {
-                lock (unused)
+                if (cached.Add(item))
                 {
-                    if (cached.Remove(item))
-                    {
-                        Enqueue++;
-                        unused.Enqueue(item);
-                    }
+                    Enqueue++;
+                    Acquire--;
+                    Release++;
+                    unused.Enqueue(item);
                 }
+            }
+
+            void IDisposable.Dispose()
+            {
+                cached.Clear();
+                unused.Clear();
             }
         }
     }

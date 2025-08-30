@@ -12,59 +12,63 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Astraia.Common
 {
     public static partial class AudioManager
     {
-        private class AudioPool : IPool
+        private class Pool : IPool
         {
             private readonly HashSet<AudioSource> cached = new HashSet<AudioSource>();
             private readonly Queue<AudioSource> unused = new Queue<AudioSource>();
 
-            public AudioPool(Type type, string path)
+            public static Pool Create(Type type, string path)
             {
-                this.Type = type;
-                this.Path = path;
+                var instance = Activator.CreateInstance<Pool>();
+                instance.Type = type;
+                instance.Path = path;
+                return instance;
             }
 
-            public Type Type { get; }
-            public string Path { get; }
-            public int Acquire => cached.Count;
-            public int Release => unused.Count;
+            public Type Type { get; private set; }
+            public string Path { get; private set; }
+            public int Acquire { get; private set; }
+            public int Release { get; private set; }
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
 
             public AudioSource Load()
             {
-                Dequeue++;
                 AudioSource item;
                 if (unused.Count > 0)
                 {
                     item = unused.Dequeue();
+                    cached.Remove(item);
                     if (item)
                     {
-                        cached.Add(item);
                         return item;
                     }
 
                     Enqueue++;
-                    cached.Remove(item);
+                    Acquire--;
+                    Release++;
                 }
 
+                Dequeue++;
+                Acquire++;
+                Release--;
                 item = new GameObject(Path).AddComponent<AudioSource>();
-                Object.DontDestroyOnLoad(item.gameObject);
                 item.name = Path;
-                cached.Add(item);
                 return item;
             }
 
             public void Push(AudioSource item)
             {
-                if (cached.Remove(item))
+                if (cached.Add(item))
                 {
                     Enqueue++;
+                    Acquire--;
+                    Release++;
                     unused.Enqueue(item);
                 }
             }

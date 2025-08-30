@@ -19,53 +19,58 @@ namespace Astraia.Common
 {
     public static partial class PoolManager
     {
-        private class EntityPool : IPool
+        private class Pool : IPool
         {
             private readonly HashSet<GameObject> cached = new HashSet<GameObject>();
             private readonly Queue<GameObject> unused = new Queue<GameObject>();
 
-            public EntityPool(Type type, string path)
+            public static Pool Create(Type type, string path)
             {
-                this.Type = type;
-                this.Path = path;
+                var instance = Activator.CreateInstance<Pool>();
+                instance.Type = type;
+                instance.Path = path;
+                return instance;
             }
 
-            public Type Type { get; }
-            public string Path { get; }
-            public int Acquire => cached.Count;
-            public int Release => unused.Count;
+            public Type Type { get; private set; }
+            public string Path { get; private set; }
+            public int Acquire { get; private set; }
+            public int Release { get; private set; }
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
 
             public async Task<GameObject> Load()
             {
-                Dequeue++;
                 GameObject item;
                 if (unused.Count > 0)
                 {
                     item = unused.Dequeue();
+                    cached.Remove(item);
                     if (item)
                     {
-                        cached.Add(item);
                         return item;
                     }
 
                     Enqueue++;
-                    cached.Remove(item);
+                    Acquire--;
+                    Release++;
                 }
 
+                Dequeue++;
+                Acquire++;
+                Release--;
                 item = await AssetManager.Load<GameObject>(Path);
-                Object.DontDestroyOnLoad(item);
                 item.name = Path;
-                cached.Add(item);
                 return item;
             }
 
             public void Push(GameObject item)
             {
-                if (cached.Remove(item))
+                if (cached.Add(item))
                 {
                     Enqueue++;
+                    Acquire--;
+                    Release++;
                     unused.Enqueue(item);
                 }
             }

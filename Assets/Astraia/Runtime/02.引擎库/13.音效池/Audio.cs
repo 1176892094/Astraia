@@ -133,16 +133,16 @@ namespace Astraia.Common
             LoadPool(source.name).Push(source);
         }
 
-        private static AudioPool LoadPool(string path)
+        private static Pool LoadPool(string path)
         {
             if (GlobalManager.poolData.TryGetValue(path, out var pool))
             {
-                return (AudioPool)pool;
+                return (Pool)pool;
             }
 
-            pool = new AudioPool(typeof(AudioSource), path);
+            pool = Pool.Create(typeof(AudioSource), path);
             GlobalManager.poolData.Add(path, pool);
-            return (AudioPool)pool;
+            return (Pool)pool;
         }
 
         internal static void Dispose()

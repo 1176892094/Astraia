@@ -50,18 +50,18 @@ namespace Astraia.Common
             LoadPool(item.name).Push(item);
         }
 
-        private static EntityPool LoadPool(string path)
+        private static Pool LoadPool(string path)
         {
             if (GlobalManager.poolData.TryGetValue(path, out var pool))
             {
-                return (EntityPool)pool;
+                return (Pool)pool;
             }
 
-            pool = new EntityPool(typeof(GameObject), path);
+            pool = Pool.Create(typeof(GameObject), path);
             GlobalManager.poolData.Add(path, pool);
-            return (EntityPool)pool;
+            return (Pool)pool;
         }
-        
+
         internal static void Dispose()
         {
             foreach (var item in GlobalManager.poolData.Values)

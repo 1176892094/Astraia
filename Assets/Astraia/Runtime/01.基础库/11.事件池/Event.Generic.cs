@@ -17,43 +17,40 @@ namespace Astraia.Common
     public static partial class EventManager
     {
         [Serializable]
-        private class EventPool<T> : IPool where T : struct, IEvent
+        private class Pool<T> : IPool where T : struct, IEvent
         {
             private readonly HashSet<IEvent<T>> cached = new HashSet<IEvent<T>>();
             private event Action<T> OnExecute;
-            
-            public EventPool(Type type)
+
+            public Pool(Type type)
             {
-                this.Type = type;
+                Type = type;
+                Path = type.Name;
             }
 
             public Type Type { get; private set; }
             public string Path { get; private set; }
-            public int Acquire => cached.Count;
+            public int Acquire { get; private set; }
             public int Release { get; private set; }
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
 
-            void IDisposable.Dispose()
-            {
-                cached.Clear();
-                OnExecute = null;
-            }
-
             public void Listen(IEvent<T> obj)
             {
-                Dequeue++;
                 if (cached.Add(obj))
                 {
+                    Dequeue++;
+                    Acquire++;
                     OnExecute += obj.Execute;
                 }
             }
 
             public void Remove(IEvent<T> obj)
             {
-                Enqueue++;
                 if (cached.Remove(obj))
                 {
+                    Enqueue++;
+                    Acquire--;
                     OnExecute -= obj.Execute;
                 }
             }
@@ -62,6 +59,12 @@ namespace Astraia.Common
             {
                 Release++;
                 OnExecute?.Invoke(message);
+            }
+
+            void IDisposable.Dispose()
+            {
+                cached.Clear();
+                OnExecute = null;
             }
         }
     }

@@ -39,16 +39,16 @@ namespace Astraia.Common
             LoadPool<T>(type).Push(item);
         }
 
-        private static HeapPool<T> LoadPool<T>(Type type)
+        private static Pool<T> LoadPool<T>(Type type)
         {
             if (poolData.TryGetValue(type, out var item))
             {
-                return (HeapPool<T>)item;
+                return (Pool<T>)item;
             }
 
-            item = new HeapPool<T>(type);
+            item = new Pool<T>(type);
             poolData.Add(type, item);
-            return (HeapPool<T>)item;
+            return (Pool<T>)item;
         }
         
         internal static void Dispose()
