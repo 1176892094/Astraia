@@ -19,19 +19,21 @@ namespace Astraia
 {
     public static partial class Extensions
     {
-        private static readonly Dictionary<Type, Delegate> parsers = new Dictionary<Type, Delegate>
+        private static readonly Dictionary<Type, Delegate> parsers = new Dictionary<Type, Delegate>();
+
+        static Extensions()
         {
-            { typeof(Vector2), new Func<string, Vector2>(InputVector2) },
-            { typeof(Vector3), new Func<string, Vector3>(InputVector3) },
-            { typeof(Vector4), new Func<string, Vector4>(InputVector4) },
-            { typeof(Vector2Int), new Func<string, Vector2Int>(InputVector2Int) },
-            { typeof(Vector3Int), new Func<string, Vector3Int>(InputVector3Int) },
-            { typeof(Vector2[]), new Func<string, Vector2[]>(InputVector2Array) },
-            { typeof(Vector3[]), new Func<string, Vector3[]>(InputVector3Array) },
-            { typeof(Vector4[]), new Func<string, Vector4[]>(InputVector4Array) },
-            { typeof(Vector2Int[]), new Func<string, Vector2Int[]>(InputVector2IntArray) },
-            { typeof(Vector3Int[]), new Func<string, Vector3Int[]>(InputVector3IntArray) },
-        };
+            parsers[typeof(Vector2)] = new Func<string, Vector2>(InputVector2);
+            parsers[typeof(Vector3)] = new Func<string, Vector3>(InputVector3);
+            parsers[typeof(Vector4)] = new Func<string, Vector4>(InputVector4);
+            parsers[typeof(Vector2Int)] = new Func<string, Vector2Int>(InputVector2Int);
+            parsers[typeof(Vector3Int)] = new Func<string, Vector3Int>(InputVector3Int);
+            parsers[typeof(Vector2[])] = new Func<string, Vector2[]>(InputVector2Array);
+            parsers[typeof(Vector3[])] = new Func<string, Vector3[]>(InputVector3Array);
+            parsers[typeof(Vector4[])] = new Func<string, Vector4[]>(InputVector4Array);
+            parsers[typeof(Vector2Int[])] = new Func<string, Vector2Int[]>(InputVector2IntArray);
+            parsers[typeof(Vector3Int[])] = new Func<string, Vector3Int[]>(InputVector3IntArray);
+        }
 
         public static T Parse<T>(this byte[] reason)
         {
@@ -44,7 +46,7 @@ namespace Astraia
 
             return value.InputGeneric<T>();
         }
-        
+
         private static Vector2 InputVector2(this string reason)
         {
             var points = reason.Split(',');
@@ -89,22 +91,6 @@ namespace Astraia
             return new Vector3Int(x, y, z);
         }
 
-        private static List<string> InputArray(this string reason)
-        {
-            var result = new List<string>();
-            if (!string.IsNullOrEmpty(reason))
-            {
-                if (reason.EndsWith(";"))
-                {
-                    reason = reason.Substring(0, reason.Length - 1);
-                }
-
-                result.AddRange(reason.Split(';'));
-            }
-
-            return result;
-        }
-
         private static Vector2[] InputVector2Array(this string reason)
         {
             return reason.InputArray().Select(InputVector2).ToArray();
@@ -129,6 +115,22 @@ namespace Astraia
         {
             return reason.InputArray().Select(InputVector3Int).ToArray();
         }
+        
+        private static List<string> InputArray(this string reason)
+        {
+            var result = new List<string>();
+            if (!string.IsNullOrEmpty(reason))
+            {
+                if (reason.EndsWith(";"))
+                {
+                    reason = reason.Substring(0, reason.Length - 1);
+                }
+
+                result.AddRange(reason.Split(';'));
+            }
+
+            return result;
+        }
 
         private static T InputGeneric<T>(this string reason)
         {
@@ -148,20 +150,20 @@ namespace Astraia
             }
 
             var element = typeof(T).GetElementType();
-            if (element == null)
+            if (element != null)
             {
-                return default;
+                var members = reason.Split(';');
+                var instance = Array.CreateInstance(element, members.Length);
+                for (var i = 0; i < members.Length; ++i)
+                {
+                    var result = InputGeneric(members[i], element);
+                    instance.SetValue(result, i);
+                }
+
+                return (T)(object)instance;
             }
 
-            var members = reason.Split(';');
-            var instance = Array.CreateInstance(element, members.Length);
-            for (var i = 0; i < members.Length; ++i)
-            {
-                var result = InputGeneric(members[i], element);
-                instance.SetValue(result, i);
-            }
-
-            return (T)(object)instance;
+            return default;
         }
 
         private static object InputGeneric(this string reason, Type target)
