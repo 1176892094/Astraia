@@ -53,7 +53,7 @@ namespace Astraia
 
         public static IEnumerable<T> Query<T>() where T : IAgent
         {
-            if (agentData.TryGetValue(typeof(T), out var queries))
+            if (entityData.TryGetValue(typeof(T), out var queries))
             {
                 foreach (var query in queries)
                 {

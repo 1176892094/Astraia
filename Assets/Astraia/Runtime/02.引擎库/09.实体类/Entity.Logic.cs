@@ -60,9 +60,9 @@ namespace Astraia
             return (T)EntityManager.AddAgent(this, agent);
         }
 
-        public T AddAgent<T>(T agent, Type agentType) where T : IAgent
+        public T AddAgent<T>(T agent, Type queryType) where T : IAgent
         {
-            return (T)EntityManager.AddAgent(this, agent, agentType);
+            return (T)EntityManager.AddAgent(this, agent, queryType);
         }
 
         public T AddAgent<T>() where T : IAgent
@@ -80,28 +80,28 @@ namespace Astraia
             return EntityManager.AddAgent(this, realType, realType);
         }
 
-        public IAgent AddAgent(Type baseType, Type realType)
+        public IAgent AddAgent(Type keyType, Type realType)
         {
-            return EntityManager.AddAgent(this, baseType, realType);
+            return EntityManager.AddAgent(this, keyType, realType);
         }
 
-        public IAgent AddAgent(Type agentType, Type baseType, Type realType)
+        public IAgent AddAgent(Type queryType, Type keyType, Type realType)
         {
-            return EntityManager.AddAgent(this, baseType, realType, agentType);
+            return EntityManager.AddAgent(this, keyType, realType, queryType);
         }
 
-        public IAgent GetAgent(Type realType)
+        public IAgent GetAgent(Type keyType)
         {
-            return EntityManager.GetAgent(this, realType);
+            return EntityManager.GetAgent(this, keyType);
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        private static List<string> Agents => GlobalSetting.GetAgents();
+        private static List<string> Agents = GlobalSetting.GetAgents();
 
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<IAgent> agents
         {
-            get => entityData.TryGetValue(this, out var agent) ? agent.Values.ToList() : null;
+            get => GlobalManager.agentData.TryGetValue(this, out var agent) ? agent.Values.ToList() : null;
             set => Debug.LogWarning(value, this);
         }
 

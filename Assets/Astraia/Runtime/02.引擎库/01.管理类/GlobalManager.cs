@@ -85,11 +85,11 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly List<Entity, List<Type, IAgent>> entityData = new List<Entity, List<Type, IAgent>>();
+        internal static readonly List<Entity, List<Type, IAgent>> agentData = new List<Entity, List<Type, IAgent>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly List<Type, List<Entity, IAgent>> agentData = new List<Type, List<Entity, IAgent>>();
+        internal static readonly List<Type, List<Entity, IAgent>> entityData = new List<Type, List<Entity, IAgent>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
