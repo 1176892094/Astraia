@@ -29,19 +29,23 @@ namespace Astraia.Common
 
             var owner = obj.GetOrAddComponent<Entity>();
             var panel = (UIPanel)HeapManager.Dequeue<IAgent>(type);
-            if (!panelData.TryGetValue(panel, out var group))
-            {
-                group = new HashSet<int>();
-                panelData.Add(panel, group);
-            }
-
+            var group = new HashSet<int>();
+            
             owner.transform.Inject(panel);
             owner.AddAgent(panel, typeof(UIPanel));
-            owner.OnFade += group.Clear;
+            owner.OnFade += Release;
 
-            Surface(panel.transform, panel.layer);
+            SetLayer(panel.transform, panel.layer);
             panelPage.Add(type, panel);
+            panelData.Add(panel, group);
             return panel;
+
+            void Release()
+            {
+                group.Clear();
+                panelPage.Remove(type);
+                panelData.Remove(panel);
+            }
         }
 
         public static async void Show<T>(Action<T> action = null) where T : UIPanel
@@ -77,8 +81,6 @@ namespace Astraia.Common
             {
                 panel.gameObject.SetActive(false);
                 Object.Destroy(panel.gameObject);
-                panelPage.Remove(typeof(T));
-                panelData.Remove(panel);
             }
         }
 
@@ -115,8 +117,6 @@ namespace Astraia.Common
             {
                 panel.gameObject.SetActive(false);
                 Object.Destroy(panel.gameObject);
-                panelPage.Remove(type);
-                panelData.Remove(panel);
             }
         }
 
@@ -130,14 +130,13 @@ namespace Astraia.Common
                     if (panel.state != UIState.Stable)
                     {
                         panel.gameObject.SetActive(false);
-                        panelPage.Remove(type);
                         Object.Destroy(panel.gameObject);
                     }
                 }
             }
         }
 
-        public static void Surface(Transform panel, UILayer layer)
+        public static void SetLayer(Transform panel, UILayer layer)
         {
             if (!Instance) return;
             var transform = panel.GetComponent<RectTransform>();
