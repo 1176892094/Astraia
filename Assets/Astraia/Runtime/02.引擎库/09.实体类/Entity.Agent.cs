@@ -16,7 +16,7 @@ namespace Astraia
 {
     public interface IAgent
     {
-        void SetData(Entity owner);
+        void Create(Entity owner);
         void Dequeue();
         void OnShow();
         void OnHide();
@@ -30,7 +30,7 @@ namespace Astraia
         public Transform transform => owner?.transform;
         public GameObject gameObject => owner?.gameObject;
 
-        void IAgent.SetData(Entity owner)
+        void IAgent.Create(Entity owner)
         {
             this.owner = (T)owner;
         }

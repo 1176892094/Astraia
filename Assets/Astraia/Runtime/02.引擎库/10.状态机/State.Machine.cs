@@ -20,7 +20,7 @@ namespace Astraia
     {
         private readonly Dictionary<int, IState> states = new Dictionary<int, IState>();
         private IState state;
-
+        
         public void OnUpdate()
         {
             state?.OnUpdate();
@@ -34,7 +34,7 @@ namespace Astraia
                 states.Add(key, item);
             }
 
-            item.OnShow(owner);
+            item.Create(owner);
         }
 
         public void ChangeState(int key)

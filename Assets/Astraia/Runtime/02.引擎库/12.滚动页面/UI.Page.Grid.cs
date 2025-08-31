@@ -19,14 +19,14 @@ namespace Astraia.Common
         {
             foreach (var agent in SystemManager.Query<IPage>())
             {
-                agent.OnUpdate(time);
+                agent.Update();
             }
         }
     }
 
     public interface IPage : IAgent
     {
-        void OnUpdate(float time);
+        void Update();
     }
 
     public interface IGrid
