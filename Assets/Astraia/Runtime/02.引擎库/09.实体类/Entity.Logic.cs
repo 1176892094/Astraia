@@ -65,7 +65,6 @@ namespace Astraia
             return (T)EntityManager.AddAgent(this, agent, agentType);
         }
 
-
         public T AddAgent<T>() where T : IAgent
         {
             return (T)EntityManager.AddAgent(this, typeof(T), typeof(T));
@@ -94,12 +93,6 @@ namespace Astraia
         public IAgent GetAgent(Type realType)
         {
             return EntityManager.GetAgent(this, realType);
-        }
-
-
-        public static implicit operator int(Entity entity)
-        {
-            return entity.GetEntityId();
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR

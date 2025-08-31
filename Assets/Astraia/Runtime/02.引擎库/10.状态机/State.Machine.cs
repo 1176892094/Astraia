@@ -21,24 +21,20 @@ namespace Astraia
         private readonly Dictionary<int, IState> states = new Dictionary<int, IState>();
         private IState state;
 
-        public virtual void OnUpdate()
+        public void OnUpdate()
         {
             state?.OnUpdate();
-        }
-
-        public IState GetState(int key)
-        {
-            return states.GetValueOrDefault(key);
         }
 
         public void AddState(int key, Type type)
         {
             if (!states.TryGetValue(key, out var item))
             {
-                item = HeapManager.Dequeue<IState>(type);
+                item = (IState)Activator.CreateInstance(type);
                 states.Add(key, item);
-                item.OnAwake(owner);
             }
+
+            item.OnShow(owner);
         }
 
         public void ChangeState(int key)
@@ -48,24 +44,8 @@ namespace Astraia
             state?.OnEnter();
         }
 
-        public void RemoveState(int key)
-        {
-            if (states.TryGetValue(key, out var item))
-            {
-                item.OnDestroy();
-                states.Remove(key);
-                HeapManager.Enqueue(item, item.GetType());
-            }
-        }
-
         public override void Enqueue()
         {
-            foreach (var item in states.Values)
-            {
-                item.OnDestroy();
-                HeapManager.Enqueue(item, item.GetType());
-            }
-
             states.Clear();
         }
     }

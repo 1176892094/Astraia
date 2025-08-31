@@ -67,7 +67,7 @@ namespace Astraia.Common
             
             public static Pool<T> Create(Type type, string path)
             {
-                var instance = Activator.CreateInstance<Pool<T>>();
+                var instance = new Pool<T>();
                 instance.Type = type;
                 instance.Path = path;
                 return instance;

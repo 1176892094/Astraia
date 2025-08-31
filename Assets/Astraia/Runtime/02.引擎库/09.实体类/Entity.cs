@@ -124,7 +124,7 @@ namespace Astraia
         {
             try
             {
-                agent.Setup(owner);
+                agent.SetData(owner);
                 agent.Dequeue();
                 owner.OnShow += agent.OnShow;
                 owner.OnHide += agent.OnHide;
