@@ -124,7 +124,7 @@ namespace Astraia
                     return Reflection.sceneIcon.image;
                 }
 
-                Texture icon = AssetPreview.GetMiniThumbnail(target);
+                Texture icon = EditorIcon.GetIcon(target);
                 if (icon.name is "d_Prefab Icon" or "Prefab Icon")
                 {
                     if (PrefabUtility.IsAnyPrefabInstanceRoot(target))
@@ -144,7 +144,7 @@ namespace Astraia
                         if (components.Length > 3 && component is ICanvasRaycastFilter)
                         {
                             var image = components[3];
-                            icon = AssetPreview.GetMiniThumbnail(image);
+                            icon = EditorIcon.GetIcon(image);
                             if (icon)
                             {
                                 component = image;
@@ -157,7 +157,7 @@ namespace Astraia
                     component = components[0];
                 }
 
-                var newIcon = AssetPreview.GetMiniThumbnail(component);
+                var newIcon = EditorIcon.GetIcon(component);
                 if (!newIcon)
                 {
                     return icon;
@@ -165,7 +165,7 @@ namespace Astraia
 
                 if (newIcon.name is "cs Script Icon" or "d_cs Script Icon" or "dll Script Icon")
                 {
-                    return AssetPreview.GetMiniThumbnail(components[0]);
+                    return EditorIcon.GetIcon(components[0]);
                 }
 
                 return newIcon;
@@ -259,13 +259,13 @@ namespace Astraia
             if (copiedData.ContainsKey(item))
             {
                 EditorGUI.DrawRect(rect, Color.green * 0.6f);
-                GUI.DrawTexture(rect, AssetPreview.GetMiniThumbnail(item), ScaleMode.ScaleToFit);
+                GUI.DrawTexture(rect, EditorIcon.GetIcon(item), ScaleMode.ScaleToFit);
             }
             else
             {
                 var color = GUI.color;
                 GUI.color = rect.Contains(mousePosition) && pressed ? Color.white : Color.white * 0.6F;
-                GUI.DrawTexture(rect, AssetPreview.GetMiniThumbnail(item), ScaleMode.ScaleToFit);
+                GUI.DrawTexture(rect, EditorIcon.GetIcon(item), ScaleMode.ScaleToFit);
                 GUI.color = color;
             }
 

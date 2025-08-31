@@ -185,7 +185,7 @@ namespace Astraia
                     }
                     else
                     {
-                        var icon = AssetPreview.GetMiniTypeThumbnail(result);
+                        var icon = EditorIcon.GetIcon(result);
                         if (icon != null)
                         {
                             item.Add(icon.name);

@@ -15,11 +15,13 @@ using System.Linq;
 using Astraia.Common;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Astraia
 {
     internal static class EditorIcon
     {
+        private static readonly Dictionary<Type, Texture2D> cache = new Dictionary<Type, Texture2D>();
         private static readonly Dictionary<string, Texture2D> icons = new Dictionary<string, Texture2D>();
         private static readonly Dictionary<string, string> items;
 
@@ -27,6 +29,34 @@ namespace Astraia
         {
             var data = Service.Zip.Decompress(GlobalSetting.GetTextByIndex(AssetText.Icons));
             items = JsonManager.FromJson<List<KeyValue>>(data).ToDictionary(p => p.Key, p => p.Value);
+        }
+
+        public static Texture2D GetIcon(Object target)
+        {
+            if (target)
+            {
+                var key = target.GetType();
+                if (!cache.TryGetValue(key, out var icon))
+                {
+                    icon = AssetPreview.GetMiniTypeThumbnail(key);
+                    cache[key] = icon;
+                }
+
+                return icon;
+            }
+
+            return null;
+        }
+
+        public static Texture2D GetIcon(Type key)
+        {
+            if (!cache.TryGetValue(key, out var icon))
+            {
+                icon = AssetPreview.GetMiniTypeThumbnail(key);
+                cache[key] = icon;
+            }
+
+            return icon;
         }
 
         public static Texture2D GetIcon(string reason)
@@ -75,5 +105,4 @@ namespace Astraia
             }
         }
     }
-
 }
