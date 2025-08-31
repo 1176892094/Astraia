@@ -19,7 +19,7 @@ namespace Astraia.Common
 {
     using static GlobalManager;
 
-    public static class UIManager
+    public static class PageManager
     {
         private static async Task<UIPanel> Load(string path, Type type)
         {

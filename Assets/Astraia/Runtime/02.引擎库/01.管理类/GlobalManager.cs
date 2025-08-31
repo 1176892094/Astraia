@@ -128,15 +128,15 @@ namespace Astraia.Common
             SystemManager.Listen<PageSystem>();
         }
 
+        private void Start()
+        {
+            PackManager.LoadAssetData();
+        }
+
         private void OnDisable()
         {
             SystemManager.Remove<UISystem>();
             SystemManager.Remove<PageSystem>();
-        }
-
-        private void Start()
-        {
-            PackManager.LoadAssetData();
         }
 
         private void Update()
@@ -147,10 +147,9 @@ namespace Astraia.Common
 
         private async void OnDestroy()
         {
-            manifest = null;
             Instance = null;
             await Task.Yield();
-            UIManager.Dispose();
+            PageManager.Dispose();
             PackManager.Dispose();
             DataManager.Dispose();
             PoolManager.Dispose();

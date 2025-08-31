@@ -187,18 +187,18 @@ namespace Astraia.Common
                 dataTable.Clear();
             }
 
-            GlobalManager.itemTable.Clear();
             foreach (var dataTable in GlobalManager.enumTable.Values)
             {
                 dataTable.Clear();
             }
 
-            GlobalManager.enumTable.Clear();
             foreach (var dataTable in GlobalManager.nameTable.Values)
             {
                 dataTable.Clear();
             }
 
+            GlobalManager.enumTable.Clear();
+            GlobalManager.itemTable.Clear();
             GlobalManager.nameTable.Clear();
         }
     }
