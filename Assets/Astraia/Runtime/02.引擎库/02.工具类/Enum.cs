@@ -41,12 +41,16 @@ namespace Astraia
         StreamingAssets,
         BuildPath,
     }
-    
+
     public enum UIState : byte
     {
         Common,
         Freeze,
         Stable,
+    }
+
+    public enum UIPage : byte
+    {
         InputX,
         InputY,
     }

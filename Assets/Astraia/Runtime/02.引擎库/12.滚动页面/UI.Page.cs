@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public sealed class Page<TItem> : Agent<Entity>
+    public sealed class UIPage<TItem> : Agent<Entity>, IPage
     {
         private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
         private int oldMinIndex;
@@ -30,25 +30,15 @@ namespace Astraia
         public bool selection;
         public Type assetType;
         public Rect assetRect;
-        public UIState direction;
+        public UIPage direction;
         public RectTransform content;
-        private int row => (int)assetRect.y + (direction == UIState.InputY ? 1 : 0);
-        private int column => (int)assetRect.x + (direction == UIState.InputX ? 1 : 0);
+        private int row => (int)assetRect.y + (direction == UIPage.InputY ? 1 : 0);
+        private int column => (int)assetRect.x + (direction == UIPage.InputX ? 1 : 0);
 
         public override void Dequeue()
         {
             selection = false;
             initialized = false;
-        }
-
-        public override void OnShow()
-        {
-            GlobalManager.OnUpdate += OnUpdate;
-        }
-
-        public override void OnHide()
-        {
-            GlobalManager.OnUpdate -= OnUpdate;
         }
 
         public override void Enqueue()
@@ -57,7 +47,7 @@ namespace Astraia
             items = null;
         }
 
-        private void OnUpdate()
+        void IPage.OnUpdate(float deltaTime)
         {
             if (content == null)
             {
@@ -67,7 +57,7 @@ namespace Astraia
             if (!initialized)
             {
                 initialized = true;
-                if (direction == UIState.InputY)
+                if (direction == UIPage.InputY)
                 {
                     content.anchorMin = Vector2.up;
                     content.anchorMax = Vector2.one;
@@ -96,7 +86,7 @@ namespace Astraia
             int minIndex;
             int maxIndex;
             float position;
-            if (direction == UIState.InputY)
+            if (direction == UIPage.InputY)
             {
                 position = content.anchoredPosition.y;
                 newIndex = (int)(position / assetRect.height);
@@ -162,7 +152,7 @@ namespace Astraia
                     float posY;
                     var index = i;
                     grids[index] = null;
-                    if (direction == UIState.InputY)
+                    if (direction == UIPage.InputY)
                     {
                         var delta = index / column;
                         posX = index % column * assetRect.width + assetRect.width / 2;
@@ -209,7 +199,7 @@ namespace Astraia
             if (items != null)
             {
                 float value = items.Count;
-                if (direction == UIState.InputY)
+                if (direction == UIPage.InputY)
                 {
                     value = Mathf.Ceil(value / column);
                     content.sizeDelta = new Vector2(0, value * assetRect.height);
@@ -252,7 +242,7 @@ namespace Astraia
             IGrid<TItem> current;
             switch (offset)
             {
-                case 0 when direction == UIState.InputX: // 左
+                case 0 when direction == UIPage.InputX: // 左
                     for (int i = 0; i < row; i++)
                     {
                         if (grids.TryGetValue(oldMinIndex + i + row, out current) && current == grid)
@@ -263,7 +253,7 @@ namespace Astraia
                     }
 
                     return;
-                case 1 when direction == UIState.InputY: // 上
+                case 1 when direction == UIPage.InputY: // 上
                     for (int i = 0; i < column; i++)
                     {
                         if (grids.TryGetValue(oldMinIndex + i + column, out current) && current == grid)
@@ -274,7 +264,7 @@ namespace Astraia
                     }
 
                     return;
-                case 2 when direction == UIState.InputX: // 右
+                case 2 when direction == UIPage.InputX: // 右
                     for (int i = 0; i < row; i++)
                     {
                         if (grids.TryGetValue(oldMaxIndex - i - row, out current) && current == grid)
@@ -285,7 +275,7 @@ namespace Astraia
                     }
 
                     return;
-                case 3 when direction == UIState.InputY: // 下
+                case 3 when direction == UIPage.InputY: // 下
                     for (int i = 0; i < column; i++)
                     {
                         if (grids.TryGetValue(oldMaxIndex - i - column, out current) && current == grid)

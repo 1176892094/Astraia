@@ -13,17 +13,33 @@ using UnityEngine;
 
 namespace Astraia.Common
 {
+    public class PageSystem : ISystem
+    {
+        public void Update(float deltaTime)
+        {
+            foreach (var entity in SystemManager.Query<IPage>())
+            {
+                entity.GetAgent<IPage>()?.OnUpdate(deltaTime);
+            }
+        }
+    }
+
+    public interface IPage : IAgent
+    {
+        void OnUpdate(float deltaTime);
+    }
+
     public interface IGrid
     {
         Transform transform { get; }
-        
+
         GameObject gameObject { get; }
-   
+
         void Select();
 
         void Dispose();
     }
-    
+
     public interface IGrid<TItem> : IGrid
     {
         TItem item { get; }
