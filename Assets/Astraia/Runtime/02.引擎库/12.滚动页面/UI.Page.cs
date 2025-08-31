@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using Astraia.Common;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Astraia
 {
@@ -27,11 +28,11 @@ namespace Astraia
         private bool useSelected;
         private IList<TItem> items;
 
-        public bool selection;
-        public Type assetType;
-        public Rect assetRect;
-        public UIPage direction;
-        public RectTransform content;
+        internal bool selection;
+        internal Type assetType;
+        internal Rect assetRect;
+        internal UIPage direction;
+        internal RectTransform content;
         private int row => (int)assetRect.y + (direction == UIPage.InputY ? 1 : 0);
         private int column => (int)assetRect.x + (direction == UIPage.InputX ? 1 : 0);
 
@@ -40,7 +41,7 @@ namespace Astraia
             selection = false;
             initialized = false;
         }
-
+        
         public override void Enqueue()
         {
             Reset();
@@ -237,51 +238,51 @@ namespace Astraia
             grids.Clear();
         }
 
-        public void Move(IGrid<TItem> grid, int offset)
+        public void Move(IGrid<TItem> grid, MoveDirection move)
         {
             IGrid<TItem> current;
-            switch (offset)
+            switch (move)
             {
-                case 0 when direction == UIPage.InputX: // 左
+                case MoveDirection.Left when direction == UIPage.InputX: 
                     for (int i = 0; i < row; i++)
                     {
                         if (grids.TryGetValue(oldMinIndex + i + row, out current) && current == grid)
                         {
-                            content.anchoredPosition -= Vector2.left * assetRect.width;
-                            break;
+                            content.anchoredPosition += Vector2.right * assetRect.width;
+                            return;
                         }
                     }
 
                     return;
-                case 1 when direction == UIPage.InputY: // 上
+                case MoveDirection.Up when direction == UIPage.InputY:
                     for (int i = 0; i < column; i++)
                     {
                         if (grids.TryGetValue(oldMinIndex + i + column, out current) && current == grid)
                         {
-                            content.anchoredPosition -= Vector2.up * assetRect.height;
-                            break;
+                            content.anchoredPosition += Vector2.down * assetRect.height;
+                            return;
                         }
                     }
 
                     return;
-                case 2 when direction == UIPage.InputX: // 右
+                case MoveDirection.Right when direction == UIPage.InputX:
                     for (int i = 0; i < row; i++)
                     {
                         if (grids.TryGetValue(oldMaxIndex - i - row, out current) && current == grid)
                         {
                             content.anchoredPosition += Vector2.left * assetRect.width;
-                            break;
+                            return;
                         }
                     }
 
                     return;
-                case 3 when direction == UIPage.InputY: // 下
+                case MoveDirection.Down when direction == UIPage.InputY:
                     for (int i = 0; i < column; i++)
                     {
                         if (grids.TryGetValue(oldMaxIndex - i - column, out current) && current == grid)
                         {
                             content.anchoredPosition += Vector2.up * assetRect.height;
-                            break;
+                            return;
                         }
                     }
 
