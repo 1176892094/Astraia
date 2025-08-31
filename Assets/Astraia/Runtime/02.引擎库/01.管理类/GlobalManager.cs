@@ -116,7 +116,6 @@ namespace Astraia.Common
         internal static readonly Dictionary<uint, GameObject> objectData = new Dictionary<uint, GameObject>();
 
         public static event Action OnUpdate;
-        public static event Action OnLateUpdate;
 
         private void Awake()
         {
@@ -142,22 +141,9 @@ namespace Astraia.Common
         private void Update()
         {
             SystemManager.Update(Time.time);
-            TimerManager.Update(Time.time);
             try
             {
                 OnUpdate?.Invoke();
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning(e);
-            }
-        }
-
-        private void LateUpdate()
-        {
-            try
-            {
-                OnLateUpdate?.Invoke();
             }
             catch (Exception e)
             {
@@ -170,7 +156,6 @@ namespace Astraia.Common
             manifest = null;
             Instance = null;
             OnUpdate = null;
-            OnLateUpdate = null;
             await Task.Yield();
             UIManager.Dispose();
             PackManager.Dispose();

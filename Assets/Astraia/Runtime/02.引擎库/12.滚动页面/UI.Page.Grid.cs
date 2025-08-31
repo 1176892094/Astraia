@@ -17,9 +17,9 @@ namespace Astraia.Common
     {
         public void Update(float time)
         {
-            foreach (var pair in SystemManager.Query<IPage>())
+            foreach (var agent in SystemManager.Query<IPage>())
             {
-                ((IPage)pair.Value).OnUpdate(time);
+                agent.OnUpdate(time);
             }
         }
     }

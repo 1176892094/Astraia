@@ -44,9 +44,14 @@ namespace Astraia
             {
                 system.Update(time);
             }
+
+            for (var i = timerData.Count - 1; i >= 0; i--)
+            {
+                timerData[i].Update(time);
+            }
         }
 
-        public static IEnumerable<KeyValuePair<Entity, IAgent>> Query<T>() where T : IAgent
+        public static IEnumerable<T> Query<T>() where T : IAgent
         {
             if (agentData.TryGetValue(typeof(T), out var queries))
             {
@@ -54,7 +59,7 @@ namespace Astraia
                 {
                     if (query.Key && query.Key.isActiveAndEnabled)
                     {
-                        yield return query;
+                        yield return (T)query.Value;
                     }
                 }
             }
