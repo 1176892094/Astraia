@@ -36,7 +36,7 @@ namespace Astraia.Common
             }
 
             owner.transform.Inject(panel);
-            owner.AddAgent(panel);
+            owner.AddAgent(panel, typeof(UIPanel));
             owner.OnFade += group.Clear;
 
             Surface(panel.transform, panel.layer);

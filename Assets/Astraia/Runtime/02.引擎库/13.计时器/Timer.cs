@@ -16,6 +16,14 @@ namespace Astraia.Common
 {
     internal static class TimerManager
     {
+        public static void Update(float time)
+        {
+            for (var i = GlobalManager.timerData.Count - 1; i >= 0; i--)
+            {
+                GlobalManager.timerData[i].Update(time);
+            }
+        }
+
         public static T Load<T>(Component entity, float duration) where T : class, ITimer
         {
             if (!GlobalManager.Instance) return null;

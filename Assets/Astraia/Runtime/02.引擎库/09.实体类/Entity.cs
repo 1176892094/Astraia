@@ -34,7 +34,7 @@ namespace Astraia
                 agentData.Add(baseType, query);
             }
 
-            if (!agents.ContainsKey(agent.GetType()))
+            if (!agents.ContainsKey(baseType))
             {
                 query.Add(owner, agent);
                 agents.Add(baseType, agent);
@@ -43,6 +43,32 @@ namespace Astraia
 
             return agent;
         }
+        
+        public static IAgent AddAgent(Entity owner, IAgent agent, Type agentType)
+        {
+            if (!entityData.TryGetValue(owner, out var agents))
+            {
+                agents = new List<Type, IAgent>();
+                entityData.Add(owner, agents);
+            }
+
+            var baseType = agent.GetType();
+            if (!agentData.TryGetValue(agentType, out var query))
+            {
+                query = new List<Entity, IAgent>();
+                agentData.Add(agentType, query);
+            }
+
+            if (!agents.ContainsKey(baseType))
+            {
+                query.Add(owner, agent);
+                agents.Add(baseType, agent);
+                AddLogic(owner, agent, baseType);
+            }
+
+            return agent;
+        }
+
 
         public static IAgent AddAgent(Entity owner, Type baseType, Type realType)
         {
