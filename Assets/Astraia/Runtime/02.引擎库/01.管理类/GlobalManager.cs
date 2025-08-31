@@ -16,6 +16,7 @@ using UnityEngine;
 using EnumTable = System.Collections.Generic.Dictionary<System.Enum, Astraia.Common.IData>;
 using ItemTable = System.Collections.Generic.Dictionary<int, Astraia.Common.IData>;
 using NameTable = System.Collections.Generic.Dictionary<string, Astraia.Common.IData>;
+using Object = UnityEngine.Object;
 
 namespace Astraia.Common
 {
@@ -30,10 +31,6 @@ namespace Astraia.Common
         internal static AudioSetting settings;
 
         internal static AssetBundleManifest manifest;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly List<ITimer> timerData = new List<ITimer>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -97,6 +94,10 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
+        internal static readonly List<Object, ITimer> timerData = new List<Object, ITimer>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
         internal static readonly Dictionary<Type, UIPanel> panelPage = new Dictionary<Type, UIPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
@@ -141,7 +142,6 @@ namespace Astraia.Common
         private void Update()
         {
             SystemManager.Update(Time.time);
-            TimerManager.Update(Time.time);
         }
 
         private async void OnDestroy()

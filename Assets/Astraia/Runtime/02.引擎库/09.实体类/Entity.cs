@@ -30,27 +30,27 @@ namespace Astraia
             return agents;
         }
 
-        private static List<Entity, IAgent> GetQueries(Type agent)
+        private static List<Entity, IAgent> GetEntities(Type agent)
         {
-            if (!entityData.TryGetValue(agent, out var queries))
+            if (!entityData.TryGetValue(agent, out var entities))
             {
-                queries = new List<Entity, IAgent>();
-                entityData.Add(agent, queries);
+                entities = new List<Entity, IAgent>();
+                entityData.Add(agent, entities);
             }
 
-            return queries;
+            return entities;
         }
 
         public static IAgent AddAgent(Entity owner, IAgent agent)
         {
-            var keyType = agent.GetType();
             var agents = GetAgents(owner);
-            var queries = GetQueries(keyType);
+            var keyType = agent.GetType();
+            var entities = GetEntities(keyType);
             if (!agents.ContainsKey(keyType))
             {
-                queries.Add(owner, agent);
+                entities.Add(owner, agent);
                 agents.Add(keyType, agent);
-                AddLogic(owner, agent, keyType);
+                AddEvent(owner, agent, keyType);
             }
 
             return agent;
@@ -58,30 +58,29 @@ namespace Astraia
 
         public static IAgent AddAgent(Entity owner, IAgent agent, Type queryType)
         {
-            var keyType = agent.GetType();
             var agents = GetAgents(owner);
-            var queries = GetQueries(queryType);
+            var keyType = agent.GetType();
+            var entities = GetEntities(queryType);
             if (!agents.ContainsKey(keyType))
             {
-                queries.Add(owner, agent);
                 agents.Add(keyType, agent);
-                AddLogic(owner, agent, keyType);
+                entities.Add(owner, agent);
+                AddEvent(owner, agent, keyType);
             }
 
             return agent;
         }
 
-
         public static IAgent AddAgent(Entity owner, Type keyType, Type realType)
         {
             var agents = GetAgents(owner);
-            var queries = GetQueries(keyType);
+            var entities = GetEntities(keyType);
             if (!agents.TryGetValue(keyType, out var agent))
             {
                 agent = HeapManager.Dequeue<IAgent>(realType);
-                queries.Add(owner, agent);
                 agents.Add(keyType, agent);
-                AddLogic(owner, agent, realType);
+                entities.Add(owner, agent);
+                AddEvent(owner, agent, realType);
             }
 
             return agent;
@@ -90,19 +89,19 @@ namespace Astraia
         public static IAgent AddAgent(Entity owner, Type keyType, Type realType, Type queryType)
         {
             var agents = GetAgents(owner);
-            var queries = GetQueries(queryType);
+            var entities = GetEntities(queryType);
             if (!agents.TryGetValue(keyType, out var agent))
             {
                 agent = HeapManager.Dequeue<IAgent>(realType);
-                queries.Add(owner, agent);
                 agents.Add(keyType, agent);
-                AddLogic(owner, agent, realType);
+                entities.Add(owner, agent);
+                AddEvent(owner, agent, realType);
             }
 
             return agent;
         }
 
-        private static void AddLogic(Entity owner, IAgent agent, Type realType)
+        private static void AddEvent(Entity owner, IAgent agent, Type realType)
         {
             try
             {
@@ -110,15 +109,15 @@ namespace Astraia
                 agent.Dequeue();
                 owner.OnShow += agent.OnShow;
                 owner.OnHide += agent.OnHide;
-                owner.OnFade += Reset;
+                owner.OnFade += Destroy;
 
-                void Reset()
+                void Destroy()
                 {
                     agent.Enqueue();
                     HeapManager.Enqueue(agent, realType);
-                    foreach (var query in entityData.Values)
+                    foreach (var queries in entityData.Values)
                     {
-                        query.Remove(owner);
+                        queries.Remove(owner);
                     }
 
                     agentData.Remove(owner);
@@ -148,6 +147,11 @@ namespace Astraia
             foreach (var agents in agentData.Values)
             {
                 agents.Clear();
+            }
+            
+            foreach (var queries in entityData.Values)
+            {
+                queries.Clear();
             }
 
             agentData.Clear();

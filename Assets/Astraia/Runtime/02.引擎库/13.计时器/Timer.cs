@@ -18,9 +18,9 @@ namespace Astraia.Common
     {
         public static void Update(float time)
         {
-            for (var i = GlobalManager.timerData.Count - 1; i >= 0; i--)
+            foreach (var timer in GlobalManager.timerData.Values)
             {
-                GlobalManager.timerData[i].Update(time);
+                timer.Update(time);
             }
         }
 
@@ -29,12 +29,12 @@ namespace Astraia.Common
             if (!GlobalManager.Instance) return null;
             var item = HeapManager.Dequeue<T>();
             item.Start(entity, duration, OnComplete);
-            GlobalManager.timerData.Add(item);
+            GlobalManager.timerData.Add(entity, item);
             return item;
 
             void OnComplete()
             {
-                GlobalManager.timerData.Remove(item);
+                GlobalManager.timerData.Remove(entity);
                 item.Dispose();
                 HeapManager.Enqueue(item, typeof(T));
             }

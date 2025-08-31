@@ -20,8 +20,6 @@ using Sirenix.OdinInspector;
 
 namespace Astraia
 {
-    using static GlobalManager;
-
     public class Entity : MonoBehaviour
     {
         public event Action OnShow;
