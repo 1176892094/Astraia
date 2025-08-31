@@ -26,7 +26,7 @@ namespace Astraia.Common
 
     public interface IPage : IAgent
     {
-        void OnUpdate(float deltaTime);
+        void OnUpdate(float time);
     }
 
     public interface IGrid

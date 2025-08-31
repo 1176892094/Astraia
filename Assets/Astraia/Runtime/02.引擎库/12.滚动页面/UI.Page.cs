@@ -53,7 +53,7 @@ namespace Astraia
             items = null;
         }
 
-        void IPage.OnUpdate(float deltaTime)
+        void IPage.OnUpdate(float time)
         {
             if (!content)
             {
