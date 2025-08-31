@@ -53,7 +53,7 @@ namespace Runtime
 #endif
         }
 
-        public override void OnAwake()
+        public override void Dequeue()
         {
             rigidbody = owner.GetComponent<Rigidbody2D>();
             renderer = owner.GetComponent<SpriteRenderer>();

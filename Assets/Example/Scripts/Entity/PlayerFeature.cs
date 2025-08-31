@@ -27,7 +27,7 @@ namespace Runtime
         public float dashFrame => GetFloat(Attribute.DashFrame);
         public float waitFrame => GetFloat(Attribute.WaitFrame);
 
-        public override void OnAwake()
+        public override void Dequeue()
         {
             SetFloat(Attribute.MoveSpeed, 2);
             SetFloat(Attribute.JumpForce, 4);

@@ -188,7 +188,7 @@ namespace Astraia
 
             var member = reason.Split(',');
             var result = Activator.CreateInstance(target);
-            var fields = target.GetFields(Service.Find.Entity);
+            var fields = target.GetFields(Service.Find.Instance);
             for (var i = 0; i < fields.Length; i++)
             {
                 fields[i].SetValue(result, new Xor.Bytes(Service.Text.GetBytes(member[i])));

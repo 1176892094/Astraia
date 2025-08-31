@@ -42,7 +42,7 @@ namespace Astraia
 
         public static void Inject(this Transform inject, object target)
         {
-            var fields = target.GetType().GetFields(Service.Find.Entity);
+            var fields = target.GetType().GetFields(Service.Find.Instance);
             foreach (var field in fields)
             {
                 if (field.GetCustomAttribute<InjectAttribute>(true) == null)
@@ -78,7 +78,7 @@ namespace Astraia
 
                     field.SetValue(target, component);
 
-                    var method = target.GetType().GetMethod(name, Service.Find.Entity);
+                    var method = target.GetType().GetMethod(name, Service.Find.Instance);
                     if (method == null)
                     {
                         continue;

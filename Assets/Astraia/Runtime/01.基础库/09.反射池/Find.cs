@@ -21,9 +21,9 @@ namespace Astraia
         {
             private static readonly Dictionary<string, Type> references = new();
             private static readonly Dictionary<string, Assembly> assemblies = new();
-            public const BindingFlags Entity = (BindingFlags)52;
-            public const BindingFlags Static = (BindingFlags)56;
-
+            public const BindingFlags Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+            public const BindingFlags Instance = BindingFlags.Public | BindingFlags.NonPublic| BindingFlags.Instance;
+            
             public static Assembly Assembly(string name)
             {
                 if (assemblies.TryGetValue(name, out var result))

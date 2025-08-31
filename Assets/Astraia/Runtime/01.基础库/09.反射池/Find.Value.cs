@@ -21,7 +21,7 @@ namespace Astraia
     {
         public static partial class Find
         {
-            private const BindingFlags FLAGS = (BindingFlags)62;
+            private const BindingFlags Declared = Static | Instance | BindingFlags.DeclaredOnly;
             private static readonly Dictionary<Type, Dictionary<string, Func<object, object>>> getterCache = new();
             private static readonly Dictionary<Type, Dictionary<string, Action<object, object>>> setterCache = new();
             private static readonly Dictionary<Type, Dictionary<string, Func<object, object[], object>>> methodCache = new();
@@ -40,7 +40,7 @@ namespace Astraia
                     var parameters = args.Select(a => a.GetType()).ToArray();
                     for (var current = targetType; current != null; current = current.BaseType)
                     {
-                        var result = current.GetMethod(name, FLAGS, null, parameters, null);
+                        var result = current.GetMethod(name, Declared, null, parameters, null);
                         if (result != null)
                         {
                             method = LoadFunction(result);
@@ -71,7 +71,7 @@ namespace Astraia
                 {
                     for (var current = targetType; current != null; current = current.BaseType)
                     {
-                        var field = current.GetField(name, FLAGS);
+                        var field = current.GetField(name, Declared);
                         if (field != null)
                         {
                             getter = LoadGetter(field);
@@ -79,7 +79,7 @@ namespace Astraia
                             break;
                         }
 
-                        var property = current.GetProperty(name, FLAGS);
+                        var property = current.GetProperty(name, Declared);
                         if (property != null && property.CanRead)
                         {
                             getter = LoadGetter(property, property.GetGetMethod(true));
@@ -110,7 +110,7 @@ namespace Astraia
                 {
                     for (var current = targetType; current != null; current = current.BaseType)
                     {
-                        var field = current.GetField(name, FLAGS);
+                        var field = current.GetField(name, Declared);
 
                         if (field != null)
                         {
@@ -119,7 +119,7 @@ namespace Astraia
                             break;
                         }
 
-                        var property = current.GetProperty(name, FLAGS);
+                        var property = current.GetProperty(name, Declared);
                         if (property != null && property.CanRead)
                         {
                             setter = LoadSetter<T>(property, property.GetSetMethod(true));

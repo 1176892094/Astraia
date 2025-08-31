@@ -51,7 +51,7 @@ namespace Astraia.Common
                 {
                     var assetData = (IDataTable)await AssetManager.Load<ScriptableObject>(GlobalSetting.GetTablePath(shortName));
                     var assetType = assembly.GetType(assetName.Substring(0, assetName.Length - 5));
-                    var properties = assetType.GetProperties(Service.Find.Entity);
+                    var properties = assetType.GetProperties(Service.Find.Instance);
                     foreach (var property in properties)
                     {
                         if (property.GetCustomAttribute(typeof(PrimaryAttribute)) == null)
