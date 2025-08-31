@@ -109,9 +109,9 @@ namespace Astraia
                 agent.Dequeue();
                 owner.OnShow += agent.OnShow;
                 owner.OnHide += agent.OnHide;
-                owner.OnFade += Destroy;
+                owner.OnFade += Enqueue;
 
-                void Destroy()
+                void Enqueue()
                 {
                     agent.Enqueue();
                     HeapManager.Enqueue(agent, realType);

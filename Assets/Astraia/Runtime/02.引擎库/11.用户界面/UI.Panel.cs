@@ -13,17 +13,6 @@ using System;
 
 namespace Astraia
 {
-    public class UISystem : ISystem
-    {
-        public void Update(float time)
-        {
-            foreach (var panel in SystemManager.Query<UIPanel>())
-            {
-                panel.Update();
-            }
-        }
-    }
-
     [Serializable]
     public abstract class UIPanel : Agent<Entity>
     {
@@ -32,6 +21,17 @@ namespace Astraia
 
         public virtual void Update()
         {
+        }
+    }
+
+    public class UISystem : ISystem
+    {
+        public void Update(float time)
+        {
+            foreach (var panel in SystemManager.Query<UIPanel>())
+            {
+                panel.Update();
+            }
         }
     }
 }

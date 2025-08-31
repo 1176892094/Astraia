@@ -99,7 +99,7 @@ namespace Astraia
 
         public Tween GetAwaiter()
         {
-            if (owner == null)
+            if (!owner)
             {
                 OnDispose.Invoke();
             }

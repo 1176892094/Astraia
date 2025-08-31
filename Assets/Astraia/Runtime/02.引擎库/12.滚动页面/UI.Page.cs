@@ -41,13 +41,13 @@ namespace Astraia
             return (UIPage<TItem>)owner.AddAgent(typeof(IPage), typeof(UIPage<TItem>), typeof(UIPage<TItem>));
         }
 
-        public override void Dequeue()
+        void IAgent.Dequeue()
         {
             selection = false;
             restarted = false;
         }
 
-        public override void Enqueue()
+        void IAgent.Enqueue()
         {
             Rebuild();
             items = null;

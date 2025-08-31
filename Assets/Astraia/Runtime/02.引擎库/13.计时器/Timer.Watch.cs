@@ -27,7 +27,6 @@ namespace Astraia
 
         private Component owner;
         private int progress;
-        private bool unscaled;
         private float waitTime;
 
         public bool IsCompleted => complete;
@@ -39,7 +38,6 @@ namespace Astraia
             duration = 0;
             waitTime = 0;
             complete = true;
-            unscaled = false;
             OnUpdated = null;
         }
 
@@ -48,7 +46,6 @@ namespace Astraia
             progress = 1;
             waitTime = 0;
             complete = false;
-            unscaled = false;
             this.owner = owner;
             this.duration = duration;
             this.OnDispose = OnDispose;
@@ -65,7 +62,7 @@ namespace Astraia
                 }
 
 
-                keepTime = unscaled ? time : Time.unscaledTime;
+                keepTime = time;
                 if (waitTime <= 0)
                 {
                     waitTime = keepTime + duration;
@@ -123,16 +120,9 @@ namespace Astraia
             return this;
         }
 
-        public Watch Unscale(bool unscaled = true)
-        {
-            this.unscaled = unscaled;
-            waitTime = keepTime + duration;
-            return this;
-        }
-
         public Watch GetAwaiter()
         {
-            if (owner == null)
+            if (!owner)
             {
                 OnDispose.Invoke();
             }

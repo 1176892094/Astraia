@@ -26,21 +26,21 @@ namespace Astraia.Common
             var obj = await AssetManager.Load<GameObject>(path);
             obj.SetActive(false);
             obj.name = path;
-
+            
             var owner = obj.GetOrAddComponent<Entity>();
             var panel = (UIPanel)HeapManager.Dequeue<IAgent>(type);
             var group = new HashSet<int>();
+            panelData.Add(panel, group);
             
             owner.transform.Inject(panel);
             owner.AddAgent(panel, typeof(UIPanel));
-            owner.OnFade += Release;
-
+            owner.OnFade += Enqueue;
+            
             SetLayer(panel.transform, panel.layer);
             panelPage.Add(type, panel);
-            panelData.Add(panel, group);
             return panel;
 
-            void Release()
+            void Enqueue()
             {
                 group.Clear();
                 panelPage.Remove(type);
@@ -71,7 +71,7 @@ namespace Astraia.Common
 
         public static T Find<T>() where T : UIPanel
         {
-            return (T)panelPage.GetValueOrDefault(typeof(T));
+            return panelPage.TryGetValue(typeof(T), out var panel) ? (T)panel : null;
         }
 
         public static void Destroy<T>()
@@ -107,7 +107,7 @@ namespace Astraia.Common
 
         public static UIPanel Find(Type type)
         {
-            return panelPage.GetValueOrDefault(type);
+            return panelPage.TryGetValue(type, out var panel) ? panel : null;
         }
 
         public static void Destroy(Type type)
@@ -122,16 +122,12 @@ namespace Astraia.Common
 
         public static void Clear()
         {
-            var types = new List<Type>(panelPage.Keys);
-            foreach (var type in types)
+            foreach (var panel in panelPage.Values)
             {
-                if (panelPage.TryGetValue(type, out var panel))
+                if (panel.state != UIState.Stable)
                 {
-                    if (panel.state != UIState.Stable)
-                    {
-                        panel.gameObject.SetActive(false);
-                        Object.Destroy(panel.gameObject);
-                    }
+                    panel.gameObject.SetActive(false);
+                    Object.Destroy(panel.gameObject);
                 }
             }
         }
@@ -161,6 +157,7 @@ namespace Astraia.Common
                 group.Clear();
             }
 
+            panelData.Clear();
             groupData.Clear();
             layerData.Clear();
             panelPage.Clear();

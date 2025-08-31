@@ -14,11 +14,12 @@ using UnityEngine;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
     internal static class TimerManager
     {
         public static void Update(float time)
         {
-            foreach (var timer in GlobalManager.timerData.Values)
+            foreach (var timer in timerData.Values)
             {
                 timer.Update(time);
             }
@@ -26,23 +27,23 @@ namespace Astraia.Common
 
         public static T Load<T>(Component entity, float duration) where T : class, ITimer
         {
-            if (!GlobalManager.Instance) return null;
+            if (!Instance) return null;
             var item = HeapManager.Dequeue<T>();
             item.Start(entity, duration, OnComplete);
-            GlobalManager.timerData.Add(entity, item);
+            timerData.Add(entity, item);
             return item;
 
             void OnComplete()
             {
-                GlobalManager.timerData.Remove(entity);
                 item.Dispose();
+                timerData.Remove(entity);
                 HeapManager.Enqueue(item, typeof(T));
             }
         }
 
         internal static void Dispose()
         {
-            GlobalManager.timerData.Clear();
+            timerData.Clear();
         }
     }
 

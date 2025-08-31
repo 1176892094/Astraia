@@ -44,8 +44,6 @@ namespace Astraia
             {
                 system.Update(time);
             }
-
-            TimerManager.Update(time);
         }
 
         public static IEnumerable<T> Query<T>() where T : IAgent

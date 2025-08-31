@@ -98,7 +98,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, UIPanel> panelPage = new Dictionary<Type, UIPanel>();
+        internal static readonly List<Type, UIPanel> panelPage = new List<Type, UIPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -142,6 +142,7 @@ namespace Astraia.Common
         private void Update()
         {
             SystemManager.Update(Time.time);
+            TimerManager.Update(Time.time);
         }
 
         private async void OnDestroy()
