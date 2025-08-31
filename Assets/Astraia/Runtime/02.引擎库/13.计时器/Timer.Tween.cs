@@ -50,17 +50,11 @@ namespace Astraia
             this.OnDispose = OnDispose;
         }
 
-        void ITimer.Update()
+        void ITimer.Update(float time)
         {
             try
             {
-                if (owner == null)
-                {
-                    OnDispose.Invoke();
-                    return;
-                }
-
-                if (!owner.gameObject.activeInHierarchy)
+                if (!owner || !owner.gameObject.activeInHierarchy)
                 {
                     OnDispose.Invoke();
                     return;
@@ -68,10 +62,10 @@ namespace Astraia
 
                 if (waitTime <= 0)
                 {
-                    waitTime = Time.time;
+                    waitTime = time;
                 }
 
-                progress = (Time.time - waitTime) / duration;
+                progress = (time - waitTime) / duration;
                 if (progress > 1)
                 {
                     progress = 1;

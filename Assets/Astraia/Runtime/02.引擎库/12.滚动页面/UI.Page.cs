@@ -21,44 +21,49 @@ namespace Astraia
     public sealed class UIPage<TItem> : Agent<Entity>, IPage
     {
         private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
-        private int oldMinIndex;
-        private int oldMaxIndex;
-        private int cachedCount;
-        private bool initialized;
-        private bool useSelected;
         private IList<TItem> items;
+        private int minIndex;
+        private int maxIndex;
+        private int numCache;
+        private bool selected;
+        private bool restarted;
 
         internal bool selection;
+        internal bool direction;
         internal Type assetType;
         internal Rect assetRect;
-        internal UIPage direction;
         internal RectTransform content;
-        private int row => (int)assetRect.y + (direction == UIPage.InputY ? 1 : 0);
-        private int column => (int)assetRect.x + (direction == UIPage.InputX ? 1 : 0);
+        private int numX => (int)assetRect.x + (direction ? 0 : 1);
+        private int numY => (int)assetRect.y + (direction ? 1 : 0);
+
+        public static UIPage<TItem> Create(Entity owner)
+        {
+            return (UIPage<TItem>)owner.AddAgent(typeof(IPage), typeof(UIPage<TItem>), typeof(UIPage<TItem>));
+        }
 
         public override void Dequeue()
         {
             selection = false;
-            initialized = false;
+            restarted = false;
         }
-        
+
         public override void Enqueue()
         {
-            Reset();
+            Rebuild();
             items = null;
         }
 
         void IPage.OnUpdate(float deltaTime)
         {
-            if (content == null)
+            if (!content)
             {
                 return;
             }
 
-            if (!initialized)
+            if (!restarted)
             {
-                initialized = true;
-                if (direction == UIPage.InputY)
+                restarted = true;
+                if (direction)
                 {
                     content.anchorMin = Vector2.up;
                     content.anchorMax = Vector2.one;
@@ -77,44 +82,44 @@ namespace Astraia
                 return;
             }
 
-            if (cachedCount != items.Count)
+            if (numCache != items.Count)
             {
-                Reset();
-                cachedCount = items.Count;
+                Rebuild();
+                numCache = items.Count;
             }
 
-            int newIndex;
-            int minIndex;
-            int maxIndex;
-            float position;
-            if (direction == UIPage.InputY)
+            int min;
+            int max;
+            int idx;
+            float pos;
+            if (direction)
             {
-                position = content.anchoredPosition.y;
-                newIndex = (int)(position / assetRect.height);
-                minIndex = newIndex * column;
-                maxIndex = (newIndex + row) * column - 1;
+                pos = content.anchoredPosition.y;
+                idx = (int)(pos / assetRect.height);
+                min = idx * numX;
+                max = (idx + numY) * numX - 1;
             }
             else
             {
-                position = -content.anchoredPosition.x;
-                newIndex = (int)(position / assetRect.width);
-                minIndex = newIndex * row;
-                maxIndex = (newIndex + column) * row - 1;
+                pos = -content.anchoredPosition.x;
+                idx = (int)(pos / assetRect.width);
+                min = idx * numY;
+                max = (idx + numX) * numY - 1;
             }
 
-            if (minIndex < 0)
+            if (min < 0)
             {
-                minIndex = 0;
+                min = 0;
             }
 
-            if (maxIndex > items.Count - 1)
+            if (max > items.Count - 1)
             {
-                maxIndex = items.Count - 1;
+                max = items.Count - 1;
             }
 
-            if (minIndex != oldMinIndex || maxIndex != oldMaxIndex)
+            if (min != minIndex || max != maxIndex)
             {
-                for (var i = oldMinIndex; i < minIndex; ++i)
+                for (var i = minIndex; i < min; ++i)
                 {
                     if (grids.TryGetValue(i, out var grid))
                     {
@@ -128,7 +133,7 @@ namespace Astraia
                     }
                 }
 
-                for (var i = maxIndex + 1; i <= oldMaxIndex; ++i)
+                for (var i = max + 1; i <= maxIndex; ++i)
                 {
                     if (grids.TryGetValue(i, out var grid))
                     {
@@ -143,54 +148,58 @@ namespace Astraia
                 }
             }
 
-            oldMinIndex = minIndex;
-            oldMaxIndex = maxIndex;
-            for (var i = minIndex; i <= maxIndex; ++i)
+            minIndex = min;
+            maxIndex = max;
+            Load(min, max);
+        }
+
+        private async void Load(int min, int max)
+        {
+            for (var i = min; i <= max; ++i)
             {
+                if (grids.ContainsKey(i))
+                {
+                    continue;
+                }
+
+                float posX;
+                float posY;
+                if (direction)
+                {
+                    var idx = i / numX;
+                    posX = i % numX * assetRect.width + assetRect.width / 2;
+                    posY = -idx * assetRect.height - assetRect.height / 2;
+                }
+                else
+                {
+                    var idx = i / numY;
+                    posX = idx * assetRect.width + assetRect.width / 2;
+                    posY = -(i % numY) * assetRect.height - assetRect.height / 2;
+                }
+
+                grids[i] = null;
+                var item = await PoolManager.Show("Prefabs/" + assetType.Name);
+                var grid = (IGrid<TItem>)item.GetOrAddComponent(assetType);
+                var rect = (RectTransform)grid.transform;
+                rect.SetParent(content);
+                rect.sizeDelta = new Vector2(assetRect.width, assetRect.height);
+                rect.localScale = Vector3.one;
+                rect.localPosition = new Vector3(posX, posY, 0);
                 if (!grids.ContainsKey(i))
                 {
-                    float posX;
-                    float posY;
-                    var index = i;
-                    grids[index] = null;
-                    if (direction == UIPage.InputY)
-                    {
-                        var delta = index / column;
-                        posX = index % column * assetRect.width + assetRect.width / 2;
-                        posY = -delta * assetRect.height - assetRect.height / 2;
-                    }
-                    else
-                    {
-                        var delta = index / row;
-                        posX = delta * assetRect.width + assetRect.width / 2;
-                        posY = -(index % row) * assetRect.height - assetRect.height / 2;
-                    }
-
-                    PoolManager.Show("Prefabs/" + assetType.Name, obj =>
-                    {
-                        var grid = (IGrid<TItem>)obj.GetOrAddComponent(assetType);
-                        var target = (RectTransform)grid.transform;
-                        target.SetParent(content);
-                        target.sizeDelta = new Vector2(assetRect.width, assetRect.height);
-                        target.localScale = Vector3.one;
-                        target.localPosition = new Vector3(posX, posY, 0);
-                        if (!grids.ContainsKey(index))
-                        {
-                            grid.Dispose();
-                            PoolManager.Hide(grid.gameObject);
-                            return;
-                        }
-
-                        grids[index] = grid;
-                        if (useSelected && index == maxIndex)
-                        {
-                            useSelected = false;
-                            grids[minIndex].Select();
-                        }
-
-                        grid.SetItem(items[index]);
-                    });
+                    grid.Dispose();
+                    PoolManager.Hide(grid.gameObject);
+                    return;
                 }
+
+                grids[i] = grid;
+                if (selected && i == max)
+                {
+                    selected = false;
+                    grids[min].Select();
+                }
+
+                grid.SetItem(items[i]);
             }
         }
 
@@ -200,29 +209,29 @@ namespace Astraia
             if (items != null)
             {
                 float value = items.Count;
-                if (direction == UIPage.InputY)
+                if (direction)
                 {
-                    value = Mathf.Ceil(value / column);
+                    value = Mathf.Ceil(value / numX);
                     content.sizeDelta = new Vector2(0, value * assetRect.height);
                 }
                 else
                 {
-                    value = Mathf.Ceil(value / row);
+                    value = Mathf.Ceil(value / numY);
                     content.sizeDelta = new Vector2(value * assetRect.width, 0);
                 }
 
-                cachedCount = items.Count;
+                numCache = items.Count;
             }
 
-            Reset();
-            useSelected = selection;
+            Rebuild();
+            selected = selection;
             content.anchoredPosition = Vector2.zero;
         }
 
-        private void Reset()
+        private void Rebuild()
         {
-            oldMinIndex = -1;
-            oldMaxIndex = -1;
+            minIndex = -1;
+            maxIndex = -1;
             foreach (var i in grids.Keys)
             {
                 if (grids.TryGetValue(i, out var grid))
@@ -243,10 +252,10 @@ namespace Astraia
             IGrid<TItem> current;
             switch (move)
             {
-                case MoveDirection.Left when direction == UIPage.InputX: 
-                    for (int i = 0; i < row; i++)
+                case MoveDirection.Left when !direction:
+                    for (int i = 0; i < numY; i++)
                     {
-                        if (grids.TryGetValue(oldMinIndex + i + row, out current) && current == grid)
+                        if (grids.TryGetValue(minIndex + i + numY, out current) && current == grid)
                         {
                             content.anchoredPosition += Vector2.right * assetRect.width;
                             return;
@@ -254,10 +263,10 @@ namespace Astraia
                     }
 
                     return;
-                case MoveDirection.Up when direction == UIPage.InputY:
-                    for (int i = 0; i < column; i++)
+                case MoveDirection.Up when direction:
+                    for (int i = 0; i < numX; i++)
                     {
-                        if (grids.TryGetValue(oldMinIndex + i + column, out current) && current == grid)
+                        if (grids.TryGetValue(minIndex + i + numX, out current) && current == grid)
                         {
                             content.anchoredPosition += Vector2.down * assetRect.height;
                             return;
@@ -265,10 +274,10 @@ namespace Astraia
                     }
 
                     return;
-                case MoveDirection.Right when direction == UIPage.InputX:
-                    for (int i = 0; i < row; i++)
+                case MoveDirection.Right when !direction:
+                    for (int i = 0; i < numY; i++)
                     {
-                        if (grids.TryGetValue(oldMaxIndex - i - row, out current) && current == grid)
+                        if (grids.TryGetValue(maxIndex - i - numY, out current) && current == grid)
                         {
                             content.anchoredPosition += Vector2.left * assetRect.width;
                             return;
@@ -276,10 +285,10 @@ namespace Astraia
                     }
 
                     return;
-                case MoveDirection.Down when direction == UIPage.InputY:
-                    for (int i = 0; i < column; i++)
+                case MoveDirection.Down when direction:
+                    for (int i = 0; i < numX; i++)
                     {
-                        if (grids.TryGetValue(oldMaxIndex - i - column, out current) && current == grid)
+                        if (grids.TryGetValue(maxIndex - i - numX, out current) && current == grid)
                         {
                             content.anchoredPosition += Vector2.up * assetRect.height;
                             return;

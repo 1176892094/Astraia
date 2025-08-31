@@ -124,6 +124,16 @@ namespace Astraia.Common
             DontDestroyOnLoad(gameObject);
         }
 
+        private void OnEnable()
+        {
+            SystemManager.Listen<PageSystem>();
+        }
+
+        private void OnDisable()
+        {
+            SystemManager.Remove<PageSystem>();
+        }
+
         private void Start()
         {
             PackManager.LoadAssetData();
@@ -131,11 +141,11 @@ namespace Astraia.Common
 
         private void Update()
         {
-            SystemManager.Update(Time.deltaTime);
+            SystemManager.Update(Time.time);
+            TimerManager.Update(Time.time);
             try
             {
                 OnUpdate?.Invoke();
-                TimerManager.Update();
             }
             catch (Exception e)
             {

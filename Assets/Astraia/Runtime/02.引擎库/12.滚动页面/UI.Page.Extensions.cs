@@ -21,16 +21,16 @@ namespace Astraia
             self.assetType = value;
             return self;
         }
-        
-        public static UIPage<T> Set<T>(this UIPage<T> self, int x, int y, int width, int height)
+
+        public static UIPage<T> Set<T>(this UIPage<T> self, int value)
         {
-            self.assetRect = new Rect(x, y, width, height);
+            self.direction = value != 0;
             return self;
         }
 
-        public static UIPage<T> Set<T>(this UIPage<T> self, UIPage value)
+        public static UIPage<T> Set<T>(this UIPage<T> self, int x, int y, int w, int h)
         {
-            self.direction = value;
+            self.assetRect = new Rect(x, y, w, h);
             return self;
         }
 

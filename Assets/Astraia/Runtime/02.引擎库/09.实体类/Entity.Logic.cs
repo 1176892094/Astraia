@@ -70,19 +70,19 @@ namespace Astraia
             return (T)EntityManager.GetAgent(this, typeof(T));
         }
 
-        public bool HasAgent<T>() where T : IAgent
+        public IAgent AddAgent(Type realType)
         {
-            return EntityManager.HasAgent(this, typeof(T));
+            return EntityManager.AddAgent(this, realType, realType);
         }
 
-        public void AddAgent(Type realType)
+        public IAgent AddAgent(Type baseType, Type realType)
         {
-            EntityManager.AddAgent(this, realType, realType);
+            return EntityManager.AddAgent(this, baseType, realType);
         }
 
-        public void AddAgent(Type baseType, Type realType)
+        public IAgent AddAgent(Type agentType, Type baseType, Type realType)
         {
-            EntityManager.AddAgent(this, baseType, realType);
+            return EntityManager.AddAgent(this, baseType, realType, agentType);
         }
 
         public IAgent GetAgent(Type realType)
@@ -90,10 +90,6 @@ namespace Astraia
             return EntityManager.GetAgent(this, realType);
         }
 
-        public bool HasAgent(Type realType)
-        {
-            return EntityManager.HasAgent(this, realType);
-        }
 
         public static implicit operator int(Entity entity)
         {

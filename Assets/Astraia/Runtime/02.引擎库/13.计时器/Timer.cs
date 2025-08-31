@@ -16,11 +16,11 @@ namespace Astraia.Common
 {
     internal static class TimerManager
     {
-        public static void Update()
+        public static void Update(float time)
         {
             for (var i = GlobalManager.timerData.Count - 1; i >= 0; i--)
             {
-                GlobalManager.timerData[i].Update();
+                GlobalManager.timerData[i].Update(time);
             }
         }
 
@@ -50,6 +50,6 @@ namespace Astraia.Common
     {
         void Start(Component owner, float duration, Action OnDispose);
 
-        void Update();
+        void Update(float time);
     }
 }

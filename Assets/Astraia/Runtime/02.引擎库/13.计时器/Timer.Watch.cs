@@ -54,24 +54,18 @@ namespace Astraia
             this.OnDispose = OnDispose;
         }
 
-        void ITimer.Update()
+        void ITimer.Update(float time)
         {
             try
             {
-                if (owner == null)
-                {
-                    OnDispose.Invoke();
-                    return;
-                }
-
-                if (!owner.gameObject.activeInHierarchy)
+                if (!owner || !owner.gameObject.activeInHierarchy)
                 {
                     OnDispose.Invoke();
                     return;
                 }
 
 
-                keepTime = unscaled ? Time.time : Time.unscaledTime;
+                keepTime = unscaled ? time : Time.unscaledTime;
                 if (waitTime <= 0)
                 {
                     waitTime = keepTime + duration;

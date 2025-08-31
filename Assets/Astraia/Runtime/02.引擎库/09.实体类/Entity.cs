@@ -19,12 +19,12 @@ namespace Astraia
 
     internal static class EntityManager
     {
-        public static IAgent AddAgent(Entity id, IAgent agent)
+        public static IAgent AddAgent(Entity owner, IAgent agent)
         {
-            if (!entityData.TryGetValue(id, out var agents))
+            if (!entityData.TryGetValue(owner, out var agents))
             {
                 agents = new List<Type, IAgent>();
-                entityData.Add(id, agents);
+                entityData.Add(owner, agents);
             }
 
             var baseType = agent.GetType();
@@ -36,20 +36,20 @@ namespace Astraia
 
             if (!agents.ContainsKey(agent.GetType()))
             {
-                query.Add(id, agent);
+                query.Add(owner, agent);
                 agents.Add(baseType, agent);
-                AddLogic(id, agent, baseType);
+                AddLogic(owner, agent, baseType);
             }
 
             return agent;
         }
 
-        public static IAgent AddAgent(Entity id, Type baseType, Type realType)
+        public static IAgent AddAgent(Entity owner, Type baseType, Type realType)
         {
-            if (!entityData.TryGetValue(id, out var agents))
+            if (!entityData.TryGetValue(owner, out var agents))
             {
                 agents = new List<Type, IAgent>();
-                entityData.Add(id, agents);
+                entityData.Add(owner, agents);
             }
 
             if (!agentData.TryGetValue(baseType, out var query))
@@ -61,9 +61,34 @@ namespace Astraia
             if (!agents.TryGetValue(baseType, out var agent))
             {
                 agent = HeapManager.Dequeue<IAgent>(realType);
-                query.Add(id, agent);
+                query.Add(owner, agent);
                 agents.Add(baseType, agent);
-                AddLogic(id, agent, realType);
+                AddLogic(owner, agent, realType);
+            }
+
+            return agent;
+        }
+
+        public static IAgent AddAgent(Entity owner, Type baseType, Type realType, Type agentType)
+        {
+            if (!entityData.TryGetValue(owner, out var agents))
+            {
+                agents = new List<Type, IAgent>();
+                entityData.Add(owner, agents);
+            }
+
+            if (!agentData.TryGetValue(agentType, out var query))
+            {
+                query = new List<Entity, IAgent>();
+                agentData.Add(agentType, query);
+            }
+
+            if (!agents.TryGetValue(baseType, out var agent))
+            {
+                agent = HeapManager.Dequeue<IAgent>(realType);
+                query.Add(owner, agent);
+                agents.Add(baseType, agent);
+                AddLogic(owner, agent, realType);
             }
 
             return agent;
@@ -97,9 +122,9 @@ namespace Astraia
             }
         }
 
-        public static IAgent GetAgent(Entity id, Type type)
+        public static IAgent GetAgent(Entity owner, Type type)
         {
-            if (entityData.TryGetValue(id, out var agents))
+            if (entityData.TryGetValue(owner, out var agents))
             {
                 if (agents.TryGetValue(type, out var agent))
                 {
@@ -110,19 +135,6 @@ namespace Astraia
             return null;
         }
 
-        public static bool HasAgent(Entity id, Type type)
-        {
-            if (entityData.TryGetValue(id, out var agents))
-            {
-                if (agents.ContainsKey(type))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-        
         public static void Dispose()
         {
             foreach (var agents in entityData.Values)

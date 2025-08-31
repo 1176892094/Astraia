@@ -15,11 +15,11 @@ namespace Astraia.Common
 {
     public class PageSystem : ISystem
     {
-        public void Update(float deltaTime)
+        public void Update(float time)
         {
-            foreach (var entity in SystemManager.Query<IPage>())
+            foreach (var pair in SystemManager.Query<IPage>())
             {
-                entity.GetAgent<IPage>()?.OnUpdate(deltaTime);
+                ((IPage)pair.Value).OnUpdate(time);
             }
         }
     }

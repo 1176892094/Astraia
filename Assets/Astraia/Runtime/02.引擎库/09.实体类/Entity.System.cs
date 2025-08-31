@@ -18,7 +18,7 @@ namespace Astraia
 
     public interface ISystem
     {
-        void Update(float deltaTime);
+        void Update(float time);
     }
 
     public static class SystemManager
@@ -38,23 +38,23 @@ namespace Astraia
             }
         }
 
-        internal static void Update(float deltaTime)
+        internal static void Update(float time)
         {
             foreach (var system in systemData.Values)
             {
-                system.Update(deltaTime);
+                system.Update(time);
             }
         }
 
-        public static IEnumerable<Entity> Query<T>() where T : IAgent
+        public static IEnumerable<KeyValuePair<Entity, IAgent>> Query<T>() where T : IAgent
         {
-            if (agentData.TryGetValue(typeof(T), out var query))
+            if (agentData.TryGetValue(typeof(T), out var queries))
             {
-                foreach (var entity in query.Keys)
+                foreach (var query in queries)
                 {
-                    if (entity && entity.isActiveAndEnabled)
+                    if (query.Key && query.Key.isActiveAndEnabled)
                     {
-                        yield return entity;
+                        yield return query;
                     }
                 }
             }

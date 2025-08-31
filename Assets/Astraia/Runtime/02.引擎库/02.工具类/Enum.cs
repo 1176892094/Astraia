@@ -48,13 +48,7 @@ namespace Astraia
         Freeze,
         Stable,
     }
-
-    public enum UIPage : byte
-    {
-        InputX,
-        InputY,
-    }
-
+    
     public enum UILayer : byte
     {
         Layer1,
