@@ -48,21 +48,16 @@ namespace Astraia
 
         public static IEnumerable<T> Query<T>() where T : IAgent
         {
-            if (entityData.TryGetValue(typeof(T), out var queries))
+            if (entityData.TryGetValue(typeof(T), out var entities))
             {
-                foreach (var query in queries)
+                foreach (var entity in entities)
                 {
-                    if (query.Key && query.Key.isActiveAndEnabled)
+                    if (entity.Key && entity.Key.isActiveAndEnabled)
                     {
-                        yield return (T)query.Value;
+                        yield return (T)entity.Value;
                     }
                 }
             }
-        }
-
-        public static T GetSystem<T>() where T : ISystem
-        {
-            return systemData.TryGetValue(typeof(T), out var system) ? (T)system : default;
         }
 
         internal static void Dispose()

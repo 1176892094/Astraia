@@ -11,7 +11,6 @@
 
 using System;
 using Astraia.Common;
-using UnityEngine;
 
 namespace Astraia
 {
@@ -48,9 +47,22 @@ namespace Astraia
             var entities = GetEntities(keyType);
             if (!agents.ContainsKey(keyType))
             {
-                entities.Add(owner, agent);
                 agents.Add(keyType, agent);
-                AddEvent(owner, agent, keyType);
+                entities.Add(owner, agent);
+                
+                agent.Create(owner);
+                agent.Dequeue();
+                owner.OnShow += agent.OnShow;
+                owner.OnHide += agent.OnHide;
+                owner.OnFade += Enqueue;
+
+                void Enqueue()
+                {
+                    agent.Enqueue();
+                    HeapManager.Enqueue(agent, keyType);
+                    agents.Remove(keyType);
+                    entities.Remove(owner);
+                }
             }
 
             return agent;
@@ -65,7 +77,20 @@ namespace Astraia
             {
                 agents.Add(keyType, agent);
                 entities.Add(owner, agent);
-                AddEvent(owner, agent, keyType);
+                
+                agent.Create(owner);
+                agent.Dequeue();
+                owner.OnShow += agent.OnShow;
+                owner.OnHide += agent.OnHide;
+                owner.OnFade += Enqueue;
+
+                void Enqueue()
+                {
+                    agent.Enqueue();
+                    HeapManager.Enqueue(agent, keyType);
+                    agents.Remove(keyType);
+                    entities.Remove(owner);
+                }
             }
 
             return agent;
@@ -80,7 +105,20 @@ namespace Astraia
                 agent = HeapManager.Dequeue<IAgent>(realType);
                 agents.Add(keyType, agent);
                 entities.Add(owner, agent);
-                AddEvent(owner, agent, realType);
+                
+                agent.Create(owner);
+                agent.Dequeue();
+                owner.OnShow += agent.OnShow;
+                owner.OnHide += agent.OnHide;
+                owner.OnFade += Enqueue;
+
+                void Enqueue()
+                {
+                    agent.Enqueue();
+                    HeapManager.Enqueue(agent, realType);
+                    agents.Remove(keyType);
+                    entities.Remove(owner);
+                }
             }
 
             return agent;
@@ -95,16 +133,7 @@ namespace Astraia
                 agent = HeapManager.Dequeue<IAgent>(realType);
                 agents.Add(keyType, agent);
                 entities.Add(owner, agent);
-                AddEvent(owner, agent, realType);
-            }
-
-            return agent;
-        }
-
-        private static void AddEvent(Entity owner, IAgent agent, Type realType)
-        {
-            try
-            {
+                
                 agent.Create(owner);
                 agent.Dequeue();
                 owner.OnShow += agent.OnShow;
@@ -115,20 +144,14 @@ namespace Astraia
                 {
                     agent.Enqueue();
                     HeapManager.Enqueue(agent, realType);
-                    foreach (var queries in entityData.Values)
-                    {
-                        queries.Remove(owner);
-                    }
-
-                    agentData.Remove(owner);
+                    agents.Remove(keyType);
+                    entities.Remove(owner);
                 }
             }
-            catch (Exception e)
-            {
-                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, realType, e), owner);
-            }
-        }
 
+            return agent;
+        }
+        
         public static IAgent GetAgent(Entity owner, Type keyType)
         {
             if (agentData.TryGetValue(owner, out var agents))
@@ -148,7 +171,7 @@ namespace Astraia
             {
                 agents.Clear();
             }
-            
+
             foreach (var queries in entityData.Values)
             {
                 queries.Clear();

@@ -51,6 +51,7 @@ namespace Astraia
             OnShow = null;
             OnHide = null;
             agentData.Clear();
+            GlobalManager.agentData.Remove(this);
         }
 
         public T AddAgent<T>(T agent) where T : IAgent
