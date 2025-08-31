@@ -32,7 +32,7 @@ namespace Astraia.Net
 
         [SerializeField] [HideInInspector] internal uint sceneId;
 
-        [SerializeField] [HideInInspector] internal AgentMode agentMode;
+        internal AgentMode agentMode;
 
         internal AgentState agentState;
 
@@ -50,23 +50,28 @@ namespace Astraia.Net
 
         public bool isClient => (agentMode & AgentMode.Client) != 0;
 
-        protected override void Awake()
+        protected override void OnEnable()
         {
-            base.Awake();
-            if (GlobalManager.entityData.TryGetValue(this, out var agentData))
+            base.OnEnable();
+            if ((agentState & AgentState.Awake) == 0)
             {
-                foreach (var agent in agentData.Values)
+                if (GlobalManager.entityData.TryGetValue(this, out var agentData))
                 {
-                    if (agent is NetworkAgent entity)
+                    foreach (var agent in agentData.Values)
                     {
-                        agents.Add(entity);
+                        if (agent is NetworkAgent entity)
+                        {
+                            agents.Add(entity);
+                        }
                     }
                 }
-            }
 
-            for (byte i = 0; i < agents.Count; ++i)
-            {
-                agents[i].sourceId = i;
+                for (byte i = 0; i < agents.Count; ++i)
+                {
+                    agents[i].sourceId = i;
+                }
+
+                agentState |= AgentState.Awake;
             }
         }
 
@@ -120,7 +125,7 @@ namespace Astraia.Net
             else if (PrefabUtility.IsPartOfPrefabInstance(gameObject))
             {
                 var prefab = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
-                if (prefab != null)
+                if (prefab)
                 {
                     AssignSceneId();
                     AssignAssetId(AssetDatabase.GetAssetPath(prefab));
@@ -133,7 +138,7 @@ namespace Astraia.Net
 
             if (sceneId == 0 && assetId == 0)
             {
-                Debug.LogWarning(Service.Text.Format("请将 {0} 名称修改为纯数字!", gameObject), gameObject);
+                Debug.LogWarning(Service.Text.Format("请将 {0} 名称修改为纯数字! SceneId: {1}  AssetId: {2}", gameObject, sceneId, assetId), gameObject);
             }
 
             return;

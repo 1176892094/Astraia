@@ -53,9 +53,10 @@ namespace Astraia.Net
     internal enum AgentState : byte
     {
         None = 0,
-        Spawn = 1 << 0,
-        Destroy = 1 << 1,
-        Authority = 1 << 2,
+        Awake = 1 << 0,
+        Spawn = 1 << 1,
+        Destroy = 1 << 2,
+        Authority = 1 << 3,
     }
 
     [Flags]
