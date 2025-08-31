@@ -3,109 +3,158 @@
 // // # Unity: 6000.3.5f1
 // // # Author: 云谷千羽
 // // # Version: 1.0.0
-// // # History: 2025-07-12 17:07:42
-// // # Recently: 2025-07-12 17:07:42
+// // # History: 2025-07-12 20:07:36
+// // # Recently: 2025-07-12 20:07:36
 // // # Copyright: 2024, 云谷千羽
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Astraia.Common;
 using UnityEngine;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-using Sirenix.OdinInspector;
-#endif
 
 namespace Astraia
 {
-    public class Entity : MonoBehaviour
-    {
-        public event Action OnShow;
-        public event Action OnHide;
-        public event Action OnFade;
+    using static GlobalManager;
 
-        protected virtual void Awake()
+    internal static class EntityManager
+    {
+        private static List<Type, IAgent> GetAgents(Entity owner)
         {
-            foreach (var agent in agentData)
+            if (!agentData.TryGetValue(owner, out var agents))
             {
-                AddAgent(Service.Find.Type(agent));
+                agents = new List<Type, IAgent>();
+                agentData.Add(owner, agents);
+            }
+
+            return agents;
+        }
+
+        private static List<Entity, IAgent> GetEntities(Type agent)
+        {
+            if (!entityData.TryGetValue(agent, out var entities))
+            {
+                entities = new List<Entity, IAgent>();
+                entityData.Add(agent, entities);
+            }
+
+            return entities;
+        }
+
+        public static IAgent AddAgent(Entity owner, IAgent agent)
+        {
+            var agents = GetAgents(owner);
+            var keyType = agent.GetType();
+            var entities = GetEntities(keyType);
+            if (!agents.ContainsKey(keyType))
+            {
+                entities.Add(owner, agent);
+                agents.Add(keyType, agent);
+                AddEvent(owner, agent, keyType);
+            }
+
+            return agent;
+        }
+
+        public static IAgent AddAgent(Entity owner, IAgent agent, Type queryType)
+        {
+            var agents = GetAgents(owner);
+            var keyType = agent.GetType();
+            var entities = GetEntities(queryType);
+            if (!agents.ContainsKey(keyType))
+            {
+                agents.Add(keyType, agent);
+                entities.Add(owner, agent);
+                AddEvent(owner, agent, keyType);
+            }
+
+            return agent;
+        }
+
+        public static IAgent AddAgent(Entity owner, Type keyType, Type realType)
+        {
+            var agents = GetAgents(owner);
+            var entities = GetEntities(keyType);
+            if (!agents.TryGetValue(keyType, out var agent))
+            {
+                agent = HeapManager.Dequeue<IAgent>(realType);
+                agents.Add(keyType, agent);
+                entities.Add(owner, agent);
+                AddEvent(owner, agent, realType);
+            }
+
+            return agent;
+        }
+
+        public static IAgent AddAgent(Entity owner, Type keyType, Type realType, Type queryType)
+        {
+            var agents = GetAgents(owner);
+            var entities = GetEntities(queryType);
+            if (!agents.TryGetValue(keyType, out var agent))
+            {
+                agent = HeapManager.Dequeue<IAgent>(realType);
+                agents.Add(keyType, agent);
+                entities.Add(owner, agent);
+                AddEvent(owner, agent, realType);
+            }
+
+            return agent;
+        }
+
+        private static void AddEvent(Entity owner, IAgent agent, Type realType)
+        {
+            try
+            {
+                agent.SetData(owner);
+                agent.Dequeue();
+                owner.OnShow += agent.OnShow;
+                owner.OnHide += agent.OnHide;
+                owner.OnFade += Enqueue;
+
+                void Enqueue()
+                {
+                    agent.Enqueue();
+                    HeapManager.Enqueue(agent, realType);
+                    foreach (var queries in entityData.Values)
+                    {
+                        queries.Remove(owner);
+                    }
+
+                    agentData.Remove(owner);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(Service.Text.Format("无法添加代理组件: {0} 类型: {1}\n{2}", agent, realType, e), owner);
             }
         }
 
-        protected virtual void OnEnable()
+        public static IAgent GetAgent(Entity owner, Type keyType)
         {
-            OnShow?.Invoke();
+            if (agentData.TryGetValue(owner, out var agents))
+            {
+                if (agents.TryGetValue(keyType, out var agent))
+                {
+                    return agent;
+                }
+            }
+
+            return null;
         }
 
-        protected virtual void OnDisable()
+        public static void Dispose()
         {
-            OnHide?.Invoke();
-        }
+            foreach (var agents in agentData.Values)
+            {
+                agents.Clear();
+            }
+            
+            foreach (var queries in entityData.Values)
+            {
+                queries.Clear();
+            }
 
-        protected virtual void OnDestroy()
-        {
-            OnFade?.Invoke();
-            OnFade = null;
-            OnShow = null;
-            OnHide = null;
             agentData.Clear();
         }
-
-        public T AddAgent<T>(T agent) where T : IAgent
-        {
-            return (T)EntityManager.AddAgent(this, agent);
-        }
-
-        public T AddAgent<T>(T agent, Type queryType) where T : IAgent
-        {
-            return (T)EntityManager.AddAgent(this, agent, queryType);
-        }
-
-        public T AddAgent<T>() where T : IAgent
-        {
-            return (T)EntityManager.AddAgent(this, typeof(T), typeof(T));
-        }
-
-        public T GetAgent<T>() where T : IAgent
-        {
-            return (T)EntityManager.GetAgent(this, typeof(T));
-        }
-
-        public IAgent AddAgent(Type realType)
-        {
-            return EntityManager.AddAgent(this, realType, realType);
-        }
-
-        public IAgent AddAgent(Type keyType, Type realType)
-        {
-            return EntityManager.AddAgent(this, keyType, realType);
-        }
-
-        public IAgent AddAgent(Type queryType, Type keyType, Type realType)
-        {
-            return EntityManager.AddAgent(this, keyType, realType, queryType);
-        }
-
-        public IAgent GetAgent(Type keyType)
-        {
-            return EntityManager.GetAgent(this, keyType);
-        }
-
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        private static List<string> Agents = GlobalSetting.GetAgents();
-
-        [HideInEditorMode, ShowInInspector]
-        private IEnumerable<IAgent> agents
-        {
-            get => GlobalManager.agentData.TryGetValue(this, out var agent) ? agent.Values.ToList() : null;
-            set => Debug.LogWarning(value, this);
-        }
-
-        [HideInPlayMode, ValueDropdown("Agents")]
-#endif
-        [SerializeField]
-        private List<string> agentData = new List<string>();
     }
 }

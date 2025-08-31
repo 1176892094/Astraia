@@ -15,11 +15,13 @@ using UnityEngine;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
+
     public static partial class PoolManager
     {
         public static async Task<GameObject> Show(string path)
         {
-            if (!GlobalManager.Instance) return null;
+            if (!Instance) return null;
             var item = await LoadPool(path).Load();
             item.transform.SetParent(null);
             item.SetActive(true);
@@ -28,7 +30,7 @@ namespace Astraia.Common
 
         public static async void Show(string path, Action<GameObject> action)
         {
-            if (!GlobalManager.Instance) return;
+            if (!Instance) return;
             var item = await LoadPool(path).Load();
             item.transform.SetParent(null);
             item.SetActive(true);
@@ -37,12 +39,12 @@ namespace Astraia.Common
 
         public static void Hide(GameObject item)
         {
-            if (!GlobalManager.Instance) return;
-            if (!GlobalManager.poolGroup.TryGetValue(item.name, out var pool))
+            if (!Instance) return;
+            if (!poolGroup.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject(Service.Text.Format("Pool - {0}", item.name));
-                pool.transform.SetParent(GlobalManager.Instance.transform);
-                GlobalManager.poolGroup.Add(item.name, pool);
+                pool.transform.SetParent(Instance.transform);
+                poolGroup.Add(item.name, pool);
             }
 
             item.SetActive(false);
@@ -52,25 +54,25 @@ namespace Astraia.Common
 
         private static Pool LoadPool(string path)
         {
-            if (GlobalManager.poolData.TryGetValue(path, out var pool))
+            if (poolData.TryGetValue(path, out var pool))
             {
                 return (Pool)pool;
             }
 
             pool = Pool.Create(typeof(GameObject), path);
-            GlobalManager.poolData.Add(path, pool);
+            poolData.Add(path, pool);
             return (Pool)pool;
         }
 
         internal static void Dispose()
         {
-            foreach (var item in GlobalManager.poolData.Values)
+            foreach (var item in poolData.Values)
             {
                 item.Dispose();
             }
 
-            GlobalManager.poolData.Clear();
-            GlobalManager.poolGroup.Clear();
+            poolData.Clear();
+            poolGroup.Clear();
         }
     }
 }
