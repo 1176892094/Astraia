@@ -81,7 +81,7 @@ namespace Runtime
 
         private void Start()
         {
-            UIManager.Show<LabelPanel>();
+            PageManager.Show<LabelPanel>();
         }
 
         public void SetCamera(Player player, Vector3 center, Vector2 sizeData)

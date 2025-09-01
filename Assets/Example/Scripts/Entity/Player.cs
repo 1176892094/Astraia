@@ -44,6 +44,7 @@ namespace Runtime
             if (isOwner)
             {
                 Operate.OnUpdate();
+                Machine.Update();
                 Machine.OnUpdate();
                 Feature.OnUpdate();
             }
