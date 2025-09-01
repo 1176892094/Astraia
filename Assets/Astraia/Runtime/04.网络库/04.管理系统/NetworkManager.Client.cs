@@ -55,7 +55,7 @@ namespace Astraia.Net
                     Register(EntryMode.Host);
                     state = State.Connected;
                     connection = new NetworkServer();
-                    Server.Connect(new NetworkClient(HostId));
+                    Server.Connect(new NetworkClient());
                     Ready();
                     return;
                 }
@@ -313,7 +313,7 @@ namespace Astraia.Net
                 var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 foreach (var entity in entities)
                 {
-                    if (IsSceneObject(entity))
+                    if (entity.sceneId != 0)
                     {
                         if (scenes.TryGetValue(entity.sceneId, out var obj))
                         {

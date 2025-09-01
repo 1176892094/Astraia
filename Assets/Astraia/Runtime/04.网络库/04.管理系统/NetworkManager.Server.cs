@@ -73,7 +73,7 @@ namespace Astraia.Net
                 foreach (var client in copies)
                 {
                     client.Disconnect();
-                    if (client.clientId != HostId)
+                    if (client.clientId != Host)
                     {
                         OnServerDisconnect(client.clientId);
                     }
@@ -186,7 +186,6 @@ namespace Astraia.Net
                         var message = reader.Invoke<T>();
                         NetworkSimulator.Instance?.OnReceive(message, reader.position - position);
                         handle?.Invoke(client, message, channel);
-                      
                     }
                     catch (Exception e)
                     {
@@ -330,14 +329,14 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-                    
+
                     if (!messages.TryGetValue(message, out var action))
                     {
                         Debug.LogWarning(Service.Text.Format(Log.E243, clientId, message));
                         client.Disconnect();
                         return;
                     }
-                    
+
                     action.Invoke(client, reader, channel);
                 }
 
@@ -355,7 +354,7 @@ namespace Astraia.Net
                 var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 foreach (var entity in entities)
                 {
-                    if (IsSceneObject(entity) && entity.objectId == 0)
+                    if (entity.sceneId != 0 && entity.objectId == 0)
                     {
                         entity.gameObject.SetActive(true);
                         var parent = entity.transform.parent;
@@ -389,7 +388,7 @@ namespace Astraia.Net
 
                 entity.connection = client;
 
-                if (Mode == EntryMode.Host && client?.clientId == HostId)
+                if (Mode == EntryMode.Host && client?.clientId == Host)
                 {
                     entity.agentMode |= AgentMode.Owner;
                 }
@@ -398,7 +397,7 @@ namespace Astraia.Net
                 {
                     entity.objectId = ++objectId;
                     entity.agentMode |= AgentMode.Server;
-                    entity.agentMode = Client.isActive ? entity.agentMode | AgentMode.Client : entity.agentMode & ~AgentMode.Owner; 
+                    entity.agentMode = Client.isActive ? entity.agentMode | AgentMode.Client : entity.agentMode & ~AgentMode.Owner;
                     spawns[entity.objectId] = entity;
                     entity.OnStartServer();
                 }
@@ -425,7 +424,7 @@ namespace Astraia.Net
                     entity.ServerSerialize(true, writer, observer);
                     segment = isOwner ? writer : observer;
                 }
-              
+
                 var message = new SpawnMessage
                 {
                     isOwner = isOwner,
@@ -458,7 +457,7 @@ namespace Astraia.Net
                 PoolManager.Hide(entity.gameObject);
                 entity.Reset();
             }
-            
+
             public static void Destroy(GameObject gameObject)
             {
                 if (!gameObject.TryGetComponent(out NetworkEntity entity))
@@ -477,7 +476,7 @@ namespace Astraia.Net
                 Object.Destroy(entity.gameObject);
             }
         }
-    
+
 
         public partial class Server
         {

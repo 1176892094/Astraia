@@ -50,6 +50,7 @@ namespace Astraia.Net
 
         public bool isClient => (agentMode & AgentMode.Client) != 0;
 
+
         protected override void OnEnable()
         {
             base.OnEnable();

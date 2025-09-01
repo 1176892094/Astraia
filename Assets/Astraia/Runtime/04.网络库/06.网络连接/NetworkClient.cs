@@ -25,7 +25,7 @@ namespace Astraia.Net
         internal int clientId;
         internal bool isReady;
 
-        public NetworkClient(int clientId)
+        public NetworkClient(int clientId = 0)
         {
             this.clientId = clientId;
         }
@@ -56,7 +56,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if (clientId != NetworkManager.HostId)
+            if (clientId != NetworkManager.Host)
             {
                 NetworkSimulator.Instance?.OnSend(message, writer.position);
             }
@@ -75,7 +75,7 @@ namespace Astraia.Net
 
             batch.AddMessage(writer);
 
-            if (clientId == NetworkManager.HostId)
+            if (clientId == NetworkManager.Host)
             {
                 using var target = MemoryWriter.Pop();
                 if (batch.GetBatch(target))

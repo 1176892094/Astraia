@@ -27,7 +27,7 @@ namespace Astraia.Net
 
         public override void Dequeue()
         {
-            animator = transform.GetComponentInChildren<Animator>();
+            animator = owner.GetComponent<Animator>();
             animatorParams = animator.parameters.Where(parameter => !animator.IsParameterControlledByCurve(parameter.nameHash)).ToArray();
             layerWeight = new float[animator.layerCount];
             animationHash = new int[animator.layerCount];

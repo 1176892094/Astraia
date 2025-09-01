@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using System.Runtime.CompilerServices;
 using Astraia.Common;
 using UnityEngine;
 
@@ -21,7 +20,7 @@ namespace Astraia.Net
     {
         public static NetworkManager Instance;
         
-        internal const int HostId = 0;
+        internal const int Host = 0;
 
         public int sendRate = 30;
 
@@ -156,7 +155,7 @@ namespace Astraia.Net
 
             if (Mode == EntryMode.Host)
             {
-                Server.OnServerDisconnect(HostId);
+                Server.OnServerDisconnect(Host);
             }
 
             Client.Stop();
@@ -200,22 +199,6 @@ namespace Astraia.Net
             }
 
             Lobby.Stop();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsSceneObject(NetworkEntity entity)
-        {
-            if (entity.sceneId == 0)
-            {
-                return false;
-            }
-
-            if (entity.gameObject.hideFlags == HideFlags.NotEditable)
-            {
-                return false;
-            }
-
-            return entity.gameObject.hideFlags != HideFlags.HideAndDontSave;
         }
     }
 }
