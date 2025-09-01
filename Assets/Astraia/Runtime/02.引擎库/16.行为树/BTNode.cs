@@ -15,7 +15,8 @@ using UnityEngine;
 
 namespace Astraia
 {
-    public abstract class BehaviourTree
+    [Serializable]
+    public abstract class BTNode
     {
         private State state = State.Failure;
         private bool started;
@@ -56,17 +57,11 @@ namespace Astraia
             Failure
         }
     }
-
-    [Serializable]
-    public sealed class Sequence : BehaviourTree
+    
+    public sealed class Sequence : BTNode
     {
-        [SerializeField] private BehaviourTree[] nodes;
-        [SerializeField] private int index;
-
-        public Sequence(BehaviourTree[] nodes)
-        {
-            this.nodes = nodes;
-        }
+        private BTNode[] nodes;
+        private int index;
 
         protected override void OnEnter()
         {
@@ -95,14 +90,13 @@ namespace Astraia
             return State.Success;
         }
     }
-
-    [Serializable]
-    public sealed class Selector : BehaviourTree
+    
+    public sealed class Selector : BTNode
     {
-        [SerializeField] private BehaviourTree[] nodes;
-        [SerializeField] private int index;
+        private BTNode[] nodes;
+        private int index;
 
-        public Selector(BehaviourTree[] nodes)
+        public Selector(BTNode[] nodes)
         {
             this.nodes = nodes;
         }
@@ -134,17 +128,12 @@ namespace Astraia
             return State.Failure;
         }
     }
-
-    [Serializable]
-    public sealed class Revealer : BehaviourTree
+    
+    public sealed class Operator : BTNode
     {
-        [SerializeField] private BehaviourTree[] nodes;
-        [SerializeField] private int index;
-
-        public Revealer(BehaviourTree[] nodes)
-        {
-            this.nodes = nodes;
-        }
+        private BTNode[] nodes;
+        private int index;
+        
 
         protected override void OnEnter()
         {
@@ -156,15 +145,14 @@ namespace Astraia
             return nodes[index].Tick();
         }
     }
-
-    [Serializable]
-    public sealed class Repeater : BehaviourTree
+    
+    public sealed class Repeater : BTNode
     {
-        [SerializeField] private BehaviourTree node;
-        [SerializeField] private int count;
-        [SerializeField] private int repeat;
+        private BTNode node;
+        private int count;
+        private int repeat;
 
-        public Repeater(BehaviourTree node, int repeat = -1)
+        public Repeater(BTNode node, int repeat = -1)
         {
             this.node = node;
             this.repeat = repeat;
@@ -191,15 +179,14 @@ namespace Astraia
             return State.Running;
         }
     }
-
-    [Serializable]
-    public sealed class Parallel : BehaviourTree
+    
+    public sealed class Parallel : BTNode
     {
-        [SerializeField] private BehaviourTree[] nodes;
-        [SerializeField] private int success;
-        [SerializeField] private int failure;
+        private BTNode[] nodes;
+        private int success;
+        private int failure;
 
-        public Parallel(BehaviourTree[] nodes, int success = -1, int failure = -1)
+        public Parallel(BTNode[] nodes, int success = -1, int failure = -1)
         {
             this.nodes = nodes;
             this.success = success < 0 ? nodes.Length : success;
@@ -239,13 +226,12 @@ namespace Astraia
             return State.Running;
         }
     }
-
-    [Serializable]
-    public sealed class Inverter : BehaviourTree
+    
+    public sealed class Inverter : BTNode
     {
-        [SerializeField] private BehaviourTree node;
+        private BTNode node;
 
-        public Inverter(BehaviourTree node)
+        public Inverter(BTNode node)
         {
             this.node = node;
         }
@@ -266,13 +252,12 @@ namespace Astraia
             return State.Running;
         }
     }
-
-    [Serializable]
-    public sealed class Success : BehaviourTree
+    
+    public sealed class Success : BTNode
     {
-        [SerializeField] private BehaviourTree node;
+        private BTNode node;
 
-        public Success(BehaviourTree node)
+        public Success(BTNode node)
         {
             this.node = node;
         }
@@ -282,13 +267,12 @@ namespace Astraia
             return node.Tick() == State.Running ? State.Running : State.Success;
         }
     }
-
-    [Serializable]
-    public sealed class Failure : BehaviourTree
+    
+    public sealed class Failure : BTNode
     {
-        [SerializeField] private BehaviourTree node;
+        private BTNode node;
 
-        public Failure(BehaviourTree node)
+        public Failure(BTNode node)
         {
             this.node = node;
         }
@@ -298,18 +282,12 @@ namespace Astraia
             return node.Tick() == State.Running ? State.Running : State.Failure;
         }
     }
-
-    [Serializable]
-    public sealed class WaitTime : BehaviourTree
+    
+    public sealed class WaitTime : BTNode
     {
-        [SerializeField] private float waitTime;
-        [SerializeField] private float duration;
-
-        public WaitTime(float duration)
-        {
-            this.duration = duration;
-        }
-
+        private float waitTime;
+        private float duration;
+        
         protected override void OnEnter()
         {
             waitTime = Time.time + duration;
