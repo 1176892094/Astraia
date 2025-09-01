@@ -56,251 +56,251 @@ namespace Astraia
             Success,
             Failure
         }
-    }
-    
-    public sealed class Sequence : BTNode
-    {
-        private BTNode[] nodes;
-        private int index;
 
-        protected override void OnEnter()
+        public sealed class Sequence : BTNode
         {
-            index = 0;
+            private BTNode[] nodes;
+            private int index;
+
+            protected override void OnEnter()
+            {
+                index = 0;
+            }
+
+            protected override State OnUpdate()
+            {
+                while (index < nodes.Length)
+                {
+                    var result = nodes[index].Tick();
+
+                    if (result == State.Running)
+                    {
+                        return State.Running;
+                    }
+
+                    if (result == State.Failure)
+                    {
+                        return State.Failure;
+                    }
+
+                    index++;
+                }
+
+                return State.Success;
+            }
         }
 
-        protected override State OnUpdate()
+        public sealed class Selector : BTNode
         {
-            while (index < nodes.Length)
-            {
-                var result = nodes[index].Tick();
+            private BTNode[] nodes;
+            private int index;
 
-                if (result == State.Running)
+            public Selector(BTNode[] nodes)
+            {
+                this.nodes = nodes;
+            }
+
+            protected override void OnEnter()
+            {
+                index = 0;
+            }
+
+            protected override State OnUpdate()
+            {
+                while (index < nodes.Length)
                 {
-                    return State.Running;
+                    var result = nodes[index].Tick();
+
+                    if (result == State.Running)
+                    {
+                        return State.Running;
+                    }
+
+                    if (result == State.Success)
+                    {
+                        return State.Success;
+                    }
+
+                    index++;
+                }
+
+                return State.Failure;
+            }
+        }
+
+        public sealed class Operator : BTNode
+        {
+            private BTNode[] nodes;
+            private int index;
+
+
+            protected override void OnEnter()
+            {
+                index = Service.Random.Next(nodes.Length);
+            }
+
+            protected override State OnUpdate()
+            {
+                return nodes[index].Tick();
+            }
+        }
+
+        public sealed class Repeater : BTNode
+        {
+            private BTNode btNode;
+            private int count;
+            private int repeat;
+
+            public Repeater(BTNode btNode, int repeat = -1)
+            {
+                this.btNode = btNode;
+                this.repeat = repeat;
+            }
+
+            protected override void OnEnter()
+            {
+                count = 0;
+            }
+
+            protected override State OnUpdate()
+            {
+                if (repeat >= 0 && count >= repeat)
+                {
+                    return State.Success;
+                }
+
+                var result = btNode.Tick();
+                if (result == State.Success || result == State.Failure)
+                {
+                    count++;
+                }
+
+                return State.Running;
+            }
+        }
+
+        public sealed class Parallel : BTNode
+        {
+            private BTNode[] nodes;
+            private int success;
+            private int failure;
+
+            public Parallel(BTNode[] nodes, int success = -1, int failure = -1)
+            {
+                this.nodes = nodes;
+                this.success = success < 0 ? nodes.Length : success;
+                this.failure = failure < 0 ? nodes.Length : failure;
+            }
+
+            protected override State OnUpdate()
+            {
+                var successCount = 0;
+                var failureCount = 0;
+
+                foreach (var node in nodes)
+                {
+                    switch (node.Tick())
+                    {
+                        case State.Success:
+                            successCount++;
+                            break;
+                        case State.Failure:
+                            failureCount++;
+                            break;
+                        case State.Running:
+                            break;
+                    }
+
+                    if (successCount >= success)
+                    {
+                        return State.Success;
+                    }
+
+                    if (failureCount >= failure)
+                    {
+                        return State.Failure;
+                    }
+                }
+
+                return State.Running;
+            }
+        }
+
+        public sealed class Inverter : BTNode
+        {
+            private BTNode btNode;
+
+            public Inverter(BTNode btNode)
+            {
+                this.btNode = btNode;
+            }
+
+            protected override State OnUpdate()
+            {
+                var result = btNode.Tick();
+                if (result == State.Success)
+                {
+                    return State.Failure;
                 }
 
                 if (result == State.Failure)
                 {
-                    return State.Failure;
-                }
-
-                index++;
-            }
-
-            return State.Success;
-        }
-    }
-    
-    public sealed class Selector : BTNode
-    {
-        private BTNode[] nodes;
-        private int index;
-
-        public Selector(BTNode[] nodes)
-        {
-            this.nodes = nodes;
-        }
-
-        protected override void OnEnter()
-        {
-            index = 0;
-        }
-
-        protected override State OnUpdate()
-        {
-            while (index < nodes.Length)
-            {
-                var result = nodes[index].Tick();
-
-                if (result == State.Running)
-                {
-                    return State.Running;
-                }
-
-                if (result == State.Success)
-                {
                     return State.Success;
                 }
 
-                index++;
+                return State.Running;
             }
-
-            return State.Failure;
-        }
-    }
-    
-    public sealed class Operator : BTNode
-    {
-        private BTNode[] nodes;
-        private int index;
-        
-
-        protected override void OnEnter()
-        {
-            index = Service.Random.Next(nodes.Length);
         }
 
-        protected override State OnUpdate()
+        public sealed class Success : BTNode
         {
-            return nodes[index].Tick();
-        }
-    }
-    
-    public sealed class Repeater : BTNode
-    {
-        private BTNode btNode;
-        private int count;
-        private int repeat;
+            private BTNode btNode;
 
-        public Repeater(BTNode btNode, int repeat = -1)
-        {
-            this.btNode = btNode;
-            this.repeat = repeat;
-        }
-
-        protected override void OnEnter()
-        {
-            count = 0;
-        }
-
-        protected override State OnUpdate()
-        {
-            if (repeat >= 0 && count >= repeat)
+            public Success(BTNode btNode)
             {
-                return State.Success;
+                this.btNode = btNode;
             }
 
-            var result = btNode.Tick();
-            if (result == State.Success || result == State.Failure)
+            protected override State OnUpdate()
             {
-                count++;
+                return btNode.Tick() == State.Running ? State.Running : State.Success;
             }
-
-            return State.Running;
-        }
-    }
-    
-    public sealed class Parallel : BTNode
-    {
-        private BTNode[] nodes;
-        private int success;
-        private int failure;
-
-        public Parallel(BTNode[] nodes, int success = -1, int failure = -1)
-        {
-            this.nodes = nodes;
-            this.success = success < 0 ? nodes.Length : success;
-            this.failure = failure < 0 ? nodes.Length : failure;
         }
 
-        protected override State OnUpdate()
+        public sealed class Failure : BTNode
         {
-            var successCount = 0;
-            var failureCount = 0;
+            private BTNode btNode;
 
-            foreach (var node in nodes)
+            public Failure(BTNode btNode)
             {
-                switch (node.Tick())
-                {
-                    case State.Success:
-                        successCount++;
-                        break;
-                    case State.Failure:
-                        failureCount++;
-                        break;
-                    case State.Running:
-                        break;
-                }
-
-                if (successCount >= success)
-                {
-                    return State.Success;
-                }
-
-                if (failureCount >= failure)
-                {
-                    return State.Failure;
-                }
+                this.btNode = btNode;
             }
 
-            return State.Running;
-        }
-    }
-    
-    public sealed class Inverter : BTNode
-    {
-        private BTNode btNode;
-
-        public Inverter(BTNode btNode)
-        {
-            this.btNode = btNode;
-        }
-
-        protected override State OnUpdate()
-        {
-            var result = btNode.Tick();
-            if (result == State.Success)
+            protected override State OnUpdate()
             {
-                return State.Failure;
+                return btNode.Tick() == State.Running ? State.Running : State.Failure;
             }
+        }
 
-            if (result == State.Failure)
+        public sealed class WaitTime : BTNode
+        {
+            private float waitTime;
+            private float duration;
+
+            protected override void OnEnter()
             {
-                return State.Success;
+                waitTime = Time.time + duration;
             }
 
-            return State.Running;
-        }
-    }
-    
-    public sealed class Success : BTNode
-    {
-        private BTNode btNode;
+            protected override State OnUpdate()
+            {
+                return waitTime < Time.time ? State.Success : State.Running;
+            }
 
-        public Success(BTNode btNode)
-        {
-            this.btNode = btNode;
-        }
-
-        protected override State OnUpdate()
-        {
-            return btNode.Tick() == State.Running ? State.Running : State.Success;
-        }
-    }
-    
-    public sealed class Failure : BTNode
-    {
-        private BTNode btNode;
-
-        public Failure(BTNode btNode)
-        {
-            this.btNode = btNode;
-        }
-
-        protected override State OnUpdate()
-        {
-            return btNode.Tick() == State.Running ? State.Running : State.Failure;
-        }
-    }
-    
-    public sealed class WaitTime : BTNode
-    {
-        private float waitTime;
-        private float duration;
-        
-        protected override void OnEnter()
-        {
-            waitTime = Time.time + duration;
-        }
-
-        protected override State OnUpdate()
-        {
-            return waitTime < Time.time ? State.Success : State.Running;
-        }
-
-        protected override void OnExit()
-        {
-            waitTime = 0;
+            protected override void OnExit()
+            {
+                waitTime = 0;
+            }
         }
     }
 }

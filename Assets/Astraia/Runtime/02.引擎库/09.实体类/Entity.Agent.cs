@@ -10,9 +10,10 @@
 // // *********************************************************************************
 
 using System;
+using Astraia.Common;
 using UnityEngine;
 
-namespace Astraia
+namespace Astraia.Common
 {
     public interface IAgent
     {
@@ -22,7 +23,10 @@ namespace Astraia
         void OnHide();
         void Enqueue();
     }
+}
 
+namespace Astraia
+{
     [Serializable]
     public abstract class Agent<T> : IAgent where T : Entity
     {

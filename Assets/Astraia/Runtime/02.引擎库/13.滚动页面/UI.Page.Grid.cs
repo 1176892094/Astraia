@@ -9,9 +9,10 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using Astraia.Common;
 using UnityEngine;
 
-namespace Astraia.Common
+namespace Astraia
 {
     public class PageSystem : ISystem
     {
@@ -23,7 +24,10 @@ namespace Astraia.Common
             }
         }
     }
+}
 
+namespace Astraia.Common
+{
     public interface IPage : IAgent
     {
         void Update();

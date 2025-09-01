@@ -10,9 +10,8 @@
 // // *********************************************************************************
 
 using System.Collections.Generic;
-using Astraia.Common;
 
-namespace Astraia
+namespace Astraia.Common
 {
     using static GlobalManager;
 

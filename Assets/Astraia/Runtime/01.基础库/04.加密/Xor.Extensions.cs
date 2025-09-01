@@ -11,8 +11,9 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using Astraia.Common;
 
-namespace Astraia.Common
+namespace Astraia
 {
     public static partial class Xor
     {

@@ -10,8 +10,9 @@
 // *********************************************************************************
 
 using System;
+using Astraia.Common;
 
-namespace Astraia
+namespace Astraia.Common
 {
     public interface IState
     {
@@ -20,7 +21,10 @@ namespace Astraia
         void OnUpdate();
         void OnExit();
     }
+}
 
+namespace Astraia
+{
     [Serializable]
     public abstract class State<T> : IState where T : Entity
     {
