@@ -16,7 +16,7 @@ namespace Astraia
 {
     public interface IAgent
     {
-        void Create(Entity owner);
+        internal void Create(Entity owner);
         void Dequeue();
         void OnShow();
         void OnHide();
