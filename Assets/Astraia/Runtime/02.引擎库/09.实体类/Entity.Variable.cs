@@ -48,17 +48,4 @@ namespace Astraia
             return default;
         }
     }
-
-    public static partial class Extensions
-    {
-        public static T GetValue<T>(this Entity owner, int id)
-        {
-            return Variable<T>.GetValue(owner, id);
-        }
-
-        public static void SetValue<T>(this Entity owner, int id, T value)
-        {
-            Variable<T>.SetValue(owner, id, value);
-        }
-    }
 }
