@@ -51,17 +51,16 @@ namespace Astraia
             OnShow = null;
             OnHide = null;
             agentData.Clear();
-            GlobalManager.agentData.Remove(this);
         }
 
         public T AddAgent<T>(T agent) where T : IAgent
         {
-            return (T)EntityManager.AddAgent(this, agent);
+            return (T)EntityManager.AddAgent(this, agent, agent.GetType());
         }
 
         public T AddAgent<T>(T agent, Type queryType) where T : IAgent
         {
-            return (T)EntityManager.AddAgent(this, agent, queryType);
+            return (T)EntityManager.AddAgent(this, agent, agent.GetType(), queryType);
         }
 
         public T AddAgent<T>() where T : IAgent

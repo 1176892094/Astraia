@@ -148,13 +148,13 @@ namespace Astraia
     
     public sealed class Repeater : BTNode
     {
-        private BTNode node;
+        private BTNode btNode;
         private int count;
         private int repeat;
 
-        public Repeater(BTNode node, int repeat = -1)
+        public Repeater(BTNode btNode, int repeat = -1)
         {
-            this.node = node;
+            this.btNode = btNode;
             this.repeat = repeat;
         }
 
@@ -170,7 +170,7 @@ namespace Astraia
                 return State.Success;
             }
 
-            var result = node.Tick();
+            var result = btNode.Tick();
             if (result == State.Success || result == State.Failure)
             {
                 count++;
@@ -229,16 +229,16 @@ namespace Astraia
     
     public sealed class Inverter : BTNode
     {
-        private BTNode node;
+        private BTNode btNode;
 
-        public Inverter(BTNode node)
+        public Inverter(BTNode btNode)
         {
-            this.node = node;
+            this.btNode = btNode;
         }
 
         protected override State OnUpdate()
         {
-            var result = node.Tick();
+            var result = btNode.Tick();
             if (result == State.Success)
             {
                 return State.Failure;
@@ -255,31 +255,31 @@ namespace Astraia
     
     public sealed class Success : BTNode
     {
-        private BTNode node;
+        private BTNode btNode;
 
-        public Success(BTNode node)
+        public Success(BTNode btNode)
         {
-            this.node = node;
+            this.btNode = btNode;
         }
 
         protected override State OnUpdate()
         {
-            return node.Tick() == State.Running ? State.Running : State.Success;
+            return btNode.Tick() == State.Running ? State.Running : State.Success;
         }
     }
     
     public sealed class Failure : BTNode
     {
-        private BTNode node;
+        private BTNode btNode;
 
-        public Failure(BTNode node)
+        public Failure(BTNode btNode)
         {
-            this.node = node;
+            this.btNode = btNode;
         }
 
         protected override State OnUpdate()
         {
-            return node.Tick() == State.Running ? State.Running : State.Failure;
+            return btNode.Tick() == State.Running ? State.Running : State.Failure;
         }
     }
     

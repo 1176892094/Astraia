@@ -29,129 +29,76 @@ namespace Astraia
             return agents;
         }
 
-        private static List<Entity, IAgent> GetEntities(Type agent)
+        private static List<Entity, IAgent> GetQueries(Type queryType)
         {
-            if (!entityData.TryGetValue(agent, out var entities))
+            if (!queryData.TryGetValue(queryType, out var queries))
             {
-                entities = new List<Entity, IAgent>();
-                entityData.Add(agent, entities);
+                queries = new List<Entity, IAgent>();
+                queryData.Add(queryType, queries);
             }
 
-            return entities;
+            return queries;
         }
 
-        public static IAgent AddAgent(Entity owner, IAgent agent)
+        public static IAgent AddAgent(Entity owner, IAgent agent, Type keyType, Type queryType = null)
         {
+            queryType ??= keyType;
             var agents = GetAgents(owner);
-            var keyType = agent.GetType();
-            var entities = GetEntities(keyType);
+            var queries = GetQueries(queryType);
             if (!agents.ContainsKey(keyType))
             {
                 agents.Add(keyType, agent);
-                entities.Add(owner, agent);
-                
+                queries.Add(owner, agent);
                 agent.Create(owner);
                 agent.Dequeue();
                 owner.OnShow += agent.OnShow;
                 owner.OnHide += agent.OnHide;
                 owner.OnFade += Enqueue;
-
-                void Enqueue()
-                {
-                    agent.Enqueue();
-                    HeapManager.Enqueue(agent, keyType);
-                    agents.Remove(keyType);
-                    entities.Remove(owner);
-                }
             }
 
             return agent;
-        }
 
-        public static IAgent AddAgent(Entity owner, IAgent agent, Type queryType)
-        {
-            var agents = GetAgents(owner);
-            var keyType = agent.GetType();
-            var entities = GetEntities(queryType);
-            if (!agents.ContainsKey(keyType))
+            void Enqueue()
             {
-                agents.Add(keyType, agent);
-                entities.Add(owner, agent);
-                
-                agent.Create(owner);
-                agent.Dequeue();
-                owner.OnShow += agent.OnShow;
-                owner.OnHide += agent.OnHide;
-                owner.OnFade += Enqueue;
-
-                void Enqueue()
-                {
-                    agent.Enqueue();
-                    HeapManager.Enqueue(agent, keyType);
-                    agents.Remove(keyType);
-                    entities.Remove(owner);
-                }
+                agent.Enqueue();
+                agents.Remove(keyType);
+                if (agents.Count == 0) agentData.Remove(owner);
+                queries.Remove(owner);
+                if (queries.Count == 0) queryData.Remove(keyType);
+                HeapManager.Enqueue(agent, keyType);
             }
-
-            return agent;
         }
 
-        public static IAgent AddAgent(Entity owner, Type keyType, Type realType)
+        public static IAgent AddAgent(Entity owner, Type keyType, Type realType, Type queryType = null)
         {
+            queryType ??= keyType;
             var agents = GetAgents(owner);
-            var entities = GetEntities(keyType);
+            var queries = GetQueries(queryType);
             if (!agents.TryGetValue(keyType, out var agent))
             {
                 agent = HeapManager.Dequeue<IAgent>(realType);
                 agents.Add(keyType, agent);
-                entities.Add(owner, agent);
-                
+                queries.Add(owner, agent);
                 agent.Create(owner);
                 agent.Dequeue();
                 owner.OnShow += agent.OnShow;
                 owner.OnHide += agent.OnHide;
                 owner.OnFade += Enqueue;
-
-                void Enqueue()
-                {
-                    agent.Enqueue();
-                    HeapManager.Enqueue(agent, realType);
-                    agents.Remove(keyType);
-                    entities.Remove(owner);
-                }
             }
 
             return agent;
-        }
 
-        public static IAgent AddAgent(Entity owner, Type keyType, Type realType, Type queryType)
-        {
-            var agents = GetAgents(owner);
-            var entities = GetEntities(queryType);
-            if (!agents.TryGetValue(keyType, out var agent))
+            void Enqueue()
             {
-                agent = HeapManager.Dequeue<IAgent>(realType);
-                agents.Add(keyType, agent);
-                entities.Add(owner, agent);
-                
-                agent.Create(owner);
-                agent.Dequeue();
-                owner.OnShow += agent.OnShow;
-                owner.OnHide += agent.OnHide;
-                owner.OnFade += Enqueue;
-
-                void Enqueue()
-                {
-                    agent.Enqueue();
-                    HeapManager.Enqueue(agent, realType);
-                    agents.Remove(keyType);
-                    entities.Remove(owner);
-                }
+                agent.Enqueue();
+                agents.Remove(keyType);
+                if (agents.Count == 0) agentData.Remove(owner);
+                queries.Remove(owner);
+                if (queries.Count == 0) queryData.Remove(keyType);
+                HeapManager.Enqueue(agent, realType);
             }
-
-            return agent;
         }
-        
+
         public static IAgent GetAgent(Entity owner, Type keyType)
         {
             if (agentData.TryGetValue(owner, out var agents))
@@ -172,13 +119,13 @@ namespace Astraia
                 agents.Clear();
             }
 
-            foreach (var queries in entityData.Values)
+            foreach (var queries in queryData.Values)
             {
                 queries.Clear();
             }
 
             agentData.Clear();
-            entityData.Clear();
+            queryData.Clear();
         }
     }
 }

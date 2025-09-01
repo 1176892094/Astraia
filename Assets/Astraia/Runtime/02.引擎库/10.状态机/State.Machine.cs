@@ -11,37 +11,47 @@
 
 using System;
 using System.Collections.Generic;
-using Astraia.Common;
 
 namespace Astraia
 {
     [Serializable]
     public abstract class StateMachine<TEntity> : Agent<TEntity> where TEntity : Entity
     {
-        private readonly Dictionary<int, IState> states = new Dictionary<int, IState>();
-        private IState state;
-        
+        private Dictionary<int, object> values = new Dictionary<int, object>();
+        private Dictionary<int, IState> states = new Dictionary<int, IState>();
+        private IState current;
+
         public void OnUpdate()
         {
-            state?.OnUpdate();
+            current?.OnUpdate();
         }
 
-        public void AddState(int key, Type type)
+        public T GetValue<T>(int key)
         {
-            if (!states.TryGetValue(key, out var item))
+            return (T)values[key];
+        }
+
+        public void SetValue<T>(int key, T value)
+        {
+            values[key] = value;
+        }
+
+        public void Create(int state, Type value)
+        {
+            if (!states.TryGetValue(state, out var item))
             {
-                item = (IState)Activator.CreateInstance(type);
-                states.Add(key, item);
+                item = (IState)Activator.CreateInstance(value);
+                states.Add(state, item);
             }
 
             item.Create(owner);
         }
 
-        public void ChangeState(int key)
+        public void Switch(int state)
         {
-            state?.OnExit();
-            states.TryGetValue(key, out state);
-            state?.OnEnter();
+            current?.OnExit();
+            states.TryGetValue(state, out current);
+            current?.OnEnter();
         }
 
         public override void Enqueue()

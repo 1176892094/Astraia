@@ -16,60 +16,56 @@ using Astraia.Common;
 namespace Astraia
 {
     [Serializable]
-    public abstract class Feature<TEntity, T> : Agent<TEntity> where TEntity : Entity
+    public abstract class Feature<TEntity> : Agent<TEntity> where TEntity : Entity
     {
-        private readonly Dictionary<T, Xor.Float> features = new Dictionary<T, Xor.Float>();
+        private readonly Dictionary<int, Xor.Float> features = new Dictionary<int, Xor.Float>();
 
-        private float Get(T key)
+        public float GetFloat(int key)
         {
             features.TryAdd(key, 0);
-            return features[key].Value;
+            return features[key];
         }
 
-        private void Set(T key, float value)
+        public void SetFloat(int key, float value)
         {
             features.TryAdd(key, 0);
             features[key] = value;
         }
 
-        public float GetFloat(T key)
+        public void AddFloat(int key, float value)
         {
-            return Get(key);
+            features.TryAdd(key, 0);
+            features[key] += value;
         }
 
-        public void SetFloat(T key, float value)
+        public void SubFloat(int key, float value)
         {
-            Set(key, value);
+            features.TryAdd(key, 0);
+            features[key] -= value;
         }
 
-        public void AddFloat(T key, float value)
+        public int GetInt(int key)
         {
-            SetFloat(key, GetFloat(key) + value);
+            features.TryAdd(key, 0);
+            return (int)features[key];
         }
 
-        public void SubFloat(T key, float value)
+        public void SetInt(int key, float value)
         {
-            SetFloat(key, GetFloat(key) - value);
+            features.TryAdd(key, 0);
+            features[key] = (int)value;
         }
 
-        public int GetInt(T key)
+        public void AddInt(int key, float value)
         {
-            return (int)Get(key);
+            features.TryAdd(key, 0);
+            features[key] += (int)value;
         }
 
-        public void SetInt(T key, float value)
+        public void SubInt(int key, float value)
         {
-            Set(key, (int)value);
-        }
-
-        public void AddInt(T key, float value)
-        {
-            SetInt(key, GetInt(key) + (int)value);
-        }
-
-        public void SubInt(T key, float value)
-        {
-            SetInt(key, GetInt(key) - (int)value);
+            features.TryAdd(key, 0);
+            features[key] -= (int)value;
         }
 
         public override void Enqueue()
