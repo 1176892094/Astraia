@@ -203,28 +203,6 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NetworkEntity GetNetworkEntity(uint objectId)
-        {
-            if (Server.isActive)
-            {
-                if (Server.spawns.TryGetValue(objectId, out var entity))
-                {
-                    return entity;
-                }
-            }
-
-            if (Client.isActive)
-            {
-                if (Client.spawns.TryGetValue(objectId, out var entity))
-                {
-                    return entity;
-                }
-            }
-
-            return null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsSceneObject(NetworkEntity entity)
         {
             if (entity.sceneId == 0)

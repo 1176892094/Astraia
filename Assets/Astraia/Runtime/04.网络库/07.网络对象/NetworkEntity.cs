@@ -26,11 +26,11 @@ namespace Astraia.Net
     {
         private int frameCount;
 
-        [HideInInspector] public uint objectId;
+        [SerializeField] internal uint assetId;
 
-        [SerializeField] [HideInInspector] internal uint assetId;
+        [SerializeField] internal uint sceneId;
 
-        [SerializeField] [HideInInspector] internal uint sceneId;
+        internal uint objectId;
 
         internal AgentMode agentMode;
 
@@ -117,10 +117,14 @@ namespace Astraia.Net
                 sceneId = 0;
                 AssignAssetId(AssetDatabase.GetAssetPath(gameObject));
             }
-            else if (PrefabStageUtility.GetCurrentPrefabStage() && PrefabStageUtility.GetPrefabStage(gameObject))
+            else if (PrefabStageUtility.GetCurrentPrefabStage())
             {
-                sceneId = 0;
-                AssignAssetId(PrefabStageUtility.GetPrefabStage(gameObject).assetPath);
+                var prefab = PrefabStageUtility.GetPrefabStage(gameObject);
+                if (prefab)
+                {
+                    sceneId = 0;
+                    AssignAssetId(prefab.assetPath);
+                }
             }
             else if (PrefabUtility.IsPartOfPrefabInstance(gameObject))
             {
@@ -136,11 +140,6 @@ namespace Astraia.Net
                 AssignSceneId();
             }
 
-            if (sceneId == 0 && assetId == 0)
-            {
-                Debug.LogWarning(Service.Text.Format("请将 {0} 名称修改为纯数字! SceneId: {1}  AssetId: {2}", gameObject, sceneId, assetId), gameObject);
-            }
-
             return;
 
             void AssignAssetId(string assetPath)
@@ -148,7 +147,20 @@ namespace Astraia.Net
                 if (!string.IsNullOrWhiteSpace(assetPath))
                 {
                     Undo.RecordObject(gameObject, Log.E275);
-                    uint.TryParse(name, out assetId);
+                    if (sceneId == 0)
+                    {
+                        if (!uint.TryParse(name, out var id))
+                        {
+                            Debug.LogWarning(Service.Text.Format("请将 {0} 名称修改为纯数字!", gameObject), gameObject);
+                            return;
+                        }
+
+                        assetId = id;
+                    }
+                    else
+                    {
+                        assetId = 0;
+                    }
                 }
             }
 
@@ -349,6 +361,32 @@ namespace Astraia.Net
             {
                 agentState &= ~AgentState.Authority;
             }
+        }
+
+        public static implicit operator uint(NetworkEntity entity)
+        {
+            return entity.objectId;
+        }
+
+        public static explicit operator NetworkEntity(uint objectId)
+        {
+            if (NetworkManager.Server.isActive)
+            {
+                if (NetworkManager.Server.spawns.TryGetValue(objectId, out var entity))
+                {
+                    return entity;
+                }
+            }
+
+            if (NetworkManager.Client.isActive)
+            {
+                if (NetworkManager.Client.spawns.TryGetValue(objectId, out var entity))
+                {
+                    return entity;
+                }
+            }
+
+            return null;
         }
     }
 }

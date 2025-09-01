@@ -108,7 +108,7 @@ namespace Astraia.Net
         public static NetworkEntity ReadNetworkEntity(this MemoryReader reader)
         {
             var objectId = reader.ReadUInt();
-            return objectId != 0 ? NetworkManager.GetNetworkEntity(objectId) : null;
+            return objectId != 0 ? (NetworkEntity)objectId : null;
         }
 
         public static NetworkAgent ReadNetworkAgent(this MemoryReader reader)
