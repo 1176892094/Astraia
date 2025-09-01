@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 
 namespace Astraia.Common
@@ -19,26 +20,31 @@ namespace Astraia.Common
     {
         internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Dequeue<T>()
         {
             return LoadPool<T>(typeof(T)).Load();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Dequeue<T>(Type type)
         {
             return LoadPool<T>(type).Load();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Enqueue<T>(T item)
         {
             LoadPool<T>(typeof(T)).Push(item);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Enqueue<T>(T item, Type type)
         {
             LoadPool<T>(type).Push(item);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Pool<T> LoadPool<T>(Type type)
         {
             if (poolData.TryGetValue(type, out var item))

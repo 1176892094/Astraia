@@ -26,9 +26,9 @@ namespace Astraia.Net
     {
         private int frameCount;
 
-        [SerializeField] internal uint assetId;
+        [HideInInspector] [SerializeField] internal uint assetId;
 
-        [SerializeField] internal uint sceneId;
+        [HideInInspector] [SerializeField] internal uint sceneId;
 
         internal uint objectId;
 

@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Astraia.Common
 {
@@ -18,21 +19,25 @@ namespace Astraia.Common
     {
         internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Listen<T>(IEvent<T> data) where T : struct, IEvent
         {
             LoadPool<T>().Listen(data);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Remove<T>(IEvent<T> data) where T : struct, IEvent
         {
             LoadPool<T>().Remove(data);
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Invoke<T>(T data) where T : struct, IEvent
         {
             LoadPool<T>().Invoke(data);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Pool<T> LoadPool<T>() where T : struct, IEvent
         {
             if (poolData.TryGetValue(typeof(T), out var pool))
@@ -44,7 +49,7 @@ namespace Astraia.Common
             poolData.Add(typeof(T), pool);
             return (Pool<T>)pool;
         }
-        
+
         internal static void Dispose()
         {
             foreach (var item in poolData.Values)
