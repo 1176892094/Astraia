@@ -14,140 +14,136 @@ using UnityEngine;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
+
     public static partial class AudioManager
     {
-        public static float musicValue
+        public static float MusicVolume
         {
             get
             {
-                if (GlobalManager.settings == null)
-                {
-                    GlobalManager.settings = new AudioSetting();
-                    JsonManager.Load(GlobalManager.settings, nameof(AudioManager));
-                }
-
-                return GlobalManager.settings.musicValue;
+                musicVolume = JsonManager.Load<float>(nameof(MusicVolume));
+                return musicVolume;
             }
             set
             {
-                GlobalManager.settings.musicValue = value;
-                GlobalManager.Instance.sounds.volume = value;
-                JsonManager.Save(GlobalManager.settings, nameof(AudioManager));
+                if (Instance && Instance.source)
+                {
+                    Instance.source.volume = value;
+                }
+
+                musicVolume = value;
+                JsonManager.Save(musicVolume, nameof(MusicVolume));
             }
         }
 
-        public static float audioValue
+        public static float AudioVolume
         {
             get
             {
-                if (GlobalManager.settings == null)
-                {
-                    GlobalManager.settings = new AudioSetting();
-                    JsonManager.Load(GlobalManager.settings, nameof(AudioManager));
-                }
-
-                return GlobalManager.settings.audioValue;
+                audioVolume = JsonManager.Load<float>(nameof(AudioVolume));
+                return audioVolume;
             }
             set
             {
-                GlobalManager.settings.audioValue = value;
-                foreach (var audioSource in GlobalManager.audioData)
+                foreach (var audio in audioData)
                 {
-                    audioSource.volume = value;
+                    audio.volume = value;
                 }
 
-                JsonManager.Save(GlobalManager.settings, nameof(AudioManager));
+                audioVolume = value;
+                JsonManager.Save(audioVolume, nameof(AudioVolume));
             }
         }
 
-        public static async void PlayMain(string name, Action<AudioSource> action = null)
+        public static async void PlayMusic(string name, Action<AudioSource> action = null)
         {
-            if (!GlobalManager.Instance) return;
+            if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
-            var source = GlobalManager.Instance.sounds;
+            var source = Instance.source;
             source.clip = await AssetManager.Load<AudioClip>(target);
             source.loop = true;
-            source.volume = musicValue;
+            source.volume = MusicVolume;
             action?.Invoke(source);
             source.Play();
         }
 
+        public static void StopMusic(bool pause = true)
+        {
+            if (!Instance) return;
+            if (pause)
+            {
+                Instance.source.Pause();
+            }
+            else
+            {
+                Instance.source.Stop();
+            }
+        }
+
         public static async void PlayLoop(string name, Action<AudioSource> action = null)
         {
-            if (!GlobalManager.Instance) return;
+            if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
             var source = LoadPool(target).Load();
-            GlobalManager.audioData.Add(source);
+            audioData.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
             source.clip = await AssetManager.Load<AudioClip>(target);
             source.loop = true;
-            source.volume = audioValue;
+            source.volume = AudioVolume;
             action?.Invoke(source);
             source.Play();
         }
 
         public static async void PlayOnce(string name, Action<AudioSource> action = null)
         {
-            if (!GlobalManager.Instance) return;
+            if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
             var source = LoadPool(target).Load();
-            GlobalManager.audioData.Add(source);
+            audioData.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
             source.clip = await AssetManager.Load<AudioClip>(target);
             source.loop = false;
-            source.volume = audioValue;
+            source.volume = AudioVolume;
             action?.Invoke(source);
             source.Play();
-            await source.Wait(source.clip.length).OnUpdate(() => StopLoop(source));
+            await source.Wait(source.clip.length).OnUpdate(() => Stop(source));
         }
 
-        public static void StopMain(bool pause = true)
+        public static void Stop(AudioSource source)
         {
-            if (!GlobalManager.Instance) return;
-            if (pause)
-            {
-                GlobalManager.Instance.sounds.Pause();
-            }
-            else
-            {
-                GlobalManager.Instance.sounds.Stop();
-            }
-        }
-
-        public static void StopLoop(AudioSource source)
-        {
-            if (!GlobalManager.Instance) return;
-            if (!GlobalManager.poolGroup.TryGetValue(source.name, out var pool))
+            if (!Instance) return;
+            if (!poolGroup.TryGetValue(source.name, out var pool))
             {
                 pool = new GameObject(Service.Text.Format("Pool - {0}", source.name));
-                pool.transform.SetParent(GlobalManager.Instance.transform);
-                GlobalManager.poolGroup.Add(source.name, pool);
+                pool.transform.SetParent(Instance.transform);
+                poolGroup.Add(source.name, pool);
             }
 
             source.Stop();
             source.gameObject.SetActive(false);
             source.transform.SetParent(pool.transform);
-            GlobalManager.audioData.Remove(source);
+            audioData.Remove(source);
             LoadPool(source.name).Push(source);
         }
 
         private static Pool LoadPool(string path)
         {
-            if (GlobalManager.poolData.TryGetValue(path, out var pool))
+            if (poolData.TryGetValue(path, out var pool))
             {
                 return (Pool)pool;
             }
 
             pool = Pool.Create(typeof(AudioSource), path);
-            GlobalManager.poolData.Add(path, pool);
+            poolData.Add(path, pool);
             return (Pool)pool;
         }
 
         internal static void Dispose()
         {
-            GlobalManager.audioData.Clear();
+            audioData.Clear();
         }
     }
 }
