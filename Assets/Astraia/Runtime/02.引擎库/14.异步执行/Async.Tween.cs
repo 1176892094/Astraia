@@ -43,6 +43,7 @@ namespace Astraia
 
             void OnComplete()
             {
+                item.owner = null;
                 item.complete = 1;
                 item.onUpdate = null;
                 asyncData.Remove(owner);
@@ -103,12 +104,7 @@ namespace Astraia
 
         public Tween GetAwaiter()
         {
-            if (!owner.IsActive())
-            {
-                onComplete.Invoke();
-            }
-
-            return this;
+            return owner.IsActive() ? this : Break();
         }
 
         void INotifyCompletion.OnCompleted(Action continuation)
@@ -118,6 +114,12 @@ namespace Astraia
 
         public void GetResult()
         {
+        }
+        
+        public Tween Break()
+        {
+            onComplete.Invoke();
+            return this;
         }
     }
 }
