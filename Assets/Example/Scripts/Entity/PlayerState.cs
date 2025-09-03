@@ -34,13 +34,13 @@ namespace Runtime
         {
             if (Feature.state.HasFlag(StateType.Wall) && Feature.state.HasFlag(StateType.Climb))
             {
-                Machine.ChangeState(StateConst.Grab);
+                Machine.Switch(StateConst.Grab);
                 return;
             }
 
             if (Feature.isWalk)
             {
-                Machine.ChangeState(StateConst.Walk);
+                Machine.Switch(StateConst.Walk);
             }
         }
 
@@ -60,13 +60,13 @@ namespace Runtime
         {
             if (Feature.state.HasFlag(StateType.Wall) && Feature.state.HasFlag(StateType.Climb))
             {
-                Machine.ChangeState(StateConst.Grab);
+                Machine.Switch(StateConst.Grab);
                 return;
             }
 
             if (!Feature.isWalk)
             {
-                Machine.ChangeState(StateConst.Idle);
+                Machine.Switch(StateConst.Idle);
                 return;
             }
 
@@ -109,7 +109,7 @@ namespace Runtime
         {
             if (frameCount < Time.frameCount)
             {
-                Machine.ChangeState(StateConst.Idle);
+                Machine.Switch(StateConst.Idle);
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace Runtime
             {
                 if (Feature.moveX != 0)
                 {
-                    Machine.ChangeState(StateConst.Crash);
+                    Machine.Switch(StateConst.Crash);
                     return;
                 }
             }
@@ -151,7 +151,7 @@ namespace Runtime
         {
             if (owner.RDHit && !owner.RUHit)
             {
-                Machine.ChangeState(StateConst.Hop);
+                Machine.Switch(StateConst.Hop);
                 return;
             }
 
@@ -159,7 +159,7 @@ namespace Runtime
             {
                 if (!Feature.state.HasFlag(StateType.Wall) || !Feature.state.HasFlag(StateType.Climb))
                 {
-                    Machine.ChangeState(StateConst.Idle);
+                    Machine.Switch(StateConst.Idle);
                     return;
                 }
             }
@@ -195,7 +195,7 @@ namespace Runtime
         {
             if (frameCount < Time.frameCount)
             {
-                Machine.ChangeState(StateConst.Idle);
+                Machine.Switch(StateConst.Idle);
                 return;
             }
 
@@ -238,7 +238,7 @@ namespace Runtime
         {
             if (Feature.dashFrame < Time.frameCount)
             {
-                Machine.ChangeState(StateConst.Idle);
+                Machine.Switch(StateConst.Idle);
                 return;
             }
 
@@ -284,7 +284,7 @@ namespace Runtime
         {
             if (Feature.state.HasFlag(StateType.Wall) || Feature.state.HasFlag(StateType.Ground))
             {
-                Machine.ChangeState(StateConst.Idle);
+                Machine.Switch(StateConst.Idle);
                 return;
             }
 

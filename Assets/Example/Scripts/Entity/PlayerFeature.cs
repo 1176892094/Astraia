@@ -15,7 +15,7 @@ using Astraia;
 namespace Runtime
 {
     [Serializable]
-    public class PlayerFeature : Feature<Player, Attribute>
+    public class PlayerFeature : Feature<Player>
     {
         public StateType state = StateType.None;
         public float moveX;
