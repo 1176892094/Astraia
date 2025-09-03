@@ -121,6 +121,12 @@ namespace Astraia
             this.progress = progress;
             return this;
         }
+        
+        public Watch Break()
+        {
+            onComplete.Invoke();
+            return this;
+        }
     }
 
     public sealed partial class Watch : INotifyCompletion

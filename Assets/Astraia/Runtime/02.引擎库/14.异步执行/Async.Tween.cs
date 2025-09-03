@@ -96,6 +96,12 @@ namespace Astraia
             this.onComplete += onComplete;
             return this;
         }
+        
+        public Tween Break()
+        {
+            onComplete.Invoke();
+            return this;
+        }
     }
 
     public sealed partial class Tween : INotifyCompletion

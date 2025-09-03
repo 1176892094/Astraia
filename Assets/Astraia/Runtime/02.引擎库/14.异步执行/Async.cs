@@ -87,6 +87,12 @@ namespace Astraia
             this.onComplete += onComplete;
             return this;
         }
+        
+        public Async<T> Break()
+        {
+            onComplete.Invoke();
+            return this;
+        }
     }
 
     public sealed partial class Async<T> : INotifyCompletion
