@@ -13,7 +13,6 @@ using System;
 using System.Runtime.CompilerServices;
 using Astraia.Common;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Astraia
 {
@@ -111,21 +110,9 @@ namespace Astraia
             onComplete += continuation;
         }
 
-        public object GetResult()
+        public T GetResult()
         {
-            switch (operation)
-            {
-                case UnityWebRequestAsyncOperation request:
-                    return request.webRequest;
-                case AssetBundleCreateRequest request:
-                    return request.assetBundle;
-                case AssetBundleRequest request:
-                    return request.asset;
-                case ResourceRequest request:
-                    return request.asset;
-                default:
-                    return operation;
-            }
+            return operation;
         }
     }
 }
