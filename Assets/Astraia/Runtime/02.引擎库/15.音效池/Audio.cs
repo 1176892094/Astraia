@@ -46,7 +46,7 @@ namespace Astraia.Common
             }
             set
             {
-                foreach (var audio in AudioData)
+                foreach (var audio in audioData)
                 {
                     audio.volume = value;
                 }
@@ -86,7 +86,7 @@ namespace Astraia.Common
             if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
             var source = LoadPool(target).Load();
-            AudioData.Add(source);
+            audioData.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
             source.clip = await AssetManager.Load<AudioClip>(target);
@@ -101,7 +101,7 @@ namespace Astraia.Common
             if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
             var source = LoadPool(target).Load();
-            AudioData.Add(source);
+            audioData.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
             source.clip = await AssetManager.Load<AudioClip>(target);
@@ -115,35 +115,35 @@ namespace Astraia.Common
         public static void Stop(AudioSource source)
         {
             if (!Instance) return;
-            if (!RootData.TryGetValue(source.name, out var pool))
+            if (!rootData.TryGetValue(source.name, out var pool))
             {
                 pool = new GameObject(Service.Text.Format("Pool - {0}", source.name));
                 pool.transform.SetParent(Instance.transform);
-                RootData.Add(source.name, pool);
+                rootData.Add(source.name, pool);
             }
 
             source.Stop();
             source.gameObject.SetActive(false);
             source.transform.SetParent(pool.transform);
-            AudioData.Remove(source);
+            audioData.Remove(source);
             LoadPool(source.name).Push(source);
         }
 
         private static Pool LoadPool(string path)
         {
-            if (PoolData.TryGetValue(path, out var pool))
+            if (poolData.TryGetValue(path, out var pool))
             {
                 return (Pool)pool;
             }
 
             pool = Pool.Create(typeof(AudioSource), path);
-            PoolData.Add(path, pool);
+            poolData.Add(path, pool);
             return (Pool)pool;
         }
 
         internal static void Dispose()
         {
-            AudioData.Clear();
+            audioData.Clear();
         }
     }
 }

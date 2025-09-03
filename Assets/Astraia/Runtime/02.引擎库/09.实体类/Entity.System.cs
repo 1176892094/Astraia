@@ -25,29 +25,34 @@ namespace Astraia.Common
         public static void Listen<T>() where T : ISystem
         {
             var system = HeapManager.Dequeue<ISystem>(typeof(T));
-            SystemData.Add(typeof(T), system);
+            systemData.Add(typeof(T), system);
         }
 
         public static void Remove<T>() where T : ISystem
         {
-            if (SystemData.TryGetValue(typeof(T), out var system))
+            if (systemData.TryGetValue(typeof(T), out var system))
             {
-                SystemData.Remove(typeof(T));
+                systemData.Remove(typeof(T));
                 HeapManager.Enqueue(system, typeof(T));
             }
         }
 
         internal static void Update()
         {
-            foreach (var system in SystemData.Values)
+            foreach (var system in systemData.Values)
             {
                 system.Update();
+            }
+            
+            foreach (var async in asyncData.Values)
+            {
+                async.Update();
             }
         }
 
         public static IEnumerable<T> Query<T>() where T : IAgent
         {
-            if (QueryData.TryGetValue(typeof(T), out var entities))
+            if (queryData.TryGetValue(typeof(T), out var entities))
             {
                 foreach (var entity in entities)
                 {
@@ -61,12 +66,13 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            foreach (var system in SystemData.Values)
+            foreach (var system in systemData.Values)
             {
                 HeapManager.Enqueue(system);
             }
 
-            SystemData.Clear();
+            asyncData.Clear();
+            systemData.Clear();
         }
     }
 }

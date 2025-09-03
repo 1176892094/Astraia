@@ -115,7 +115,7 @@ namespace Astraia
                     {
                         var folder = split.Substring(0, index);
                         var result = Path.GetFileNameWithoutExtension(path);
-                        GlobalManager.AssetPath[Service.Text.Format("{0}/{1}", folder, result)] = path;
+                        GlobalManager.assetPath[Service.Text.Format("{0}/{1}", folder, result)] = path;
                     }
                 }
             }

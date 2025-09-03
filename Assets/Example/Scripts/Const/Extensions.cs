@@ -19,7 +19,7 @@ namespace Runtime
         public static Tween DOFade(this SpriteRenderer component, float endValue, float duration)
         {
             var color = component.color;
-            return component.Tween(duration).OnUpdate(progress =>
+            return component.Play(duration).OnUpdate(progress =>
             {
                 var colorA = Mathf.Lerp(color.a, endValue, progress);
                 component.color = new Color(color.r, color.g, color.b, colorA);

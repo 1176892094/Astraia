@@ -99,7 +99,7 @@ namespace Astraia
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<IAgent> agents
         {
-            get => GlobalManager.AgentData.TryGetValue(this, out var agent) ? agent.Values.ToList() : null;
+            get => GlobalManager.agentData.TryGetValue(this, out var agent) ? agent.Values.ToList() : null;
             set => Debug.LogWarning(value, this);
         }
 

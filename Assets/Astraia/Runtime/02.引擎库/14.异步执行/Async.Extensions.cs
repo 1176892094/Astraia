@@ -9,27 +9,36 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia
 {
     public static partial class Extensions
     {
-        public static Watch Wait(this Component current, float duration)
+        public static bool IsActive(this Component owner)
         {
-            return TimerManager.Load<Watch>(current, duration);
+            return owner && owner.gameObject.activeInHierarchy;
         }
 
-        public static Tween Tween(this Component current, float duration)
+        public static Async<T> Wait<T>(this Component owner, T operation) where T : AsyncOperation
         {
-            return TimerManager.Load<Tween>(current, duration);
+            return operation != null ? Async<T>.Create(owner, operation) : null;
+        }
+
+        public static Watch Wait(this Component current, float duration)
+        {
+            return Watch.Create(current, duration);
+        }
+
+        public static Tween Play(this Component current, float duration)
+        {
+            return Tween.Create(current, duration);
         }
 
         public static Tween DOMoveX(this Transform transform, float endValue, float duration)
         {
             var position = transform.position;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var positionX = Mathf.Lerp(position.x, endValue, progress);
                 transform.position = new Vector3(positionX, position.y, position.z);
@@ -39,7 +48,7 @@ namespace Astraia
         public static Tween DOMoveY(this Transform transform, float endValue, float duration)
         {
             var position = transform.position;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var positionY = Mathf.Lerp(position.y, endValue, progress);
                 transform.position = new Vector3(position.x, positionY, position.z);
@@ -49,7 +58,7 @@ namespace Astraia
         public static Tween DOMoveZ(this Transform transform, float endValue, float duration)
         {
             var position = transform.position;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var positionZ = Mathf.Lerp(position.z, endValue, progress);
                 transform.position = new Vector3(position.x, position.y, positionZ);
@@ -59,7 +68,7 @@ namespace Astraia
         public static Tween DOMove(this Transform transform, Vector3 endValue, float duration)
         {
             var position = transform.position;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var positionX = Mathf.Lerp(position.x, endValue.x, progress);
                 var positionY = Mathf.Lerp(position.y, endValue.y, progress);
@@ -71,7 +80,7 @@ namespace Astraia
         public static Tween DORotateX(this Transform transform, float endValue, float duration)
         {
             var rotation = transform.rotation.eulerAngles;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var rotationX = Mathf.LerpAngle(rotation.x, endValue, progress);
                 transform.rotation = Quaternion.Euler(rotationX, rotation.y, rotation.z);
@@ -81,7 +90,7 @@ namespace Astraia
         public static Tween DORotateY(this Transform transform, float endValue, float duration)
         {
             var rotation = transform.rotation.eulerAngles;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var rotationY = Mathf.LerpAngle(rotation.y, endValue, progress);
                 transform.rotation = Quaternion.Euler(rotation.x, rotationY, rotation.z);
@@ -91,7 +100,7 @@ namespace Astraia
         public static Tween DORotateZ(this Transform transform, float endValue, float duration)
         {
             var rotation = transform.rotation.eulerAngles;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var rotationZ = Mathf.LerpAngle(rotation.z, endValue, progress);
                 transform.rotation = Quaternion.Euler(rotation.x, rotation.y, rotationZ);
@@ -101,7 +110,7 @@ namespace Astraia
         public static Tween DORotate(this Transform transform, Vector3 endValue, float duration)
         {
             var rotation = transform.rotation.eulerAngles;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var rotationX = Mathf.Lerp(rotation.x, endValue.x, progress);
                 var rotationY = Mathf.Lerp(rotation.y, endValue.y, progress);
@@ -113,7 +122,7 @@ namespace Astraia
         public static Tween DOScaleX(this Transform transform, float endValue, float duration)
         {
             var localScale = transform.localScale;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var localScaleX = Mathf.Lerp(localScale.x, endValue, progress);
                 transform.localScale = new Vector3(localScaleX, localScale.y, localScale.z);
@@ -123,7 +132,7 @@ namespace Astraia
         public static Tween DOScaleY(this Transform transform, float endValue, float duration)
         {
             var localScale = transform.localScale;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var localScaleY = Mathf.Lerp(localScale.y, endValue, progress);
                 transform.localScale = new Vector3(localScale.x, localScaleY, localScale.z);
@@ -133,7 +142,7 @@ namespace Astraia
         public static Tween DOScaleZ(this Transform transform, float endValue, float duration)
         {
             var localScale = transform.localScale;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var localScaleZ = Mathf.Lerp(localScale.z, endValue, progress);
                 transform.localScale = new Vector3(localScale.x, localScale.y, localScaleZ);
@@ -143,7 +152,7 @@ namespace Astraia
         public static Tween DOScale(this Transform transform, Vector3 endValue, float duration)
         {
             var localScale = transform.localScale;
-            return transform.Tween(duration).OnUpdate(progress =>
+            return transform.Play(duration).OnUpdate(progress =>
             {
                 var localScaleX = Mathf.Lerp(localScale.x, endValue.x, progress);
                 var localScaleY = Mathf.Lerp(localScale.y, endValue.y, progress);

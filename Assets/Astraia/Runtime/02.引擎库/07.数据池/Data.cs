@@ -63,15 +63,15 @@ namespace Astraia.Common
 
                         if (property.PropertyType == typeof(int))
                         {
-                            ItemTable.Add(assetType, LoadData<int>());
+                            itemTable.Add(assetType, LoadData<int>());
                         }
                         else if (property.PropertyType == typeof(string))
                         {
-                            NameTable.Add(assetType, LoadData<string>());
+                            nameTable.Add(assetType, LoadData<string>());
                         }
                         else if (property.PropertyType.IsEnum)
                         {
-                            EnumTable.Add(assetType, LoadData<Enum>());
+                            enumTable.Add(assetType, LoadData<Enum>());
                         }
 
                         continue;
@@ -107,7 +107,7 @@ namespace Astraia.Common
         public static T Get<T>(int key) where T : IData
         {
             if (!Instance) return default;
-            if (!ItemTable.TryGetValue(typeof(T), out var dataTable))
+            if (!itemTable.TryGetValue(typeof(T), out var dataTable))
             {
                 return default;
             }
@@ -123,7 +123,7 @@ namespace Astraia.Common
         public static T Get<T>(string key) where T : IData
         {
             if (!Instance) return default;
-            if (!NameTable.TryGetValue(typeof(T), out var dataTable))
+            if (!nameTable.TryGetValue(typeof(T), out var dataTable))
             {
                 return default;
             }
@@ -139,7 +139,7 @@ namespace Astraia.Common
         public static T Get<T>(Enum key) where T : IData
         {
             if (!Instance) return default;
-            if (!EnumTable.TryGetValue(typeof(T), out var dataTable))
+            if (!enumTable.TryGetValue(typeof(T), out var dataTable))
             {
                 return default;
             }
@@ -155,21 +155,21 @@ namespace Astraia.Common
         public static IEnumerable<T> GetTable<T>() where T : IData
         {
             if (!Instance) yield break;
-            if (ItemTable.TryGetValue(typeof(T), out var items))
+            if (itemTable.TryGetValue(typeof(T), out var items))
             {
                 foreach (var item in items.Values)
                 {
                     yield return (T)item;
                 }
             }
-            else if (NameTable.TryGetValue(typeof(T), out var names))
+            else if (nameTable.TryGetValue(typeof(T), out var names))
             {
                 foreach (var item in names.Values)
                 {
                     yield return (T)item;
                 }
             }
-            else if (EnumTable.TryGetValue(typeof(T), out var enums))
+            else if (enumTable.TryGetValue(typeof(T), out var enums))
             {
                 foreach (var item in enums.Values)
                 {
@@ -184,24 +184,24 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            foreach (var dataTable in ItemTable.Values)
+            foreach (var dataTable in itemTable.Values)
             {
                 dataTable.Clear();
             }
 
-            foreach (var dataTable in EnumTable.Values)
+            foreach (var dataTable in enumTable.Values)
             {
                 dataTable.Clear();
             }
 
-            foreach (var dataTable in NameTable.Values)
+            foreach (var dataTable in nameTable.Values)
             {
                 dataTable.Clear();
             }
 
-            EnumTable.Clear();
-            ItemTable.Clear();
-            NameTable.Clear();
+            enumTable.Clear();
+            itemTable.Clear();
+            nameTable.Clear();
         }
     }
 }

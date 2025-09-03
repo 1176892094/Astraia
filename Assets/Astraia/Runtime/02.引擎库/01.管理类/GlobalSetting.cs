@@ -171,7 +171,7 @@ namespace Astraia
                 parent.offsetMax = Vector2.zero;
                 parent.localScale = Vector3.one;
                 parent.localPosition = Vector3.zero;
-                GlobalManager.LayerData.Add(layer, parent);
+                GlobalManager.layerData.Add(layer, parent);
             }
 
             source.canvas.gameObject.AddComponent<GraphicRaycaster>();

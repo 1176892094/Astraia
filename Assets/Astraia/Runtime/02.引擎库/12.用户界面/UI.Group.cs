@@ -21,13 +21,13 @@ namespace Astraia
         public static void Listen(int group, UIPanel panel)
         {
             if (!Instance) return;
-            if (!GroupData.TryGetValue(group, out var panels))
+            if (!groupData.TryGetValue(group, out var panels))
             {
                 panels = new HashSet<UIPanel>();
-                GroupData.Add(group, panels);
+                groupData.Add(group, panels);
             }
 
-            if (PanelData.TryGetValue(panel, out var groups))
+            if (panelData.TryGetValue(panel, out var groups))
             {
                 if (groups.Add(group))
                 {
@@ -39,13 +39,13 @@ namespace Astraia
         public static void Remove(int group, UIPanel panel)
         {
             if (!Instance) return;
-            if (!GroupData.TryGetValue(group, out var panels))
+            if (!groupData.TryGetValue(group, out var panels))
             {
                 panels = new HashSet<UIPanel>();
-                GroupData.Add(group, panels);
+                groupData.Add(group, panels);
             }
 
-            if (PanelData.TryGetValue(panel, out var groups))
+            if (panelData.TryGetValue(panel, out var groups))
             {
                 if (groups.Remove(group))
                 {
@@ -57,7 +57,7 @@ namespace Astraia
         public static void Show(int group)
         {
             if (!Instance) return;
-            if (GroupData.TryGetValue(group, out var panels))
+            if (groupData.TryGetValue(group, out var panels))
             {
                 foreach (var panel in panels)
                 {
@@ -69,7 +69,7 @@ namespace Astraia
         public static void Hide(int group)
         {
             if (!Instance) return;
-            if (GroupData.TryGetValue(group, out var panels))
+            if (groupData.TryGetValue(group, out var panels))
             {
                 foreach (var panel in panels)
                 {
@@ -80,11 +80,11 @@ namespace Astraia
 
         internal static void Show(UIPanel panel)
         {
-            if (PanelData.TryGetValue(panel, out var groups))
+            if (panelData.TryGetValue(panel, out var groups))
             {
                 foreach (var group in groups)
                 {
-                    if (GroupData.TryGetValue(group, out var panels))
+                    if (groupData.TryGetValue(group, out var panels))
                     {
                         foreach (var other in panels)
                         {

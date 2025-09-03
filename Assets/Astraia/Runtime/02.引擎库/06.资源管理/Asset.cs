@@ -32,7 +32,7 @@ namespace Astraia.Common
                 _ = LoadAssetPack(assetPack);
             }
 
-            await Task.WhenAll(AssetTask.Values);
+            await Task.WhenAll(assetTask.Values);
             EventManager.Invoke(new AssetComplete());
         }
 
@@ -97,7 +97,7 @@ namespace Astraia.Common
 
         private static async Task<(string path, string name)> LoadAssetData(string assetPath)
         {
-            if (!AssetData.TryGetValue(assetPath, out var assetData))
+            if (!GlobalManager.assetData.TryGetValue(assetPath, out var assetData))
             {
                 var index = assetPath.LastIndexOf('/');
                 if (index < 0)
@@ -110,7 +110,7 @@ namespace Astraia.Common
                     assetData = (assetPack, assetPath.Substring(index + 1));
                 }
 
-                AssetData.Add(assetPath, assetData);
+                GlobalManager.assetData.Add(assetPath, assetData);
             }
 
             var platform = await LoadAssetPack(GlobalSetting.Instance.assetPlatform.ToString());
@@ -132,12 +132,12 @@ namespace Astraia.Common
                 return null;
             }
 
-            if (AssetPack.TryGetValue(assetPath, out var assetPack))
+            if (GlobalManager.assetPack.TryGetValue(assetPath, out var assetPack))
             {
                 return assetPack;
             }
 
-            if (AssetTask.TryGetValue(assetPath, out var assetTask))
+            if (GlobalManager.assetTask.TryGetValue(assetPath, out var assetTask))
             {
                 return await assetTask;
             }
@@ -145,17 +145,17 @@ namespace Astraia.Common
             var persistentData = GlobalSetting.GetPacketPath(assetPath);
             var streamingAsset = GlobalSetting.GetClientPath(assetPath);
             assetTask = PackManager.LoadAssetRequest(persistentData, streamingAsset);
-            AssetTask.Add(assetPath, assetTask);
+            GlobalManager.assetTask.Add(assetPath, assetTask);
             try
             {
                 assetPack = await assetTask;
-                AssetPack.Add(assetPath, assetPack);
+                GlobalManager.assetPack.Add(assetPath, assetPack);
                 EventManager.Invoke(new AssetUpdate(assetPath));
                 return assetPack;
             }
             finally
             {
-                AssetTask.Remove(assetPath);
+                GlobalManager.assetTask.Remove(assetPath);
             }
         }
 
@@ -175,7 +175,7 @@ namespace Astraia.Common
         private static Object LoadBySimulates(string assetPath, Type assetType)
         {
 #if UNITY_EDITOR
-            if (!AssetPath.TryGetValue(assetPath, out var assetData)) return null;
+            if (!GlobalManager.assetPath.TryGetValue(assetPath, out var assetData)) return null;
             var request = UnityEditor.AssetDatabase.LoadAssetAtPath(assetData, assetType);
             return request is GameObject ? Object.Instantiate(request) : request;
 #else
@@ -185,10 +185,10 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            AssetPath.Clear();
-            AssetData.Clear();
-            AssetTask.Clear();
-            AssetPack.Clear();
+            assetPath.Clear();
+            assetData.Clear();
+            assetTask.Clear();
+            assetPack.Clear();
             AssetBundle.UnloadAllAssetBundles(true);
         }
     }

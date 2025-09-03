@@ -56,7 +56,7 @@ namespace Astraia.Net
             base.OnEnable();
             if ((agentState & AgentState.Awake) == 0)
             {
-                if (GlobalManager.AgentData.TryGetValue(this, out var agentData))
+                if (GlobalManager.agentData.TryGetValue(this, out var agentData))
                 {
                     foreach (var agent in agentData.Values)
                     {
@@ -168,7 +168,7 @@ namespace Astraia.Net
             void AssignSceneId()
             {
                 if (Application.isPlaying) return;
-                var duplicate = GlobalManager.SceneData.TryGetValue(sceneId, out var entity) && entity != null && entity != gameObject;
+                var duplicate = GlobalManager.sceneData.TryGetValue(sceneId, out var entity) && entity != null && entity != gameObject;
                 if (sceneId == 0 || duplicate)
                 {
                     sceneId = 0;
@@ -179,14 +179,14 @@ namespace Astraia.Net
 
                     Undo.RecordObject(gameObject, Log.E275);
                     var random = (uint)Service.Random.Next();
-                    duplicate = GlobalManager.SceneData.TryGetValue(random, out entity) && entity != null && entity != gameObject;
+                    duplicate = GlobalManager.sceneData.TryGetValue(random, out entity) && entity != null && entity != gameObject;
                     if (!duplicate)
                     {
                         sceneId = random;
                     }
                 }
 
-                GlobalManager.SceneData[sceneId] = gameObject;
+                GlobalManager.sceneData[sceneId] = gameObject;
             }
         }
 #endif
