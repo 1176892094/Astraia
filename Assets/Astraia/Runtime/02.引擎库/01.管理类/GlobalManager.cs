@@ -13,15 +13,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using EnumTable = System.Collections.Generic.Dictionary<System.Enum, Astraia.Common.IData>;
-using ItemTable = System.Collections.Generic.Dictionary<int, Astraia.Common.IData>;
-using NameTable = System.Collections.Generic.Dictionary<string, Astraia.Common.IData>;
 #if UNITY_EDITOR && ODIN_INSPECTOR
 using Sirenix.OdinInspector;
 #endif
 
 namespace Astraia.Common
 {
+    using ItemTable = Dictionary<int, IData>;
+    using NameTable = Dictionary<string, IData>;
+    using EnumTable = Dictionary<Enum, IData>;
+
     public class GlobalManager : MonoBehaviour
     {
         public static GlobalManager Instance;
@@ -29,9 +30,9 @@ namespace Astraia.Common
         public Canvas canvas;
 
         public AudioSource source;
-        
+
         internal static float musicVolume;
-        
+
         internal static float audioVolume;
 
         internal static AssetBundleManifest manifest;
