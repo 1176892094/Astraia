@@ -9,19 +9,20 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
 
 namespace Astraia
 {
     internal static class Variable<T>
     {
-        private static readonly Dictionary<Entity, Dictionary<int, T>> fields = new Dictionary<Entity, Dictionary<int, T>>();
+        private static readonly Dictionary<Entity, Dictionary<Enum, T>> fields = new Dictionary<Entity, Dictionary<Enum, T>>();
 
-        public static void SetValue(Entity owner, int id, T value)
+        public static void SetValue(Entity owner, Enum id, T value)
         {
             if (!fields.TryGetValue(owner, out var values))
             {
-                values = new Dictionary<int, T>();
+                values = new Dictionary<Enum, T>();
                 fields[owner] = values;
                 owner.OnFade += Enqueue;
 
@@ -35,7 +36,7 @@ namespace Astraia
             values[id] = value;
         }
 
-        public static T GetValue(Entity owner, int id)
+        public static T GetValue(Entity owner, Enum id)
         {
             if (fields.TryGetValue(owner, out var values))
             {
@@ -46,6 +47,19 @@ namespace Astraia
             }
 
             return default;
+        }
+    }
+
+    public static partial class Extensions
+    {
+        public static T GetValue<T>(this Entity owner, Enum id)
+        {
+            return Variable<T>.GetValue(owner, id);
+        }
+
+        public static void SetValue<T>(this Entity owner, Enum id, T value)
+        {
+            Variable<T>.SetValue(owner, id, value);
         }
     }
 }

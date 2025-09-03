@@ -62,8 +62,8 @@ namespace Astraia
             {
                 agent.Enqueue();
                 agents.Remove(keyType);
-                if (agents.Count == 0) agentData.Remove(owner);
                 queries.Remove(owner);
+                if (agents.Count == 0) agentData.Remove(owner);
                 if (queries.Count == 0) queryData.Remove(keyType);
                 HeapManager.Enqueue(agent, keyType);
             }
@@ -92,8 +92,8 @@ namespace Astraia
             {
                 agent.Enqueue();
                 agents.Remove(keyType);
-                if (agents.Count == 0) agentData.Remove(owner);
                 queries.Remove(owner);
+                if (agents.Count == 0) agentData.Remove(owner);
                 if (queries.Count == 0) queryData.Remove(keyType);
                 HeapManager.Enqueue(agent, realType);
             }

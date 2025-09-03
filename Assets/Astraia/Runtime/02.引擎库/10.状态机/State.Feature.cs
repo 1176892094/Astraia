@@ -17,51 +17,51 @@ namespace Astraia
     [Serializable]
     public abstract class Feature<TEntity> : Agent<TEntity> where TEntity : Entity
     {
-        private readonly Dictionary<int, Xor.Float> features = new Dictionary<int, Xor.Float>();
+        private readonly Dictionary<Enum, Xor.Float> features = new Dictionary<Enum, Xor.Float>();
 
-        public float GetFloat(int key)
+        public float GetFloat(Enum key)
         {
             features.TryAdd(key, 0);
             return features[key];
         }
 
-        public void SetFloat(int key, float value)
+        public void SetFloat(Enum key, float value)
         {
             features.TryAdd(key, 0);
             features[key] = value;
         }
 
-        public void AddFloat(int key, float value)
+        public void AddFloat(Enum key, float value)
         {
             features.TryAdd(key, 0);
             features[key] += value;
         }
 
-        public void SubFloat(int key, float value)
+        public void SubFloat(Enum key, float value)
         {
             features.TryAdd(key, 0);
             features[key] -= value;
         }
 
-        public int GetInt(int key)
+        public int GetInt(Enum key)
         {
             features.TryAdd(key, 0);
             return (int)features[key];
         }
 
-        public void SetInt(int key, float value)
+        public void SetInt(Enum key, float value)
         {
             features.TryAdd(key, 0);
             features[key] = (int)value;
         }
 
-        public void AddInt(int key, float value)
+        public void AddInt(Enum key, float value)
         {
             features.TryAdd(key, 0);
             features[key] += (int)value;
         }
 
-        public void SubInt(int key, float value)
+        public void SubInt(Enum key, float value)
         {
             features.TryAdd(key, 0);
             features[key] -= (int)value;
