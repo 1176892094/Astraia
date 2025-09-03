@@ -49,6 +49,7 @@ namespace Astraia
             {
                 agents.Add(keyType, agent);
                 queries.Add(owner, agent);
+                owner.Inject(agent);
                 agent.Create(owner);
                 agent.Dequeue();
                 owner.OnShow += agent.OnShow;
@@ -79,6 +80,7 @@ namespace Astraia
                 agent = HeapManager.Dequeue<IAgent>(realType);
                 agents.Add(keyType, agent);
                 queries.Add(owner, agent);
+                owner.Inject(agent);
                 agent.Create(owner);
                 agent.Dequeue();
                 owner.OnShow += agent.OnShow;

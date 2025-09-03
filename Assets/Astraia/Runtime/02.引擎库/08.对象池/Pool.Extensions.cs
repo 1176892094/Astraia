@@ -62,7 +62,7 @@ namespace Astraia
             return component;
         }
 
-        public static void Inject(this Transform inject, object target)
+        public static void Inject(this Component inject, object target)
         {
             var fields = target.GetType().GetFields(Service.Find.Instance);
             foreach (var field in fields)
@@ -88,7 +88,7 @@ namespace Astraia
                 }
 
                 var name = char.ToUpper(field.Name[0]) + field.Name.Substring(1);
-                var child = inject.GetChild(name);
+                var child = inject.transform.GetChild(name);
                 if (child != null)
                 {
                     var component = child.GetComponent(field.FieldType);

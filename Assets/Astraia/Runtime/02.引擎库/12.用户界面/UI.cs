@@ -32,7 +32,6 @@ namespace Astraia.Common
             var group = new HashSet<int>();
             panelData.Add(panel, group);
             
-            owner.transform.Inject(panel);
             owner.AddAgent(panel, typeof(UIPanel));
             owner.OnFade += Enqueue;
             
