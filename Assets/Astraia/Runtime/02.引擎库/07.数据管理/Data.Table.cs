@@ -16,16 +16,16 @@ namespace Astraia.Common
 {
     public static partial class DataManager
     {
-        private static class DataTable<Key, T> where T : IData
+        private static class DataTable<Key, Data> where Data : IData
         {
-            private static Dictionary<Key, T> itemData;
-            public static List<T> items;
-            public static T Get(Key key) => itemData[key];
+            private static Dictionary<Key, Data> itemData;
+            public static List<Data> items;
+            public static Data Get(Key key) => itemData[key];
 
             private static void Add(IDataTable assetData, string property, string name)
             {
-                itemData = new Dictionary<Key, T>();
-                if (assetData is DataTable<T> dataTable)
+                itemData = new Dictionary<Key, Data>();
+                if (assetData is DataTable<Data> dataTable)
                 {
                     items = dataTable.items;
                     foreach (var item in items)

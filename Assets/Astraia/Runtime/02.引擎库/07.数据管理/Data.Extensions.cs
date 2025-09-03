@@ -43,7 +43,7 @@ namespace Astraia
                 return ((Func<string, T>)func).Invoke(value);
             }
 
-            return value.InputGeneric<T>();
+            return value.InputGeneric(typeof(T)) is T result ? result : default;
         }
 
         private static Vector2 InputVector2(this string reason)
@@ -114,7 +114,7 @@ namespace Astraia
         {
             return reason.InputArray().Select(InputVector3Int).ToArray();
         }
-        
+
         private static List<string> InputArray(this string reason)
         {
             var result = new List<string>();
@@ -131,52 +131,13 @@ namespace Astraia
             return result;
         }
 
-        private static T InputGeneric<T>(this string reason)
-        {
-            if (string.IsNullOrEmpty(reason))
-            {
-                return default;
-            }
-
-            if (!typeof(T).IsArray)
-            {
-                return (T)InputGeneric(reason, typeof(T));
-            }
-
-            if (reason.EndsWith(";"))
-            {
-                reason = reason.Substring(0, reason.Length - 1);
-            }
-
-            var element = typeof(T).GetElementType();
-            if (element != null)
-            {
-                var members = reason.Split(';');
-                var instance = Array.CreateInstance(element, members.Length);
-                for (var i = 0; i < members.Length; ++i)
-                {
-                    var result = InputGeneric(members[i], element);
-                    instance.SetValue(result, i);
-                }
-
-                return (T)(object)instance;
-            }
-
-            return default;
-        }
-
         private static object InputGeneric(this string reason, Type target)
         {
-            if (string.IsNullOrEmpty(reason))
-            {
-                return null;
-            }
-
-            if (target == typeof(string))
+            if (string.IsNullOrEmpty(reason) || target == typeof(string))
             {
                 return reason;
             }
-
+            
             if (target.IsEnum)
             {
                 return Enum.Parse(target, reason);
@@ -185,6 +146,24 @@ namespace Astraia
             if (target.IsPrimitive)
             {
                 return Convert.ChangeType(reason, target);
+            }
+
+            if (target.IsArray)
+            {
+                if (reason.EndsWith(";"))
+                {
+                    reason = reason.Substring(0, reason.Length - 1);
+                }
+
+                var element = target.GetElementType();
+                var members = reason.Split(';');
+                var instance = Array.CreateInstance(element!, members.Length);
+                for (var i = 0; i < members.Length; ++i)
+                {
+                    instance.SetValue(InputGeneric(members[i], element), i);
+                }
+
+                return instance;
             }
 
             var member = reason.Split(',');
