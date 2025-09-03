@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
 
 namespace Astraia.Common
@@ -22,10 +23,17 @@ namespace Astraia.Common
 
     public static class SystemManager
     {
-        public static void Listen<T>() where T : ISystem
+        public static void Listen<T>(Type insert = null) where T : ISystem
         {
             var system = HeapManager.Dequeue<ISystem>(typeof(T));
-            systemData.Add(typeof(T), system);
+            if (insert == null)
+            {
+                systemData.Add(typeof(T), system);
+            }
+            else
+            {
+                systemData.Insert(insert, typeof(T), system);
+            }
         }
 
         public static void Remove<T>() where T : ISystem
@@ -43,7 +51,7 @@ namespace Astraia.Common
             {
                 system.Update();
             }
-            
+
             foreach (var async in asyncData.Values)
             {
                 async.Update();

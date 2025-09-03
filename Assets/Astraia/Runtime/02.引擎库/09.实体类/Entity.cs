@@ -30,7 +30,12 @@ namespace Astraia
         {
             foreach (var agent in agentData)
             {
-                AddAgent(Service.Find.Type(agent));
+                var result = Service.Find.Type(agent);
+                if (result != null)
+                {
+                    AddAgent(result);
+                }
+               
             }
         }
 
