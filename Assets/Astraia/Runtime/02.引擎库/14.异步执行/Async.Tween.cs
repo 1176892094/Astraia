@@ -104,22 +104,22 @@ namespace Astraia
 
         public Tween GetAwaiter()
         {
-            return owner.IsActive() ? this : Break();
+            return this;
         }
 
         void INotifyCompletion.OnCompleted(Action continuation)
         {
+            if (!owner.IsActive())
+            {
+                onComplete.Invoke();
+                return;
+            }
+
             onComplete += continuation;
         }
 
         public void GetResult()
         {
-        }
-        
-        public Tween Break()
-        {
-            onComplete.Invoke();
-            return this;
         }
     }
 }

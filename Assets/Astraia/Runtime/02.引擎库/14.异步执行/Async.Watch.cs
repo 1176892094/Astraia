@@ -75,7 +75,10 @@ namespace Astraia
 
                 progress--;
                 nextTime = waitTime + duration;
-                onUpdate?.Invoke();
+                if (onUpdate != null)
+                {
+                    onUpdate.Invoke();
+                }
 
                 if (progress == 0)
                 {
@@ -126,22 +129,22 @@ namespace Astraia
 
         public Watch GetAwaiter()
         {
-            return owner.IsActive() ? this : Break();
+            return this;
         }
 
         void INotifyCompletion.OnCompleted(Action continuation)
         {
+            if (!owner.IsActive())
+            {
+                onComplete.Invoke();
+                return;
+            }
+
             onComplete += continuation;
         }
 
         public void GetResult()
         {
-        }
-
-        public Watch Break()
-        {
-            onComplete.Invoke();
-            return this;
         }
     }
 }

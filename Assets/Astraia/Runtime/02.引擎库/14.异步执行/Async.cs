@@ -28,16 +28,14 @@ namespace Astraia
     {
         private Component owner;
         private T operation;
-        private int complete;
-        private Action onUpdate;
         private Action onComplete;
+        private Action<float> onUpdate;
 
         internal static Async<T> Create(Component owner, T operation)
         {
             var item = HeapManager.Dequeue<Async<T>>();
             asyncData.Add(owner, item);
             item.owner = owner;
-            item.complete = 0;
             item.operation = operation;
             item.onComplete = OnComplete;
             return item;
@@ -45,7 +43,6 @@ namespace Astraia
             void OnComplete()
             {
                 item.owner = null;
-                item.complete = 1;
                 item.onUpdate = null;
                 item.operation = null;
                 asyncData.Remove(owner);
@@ -65,7 +62,7 @@ namespace Astraia
 
                 if (onUpdate != null)
                 {
-                    onUpdate.Invoke();
+                    onUpdate.Invoke(operation.progress);
                 }
 
                 if (operation.isDone)
@@ -79,7 +76,7 @@ namespace Astraia
             }
         }
 
-        public Async<T> OnUpdate(Action onUpdate)
+        public Async<T> OnUpdate(Action<float> onUpdate)
         {
             this.onUpdate += onUpdate;
             return this;
@@ -94,27 +91,27 @@ namespace Astraia
 
     public sealed partial class Async<T> : INotifyCompletion
     {
-        public bool IsCompleted => complete == 1;
+        public bool IsCompleted => operation.isDone;
 
         public Async<T> GetAwaiter()
         {
-            return owner.IsActive() ? this : Break();
+            return this;
         }
 
         void INotifyCompletion.OnCompleted(Action continuation)
         {
+            if (!owner.IsActive())
+            {
+                onComplete.Invoke();
+                return;
+            }
+
             onComplete += continuation;
         }
 
         public T GetResult()
         {
             return operation;
-        }
-
-        public Async<T> Break()
-        {
-            onComplete.Invoke();
-            return this;
         }
     }
 }

@@ -153,6 +153,7 @@ namespace Astraia.Common
         {
             Instance = null;
             await Task.Yield();
+        
             PageManager.Dispose();
             PackManager.Dispose();
             DataManager.Dispose();
