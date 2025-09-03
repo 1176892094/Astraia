@@ -18,7 +18,6 @@ namespace Astraia
     [Serializable]
     public abstract class StateMachine<TEntity> : Agent<TEntity> where TEntity : Entity
     {
-        private Dictionary<int, object> values = new Dictionary<int, object>();
         private Dictionary<int, IState> states = new Dictionary<int, IState>();
         private IState current;
 
@@ -26,17 +25,7 @@ namespace Astraia
         {
             current?.OnUpdate();
         }
-
-        public T GetValue<T>(int key)
-        {
-            return (T)values[key];
-        }
-
-        public void SetValue<T>(int key, T value)
-        {
-            values[key] = value;
-        }
-
+        
         public void Create(int state, Type value)
         {
             if (!states.TryGetValue(state, out var item))

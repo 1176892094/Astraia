@@ -19,27 +19,27 @@ namespace Astraia
 
         public static void SetValue(Entity owner, int id, T value)
         {
-            if (!fields.TryGetValue(owner, out var caches))
+            if (!fields.TryGetValue(owner, out var values))
             {
-                caches = new Dictionary<int, T>();
-                fields[owner] = caches;
+                values = new Dictionary<int, T>();
+                fields[owner] = values;
                 owner.OnFade += Enqueue;
 
                 void Enqueue()
                 {
-                    caches.Clear();
+                    values.Clear();
                     fields.Remove(owner);
                 }
             }
 
-            caches[id] = value;
+            values[id] = value;
         }
 
         public static T GetValue(Entity owner, int id)
         {
-            if (fields.TryGetValue(owner, out var properties))
+            if (fields.TryGetValue(owner, out var values))
             {
-                if (properties.TryGetValue(id, out var value))
+                if (values.TryGetValue(id, out var value))
                 {
                     return value;
                 }
