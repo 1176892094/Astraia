@@ -35,7 +35,6 @@ namespace Astraia
                 {
                     AddAgent(result);
                 }
-               
             }
         }
 
@@ -98,13 +97,24 @@ namespace Astraia
             return EntityManager.GetAgent(this, keyType);
         }
 
+        public IEnumerable<IAgent> GetAgents()
+        {
+            if (GlobalManager.agentData.TryGetValue(this, out var agent))
+            {
+                foreach (var result in agent.Values)
+                {
+                    yield return result;
+                }
+            }
+        }
+
 #if UNITY_EDITOR && ODIN_INSPECTOR
         private static List<string> Agents = GlobalSetting.GetAgents();
 
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<IAgent> agents
         {
-            get => GlobalManager.agentData.TryGetValue(this, out var agent) ? agent.Values.ToList() : null;
+            get => GetAgents().ToList();
             set => Debug.LogWarning(value, this);
         }
 

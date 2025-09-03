@@ -21,7 +21,6 @@ namespace Astraia
     {
         public static partial class Find
         {
-            private const BindingFlags Declared = Static | Instance | BindingFlags.DeclaredOnly;
             private static readonly Dictionary<Type, Dictionary<string, Func<object, object>>> getterCache = new();
             private static readonly Dictionary<Type, Dictionary<string, Action<object, object>>> setterCache = new();
             private static readonly Dictionary<Type, Dictionary<string, Func<object, object[], object>>> methodCache = new();

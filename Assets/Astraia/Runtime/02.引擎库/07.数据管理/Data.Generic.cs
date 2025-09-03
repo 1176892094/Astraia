@@ -1,4 +1,3 @@
-
 // *********************************************************************************
 // # Project: Astraia
 // # Unity: 6000.3.5f1
@@ -20,16 +19,10 @@ namespace Astraia
     [Serializable]
     public abstract class DataTable<T> : ScriptableObject, IDataTable where T : IData
     {
-        [SerializeField] private List<T> dataList = new List<T>();
+        [SerializeField] internal List<T> items = new List<T>();
 
-        public int Count => dataList.Count;
+        public int Count => items.Count;
 
-        void IDataTable.AddData(IData data) => AddData((T)data);
-
-        IData IDataTable.GetData(int index) => GetData(index);
-
-        public void AddData(T data) => dataList.Add(data);
-
-        public T GetData(int index) => dataList[index];
+        public void AddData(IData data) => items.Add((T)data);
     }
 }

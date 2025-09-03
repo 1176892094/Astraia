@@ -18,10 +18,6 @@ namespace Astraia.Common
     
     internal interface IDataTable
     {
-        int Count { get; }
-
         void AddData(IData data);
-
-        IData GetData(int index);
     }
 }

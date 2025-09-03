@@ -19,10 +19,6 @@ using Sirenix.OdinInspector;
 
 namespace Astraia.Common
 {
-    using ItemTable = Dictionary<int, IData>;
-    using NameTable = Dictionary<string, IData>;
-    using EnumTable = Dictionary<Enum, IData>;
-
     public class GlobalManager : MonoBehaviour
     {
         public static GlobalManager Instance;
@@ -64,18 +60,6 @@ namespace Astraia.Common
         [ShowInInspector]
 #endif
         internal static readonly Dictionary<string, string> assetPath = new Dictionary<string, string>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly Dictionary<Type, ItemTable> itemTable = new Dictionary<Type, ItemTable>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly Dictionary<Type, NameTable> nameTable = new Dictionary<Type, NameTable>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly Dictionary<Type, EnumTable> enumTable = new Dictionary<Type, EnumTable>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
@@ -153,10 +137,8 @@ namespace Astraia.Common
         {
             Instance = null;
             await Task.Yield();
-        
             PageManager.Dispose();
             PackManager.Dispose();
-            DataManager.Dispose();
             PoolManager.Dispose();
             AudioManager.Dispose();
             AssetManager.Dispose();
