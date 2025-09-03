@@ -16,21 +16,23 @@ using Object = UnityEngine.Object;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
+
     public static partial class AssetManager
     {
         public static async void LoadAssetData()
         {
             var platform = await LoadAssetPack(GlobalSetting.Instance.assetPlatform.ToString());
-            GlobalManager.manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
-            EventManager.Invoke(new AssetAwake(GlobalManager.manifest.GetAllAssetBundles()));
+            manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
+            EventManager.Invoke(new AssetAwake(manifest.GetAllAssetBundles()));
 
-            var assetPacks = GlobalManager.manifest.GetAllAssetBundles();
+            var assetPacks = manifest.GetAllAssetBundles();
             foreach (var assetPack in assetPacks)
             {
                 _ = LoadAssetPack(assetPack);
             }
 
-            await Task.WhenAll(GlobalManager.assetTask.Values);
+            await Task.WhenAll(assetTask.Values);
             EventManager.Invoke(new AssetComplete());
         }
 
@@ -38,7 +40,7 @@ namespace Astraia.Common
         {
             try
             {
-                if (!GlobalManager.Instance) return null;
+                if (!Instance) return null;
                 var assetData = await LoadAsset(assetPath, typeof(T));
                 if (assetData != null)
                 {
@@ -59,7 +61,7 @@ namespace Astraia.Common
         {
             try
             {
-                if (!GlobalManager.Instance) return;
+                if (!Instance) return;
                 var assetData = await LoadAsset(assetPath, typeof(T));
                 if (assetData != null)
                 {
@@ -112,9 +114,9 @@ namespace Astraia.Common
             }
 
             var platform = await LoadAssetPack(GlobalSetting.Instance.assetPlatform.ToString());
-            GlobalManager.manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
+            manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
 
-            var assetPacks = GlobalManager.manifest.GetAllDependencies(assetData.Item1);
+            var assetPacks = manifest.GetAllDependencies(assetData.Item1);
             foreach (var assetPack in assetPacks)
             {
                 _ = LoadAssetPack(assetPack);
@@ -183,10 +185,10 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            GlobalManager.assetPath.Clear();
-            GlobalManager.assetData.Clear();
-            GlobalManager.assetTask.Clear();
-            GlobalManager.assetPack.Clear();
+            assetPath.Clear();
+            assetData.Clear();
+            assetTask.Clear();
+            assetPack.Clear();
             AssetBundle.UnloadAllAssetBundles(true);
         }
     }

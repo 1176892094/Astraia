@@ -16,13 +16,15 @@ using UnityEngine.SceneManagement;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
+
     public static partial class AssetManager
     {
         public static async void LoadScene(string assetPath)
         {
             try
             {
-                if (!GlobalManager.Instance) return;
+                if (!Instance) return;
                 var assetData = await LoadSceneAsset(GlobalSetting.GetScenePath(assetPath));
                 if (assetData != null)
                 {

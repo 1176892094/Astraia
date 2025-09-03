@@ -51,7 +51,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, (string, string)> assetData = new Dictionary<string, (string, string)>();
+        internal static readonly Dictionary<string, (string path, string name)> assetData = new Dictionary<string, (string, string)>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif

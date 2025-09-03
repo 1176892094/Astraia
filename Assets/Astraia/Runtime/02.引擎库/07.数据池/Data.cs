@@ -16,11 +16,13 @@ using UnityEngine;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
+
     public static class DataManager
     {
         public static async void LoadDataTable()
         {
-            if (!GlobalManager.Instance) return;
+            if (!Instance) return;
             var assembly = Service.Find.Assembly(GlobalSetting.assemblyName);
             if (assembly == null)
             {
@@ -61,15 +63,15 @@ namespace Astraia.Common
 
                         if (property.PropertyType == typeof(int))
                         {
-                            GlobalManager.itemTable.Add(assetType, LoadData<int>());
+                            itemTable.Add(assetType, LoadData<int>());
                         }
                         else if (property.PropertyType == typeof(string))
                         {
-                            GlobalManager.nameTable.Add(assetType, LoadData<string>());
+                            nameTable.Add(assetType, LoadData<string>());
                         }
                         else if (property.PropertyType.IsEnum)
                         {
-                            GlobalManager.enumTable.Add(assetType, LoadData<Enum>());
+                            enumTable.Add(assetType, LoadData<Enum>());
                         }
 
                         continue;
@@ -104,8 +106,8 @@ namespace Astraia.Common
 
         public static T Get<T>(int key) where T : IData
         {
-            if (!GlobalManager.Instance) return default;
-            if (!GlobalManager.itemTable.TryGetValue(typeof(T), out var dataTable))
+            if (!Instance) return default;
+            if (!itemTable.TryGetValue(typeof(T), out var dataTable))
             {
                 return default;
             }
@@ -120,8 +122,8 @@ namespace Astraia.Common
 
         public static T Get<T>(string key) where T : IData
         {
-            if (!GlobalManager.Instance) return default;
-            if (!GlobalManager.nameTable.TryGetValue(typeof(T), out var dataTable))
+            if (!Instance) return default;
+            if (!nameTable.TryGetValue(typeof(T), out var dataTable))
             {
                 return default;
             }
@@ -136,8 +138,8 @@ namespace Astraia.Common
 
         public static T Get<T>(Enum key) where T : IData
         {
-            if (!GlobalManager.Instance) return default;
-            if (!GlobalManager.enumTable.TryGetValue(typeof(T), out var dataTable))
+            if (!Instance) return default;
+            if (!enumTable.TryGetValue(typeof(T), out var dataTable))
             {
                 return default;
             }
@@ -152,24 +154,24 @@ namespace Astraia.Common
 
         public static IEnumerable<T> GetTable<T>() where T : IData
         {
-            if (!GlobalManager.Instance) yield break;
-            if (GlobalManager.itemTable.TryGetValue(typeof(T), out var itemTable))
+            if (!Instance) yield break;
+            if (itemTable.TryGetValue(typeof(T), out var items))
             {
-                foreach (var item in itemTable.Values)
+                foreach (var item in items.Values)
                 {
                     yield return (T)item;
                 }
             }
-            else if (GlobalManager.nameTable.TryGetValue(typeof(T), out var nameTable))
+            else if (nameTable.TryGetValue(typeof(T), out var names))
             {
-                foreach (var item in nameTable.Values)
+                foreach (var item in names.Values)
                 {
                     yield return (T)item;
                 }
             }
-            else if (GlobalManager.enumTable.TryGetValue(typeof(T), out var enumTable))
+            else if (enumTable.TryGetValue(typeof(T), out var enums))
             {
-                foreach (var item in enumTable.Values)
+                foreach (var item in enums.Values)
                 {
                     yield return (T)item;
                 }
@@ -182,24 +184,24 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            foreach (var dataTable in GlobalManager.itemTable.Values)
+            foreach (var dataTable in itemTable.Values)
             {
                 dataTable.Clear();
             }
 
-            foreach (var dataTable in GlobalManager.enumTable.Values)
+            foreach (var dataTable in enumTable.Values)
             {
                 dataTable.Clear();
             }
 
-            foreach (var dataTable in GlobalManager.nameTable.Values)
+            foreach (var dataTable in nameTable.Values)
             {
                 dataTable.Clear();
             }
 
-            GlobalManager.enumTable.Clear();
-            GlobalManager.itemTable.Clear();
-            GlobalManager.nameTable.Clear();
+            enumTable.Clear();
+            itemTable.Clear();
+            nameTable.Clear();
         }
     }
 }

@@ -17,11 +17,13 @@ using UnityEngine.Networking;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
+
     internal static class PackManager
     {
         public static async void LoadAssetData()
         {
-            if (!GlobalManager.Instance) return;
+            if (!Instance) return;
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Simulate)
             {
                 EventManager.Invoke(new PackComplete(0, "启动本地资源加载。"));
@@ -43,7 +45,7 @@ namespace Astraia.Common
                 var assetPacks = JsonManager.FromJson<List<PackData>>(serverRequest);
                 foreach (var assetPack in assetPacks)
                 {
-                    GlobalManager.serverPacks.Add(assetPack.name, assetPack);
+                    serverPacks.Add(assetPack.name, assetPack);
                 }
             }
             else
@@ -60,21 +62,21 @@ namespace Astraia.Common
                 var assetPacks = JsonManager.FromJson<List<PackData>>(clientRequest);
                 foreach (var assetPack in assetPacks)
                 {
-                    GlobalManager.clientPacks.Add(assetPack.name, assetPack);
+                    clientPacks.Add(assetPack.name, assetPack);
                 }
             }
 
             var fileNames = new List<string>();
-            foreach (var fileName in GlobalManager.serverPacks.Keys)
+            foreach (var fileName in serverPacks.Keys)
             {
-                if (GlobalManager.clientPacks.TryGetValue(fileName, out var assetPack))
+                if (clientPacks.TryGetValue(fileName, out var assetPack))
                 {
-                    if (GlobalManager.serverPacks[fileName] != assetPack)
+                    if (serverPacks[fileName] != assetPack)
                     {
                         fileNames.Add(fileName);
                     }
 
-                    GlobalManager.clientPacks.Remove(fileName);
+                    clientPacks.Remove(fileName);
                 }
                 else
                 {
@@ -85,14 +87,14 @@ namespace Astraia.Common
             var fileSizes = new int[fileNames.Count];
             for (int i = 0; i < fileNames.Count; i++)
             {
-                if (GlobalManager.serverPacks.TryGetValue(fileNames[i], out var assetPack))
+                if (serverPacks.TryGetValue(fileNames[i], out var assetPack))
                 {
                     fileSizes[i] = assetPack.size;
                 }
             }
 
             EventManager.Invoke(new PackAwake(fileSizes));
-            foreach (var clientPack in GlobalManager.clientPacks.Keys)
+            foreach (var clientPack in clientPacks.Keys)
             {
                 var filePath = GlobalSetting.GetPacketPath(clientPack);
                 if (File.Exists(filePath))
@@ -183,7 +185,7 @@ namespace Astraia.Common
             using (var request = UnityWebRequest.Get(packUri))
             {
                 var result = request.SendWebRequest();
-                while (!result.isDone && GlobalSetting.Instance)
+                while (!result.isDone && Instance)
                 {
                     EventManager.Invoke(new PackUpdate(packName, request.downloadProgress));
                     await Task.Yield();
@@ -240,7 +242,7 @@ namespace Astraia.Common
             }
 
             var assetTask = AssetBundle.LoadFromMemoryAsync(result);
-            while (!assetTask.isDone && GlobalSetting.Instance)
+            while (!assetTask.isDone && Instance)
             {
                 await Task.Yield();
             }
@@ -278,8 +280,8 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            GlobalManager.clientPacks.Clear();
-            GlobalManager.serverPacks.Clear();
+            clientPacks.Clear();
+            serverPacks.Clear();
         }
     }
 }
