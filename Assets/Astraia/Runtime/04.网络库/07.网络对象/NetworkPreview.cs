@@ -200,7 +200,7 @@ namespace Astraia.Net
         {
             var copies = new List<AgentData>();
 
-            if (GlobalManager.agentData.TryGetValue(entity, out var agentData))
+            if (GlobalManager.AgentData.TryGetValue(entity, out var agentData))
             {
                 var agents = agentData.Values;
                 foreach (var agent in agents)

@@ -30,28 +30,28 @@ namespace Astraia.Common
             var owner = obj.GetOrAddComponent<Entity>();
             var panel = (UIPanel)HeapManager.Dequeue<IAgent>(type);
             var group = new HashSet<int>();
-            panelData.Add(panel, group);
+            PanelData.Add(panel, group);
             
             owner.transform.Inject(panel);
             owner.AddAgent(panel, typeof(UIPanel));
             owner.OnFade += Enqueue;
             
             SetLayer(panel.transform, panel.layer);
-            panelPage.Add(type, panel);
+            PanelType.Add(type, panel);
             return panel;
 
             void Enqueue()
             {
                 group.Clear();
-                panelPage.Remove(type);
-                panelData.Remove(panel);
+                PanelType.Remove(type);
+                PanelData.Remove(panel);
             }
         }
 
         public static async void Show<T>(Action<T> action = null) where T : UIPanel
         {
             if (!Instance) return;
-            if (!panelPage.TryGetValue(typeof(T), out var panel))
+            if (!PanelType.TryGetValue(typeof(T), out var panel))
             {
                 panel = await Load(GlobalSetting.GetPanelPath(typeof(T).Name), typeof(T));
             }
@@ -63,7 +63,7 @@ namespace Astraia.Common
         public static void Hide<T>() where T : UIPanel
         {
             if (!Instance) return;
-            if (panelPage.TryGetValue(typeof(T), out var panel))
+            if (PanelType.TryGetValue(typeof(T), out var panel))
             {
                 panel.gameObject.SetActive(false);
             }
@@ -71,13 +71,13 @@ namespace Astraia.Common
 
         public static T Find<T>() where T : UIPanel
         {
-            return panelPage.TryGetValue(typeof(T), out var panel) ? (T)panel : null;
+            return PanelType.TryGetValue(typeof(T), out var panel) ? (T)panel : null;
         }
 
         public static void Destroy<T>()
         {
             if (!Instance) return;
-            if (panelPage.TryGetValue(typeof(T), out var panel))
+            if (PanelType.TryGetValue(typeof(T), out var panel))
             {
                 panel.gameObject.SetActive(false);
                 Object.Destroy(panel.gameObject);
@@ -87,7 +87,7 @@ namespace Astraia.Common
         public static async void Show(Type type, Action<UIPanel> action = null)
         {
             if (!Instance) return;
-            if (!panelPage.TryGetValue(type, out var panel))
+            if (!PanelType.TryGetValue(type, out var panel))
             {
                 panel = await Load(GlobalSetting.GetPanelPath(type.Name), type);
             }
@@ -99,7 +99,7 @@ namespace Astraia.Common
         public static void Hide(Type type)
         {
             if (!Instance) return;
-            if (panelPage.TryGetValue(type, out var panel))
+            if (PanelType.TryGetValue(type, out var panel))
             {
                 panel.gameObject.SetActive(false);
             }
@@ -107,13 +107,13 @@ namespace Astraia.Common
 
         public static UIPanel Find(Type type)
         {
-            return panelPage.TryGetValue(type, out var panel) ? panel : null;
+            return PanelType.TryGetValue(type, out var panel) ? panel : null;
         }
 
         public static void Destroy(Type type)
         {
             if (!Instance) return;
-            if (panelPage.TryGetValue(type, out var panel))
+            if (PanelType.TryGetValue(type, out var panel))
             {
                 panel.gameObject.SetActive(false);
                 Object.Destroy(panel.gameObject);
@@ -122,7 +122,7 @@ namespace Astraia.Common
 
         public static void Clear()
         {
-            foreach (var panel in panelPage.Values)
+            foreach (var panel in PanelType.Values)
             {
                 if (panel.state != UIState.Stable)
                 {
@@ -136,7 +136,7 @@ namespace Astraia.Common
         {
             if (!Instance) return;
             var transform = panel.GetComponent<RectTransform>();
-            transform.SetParent(layerData[layer]);
+            transform.SetParent(LayerData[layer]);
             transform.anchorMin = Vector2.zero;
             transform.anchorMax = Vector2.one;
             transform.offsetMin = Vector2.zero;
@@ -147,20 +147,20 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            foreach (var panel in panelData.Values)
+            foreach (var panel in PanelData.Values)
             {
                 panel.Clear();
             }
 
-            foreach (var group in groupData.Values)
+            foreach (var group in GroupData.Values)
             {
                 group.Clear();
             }
 
-            panelData.Clear();
-            groupData.Clear();
-            layerData.Clear();
-            panelPage.Clear();
+            PanelData.Clear();
+            GroupData.Clear();
+            LayerData.Clear();
+            PanelType.Clear();
         }
     }
 }

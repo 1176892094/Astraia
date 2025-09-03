@@ -17,7 +17,7 @@ namespace Astraia.Common
 
     public interface ISystem
     {
-        void Update(float time);
+        void Update();
     }
 
     public static class SystemManager
@@ -25,29 +25,29 @@ namespace Astraia.Common
         public static void Listen<T>() where T : ISystem
         {
             var system = HeapManager.Dequeue<ISystem>(typeof(T));
-            systemData.Add(typeof(T), system);
+            SystemData.Add(typeof(T), system);
         }
 
         public static void Remove<T>() where T : ISystem
         {
-            if (systemData.TryGetValue(typeof(T), out var system))
+            if (SystemData.TryGetValue(typeof(T), out var system))
             {
-                systemData.Remove(typeof(T));
+                SystemData.Remove(typeof(T));
                 HeapManager.Enqueue(system, typeof(T));
             }
         }
 
-        internal static void Update(float time)
+        internal static void Update()
         {
-            foreach (var system in systemData.Values)
+            foreach (var system in SystemData.Values)
             {
-                system.Update(time);
+                system.Update();
             }
         }
 
         public static IEnumerable<T> Query<T>() where T : IAgent
         {
-            if (queryData.TryGetValue(typeof(T), out var entities))
+            if (QueryData.TryGetValue(typeof(T), out var entities))
             {
                 foreach (var entity in entities)
                 {
@@ -61,12 +61,12 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            foreach (var system in systemData.Values)
+            foreach (var system in SystemData.Values)
             {
                 HeapManager.Enqueue(system);
             }
 
-            systemData.Clear();
+            SystemData.Clear();
         }
     }
 }

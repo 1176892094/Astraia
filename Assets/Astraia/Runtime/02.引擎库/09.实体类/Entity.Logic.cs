@@ -20,10 +20,10 @@ namespace Astraia
     {
         private static List<Type, IAgent> GetAgents(Entity owner)
         {
-            if (!agentData.TryGetValue(owner, out var agents))
+            if (!AgentData.TryGetValue(owner, out var agents))
             {
                 agents = new List<Type, IAgent>();
-                agentData.Add(owner, agents);
+                AgentData.Add(owner, agents);
             }
 
             return agents;
@@ -31,10 +31,10 @@ namespace Astraia
 
         private static List<Entity, IAgent> GetQueries(Type queryType)
         {
-            if (!queryData.TryGetValue(queryType, out var queries))
+            if (!QueryData.TryGetValue(queryType, out var queries))
             {
                 queries = new List<Entity, IAgent>();
-                queryData.Add(queryType, queries);
+                QueryData.Add(queryType, queries);
             }
 
             return queries;
@@ -63,8 +63,8 @@ namespace Astraia
                 agent.Enqueue();
                 agents.Remove(keyType);
                 queries.Remove(owner);
-                if (agents.Count == 0) agentData.Remove(owner);
-                if (queries.Count == 0) queryData.Remove(keyType);
+                if (agents.Count == 0) AgentData.Remove(owner);
+                if (queries.Count == 0) QueryData.Remove(keyType);
                 HeapManager.Enqueue(agent, keyType);
             }
         }
@@ -93,15 +93,15 @@ namespace Astraia
                 agent.Enqueue();
                 agents.Remove(keyType);
                 queries.Remove(owner);
-                if (agents.Count == 0) agentData.Remove(owner);
-                if (queries.Count == 0) queryData.Remove(keyType);
+                if (agents.Count == 0) AgentData.Remove(owner);
+                if (queries.Count == 0) QueryData.Remove(keyType);
                 HeapManager.Enqueue(agent, realType);
             }
         }
 
         public static IAgent GetAgent(Entity owner, Type keyType)
         {
-            if (agentData.TryGetValue(owner, out var agents))
+            if (AgentData.TryGetValue(owner, out var agents))
             {
                 if (agents.TryGetValue(keyType, out var agent))
                 {
@@ -114,18 +114,18 @@ namespace Astraia
 
         public static void Dispose()
         {
-            foreach (var agents in agentData.Values)
+            foreach (var agents in AgentData.Values)
             {
                 agents.Clear();
             }
 
-            foreach (var queries in queryData.Values)
+            foreach (var queries in QueryData.Values)
             {
                 queries.Clear();
             }
 
-            agentData.Clear();
-            queryData.Clear();
+            AgentData.Clear();
+            QueryData.Clear();
         }
     }
 }

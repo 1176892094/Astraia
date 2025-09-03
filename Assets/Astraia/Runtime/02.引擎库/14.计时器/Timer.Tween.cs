@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public sealed class Tween : ITimer, INotifyCompletion
+    public sealed class Tween : ITask, INotifyCompletion
     {
         private bool complete;
         private float duration;
@@ -40,7 +40,7 @@ namespace Astraia
             OnUpdated = null;
         }
 
-        void ITimer.Start(Component owner, float duration, Action OnDispose)
+        void ITask.Start(Component owner, float duration, Action OnDispose)
         {
             progress = 0;
             waitTime = 0;
@@ -50,7 +50,7 @@ namespace Astraia
             this.OnDispose = OnDispose;
         }
 
-        void ITimer.Update(float time)
+        void ITask.Update(float time)
         {
             try
             {

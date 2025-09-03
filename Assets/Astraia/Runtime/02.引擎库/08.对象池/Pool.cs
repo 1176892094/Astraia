@@ -40,11 +40,11 @@ namespace Astraia.Common
         public static void Hide(GameObject item)
         {
             if (!Instance) return;
-            if (!poolGroup.TryGetValue(item.name, out var pool))
+            if (!RootData.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject(Service.Text.Format("Pool - {0}", item.name));
                 pool.transform.SetParent(Instance.transform);
-                poolGroup.Add(item.name, pool);
+                RootData.Add(item.name, pool);
             }
 
             item.SetActive(false);
@@ -54,25 +54,25 @@ namespace Astraia.Common
 
         private static Pool LoadPool(string path)
         {
-            if (poolData.TryGetValue(path, out var pool))
+            if (PoolData.TryGetValue(path, out var pool))
             {
                 return (Pool)pool;
             }
 
             pool = Pool.Create(typeof(GameObject), path);
-            poolData.Add(path, pool);
+            PoolData.Add(path, pool);
             return (Pool)pool;
         }
 
         internal static void Dispose()
         {
-            foreach (var item in poolData.Values)
+            foreach (var item in PoolData.Values)
             {
                 item.Dispose();
             }
 
-            poolData.Clear();
-            poolGroup.Clear();
+            PoolData.Clear();
+            RootData.Clear();
         }
     }
 }

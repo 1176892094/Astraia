@@ -19,35 +19,35 @@ namespace Astraia.Common
     {
         public static void Update(float time)
         {
-            foreach (var timer in timerData.Values)
+            foreach (var timer in TaskData.Values)
             {
                 timer.Update(time);
             }
         }
 
-        public static T Load<T>(Component entity, float duration) where T : class, ITimer
+        public static T Load<T>(Component entity, float duration) where T : class, ITask
         {
             if (!Instance) return null;
             var item = HeapManager.Dequeue<T>();
             item.Start(entity, duration, OnComplete);
-            timerData.Add(entity, item);
+            TaskData.Add(entity, item);
             return item;
 
             void OnComplete()
             {
                 item.Dispose();
-                timerData.Remove(entity);
+                TaskData.Remove(entity);
                 HeapManager.Enqueue(item, typeof(T));
             }
         }
 
         internal static void Dispose()
         {
-            timerData.Clear();
+            TaskData.Clear();
         }
     }
 
-    internal interface ITimer : IDisposable
+    internal interface ITask : IDisposable
     {
         void Start(Component owner, float duration, Action OnDispose);
 

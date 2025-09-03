@@ -52,7 +52,7 @@ namespace Astraia.Common
                     Draw(EventManager.poolData.Values, "事件池", "触发数\t\t事件数\t\t添加次数\t\t移除次数");
                     break;
                 case PoolMode.Pool:
-                    Draw(GlobalManager.poolData.Values, "对象池", "未激活\t\t激活中\t\t出队次数\t\t入队次数");
+                    Draw(GlobalManager.PoolData.Values, "对象池", "未激活\t\t激活中\t\t出队次数\t\t入队次数");
                     break;
             }
         }

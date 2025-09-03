@@ -45,7 +45,7 @@ namespace Astraia.Common
                 var assetPacks = JsonManager.FromJson<List<PackData>>(serverRequest);
                 foreach (var assetPack in assetPacks)
                 {
-                    serverPacks.Add(assetPack.name, assetPack);
+                    ServerData.Add(assetPack.name, assetPack);
                 }
             }
             else
@@ -62,21 +62,21 @@ namespace Astraia.Common
                 var assetPacks = JsonManager.FromJson<List<PackData>>(clientRequest);
                 foreach (var assetPack in assetPacks)
                 {
-                    clientPacks.Add(assetPack.name, assetPack);
+                    ClientData.Add(assetPack.name, assetPack);
                 }
             }
 
             var fileNames = new List<string>();
-            foreach (var fileName in serverPacks.Keys)
+            foreach (var fileName in ServerData.Keys)
             {
-                if (clientPacks.TryGetValue(fileName, out var assetPack))
+                if (ClientData.TryGetValue(fileName, out var assetPack))
                 {
-                    if (serverPacks[fileName] != assetPack)
+                    if (ServerData[fileName] != assetPack)
                     {
                         fileNames.Add(fileName);
                     }
 
-                    clientPacks.Remove(fileName);
+                    ClientData.Remove(fileName);
                 }
                 else
                 {
@@ -87,14 +87,14 @@ namespace Astraia.Common
             var fileSizes = new int[fileNames.Count];
             for (int i = 0; i < fileNames.Count; i++)
             {
-                if (serverPacks.TryGetValue(fileNames[i], out var assetPack))
+                if (ServerData.TryGetValue(fileNames[i], out var assetPack))
                 {
                     fileSizes[i] = assetPack.size;
                 }
             }
 
             EventManager.Invoke(new PackAwake(fileSizes));
-            foreach (var clientPack in clientPacks.Keys)
+            foreach (var clientPack in ClientData.Keys)
             {
                 var filePath = GlobalSetting.GetPacketPath(clientPack);
                 if (File.Exists(filePath))
@@ -280,8 +280,8 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            clientPacks.Clear();
-            serverPacks.Clear();
+            ClientData.Clear();
+            ServerData.Clear();
         }
     }
 }

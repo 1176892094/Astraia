@@ -16,7 +16,7 @@ namespace Astraia
 {
     public class PageSystem : ISystem
     {
-        public void Update(float time)
+        public void Update()
         {
             foreach (var agent in SystemManager.Query<IPage>())
             {

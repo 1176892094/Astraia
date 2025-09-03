@@ -27,7 +27,7 @@ namespace Astraia
 
     public class UISystem : ISystem
     {
-        public void Update(float time)
+        public void Update()
         {
             foreach (var panel in SystemManager.Query<UIPanel>())
             {

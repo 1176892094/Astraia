@@ -39,87 +39,87 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<AudioSource> audioData = new List<AudioSource>();
+        internal static readonly List<AudioSource> AudioData = new List<AudioSource>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, PackData> clientPacks = new Dictionary<string, PackData>();
+        internal static readonly Dictionary<string, PackData> ClientData = new Dictionary<string, PackData>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, PackData> serverPacks = new Dictionary<string, PackData>();
+        internal static readonly Dictionary<string, PackData> ServerData = new Dictionary<string, PackData>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, (string path, string name)> assetData = new Dictionary<string, (string, string)>();
+        internal static readonly Dictionary<string, (string, string)> AssetData = new Dictionary<string, (string, string)>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, AssetBundle> assetPack = new Dictionary<string, AssetBundle>();
+        internal static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, Task<AssetBundle>> assetTask = new Dictionary<string, Task<AssetBundle>>();
+        internal static readonly Dictionary<string, Task<AssetBundle>> AssetTask = new Dictionary<string, Task<AssetBundle>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, string> assetPath = new Dictionary<string, string>();
+        internal static readonly Dictionary<string, string> AssetPath = new Dictionary<string, string>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, ItemTable> itemTable = new Dictionary<Type, ItemTable>();
+        internal static readonly Dictionary<Type, ItemTable> ItemTable = new Dictionary<Type, ItemTable>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, NameTable> nameTable = new Dictionary<Type, NameTable>();
+        internal static readonly Dictionary<Type, NameTable> NameTable = new Dictionary<Type, NameTable>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, EnumTable> enumTable = new Dictionary<Type, EnumTable>();
+        internal static readonly Dictionary<Type, EnumTable> EnumTable = new Dictionary<Type, EnumTable>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
+        internal static readonly Dictionary<string, IPool> PoolData = new Dictionary<string, IPool>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, GameObject> poolGroup = new Dictionary<string, GameObject>();
+        internal static readonly Dictionary<string, GameObject> RootData = new Dictionary<string, GameObject>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Entity, List<Type, IAgent>> agentData = new Dictionary<Entity, List<Type, IAgent>>();
+        internal static readonly Dictionary<Entity, List<Type, IAgent>> AgentData = new Dictionary<Entity, List<Type, IAgent>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, List<Entity, IAgent>> queryData = new Dictionary<Type, List<Entity, IAgent>>();
+        internal static readonly Dictionary<Type, List<Entity, IAgent>> QueryData = new Dictionary<Type, List<Entity, IAgent>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<Type, ISystem> systemData = new List<Type, ISystem>();
+        internal static readonly List<Type, ISystem> SystemData = new List<Type, ISystem>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<Object, ITimer> timerData = new List<Object, ITimer>();
+        internal static readonly List<Object, ITask> TaskData = new List<Object, ITask>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<Type, UIPanel> panelPage = new List<Type, UIPanel>();
+        internal static readonly List<Type, UIPanel> PanelType = new List<Type, UIPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<int, HashSet<UIPanel>> groupData = new Dictionary<int, HashSet<UIPanel>>();
+        internal static readonly Dictionary<int, HashSet<UIPanel>> GroupData = new Dictionary<int, HashSet<UIPanel>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<UIPanel, HashSet<int>> panelData = new Dictionary<UIPanel, HashSet<int>>();
+        internal static readonly Dictionary<UIPanel, HashSet<int>> PanelData = new Dictionary<UIPanel, HashSet<int>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<UILayer, RectTransform> layerData = new Dictionary<UILayer, RectTransform>();
+        internal static readonly Dictionary<UILayer, RectTransform> LayerData = new Dictionary<UILayer, RectTransform>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<uint, GameObject> objectData = new Dictionary<uint, GameObject>();
+        internal static readonly Dictionary<uint, GameObject> SceneData = new Dictionary<uint, GameObject>();
 
         private void Awake()
         {
@@ -146,7 +146,7 @@ namespace Astraia.Common
 
         private void Update()
         {
-            SystemManager.Update(Time.time);
+            SystemManager.Update();
             TimerManager.Update(Time.time);
         }
 
