@@ -9,7 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
 using System.IO;
 using UnityEngine;
 
@@ -36,12 +35,12 @@ namespace Astraia.Common
             FromJson(json, data);
         }
 
-        public static T Load<T>(string name)
+        public static T Load<T>(string name, T data = default)
         {
             var path = LoadPath(name);
             if (!File.Exists(path))
             {
-                Save(Activator.CreateInstance<T>(), name);
+                Save(data, name);
             }
 
             var json = File.ReadAllText(path);
@@ -73,12 +72,12 @@ namespace Astraia.Common
             FromJson(json, data);
         }
 
-        public static T Decrypt<T>(string name)
+        public static T Decrypt<T>(string name, T data = default)
         {
             var path = LoadPath(name);
             if (!File.Exists(path))
             {
-                Encrypt(Activator.CreateInstance<T>(), name);
+                Encrypt(data, name);
             }
 
             var item = File.ReadAllBytes(path);

@@ -22,7 +22,7 @@ namespace Astraia.Common
         {
             get
             {
-                musicVolume = JsonManager.Load<float>(nameof(MusicVolume));
+                musicVolume = JsonManager.Load(nameof(MusicVolume), 1F);
                 return musicVolume;
             }
             set
@@ -41,7 +41,7 @@ namespace Astraia.Common
         {
             get
             {
-                audioVolume = JsonManager.Load<float>(nameof(AudioVolume));
+                audioVolume = JsonManager.Load(nameof(AudioVolume), 1F);
                 return audioVolume;
             }
             set
