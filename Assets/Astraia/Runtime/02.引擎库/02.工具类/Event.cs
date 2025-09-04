@@ -24,11 +24,13 @@ namespace Astraia.Common
     public struct PackUpdate : IEvent
     {
         public readonly string name;
+        public readonly float value;
         public readonly float progress;
 
-        public PackUpdate(string name, float progress)
+        public PackUpdate(string name, float value, float progress)
         {
             this.name = name;
+            this.value = value;
             this.progress = progress;
         }
     }
