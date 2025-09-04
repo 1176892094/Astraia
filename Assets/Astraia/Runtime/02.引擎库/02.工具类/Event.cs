@@ -60,10 +60,12 @@ namespace Astraia.Common
     public struct AssetUpdate : IEvent
     {
         public readonly string name;
+        public readonly float progress;
 
-        public AssetUpdate(string name)
+        public AssetUpdate(string name, float progress)
         {
             this.name = name;
+            this.progress = progress;
         }
     }
 

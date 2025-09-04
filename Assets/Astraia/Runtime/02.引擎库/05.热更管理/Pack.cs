@@ -236,7 +236,8 @@ namespace Astraia.Common
                 }
             }
 
-            var assetTask = await Instance.Wait(AssetBundle.LoadFromMemoryAsync(result));
+            var assetPack = AssetBundle.LoadFromMemoryAsync(result);
+            var assetTask = await Instance.Wait(assetPack).OnUpdate(progress => EventManager.Invoke(new AssetUpdate(assetData.path, progress)));
             return assetTask.assetBundle;
         }
 
