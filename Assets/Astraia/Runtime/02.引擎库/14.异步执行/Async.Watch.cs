@@ -29,6 +29,7 @@ namespace Astraia
         private float duration;
         private Action onUpdate;
         private Action onComplete;
+        private Action onContinue;
 
         internal static Watch Create(Component owner, float duration)
         {
@@ -47,6 +48,7 @@ namespace Astraia
                 item.owner = null;
                 item.complete = 1;
                 item.onUpdate = null;
+                item.onContinue = null;
                 asyncData.Remove(owner);
                 HeapManager.Enqueue(item);
             }
@@ -58,7 +60,7 @@ namespace Astraia
             {
                 if (!owner.IsActive())
                 {
-                    onComplete.Invoke();
+                    Break();
                     return;
                 }
 
@@ -82,12 +84,14 @@ namespace Astraia
 
                 if (progress == 0)
                 {
+                    onComplete += onContinue;
                     onComplete.Invoke();
                 }
             }
-            catch
+            catch (Exception e)
             {
-                onComplete.Invoke();
+                Break();
+                Debug.Log(Service.Text.Format("无法执行异步方法：\n{0}", e));
             }
         }
 
@@ -121,7 +125,7 @@ namespace Astraia
             this.progress = progress;
             return this;
         }
-        
+
         public Watch Break()
         {
             onComplete.Invoke();
@@ -133,6 +137,7 @@ namespace Astraia
     {
         public bool IsCompleted => complete == 1;
 
+
         public Watch GetAwaiter()
         {
             return this;
@@ -142,11 +147,11 @@ namespace Astraia
         {
             if (!owner.IsActive())
             {
-                onComplete.Invoke();
+                Break();
                 return;
             }
 
-            onComplete += continuation;
+            onContinue = continuation;
         }
 
         public void GetResult()

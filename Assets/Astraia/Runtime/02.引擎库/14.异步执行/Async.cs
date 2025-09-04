@@ -29,6 +29,7 @@ namespace Astraia
         private Component owner;
         private T operation;
         private Action onComplete;
+        private Action onContinue;
         private Action<float> onUpdate;
 
         internal static Async<T> Create(Component owner, T operation)
@@ -45,6 +46,7 @@ namespace Astraia
                 item.owner = null;
                 item.onUpdate = null;
                 item.operation = null;
+                item.onContinue = null;
                 asyncData.Remove(owner);
                 HeapManager.Enqueue(item);
             }
@@ -56,7 +58,7 @@ namespace Astraia
             {
                 if (!owner.IsActive())
                 {
-                    onComplete.Invoke();
+                    Break();
                     return;
                 }
 
@@ -67,12 +69,14 @@ namespace Astraia
 
                 if (operation.isDone)
                 {
+                    onComplete += onContinue;
                     onComplete.Invoke();
                 }
             }
-            catch
+            catch (Exception e)
             {
-                onComplete.Invoke();
+                Break();
+                Debug.Log(Service.Text.Format("无法执行异步方法：\n{0}", e));
             }
         }
 
@@ -87,7 +91,7 @@ namespace Astraia
             this.onComplete += onComplete;
             return this;
         }
-        
+
         public Async<T> Break()
         {
             onComplete.Invoke();
@@ -108,11 +112,11 @@ namespace Astraia
         {
             if (!owner.IsActive())
             {
-                onComplete.Invoke();
+                Break();
                 return;
             }
 
-            onComplete += continuation;
+            onContinue = continuation;
         }
 
         public T GetResult()
