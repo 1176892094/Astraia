@@ -84,6 +84,7 @@ namespace Astraia
 
                 if (progress == 0)
                 {
+                    complete = 2;
                     onComplete += onContinue;
                     onComplete.Invoke();
                 }
@@ -135,7 +136,7 @@ namespace Astraia
 
     public sealed partial class Watch : INotifyCompletion
     {
-        public bool IsCompleted => complete == 1;
+        public bool IsCompleted => complete > 0;
 
 
         public Watch GetAwaiter()
@@ -154,8 +155,9 @@ namespace Astraia
             onContinue = continuation;
         }
 
-        public void GetResult()
+        public bool GetResult()
         {
+            return complete == 2;
         }
     }
 }

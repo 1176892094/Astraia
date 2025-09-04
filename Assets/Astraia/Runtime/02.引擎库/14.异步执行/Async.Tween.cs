@@ -78,6 +78,7 @@ namespace Astraia
 
                 if (progress >= 1)
                 {
+                    complete = 2;
                     onComplete += onContinue;
                     onComplete.Invoke();
                 }
@@ -110,7 +111,7 @@ namespace Astraia
 
     public sealed partial class Tween : INotifyCompletion
     {
-        public bool IsCompleted => complete == 1;
+        public bool IsCompleted => complete > 0;
 
         public Tween GetAwaiter()
         {
@@ -128,8 +129,9 @@ namespace Astraia
             onContinue = continuation;
         }
 
-        public void GetResult()
+        public bool GetResult()
         {
+            return complete == 2;
         }
     }
 }
