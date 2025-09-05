@@ -230,15 +230,15 @@ namespace Astraia.Net
 
             if (Application.isPlaying)
             {
-                if (entity.connection == null)
+                if (entity.client == null)
                 {
                     copies.Add(new EntityData("Client :", "Null"));
                     copies.Add(new EntityData("Client ID :", "-1"));
                 }
                 else
                 {
-                    copies.Add(new EntityData("Client :", entity.connection.ToString()));
-                    copies.Add(new EntityData("Client ID :", entity.connection.clientId.ToString()));
+                    copies.Add(new EntityData("Client :", entity.client.ToString()));
+                    copies.Add(new EntityData("Client ID :", entity.client.clientId.ToString()));
                 }
             }
 

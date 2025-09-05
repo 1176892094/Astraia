@@ -24,19 +24,19 @@ namespace Astraia.Net
     [Serializable]
     public partial class NetworkEntity : Entity
     {
-        private int frameCount;
-
         [HideInInspector] [SerializeField] internal uint assetId;
 
         [HideInInspector] [SerializeField] internal uint sceneId;
+        
+        private int frameCount;
 
         internal uint objectId;
 
-        internal AgentMode agentMode;
+        internal AgentMode mode;
 
-        internal AgentState agentState;
+        internal AgentState state;
 
-        internal NetworkClient connection;
+        internal NetworkClient client;
 
         internal MemoryWriter owner = new MemoryWriter();
 
@@ -44,17 +44,17 @@ namespace Astraia.Net
 
         internal List<NetworkAgent> agents = new List<NetworkAgent>();
 
-        public bool isOwner => (agentMode & AgentMode.Owner) != 0;
+        public bool isOwner => (mode & AgentMode.Owner) != 0;
 
-        public bool isServer => (agentMode & AgentMode.Server) != 0;
+        public bool isServer => (mode & AgentMode.Server) != 0;
 
-        public bool isClient => (agentMode & AgentMode.Client) != 0;
+        public bool isClient => (mode & AgentMode.Client) != 0;
 
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            if ((agentState & AgentState.Awake) == 0)
+            if ((state & AgentState.Awake) == 0)
             {
                 if (GlobalManager.agentData.TryGetValue(this, out var agentData))
                 {
@@ -72,21 +72,21 @@ namespace Astraia.Net
                     agents[i].sourceId = i;
                 }
 
-                agentState |= AgentState.Awake;
+                state |= AgentState.Awake;
             }
         }
 
         protected override void OnDestroy()
         {
-            if ((agentMode & AgentMode.Server) != 0)
+            if ((mode & AgentMode.Server) != 0)
             {
-                if ((agentState & AgentState.Destroy) == 0)
+                if ((state & AgentState.Destroy) == 0)
                 {
                     NetworkManager.Server.Destroy(gameObject);
                 }
             }
 
-            if ((agentMode & AgentMode.Client) != 0)
+            if ((mode & AgentMode.Client) != 0)
             {
                 NetworkManager.Client.spawns.Remove(objectId);
             }
@@ -96,18 +96,18 @@ namespace Astraia.Net
             owner = null;
             other = null;
             agents = null;
-            connection = null;
+            client = null;
             base.OnDestroy();
         }
 
         public virtual void Reset()
         {
             objectId = 0;
-            connection = null;
+            client = null;
             owner.position = 0;
             other.position = 0;
-            agentMode = AgentMode.None;
-            agentState = AgentState.None;
+            mode = AgentMode.None;
+            state = AgentState.None;
         }
 
 #if UNITY_EDITOR
@@ -243,12 +243,12 @@ namespace Astraia.Net
 
         internal void OnStartClient()
         {
-            if ((agentState & AgentState.Spawn) != 0)
+            if ((state & AgentState.Spawn) != 0)
             {
                 return;
             }
 
-            agentState |= AgentState.Spawn;
+            state |= AgentState.Spawn;
 
             foreach (var agent in agents)
             {
@@ -265,7 +265,7 @@ namespace Astraia.Net
 
         internal void OnStopClient()
         {
-            if ((agentState & AgentState.Spawn) == 0)
+            if ((state & AgentState.Spawn) == 0)
             {
                 return;
             }
@@ -345,22 +345,22 @@ namespace Astraia.Net
 
         internal void OnNotifyAuthority()
         {
-            if ((agentState & AgentState.Authority) == 0 && (agentMode & AgentMode.Owner) != 0)
+            if ((state & AgentState.Authority) == 0 && (mode & AgentMode.Owner) != 0)
             {
                 OnStartAuthority();
             }
-            else if ((agentState & AgentState.Authority) != 0 && (agentMode & AgentMode.Owner) == 0)
+            else if ((state & AgentState.Authority) != 0 && (mode & AgentMode.Owner) == 0)
             {
                 OnStopAuthority();
             }
 
-            if ((agentMode & AgentMode.Owner) != 0)
+            if ((mode & AgentMode.Owner) != 0)
             {
-                agentState |= AgentState.Authority;
+                state |= AgentState.Authority;
             }
             else
             {
-                agentState &= ~AgentState.Authority;
+                state &= ~AgentState.Authority;
             }
         }
 

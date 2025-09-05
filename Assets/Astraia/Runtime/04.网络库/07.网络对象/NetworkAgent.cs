@@ -59,7 +59,7 @@ namespace Astraia.Net
             }
         }
 
-        public NetworkClient connection => owner.connection;
+        public NetworkClient client => owner.client;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsDirty() => syncVarDirty != 0UL && Time.unscaledTimeAsDouble - syncVarTime >= syncInterval;
@@ -208,11 +208,11 @@ namespace Astraia.Net
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 
-            foreach (var client in NetworkManager.Server.clients.Values.Where(client => client.isReady))
+            foreach (var conn in NetworkManager.Server.clients.Values.Where(conn => conn.isReady))
             {
-                if ((channel & Channel.NonOwner) == 0 || client != connection)
+                if ((channel & Channel.NonOwner) == 0 || conn != client)
                 {
-                    client.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
+                    conn.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
                 }
             }
         }
@@ -231,7 +231,7 @@ namespace Astraia.Net
                 return;
             }
 
-            client ??= connection;
+            client ??= owner.client;
 
             if (client == null)
             {

@@ -223,7 +223,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (entity.connection != client)
+                if (entity.client != client)
                 {
                     Debug.LogWarning(Service.Text.Format(Log.E234, client.clientId, message.objectId));
                     return;
@@ -252,7 +252,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (NetworkAttribute.RequireReady(message.methodHash) && entity.connection != client)
+                if (NetworkAttribute.RequireReady(message.methodHash) && entity.client != client)
                 {
                     Debug.LogWarning(Service.Text.Format(Log.E238, client.clientId, message.objectId));
                     return;
@@ -290,7 +290,7 @@ namespace Astraia.Net
             {
                 if (clients.TryGetValue(clientId, out var client))
                 {
-                    var entities = spawns.Values.Where(entity => entity.connection == client).ToList();
+                    var entities = spawns.Values.Where(entity => entity.client == client).ToList();
                     foreach (var entity in entities)
                     {
                         Object.Destroy(entity);
@@ -358,7 +358,7 @@ namespace Astraia.Net
                         var parent = entity.transform.parent;
                         if (parent == null || parent.gameObject.activeInHierarchy)
                         {
-                            Spawn(entity.gameObject, entity.connection);
+                            Spawn(entity.gameObject, entity.client);
                         }
                     }
                 }
@@ -384,18 +384,18 @@ namespace Astraia.Net
                     return;
                 }
 
-                entity.connection = client;
+                entity.client = client;
 
                 if (Mode == EntryMode.Host && client?.clientId == Host)
                 {
-                    entity.agentMode |= AgentMode.Owner;
+                    entity.mode |= AgentMode.Owner;
                 }
 
-                if ((entity.agentMode & AgentMode.Server) == 0 && entity.objectId == 0)
+                if ((entity.mode & AgentMode.Server) == 0 && entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
-                    entity.agentMode |= AgentMode.Server;
-                    entity.agentMode = Client.isActive ? entity.agentMode | AgentMode.Client : entity.agentMode & ~AgentMode.Owner;
+                    entity.mode |= AgentMode.Server;
+                    entity.mode = Client.isActive ? entity.mode | AgentMode.Client : entity.mode & ~AgentMode.Owner;
                     spawns[entity.objectId] = entity;
                     entity.OnStartServer();
                 }
@@ -413,14 +413,14 @@ namespace Astraia.Net
 
             private static void SpawnToClient(NetworkClient client, NetworkEntity entity)
             {
-                using MemoryWriter writer = MemoryWriter.Pop(), observer = MemoryWriter.Pop();
-                var isOwner = entity.connection == client;
+                using MemoryWriter owner = MemoryWriter.Pop(), other = MemoryWriter.Pop();
+                var isOwner = entity.client == client;
                 var transform = entity.transform;
                 ArraySegment<byte> segment = default;
                 if (entity.agents.Count != 0)
                 {
-                    entity.ServerSerialize(true, writer, observer);
-                    segment = isOwner ? writer : observer;
+                    entity.ServerSerialize(true, owner, other);
+                    segment = isOwner ? owner : other;
                 }
 
                 var message = new SpawnMessage
@@ -470,7 +470,7 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopServer();
-                entity.agentState |= AgentState.Destroy;
+                entity.state |= AgentState.Destroy;
                 Object.Destroy(entity.gameObject);
             }
         }
@@ -517,7 +517,7 @@ namespace Astraia.Net
                             }
 
                             entity.Synchronization(Time.frameCount);
-                            if (entity.connection == client)
+                            if (entity.client == client)
                             {
                                 if (entity.owner.position > 0)
                                 {

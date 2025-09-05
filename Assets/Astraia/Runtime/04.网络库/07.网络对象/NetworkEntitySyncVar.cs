@@ -16,29 +16,29 @@ namespace Astraia.Net
 {
     public partial class NetworkEntity
     {
-        internal void ServerSerialize(bool initialize, MemoryWriter owner, MemoryWriter observer)
+        internal void ServerSerialize(bool initialize, MemoryWriter owner, MemoryWriter other)
         {
             var components = agents;
-            var (ownerMask, observerMask) = ServerDirtyMasks(initialize);
+            var (ownerMask, otherMask) = ServerDirtyMasks(initialize);
 
             if (ownerMask != 0)
             {
                 Service.Length.Encode(owner, ownerMask);
             }
 
-            if (observerMask != 0)
+            if (otherMask != 0)
             {
-                Service.Length.Encode(observer, observerMask);
+                Service.Length.Encode(other, otherMask);
             }
 
-            if ((ownerMask | observerMask) != 0)
+            if ((ownerMask | otherMask) != 0)
             {
                 for (var i = 0; i < components.Count; ++i)
                 {
                     var component = components[i];
                     var ownerDirty = IsDirty(ownerMask, i);
-                    var observersDirty = IsDirty(observerMask, i);
-                    if (ownerDirty || observersDirty)
+                    var otherDirty = IsDirty(otherMask, i);
+                    if (ownerDirty || otherDirty)
                     {
                         using var writer = MemoryWriter.Pop();
                         component.Serialize(writer, initialize);
@@ -48,9 +48,9 @@ namespace Astraia.Net
                             owner.WriteBytes(segment.Array, segment.Offset, segment.Count);
                         }
 
-                        if (observersDirty)
+                        if (otherDirty)
                         {
-                            observer.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                            other.WriteBytes(segment.Array, segment.Offset, segment.Count);
                         }
                     }
                 }
@@ -120,7 +120,7 @@ namespace Astraia.Net
         private (ulong, ulong) ServerDirtyMasks(bool initialize)
         {
             ulong ownerMask = 0;
-            ulong observerMask = 0;
+            ulong otherMask = 0;
 
             var components = agents;
             for (var i = 0; i < components.Count; ++i)
@@ -135,11 +135,11 @@ namespace Astraia.Net
 
                 if (initialize || dirty)
                 {
-                    observerMask |= mask;
+                    otherMask |= mask;
                 }
             }
 
-            return (ownerMask, observerMask);
+            return (ownerMask, otherMask);
         }
 
         private ulong ClientDirtyMask()
@@ -149,7 +149,7 @@ namespace Astraia.Net
             for (var i = 0; i < components.Count; ++i)
             {
                 var component = components[i];
-                if ((agentMode & AgentMode.Owner) != 0 && component.syncDirection == SyncMode.Client)
+                if ((mode & AgentMode.Owner) != 0 && component.syncDirection == SyncMode.Client)
                 {
                     if (component.IsDirty())
                     {

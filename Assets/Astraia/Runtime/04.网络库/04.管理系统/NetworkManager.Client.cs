@@ -294,14 +294,14 @@ namespace Astraia.Net
                         entity.gameObject.SetActive(true);
                         if (message.isOwner)
                         {
-                            entity.agentMode |= AgentMode.Owner;
+                            entity.mode |= AgentMode.Owner;
                         }
                         else
                         {
-                            entity.agentMode &= ~AgentMode.Owner;
+                            entity.mode &= ~AgentMode.Owner;
                         }
 
-                        entity.agentMode |= AgentMode.Client;
+                        entity.mode |= AgentMode.Client;
                         entity.OnNotifyAuthority();
                         entity.OnStartClient();
                     }
@@ -336,7 +336,7 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopClient();
-                entity.agentMode &= ~AgentMode.Owner;
+                entity.mode &= ~AgentMode.Owner;
                 entity.OnNotifyAuthority();
                 spawns.Remove(message.objectId);
 
@@ -357,7 +357,7 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopClient();
-                entity.agentMode &= ~AgentMode.Owner;
+                entity.mode &= ~AgentMode.Owner;
                 entity.OnNotifyAuthority();
                 spawns.Remove(message.objectId);
 
@@ -481,8 +481,8 @@ namespace Astraia.Net
                 }
 
                 entity.objectId = message.objectId;
-                entity.agentMode = message.isOwner ? entity.agentMode | AgentMode.Owner : entity.agentMode & ~AgentMode.Owner;
-                entity.agentMode |= AgentMode.Client;
+                entity.mode = message.isOwner ? entity.mode | AgentMode.Owner : entity.mode & ~AgentMode.Owner;
+                entity.mode |= AgentMode.Client;
                 entity.transform.localPosition = message.position;
                 entity.transform.localRotation = message.rotation;
                 entity.transform.localScale = message.localScale;
