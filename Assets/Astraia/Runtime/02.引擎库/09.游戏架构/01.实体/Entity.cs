@@ -115,7 +115,7 @@ namespace Astraia
         private IEnumerable<IAgent> agents
         {
             get => GetAgents().ToList();
-            set => Debug.LogWarning(value, this);
+            set => Debug.LogError(value);
         }
 
         [HideInPlayMode, ValueDropdown("Agents")]

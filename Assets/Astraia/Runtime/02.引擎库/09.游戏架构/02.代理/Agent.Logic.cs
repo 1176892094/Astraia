@@ -13,18 +13,6 @@ using System;
 using Astraia.Common;
 using UnityEngine;
 
-namespace Astraia.Common
-{
-    public interface IAgent
-    {
-        internal void Create(Entity owner);
-        void Dequeue();
-        void OnShow();
-        void OnHide();
-        void Enqueue();
-    }
-}
-
 namespace Astraia
 {
     [Serializable]
