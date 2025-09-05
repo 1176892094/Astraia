@@ -28,7 +28,7 @@ namespace Astraia.Net
             private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
-            
+
             internal static readonly List<int, NetworkClient> clients = new List<int, NetworkClient>();
 
             private static State state = State.Disconnect;
@@ -386,12 +386,12 @@ namespace Astraia.Net
 
                 entity.client = client;
 
-                if (Mode == EntryMode.Host && client?.clientId == Host)
+                if (client != null && Mode == EntryMode.Host && client.clientId == Host)
                 {
                     entity.mode |= AgentMode.Owner;
                 }
 
-                if ((entity.mode & AgentMode.Server) == 0 && entity.objectId == 0)
+                if (!entity.isServer && entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
                     entity.mode |= AgentMode.Server;

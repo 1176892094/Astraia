@@ -78,7 +78,7 @@ namespace Astraia.Net
 
         protected override void OnDestroy()
         {
-            if ((mode & AgentMode.Server) != 0)
+            if (isServer)
             {
                 if ((state & AgentState.Destroy) == 0)
                 {
@@ -86,7 +86,7 @@ namespace Astraia.Net
                 }
             }
 
-            if ((mode & AgentMode.Client) != 0)
+            if (isClient)
             {
                 NetworkManager.Client.spawns.Remove(objectId);
             }
@@ -345,16 +345,16 @@ namespace Astraia.Net
 
         internal void OnNotifyAuthority()
         {
-            if ((state & AgentState.Authority) == 0 && (mode & AgentMode.Owner) != 0)
+            if ((state & AgentState.Authority) == 0 && isOwner)
             {
                 OnStartAuthority();
             }
-            else if ((state & AgentState.Authority) != 0 && (mode & AgentMode.Owner) == 0)
+            else if ((state & AgentState.Authority) != 0 && !isOwner)
             {
                 OnStopAuthority();
             }
 
-            if ((mode & AgentMode.Owner) != 0)
+            if (isOwner)
             {
                 state |= AgentState.Authority;
             }

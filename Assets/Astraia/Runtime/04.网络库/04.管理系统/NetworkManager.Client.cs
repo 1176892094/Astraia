@@ -292,15 +292,7 @@ namespace Astraia.Net
                     {
                         spawns[message.objectId] = entity;
                         entity.gameObject.SetActive(true);
-                        if (message.isOwner)
-                        {
-                            entity.mode |= AgentMode.Owner;
-                        }
-                        else
-                        {
-                            entity.mode &= ~AgentMode.Owner;
-                        }
-
+                        entity.mode = message.isOwner ? entity.mode | AgentMode.Owner : entity.mode & ~AgentMode.Owner;
                         entity.mode |= AgentMode.Client;
                         entity.OnNotifyAuthority();
                         entity.OnStartClient();

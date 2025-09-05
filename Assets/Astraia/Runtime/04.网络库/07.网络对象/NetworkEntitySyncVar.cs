@@ -149,7 +149,7 @@ namespace Astraia.Net
             for (var i = 0; i < components.Count; ++i)
             {
                 var component = components[i];
-                if ((mode & AgentMode.Owner) != 0 && component.syncDirection == SyncMode.Client)
+                if (isOwner && component.syncDirection == SyncMode.Client)
                 {
                     if (component.IsDirty())
                     {
