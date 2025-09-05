@@ -27,7 +27,7 @@ namespace Astraia.Net
         [HideInInspector] [SerializeField] internal uint assetId;
 
         [HideInInspector] [SerializeField] internal uint sceneId;
-        
+
         private int frameCount;
 
         internal uint objectId;
@@ -78,12 +78,9 @@ namespace Astraia.Net
 
         protected override void OnDestroy()
         {
-            if (isServer)
+            if (isServer && (state & AgentState.Destroy) == 0)
             {
-                if ((state & AgentState.Destroy) == 0)
-                {
-                    NetworkManager.Server.Destroy(gameObject);
-                }
+                NetworkManager.Server.Destroy(gameObject);
             }
 
             if (isClient)
@@ -103,11 +100,11 @@ namespace Astraia.Net
         public virtual void Reset()
         {
             objectId = 0;
-            client = null;
             owner.position = 0;
             other.position = 0;
             mode = AgentMode.None;
             state = AgentState.None;
+            client = null;
         }
 
 #if UNITY_EDITOR
@@ -243,42 +240,30 @@ namespace Astraia.Net
 
         internal void OnStartClient()
         {
-            if ((state & AgentState.Spawn) != 0)
+            if ((state & AgentState.Spawn) == 0)
             {
-                return;
-            }
-
-            state |= AgentState.Spawn;
-
-            foreach (var agent in agents)
-            {
-                try
+                foreach (var agent in agents)
                 {
-                    (agent as IStartClient)?.OnStartClient();
+                    if (agent is IStartClient result)
+                    {
+                        result.OnStartClient();
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogWarning(e, agent.gameObject);
-                }
+
+                state |= AgentState.Spawn;
             }
         }
 
         internal void OnStopClient()
         {
-            if ((state & AgentState.Spawn) == 0)
+            if ((state & AgentState.Spawn) != 0)
             {
-                return;
-            }
-
-            foreach (var agent in agents)
-            {
-                try
+                foreach (var agent in agents)
                 {
-                    (agent as IStopClient)?.OnStopClient();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning(e, agent.gameObject);
+                    if (agent is IStopClient result)
+                    {
+                        result.OnStopClient();
+                    }
                 }
             }
         }
@@ -287,13 +272,9 @@ namespace Astraia.Net
         {
             foreach (var agent in agents)
             {
-                try
+                if (agent is IStartServer result)
                 {
-                    (agent as IStartServer)?.OnStartServer();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning(e, agent.gameObject);
+                    result.OnStartServer();
                 }
             }
         }
@@ -302,13 +283,9 @@ namespace Astraia.Net
         {
             foreach (var agent in agents)
             {
-                try
+                if (agent is IStopServer result)
                 {
-                    (agent as IStopServer)?.OnStopServer();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning(e, agent.gameObject);
+                    result.OnStopServer();
                 }
             }
         }
@@ -317,13 +294,9 @@ namespace Astraia.Net
         {
             foreach (var agent in agents)
             {
-                try
+                if (agent is IStartAuthority result)
                 {
-                    (agent as IStartAuthority)?.OnStartAuthority();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning(e, agent.gameObject);
+                    result.OnStartAuthority();
                 }
             }
         }
@@ -332,13 +305,9 @@ namespace Astraia.Net
         {
             foreach (var agent in agents)
             {
-                try
+                if (agent is IStopAuthority result)
                 {
-                    (agent as IStopAuthority)?.OnStopAuthority();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning(e, agent.gameObject);
+                    result.OnStopAuthority();
                 }
             }
         }
