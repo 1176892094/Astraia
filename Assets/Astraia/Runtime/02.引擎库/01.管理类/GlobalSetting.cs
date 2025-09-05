@@ -119,7 +119,7 @@ namespace Astraia
         [LabelText("资源存储路径")]
 #endif
         public static string assetPackPath => Service.Text.Format("{0}/{1}", Application.persistentDataPath, Instance.assetBuildPath);
-        
+
         public static string assetPackData => Service.Text.Format("{0}.json", Instance.assetLoadName);
 
         public static string assemblyName => JsonUtility.FromJson<Name>(GetTextByIndex(AssetText.Assembly)).name;
@@ -350,6 +350,46 @@ namespace Astraia
 
             agents.Sort(StringComparer.Ordinal);
             return agents;
+        }
+
+        private static List<string> systems;
+
+        public static List<string> GetSystems()
+        {
+            if (systems != null)
+            {
+                return systems;
+            }
+
+            systems = new List<string>();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies)
+            {
+                var types = assembly.GetTypes();
+
+                foreach (var type in types)
+                {
+                    if (type.IsAbstract)
+                    {
+                        continue;
+                    }
+
+                    if (type.IsGenericType)
+                    {
+                        continue;
+                    }
+
+                    if (!typeof(ISystem).IsAssignableFrom(type))
+                    {
+                        continue;
+                    }
+
+                    systems.Add(Service.Text.Format("{0}, {1}", type.FullName, type.Assembly.GetName().Name));
+                }
+            }
+
+            systems.Sort(StringComparer.Ordinal);
+            return systems;
         }
     }
 #endif

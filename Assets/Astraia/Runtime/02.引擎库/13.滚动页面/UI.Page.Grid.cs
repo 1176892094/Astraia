@@ -9,22 +9,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using Astraia.Common;
 using UnityEngine;
-
-namespace Astraia
-{
-    public class PageSystem : ISystem
-    {
-        public void Update()
-        {
-            foreach (var agent in SystemManager.Query<IPage>())
-            {
-                agent.Update();
-            }
-        }
-    }
-}
 
 namespace Astraia.Common
 {

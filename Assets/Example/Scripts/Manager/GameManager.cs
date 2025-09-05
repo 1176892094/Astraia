@@ -10,31 +10,58 @@
 // // *********************************************************************************
 
 using System;
+using Astraia;
 using Astraia.Common;
 using Astraia.Net;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Runtime
 {
-    public class GameManager : MonoBehaviour, IEvent<ServerReady>, IEvent<ServerConnect>
+    public struct GameSystem : ISystem
+    {
+        public void Update()
+        {
+            foreach (var agent in SystemManager.Query<GameManager>())
+            {
+                agent.Update();
+            }
+        }
+    }
+
+    [Serializable]
+    public class GameManager : Agent<Entity>, IEvent<ServerReady>, IEvent<ServerConnect>
     {
         public static GameManager Instance;
-        private Vector2 center;
-        private Vector2 content;
-        private Player player;
-        private Camera mainCamera;
+        [SerializeField] private Vector2 center;
+        [SerializeField] private Vector2 content;
+        [SerializeField] private Player player;
+        [SerializeField] private Camera mainCamera;
 
-        private void Awake()
+        public override void Dequeue()
         {
             Instance = this;
-            Application.targetFrameRate = 60;
-            mainCamera = FindFirstObjectByType<Camera>();
+            mainCamera = Object.FindFirstObjectByType<Camera>();
             GlobalManager.Instance.canvas.worldCamera = mainCamera;
             GlobalManager.Instance.canvas.sortingOrder = 10;
             GlobalManager.Instance.gameObject.AddComponent<DebugManager>();
+            Application.targetFrameRate = 60;
+            PageManager.Show<LabelPanel>();
         }
 
-        private void Update()
+        public override void OnShow()
+        {
+            EventManager.Listen<ServerReady>(this);
+            EventManager.Listen<ServerConnect>(this);
+        }
+
+        public override void OnHide()
+        {
+            EventManager.Remove<ServerReady>(this);
+            EventManager.Remove<ServerConnect>(this);
+        }
+
+        public void Update()
         {
             if (!player || !player.transform)
             {
@@ -67,23 +94,6 @@ namespace Runtime
             transform.position = Vector3.Lerp(transform.position, position, distance < 0.1f ? 0.5f - distance : 0.1f);
         }
 
-        private void OnEnable()
-        {
-            EventManager.Listen<ServerReady>(this);
-            EventManager.Listen<ServerConnect>(this);
-        }
-
-        private void OnDisable()
-        {
-            EventManager.Remove<ServerReady>(this);
-            EventManager.Remove<ServerConnect>(this);
-        }
-
-        private void Start()
-        {
-            PageManager.Show<LabelPanel>();
-        }
-
         public void SetCamera(Player player, Vector3 center, Vector2 sizeData)
         {
             this.player = player;
@@ -97,19 +107,13 @@ namespace Runtime
         {
             if (NetworkManager.Server.connections == 1)
             {
-                AssetManager.Load<GameObject>("Prefabs/10001", obj =>
-                {
-                    NetworkManager.Server.Spawn(obj);
-                });
+                AssetManager.Load<GameObject>("Prefabs/10001", obj => { NetworkManager.Server.Spawn(obj); });
             }
         }
 
         public void Execute(ServerReady message)
         {
-            AssetManager.Load<GameObject>("Prefabs/30001", obj =>
-            {
-                NetworkManager.Server.Spawn(obj, message.client);
-            });
+            AssetManager.Load<GameObject>("Prefabs/30001", obj => { NetworkManager.Server.Spawn(obj, message.client); });
         }
     }
 }

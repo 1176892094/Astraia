@@ -46,11 +46,6 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            foreach (var system in systemData.Values)
-            {
-                HeapManager.Enqueue(system);
-            }
-
             asyncData.Clear();
             systemData.Clear();
         }
