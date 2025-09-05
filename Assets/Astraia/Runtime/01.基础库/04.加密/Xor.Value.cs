@@ -289,14 +289,26 @@ namespace Astraia
                 return BitConverter.ToString(Value, 0, origin.Length);
             }
 
-            public override int GetHashCode()
+            public override unsafe int GetHashCode()
             {
                 var result = offset;
                 unchecked
                 {
-                    foreach (var b in origin)
+                    fixed (byte* ptr = origin)
                     {
-                        result = (result * 31) ^ b;
+                        var count = origin.Length / 4;
+                        var ip = (int*)ptr;
+                        for (var i = 0; i < count; i++)
+                        {
+                            result = (result * 31) ^ ip[i];
+                        }
+                        
+                        var bp = ptr + count * 4;
+                        for (var i = count * 4; i < origin.Length; i++)
+                        {
+                            result = (result * 31) ^ *bp;
+                            bp++;
+                        }
                     }
 
                     return result;
