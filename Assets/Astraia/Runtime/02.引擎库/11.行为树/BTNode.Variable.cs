@@ -16,45 +16,45 @@ namespace Astraia
 {
     internal static class Variable<T>
     {
-        private static readonly Dictionary<Entity, Dictionary<Enum, T>> fields = new Dictionary<Entity, Dictionary<Enum, T>>();
+        private static readonly Dictionary<Entity, Dictionary<Enum, T>> entities = new Dictionary<Entity, Dictionary<Enum, T>>();
 
         public static void SetValue(Entity owner, Enum id, T value)
         {
-            if (!fields.TryGetValue(owner, out var values))
+            if (!entities.TryGetValue(owner, out var fields))
             {
-                values = new Dictionary<Enum, T>();
-                fields[owner] = values;
+                fields = new Dictionary<Enum, T>();
+                entities[owner] = fields;
                 owner.OnFade += Enqueue;
 
                 void Enqueue()
                 {
-                    values.Clear();
-                    fields.Remove(owner);
+                    fields.Clear();
+                    entities.Remove(owner);
                 }
             }
 
-            values[id] = value;
+            fields[id] = value;
         }
 
-        public static T GetValue(Entity owner, Enum id)
+        public static T GetValue(Entity owner, Enum id, T value)
         {
-            if (fields.TryGetValue(owner, out var values))
+            if (entities.TryGetValue(owner, out var fields))
             {
-                if (values.TryGetValue(id, out var value))
+                if (fields.TryGetValue(id, out var field))
                 {
-                    return value;
+                    return field;
                 }
             }
 
-            return default;
+            return value;
         }
     }
 
     public static partial class Extensions
     {
-        public static T GetValue<T>(this Entity owner, Enum id)
+        public static T GetValue<T>(this Entity owner, Enum id, T value = default)
         {
-            return Variable<T>.GetValue(owner, id);
+            return owner ? Variable<T>.GetValue(owner, id, value) : default;
         }
 
         public static void SetValue<T>(this Entity owner, Enum id, T value)

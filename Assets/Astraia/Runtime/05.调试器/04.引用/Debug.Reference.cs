@@ -85,7 +85,7 @@ namespace Astraia.Common
                     var assetName = data.Type.Name;
                     if (!string.IsNullOrEmpty(data.Path))
                     {
-                        assetName = Service.Text.Format("{0} - {1}", data.Type.Name, data.Path);
+                        assetName = Service.Text.Format("{0} - {1}", GetFriendlyName(data.Type), data.Path);
                     }
 
                     GUILayout.Label(assetName, GUILayout.Height(20));
@@ -111,6 +111,24 @@ namespace Astraia.Common
         private static int Comparison(Pool origin, Pool target)
         {
             return string.Compare(origin.Type.Name, target.Type.Name, StringComparison.Ordinal);
+        }
+
+        public static string GetFriendlyName(Type type)
+        {
+            if (!type.IsGenericType)
+            {
+                return type.Name;
+            }
+
+            var name = type.Name;
+            var index = name.IndexOf('`');
+            if (index > 0)
+            {
+                name = name.Substring(0, index);
+            }
+
+            var args = string.Join(", ", Array.ConvertAll(type.GetGenericArguments(), GetFriendlyName));
+            return Service.Text.Format("{0}<{1}>", name, args);
         }
 
         private enum PoolMode
