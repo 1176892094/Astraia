@@ -22,6 +22,7 @@ namespace Astraia
 {
     public class Entity : MonoBehaviour
     {
+        internal bool isDestroy;
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
@@ -50,6 +51,7 @@ namespace Astraia
 
         protected virtual void OnDestroy()
         {
+            isDestroy = true;
             OnFade?.Invoke();
             OnFade = null;
             OnShow = null;

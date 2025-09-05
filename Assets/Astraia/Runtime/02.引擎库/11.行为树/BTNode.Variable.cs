@@ -20,6 +20,7 @@ namespace Astraia
 
         public static void SetValue(Entity owner, Enum id, T value)
         {
+            if (owner.isDestroy) return;
             if (!entities.TryGetValue(owner, out var fields))
             {
                 fields = new Dictionary<Enum, T>();
