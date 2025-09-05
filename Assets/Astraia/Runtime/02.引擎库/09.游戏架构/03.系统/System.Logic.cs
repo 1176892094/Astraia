@@ -31,6 +31,16 @@ namespace Astraia.Common
             }
         }
 
+        internal static void Listen<T>() where T : struct, ISystem
+        {
+            systemData.Add(typeof(T), new T());
+        }
+
+        internal static void Remove<T>() where T : struct, ISystem
+        {
+            systemData.Remove(typeof(T));
+        }
+
         internal static void Update()
         {
             foreach (var system in systemData.Values)

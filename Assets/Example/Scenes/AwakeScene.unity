@@ -304,7 +304,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Astraia.Run::Astraia.Common.System
   systemData:
-  - Astraia.UISystem, Astraia.Run
+  - Runtime.GameSystem, Assembly-CSharp
 --- !u!114 &75954608
 MonoBehaviour:
   m_ObjectHideFlags: 0

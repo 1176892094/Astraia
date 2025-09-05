@@ -367,6 +367,11 @@ namespace Astraia
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies)
             {
+                if (assembly.GetName().Name.StartsWith("Astraia"))
+                {
+                    continue;
+                }
+
                 var types = assembly.GetTypes();
 
                 foreach (var type in types)

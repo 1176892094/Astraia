@@ -106,10 +106,20 @@ namespace Astraia.Common
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        
+
+        private void OnEnable()
+        {
+            SystemManager.Listen<UISystem>();
+        }
+
         private void Start()
         {
             PackManager.LoadAssetData();
+        }
+
+        private void OnDisable()
+        {
+            SystemManager.Remove<UISystem>();
         }
 
         private void Update()
