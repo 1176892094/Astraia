@@ -39,6 +39,10 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
+        internal static readonly List<Component, IAsync> asyncData = new List<Component, IAsync>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [ShowInInspector]
+#endif
         internal static readonly Dictionary<string, PackData> clientData = new Dictionary<string, PackData>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
@@ -83,11 +87,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<Component, IAsync> asyncData = new List<Component, IAsync>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly List<Type, UIPanel> panelType = new List<Type, UIPanel>();
+        internal static readonly List<Type, UIPanel> panelData = new List<Type, UIPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif

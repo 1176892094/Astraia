@@ -32,14 +32,14 @@ namespace Astraia.Common
             owner.OnFade += panel.group.Clear;
 
             SetLayer(panel.transform, panel.layer);
-            panelType.Add(type, panel);
+            panelData.Add(type, panel);
             return panel;
         }
 
         public static async void Show<T>(Action<T> action = null) where T : UIPanel
         {
             if (!Instance) return;
-            if (!panelType.TryGetValue(typeof(T), out var panel))
+            if (!panelData.TryGetValue(typeof(T), out var panel))
             {
                 panel = await Load(GlobalSetting.GetPanelPath(typeof(T).Name), typeof(T));
             }
@@ -51,7 +51,7 @@ namespace Astraia.Common
         public static void Hide<T>() where T : UIPanel
         {
             if (!Instance) return;
-            if (panelType.TryGetValue(typeof(T), out var panel))
+            if (panelData.TryGetValue(typeof(T), out var panel))
             {
                 panel.gameObject.SetActive(false);
             }
@@ -59,24 +59,24 @@ namespace Astraia.Common
 
         public static T Find<T>() where T : UIPanel
         {
-            return panelType.TryGetValue(typeof(T), out var panel) ? (T)panel : null;
+            return panelData.TryGetValue(typeof(T), out var panel) ? (T)panel : null;
         }
 
         public static void Destroy<T>()
         {
             if (!Instance) return;
-            if (panelType.TryGetValue(typeof(T), out var panel))
+            if (panelData.TryGetValue(typeof(T), out var panel))
             {
                 panel.gameObject.SetActive(false);
                 Object.Destroy(panel.gameObject);
-                panelType.Remove(typeof(T));
+                panelData.Remove(typeof(T));
             }
         }
 
         public static async void Show(Type type, Action<UIPanel> action = null)
         {
             if (!Instance) return;
-            if (!panelType.TryGetValue(type, out var panel))
+            if (!panelData.TryGetValue(type, out var panel))
             {
                 panel = await Load(GlobalSetting.GetPanelPath(type.Name), type);
             }
@@ -88,7 +88,7 @@ namespace Astraia.Common
         public static void Hide(Type type)
         {
             if (!Instance) return;
-            if (panelType.TryGetValue(type, out var panel))
+            if (panelData.TryGetValue(type, out var panel))
             {
                 panel.gameObject.SetActive(false);
             }
@@ -96,29 +96,29 @@ namespace Astraia.Common
 
         public static UIPanel Find(Type type)
         {
-            return panelType.TryGetValue(type, out var panel) ? panel : null;
+            return panelData.TryGetValue(type, out var panel) ? panel : null;
         }
 
         public static void Destroy(Type type)
         {
             if (!Instance) return;
-            if (panelType.TryGetValue(type, out var panel))
+            if (panelData.TryGetValue(type, out var panel))
             {
                 panel.gameObject.SetActive(false);
                 Object.Destroy(panel.gameObject);
-                panelType.Remove(type);
+                panelData.Remove(type);
             }
         }
 
         public static void Clear()
         {
-            foreach (var panel in panelType)
+            foreach (var panel in panelData)
             {
                 if (panel.Value.state != UIState.Stable)
                 {
                     panel.Value.gameObject.SetActive(false);
                     Object.Destroy(panel.Value.gameObject);
-                    panelType.Remove(panel.Key);
+                    panelData.Remove(panel.Key);
                 }
             }
         }
@@ -145,7 +145,7 @@ namespace Astraia.Common
 
             groupData.Clear();
             layerData.Clear();
-            panelType.Clear();
+            panelData.Clear();
         }
     }
 }
