@@ -33,16 +33,19 @@ namespace Astraia.Common
 
             private static void Add(IDataTable assetData, string property, string name)
             {
-                itemData = new Dictionary<Key, Data>();
-                if (assetData is DataTable<Data> dataTable)
+                if (itemData == null)
                 {
-                    items = dataTable.items;
-                    foreach (var item in items)
+                    itemData = new Dictionary<Key, Data>();
+                    if (assetData is DataTable<Data> dataTable)
                     {
-                        var data = item.GetValue<Key>(property);
-                        if (!itemData.TryAdd(data, item))
+                        items = dataTable.items;
+                        foreach (var item in items)
                         {
-                            Debug.LogWarning(Service.Text.Format("加载数据 {0} 失败。键值重复: {1}", name, data));
+                            var data = item.GetValue<Key>(property);
+                            if (!itemData.TryAdd(data, item))
+                            {
+                                Debug.LogWarning(Service.Text.Format("加载数据 {0} 失败。键值重复: {1}", name, data));
+                            }
                         }
                     }
                 }

@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Astraia.Common;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -122,6 +123,8 @@ namespace Astraia
                     EditorUtility.ClearProgressBar();
                 }
             }
+
+            DataManager.LoadDataTable();
         }
 
         [MenuItem("Tools/Astraia/项目工程路径", priority = 6)]

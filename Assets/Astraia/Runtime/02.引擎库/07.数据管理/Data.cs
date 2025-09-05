@@ -16,13 +16,10 @@ using UnityEngine;
 
 namespace Astraia.Common
 {
-    using static GlobalManager;
-
     public static partial class DataManager
     {
         public static async void LoadDataTable()
         {
-            if (!Instance) return;
             var assembly = Service.Find.Assembly(GlobalSetting.assemblyName);
             if (assembly == null)
             {
@@ -51,7 +48,18 @@ namespace Astraia.Common
                 var nickName = assetName.Substring(assetName.LastIndexOf('.') + 1);
                 try
                 {
-                    var assetData = await AssetManager.Load<ScriptableObject>(GlobalSetting.GetTablePath(nickName));
+                    
+                    ScriptableObject assetData;
+                    if (Application.isPlaying)
+                    {
+                        assetData = await AssetManager.Load<ScriptableObject>(GlobalSetting.GetTablePath(nickName));
+                    }
+#if UNITY_EDITOR
+                    else
+                    {
+                        assetData = UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(GlobalSetting.GetEditorPath(nickName));
+                    }
+#endif
                     var assetType = assembly.GetType(assetName.Substring(0, assetName.Length - 5));
                     var properties = assetType.GetProperties(Service.Find.Instance);
                     foreach (var property in properties)

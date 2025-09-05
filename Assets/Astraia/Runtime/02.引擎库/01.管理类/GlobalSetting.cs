@@ -132,6 +132,8 @@ namespace Astraia
 
         public static string GetTablePath(string assetName) => Service.Text.Format("DataTable/{0}", assetName);
 
+        public static string GetEditorPath(string assetName) => Service.Text.Format("{0}/{1}.asset", Instance.assetSourcePath, GetTablePath(assetName));
+
         public static string GetPacketPath(string fileName) => Path.Combine(assetPackPath, fileName);
 
         public static string GetServerPath(string fileName) => Path.Combine(assetRemotePath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
