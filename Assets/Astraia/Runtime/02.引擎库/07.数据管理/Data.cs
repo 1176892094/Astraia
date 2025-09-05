@@ -48,17 +48,13 @@ namespace Astraia.Common
                 var nickName = assetName.Substring(assetName.LastIndexOf('.') + 1);
                 try
                 {
-                    
-                    ScriptableObject assetData;
+                    ScriptableObject assetData = null;
                     if (Application.isPlaying)
                     {
                         assetData = await AssetManager.Load<ScriptableObject>(GlobalSetting.GetTablePath(nickName));
                     }
 #if UNITY_EDITOR
-                    else
-                    {
-                        assetData = UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(GlobalSetting.GetEditorPath(nickName));
-                    }
+                    assetData ??= UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(GlobalSetting.GetEditorPath(nickName));
 #endif
                     var assetType = assembly.GetType(assetName.Substring(0, assetName.Length - 5));
                     var properties = assetType.GetProperties(Service.Find.Instance);
