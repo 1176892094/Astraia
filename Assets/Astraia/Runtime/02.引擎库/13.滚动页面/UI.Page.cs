@@ -20,7 +20,7 @@ namespace Astraia
     [Serializable]
     public sealed class UIPage<TItem> : Agent<Entity>, IPage
     {
-        private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
+        private readonly List<int, IGrid<TItem>> grids = new List<int, IGrid<TItem>>();
         private IList<TItem> items;
         private int minIndex;
         private int maxIndex;
@@ -35,6 +35,8 @@ namespace Astraia
         internal RectTransform content;
         private int numX => (int)assetRect.x + (direction ? 0 : 1);
         private int numY => (int)assetRect.y + (direction ? 1 : 0);
+
+        public IEnumerable<IGrid<TItem>> Values => grids.Values;
 
         public static UIPage<TItem> Create(Entity owner)
         {

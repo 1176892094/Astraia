@@ -17,7 +17,7 @@ namespace Astraia
 {
     public static partial class Xor
     {
-        private static readonly int TickInt = (int)DateTime.Now.Ticks;
+        private static readonly int TickInt = DateTime.Now.Ticks.GetHashCode();
         private static readonly long TickLong = DateTime.Now.Ticks;
 
         public struct Exception : IEvent
