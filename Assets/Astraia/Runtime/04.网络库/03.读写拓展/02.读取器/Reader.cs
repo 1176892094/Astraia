@@ -47,7 +47,9 @@ namespace Astraia.Net
 
         public static Vector2Int ReadVector2Int(this MemoryReader reader)
         {
-            return reader.Read<Vector2Int>();
+            var x = reader.ReadInt();
+            var y = reader.ReadInt();
+            return new Vector2Int(x, y);
         }
 
         public static Vector2Int? ReadVector2IntNullable(this MemoryReader reader)
@@ -57,7 +59,10 @@ namespace Astraia.Net
 
         public static Vector3Int ReadVector3Int(this MemoryReader reader)
         {
-            return reader.Read<Vector3Int>();
+            var x = reader.ReadInt();
+            var y = reader.ReadInt();
+            var z = reader.ReadInt();
+            return new Vector3Int(x, y, z);
         }
 
         public static Vector3Int? ReadVector3IntNullable(this MemoryReader reader)

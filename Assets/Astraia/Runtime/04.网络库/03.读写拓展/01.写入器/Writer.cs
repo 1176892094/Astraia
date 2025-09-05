@@ -48,7 +48,8 @@ namespace Astraia.Net
 
         public static void WriteVector2Int(this MemoryWriter writer, Vector2Int value)
         {
-            writer.Write(value);
+            writer.WriteInt(value.x);
+            writer.WriteInt(value.y);
         }
 
         public static void WriteVector2IntNullable(this MemoryWriter writer, Vector2Int? value)
@@ -58,7 +59,9 @@ namespace Astraia.Net
 
         public static void WriteVector3Int(this MemoryWriter writer, Vector3Int value)
         {
-            writer.Write(value);
+            writer.WriteInt(value.x);
+            writer.WriteInt(value.y);
+            writer.WriteInt(value.z);
         }
 
         public static void WriteVector3IntNullable(this MemoryWriter writer, Vector3Int? value)

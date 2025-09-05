@@ -35,7 +35,7 @@ namespace Astraia
             }
 
             writer ??= MemoryWriter.Pop();
-            Service.Length.Encode(writer, (ulong)segment.Count);
+            Service.Length.EncodeULong(writer, (ulong)segment.Count);
             writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 

@@ -9,12 +9,15 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System.Runtime.CompilerServices;
+
 namespace Astraia
 {
     public static partial class Service
     {
         internal static class Length
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int Invoke(ulong length)
             {
                 if (length == 0)
@@ -32,7 +35,8 @@ namespace Astraia
                 return result;
             }
 
-            public static void Encode(MemoryWriter writer, ulong length)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static void EncodeULong(MemoryWriter writer, ulong length)
             {
                 while (length >= 0x80)
                 {
@@ -43,7 +47,8 @@ namespace Astraia
                 writer.Write((byte)length);
             }
 
-            public static ulong Decode(MemoryReader reader)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static ulong DecodeULong(MemoryReader reader)
             {
                 var shift = 0;
                 var length = 0UL;
@@ -60,6 +65,62 @@ namespace Astraia
                 }
 
                 return length;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static ulong ZigZagEncode(long n)
+            {
+                return (ulong)((n << 1) ^ (n >> 63));
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static long ZigZagDecode(ulong n)
+            {
+                return (long)((n >> 1) ^ (ulong)-(long)(n & 1));
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static void EncodeUInt(MemoryWriter writer, uint length)
+            {
+                while (length >= 0x80)
+                {
+                    writer.Write((byte)((length & 0x7F) | 0x80));
+                    length >>= 7;
+                }
+
+                writer.Write((byte)length);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static uint DecodeUInt(MemoryReader reader)
+            {
+                var shift = 0;
+                var length = 0U;
+                while (true)
+                {
+                    var bit = reader.Read<byte>();
+                    length |= (uint)(bit & 0x7F) << shift;
+                    if ((bit & 0x80) == 0)
+                    {
+                        break;
+                    }
+
+                    shift += 7;
+                }
+
+                return length;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static uint ZigZagEncode(int n)
+            {
+                return (uint)((n << 1) ^ (n >> 31));
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static int ZigZagDecode(uint n)
+            {
+                return (int)((n >> 1) ^ -(int)(n & 1));
             }
         }
     }

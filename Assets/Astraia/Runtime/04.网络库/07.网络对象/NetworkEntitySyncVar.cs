@@ -23,12 +23,12 @@ namespace Astraia.Net
 
             if (ownerMask != 0)
             {
-                Service.Length.Encode(owner, ownerMask);
+                Service.Length.EncodeULong(owner, ownerMask);
             }
 
             if (otherMask != 0)
             {
-                Service.Length.Encode(other, otherMask);
+                Service.Length.EncodeULong(other, otherMask);
             }
 
             if ((ownerMask | otherMask) != 0)
@@ -63,7 +63,7 @@ namespace Astraia.Net
             var dirtyMask = ClientDirtyMask();
             if (dirtyMask != 0)
             {
-                Service.Length.Encode(writer, dirtyMask);
+                Service.Length.EncodeULong(writer, dirtyMask);
                 for (var i = 0; i < components.Count; ++i)
                 {
                     var component = components[i];
@@ -79,7 +79,7 @@ namespace Astraia.Net
         internal bool ServerDeserialize(MemoryReader reader)
         {
             var components = agents;
-            var mask = Service.Length.Decode(reader);
+            var mask = Service.Length.DecodeULong(reader);
 
             for (var i = 0; i < components.Count; ++i)
             {
@@ -105,7 +105,7 @@ namespace Astraia.Net
         internal void ClientDeserialize(MemoryReader reader, bool initialize)
         {
             var components = agents;
-            var mask = Service.Length.Decode(reader);
+            var mask = Service.Length.DecodeULong(reader);
 
             for (var i = 0; i < components.Count; ++i)
             {

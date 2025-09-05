@@ -80,7 +80,7 @@ namespace Astraia.Net
 
         public static int ReadInt(this MemoryReader reader)
         {
-            return reader.Read<int>();
+            return Service.Length.ZigZagDecode(reader.ReadUInt());
         }
 
         public static int? ReadIntNullable(this MemoryReader reader)
@@ -90,7 +90,7 @@ namespace Astraia.Net
 
         public static uint ReadUInt(this MemoryReader reader)
         {
-            return reader.Read<uint>();
+            return Service.Length.DecodeUInt(reader);
         }
 
         public static uint? ReadUIntNullable(this MemoryReader reader)
@@ -100,7 +100,7 @@ namespace Astraia.Net
 
         public static long ReadLong(this MemoryReader reader)
         {
-            return reader.Read<long>();
+            return Service.Length.ZigZagDecode(reader.ReadULong());
         }
 
         public static long? ReadLongNullable(this MemoryReader reader)
@@ -110,7 +110,7 @@ namespace Astraia.Net
 
         public static ulong ReadULong(this MemoryReader reader)
         {
-            return reader.Read<ulong>();
+            return Service.Length.DecodeULong(reader);
         }
 
         public static ulong? ReadULongNullable(this MemoryReader reader)
@@ -168,7 +168,7 @@ namespace Astraia.Net
 
         public static byte[] ReadBytes(this MemoryReader reader)
         {
-            var count = Service.Length.Decode(reader);
+            var count = Service.Length.DecodeULong(reader);
             if (count == 0)
             {
                 return null;
@@ -181,7 +181,7 @@ namespace Astraia.Net
 
         public static ArraySegment<byte> ReadArraySegment(this MemoryReader reader)
         {
-            var count = Service.Length.Decode(reader);
+            var count = Service.Length.DecodeULong(reader);
             return count == 0 ? default : reader.ReadArraySegment(checked((int)(count - 1)));
         }
 
@@ -192,7 +192,7 @@ namespace Astraia.Net
 
         public static List<T> ReadList<T>(this MemoryReader reader)
         {
-            var count = (uint)Service.Length.Decode(reader);
+            var count = (uint)Service.Length.DecodeULong(reader);
             if (count == 0) return null;
 
             count--;
@@ -207,7 +207,7 @@ namespace Astraia.Net
 
         public static HashSet<T> ReadHashSet<T>(this MemoryReader reader)
         {
-            var count = (uint)Service.Length.Decode(reader);
+            var count = (uint)Service.Length.DecodeULong(reader);
             if (count == 0) return null;
 
             count--;
@@ -222,7 +222,7 @@ namespace Astraia.Net
 
         public static T[] ReadArray<T>(this MemoryReader reader)
         {
-            var count = (uint)Service.Length.Decode(reader);
+            var count = (uint)Service.Length.DecodeULong(reader);
             if (count == 0) return null;
 
             count--;

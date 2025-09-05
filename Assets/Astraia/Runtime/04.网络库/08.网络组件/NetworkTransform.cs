@@ -185,26 +185,26 @@ namespace Astraia.Net
         // NetworkTransform
         // 总长：1B   ulong(压缩)
         // 类型：2B   ushort
-        // 对象：4B   uint
+        // 对象：1B   uint(压缩)
         // 组件：1B   byte
         // 方法：2B   ushort
         // 片段：1B   Segment(压缩) 13+17+13 = 43 不超过 127字节 长度为 1
         // 位置：12+1 Vector3? 
         // 旋转：16+1 Quaternion? 
         // 缩放：12+1 Vector3? 
-        // TODO：同步位置：1+2+4+1+2+1+13+1+1 = 26B
-        // TODO：每秒同步：26*30 = 780B
+        // TODO：同步位置：1+2+1+1+2+1+13+1+1 = 23B
+        // TODO：每秒同步：23*30 = 690B
         
         // SyncVar Color
         // 总长：1B   ulong(压缩)
         // 类型：2B   ushort
         // 遮罩：1B   ulong(压缩)  判断组件变动组件 最多 64 NetworkAgent
-        // 索引：8B   ulong       网络变量最大数量 最多 64 SyncVar
+        // 索引：1B   ulong(压缩)  网络变量最大数量 最多 64 SyncVar
         // 校验：1B   byte  
-        // 对象：4B   uint
+        // 对象：1B   uint(压缩)
         // 片段：1B   Segment(压缩) 16 不超过 127字节 长度为 1
-        // 变量：16B  Color
-        // TODO：同步颜色：1+2+1+8+1+4+1+16 = 34B
+        // 变量：16B   Color
+        // TODO：同步颜色：1+2+1+1+1+1+1+16 = 24B
         
         //网络变量大小<127B： 18 + size
         //远程调用大小<127B： 11 + size

@@ -72,7 +72,7 @@ namespace Astraia
                 return false;
             }
 
-            var length = (int)Service.Length.Decode(reader);
+            var length = (int)Service.Length.DecodeULong(reader);
             
             if (reader.buffer.Count - reader.position < length)
             {
