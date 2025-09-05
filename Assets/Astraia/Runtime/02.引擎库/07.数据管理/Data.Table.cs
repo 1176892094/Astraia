@@ -20,7 +20,16 @@ namespace Astraia.Common
         {
             private static Dictionary<Key, Data> itemData;
             public static List<Data> items;
-            public static Data Get(Key key) => itemData[key];
+
+            public static Data Get(Key key)
+            {
+                if (itemData != null && itemData.TryGetValue(key, out var data))
+                {
+                    return data;
+                }
+
+                return default;
+            }
 
             private static void Add(IDataTable assetData, string property, string name)
             {

@@ -62,6 +62,13 @@ namespace Astraia
             private BTNode[] nodes;
             private int index;
 
+            public static Sequence Create(BTNode[] nodes)
+            {
+                var sequence = Activator.CreateInstance<Sequence>();
+                sequence.nodes = nodes;
+                return sequence;
+            }
+
             protected override void OnEnter()
             {
                 index = 0;
@@ -95,9 +102,11 @@ namespace Astraia
             private BTNode[] nodes;
             private int index;
 
-            public Selector(BTNode[] nodes)
+            public static Selector Create(BTNode[] nodes)
             {
-                this.nodes = nodes;
+                var selector = Activator.CreateInstance<Selector>();
+                selector.nodes = nodes;
+                return selector;
             }
 
             protected override void OnEnter()
@@ -133,6 +142,12 @@ namespace Astraia
             private BTNode[] nodes;
             private int index;
 
+            public static Operator Create(BTNode[] nodes)
+            {
+                var operation = Activator.CreateInstance<Operator>();
+                operation.nodes = nodes;
+                return operation;
+            }
 
             protected override void OnEnter()
             {
@@ -151,10 +166,12 @@ namespace Astraia
             private int count;
             private int repeat;
 
-            public Repeater(BTNode node, int repeat = -1)
+            public static Repeater Create(BTNode node, int repeat = -1)
             {
-                this.node = node;
-                this.repeat = repeat;
+                var repeater = Activator.CreateInstance<Repeater>();
+                repeater.node = node;
+                repeater.repeat = repeat;
+                return repeater;
             }
 
             protected override void OnEnter()
@@ -185,11 +202,13 @@ namespace Astraia
             private int success;
             private int failure;
 
-            public Parallel(BTNode[] nodes, int success = -1, int failure = -1)
+            public static Parallel Create(BTNode[] nodes, int success = -1, int failure = -1)
             {
-                this.nodes = nodes;
-                this.success = success < 0 ? nodes.Length : success;
-                this.failure = failure < 0 ? nodes.Length : failure;
+                var parallel = Activator.CreateInstance<Parallel>();
+                parallel.nodes = nodes;
+                parallel.success = success < 0 ? nodes.Length : success;
+                parallel.failure = failure < 0 ? nodes.Length : failure;
+                return parallel;
             }
 
             protected override State OnUpdate()
@@ -230,9 +249,11 @@ namespace Astraia
         {
             private BTNode node;
 
-            public Inverter(BTNode node)
+            public static Inverter Create(BTNode node)
             {
-                this.node = node;
+                var inverter = Activator.CreateInstance<Inverter>();
+                inverter.node = node;
+                return inverter;
             }
 
             protected override State OnUpdate()
@@ -256,9 +277,11 @@ namespace Astraia
         {
             private BTNode node;
 
-            public Success(BTNode node)
+            public static Success Create(BTNode node)
             {
-                this.node = node;
+                var success = Activator.CreateInstance<Success>();
+                success.node = node;
+                return success;
             }
 
             protected override State OnUpdate()
@@ -271,9 +294,11 @@ namespace Astraia
         {
             private BTNode node;
 
-            public Failure(BTNode node)
+            public static Failure Create(BTNode node)
             {
-                this.node = node;
+                var failure = Activator.CreateInstance<Failure>();
+                failure.node = node;
+                return failure;
             }
 
             protected override State OnUpdate()
@@ -286,6 +311,13 @@ namespace Astraia
         {
             private float waitTime;
             private float duration;
+
+            public static WaitTime Create(float duration)
+            {
+                var failure = Activator.CreateInstance<WaitTime>();
+                failure.duration = duration;
+                return failure;
+            }
 
             protected override void OnEnter()
             {

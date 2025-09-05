@@ -54,7 +54,8 @@ namespace Astraia.Common
             protocol = new Protocol(0, SendReliable);
             protocol.SetMtu((int)config.MaxUnit - METADATA_SIZE);
             protocol.SetWindowSize((int)config.SendWindow, (int)config.ReceiveWindow);
-            protocol.SetNoDelay(config.NoDelay ? 1 : 0, (int)config.Interval, (int)config.FastResend, 1);
+            protocol.SetNoDelay(config.NoDelay ? 1 : 0, (int)config.Interval, (int)config.FastResend, !config.Congestion ? 1 : 0);
+            protocol.Death = config.DeadLink;
             timeout = config.Timeout;
         }
 
