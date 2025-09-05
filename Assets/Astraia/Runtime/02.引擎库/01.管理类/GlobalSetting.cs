@@ -51,7 +51,6 @@ namespace Astraia
         [FoldoutGroup("邮件服务")]
 #endif
         public string smtpPassword;
-
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("资源加载")] [LabelText("资源加载模式")] [OnValueChanged("UpdateSceneSetting")]
 #endif

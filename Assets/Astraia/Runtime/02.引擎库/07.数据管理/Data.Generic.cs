@@ -19,10 +19,20 @@ namespace Astraia
     [Serializable]
     public abstract class DataTable<T> : ScriptableObject, IDataTable where T : IData
     {
-        [SerializeField] internal List<T> items = new List<T>();
+        public List<T> items = new List<T>();
+        void IDataTable.AddData(IData data) => items.Add((T)data);
+    }
+}
 
-        public int Count => items.Count;
+namespace Astraia.Common
+{
+    public interface IData
+    {
+        void Create(string[] sheet, int column);
+    }
 
-        public void AddData(IData data) => items.Add((T)data);
+    internal interface IDataTable
+    {
+        void AddData(IData data);
     }
 }

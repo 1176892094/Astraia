@@ -19,7 +19,7 @@ namespace Astraia.Common
         private static class DataTable<Key, Data> where Data : IData
         {
             private static Dictionary<Key, Data> itemData;
-            public static List<Data> items;
+            public static IReadOnlyList<Data> items;
 
             public static Data Get(Key key)
             {
