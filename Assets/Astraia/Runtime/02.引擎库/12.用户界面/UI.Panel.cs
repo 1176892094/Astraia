@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using Astraia.Common;
 
 namespace Astraia
@@ -17,6 +18,7 @@ namespace Astraia
     [Serializable]
     public abstract class UIPanel : Agent<Entity>
     {
+        internal HashSet<int> group = new HashSet<int>();
         public UIState state = UIState.Common;
         public UILayer layer = UILayer.Layer1;
 

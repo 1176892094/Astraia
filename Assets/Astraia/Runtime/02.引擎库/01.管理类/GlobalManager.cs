@@ -95,10 +95,6 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<UIPanel, HashSet<int>> panelData = new Dictionary<UIPanel, HashSet<int>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
         internal static readonly Dictionary<UILayer, RectTransform> layerData = new Dictionary<UILayer, RectTransform>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]

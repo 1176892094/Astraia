@@ -27,12 +27,9 @@ namespace Astraia
                 groupData.Add(group, panels);
             }
 
-            if (panelData.TryGetValue(panel, out var groups))
+            if (panel.group.Add(group))
             {
-                if (groups.Add(group))
-                {
-                    panels.Add(panel);
-                }
+                panels.Add(panel);
             }
         }
 
@@ -45,11 +42,12 @@ namespace Astraia
                 groupData.Add(group, panels);
             }
 
-            if (panelData.TryGetValue(panel, out var groups))
+            if (panel.group.Remove(group))
             {
-                if (groups.Remove(group))
+                panels.Remove(panel);
+                if (panels.Count == 0)
                 {
-                    panels.Remove(panel);
+                    groupData.Remove(group);
                 }
             }
         }
@@ -80,18 +78,15 @@ namespace Astraia
 
         internal static void Show(UIPanel panel)
         {
-            if (panelData.TryGetValue(panel, out var groups))
+            foreach (var group in panel.group)
             {
-                foreach (var group in groups)
+                if (groupData.TryGetValue(group, out var panels))
                 {
-                    if (groupData.TryGetValue(group, out var panels))
+                    foreach (var other in panels)
                     {
-                        foreach (var other in panels)
+                        if (panel != other)
                         {
-                            if (panel != other)
-                            {
-                                other.gameObject.SetActive(false);
-                            }
+                            other.gameObject.SetActive(false);
                         }
                     }
                 }

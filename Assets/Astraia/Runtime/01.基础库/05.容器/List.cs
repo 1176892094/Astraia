@@ -16,10 +16,10 @@ using System.Collections.Generic;
 namespace Astraia
 {
     [Serializable]
-    public sealed class List<Key, Value> : ICollection<KeyValuePair<Key, Value>>
+    public sealed class List<Key, Value> : ICollection<List<Key, Value>.Node>
     {
-        private Dictionary<Key, LinkedListNode<KeyValuePair<Key, Value>>> items = new();
-        private LinkedList<KeyValuePair<Key, Value>> nodes = new();
+        private Dictionary<Key, LinkedListNode<Node>> items = new();
+        private LinkedList<Node> nodes = new();
         public int Count => nodes.Count;
 
         public Value this[Key key]
@@ -29,23 +29,23 @@ namespace Astraia
             {
                 if (items.TryGetValue(key, out var item))
                 {
-                    item.Value = new KeyValuePair<Key, Value>(key, value);
+                    item.Value = new Node(key, value);
                 }
                 else
                 {
-                    items[key] = nodes.AddLast(new KeyValuePair<Key, Value>(key, value));
+                    items[key] = nodes.AddLast(new Node(key, value));
                 }
             }
         }
 
-        public void Reset(IEnumerable<KeyValuePair<Key, Value>> data)
+        public void Reset(IEnumerable<Node> data)
         {
             items.Clear();
             nodes.Clear();
             AddRange(data);
         }
 
-        public void AddRange(IEnumerable<KeyValuePair<Key, Value>> data, Predicate<KeyValuePair<Key, Value>> match = null)
+        public void AddRange(IEnumerable<Node> data, Predicate<Node> match = null)
         {
             foreach (var node in data)
             {
@@ -58,12 +58,12 @@ namespace Astraia
 
         public void Add(Key key, Value value)
         {
-            items.Add(key, nodes.AddLast(new KeyValuePair<Key, Value>(key, value)));
+            items.Add(key, nodes.AddLast(new Node(key, value)));
         }
 
         public void AddFirst(Key key, Value value)
         {
-            items.Add(key, nodes.AddFirst(new KeyValuePair<Key, Value>(key, value)));
+            items.Add(key, nodes.AddFirst(new Node(key, value)));
         }
 
         public void Insert(Key origin, Key key, Value value)
@@ -73,7 +73,7 @@ namespace Astraia
                 throw new KeyNotFoundException(nameof(origin));
             }
 
-            items.Add(key, nodes.AddBefore(target, new KeyValuePair<Key, Value>(key, value)));
+            items.Add(key, nodes.AddBefore(target, new Node(key, value)));
         }
 
         public bool Remove(Key key)
@@ -87,7 +87,7 @@ namespace Astraia
             return false;
         }
 
-        public int Remove(Predicate<KeyValuePair<Key, Value>> match)
+        public int Remove(Predicate<Node> match)
         {
             var count = 0;
             var node = nodes.First;
@@ -158,7 +158,7 @@ namespace Astraia
             }
         }
 
-        public IEnumerator<KeyValuePair<Key, Value>> GetEnumerator()
+        public IEnumerator<Node> GetEnumerator()
         {
             var node = nodes.First;
             while (node != null)
@@ -174,26 +174,39 @@ namespace Astraia
             return GetEnumerator();
         }
 
-        void ICollection<KeyValuePair<Key, Value>>.Add(KeyValuePair<Key, Value> node)
+        void ICollection<Node>.Add(Node node)
         {
             Add(node.Key, node.Value);
         }
 
-        bool ICollection<KeyValuePair<Key, Value>>.Remove(KeyValuePair<Key, Value> node)
+        bool ICollection<Node>.Remove(Node node)
         {
             return Remove(node.Key);
         }
 
-        bool ICollection<KeyValuePair<Key, Value>>.Contains(KeyValuePair<Key, Value> node)
+        bool ICollection<Node>.Contains(Node node)
         {
             return ContainsKey(node.Key);
         }
 
-        void ICollection<KeyValuePair<Key, Value>>.CopyTo(KeyValuePair<Key, Value>[] array, int index)
+        void ICollection<Node>.CopyTo(Node[] array, int index)
         {
             nodes.CopyTo(array, index);
         }
 
-        bool ICollection<KeyValuePair<Key, Value>>.IsReadOnly => false;
+        bool ICollection<Node>.IsReadOnly => false;
+
+        [Serializable]
+        public struct Node
+        {
+            public Key Key;
+            public Value Value;
+
+            public Node(Key key, Value value)
+            {
+                Key = key;
+                Value = value;
+            }
+        }
     }
 }
