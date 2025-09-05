@@ -25,7 +25,7 @@ namespace Astraia
             return operation != null ? Async<T>.Create(owner, operation) : null;
         }
 
-        public static Watch Wait(this Component current, float duration)
+        public static Watch Wait(this Component current, float duration = 0)
         {
             return Watch.Create(current, duration);
         }
