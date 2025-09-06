@@ -124,7 +124,7 @@ namespace Astraia
                 }
             }
 
-            DataManager.LoadDataTable();
+            EditorApplication.delayCall += DataManager.LoadDataTable;
         }
 
         [MenuItem("Tools/Astraia/项目工程路径", priority = 6)]

@@ -26,6 +26,7 @@ namespace Astraia
     internal partial class GlobalSetting : ScriptableObject
     {
         private static GlobalSetting instance;
+        public static GlobalSetting Instance => instance ??= Resources.Load<GlobalSetting>(nameof(GlobalSetting));
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("资源加载")] [LabelText("资源构建平台")] [PropertyOrder(-3)]
@@ -79,34 +80,6 @@ namespace Astraia
         [FoldoutGroup("其他设置")] [LabelText("密钥版本")] [PropertyOrder(1)]
 #endif
         public string[] secretGroup;
-
-        public static GlobalSetting Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = Resources.Load<GlobalSetting>(nameof(GlobalSetting));
-                }
-
-#if UNITY_EDITOR
-                if (instance == null)
-                {
-                    var assetPath = Service.Text.Format("Assets/{0}", nameof(Resources));
-                    instance = CreateInstance<GlobalSetting>();
-                    if (!Directory.Exists(assetPath))
-                    {
-                        Directory.CreateDirectory(assetPath);
-                    }
-
-                    assetPath = Service.Text.Format("{0}/{1}.asset", assetPath, nameof(GlobalSetting));
-                    UnityEditor.AssetDatabase.CreateAsset(instance, assetPath);
-                    UnityEditor.AssetDatabase.SaveAssets();
-                }
-#endif
-                return instance;
-            }
-        }
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源加载")]
@@ -122,7 +95,41 @@ namespace Astraia
 
         public static string assetPackData => Service.Text.Format("{0}.json", Instance.assetLoadName);
 
-        public static string assemblyName => JsonUtility.FromJson<Name>(GetTextByIndex(AssetText.Assembly)).name;
+        private static readonly Dictionary<AssetText, TextAsset> itemText = new Dictionary<AssetText, TextAsset>();
+        
+        public static string assemblyName
+        {
+            get
+            {
+                var jsonAsset = GetTextByIndex(AssetText.Assembly);
+                int nameIndex = jsonAsset.IndexOf("\"name\":", StringComparison.Ordinal);
+                if (nameIndex != -1)
+                {
+                    var start = jsonAsset.IndexOf('\"', nameIndex + "\"name\":".Length) + 1;
+                    var end = jsonAsset.IndexOf('\"', start);
+                    var nameValue = jsonAsset.Substring(start, end - start);
+                    return nameValue;
+                }
+
+                return string.Empty;
+            }
+        }
+
+        public static string GetTextByIndex(AssetText option)
+        {
+            if (itemText.Count > 0)
+            {
+                return itemText[option].text;
+            }
+
+            var items = Resources.LoadAll<TextAsset>(nameof(GlobalSetting));
+            for (int i = 0; i < items.Length; i++)
+            {
+                itemText.Add((AssetText)i, items[i]);
+            }
+     
+            return itemText[option].text;
+        }
 
         public static string GetScenePath(string assetName) => Service.Text.Format("Scenes/{0}", assetName);
 
@@ -139,19 +146,6 @@ namespace Astraia
         public static string GetServerPath(string fileName) => Path.Combine(assetRemotePath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
 
         public static string GetClientPath(string fileName) => Path.Combine(Application.streamingAssetsPath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
-
-        private static TextAsset[] assetTextArray;
-
-        public static string GetTextByIndex(AssetText option)
-        {
-            if (assetTextArray != null && assetTextArray.Length > 0)
-            {
-                return assetTextArray[(int)option].text;
-            }
-
-            assetTextArray = Resources.LoadAll<TextAsset>(nameof(GlobalSetting));
-            return assetTextArray[(int)option].text;
-        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
@@ -193,12 +187,6 @@ namespace Astraia
             {
                 Service.Word.Register(GetTextByIndex(AssetText.BadWord));
             }
-        }
-
-        [Serializable]
-        private struct Name
-        {
-            public string name;
         }
 
         public enum BadWordFilter : byte
