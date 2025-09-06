@@ -144,7 +144,7 @@ namespace Astraia
 
         public static string GetTextByIndex(AssetText option)
         {
-            if (assetTextArray != null)
+            if (assetTextArray != null && assetTextArray.Length > 0)
             {
                 return assetTextArray[(int)option].text;
             }
