@@ -10,14 +10,13 @@
 // // *********************************************************************************
 
 using System;
-using Astraia.Common;
 using UnityEditor;
 using UnityEngine;
 
 namespace Astraia
 {
     [CustomPropertyDrawer(typeof(Xor.Int))]
-    internal class VarIntDrawer : PropertyDrawer
+    internal class XorIntDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -41,7 +40,7 @@ namespace Astraia
     }
 
     [CustomPropertyDrawer(typeof(Xor.Long))]
-    internal class VarLongDrawer : PropertyDrawer
+    internal class XorLongDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -65,7 +64,7 @@ namespace Astraia
     }
 
     [CustomPropertyDrawer(typeof(Xor.Float))]
-    internal class VarFloatDrawer : PropertyDrawer
+    internal class XorFloatDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
