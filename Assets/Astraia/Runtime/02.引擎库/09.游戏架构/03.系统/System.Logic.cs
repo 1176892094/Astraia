@@ -43,20 +43,14 @@ namespace Astraia.Common
 
         internal static void Update()
         {
-            var systemNode = systemData.First;
-            while (systemNode != null)
+            foreach (var system in systemData.Values)
             {
-                var next = systemNode.Next;
-                next?.Value.Value.Update();
-                systemNode = next;
+                system.Update();
             }
 
-            var asyncNode = asyncData.First;
-            while (asyncNode != null)
+            foreach (var async in asyncData.Values)
             {
-                var next = asyncNode.Next;
-                next?.Value.Value.Update();
-                asyncNode = next;
+                async.Update();
             }
         }
 

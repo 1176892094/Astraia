@@ -114,10 +114,11 @@ namespace Astraia.Common
         {
             foreach (var panel in panelData)
             {
-                if (panel.Value.state != UIState.Stable)
+                var result = panel.Value;
+                if (result.state != UIState.Stable)
                 {
-                    panel.Value.gameObject.SetActive(false);
-                    Object.Destroy(panel.Value.gameObject);
+                    result.gameObject.SetActive(false);
+                    Object.Destroy(result.gameObject);
                     panelData.Remove(panel.Key);
                 }
             }

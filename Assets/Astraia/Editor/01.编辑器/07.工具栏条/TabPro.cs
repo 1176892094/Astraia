@@ -22,7 +22,8 @@ namespace Astraia
 
     internal static class TabPro
     {
-        private static readonly List<Object, TabProPage> DockAreas = new List<Object, TabProPage>();
+        private static readonly Dictionary<Object, TabProPage> DockAreas = new Dictionary<Object, TabProPage>();
+        private static readonly List<Object> RemoveAreas = new List<Object>();
 
         public static void Update()
         {
@@ -41,9 +42,16 @@ namespace Astraia
                 if (!dockArea.Key)
                 {
                     dockArea.Value.Unregister();
-                    DockAreas.Remove(dockArea.Key);
+                    RemoveAreas.Add(dockArea.Key);
                 }
             }
+
+            foreach (var remove in RemoveAreas)
+            {
+                DockAreas.Remove(remove);
+            }
+
+            RemoveAreas.Clear();
         }
 
         private class TabProPage

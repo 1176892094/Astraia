@@ -24,7 +24,7 @@ namespace Runtime
         {
             foreach (var agent in SystemManager.Query<GameManager>())
             {
-                agent.Update();
+                ((GameManager)agent).Update();
             }
         }
     }

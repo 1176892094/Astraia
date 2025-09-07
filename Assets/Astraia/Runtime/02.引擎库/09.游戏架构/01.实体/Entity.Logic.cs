@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using Astraia.Common;
 
 namespace Astraia
@@ -18,22 +19,22 @@ namespace Astraia
 
     internal static class EntityManager
     {
-        private static List<Type, IAgent> GetAgents(Entity owner)
+        private static Dictionary<Type, IAgent> GetAgents(Entity owner)
         {
             if (!agentData.TryGetValue(owner, out var agents))
             {
-                agents = new List<Type, IAgent>();
+                agents = new Dictionary<Type, IAgent>();
                 agentData.Add(owner, agents);
             }
 
             return agents;
         }
 
-        private static List<Entity, IAgent> GetQueries(Type queryType)
+        private static Dictionary<Entity, IAgent> GetQueries(Type queryType)
         {
             if (!queryData.TryGetValue(queryType, out var queries))
             {
-                queries = new List<Entity, IAgent>();
+                queries = new Dictionary<Entity, IAgent>();
                 queryData.Add(queryType, queries);
             }
 

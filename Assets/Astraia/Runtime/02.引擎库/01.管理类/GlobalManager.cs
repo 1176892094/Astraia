@@ -39,7 +39,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<Component, IAsync> asyncData = new List<Component, IAsync>();
+        internal static readonly Dictionary<Component, IAsync> asyncData = new Dictionary<Component, IAsync>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
@@ -75,19 +75,19 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Entity, List<Type, IAgent>> agentData = new Dictionary<Entity, List<Type, IAgent>>();
+        internal static readonly Dictionary<Entity, Dictionary<Type, IAgent>> agentData = new Dictionary<Entity, Dictionary<Type, IAgent>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, List<Entity, IAgent>> queryData = new Dictionary<Type, List<Entity, IAgent>>();
+        internal static readonly Dictionary<Type, Dictionary<Entity, IAgent>> queryData = new Dictionary<Type, Dictionary<Entity, IAgent>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<Type, ISystem> systemData = new List<Type, ISystem>();
+        internal static readonly Dictionary<Type, ISystem> systemData = new Dictionary<Type, ISystem>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<Type, UIPanel> panelData = new List<Type, UIPanel>();
+        internal static readonly Dictionary<Type, UIPanel> panelData = new Dictionary<Type, UIPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
