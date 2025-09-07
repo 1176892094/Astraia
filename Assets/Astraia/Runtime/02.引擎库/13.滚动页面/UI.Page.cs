@@ -37,12 +37,7 @@ namespace Astraia
         private int numY => (int)assetRect.y + (direction ? 1 : 0);
 
         public IEnumerable<IGrid<TItem>> Values => grids.Values;
-
-        public static UIPage<TItem> Create(Entity owner)
-        {
-            return (UIPage<TItem>)owner.AddAgent(typeof(UIPage<TItem>), typeof(UIPage<TItem>));
-        }
-
+        
         void IAgent.Dequeue()
         {
             selection = false;

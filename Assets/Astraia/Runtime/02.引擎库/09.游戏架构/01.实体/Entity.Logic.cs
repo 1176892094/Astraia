@@ -48,8 +48,8 @@ namespace Astraia
             var queries = GetQueries(queryType);
             if (!agents.ContainsKey(keyType))
             {
-                agents.Add(keyType, agent);
                 queries.Add(owner);
+                agents.Add(keyType, agent);
                 owner.Inject(agent);
                 agent.Create(owner);
                 agent.Dequeue();
@@ -82,8 +82,8 @@ namespace Astraia
             if (!agents.TryGetValue(keyType, out var agent))
             {
                 agent = HeapManager.Dequeue<IAgent>(realType);
-                agents.Add(keyType, agent);
                 queries.Add(owner);
+                agents.Add(keyType, agent);
                 owner.Inject(agent);
                 agent.Create(owner);
                 agent.Dequeue();
