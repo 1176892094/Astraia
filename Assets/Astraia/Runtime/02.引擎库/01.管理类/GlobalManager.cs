@@ -79,7 +79,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, Dictionary<Entity, IAgent>> queryData = new Dictionary<Type, Dictionary<Entity, IAgent>>();
+        internal static readonly Dictionary<Type, List<Entity>> queryData = new Dictionary<Type, List<Entity>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
@@ -106,22 +106,12 @@ namespace Astraia.Common
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-
-        private void OnEnable()
-        {
-            SystemManager.Listen<UISystem>();
-        }
-
+        
         private void Start()
         {
             PackManager.LoadAssetData();
         }
-
-        private void OnDisable()
-        {
-            SystemManager.Remove<UISystem>();
-        }
-
+        
         private void Update()
         {
             SystemManager.Update();

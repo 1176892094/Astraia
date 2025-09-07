@@ -34,20 +34,4 @@ namespace Astraia
         {
         }
     }
-
-    internal struct UISystem : ISystem
-    {
-        public void Update()
-        {
-            foreach (var panel in SystemManager.Query<UIPanel>())
-            {
-                panel.Update();
-            }
-
-            foreach (var panel in SystemManager.Query<IPage>())
-            {
-                panel.Update();
-            }
-        }
-    }
 }

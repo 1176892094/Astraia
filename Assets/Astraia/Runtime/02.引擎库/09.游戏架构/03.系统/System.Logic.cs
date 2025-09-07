@@ -17,18 +17,16 @@ namespace Astraia.Common
 
     public static class SystemManager
     {
-        public static IEnumerable<T> Query<T>() where T : IAgent
+        private static readonly List<Entity> Empty = new List<Entity>();
+
+        public static List<Entity> Query<T>() where T : IAgent
         {
-            if (queryData.TryGetValue(typeof(T), out var entities))
+            if (queryData.TryGetValue(typeof(T), out var agents))
             {
-                foreach (var entity in entities)
-                {
-                    if (entity.Key && entity.Key.isActiveAndEnabled)
-                    {
-                        yield return (T)entity.Value;
-                    }
-                }
+                return agents;
             }
+
+            return Empty;
         }
 
         internal static void Listen<T>() where T : struct, ISystem
@@ -43,6 +41,11 @@ namespace Astraia.Common
 
         internal static void Update()
         {
+            foreach (var panel in panelData.Values)
+            {
+                panel.Update();
+            }
+
             foreach (var system in systemData.Values)
             {
                 system.Update();

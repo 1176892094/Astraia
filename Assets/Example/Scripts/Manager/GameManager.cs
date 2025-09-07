@@ -22,17 +22,13 @@ namespace Runtime
     {
         public void Update()
         {
-            foreach (var agent in SystemManager.Query<GameManager>())
-            {
-                ((GameManager)agent).Update();
-            }
+            GameManager.Instance.Update();
         }
     }
 
     [Serializable]
-    public class GameManager : Agent<Entity>, IEvent<ServerReady>, IEvent<ServerConnect>
+    public class GameManager : Singleton<GameManager, Entity>, IEvent<ServerReady>, IEvent<ServerConnect>
     {
-        public static GameManager Instance;
         [SerializeField] private Vector2 center;
         [SerializeField] private Vector2 content;
         [SerializeField] private Player player;
@@ -40,7 +36,6 @@ namespace Runtime
 
         public override void Dequeue()
         {
-            Instance = this;
             mainCamera = Object.FindFirstObjectByType<Camera>();
             GlobalManager.Instance.canvas.worldCamera = mainCamera;
             GlobalManager.Instance.canvas.sortingOrder = 10;

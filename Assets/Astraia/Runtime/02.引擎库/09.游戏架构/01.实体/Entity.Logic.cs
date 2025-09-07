@@ -30,11 +30,11 @@ namespace Astraia
             return agents;
         }
 
-        private static Dictionary<Entity, IAgent> GetQueries(Type queryType)
+        private static List<Entity> GetQueries(Type queryType)
         {
             if (!queryData.TryGetValue(queryType, out var queries))
             {
-                queries = new Dictionary<Entity, IAgent>();
+                queries = new List<Entity>();
                 queryData.Add(queryType, queries);
             }
 
@@ -49,7 +49,7 @@ namespace Astraia
             if (!agents.ContainsKey(keyType))
             {
                 agents.Add(keyType, agent);
-                queries.Add(owner, agent);
+                queries.Add(owner);
                 owner.Inject(agent);
                 agent.Create(owner);
                 agent.Dequeue();
@@ -83,7 +83,7 @@ namespace Astraia
             {
                 agent = HeapManager.Dequeue<IAgent>(realType);
                 agents.Add(keyType, agent);
-                queries.Add(owner, agent);
+                queries.Add(owner);
                 owner.Inject(agent);
                 agent.Create(owner);
                 agent.Dequeue();

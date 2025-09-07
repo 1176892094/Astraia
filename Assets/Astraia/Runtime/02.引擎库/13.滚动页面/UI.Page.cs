@@ -18,7 +18,7 @@ using UnityEngine.EventSystems;
 namespace Astraia
 {
     [Serializable]
-    public sealed class UIPage<TItem> : Agent<Entity>, IPage
+    public sealed class UIPage<TItem> : Agent<Entity>, IAgent
     {
         private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
         private IList<TItem> items;
@@ -40,7 +40,7 @@ namespace Astraia
 
         public static UIPage<TItem> Create(Entity owner)
         {
-            return (UIPage<TItem>)owner.AddAgent(typeof(IPage), typeof(UIPage<TItem>), typeof(UIPage<TItem>));
+            return (UIPage<TItem>)owner.AddAgent(typeof(UIPage<TItem>), typeof(UIPage<TItem>));
         }
 
         void IAgent.Dequeue()
@@ -55,7 +55,7 @@ namespace Astraia
             items = null;
         }
 
-        void IPage.Update()
+        public void Update()
         {
             if (!content)
             {

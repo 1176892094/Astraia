@@ -13,11 +13,6 @@ using UnityEngine;
 
 namespace Astraia.Common
 {
-    public interface IPage : IAgent
-    {
-        void Update();
-    }
-
     public interface IGrid
     {
         Transform transform { get; }
