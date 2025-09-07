@@ -28,7 +28,7 @@ namespace Astraia
                     return instance;
                 }
 
-                var name = "Assets/Editor/Resources/{0}.asset".Format(typeof(T).Name);
+                var name = "Assets/Editor/Resources/Settings/{0}.asset".Format(typeof(T).Name);
                 instance = AssetDatabase.LoadAssetAtPath<T>(name);
                 if (instance)
                 {

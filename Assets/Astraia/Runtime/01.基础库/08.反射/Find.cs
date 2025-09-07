@@ -32,7 +32,7 @@ namespace Astraia
                 foreach (var assembly in assemblyData)
                 {
                     var assemblyName = assembly.GetName().Name;
-                    assemblies.Add(assemblyName, assembly);
+                    assemblies[assemblyName] = assembly;
                     var types = assembly.GetTypes();
                     foreach (var type in types)
                     {
