@@ -39,7 +39,7 @@ namespace Astraia.Common
         }
 #if UNITY_EDITOR && ODIN_INSPECTOR
         private static readonly List<string> caches;
-        private static List<string> Systems = caches ??= GlobalSetting.GetAgents<ISystem>(caches);
+        private static List<string> Systems = caches ??= GlobalSetting.GetTypes<ISystem>(caches);
 
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<ISystem> systems

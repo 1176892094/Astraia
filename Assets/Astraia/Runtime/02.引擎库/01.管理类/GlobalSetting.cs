@@ -19,6 +19,7 @@ using UnityEngine.UI;
 using Object = UnityEngine.Object;
 #if UNITY_EDITOR && ODIN_INSPECTOR
 using Sirenix.OdinInspector;
+using UnityEditor;
 #endif
 
 namespace Astraia
@@ -192,27 +193,9 @@ namespace Astraia
         public List<Object> ignoreAssets = new List<Object>();
 
 #if ODIN_INSPECTOR
-        [FoldoutGroup("资源构建")]
-        [LabelText("资源构建路径")]
-        [PropertyOrder(-2)]
-        [ShowInInspector]
+        [FoldoutGroup("资源构建")] [LabelText("资源构建路径")] [PropertyOrder(-2)] [ShowInInspector]
 #endif
-        private static BuildMode BuildPath
-        {
-            get => (BuildMode)UnityEditor.EditorPrefs.GetInt(nameof(BuildPath), (int)BuildMode.StreamingAssets);
-            set => UnityEditor.EditorPrefs.SetInt(nameof(BuildPath), (int)value);
-        }
-
-#if ODIN_INSPECTOR
-        [ShowInInspector]
-        [FoldoutGroup("资源构建")]
-        [LabelText("编辑资源路径")]
-#endif
-        public static string EditorPath
-        {
-            get => UnityEditor.EditorPrefs.GetString(nameof(EditorPath), "Assets/Editor/Resources");
-            set => UnityEditor.EditorPrefs.SetString(nameof(EditorPath), value);
-        }
+        public BuildMode BuildPath = BuildMode.StreamingAssets;
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("数据表")]
@@ -220,8 +203,8 @@ namespace Astraia
 #endif
         public static string ScriptPath
         {
-            get => UnityEditor.EditorPrefs.GetString(nameof(ScriptPath), "Assets/Scripts/DataTable");
-            set => UnityEditor.EditorPrefs.SetString(nameof(ScriptPath), value);
+            get => EditorPrefs.GetString(nameof(ScriptPath), "Assets/Scripts/DataTable");
+            set => EditorPrefs.SetString(nameof(ScriptPath), value);
         }
 #if ODIN_INSPECTOR
         [ShowInInspector]
@@ -240,7 +223,7 @@ namespace Astraia
         [FoldoutGroup("资源构建")]
         [LabelText("资源构建路径")]
 #endif
-        public static string remoteBuildPath => BuildPath == BuildMode.BuildPath ? Instance.assetBuildPath : Application.streamingAssetsPath;
+        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? Instance.assetBuildPath : Application.streamingAssetsPath;
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
@@ -268,59 +251,57 @@ namespace Astraia
 
         public static void UpdateSceneSetting()
         {
-            var assets = UnityEditor.EditorBuildSettings.scenes.Select(scene => scene.path).ToList();
+            var assets = EditorBuildSettings.scenes.Select(scene => scene.path).ToList();
             foreach (var scenePath in Instance.sceneAssets)
             {
                 if (assets.Contains(scenePath))
                 {
                     if (Instance.assetLoadMode == AssetMode.Simulate) continue;
-                    var scenes = UnityEditor.EditorBuildSettings.scenes.Where(scene => scene.path != scenePath);
-                    UnityEditor.EditorBuildSettings.scenes = scenes.ToArray();
+                    var scenes = EditorBuildSettings.scenes.Where(scene => scene.path != scenePath);
+                    EditorBuildSettings.scenes = scenes.ToArray();
                 }
                 else
                 {
                     if (Instance.assetLoadMode == AssetMode.Authentic) continue;
-                    var scenes = UnityEditor.EditorBuildSettings.scenes.ToList();
-                    scenes.Add(new UnityEditor.EditorBuildSettingsScene(scenePath, true));
-                    UnityEditor.EditorBuildSettings.scenes = scenes.ToArray();
+                    var scenes = EditorBuildSettings.scenes.ToList();
+                    scenes.Add(new EditorBuildSettingsScene(scenePath, true));
+                    EditorBuildSettings.scenes = scenes.ToArray();
                 }
             }
         }
 
-        public static List<string> GetAgents<T>(List<string> items)
+        public static List<string> GetTypes<T>(List<string> items)
         {
-            if (items != null)
+            if (items == null)
             {
-                return items;
-            }
-
-            items = new List<string>();
-            foreach (var assembly in Service.Find.assemblies.Values)
-            {
-                var types = assembly.GetTypes();
-
-                foreach (var type in types)
+                items = new List<string>();
+                foreach (var assembly in Service.Find.assemblies.Values)
                 {
-                    if (type.IsAbstract)
+                    var types = assembly.GetTypes();
+                    foreach (var type in types)
                     {
-                        continue;
-                    }
+                        if (type.IsAbstract)
+                        {
+                            continue;
+                        }
 
-                    if (type.IsGenericType)
-                    {
-                        continue;
-                    }
+                        if (type.IsGenericType)
+                        {
+                            continue;
+                        }
 
-                    if (!typeof(T).IsAssignableFrom(type))
-                    {
-                        continue;
-                    }
+                        if (!typeof(T).IsAssignableFrom(type))
+                        {
+                            continue;
+                        }
 
-                    items.Add(Service.Text.Format("{0}, {1}", type.FullName, assembly.GetName().Name));
+                        items.Add(Service.Text.Format("{0}, {1}", type.FullName, assembly.GetName().Name));
+                    }
                 }
+
+                items.Sort(StringComparer.Ordinal);
             }
 
-            items.Sort(StringComparer.Ordinal);
             return items;
         }
     }

@@ -9,7 +9,6 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
 using System.Runtime.CompilerServices;
 using Astraia.Common;
 
@@ -17,9 +16,6 @@ namespace Astraia
 {
     public static partial class Xor
     {
-        private static readonly int TickInt = DateTime.Now.Ticks.GetHashCode();
-        private static readonly long TickLong = DateTime.Now.Ticks;
-
         public struct Exception : IEvent
         {
         }

@@ -21,6 +21,7 @@ namespace Astraia
         [Serializable]
         public struct Int : IEquatable<Int>
         {
+            private static readonly int Ticks = (int)DateTime.Now.Ticks;
             public int origin;
             public int buffer;
             public int offset;
@@ -42,7 +43,7 @@ namespace Astraia
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set
                 {
-                    offset = TickInt;
+                    offset = Ticks;
                     origin = value ^ offset;
                     buffer = (offset >> 8) ^ value;
                 }
@@ -50,7 +51,7 @@ namespace Astraia
 
             public Int(int value = 0)
             {
-                offset = TickInt;
+                offset = Ticks;
                 origin = value ^ offset;
                 buffer = (offset >> 8) ^ value;
             }
@@ -89,6 +90,7 @@ namespace Astraia
         [Serializable]
         public struct Long : IEquatable<Long>
         {
+            private static readonly long Ticks = DateTime.Now.Ticks;
             public long origin;
             public long buffer;
             public long offset;
@@ -110,7 +112,7 @@ namespace Astraia
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set
                 {
-                    offset = TickLong;
+                    offset = Ticks;
                     origin = value ^ offset;
                     buffer = (offset >> 8) ^ value;
                 }
@@ -118,7 +120,7 @@ namespace Astraia
 
             public Long(long value = 0)
             {
-                offset = TickLong;
+                offset = Ticks;
                 origin = value ^ offset;
                 buffer = (offset >> 8) ^ value;
             }
@@ -157,6 +159,7 @@ namespace Astraia
         [Serializable]
         public struct Float : IEquatable<Float>
         {
+            private static readonly int Ticks = (int)DateTime.Now.Ticks;
             public int origin;
             public int buffer;
             public int offset;
@@ -178,7 +181,7 @@ namespace Astraia
                 set
                 {
                     var ptr = *(int*)&value;
-                    offset = TickInt;
+                    offset = Ticks;
                     origin = ptr ^ offset;
                     buffer = (offset >> 8) ^ ptr;
                 }
@@ -187,7 +190,7 @@ namespace Astraia
             public unsafe Float(float value = 0)
             {
                 var ptr = *(int*)&value;
-                offset = TickInt;
+                offset = Ticks;
                 origin = ptr ^ offset;
                 buffer = (offset >> 8) ^ ptr;
             }
@@ -226,6 +229,7 @@ namespace Astraia
         [Serializable]
         public struct Bytes : IEquatable<Bytes>
         {
+            private static readonly int Ticks = (int)DateTime.Now.Ticks;
             public byte[] origin;
             public int buffer;
             public int offset;
@@ -250,7 +254,7 @@ namespace Astraia
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set
                 {
-                    offset = TickInt;
+                    offset = Ticks;
                     origin = value;
                     buffer = GetHashCode();
                 }
@@ -259,7 +263,7 @@ namespace Astraia
             public Bytes(byte[] value)
             {
                 buffer = 0;
-                offset = TickInt;
+                offset = Ticks;
                 origin = value;
                 buffer = GetHashCode();
             }
@@ -302,7 +306,7 @@ namespace Astraia
                         {
                             result = (result * 31) ^ ip[i];
                         }
-                        
+
                         var bp = ptr + count * 4;
                         for (var i = count * 4; i < origin.Length; i++)
                         {

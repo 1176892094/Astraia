@@ -21,11 +21,12 @@ namespace Astraia
         {
             private static readonly Dictionary<string, Type> cacheTypes = new();
             public static readonly Dictionary<string, Assembly> assemblies = new();
-            public const BindingFlags Declared = Static | Instance | BindingFlags.DeclaredOnly;
             public const BindingFlags Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            public const BindingFlags Instance = BindingFlags.Public | BindingFlags.NonPublic| BindingFlags.Instance;
-            
-            static Find()
+            public const BindingFlags Instance = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            public const BindingFlags Declared = Static | Instance | BindingFlags.DeclaredOnly;
+            public static event Action<Type> OnTypeLoaded;
+
+            public static void Register()
             {
                 var assemblyData = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (var assembly in assemblyData)
@@ -37,10 +38,11 @@ namespace Astraia
                     {
                         var typeName = Text.Format("{0},{1}", type.FullName, assemblyName);
                         cacheTypes[typeName] = type;
+                        OnTypeLoaded?.Invoke(type);
                     }
                 }
             }
-            
+
             public static Assembly Assembly(string name)
             {
                 if (assemblies.TryGetValue(name, out var result))

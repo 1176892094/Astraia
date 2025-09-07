@@ -34,6 +34,32 @@ namespace Astraia
     {
         public static readonly Dictionary<Type, ScriptableObject> windows = new Dictionary<Type, ScriptableObject>();
 
+        static EditorSetting()
+        {
+            Service.Find.OnTypeLoaded -= LoadType;
+            Service.Find.OnTypeLoaded += LoadType;
+
+            void LoadType(Type type)
+            {
+                if (type.IsAbstract)
+                {
+                    return;
+                }
+
+                var baseType = type.BaseType;
+                while (baseType != null)
+                {
+                    if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(EditorSingleton<>))
+                    {
+                        windows[type] = type.GetValue<ScriptableObject>("Instance");
+                        break;
+                    }
+
+                    baseType = baseType.BaseType;
+                }
+            }
+        }
+
         private static bool AssetLoadKey
         {
             get => EditorPrefs.GetBool(nameof(AssetLoadKey), false);
@@ -124,6 +150,7 @@ namespace Astraia
                 }
             }
 
+            EditorApplication.delayCall += Service.Find.Register;
             EditorApplication.delayCall += DataManager.LoadDataTable;
         }
 

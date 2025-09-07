@@ -23,33 +23,29 @@ namespace Astraia
         {
             get
             {
-                if (instance != null)
+                if (instance)
                 {
                     return instance;
                 }
 
-                var asset = Service.Text.Format("{0}/{1}.asset", GlobalSetting.EditorPath, typeof(T).Name);
-                instance = AssetDatabase.LoadAssetAtPath<T>(asset);
-                if (instance != null)
+                var name = Service.Text.Format("Assets/Editor/Resources/{0}.asset", typeof(T).Name);
+                instance = AssetDatabase.LoadAssetAtPath<T>(name);
+                if (instance)
                 {
                     return instance;
                 }
-
-                if (!Directory.Exists(GlobalSetting.EditorPath))
+                
+                var path = Path.GetDirectoryName(name);
+                if (!Directory.Exists(path) && !string.IsNullOrEmpty(path))
                 {
-                    Directory.CreateDirectory(GlobalSetting.EditorPath);
+                    Directory.CreateDirectory(path);
                 }
 
                 instance = CreateInstance<T>();
-                AssetDatabase.CreateAsset(instance, asset);
+                AssetDatabase.CreateAsset(instance, name);
                 AssetDatabase.Refresh();
                 return instance;
             }
-        }
-        
-        protected static void AddWindow()
-        {
-            EditorSetting.windows[typeof(T)] = Instance;
         }
     }
 }
