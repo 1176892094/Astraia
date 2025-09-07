@@ -103,15 +103,15 @@ namespace Astraia
         {
             if (GlobalManager.agentData.TryGetValue(this, out var agent))
             {
-                foreach (var result in agent.Values)
-                {
-                    yield return result;
-                }
+                return agent.Values;
             }
+
+            return null;
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        private static List<string> Agents = GlobalSetting.GetAgents();
+        private static readonly List<string> caches;
+        private static List<string> Agents = caches ??= GlobalSetting.GetAgents<IAgent>(caches);
 
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<IAgent> agents

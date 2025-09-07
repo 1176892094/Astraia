@@ -80,6 +80,10 @@ namespace Astraia
         [FoldoutGroup("其他设置")] [LabelText("密钥版本")] [PropertyOrder(1)]
 #endif
         public string[] secretGroup;
+#if ODIN_INSPECTOR
+        [ShowInInspector] [FoldoutGroup("数据表")] [LabelText("数据表程序集")] [PropertyOrder(-1)]
+#endif
+        public string assemblyName = "HotUpdate.Data";
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源加载")]
@@ -96,24 +100,6 @@ namespace Astraia
         public static string assetPackData => Service.Text.Format("{0}.json", Instance.assetLoadName);
 
         private static readonly Dictionary<AssetText, TextAsset> itemText = new Dictionary<AssetText, TextAsset>();
-        
-        public static string assemblyName
-        {
-            get
-            {
-                var jsonAsset = GetTextByIndex(AssetText.Assembly);
-                int nameIndex = jsonAsset.IndexOf("\"name\":", StringComparison.Ordinal);
-                if (nameIndex != -1)
-                {
-                    var start = jsonAsset.IndexOf('\"', nameIndex + "\"name\":".Length) + 1;
-                    var end = jsonAsset.IndexOf('\"', start);
-                    var nameValue = jsonAsset.Substring(start, end - start);
-                    return nameValue;
-                }
-
-                return string.Empty;
-            }
-        }
 
         public static string GetTextByIndex(AssetText option)
         {
@@ -127,7 +113,7 @@ namespace Astraia
             {
                 itemText.Add((AssetText)i, items[i]);
             }
-     
+
             return itemText[option].text;
         }
 
@@ -231,7 +217,6 @@ namespace Astraia
         [ShowInInspector]
         [FoldoutGroup("数据表")]
         [LabelText("脚本生成路径")]
-        [PropertyOrder(-1)]
 #endif
         public static string ScriptPath
         {
@@ -249,7 +234,7 @@ namespace Astraia
         [FoldoutGroup("数据表")]
         [LabelText("数据表程序集")]
 #endif
-        public static string assemblyPath => Service.Text.Format("{0}/{1}.asmdef", ScriptPath, assemblyName);
+        public static string assemblyPath => Service.Text.Format("{0}/{1}.asmdef", ScriptPath, Instance.assemblyName);
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
@@ -277,7 +262,7 @@ namespace Astraia
 
         public static string GetAssetPath(string name) => Service.Text.Format("{0}/{1}DataTable.asset", dataTablePath, name);
 
-        public static string GetDataName(string name) => Service.Text.Format("Astraia.Table.{0}Data,{1}", name, assemblyName);
+        public static string GetDataName(string name) => Service.Text.Format("Astraia.Table.{0}Data,{1}", name, Instance.assemblyName);
 
         public static string GetTableName(string name) => Service.Text.Format("Astraia.Table.{0}DataTable", name);
 
@@ -302,18 +287,15 @@ namespace Astraia
             }
         }
 
-        private static List<string> agents;
-
-        public static List<string> GetAgents()
+        public static List<string> GetAgents<T>(List<string> items)
         {
-            if (agents != null)
+            if (items != null)
             {
-                return agents;
+                return items;
             }
 
-            agents = new List<string>();
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies)
+            items = new List<string>();
+            foreach (var assembly in Service.Find.assemblies.Values)
             {
                 var types = assembly.GetTypes();
 
@@ -329,62 +311,17 @@ namespace Astraia
                         continue;
                     }
 
-                    if (!typeof(IAgent).IsAssignableFrom(type))
+                    if (!typeof(T).IsAssignableFrom(type))
                     {
                         continue;
                     }
 
-                    agents.Add(Service.Text.Format("{0}, {1}", type.FullName, type.Assembly.GetName().Name));
+                    items.Add(Service.Text.Format("{0}, {1}", type.FullName, assembly.GetName().Name));
                 }
             }
 
-            agents.Sort(StringComparer.Ordinal);
-            return agents;
-        }
-
-        private static List<string> systems;
-
-        public static List<string> GetSystems()
-        {
-            if (systems != null)
-            {
-                return systems;
-            }
-
-            systems = new List<string>();
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies)
-            {
-                if (assembly.GetName().Name.StartsWith("Astraia"))
-                {
-                    continue;
-                }
-
-                var types = assembly.GetTypes();
-
-                foreach (var type in types)
-                {
-                    if (type.IsAbstract)
-                    {
-                        continue;
-                    }
-
-                    if (type.IsGenericType)
-                    {
-                        continue;
-                    }
-
-                    if (!typeof(ISystem).IsAssignableFrom(type))
-                    {
-                        continue;
-                    }
-
-                    systems.Add(Service.Text.Format("{0}, {1}", type.FullName, type.Assembly.GetName().Name));
-                }
-            }
-
-            systems.Sort(StringComparer.Ordinal);
-            return systems;
+            items.Sort(StringComparer.Ordinal);
+            return items;
         }
     }
 #endif

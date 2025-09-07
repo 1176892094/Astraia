@@ -10,17 +10,11 @@
 // // *********************************************************************************
 
 using System;
-using UnityEngine;
 
 namespace Astraia
 {
     [AttributeUsage(AttributeTargets.Field)]
     public class InjectAttribute : Attribute
-    {
-    }
-    
-    [AttributeUsage(AttributeTargets.Field)]
-    public class FolderAttribute : PropertyAttribute
     {
     }
     
