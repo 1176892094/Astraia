@@ -30,14 +30,14 @@ namespace Astraia.Net
 
         private static void EarlyUpdate()
         {
-            if (!NetworkManager.Instance) return;
+            if (!Application.isPlaying) return;
             NetworkManager.Server.EarlyUpdate();
             NetworkManager.Client.EarlyUpdate();
         }
 
         private static void AfterUpdate()
         {
-            if (!NetworkManager.Instance) return;
+            if (!Application.isPlaying) return;
             NetworkManager.Server.AfterUpdate();
             NetworkManager.Client.AfterUpdate();
         }

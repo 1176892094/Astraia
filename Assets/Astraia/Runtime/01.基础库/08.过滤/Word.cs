@@ -19,7 +19,7 @@ namespace Astraia
         {
             private static readonly Node root = new Node();
 
-            public static void Register(string text)
+            internal static void Register(string text)
             {
                 var cache = Zip.Decompress(text);
                 var words = cache.Split('\n');
