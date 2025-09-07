@@ -21,6 +21,8 @@ namespace Astraia
         private Dictionary<Key, LinkedListNode<Node>> items = new();
         private LinkedList<Node> nodes = new();
         public int Count => nodes.Count;
+        public LinkedListNode<Node> First => nodes.First;
+        public LinkedListNode<Node> Last => nodes.Last;
 
         public Value this[Key key]
         {
@@ -130,19 +132,7 @@ namespace Astraia
             nodes.Clear();
         }
 
-        public IEnumerable<Key> Keys
-        {
-            get
-            {
-                var node = nodes.First;
-                while (node != null)
-                {
-                    var next = node.Next;
-                    yield return node.Value.Key;
-                    node = next;
-                }
-            }
-        }
+        public IEnumerable<Key> Keys => items.Keys;
 
         public IEnumerable<Value> Values
         {

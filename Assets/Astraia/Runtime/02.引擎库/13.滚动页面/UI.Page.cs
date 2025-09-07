@@ -20,7 +20,7 @@ namespace Astraia
     [Serializable]
     public sealed class UIPage<TItem> : Agent<Entity>, IPage
     {
-        private readonly List<int, IGrid<TItem>> grids = new List<int, IGrid<TItem>>();
+        private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
         private IList<TItem> items;
         private int minIndex;
         private int maxIndex;
