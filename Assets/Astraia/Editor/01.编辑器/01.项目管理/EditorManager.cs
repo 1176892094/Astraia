@@ -9,7 +9,6 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -28,6 +27,13 @@ namespace Astraia
 
         static EditorManager()
         {
+            Service.Find.OnLoad -= EditorSetting.LoadWindows;
+            Service.Find.OnLoad += EditorSetting.LoadWindows;
+            Service.Find.OnLoad -= GlobalSetting.LoadSetting;
+            Service.Find.OnLoad += GlobalSetting.LoadSetting;
+            Service.Find.OnLoadComplete -= GlobalSetting.LoadComplete;
+            Service.Find.OnLoadComplete += GlobalSetting.LoadComplete;
+
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
             EditorApplication.update -= TabPro.Update;
@@ -38,20 +44,20 @@ namespace Astraia
             EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
             EditorApplication.projectChanged -= Folder.OnProjectChanged;
             EditorApplication.projectChanged += Folder.OnProjectChanged;
-            
+
             Selection.selectionChanged -= Toolbar.SelectionChanged;
             Selection.selectionChanged += Toolbar.SelectionChanged;
             Selection.selectionChanged -= Inspector.SelectionChanged;
             Selection.selectionChanged += Inspector.SelectionChanged;
-            
+
             EditorApplication.delayCall -= Toolbar.SelectionChanged;
             EditorApplication.delayCall += Toolbar.SelectionChanged;
             EditorApplication.delayCall -= Inspector.SelectionChanged;
             EditorApplication.delayCall += Inspector.SelectionChanged;
-            
+
             EditorSceneManager.sceneOpened -= Toolbar.OnSceneOpened;
             EditorSceneManager.sceneOpened += Toolbar.OnSceneOpened;
-            
+
 
             focusedWindow = EditorWindow.focusedWindow;
             isMaximized = focusedWindow && focusedWindow.maximized;

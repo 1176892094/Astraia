@@ -270,39 +270,35 @@ namespace Astraia
             }
         }
 
-        public static List<string> GetTypes<T>(List<string> items)
+        public static readonly List<string> agents = new List<string>();
+        public static readonly List<string> systems = new List<string>();
+
+        public static void LoadSetting(Type result)
         {
-            if (items == null)
+            if (result.IsAbstract)
             {
-                items = new List<string>();
-                foreach (var assembly in Service.Find.assemblies.Values)
-                {
-                    var types = assembly.GetTypes();
-                    foreach (var type in types)
-                    {
-                        if (type.IsAbstract)
-                        {
-                            continue;
-                        }
-
-                        if (type.IsGenericType)
-                        {
-                            continue;
-                        }
-
-                        if (!typeof(T).IsAssignableFrom(type))
-                        {
-                            continue;
-                        }
-
-                        items.Add("{0}, {1}".Format(type.FullName, assembly.GetName().Name));
-                    }
-                }
-
-                items.Sort(StringComparer.Ordinal);
+                return;
             }
 
-            return items;
+            if (result.IsGenericType)
+            {
+                return;
+            }
+
+            if (typeof(IAgent).IsAssignableFrom(result))
+            {
+                agents.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
+            }
+            else if (typeof(ISystem).IsAssignableFrom(result))
+            {
+                systems.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
+            }
+        }
+
+        public static void LoadComplete()
+        {
+            agents.Sort(StringComparer.Ordinal);
+            systems.Sort(StringComparer.Ordinal);
         }
     }
 #endif

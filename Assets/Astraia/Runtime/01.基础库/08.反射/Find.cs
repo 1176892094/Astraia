@@ -24,6 +24,7 @@ namespace Astraia
             public const BindingFlags Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
             public const BindingFlags Instance = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
             public static event Action<Type> OnLoad;
+            public static event Action OnLoadComplete;
 
             public static void LoadData()
             {
@@ -40,6 +41,7 @@ namespace Astraia
                         OnLoad?.Invoke(type);
                     }
                 }
+                OnLoadComplete?.Invoke();
             }
 
             public static Assembly Assembly(string name)

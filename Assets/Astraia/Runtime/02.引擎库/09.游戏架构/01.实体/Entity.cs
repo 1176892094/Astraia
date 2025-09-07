@@ -110,13 +110,13 @@ namespace Astraia
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        private static readonly List<string> caches;
-        private static List<string> Agents = caches ??= GlobalSetting.GetTypes<IAgent>(caches);
+
+        private static List<string> Agents = GlobalSetting.agents;
 
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<IAgent> agents
         {
-            get => GetAgents().ToList();
+            get => GetAgents()?.ToList();
             set => Debug.LogError(value);
         }
 
