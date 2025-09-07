@@ -24,43 +24,24 @@ namespace Astraia
 {
     internal static class Reflection
     {
-        public static readonly Type Toolbar;
-        public static readonly Type Browser;
-        public static readonly Type Property;
-        public static readonly Type Hierarchy;
-        public static readonly Type Inspector;
-        
-        public static readonly GUIContent buildIcon;
-        public static readonly GUIContent sceneIcon;
-        public static readonly GUIContent customIcon;
-        public static readonly GUIContent windowIcon;
-        public static readonly GUIContent settingIcon;
-        public static readonly GUIContent packageIcon;
-        
-        private static readonly GUIContent content = new GUIContent();
+        public static readonly Type Toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
+        public static readonly Type Browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
+        public static readonly Type Property = typeof(Editor).Assembly.GetType("UnityEditor.PropertyEditor");
+        public static readonly Type Hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
+        public static readonly Type Inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+        public static readonly GUIContent buildIcon = EditorGUIUtility.IconContent("BuildSettings.Standalone");
+        public static readonly GUIContent sceneIcon = EditorGUIUtility.IconContent("UnityLogo");
+        public static readonly GUIContent customIcon = EditorGUIUtility.IconContent("CustomTool");
+        public static readonly GUIContent windowIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow");
+        public static readonly GUIContent settingIcon = EditorGUIUtility.IconContent("SettingsIcon");
+        public static readonly GUIContent packageIcon = EditorGUIUtility.IconContent("Package Manager");
 
+        private static readonly GUIContent content = new();
         private static IEnumerable<EditorWindow> allInspectors;
         private static IEnumerable<EditorWindow> allEditorWindows;
         public static IEnumerable<EditorWindow> AllInspectors => allInspectors ??= Inspector.GetValue<IList>("m_AllInspectors").Cast<EditorWindow>().Where(r => r.GetType() == Inspector);
         private static IEnumerable<EditorWindow> AllEditorWindows => allEditorWindows ??= typeof(EditorWindow).GetValue<List<EditorWindow>>("activeEditorWindows");
         public static IEnumerable<Object> AllDockAreas => AllEditorWindows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent"));
-
-        static Reflection()
-        {
-            Toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
-
-            Browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
-            Property = typeof(Editor).Assembly.GetType("UnityEditor.PropertyEditor");
-            Inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
-            Hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
-
-            sceneIcon = EditorGUIUtility.IconContent("UnityLogo");
-            buildIcon = EditorGUIUtility.IconContent("BuildSettings.Standalone");
-            windowIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow");
-            customIcon = EditorGUIUtility.IconContent("CustomTool");
-            settingIcon = EditorGUIUtility.IconContent("SettingsIcon");
-            packageIcon = EditorGUIUtility.IconContent("Package Manager");
-        }
 
         public static float NameLength(string name)
         {

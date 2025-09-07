@@ -18,7 +18,7 @@ using UnityEngine;
 namespace Astraia
 {
     using static Reflection;
-    using static EditorInput;
+    using static EventManager;
 
     internal static partial class Inspector
     {

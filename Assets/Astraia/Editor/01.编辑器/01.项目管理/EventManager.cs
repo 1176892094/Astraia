@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace Astraia
 {
-    internal static class EditorInput
+    internal static class EventManager
     {
         private static readonly Event current;
         private static readonly Event Event = current ??= typeof(Event).GetValue<Event>("s_Current");
@@ -24,8 +24,6 @@ namespace Astraia
         public static bool isKeyDown => Event.type == EventType.KeyDown;
         public static bool isMouseUp => Event.type == EventType.MouseUp;
         public static bool isMouseDown => Event.type == EventType.MouseDown;
-        public static bool isMouseMove => Event.type == EventType.MouseMove;
-        public static bool isMouseDrag => Event.type == EventType.MouseDrag;
         public static EventModifiers modifiers => Event.modifiers;
         public static bool isModifierKey => modifiers != EventModifiers.None;
         public static int mouseButton => Event.button;
