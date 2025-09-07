@@ -89,7 +89,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Debug.LogError(Service.Text.Format(Log.E260, gameObject.name, GetType(), owner.sceneId, e));
+                Debug.LogError(Log.E260.Format(gameObject.name, GetType(), owner.sceneId, e));
             }
 
             var endPosition = writer.position;
@@ -111,7 +111,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Debug.LogError(Service.Text.Format(Log.E260, gameObject.name, GetType(), owner.sceneId, e));
+                Debug.LogError(Log.E260.Format(gameObject.name, GetType(), owner.sceneId, e));
                 result = false;
             }
 
@@ -119,7 +119,7 @@ namespace Astraia.Net
             var count = (byte)(size & 0xFF);
             if (count != safety)
             {
-                Debug.LogError(Service.Text.Format(Log.E261, size, count, safety));
+                Debug.LogError(Log.E261.Format(size, count, safety));
                 var cleared = (uint)size & 0xFFFFFF00;
                 reader.position = startPosition + (int)(cleared | safety);
                 result = false;
@@ -150,25 +150,25 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Client.isActive)
             {
-                Debug.LogError(Service.Text.Format(Log.E262, methodName), gameObject);
+                Debug.LogError(Log.E262.Format(methodName), gameObject);
                 return;
             }
 
             if (!NetworkManager.Client.isReady)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E263, methodName, gameObject.name), gameObject);
+                Debug.LogWarning(Log.E263.Format(methodName, gameObject.name), gameObject);
                 return;
             }
 
             if ((channel & Channel.NonOwner) == 0 && !isOwner)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E264, methodName, gameObject.name), gameObject);
+                Debug.LogWarning(Log.E264.Format(methodName, gameObject.name), gameObject);
                 return;
             }
 
             if (NetworkManager.Client.connection == null)
             {
-                Debug.LogError(Service.Text.Format(Log.E265, methodName, gameObject.name), gameObject);
+                Debug.LogError(Log.E265.Format(methodName, gameObject.name), gameObject);
                 return;
             }
 
@@ -187,13 +187,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Server.isActive)
             {
-                Debug.LogError(Service.Text.Format(Log.E266, methodName), gameObject);
+                Debug.LogError(Log.E266.Format(methodName), gameObject);
                 return;
             }
 
             if (!isServer)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E267, methodName, gameObject.name), gameObject);
+                Debug.LogWarning(Log.E267.Format(methodName, gameObject.name), gameObject);
                 return;
             }
 
@@ -221,13 +221,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Server.isActive)
             {
-                Debug.LogError(Service.Text.Format(Log.E266, methodName), gameObject);
+                Debug.LogError(Log.E266.Format(methodName), gameObject);
                 return;
             }
 
             if (!isServer)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E267, methodName, gameObject.name), gameObject);
+                Debug.LogWarning(Log.E267.Format(methodName, gameObject.name), gameObject);
                 return;
             }
 
@@ -235,7 +235,7 @@ namespace Astraia.Net
 
             if (client == null)
             {
-                Debug.LogError(Service.Text.Format(Log.E268, methodName, gameObject.name), gameObject);
+                Debug.LogError(Log.E268.Format(methodName, gameObject.name), gameObject);
                 return;
             }
 

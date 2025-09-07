@@ -145,18 +145,18 @@ namespace Astraia.Net
 
         public void OnGUIServer()
         {
-            GUILayout.Label(Service.Text.Format("向服务器发送数量:\t\t{0}", clientSentPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("向服务器发送大小:\t\t{0}/s", PrettyBytes(clientSentBytesPerSecond)));
-            GUILayout.Label(Service.Text.Format("从服务器接收数量:\t\t{0}", clientReceivedPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("从服务器接收大小:\t\t{0}/s", PrettyBytes(clientReceivedBytesPerSecond)));
+            GUILayout.Label("向服务器发送数量:\t\t{0}".Format(clientSentPacketsPerSecond));
+            GUILayout.Label("向服务器发送大小:\t\t{0}/s".Format(PrettyBytes(clientSentBytesPerSecond)));
+            GUILayout.Label("从服务器接收数量:\t\t{0}".Format(clientReceivedPacketsPerSecond));
+            GUILayout.Label("从服务器接收大小:\t\t{0}/s".Format(PrettyBytes(clientReceivedBytesPerSecond)));
         }
 
         public void OnGUIClient()
         {
-            GUILayout.Label(Service.Text.Format("向客户端发送数量:\t\t{0}", serverSentPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("向客户端发送大小:\t\t{0}/s", PrettyBytes(serverSentBytesPerSecond)));
-            GUILayout.Label(Service.Text.Format("从客户端接收数量:\t\t{0}", serverReceivedPacketsPerSecond));
-            GUILayout.Label(Service.Text.Format("从客户端接收大小:\t\t{0}/s", PrettyBytes(serverReceivedBytesPerSecond)));
+            GUILayout.Label("向客户端发送数量:\t\t{0}".Format(serverSentPacketsPerSecond));
+            GUILayout.Label("向客户端发送大小:\t\t{0}/s".Format(PrettyBytes(serverSentBytesPerSecond)));
+            GUILayout.Label("从客户端接收数量:\t\t{0}".Format(serverReceivedPacketsPerSecond));
+            GUILayout.Label("从客户端接收大小:\t\t{0}/s".Format(PrettyBytes(serverReceivedBytesPerSecond)));
         }
 
 
@@ -170,20 +170,20 @@ namespace Astraia.Net
         {
             if (bytes < 1024)
             {
-                return Service.Text.Format("{0} B", bytes);
+                return "{0} B".Format(bytes);
             }
 
             if (bytes < 1024 * 1024)
             {
-                return Service.Text.Format("{0:F2} KB", bytes / 1024F);
+                return "{0:F2} KB".Format(bytes / 1024F);
             }
 
             if (bytes < 1024 * 1024 * 1024)
             {
-                return Service.Text.Format("{0:F2} MB", bytes / 1024F / 1024F);
+                return "{0:F2} MB".Format(bytes / 1024F / 1024F);
             }
 
-            return Service.Text.Format("{0:F2} GB", bytes / 1024F / 1024F / 1024F);
+            return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
         }
 
         internal IList<Pool> SendReference()
@@ -247,7 +247,7 @@ namespace Astraia.Net
                     var data = NetworkAttribute.GetInvoke(method);
                     if (data != null)
                     {
-                        item.Path = Service.Text.Format("{0}.{1}", data.Method.DeclaringType, data.Method.Name.Replace("Cmd_", ""));
+                        item.Path = "{0}.{1}".Format(data.Method.DeclaringType, data.Method.Name.Replace("Cmd_", ""));
                     }
 
                     item.Type = type;

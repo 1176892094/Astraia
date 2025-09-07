@@ -48,7 +48,7 @@ namespace Astraia.Net
 
             if (!message.Compare(component, mode, func))
             {
-                Debug.LogError(Service.Text.Format(Log.E290, component, func.Method.Name, message.component, message.func.Method.Name));
+                Debug.LogError(Log.E290.Format(component, func.Method.Name, message.component, message.func.Method.Name));
             }
         }
 

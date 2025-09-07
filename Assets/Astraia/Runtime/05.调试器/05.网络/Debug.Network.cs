@@ -44,8 +44,8 @@ namespace Astraia.Common
                 port = 20974;
             }
 
-            GUILayout.Label(Service.Text.Format("{0} : {1}", peer, port), "Button", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30));
-            var ping = NetworkManager.Mode is EntryMode.Client ? Service.Text.Format("Ping: {0} ms", Math.Min((int)(framePing * 1000), 999)) : "Client is not active!";
+            GUILayout.Label("{0} : {1}".Format(peer, port), "Button", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30));
+            var ping = NetworkManager.Mode is EntryMode.Client ? "Ping: {0} ms".Format(Math.Min((int)(framePing * 1000), 999)) : "Client is not active!";
             GUILayout.Label(ping, "Button", GUILayout.Height(30));
 
             GUILayout.EndHorizontal();
@@ -147,7 +147,7 @@ namespace Astraia.Common
             poolData.Clear();
             foreach (var reference in references)
             {
-                var assemblyName = Service.Text.Format("{0} - {1}", reference.Type.Assembly.GetName().Name, message);
+                var assemblyName = "{0} - {1}".Format(reference.Type.Assembly.GetName().Name, message);
                 if (!poolData.TryGetValue(assemblyName, out var results))
                 {
                     results = new List<Pool>();
@@ -170,7 +170,7 @@ namespace Astraia.Common
                     var assetName = data.Type.Name;
                     if (!string.IsNullOrEmpty(data.Path))
                     {
-                        assetName = Service.Text.Format("{0} - {1}", data.Type.Name, data.Path);
+                        assetName = "{0} - {1}".Format(data.Type.Name, data.Path);
                     }
 
                     GUILayout.Label(assetName, GUILayout.Height(20));
@@ -182,7 +182,7 @@ namespace Astraia.Common
                 GUILayout.Label(module, GUILayout.Height(20));
                 foreach (var data in poolPair.Value)
                 {
-                    var result = Service.Text.Format("{0}\t\t{1}\t\t{2}\t\t{3}", data.Release, PrettyBytes(data.Acquire), data.Dequeue, PrettyBytes(data.Enqueue));
+                    var result = "{0}\t\t{1}\t\t{2}\t\t{3}".Format(data.Release, PrettyBytes(data.Acquire), data.Dequeue, PrettyBytes(data.Enqueue));
                     GUILayout.Label(result, GUILayout.Height(20));
                 }
 
@@ -196,20 +196,20 @@ namespace Astraia.Common
         {
             if (bytes < 1024)
             {
-                return Service.Text.Format("{0} B", bytes);
+                return "{0} B".Format(bytes);
             }
 
             if (bytes < 1024 * 1024)
             {
-                return Service.Text.Format("{0:F2} KB", bytes / 1024F);
+                return "{0:F2} KB".Format(bytes / 1024F);
             }
 
             if (bytes < 1024 * 1024 * 1024)
             {
-                return Service.Text.Format("{0:F2} MB", bytes / 1024F / 1024F);
+                return "{0:F2} MB".Format(bytes / 1024F / 1024F);
             }
 
-            return Service.Text.Format("{0:F2} GB", bytes / 1024F / 1024F / 1024F);
+            return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
         }
     }
 }

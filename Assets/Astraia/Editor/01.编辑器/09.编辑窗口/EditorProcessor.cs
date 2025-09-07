@@ -45,7 +45,7 @@ namespace Astraia
                     var importer = AssetImporter.GetAtPath(newPath);
                     if (importer != null && !string.IsNullOrEmpty(importer.assetBundleName))
                     {
-                        Debug.Log(Service.Text.Format("移除 {0} 资源: {1}", importer.assetBundleName, oldPath));
+                        Debug.Log("移除 {0} 资源: {1}".Format(importer.assetBundleName, oldPath));
                         importer.assetBundleName = null;
                         importer.SaveAndReimport();
                     }
@@ -93,7 +93,7 @@ namespace Astraia
 
                 if (!string.Equals(importer.assetBundleName, folder, StringComparison.Ordinal))
                 {
-                    Debug.Log(Service.Text.Format("设置 {0} 资源: {1}", folder, path), asset);
+                    Debug.Log("设置 {0} 资源: {1}".Format(folder, path), asset);
                     importer.assetBundleName = folder;
                     importer.SaveAndReimport();
                 }
@@ -115,7 +115,7 @@ namespace Astraia
                     {
                         var folder = split.Substring(0, index);
                         var result = Path.GetFileNameWithoutExtension(path);
-                        GlobalManager.assetPath[Service.Text.Format("{0}/{1}", folder, result)] = path;
+                        GlobalManager.assetPath["{0}/{1}".Format(folder, result)] = path;
                     }
                 }
             }

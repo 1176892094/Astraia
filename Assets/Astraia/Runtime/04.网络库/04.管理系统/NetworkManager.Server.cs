@@ -110,7 +110,7 @@ namespace Astraia.Net
 
                 if (isLoadScene && Instance.sceneName == sceneName)
                 {
-                    Debug.LogError(Service.Text.Format(Log.E232, sceneName));
+                    Debug.LogError(Log.E232.Format(sceneName));
                     return;
                 }
 
@@ -170,7 +170,7 @@ namespace Astraia.Net
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError(Service.Text.Format(Log.E233, typeof(T).Name, channel, e));
+                        Debug.LogError(Log.E233.Format(typeof(T).Name, channel, e));
                         client.Disconnect();
                     }
                 };
@@ -189,7 +189,7 @@ namespace Astraia.Net
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError(Service.Text.Format(Log.E233, typeof(T).Name, channel, e));
+                        Debug.LogError(Log.E233.Format(typeof(T).Name, channel, e));
                         client.Disconnect();
                     }
                 };
@@ -215,26 +215,26 @@ namespace Astraia.Net
             {
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E234, client.clientId, message.objectId));
+                    Debug.LogWarning(Log.E234.Format(client.clientId, message.objectId));
                     return;
                 }
 
                 if (entity == null)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E234, client.clientId, message.objectId));
+                    Debug.LogWarning(Log.E234.Format(client.clientId, message.objectId));
                     return;
                 }
 
                 if (entity.client != client)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E234, client.clientId, message.objectId));
+                    Debug.LogWarning(Log.E234.Format(client.clientId, message.objectId));
                     return;
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
                 if (!entity.ServerDeserialize(reader))
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E235, client.clientId, message.objectId));
+                    Debug.LogWarning(Log.E235.Format(client.clientId, message.objectId));
                     client.Disconnect();
                 }
             }
@@ -244,19 +244,19 @@ namespace Astraia.Net
                 if (!client.isReady)
                 {
                     if (channel != Channel.Reliable) return;
-                    Debug.LogWarning(Service.Text.Format(Log.E236, client.clientId));
+                    Debug.LogWarning(Log.E236.Format(client.clientId));
                     return;
                 }
 
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E237, client.clientId, message.objectId));
+                    Debug.LogWarning(Log.E237.Format(client.clientId, message.objectId));
                     return;
                 }
 
                 if (NetworkAttribute.RequireReady(message.methodHash) && entity.client != client)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E238, client.clientId, message.objectId));
+                    Debug.LogWarning(Log.E238.Format(client.clientId, message.objectId));
                     return;
                 }
 
@@ -271,7 +271,7 @@ namespace Astraia.Net
             {
                 if (clientId == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E239, clientId));
+                    Debug.LogWarning(Log.E239.Format(clientId));
                     Transport.Instance.StopClient(clientId);
                 }
                 else if (clients.ContainsKey(clientId))
@@ -307,13 +307,13 @@ namespace Astraia.Net
             {
                 if (!clients.TryGetValue(clientId, out var client))
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E240, clientId));
+                    Debug.LogWarning(Log.E240.Format(clientId));
                     return;
                 }
 
                 if (!client.reader.AddBatch(segment))
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E241, clientId));
+                    Debug.LogWarning(Log.E241.Format(clientId));
                     client.Disconnect();
                     return;
                 }
@@ -323,7 +323,7 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
                     {
-                        Debug.LogWarning(Service.Text.Format(Log.E242, clientId));
+                        Debug.LogWarning(Log.E242.Format(clientId));
                         client.Disconnect();
                         return;
                     }
@@ -332,7 +332,7 @@ namespace Astraia.Net
 
                     if (!messages.TryGetValue(message, out var action))
                     {
-                        Debug.LogWarning(Service.Text.Format(Log.E243, clientId, message));
+                        Debug.LogWarning(Log.E243.Format(clientId, message));
                         client.Disconnect();
                         return;
                     }
@@ -342,7 +342,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && client.reader.Count > 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E244, clientId, client.reader.Count));
+                    Debug.LogWarning(Log.E244.Format(clientId, client.reader.Count));
                 }
             }
         }
@@ -376,13 +376,13 @@ namespace Astraia.Net
 
                 if (!gameObject.TryGetComponent(out NetworkEntity entity))
                 {
-                    Debug.LogError(Service.Text.Format(Log.E246, gameObject), gameObject);
+                    Debug.LogError(Log.E246.Format(gameObject), gameObject);
                     return;
                 }
 
                 if (spawns.ContainsKey(entity.objectId))
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E247, entity), entity);
+                    Debug.LogWarning(Log.E247.Format(entity), entity);
                     return;
                 }
 
@@ -516,7 +516,7 @@ namespace Astraia.Net
                         {
                             if (entity == null)
                             {
-                                Debug.LogWarning(Service.Text.Format(Log.E248, client.clientId));
+                                Debug.LogWarning(Log.E248.Format(client.clientId));
                                 return;
                             }
 

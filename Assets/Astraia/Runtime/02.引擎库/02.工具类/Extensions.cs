@@ -28,32 +28,32 @@ namespace Astraia
 
         public static string Bold(this string result)
         {
-            return Service.Text.Format("<b>{0}</b>", result);
+            return "<b>{0}</b>".Format(result);
         }
 
         public static string Line(this string result)
         {
-            return Service.Text.Format("<u>{0}</u>", result);
+            return "<u>{0}</u>".Format(result);
         }
 
         public static string Link(this string result, string format)
         {
-            return Service.Text.Format("<a href=\"{0}\">{1}</a>", format, result);
+            return "<a href=\"{0}\">{1}</a>".Format(format, result);
         }
 
         public static string Color(this string result, string format)
         {
             return format switch
             {
-                "R" => Service.Text.Format("<color=#FF0000>{0}</color>", result), //红
-                "G" => Service.Text.Format("<color=#00FF00>{0}</color>", result), //绿
-                "B" => Service.Text.Format("<color=#0000FF>{0}</color>", result), //蓝
-                "Y" => Service.Text.Format("<color=#FFFF00>{0}</color>", result), //黄
-                "O" => Service.Text.Format("<color=#FFAA00>{0}</color>", result), //橙
-                "S" => Service.Text.Format("<color=#00FFFF>{0}</color>", result), //青
-                "P" => Service.Text.Format("<color=#FFAAFF>{0}</color>", result), //紫
-                "W" => Service.Text.Format("<color=#FFFFFF>{0}</color>", result), //白
-                _ => Service.Text.Format("<color=#{0}>{1}</color>", format, result)
+                "R" => "<color=#FF0000>{0}</color>".Format(result), //红
+                "G" => "<color=#00FF00>{0}</color>".Format(result), //绿
+                "B" => "<color=#0000FF>{0}</color>".Format(result), //蓝
+                "Y" => "<color=#FFFF00>{0}</color>".Format(result), //黄
+                "O" => "<color=#FFAA00>{0}</color>".Format(result), //橙
+                "S" => "<color=#00FFFF>{0}</color>".Format(result), //青
+                "P" => "<color=#FFAAFF>{0}</color>".Format(result), //紫
+                "W" => "<color=#FFFFFF>{0}</color>".Format(result), //白
+                _ => "<color=#{0}>{1}</color>".Format(format, result)
             };
         }
 

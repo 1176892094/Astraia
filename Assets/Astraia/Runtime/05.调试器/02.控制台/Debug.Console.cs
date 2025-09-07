@@ -117,7 +117,7 @@ namespace Astraia.Common
                 if (logData.TryGetValue(type, out var data))
                 {
                     GUI.contentColor = data.status ? Color.white : Color.gray;
-                    if (GUILayout.Button(Service.Text.Format("{0} [{1}]", type, data.count), GUILayout.Height(30)))
+                    if (GUILayout.Button("{0} [{1}]".Format(type, data.count), GUILayout.Height(30)))
                     {
                         data.status = !data.status;
                     }
@@ -190,7 +190,7 @@ namespace Astraia.Common
 
             public override string ToString()
             {
-                return Service.Text.Format("[{0}] [{1}] {2}", dateTime.ToString("HH:mm:ss"), logType, message);
+                return "[{0}] [{1}] {2}".Format(dateTime.ToString("HH:mm:ss"), logType, message);
             }
         }
     }

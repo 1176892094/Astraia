@@ -11,6 +11,7 @@
 
 using Astraia;
 using UnityEngine.UI;
+using Text = UnityEngine.UI.Text;
 
 namespace Runtime
 {

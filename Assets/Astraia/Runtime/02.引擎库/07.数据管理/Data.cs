@@ -81,7 +81,7 @@ namespace Astraia.Common
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(Service.Text.Format("加载 {0} 数据失败!\n{1}", nickName, e));
+                    Debug.LogError("加载 {0} 数据失败!\n{1}".Format(nickName, e));
                 }
             }
 
@@ -120,7 +120,7 @@ namespace Astraia.Common
                 return DataTable<string, T>.items;
             }
 
-            Debug.LogError(Service.Text.Format("获取 {0} 失败!", typeof(T).Name));
+            Debug.LogError("获取 {0} 失败!".Format(typeof(T).Name));
             return null;
         }
     }

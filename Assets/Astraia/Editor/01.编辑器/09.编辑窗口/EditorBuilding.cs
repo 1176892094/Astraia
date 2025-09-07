@@ -96,12 +96,12 @@ namespace Astraia
                 });
                 nameHash = Compute(fileInfo.FullName).ToString("X8");
                 filePacks.Add(new PackData(nameHash, fileInfo.Name, (int)fileInfo.Length));
-                Debug.Log(Service.Text.Format("加密AB包: {0}", fileInfo.FullName));
+                Debug.Log("加密AB包: {0}".Format(fileInfo.FullName));
             }
 
             await File.WriteAllTextAsync(GlobalSetting.remoteAssetData, JsonManager.ToJson(filePacks));
             elapseTime = EditorApplication.timeSinceStartup - elapseTime;
-            Debug.Log(Service.Text.Format("加密 AssetBundle 完成。耗时:<color=#00FF00> {0:F} </color>秒", elapseTime));
+            Debug.Log("加密 AssetBundle 完成。耗时:<color=#00FF00> {0:F} </color>秒".Format(elapseTime));
             AssetDatabase.Refresh();
         }
     }

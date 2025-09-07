@@ -36,7 +36,7 @@ namespace Astraia
                     var types = assembly.GetTypes();
                     foreach (var type in types)
                     {
-                        var typeName = Text.Format("{0},{1}", type.FullName, assemblyName);
+                        var typeName = "{0},{1}".Format(type.FullName, assemblyName);
                         cacheTypes[typeName] = type;
                         OnTypeLoaded?.Invoke(type);
                     }

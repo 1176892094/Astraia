@@ -76,7 +76,7 @@ namespace Astraia
             catch (Exception e)
             {
                 Break();
-                Debug.Log(Service.Text.Format("无法执行异步方法：\n{0}", e));
+                Debug.Log("无法执行异步方法：\n{0}".Format(e));
             }
         }
 

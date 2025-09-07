@@ -44,7 +44,7 @@ namespace Astraia.Common
                             var data = item.GetValue<Key>(property);
                             if (!itemData.TryAdd(data, item))
                             {
-                                Debug.LogWarning(Service.Text.Format("加载数据 {0} 失败。键值重复: {1}", name, data));
+                                Debug.LogWarning("加载数据 {0} 失败。键值重复: {1}".Format(name, data));
                             }
                         }
                     }

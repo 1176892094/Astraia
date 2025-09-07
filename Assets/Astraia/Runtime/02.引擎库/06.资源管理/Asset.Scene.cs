@@ -35,11 +35,11 @@ namespace Astraia.Common
                     return;
                 }
 
-                Debug.LogWarning(Service.Text.Format("加载资源 {0} 为空!", assetPath));
+                Debug.LogWarning("加载资源 {0} 为空!".Format(assetPath));
             }
             catch (Exception e)
             {
-                Debug.LogWarning(Service.Text.Format("加载场景 {0} 失败!\n{1}", assetPath, e));
+                Debug.LogWarning("加载场景 {0} 失败!\n{1}".Format(assetPath, e));
             }
         }
 

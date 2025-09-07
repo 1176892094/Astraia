@@ -149,7 +149,7 @@ namespace Astraia.Net
                     {
                         if (!uint.TryParse(name, out var id))
                         {
-                            Debug.LogWarning(Service.Text.Format("请将 {0} 名称修改为纯数字!", gameObject), gameObject);
+                            Debug.LogWarning("请将 {0} 名称修改为纯数字!".Format(gameObject), gameObject);
                             return;
                         }
 
@@ -171,7 +171,7 @@ namespace Astraia.Net
                     sceneId = 0;
                     if (BuildPipeline.isBuildingPlayer)
                     {
-                        throw new InvalidOperationException(Service.Text.Format(Log.E274, gameObject.scene.path, name));
+                        throw new InvalidOperationException(Log.E274.Format(gameObject.scene.path, name));
                     }
 
                     Undo.RecordObject(gameObject, Log.E275);
@@ -199,19 +199,19 @@ namespace Astraia.Net
         {
             if (transform == null)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E276, mode, function, objectId));
+                Debug.LogWarning(Log.E276.Format(mode, function, objectId));
                 return;
             }
 
             if (agentId >= agents.Count)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E277, objectId, agentId));
+                Debug.LogWarning(Log.E277.Format(objectId, agentId));
                 return;
             }
 
             if (!NetworkAttribute.Invoke(function, mode, client, reader, agents[agentId]))
             {
-                Debug.LogError(Service.Text.Format(Log.E278, mode, function, gameObject.name, objectId));
+                Debug.LogError(Log.E278.Format(mode, function, gameObject.name, objectId));
             }
         }
 

@@ -134,7 +134,7 @@ namespace Astraia.Common
         {
             GUILayout.BeginHorizontal();
             GUI.contentColor = screenColor;
-            if (GUILayout.Button(Service.Text.Format("FPS: {0}", frameData), GUILayout.Height(30), GUILayout.Width(80)))
+            if (GUILayout.Button("FPS: {0}".Format(frameData), GUILayout.Height(30), GUILayout.Width(80)))
             {
                 maximized = false;
             }
@@ -242,7 +242,7 @@ namespace Astraia.Common
 
             GUILayout.BeginHorizontal();
             GUI.contentColor = screenColor;
-            if (GUILayout.Button(Service.Text.Format("FPS: {0}", frameData), GUILayout.Height(30), GUILayout.Width(80)))
+            if (GUILayout.Button("FPS: {0}".Format(frameData), GUILayout.Height(30), GUILayout.Width(80)))
             {
                 maximized = true;
             }

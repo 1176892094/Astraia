@@ -25,7 +25,7 @@ namespace Astraia.Common
             GUILayout.Label("像素密度: " + Screen.dpi);
             GUILayout.Label("启用全屏: " + Screen.fullScreen);
             GUILayout.Label("屏幕模式: " + Screen.fullScreenMode);
-            GUILayout.Label("程序分辨率: " + Service.Text.Format("{0} x {1}", Screen.width, Screen.height));
+            GUILayout.Label("程序分辨率: " + "{0} x {1}".Format(Screen.width, Screen.height));
             GUILayout.Label("设备分辨率: " + Screen.currentResolution);
             GUILayout.Label("显示区域: " + Screen.safeArea);
             GUILayout.Label("质量等级: " + QualitySettings.names[QualitySettings.GetQualityLevel()]);

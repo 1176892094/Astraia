@@ -62,7 +62,7 @@ namespace Astraia.Common
             poolData.Clear();
             foreach (var item in items)
             {
-                var assembly = Service.Text.Format("{0} - {1}", item.Type.Assembly.GetName().Name, message);
+                var assembly = "{0} - {1}".Format(item.Type.Assembly.GetName().Name, message);
                 if (!poolData.TryGetValue(assembly, out var pool))
                 {
                     pool = new List<Pool>();
@@ -85,7 +85,7 @@ namespace Astraia.Common
                     var assetName = data.Type.Name;
                     if (!string.IsNullOrEmpty(data.Path))
                     {
-                        assetName = Service.Text.Format("{0} - {1}", GetFriendlyName(data.Type), data.Path);
+                        assetName = "{0} - {1}".Format(GetFriendlyName(data.Type), data.Path);
                     }
 
                     GUILayout.Label(assetName, GUILayout.Height(20));
@@ -128,7 +128,7 @@ namespace Astraia.Common
             }
 
             var args = string.Join(", ", Array.ConvertAll(type.GetGenericArguments(), GetFriendlyName));
-            return Service.Text.Format("{0}<{1}>", name, args);
+            return "{0}<{1}>".Format(name, args);
         }
 
         private enum PoolMode

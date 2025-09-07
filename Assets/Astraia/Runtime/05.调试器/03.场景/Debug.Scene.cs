@@ -31,7 +31,7 @@ namespace Astraia.Common
         private void SceneWindow()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Service.Text.Format("GameObject [{0}]", gameObjects.Count), "Button", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30));
+            GUILayout.Label("GameObject [{0}]".Format(gameObjects.Count), "Button", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30));
             if (GUILayout.Button("Refresh", GUILayout.Height(30)))
             {
                 UpdateGameObject();

@@ -119,7 +119,7 @@ namespace Astraia
                     EditorUtility.DisplayProgressBar("", "", 0);
                     AssetLoadKey = await FormManager.WriteScripts(folderPath);
                     var elapsedTime = EditorApplication.timeSinceStartup - sinceTime;
-                    Debug.Log(Service.Text.Format("自动生成脚本完成。耗时: {0}秒", elapsedTime.ToString("F").Color("G")));
+                    Debug.Log("自动生成脚本完成。耗时: {0}秒".Format(elapsedTime.ToString("F").Color("G")));
                 }
                 finally
                 {
@@ -141,7 +141,7 @@ namespace Astraia
                     AssetLoadKey = false;
                     await FormManager.WriteAssets(ExcelPathKey);
                     var elapsedTime = EditorApplication.timeSinceStartup - sinceTime;
-                    Debug.Log(Service.Text.Format("自动生成资源完成。耗时: {0}秒", elapsedTime.ToString("F").Color("G")));
+                    Debug.Log("自动生成资源完成。耗时: {0}秒".Format(elapsedTime.ToString("F").Color("G")));
                 }
                 finally
                 {

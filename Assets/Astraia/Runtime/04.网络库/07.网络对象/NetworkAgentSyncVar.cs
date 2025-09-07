@@ -102,7 +102,7 @@ namespace Astraia.Net
                     newValue = entity.objectId;
                     if (newValue == 0)
                     {
-                        Debug.LogWarning(Service.Text.Format(Log.E269, newObject.name));
+                        Debug.LogWarning(Log.E269.Format(newObject.name));
                     }
                 }
             }
@@ -136,7 +136,7 @@ namespace Astraia.Net
                     newValue = entity.objectId;
                     if (newValue == 0)
                     {
-                        Debug.LogWarning(Service.Text.Format(Log.E269, newObject.name));
+                        Debug.LogWarning(Log.E269.Format(newObject.name));
                     }
                 }
             }
@@ -186,7 +186,7 @@ namespace Astraia.Net
                 newValue = entity.objectId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E269, entity.gameObject.name));
+                    Debug.LogWarning(Log.E269.Format(entity.gameObject.name));
                 }
             }
         
@@ -209,7 +209,7 @@ namespace Astraia.Net
                 newValue = entity.objectId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E269, entity.gameObject.name));
+                    Debug.LogWarning(Log.E269.Format(entity.gameObject.name));
                 }
             }
         
@@ -260,7 +260,7 @@ namespace Astraia.Net
                 index = entity.sourceId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E269, entity.gameObject.name));
+                    Debug.LogWarning(Log.E269.Format(entity.gameObject.name));
                 }
             }
         
@@ -294,7 +294,7 @@ namespace Astraia.Net
                 index = entity.sourceId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E269, entity.gameObject.name));
+                    Debug.LogWarning(Log.E269.Format(entity.gameObject.name));
                 }
             }
         

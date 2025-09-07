@@ -90,15 +90,15 @@ namespace Astraia
         [FoldoutGroup("资源加载")]
         [LabelText("远端资源路径")]
 #endif
-        public static string assetRemotePath => Service.Text.Format("{0}/{1}", Instance.assetRemoteData, Instance.assetBuildPath);
+        public static string assetRemotePath => "{0}/{1}".Format(Instance.assetRemoteData, Instance.assetBuildPath);
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源加载")]
         [LabelText("资源存储路径")]
 #endif
-        public static string assetPackPath => Service.Text.Format("{0}/{1}", Application.persistentDataPath, Instance.assetBuildPath);
+        public static string assetPackPath => "{0}/{1}".Format(Application.persistentDataPath, Instance.assetBuildPath);
 
-        public static string assetPackData => Service.Text.Format("{0}.json", Instance.assetLoadName);
+        public static string assetPackData => "{0}.json".Format(Instance.assetLoadName);
 
         private static readonly Dictionary<AssetText, TextAsset> itemText = new Dictionary<AssetText, TextAsset>();
 
@@ -118,15 +118,15 @@ namespace Astraia
             return itemText[option].text;
         }
 
-        public static string GetScenePath(string assetName) => Service.Text.Format("Scenes/{0}", assetName);
+        public static string GetScenePath(string assetName) => "Scenes/{0}".Format(assetName);
 
-        public static string GetAudioPath(string assetName) => Service.Text.Format("Audios/{0}", assetName);
+        public static string GetAudioPath(string assetName) => "Audios/{0}".Format(assetName);
 
-        public static string GetPanelPath(string assetName) => Service.Text.Format("Prefabs/{0}", assetName);
+        public static string GetPanelPath(string assetName) => "Prefabs/{0}".Format(assetName);
 
-        public static string GetTablePath(string assetName) => Service.Text.Format("DataTable/{0}", assetName);
+        public static string GetTablePath(string assetName) => "DataTable/{0}".Format(assetName);
 
-        public static string GetEditorPath(string assetName) => Service.Text.Format("{0}/{1}.asset", Instance.assetSourcePath, GetTablePath(assetName));
+        public static string GetEditorPath(string assetName) => "{0}/{1}.asset".Format(Instance.assetSourcePath, GetTablePath(assetName));
 
         public static string GetPacketPath(string fileName) => Path.Combine(assetPackPath, fileName);
 
@@ -143,7 +143,7 @@ namespace Astraia
             source.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
             for (var layer = UILayer.Layer1; layer <= UILayer.Layer6; layer++)
             {
-                var format = Service.Text.Format("Pool - Canvas/{0}", layer);
+                var format = "Pool - Canvas/{0}".Format(layer);
                 var parent = new GameObject(format).AddComponent<RectTransform>();
                 parent.gameObject.layer = LayerMask.NameToLayer("UI");
                 parent.SetParent(source.canvas.transform);
@@ -211,13 +211,13 @@ namespace Astraia
         [FoldoutGroup("数据表")]
         [LabelText("资源生成路径")]
 #endif
-        public static string dataTablePath => Service.Text.Format("{0}/DataTable", Instance.assetSourcePath);
+        public static string dataTablePath => "{0}/DataTable".Format(Instance.assetSourcePath);
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("数据表")]
         [LabelText("数据表程序集")]
 #endif
-        public static string assemblyPath => Service.Text.Format("{0}/{1}.asmdef", ScriptPath, Instance.assemblyName);
+        public static string assemblyPath => "{0}/{1}.asmdef".Format(ScriptPath, Instance.assemblyName);
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
@@ -235,19 +235,19 @@ namespace Astraia
         [FoldoutGroup("资源构建")]
         [LabelText("校验文件路径")]
 #endif
-        public static string remoteAssetData => Service.Text.Format("{0}/{1}.json", remoteAssetPath, Instance.assetLoadName);
+        public static string remoteAssetData => "{0}/{1}.json".Format(remoteAssetPath, Instance.assetLoadName);
 
-        public static string GetEnumPath(string name) => Service.Text.Format("{0}/01.枚举类/{1}.cs", ScriptPath, name);
+        public static string GetEnumPath(string name) => "{0}/01.枚举类/{1}.cs".Format(ScriptPath, name);
 
-        public static string GetItemPath(string name) => Service.Text.Format("{0}/02.结构体/{1}.cs", ScriptPath, name);
+        public static string GetItemPath(string name) => "{0}/02.结构体/{1}.cs".Format(ScriptPath, name);
 
-        public static string GetDataPath(string name) => Service.Text.Format("{0}/03.数据表/{1}DataTable.cs", ScriptPath, name);
+        public static string GetDataPath(string name) => "{0}/03.数据表/{1}DataTable.cs".Format(ScriptPath, name);
 
-        public static string GetAssetPath(string name) => Service.Text.Format("{0}/{1}DataTable.asset", dataTablePath, name);
+        public static string GetAssetPath(string name) => "{0}/{1}DataTable.asset".Format(dataTablePath, name);
 
-        public static string GetDataName(string name) => Service.Text.Format("Astraia.Table.{0}Data,{1}", name, Instance.assemblyName);
+        public static string GetDataName(string name) => "Astraia.Table.{0}Data,{1}".Format(name, Instance.assemblyName);
 
-        public static string GetTableName(string name) => Service.Text.Format("Astraia.Table.{0}DataTable", name);
+        public static string GetTableName(string name) => "Astraia.Table.{0}DataTable".Format(name);
 
         public static void UpdateSceneSetting()
         {
@@ -295,7 +295,7 @@ namespace Astraia
                             continue;
                         }
 
-                        items.Add(Service.Text.Format("{0}, {1}", type.FullName, assembly.GetName().Name));
+                        items.Add("{0}, {1}".Format(type.FullName, assembly.GetName().Name));
                     }
                 }
 

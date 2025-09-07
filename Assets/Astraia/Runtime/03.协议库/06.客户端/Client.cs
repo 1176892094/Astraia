@@ -57,13 +57,13 @@ namespace Astraia
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     Utils.SetSocket(socket);
                     socket.Connect(endPoint);
-                    Logs.Info(Service.Text.Format(Log.E130, addresses[0], port));
+                    Logs.Info(Log.E130.Format(addresses[0], port));
                     SendReliable(Reliable.Connect);
                 }
             }
             catch (SocketException e)
             {
-                LogError(Error.DnsResolve, Service.Text.Format(Log.E141, address, e));
+                LogError(Error.DnsResolve, Log.E141.Format(address, e));
                 OnDisconnect?.Invoke();
             }
         }
@@ -86,7 +86,7 @@ namespace Astraia
                     return false;
                 }
 
-                Logs.Info(Service.Text.Format(Log.E132, e));
+                Logs.Info(Log.E132.Format(e));
                 Disconnect();
                 return false;
             }
@@ -114,7 +114,7 @@ namespace Astraia
             var result =  Utils.Decode32U(segment.Array, segment.Offset + 1);
             if (result == 0)
             {
-                Logs.Error(Service.Text.Format(Log.E133, cookie, result));
+                Logs.Error(Log.E133.Format(cookie, result));
             }
 
             if (cookie == 0)
@@ -123,7 +123,7 @@ namespace Astraia
             }
             else if (cookie != result)
             {
-                Logs.Error(Service.Text.Format(Log.E127, endPoint, cookie, result));
+                Logs.Error(Log.E127.Format(endPoint, cookie, result));
                 return;
             }
 
@@ -154,7 +154,7 @@ namespace Astraia
                 }
 
 
-                Logs.Info(Service.Text.Format(Log.E131, e));
+                Logs.Info(Log.E131.Format(e));
             }
         }
 

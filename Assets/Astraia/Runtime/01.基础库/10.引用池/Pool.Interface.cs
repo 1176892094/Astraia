@@ -44,7 +44,7 @@ namespace Astraia.Common
 
         public override string ToString()
         {
-            return Service.Text.Format("{0}\t\t{1}\t\t{2}\t\t{3}", Release, Acquire, Dequeue, Enqueue);
+            return "{0}\t\t{1}\t\t{2}\t\t{3}".Format(Release, Acquire, Dequeue, Enqueue);
         }
 
         public void Dispose()

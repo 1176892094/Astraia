@@ -14,42 +14,52 @@ using System.Text;
 
 namespace Astraia
 {
-    public static partial class Service
+    public static class Text
     {
-        public static class Text
+        [ThreadStatic] private static StringBuilder builder;
+
+        private static StringBuilder Builder => builder ??= new StringBuilder(1024);
+
+        public static string Format<T>(this string format, T arg1)
         {
-            [ThreadStatic]
-            private static StringBuilder builder;
-            
-            private static StringBuilder Builder => builder ??= new StringBuilder(1024);
+            Builder.Length = 0;
+            Builder.AppendFormat(format, arg1);
+            return Builder.ToString();
+        }
 
-            public static string Format<T>(string format, T arg1)
-            {
-                Builder.Length = 0;
-                Builder.AppendFormat(format, arg1);
-                return Builder.ToString();
-            }
+        public static string Format<T1, T2>(this string format, T1 arg1, T2 arg2)
+        {
+            Builder.Length = 0;
+            Builder.AppendFormat(format, arg1, arg2);
+            return Builder.ToString();
+        }
 
-            public static string Format<T1, T2>(string format, T1 arg1, T2 arg2)
-            {
-                Builder.Length = 0;
-                Builder.AppendFormat(format, arg1, arg2);
-                return Builder.ToString();
-            }
+        public static string Format<T1, T2, T3>(this string format, T1 arg1, T2 arg2, T3 arg3)
+        {
+            Builder.Length = 0;
+            Builder.AppendFormat(format, arg1, arg2, arg3);
+            return Builder.ToString();
+        }
 
-            public static string Format<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
-            {
-                Builder.Length = 0;
-                Builder.AppendFormat(format, arg1, arg2, arg3);
-                return Builder.ToString();
-            }
+        public static string Format<T1, T2, T3, T4>(this string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+        {
+            Builder.Length = 0;
+            Builder.AppendFormat(format, arg1, arg2, arg3, arg4);
+            return Builder.ToString();
+        }
 
-            public static string Format<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-            {
-                Builder.Length = 0;
-                Builder.AppendFormat(format, arg1, arg2, arg3, arg4);
-                return Builder.ToString();
-            }
+        public static string Format<T1, T2, T3, T4, T5>(this string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+        {
+            Builder.Length = 0;
+            Builder.AppendFormat(format, arg1, arg2, arg3, arg4, arg5);
+            return Builder.ToString();
+        }
+
+        public static string Format<T1, T2, T3, T4, T5, T6>(this string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+        {
+            Builder.Length = 0;
+            Builder.AppendFormat(format, arg1, arg2, arg3, arg4, arg5, arg6);
+            return Builder.ToString();
         }
     }
 }

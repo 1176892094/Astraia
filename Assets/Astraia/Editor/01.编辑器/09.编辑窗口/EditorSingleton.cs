@@ -28,7 +28,7 @@ namespace Astraia
                     return instance;
                 }
 
-                var name = Service.Text.Format("Assets/Editor/Resources/{0}.asset", typeof(T).Name);
+                var name = "Assets/Editor/Resources/{0}.asset".Format(typeof(T).Name);
                 instance = AssetDatabase.LoadAssetAtPath<T>(name);
                 if (instance)
                 {

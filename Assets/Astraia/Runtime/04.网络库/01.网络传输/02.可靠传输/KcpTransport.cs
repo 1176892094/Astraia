@@ -50,7 +50,7 @@ namespace Astraia.Net
 
             void ClientError(Error error, string message)
             {
-                Debug.LogWarning(Service.Text.Format(Log.E210, error, message));
+                Debug.LogWarning(Log.E210.Format(error, message));
             }
 
             void ClientReceive(ArraySegment<byte> message, int channel)

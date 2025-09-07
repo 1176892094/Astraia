@@ -42,7 +42,7 @@ namespace Astraia.Common
             if (!Instance) return;
             if (!rootData.TryGetValue(item.name, out var pool))
             {
-                pool = new GameObject(Service.Text.Format("Pool - {0}", item.name));
+                pool = new GameObject("Pool - {0}".Format(item.name));
                 pool.transform.SetParent(Instance.transform);
                 rootData.Add(item.name, pool);
             }

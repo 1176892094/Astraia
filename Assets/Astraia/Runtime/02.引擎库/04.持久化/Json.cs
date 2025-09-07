@@ -92,7 +92,7 @@ namespace Astraia.Common
             var jsonPath = Path.Combine(Application.streamingAssetsPath, nameof(JsonManager));
             if (Directory.Exists(jsonPath))
             {
-                var filePath = Path.Combine(jsonPath, Service.Text.Format("{0}.json", fileName));
+                var filePath = Path.Combine(jsonPath, "{0}.json".Format(fileName));
                 if (File.Exists(filePath))
                 {
                     return filePath;
@@ -105,7 +105,7 @@ namespace Astraia.Common
                 Directory.CreateDirectory(jsonPath);
             }
 
-            return Path.Combine(jsonPath, Service.Text.Format("{0}.json", fileName));
+            return Path.Combine(jsonPath, "{0}.json".Format(fileName));
         }
     }
 }

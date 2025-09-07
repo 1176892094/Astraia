@@ -148,7 +148,7 @@ namespace Astraia.Net
 
                 if (isLoadScene && Instance.sceneName == sceneName)
                 {
-                    Debug.LogError(Service.Text.Format(Log.E214, sceneName));
+                    Debug.LogError(Log.E214.Format(sceneName));
                     return;
                 }
 
@@ -209,7 +209,7 @@ namespace Astraia.Net
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError(Service.Text.Format(Log.E215, typeof(T).Name, channel, e));
+                        Debug.LogError(Log.E215.Format(typeof(T).Name, channel, e));
                         client.Disconnect();
                     }
                 };
@@ -250,13 +250,13 @@ namespace Astraia.Net
 
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E216, message.objectId));
+                    Debug.LogWarning(Log.E216.Format(message.objectId));
                     return;
                 }
 
                 if (entity == null)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E216, message.objectId));
+                    Debug.LogWarning(Log.E216.Format(message.objectId));
                     return;
                 }
 
@@ -309,7 +309,7 @@ namespace Astraia.Net
                     {
                         if (scenes.TryGetValue(entity.sceneId, out var obj))
                         {
-                            Service.Text.Format(Log.E218, entity.name, obj.name);
+                            Log.E218.Format(entity.name, obj.name);
                             continue;
                         }
 
@@ -413,7 +413,7 @@ namespace Astraia.Net
 
                     if (!messages.TryGetValue(message, out var action))
                     {
-                        Debug.LogWarning(Service.Text.Format(Log.E222, message));
+                        Debug.LogWarning(Log.E222.Format(message));
                         connection.Disconnect();
                         return;
                     }
@@ -423,7 +423,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && connection.reader.Count > 0)
                 {
-                    Debug.LogWarning(Service.Text.Format(Log.E223, connection.reader.Count));
+                    Debug.LogWarning(Log.E223.Format(connection.reader.Count));
                 }
             }
         }
@@ -443,13 +443,13 @@ namespace Astraia.Net
                     var prefab = await PoolManager.Show(GlobalSetting.GetPanelPath(message.assetId.ToString()));
                     if (!prefab.TryGetComponent(out entity))
                     {
-                        Debug.LogError(Service.Text.Format(Log.E224, prefab.name));
+                        Debug.LogError(Log.E224.Format(prefab.name));
                         return;
                     }
 
                     if (entity.sceneId != 0)
                     {
-                        Debug.LogError(Service.Text.Format(Log.E225, entity.name));
+                        Debug.LogError(Log.E225.Format(entity.name));
                         return;
                     }
                 }
@@ -457,7 +457,7 @@ namespace Astraia.Net
                 {
                     if (!scenes.Remove(message.sceneId, out entity))
                     {
-                        Debug.LogError(Service.Text.Format(Log.E227, message.sceneId));
+                        Debug.LogError(Log.E227.Format(message.sceneId));
                         return;
                     }
                 }

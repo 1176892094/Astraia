@@ -59,7 +59,7 @@ namespace Astraia
                 }
                 catch (NotSupportedException e)
                 {
-                    Logs.Warn(Service.Text.Format(Log.E122, e));
+                    Logs.Warn(Log.E122.Format(e));
                 }
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -101,7 +101,7 @@ namespace Astraia
                     return false;
                 }
 
-                Logs.Info(Service.Text.Format(Log.E123, e));
+                Logs.Info(Log.E123.Format(e));
                 return false;
             }
         }
@@ -130,7 +130,7 @@ namespace Astraia
             void OnConnect(Client client)
             {
                 clients.Add(clientId, client);
-                Logs.Info(Service.Text.Format(Log.E125, clientId));
+                Logs.Info(Log.E125.Format(clientId));
                 this.OnConnect?.Invoke(clientId);
             }
 
@@ -138,7 +138,7 @@ namespace Astraia
             {
                 if (copies.Add(clientId))
                 {
-                    Logs.Info(Service.Text.Format(Log.E126, clientId));
+                    Logs.Info(Log.E126.Format(clientId));
                 }
 
                 this.OnDisconnect?.Invoke(clientId);
@@ -176,7 +176,7 @@ namespace Astraia
                         return;
                     }
 
-                    Logs.Error(Service.Text.Format(Log.E124, e));
+                    Logs.Error(Log.E124.Format(e));
                 }
             }
         }

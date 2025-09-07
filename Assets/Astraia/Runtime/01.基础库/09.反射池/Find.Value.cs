@@ -138,7 +138,7 @@ namespace Astraia
 
             private static Func<object, object[], object> LoadFunction(MethodInfo method)
             {
-                var name = Text.Format("invoke_{0}_{1}", method.DeclaringType!.Name, method.Name);
+                var name = "invoke_{0}_{1}".Format(method.DeclaringType!.Name, method.Name);
                 var DM = new DynamicMethod(name, typeof(object), new[] { typeof(object), typeof(object[]) }, method.DeclaringType, true);
                 var IL = DM.GetILGenerator();
 
@@ -175,7 +175,7 @@ namespace Astraia
 
             private static Func<object, object> LoadGetter(FieldInfo field)
             {
-                var name = Text.Format("get_{0}_{1}", field.DeclaringType!.Name, field.Name);
+                var name = "get_{0}_{1}".Format(field.DeclaringType!.Name, field.Name);
                 var DM = new DynamicMethod(name, typeof(object), new[] { typeof(object) }, field.DeclaringType, true);
                 var IL = DM.GetILGenerator();
 
@@ -197,7 +197,7 @@ namespace Astraia
 
             private static Action<object, object> LoadSetter<T>(FieldInfo field)
             {
-                var name = Text.Format("set_{0}_{1}", field.DeclaringType!.Name, field.Name);
+                var name = "set_{0}_{1}".Format(field.DeclaringType!.Name, field.Name);
                 var DM = new DynamicMethod(name, typeof(void), new[] { typeof(object), typeof(object) }, field.DeclaringType, true);
                 var IL = DM.GetILGenerator();
 
@@ -216,7 +216,7 @@ namespace Astraia
 
             private static Func<object, object> LoadGetter(PropertyInfo property, MethodInfo method)
             {
-                var name = Text.Format("get_{0}_{1}", property.DeclaringType!.Name, property.Name);
+                var name = "get_{0}_{1}".Format(property.DeclaringType!.Name, property.Name);
                 var DM = new DynamicMethod(name, typeof(object), new[] { typeof(object) }, property.DeclaringType, true);
                 var IL = DM.GetILGenerator();
 
@@ -238,7 +238,7 @@ namespace Astraia
 
             private static Action<object, object> LoadSetter<T>(PropertyInfo property, MethodInfo method)
             {
-                var name = Text.Format("set_{0}_{1}", property.DeclaringType!.Name, property.Name);
+                var name = "set_{0}_{1}".Format(property.DeclaringType!.Name, property.Name);
                 var DM = new DynamicMethod(name, typeof(void), new[] { typeof(object), typeof(object) }, property.DeclaringType, true);
                 var IL = DM.GetILGenerator();
 
