@@ -19,11 +19,11 @@ using UnityEngine;
 
 namespace Astraia
 {
-    internal static class EditorBuilding
+    internal static class EditorBuilder
     {
         private static readonly uint[] Table;
 
-        static EditorBuilding()
+        static EditorBuilder()
         {
             Table = new uint[256];
             const uint POLYNOMIAL = 0xEDB88320;

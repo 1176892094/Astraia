@@ -209,15 +209,15 @@ namespace Astraia
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("数据表")]
-        [LabelText("资源生成路径")]
-#endif
-        public static string dataTablePath => "{0}/DataTable".Format(Instance.assetSourcePath);
-#if ODIN_INSPECTOR
-        [ShowInInspector]
-        [FoldoutGroup("数据表")]
         [LabelText("数据表程序集")]
 #endif
         public static string assemblyPath => "{0}/{1}.asmdef".Format(ScriptPath, Instance.assemblyName);
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+        [FoldoutGroup("数据表")]
+        [LabelText("资源生成路径")]
+#endif
+        public static string dataTablePath => "{0}/DataTable".Format(Instance.assetSourcePath);
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]

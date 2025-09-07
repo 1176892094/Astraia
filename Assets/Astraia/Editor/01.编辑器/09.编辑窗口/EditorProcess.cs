@@ -19,7 +19,7 @@ using Object = UnityEngine.Object;
 
 namespace Astraia
 {
-    public class EditorProcessor : AssetPostprocessor
+    public class EditorProcess : AssetPostprocessor
     {
         private static string root => GlobalSetting.Instance.assetSourcePath;
         private static int offset => root.EndsWith("/") ? root.Length : root.Length + 1;

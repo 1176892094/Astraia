@@ -13,42 +13,42 @@ using System.Runtime.CompilerServices;
 
 namespace Astraia
 {
-    public static class Extensions
+    public static partial class Extensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static object GetValue(this object target, string name)
         {
-            return Service.Find.GetValue(target, name);
+            return Emit.GetValue(target, name);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T GetValue<T>(this object target, string name)
         {
-            return (T)Service.Find.GetValue(target, name);
+            return (T)Emit.GetValue(target, name);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetValue(this object target, string name, object value)
         {
-            Service.Find.SetValue(target, name, value);
+            Emit.SetValue(target, name, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetValue<T>(this object target, string name, T value)
         {
-            Service.Find.SetValue(target, name, value);
+            Emit.SetValue(target, name, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static object Invoke(this object target, string name, params object[] args)
         {
-            return Service.Find.Invoke(target, name, args);
+            return Emit.Invoke(target, name, args);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Invoke<T>(this object target, string name, params object[] args)
         {
-            return (T)Service.Find.Invoke(target, name, args);
+            return (T)Emit.Invoke(target, name, args);
         }
     }
 }

@@ -18,6 +18,7 @@ using UnityEditor.Callbacks;
 using UnityEngine;
 using UnityEngine.Windows;
 using Debug = UnityEngine.Debug;
+using Object = UnityEngine.Object;
 #if ODIN_INSPECTOR
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
@@ -32,33 +33,7 @@ namespace Astraia
         : OdinMenuEditorWindow
 #endif
     {
-        public static readonly Dictionary<Type, ScriptableObject> windows = new Dictionary<Type, ScriptableObject>();
-
-        static EditorSetting()
-        {
-            Service.Find.OnTypeLoaded -= LoadType;
-            Service.Find.OnTypeLoaded += LoadType;
-
-            void LoadType(Type type)
-            {
-                if (type.IsAbstract)
-                {
-                    return;
-                }
-
-                var baseType = type.BaseType;
-                while (baseType != null)
-                {
-                    if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(EditorSingleton<>))
-                    {
-                        windows[type] = type.GetValue<ScriptableObject>("Instance");
-                        break;
-                    }
-
-                    baseType = baseType.BaseType;
-                }
-            }
-        }
+        private static readonly Dictionary<Type, Object> windows = new Dictionary<Type, Object>();
 
         private static bool AssetLoadKey
         {
@@ -70,6 +45,27 @@ namespace Astraia
         {
             get => EditorPrefs.GetString(nameof(ExcelPathKey), Environment.CurrentDirectory);
             set => EditorPrefs.SetString(nameof(ExcelPathKey), value);
+        }
+
+        static EditorSetting()
+        {
+            Service.Find.OnLoad -= LoadWindows;
+            Service.Find.OnLoad += LoadWindows;
+        }
+
+        private static void LoadWindows(Type result)
+        {
+            if (!result.IsAbstract && !result.IsGenericType)
+            {
+                var parent = result.BaseType;
+                if (parent != null)
+                {
+                    if (parent.IsGenericType && parent.GetGenericTypeDefinition() == typeof(EditorSingleton<>))
+                    {
+                        windows[result] = result.GetValue<ScriptableObject>("Instance");
+                    }
+                }
+            }
         }
 
         [MenuItem("Tools/Astraia/框架配置窗口 _F1", priority = 2)]
@@ -136,9 +132,9 @@ namespace Astraia
             {
                 try
                 {
+                    AssetLoadKey = false;
                     var sinceTime = EditorApplication.timeSinceStartup;
                     EditorUtility.DisplayProgressBar("", "", 0);
-                    AssetLoadKey = false;
                     await FormManager.WriteAssets(ExcelPathKey);
                     var elapsedTime = EditorApplication.timeSinceStartup - sinceTime;
                     Debug.Log("自动生成资源完成。耗时: {0}秒".Format(elapsedTime.ToString("F").Color("G")));
@@ -150,7 +146,9 @@ namespace Astraia
                 }
             }
 
-            EditorApplication.delayCall += Service.Find.Register;
+            EditorApplication.delayCall -= Service.Find.LoadData;
+            EditorApplication.delayCall += Service.Find.LoadData;
+            EditorApplication.delayCall -= DataManager.LoadDataTable;
             EditorApplication.delayCall += DataManager.LoadDataTable;
         }
 

@@ -10,36 +10,31 @@
 // // *********************************************************************************
 
 using System.Runtime.CompilerServices;
-using Astraia.Common;
 
 namespace Astraia
 {
-    public static partial class Xor
+    public static partial class Extensions
     {
-        public struct Exception : IEvent
-        {
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBit(this Int data, int shift, int mask)
+        public static int GetBit(this Xor.Int data, int shift, int mask)
         {
             return (data >> shift) & (1 << mask) - 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Int SetBit(this Int data, int shift, int mask, int value)
+        public static Xor.Int SetBit(this Xor.Int data, int shift, int mask, int value)
         {
             return (data & ~((1 << mask) - 1 << shift)) | ((value & (1 << mask) - 1) << shift);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBit(this Long data, int shift, int mask)
+        public static int GetBit(this Xor.Long data, int shift, int mask)
         {
             return (int)((data >> shift) & (1L << mask) - 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Long SetBit(this Long data, int shift, int mask, int value)
+        public static Xor.Long SetBit(this Xor.Long data, int shift, int mask, int value)
         {
             return (data & ~((1L << mask) - 1 << shift)) | ((value & (1L << mask) - 1) << shift);
         }

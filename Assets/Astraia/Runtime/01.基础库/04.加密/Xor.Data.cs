@@ -16,8 +16,12 @@ using Astraia.Common;
 
 namespace Astraia
 {
-    public static partial class Xor
+    public static class Xor
     {
+        public struct Exception : IEvent
+        {
+        }
+
         [Serializable]
         public struct Int : IEquatable<Int>
         {

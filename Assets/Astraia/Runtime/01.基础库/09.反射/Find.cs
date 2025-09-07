@@ -17,16 +17,15 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static partial class Find
+        public static class Find
         {
             private static readonly Dictionary<string, Type> cacheTypes = new();
             public static readonly Dictionary<string, Assembly> assemblies = new();
             public const BindingFlags Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
             public const BindingFlags Instance = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            public const BindingFlags Declared = Static | Instance | BindingFlags.DeclaredOnly;
-            public static event Action<Type> OnTypeLoaded;
+            public static event Action<Type> OnLoad;
 
-            public static void Register()
+            public static void LoadData()
             {
                 var assemblyData = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (var assembly in assemblyData)
@@ -38,7 +37,7 @@ namespace Astraia
                     {
                         var typeName = "{0},{1}".Format(type.FullName, assemblyName);
                         cacheTypes[typeName] = type;
-                        OnTypeLoaded?.Invoke(type);
+                        OnLoad?.Invoke(type);
                     }
                 }
             }
