@@ -16,7 +16,7 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static partial class Text
+        public static class UTF8
         {
             [ThreadStatic] 
             private static UTF8Encoding encoding;

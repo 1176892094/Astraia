@@ -16,7 +16,7 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static partial class Text
+        public static class Text
         {
             [ThreadStatic]
             private static StringBuilder builder;
