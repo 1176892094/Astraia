@@ -33,7 +33,7 @@ namespace Astraia
         internal static Tween Create(Component owner, float duration)
         {
             var item = HeapManager.Dequeue<Tween>();
-            asyncData.Add(owner, item);
+            asyncData.Add(item);
             item.owner = owner;
             item.progress = 0;
             item.nextTime = 0;
@@ -48,7 +48,7 @@ namespace Astraia
                 item.complete = 1;
                 item.onUpdate = null;
                 item.onContinue = null;
-                asyncData.Remove(owner);
+                asyncData.Remove(item);
                 HeapManager.Enqueue(item);
             }
         }

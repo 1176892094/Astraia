@@ -48,9 +48,9 @@ namespace Astraia.Common
                 system.Update();
             }
 
-            foreach (var async in asyncData.Values)
+            for (int i = asyncData.Count - 1; i >= 0; i--)
             {
-                async.Update();
+                asyncData[i].Update();
             }
         }
 

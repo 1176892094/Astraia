@@ -35,7 +35,7 @@ namespace Astraia
         internal static Async<T> Create(Component owner, T operation)
         {
             var item = HeapManager.Dequeue<Async<T>>();
-            asyncData.Add(owner, item);
+            asyncData.Add(item);
             item.owner = owner;
             item.operation = operation;
             item.onComplete = OnComplete;
@@ -47,7 +47,7 @@ namespace Astraia
                 item.onUpdate = null;
                 item.operation = null;
                 item.onContinue = null;
-                asyncData.Remove(owner);
+                asyncData.Remove(item);
                 HeapManager.Enqueue(item);
             }
         }

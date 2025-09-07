@@ -39,7 +39,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Component, IAsync> asyncData = new Dictionary<Component, IAsync>();
+        internal static readonly List<IAsync> asyncData = new List<IAsync>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
