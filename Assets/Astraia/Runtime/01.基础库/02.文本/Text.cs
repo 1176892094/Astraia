@@ -3,8 +3,8 @@
 // // # Unity: 6000.3.5f1
 // // # Author: 云谷千羽
 // // # Version: 1.0.0
-// // # History: 2025-04-09 21:04:38
-// // # Recently: 2025-04-09 21:04:38
+// // # History: 2025-04-26 16:04:36
+// // # Recently: 2025-04-26 16:04:36
 // // # Copyright: 2024, 云谷千羽
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
@@ -14,52 +14,39 @@ using System.Text;
 
 namespace Astraia
 {
-    public static class Text
+    public static partial class Service
     {
-        [ThreadStatic] private static StringBuilder builder;
-
-        private static StringBuilder Builder => builder ??= new StringBuilder(1024);
-
-        public static string Format<T>(this string format, T arg1)
+        public static class Text
         {
-            Builder.Length = 0;
-            Builder.AppendFormat(format, arg1);
-            return Builder.ToString();
-        }
+            [ThreadStatic] 
+            private static UTF8Encoding encoding;
 
-        public static string Format<T1, T2>(this string format, T1 arg1, T2 arg2)
-        {
-            Builder.Length = 0;
-            Builder.AppendFormat(format, arg1, arg2);
-            return Builder.ToString();
-        }
+            private static UTF8Encoding Encoding => encoding ??= new UTF8Encoding(false, true);
 
-        public static string Format<T1, T2, T3>(this string format, T1 arg1, T2 arg2, T3 arg3)
-        {
-            Builder.Length = 0;
-            Builder.AppendFormat(format, arg1, arg2, arg3);
-            return Builder.ToString();
-        }
+            public static byte[] GetBytes(string message)
+            {
+                return Encoding.GetBytes(message);
+            }
 
-        public static string Format<T1, T2, T3, T4>(this string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-        {
-            Builder.Length = 0;
-            Builder.AppendFormat(format, arg1, arg2, arg3, arg4);
-            return Builder.ToString();
-        }
+            public static string GetString(byte[] bytes)
+            {
+                return Encoding.GetString(bytes);
+            }
 
-        public static string Format<T1, T2, T3, T4, T5>(this string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
-        {
-            Builder.Length = 0;
-            Builder.AppendFormat(format, arg1, arg2, arg3, arg4, arg5);
-            return Builder.ToString();
-        }
+            public static string GetString(byte[] bytes, int index, int count)
+            {
+                return Encoding.GetString(bytes, index, count);
+            }
 
-        public static string Format<T1, T2, T3, T4, T5, T6>(this string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
-        {
-            Builder.Length = 0;
-            Builder.AppendFormat(format, arg1, arg2, arg3, arg4, arg5, arg6);
-            return Builder.ToString();
+            public static int GetByteCount(int count)
+            {
+                return Encoding.GetMaxByteCount(count);
+            }
+
+            public static int GetByteCount(string message, int count, byte[] buffer, int index)
+            {
+                return Encoding.GetBytes(message, 0, count, buffer, index);
+            }
         }
     }
 }

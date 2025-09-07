@@ -37,7 +37,7 @@ namespace Astraia
         public static T Parse<T>(this byte[] reason)
         {
             if (reason == null) return default;
-            var value = Service.UTF8.GetString(reason);
+            var value = Service.Text.GetString(reason);
             if (parsers.TryGetValue(typeof(T), out var func))
             {
                 return ((Func<string, T>)func).Invoke(value);
@@ -171,7 +171,7 @@ namespace Astraia
             var fields = target.GetFields(Service.Find.Instance);
             for (var i = 0; i < fields.Length; i++)
             {
-                fields[i].SetValue(result, new Xor.Bytes(Service.UTF8.GetBytes(member[i])));
+                fields[i].SetValue(result, new Xor.Bytes(Service.Text.GetBytes(member[i])));
             }
 
             return result;

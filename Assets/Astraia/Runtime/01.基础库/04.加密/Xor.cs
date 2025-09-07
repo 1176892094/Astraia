@@ -28,7 +28,7 @@ namespace Astraia
 
             public static void Register(byte version, string data)
             {
-                var item = UTF8.GetBytes(data);
+                var item = Text.GetBytes(data);
                 if (item.Length != LENGTH)
                 {
                     Array.Resize(ref item, LENGTH);

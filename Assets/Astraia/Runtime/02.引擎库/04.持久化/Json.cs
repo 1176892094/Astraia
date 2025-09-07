@@ -52,7 +52,7 @@ namespace Astraia.Common
             var path = LoadPath(name);
             var json = ToJson(data);
             json = Service.Zip.Compress(json);
-            var item = Service.UTF8.GetBytes(json);
+            var item = Service.Text.GetBytes(json);
             item = Service.Xor.Encrypt(item, GlobalSetting.Instance.secretVersion);
             File.WriteAllBytes(path, item);
         }
@@ -67,7 +67,7 @@ namespace Astraia.Common
 
             var item = File.ReadAllBytes(path);
             item = Service.Xor.Decrypt(item);
-            var json = Service.UTF8.GetString(item);
+            var json = Service.Text.GetString(item);
             json = Service.Zip.Decompress(json);
             FromJson(json, data);
         }
@@ -82,7 +82,7 @@ namespace Astraia.Common
 
             var item = File.ReadAllBytes(path);
             item = Service.Xor.Decrypt(item);
-            var json = Service.UTF8.GetString(item);
+            var json = Service.Text.GetString(item);
             json = Service.Zip.Decompress(json);
             return FromJson<T>(json);
         }

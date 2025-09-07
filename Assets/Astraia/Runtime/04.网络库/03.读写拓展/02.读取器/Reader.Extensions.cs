@@ -163,7 +163,7 @@ namespace Astraia.Net
             }
 
             var segment = reader.ReadArraySegment(count);
-            return Service.UTF8.GetString(segment.Array, segment.Offset, segment.Count);
+            return Service.Text.GetString(segment.Array, segment.Offset, segment.Count);
         }
 
         public static byte[] ReadBytes(this MemoryReader reader)
