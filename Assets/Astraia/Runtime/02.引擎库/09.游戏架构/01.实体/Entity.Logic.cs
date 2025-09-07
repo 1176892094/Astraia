@@ -53,8 +53,12 @@ namespace Astraia
                 owner.Inject(agent);
                 agent.Create(owner);
                 agent.Dequeue();
-                owner.OnShow += agent.OnShow;
-                owner.OnHide += agent.OnHide;
+                if (agent is IActive active)
+                {
+                    owner.OnShow += active.OnShow;
+                    owner.OnHide += active.OnHide;
+                }
+
                 owner.OnFade += Enqueue;
             }
 
@@ -84,8 +88,11 @@ namespace Astraia
                 owner.Inject(agent);
                 agent.Create(owner);
                 agent.Dequeue();
-                owner.OnShow += agent.OnShow;
-                owner.OnHide += agent.OnHide;
+                if (agent is IActive active)
+                {
+                    owner.OnShow += active.OnShow;
+                    owner.OnHide += active.OnHide;
+                }
                 owner.OnFade += Enqueue;
             }
 

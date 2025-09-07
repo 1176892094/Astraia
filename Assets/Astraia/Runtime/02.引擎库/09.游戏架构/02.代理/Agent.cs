@@ -14,9 +14,15 @@ namespace Astraia.Common
     public interface IAgent
     {
         internal void Create(Entity owner);
+        
         void Dequeue();
+
+        void Enqueue();
+    }
+
+    public interface IActive
+    {
         void OnShow();
         void OnHide();
-        void Enqueue();
     }
 }
