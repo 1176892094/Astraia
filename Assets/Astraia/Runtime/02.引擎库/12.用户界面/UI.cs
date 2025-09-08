@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -112,14 +113,15 @@ namespace Astraia.Common
 
         public static void Clear()
         {
-            foreach (var panel in panelData)
+            var copies = new List<Type>(panelData.Keys);
+            foreach (var panel in copies)
             {
-                var result = panel.Value;
+                var result = panelData[panel];
                 if (result.state != UIState.Stable)
                 {
                     result.gameObject.SetActive(false);
                     Object.Destroy(result.gameObject);
-                    panelData.Remove(panel.Key);
+                    panelData.Remove(panel);
                 }
             }
         }

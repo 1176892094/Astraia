@@ -16,7 +16,7 @@ namespace Astraia.Common
 {
     public interface IState
     {
-        internal void Create(Entity id);
+        void Create(Entity id);
         void OnEnter();
         void OnUpdate();
         void OnExit();
