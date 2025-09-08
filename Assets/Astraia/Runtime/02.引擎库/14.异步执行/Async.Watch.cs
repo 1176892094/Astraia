@@ -137,8 +137,7 @@ namespace Astraia
     public sealed partial class Watch : INotifyCompletion
     {
         public bool IsCompleted => complete > 0;
-
-
+        
         public Watch GetAwaiter()
         {
             return this;
