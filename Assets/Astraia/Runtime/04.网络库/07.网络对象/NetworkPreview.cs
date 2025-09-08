@@ -200,8 +200,7 @@ namespace Astraia.Net
         {
             var copies = new List<AgentData>();
 
-            var agents = entity.agentData.Values;
-            foreach (var agent in agents)
+            foreach (var agent in entity.agentData.Values)
             {
                 if (agent is NetworkAgent result)
                 {

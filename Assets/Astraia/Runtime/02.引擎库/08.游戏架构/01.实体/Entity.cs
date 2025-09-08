@@ -81,6 +81,11 @@ namespace Astraia
             return (T)EntityManager.AddAgent(this, agent, agent.GetType());
         }
 
+        public T AddComponent<T>(T agent, Type queryType) where T : IAgent
+        {
+            return (T)EntityManager.AddAgent(this, agent, agent.GetType(), queryType);
+        }
+
         public T AddComponent<T>() where T : IAgent
         {
             return (T)EntityManager.AddAgent(this, typeof(T), typeof(T));

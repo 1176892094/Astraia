@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Astraia.Common;
 using UnityEngine;
@@ -18,7 +19,7 @@ using UnityEngine.EventSystems;
 namespace Astraia
 {
     [Serializable]
-    public sealed class UIPage<TItem> : Agent<Entity>, IAgent
+    public sealed class UIPage<TItem> : Agent<Entity>, IAgent, IEnumerable<KeyValuePair<int, IGrid<TItem>>>
     {
         private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
         private IList<TItem> items;
@@ -36,8 +37,6 @@ namespace Astraia
         private int numX => (int)assetRect.x + (direction ? 0 : 1);
         private int numY => (int)assetRect.y + (direction ? 1 : 0);
 
-        public IEnumerable<IGrid<TItem>> Values => grids.Values;
-        
         void IAgent.Dequeue()
         {
             selection = false;
@@ -294,6 +293,16 @@ namespace Astraia
 
                     return;
             }
+        }
+        
+        public IEnumerator<KeyValuePair<int, IGrid<TItem>>> GetEnumerator()
+        {
+            return grids.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
