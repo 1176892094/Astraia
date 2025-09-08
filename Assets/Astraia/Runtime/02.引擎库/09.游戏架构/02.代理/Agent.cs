@@ -14,7 +14,7 @@ namespace Astraia.Common
     public interface IAgent
     {
         internal void Create(Entity owner);
-        
+
         void Dequeue();
 
         void Enqueue();

@@ -19,6 +19,8 @@ using Sirenix.OdinInspector;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
+
     public interface ISystem
     {
         void Update();
@@ -28,12 +30,12 @@ namespace Astraia.Common
     {
         private void Awake()
         {
-            foreach (var agent in systemData)
+            foreach (var agent in systemList)
             {
                 var result = Service.Find.Type(agent);
                 if (result != null)
                 {
-                    GlobalManager.systemData[result] = (ISystem)Activator.CreateInstance(result);
+                    systemData[result] = (ISystem)Activator.CreateInstance(result);
                 }
             }
         }
@@ -44,13 +46,13 @@ namespace Astraia.Common
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<ISystem> systems
         {
-            get => GlobalManager.systemData.Values.ToList();
+            get => systemData.Values.ToList();
             set => Debug.LogError(value);
         }
 
         [HideInPlayMode, ValueDropdown("Systems")]
 #endif
         [SerializeField]
-        private List<string> systemData = new List<string>();
+        private List<string> systemList = new List<string>();
     }
 }

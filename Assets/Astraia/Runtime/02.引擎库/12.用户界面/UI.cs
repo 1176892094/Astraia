@@ -28,7 +28,7 @@ namespace Astraia.Common
 
             var owner = obj.GetOrAddComponent<Entity>();
             var panel = (UIPanel)HeapManager.Dequeue<IAgent>(type);
-            owner.AddAgent(panel, typeof(UIPanel));
+            owner.AddComponent(panel);
             owner.OnFade += panel.group.Clear;
 
             SetLayer(panel.transform, panel.layer);

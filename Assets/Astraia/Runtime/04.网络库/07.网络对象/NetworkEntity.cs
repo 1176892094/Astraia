@@ -56,14 +56,11 @@ namespace Astraia.Net
             base.OnEnable();
             if ((state & AgentState.Awake) == 0)
             {
-                if (GlobalManager.agentData.TryGetValue(this, out var agentData))
+                foreach (var agent in agentData.Values)
                 {
-                    foreach (var agent in agentData.Values)
+                    if (agent is NetworkAgent entity)
                     {
-                        if (agent is NetworkAgent entity)
-                        {
-                            agents.Add(entity);
-                        }
+                        agents.Add(entity);
                     }
                 }
 

@@ -43,7 +43,10 @@ namespace Astraia.Common
         {
             foreach (var panel in panelData.Values)
             {
-                panel.Update();
+                if (panel)
+                {
+                    panel.Update();
+                }
             }
 
             foreach (var system in systemData.Values)

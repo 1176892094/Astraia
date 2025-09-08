@@ -13,16 +13,16 @@ using Astraia.Common;
 
 namespace Astraia
 {
-    public abstract class Singleton<T, TEntity> : Agent<TEntity>, IAgent, IActive where T : Singleton<T, TEntity> where TEntity : Entity
+    public abstract class Singleton<S, T> : Agent<T>, IAgent, IActive where S : Singleton<S, T> where T : Entity
     {
-        private static T instance;
+        private static S instance;
 
-        public static T Instance => instance;
+        public static S Instance => instance;
 
         void IAgent.Create(Entity owner)
         {
-            instance = (T)this;
-            this.owner = (TEntity)owner;
+            instance = (S)this;
+            this.owner = (T)owner;
         }
 
         public virtual void OnShow()

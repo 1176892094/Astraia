@@ -75,10 +75,6 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<Entity, Dictionary<Type, IAgent>> agentData = new Dictionary<Entity, Dictionary<Type, IAgent>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
         internal static readonly Dictionary<Type, List<Entity>> queryData = new Dictionary<Type, List<Entity>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]

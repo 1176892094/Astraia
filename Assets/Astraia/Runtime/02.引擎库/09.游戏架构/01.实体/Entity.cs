@@ -20,8 +20,9 @@ using Sirenix.OdinInspector;
 
 namespace Astraia
 {
-    public class Entity : MonoBehaviour
+    public partial class Entity : MonoBehaviour
     {
+        internal readonly Dictionary<Type, IAgent> agentData = new Dictionary<Type, IAgent>();
         internal bool isDestroy;
         public event Action OnShow;
         public event Action OnHide;
@@ -29,13 +30,9 @@ namespace Astraia
 
         protected virtual void Awake()
         {
-            foreach (var agent in agentData)
+            foreach (var agent in agentList)
             {
-                var result = Service.Find.Type(agent);
-                if (result != null)
-                {
-                    AddAgent(result);
-                }
+                AddComponent(Service.Find.Type(agent));
             }
         }
 
@@ -56,57 +53,8 @@ namespace Astraia
             OnFade = null;
             OnShow = null;
             OnHide = null;
+            agentList.Clear();
             agentData.Clear();
-        }
-
-        public T AddAgent<T>(T agent) where T : IAgent
-        {
-            return (T)EntityManager.AddAgent(this, agent, agent.GetType());
-        }
-
-        public T AddAgent<T>(T agent, Type queryType) where T : IAgent
-        {
-            return (T)EntityManager.AddAgent(this, agent, agent.GetType(), queryType);
-        }
-
-        public T AddAgent<T>() where T : IAgent
-        {
-            return (T)EntityManager.AddAgent(this, typeof(T), typeof(T));
-        }
-
-        public T GetAgent<T>() where T : IAgent
-        {
-            return (T)EntityManager.GetAgent(this, typeof(T));
-        }
-
-        public IAgent AddAgent(Type realType)
-        {
-            return EntityManager.AddAgent(this, realType, realType);
-        }
-
-        public IAgent AddAgent(Type keyType, Type realType)
-        {
-            return EntityManager.AddAgent(this, keyType, realType);
-        }
-
-        public IAgent AddAgent(Type queryType, Type keyType, Type realType)
-        {
-            return EntityManager.AddAgent(this, keyType, realType, queryType);
-        }
-
-        public IAgent GetAgent(Type keyType)
-        {
-            return EntityManager.GetAgent(this, keyType);
-        }
-
-        public IEnumerable<IAgent> GetAgents()
-        {
-            if (GlobalManager.agentData.TryGetValue(this, out var agent))
-            {
-                return agent.Values;
-            }
-
-            return null;
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -116,13 +64,51 @@ namespace Astraia
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<IAgent> agents
         {
-            get => GetAgents()?.ToList();
+            get => agentData.Values.ToList();
             set => Debug.LogError(value);
         }
 
         [HideInPlayMode, ValueDropdown("Agents")]
 #endif
         [SerializeField]
-        private List<string> agentData = new List<string>();
+        private List<string> agentList = new List<string>();
+    }
+
+    public partial class Entity
+    {
+        public T AddComponent<T>(T agent) where T : IAgent
+        {
+            return (T)EntityManager.AddAgent(this, agent, agent.GetType());
+        }
+
+        public T AddComponent<T>() where T : IAgent
+        {
+            return (T)EntityManager.AddAgent(this, typeof(T), typeof(T));
+        }
+
+        public T FindComponent<T>() where T : IAgent
+        {
+            return agentData.TryGetValue(typeof(T), out var agent) ? (T)agent : default;
+        }
+
+        public IAgent AddComponent(Type realType)
+        {
+            return EntityManager.AddAgent(this, realType, realType);
+        }
+
+        public IAgent AddComponent(Type keyType, Type realType)
+        {
+            return EntityManager.AddAgent(this, keyType, realType);
+        }
+
+        public IAgent AddComponent(Type queryType, Type keyType, Type realType)
+        {
+            return EntityManager.AddAgent(this, keyType, realType, queryType);
+        }
+
+        public IAgent FindComponent(Type keyType)
+        {
+            return agentData.TryGetValue(keyType, out var agent) ? agent : null;
+        }
     }
 }

@@ -19,17 +19,6 @@ namespace Astraia
 
     internal static class EntityManager
     {
-        private static Dictionary<Type, IAgent> GetAgents(Entity owner)
-        {
-            if (!agentData.TryGetValue(owner, out var agents))
-            {
-                agents = new Dictionary<Type, IAgent>();
-                agentData.Add(owner, agents);
-            }
-
-            return agents;
-        }
-
         private static List<Entity> GetQueries(Type queryType)
         {
             if (!queryData.TryGetValue(queryType, out var queries))
@@ -44,7 +33,7 @@ namespace Astraia
         public static IAgent AddAgent(Entity owner, IAgent agent, Type keyType, Type queryType = null)
         {
             queryType ??= keyType;
-            var agents = GetAgents(owner);
+            var agents = owner.agentData;
             var queries = GetQueries(queryType);
             if (!agents.ContainsKey(keyType))
             {
@@ -68,7 +57,6 @@ namespace Astraia
                 agent.Enqueue();
                 agents.Remove(keyType);
                 queries.Remove(owner);
-                if (agents.Count == 0) agentData.Remove(owner);
                 if (queries.Count == 0) queryData.Remove(keyType);
                 HeapManager.Enqueue(agent, keyType);
             }
@@ -77,7 +65,7 @@ namespace Astraia
         public static IAgent AddAgent(Entity owner, Type keyType, Type realType, Type queryType = null)
         {
             queryType ??= keyType;
-            var agents = GetAgents(owner);
+            var agents = owner.agentData;
             var queries = GetQueries(queryType);
             if (!agents.TryGetValue(keyType, out var agent))
             {
@@ -102,38 +90,18 @@ namespace Astraia
                 agent.Enqueue();
                 agents.Remove(keyType);
                 queries.Remove(owner);
-                if (agents.Count == 0) agentData.Remove(owner);
                 if (queries.Count == 0) queryData.Remove(keyType);
                 HeapManager.Enqueue(agent, realType);
             }
         }
-
-        public static IAgent GetAgent(Entity owner, Type keyType)
-        {
-            if (agentData.TryGetValue(owner, out var agents))
-            {
-                if (agents.TryGetValue(keyType, out var agent))
-                {
-                    return agent;
-                }
-            }
-
-            return null;
-        }
-
+        
         public static void Dispose()
         {
-            foreach (var agents in agentData.Values)
-            {
-                agents.Clear();
-            }
-
             foreach (var queries in queryData.Values)
             {
                 queries.Clear();
             }
 
-            agentData.Clear();
             queryData.Clear();
         }
     }
