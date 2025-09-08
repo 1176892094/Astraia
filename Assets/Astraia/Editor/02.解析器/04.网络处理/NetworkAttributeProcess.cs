@@ -87,7 +87,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetField<int>());
-            worker.Emit(OpCodes.Callvirt, module.sendClientRpcInternal);
+            worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
             NetworkAgentProcess.WritePushSetter(worker, module);
             worker.Emit(OpCodes.Ret);
             return rpc;
@@ -165,7 +165,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetField<int>());
-            worker.Emit(OpCodes.Call, module.sendServerRpcInternal);
+            worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
             NetworkAgentProcess.WritePushSetter(worker, module);
             worker.Emit(OpCodes.Ret);
 
@@ -242,7 +242,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetField<int>());
-            worker.Emit(OpCodes.Callvirt, module.sendTargetRpcInternal);
+            worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
             NetworkAgentProcess.WritePushSetter(worker, module);
             worker.Emit(OpCodes.Ret);
             return rpc;
@@ -389,10 +389,10 @@ namespace Astraia.Editor
         /// <param name="error"></param>
         private static void NetworkClientActive(ILProcessor worker, Module module, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, module.NetworkClientActiveRef);
+            worker.Emit(OpCodes.Call, module.GetClientActive);
             worker.Emit(OpCodes.Brtrue, label);
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是客户端不是活跃的。");
-            worker.Emit(OpCodes.Call, module.logErrorRef);
+            worker.Emit(OpCodes.Call, module.LogError);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
         }
@@ -407,10 +407,10 @@ namespace Astraia.Editor
         /// <param name="error"></param>
         private static void NetworkServerActive(ILProcessor worker, Module module, string mdName, Instruction label, string error)
         {
-            worker.Emit(OpCodes.Call, module.NetworkServerActiveRef);
+            worker.Emit(OpCodes.Call, module.GetServerActive);
             worker.Emit(OpCodes.Brtrue, label);
             worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是服务器不是活跃的。");
-            worker.Emit(OpCodes.Call, module.logErrorRef);
+            worker.Emit(OpCodes.Call, module.LogError);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
         }

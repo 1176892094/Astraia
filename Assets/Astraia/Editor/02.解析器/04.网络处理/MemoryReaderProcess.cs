@@ -172,7 +172,7 @@ namespace Astraia.Editor
             var worker = md.Body.GetILProcessor();
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, GetFunction(new ArrayType(element), ref failed));
-            worker.Emit(OpCodes.Newobj, module.ArraySegmentRef.MakeHostInstanceGeneric(assembly.MainModule, generic));
+            worker.Emit(OpCodes.Newobj, module.AddArraySegment.MakeHostInstanceGeneric(assembly.MainModule, generic));
             worker.Emit(OpCodes.Ret);
             return md;
         }
@@ -203,7 +203,7 @@ namespace Astraia.Editor
 
         private MethodReference AddNetworkAgent(TypeReference tr)
         {
-            var generic = module.ReadNetworkAgentGeneric;
+            var generic = module.ReadNetworkAgent;
             var mr = generic.MakeGenericInstanceType(assembly.MainModule, tr);
             Register(tr, mr);
             return mr;
@@ -228,7 +228,7 @@ namespace Astraia.Editor
             }
             else if (td.IsDerivedFrom<ScriptableObject>())
             {
-                var generic = new GenericInstanceMethod(module.CreateInstanceMethodRef);
+                var generic = new GenericInstanceMethod(module.CreateInstance);
                 generic.GenericArguments.Add(tr);
                 worker.Emit(OpCodes.Call, generic);
                 worker.Emit(OpCodes.Stloc_0);

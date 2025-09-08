@@ -99,14 +99,14 @@ namespace Astraia.Editor
 
         public static void WritePopSetter(ILProcessor worker, Module module)
         {
-            worker.Emit(OpCodes.Call, module.PopSetterRef);
+            worker.Emit(OpCodes.Call, module.WriterDequeue);
             worker.Emit(OpCodes.Stloc_0);
         }
 
         public static void WritePushSetter(ILProcessor worker, Module module)
         {
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Call, module.PushSetterRef);
+            worker.Emit(OpCodes.Call, module.WriterEnqueue);
         }
 
         public static void AddInvokeParameters(Module module, ICollection<ParameterDefinition> collection)
@@ -358,17 +358,17 @@ namespace Astraia.Editor
             ILProcessor worker = cctor.Body.GetILProcessor();
             for (int i = 0; i < serverRpcList.Count; ++i)
             {
-                GenerateDelegate(worker, module.registerServerRpcRef, serverRpcFuncList[i], serverRpcList[i]);
+                GenerateDelegate(worker, module.RegisterServerRpc, serverRpcFuncList[i], serverRpcList[i]);
             }
 
             for (int i = 0; i < clientRpcList.Count; ++i)
             {
-                GenerateDelegate(worker, module.registerClientRpcRef, clientRpcFuncList[i], clientRpcList[i]);
+                GenerateDelegate(worker, module.RegisterClientRpc, clientRpcFuncList[i], clientRpcList[i]);
             }
 
             for (int i = 0; i < targetRpcList.Count; ++i)
             {
-                GenerateDelegate(worker, module.registerClientRpcRef, targetRpcFuncList[i], targetRpcList[i]);
+                GenerateDelegate(worker, module.RegisterClientRpc, targetRpcFuncList[i], targetRpcList[i]);
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
@@ -412,12 +412,12 @@ namespace Astraia.Editor
         private void GenerateDelegate(ILProcessor worker, MethodReference mr, MethodDefinition md, KeyValuePair<MethodDefinition, int> pair)
         {
             worker.Emit(OpCodes.Ldtoken, generate);
-            worker.Emit(OpCodes.Call, module.getTypeFromHandleRef);
+            worker.Emit(OpCodes.Call, module.GetTypeFromHandle);
             worker.Emit(OpCodes.Ldc_I4, pair.Value);
             worker.Emit(OpCodes.Ldstr, pair.Key.FullName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, md);
-            worker.Emit(OpCodes.Newobj, module.RpcDelegateRef);
+            worker.Emit(OpCodes.Newobj, module.InvokeDelegate);
             worker.Emit(OpCodes.Call, mr);
         }
     }
@@ -478,7 +478,7 @@ namespace Astraia.Editor
             worker.Append(instruction);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Call, module.NetworkAgentDirtyRef);
+            worker.Emit(OpCodes.Call, module.SyncVarDirty);
             var writeUint64Func = writer.GetFunction(module.Import<ulong>(), ref failed);
             worker.Emit(OpCodes.Call, writeUint64Func);
             int dirty = access.GetSyncVar(generate.BaseType.FullName);
@@ -492,7 +492,7 @@ namespace Astraia.Editor
 
                 var varLabel = worker.Create(OpCodes.Nop);
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Call, module.NetworkAgentDirtyRef);
+                worker.Emit(OpCodes.Call, module.SyncVarDirty);
                 worker.Emit(OpCodes.Ldc_I8, 1L << dirty);
                 worker.Emit(OpCodes.And);
                 worker.Emit(OpCodes.Brfalse, varLabel);
@@ -611,7 +611,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
-                worker.Emit(OpCodes.Call, module.syncVarGetterGameObject);
+                worker.Emit(OpCodes.Call, module.SyncVarGetterGameObject);
             }
             else if (syncVar.FieldType.Is<NetworkEntity>())
             {
@@ -619,7 +619,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
-                worker.Emit(OpCodes.Call, module.syncVarGetterNetworkEntity);
+                worker.Emit(OpCodes.Call, module.SyncVarGetterNetworkEntity);
             }
             else if (syncVar.FieldType.IsDerivedFrom<NetworkAgent>() || syncVar.FieldType.Is<NetworkAgent>())
             {
@@ -627,7 +627,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
-                var getFunc = module.syncVarGetterNetworkAgent.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
+                var getFunc = module.SyncVarGetterNetworkAgent.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
@@ -642,7 +642,7 @@ namespace Astraia.Editor
 
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Call, readFunc);
-                MethodReference generic = module.syncVarGetterGeneral.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
+                MethodReference generic = module.SyncVarGetterGeneral.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
         }

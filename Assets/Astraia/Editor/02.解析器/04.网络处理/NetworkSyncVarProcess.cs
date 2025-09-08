@@ -73,7 +73,7 @@ namespace Astraia.Editor
 
             var actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
             var genericInstance = actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType);
-            worker.Emit(OpCodes.Newobj, module.HookMethodRef.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            worker.Emit(OpCodes.Newobj, module.SyncVarHook.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
         }
 
         /// <summary>
@@ -294,7 +294,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, module.getSyncVarGameObject);
+                worker.Emit(OpCodes.Call, module.GetSyncVarGameObject);
                 worker.Emit(OpCodes.Ret);
             }
             else if (fd.FieldType.Is<NetworkEntity>())
@@ -304,7 +304,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, module.getSyncVarNetworkEntity);
+                worker.Emit(OpCodes.Call, module.GetSyncVarNetworkEntity);
                 worker.Emit(OpCodes.Ret);
             }
             else if (fd.FieldType.IsDerivedFrom<NetworkAgent>() || fd.FieldType.Is<NetworkAgent>())
@@ -314,7 +314,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                var getFunc = module.getSyncVarNetworkAgent.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
+                var getFunc = module.GetSyncVarNetworkAgent.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
                 worker.Emit(OpCodes.Ret);
             }
@@ -376,24 +376,24 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                worker.Emit(OpCodes.Call, module.syncVarSetterGameObject);
+                worker.Emit(OpCodes.Call, module.SyncVarSetterGameObject);
             }
             else if (fd.FieldType.Is<NetworkEntity>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                worker.Emit(OpCodes.Call, module.syncVarSetterNetworkEntity);
+                worker.Emit(OpCodes.Call, module.SyncVarSetterNetworkEntity);
             }
             else if (fd.FieldType.IsDerivedFrom<NetworkAgent>() || fd.FieldType.Is<NetworkAgent>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                var getFunc = module.syncVarSetterNetworkAgent.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
+                var getFunc = module.SyncVarSetterNetworkAgent.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
             {
-                var generic = module.syncVarSetterGeneral.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
+                var generic = module.SyncVarSetterGeneral.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
 
