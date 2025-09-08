@@ -16,11 +16,11 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
-        public PlayerSender Sender => GetAgent<PlayerSender>();
-        public PlayerMachine Machine => GetAgent<PlayerMachine>();
-        public PlayerFeature Feature => GetAgent<PlayerFeature>();
-        public PlayerOperate Operate => GetAgent<PlayerOperate>();
-        public NetworkTransform Transform => GetAgent<NetworkTransform>();
+        public PlayerSender Sender => FindComponent<PlayerSender>();
+        public PlayerMachine Machine => FindComponent<PlayerMachine>();
+        public PlayerFeature Feature =>FindComponent<PlayerFeature>();
+        public PlayerOperate Operate => FindComponent<PlayerOperate>();
+        public NetworkTransform Transform => FindComponent<NetworkTransform>();
         private Ray2D DLRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
         private Ray2D DRRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
         private Ray2D RURay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
@@ -33,12 +33,13 @@ namespace Runtime
         protected override void Awake()
         {
             base.Awake();
-            AddAgent(typeof(PlayerFeature));
-            AddAgent(typeof(PlayerMachine));
-            AddAgent(typeof(PlayerOperate));
+            AddComponent(typeof(PlayerFeature));
+            AddComponent(typeof(PlayerMachine));
+            AddComponent(typeof(PlayerOperate));
             Transform.syncDirection = SyncMode.Client;
         }
 
+        
         private void Update()
         {
             if (isOwner)

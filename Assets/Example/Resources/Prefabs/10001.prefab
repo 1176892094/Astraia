@@ -44,9 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agentData:
+  agentList:
   - Runtime.SpawnManager, Assembly-CSharp
-  agentMode: 0
-  objectId: 0
-  agentId: 10001
+  assetId: 10001
   sceneId: 0
