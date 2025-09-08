@@ -78,14 +78,14 @@ namespace Astraia.Editor
         {
             if (member != null)
             {
-                message = $"{message} (at {member})";
+                message = "{0} (as {1})".Format(message, member);
             }
 
             var splits = message.Split('\n');
 
             if (splits.Length == 1)
             {
-                Add($"{message}", mode);
+                Add(message, mode);
             }
             else
             {

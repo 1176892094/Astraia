@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Astraia.Net;
 using Mono.Cecil;
 using UnityEngine;
@@ -93,11 +92,6 @@ namespace Astraia.Editor
             if (!td.IsClass) return false;
             if (!td.IsDerivedFrom<NetworkAgent>())
             {
-                if (td.IsDerivedFrom<MonoBehaviour>())
-                {
-                    MonoBehaviourProcess.Process(td, logger, ref failed);
-                }
-
                 return false;
             }
 
