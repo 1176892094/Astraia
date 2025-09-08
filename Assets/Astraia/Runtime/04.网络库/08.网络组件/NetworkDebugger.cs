@@ -72,45 +72,7 @@ namespace Astraia.Net
             }
         }
 
-        private void OnDestroy()
-        {
-            if (Transport.Instance)
-            {
-                Transport.Instance.OnClientSend -= OnClientSend;
-                Transport.Instance.OnServerSend -= OnServerSend;
-                Transport.Instance.OnClientReceive -= OnClientReceive;
-                Transport.Instance.OnServerReceive -= OnServerReceive;
-            }
-
-            sendItems.Clear();
-            receiveItems.Clear();
-        }
-
-        private void OnClientReceive(ArraySegment<byte> data, int channelId)
-        {
-            clientIntervalReceivedPackets++;
-            clientIntervalReceivedBytes += data.Count;
-        }
-
-        private void OnClientSend(ArraySegment<byte> data, int channelId)
-        {
-            clientIntervalSentPackets++;
-            clientIntervalSentBytes += data.Count;
-        }
-
-        private void OnServerReceive(int connectionId, ArraySegment<byte> data, int channelId)
-        {
-            serverIntervalReceivedPackets++;
-            serverIntervalReceivedBytes += data.Count;
-        }
-
-        private void OnServerSend(int connectionId, ArraySegment<byte> data, int channelId)
-        {
-            serverIntervalSentPackets++;
-            serverIntervalSentBytes += data.Count;
-        }
-
-        private void Update()
+        protected virtual void Update()
         {
             if (waitTime < Time.unscaledTimeAsDouble)
             {
@@ -126,6 +88,49 @@ namespace Astraia.Net
 
                 waitTime = Time.unscaledTimeAsDouble + 1;
             }
+        }
+
+        private void OnDestroy()
+        {
+            if (Transport.Instance)
+            {
+                Transport.Instance.OnClientSend -= OnClientSend;
+                Transport.Instance.OnServerSend -= OnServerSend;
+                Transport.Instance.OnClientReceive -= OnClientReceive;
+                Transport.Instance.OnServerReceive -= OnServerReceive;
+            }
+
+            sendItems.Clear();
+            receiveItems.Clear();
+        }
+
+        public void Execute(PingUpdate message)
+        {
+            framePing = message.pingTime;
+        }
+
+        private void OnClientReceive(ArraySegment<byte> data, int channel)
+        {
+            clientIntervalReceivedPackets++;
+            clientIntervalReceivedBytes += data.Count;
+        }
+
+        private void OnClientSend(ArraySegment<byte> data, int channel)
+        {
+            clientIntervalSentPackets++;
+            clientIntervalSentBytes += data.Count;
+        }
+
+        private void OnServerReceive(int connectionId, ArraySegment<byte> data, int channel)
+        {
+            serverIntervalReceivedPackets++;
+            serverIntervalReceivedBytes += data.Count;
+        }
+
+        private void OnServerSend(int connectionId, ArraySegment<byte> data, int channel)
+        {
+            serverIntervalSentPackets++;
+            serverIntervalSentBytes += data.Count;
         }
 
         private void UpdateClient()
@@ -170,14 +175,13 @@ namespace Astraia.Net
             GUILayout.Label("从客户端接收大小:\t\t{0}/s".Format(PrettyBytes(serverReceivedBytesPerSecond)));
         }
 
-
         protected void ItemReset()
         {
             sendItems.Reset();
             receiveItems.Reset();
         }
 
-        private static string PrettyBytes(long bytes)
+       protected static string PrettyBytes(long bytes)
         {
             if (bytes < 1024)
             {
@@ -330,11 +334,6 @@ namespace Astraia.Net
                     Release = 0;
                 }
             }
-        }
-
-        public void Execute(PingUpdate message)
-        {
-            framePing = message.pingTime;
         }
     }
 }

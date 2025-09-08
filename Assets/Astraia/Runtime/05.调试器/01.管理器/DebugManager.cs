@@ -84,7 +84,7 @@ namespace Astraia.Common
             Application.logMessageReceived -= LogMessageReceived;
         }
 
-        private void Update()
+        protected override void Update()
         {
             if (frameTime > Time.realtimeSinceStartup)
             {

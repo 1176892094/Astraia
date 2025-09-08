@@ -58,7 +58,6 @@ namespace Astraia
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-
         private static List<string> Agents = GlobalSetting.agents;
 
         [HideInEditorMode, ShowInInspector]
@@ -78,17 +77,17 @@ namespace Astraia
     {
         public T AddComponent<T>(T agent) where T : IAgent
         {
-            return (T)EntityManager.AddAgent(this, agent, agent.GetType());
+            return (T)EntityManager.AddComponent(this, agent, agent.GetType());
         }
 
         public T AddComponent<T>(T agent, Type queryType) where T : IAgent
         {
-            return (T)EntityManager.AddAgent(this, agent, agent.GetType(), queryType);
+            return (T)EntityManager.AddComponent(this, agent, agent.GetType(), queryType);
         }
 
         public T AddComponent<T>() where T : IAgent
         {
-            return (T)EntityManager.AddAgent(this, typeof(T), typeof(T));
+            return (T)EntityManager.AddComponent(this, typeof(T), typeof(T));
         }
 
         public T FindComponent<T>() where T : IAgent
@@ -98,17 +97,17 @@ namespace Astraia
 
         public IAgent AddComponent(Type realType)
         {
-            return EntityManager.AddAgent(this, realType, realType);
+            return EntityManager.AddComponent(this, realType, realType);
         }
 
         public IAgent AddComponent(Type keyType, Type realType)
         {
-            return EntityManager.AddAgent(this, keyType, realType);
+            return EntityManager.AddComponent(this, keyType, realType);
         }
 
         public IAgent AddComponent(Type queryType, Type keyType, Type realType)
         {
-            return EntityManager.AddAgent(this, keyType, realType, queryType);
+            return EntityManager.AddComponent(this, keyType, realType, queryType);
         }
 
         public IAgent FindComponent(Type keyType)

@@ -30,7 +30,7 @@ namespace Astraia
             return queries;
         }
 
-        public static IAgent AddAgent(Entity owner, IAgent agent, Type keyType, Type queryType = null)
+        public static IAgent AddComponent(Entity owner, IAgent agent, Type keyType, Type queryType = null)
         {
             queryType ??= keyType;
             var agents = owner.agentData;
@@ -62,7 +62,7 @@ namespace Astraia
             }
         }
 
-        public static IAgent AddAgent(Entity owner, Type keyType, Type realType, Type queryType = null)
+        public static IAgent AddComponent(Entity owner, Type keyType, Type realType, Type queryType = null)
         {
             queryType ??= keyType;
             var agents = owner.agentData;

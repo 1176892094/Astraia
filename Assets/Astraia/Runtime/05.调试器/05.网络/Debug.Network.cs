@@ -20,7 +20,7 @@ namespace Astraia.Common
     {
         private IList<Pool> sendList = new List<Pool>();
         private IList<Pool> receiveList = new List<Pool>();
-        private float waitTime;
+        private float duration;
 
         private void NetworkWindow()
         {
@@ -62,9 +62,9 @@ namespace Astraia.Common
 
             GUILayout.EndHorizontal();
 
-            if (waitTime < Time.unscaledTime)
+            if (duration < Time.unscaledTime)
             {
-                waitTime = Time.unscaledTime + 1;
+                duration = Time.unscaledTime + 1;
                 sendList = SendReference();
                 receiveList = ReceiveReference();
                 ItemReset();
@@ -186,26 +186,6 @@ namespace Astraia.Common
 
                 GUILayout.EndHorizontal();
             }
-        }
-
-        private static string PrettyBytes(long bytes)
-        {
-            if (bytes < 1024)
-            {
-                return "{0} B".Format(bytes);
-            }
-
-            if (bytes < 1024 * 1024)
-            {
-                return "{0:F2} KB".Format(bytes / 1024F);
-            }
-
-            if (bytes < 1024 * 1024 * 1024)
-            {
-                return "{0:F2} MB".Format(bytes / 1024F / 1024F);
-            }
-
-            return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
         }
     }
 }

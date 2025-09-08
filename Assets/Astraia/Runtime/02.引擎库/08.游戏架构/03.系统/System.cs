@@ -40,7 +40,6 @@ namespace Astraia.Common
             }
         }
 #if UNITY_EDITOR && ODIN_INSPECTOR
-
         private static List<string> Systems = GlobalSetting.systems;
 
         [HideInEditorMode, ShowInInspector]
