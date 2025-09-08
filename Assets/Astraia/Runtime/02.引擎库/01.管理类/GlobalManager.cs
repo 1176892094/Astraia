@@ -35,11 +35,11 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly HashSet<AudioSource> audioData = new HashSet<AudioSource>();
+        internal static readonly List<IAsync> asyncData = new List<IAsync>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<IAsync> asyncData = new List<IAsync>();
+        internal static readonly List<AudioSource> audioData = new List<AudioSource>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
