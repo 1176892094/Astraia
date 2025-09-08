@@ -10,18 +10,18 @@
 // *********************************************************************************
 
 using System;
+using Astraia.Net;
 using UnityEngine;
 
 namespace Astraia.Common
 {
     [DefaultExecutionOrder(-100)]
-    public partial class DebugManager : MonoBehaviour, IEvent<PingUpdate>
+    public partial class DebugManager : NetworkDebugger
     {
         private Font font;
         private bool maximized;
         private float frameData;
         private double frameTime;
-        private double framePing;
 
         private Window window;
         private Rect windowRect;
@@ -35,17 +35,18 @@ namespace Astraia.Common
         private float screenHeight => Screen.height / screenSize;
         private float screenSize => Screen.width / screenRate.x + Screen.height / screenRate.y;
 
-        private void Awake()
+       protected override void Awake()
         {
-            address = Service.Host.Ip();
+            base.Awake();
             screenColor = Color.white;
             screenRate = new Vector2(2560, 1440);
             screenRect = new Rect(10, 20, 100, 60);
             font = Resources.Load<Font>("Sarasa Mono SC");
         }
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 var sceneTypes = assembly.GetTypes();
@@ -71,15 +72,15 @@ namespace Astraia.Common
             }
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
-            EventManager.Listen(this);
+            base.OnEnable();
             Application.logMessageReceived += LogMessageReceived;
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
-            EventManager.Remove(this);
+            base.OnDisable();
             Application.logMessageReceived -= LogMessageReceived;
         }
 
@@ -99,11 +100,11 @@ namespace Astraia.Common
             var matrix = GUI.matrix;
             var labelAlignment = GUI.skin.label.alignment;
             var fieldAlignment = GUI.skin.textField.alignment;
-            
+
             GUI.matrix = Matrix4x4.Scale(new Vector3(screenSize, screenSize, 1));
             GUI.skin.label.alignment = TextAnchor.MiddleLeft;
             GUI.skin.textField.alignment = TextAnchor.MiddleLeft;
-            
+
             if (font != null)
             {
                 GUI.skin.font = font;
@@ -119,15 +120,10 @@ namespace Astraia.Common
                 windowRect.size = screenRect.size;
                 windowRect = GUI.Window(0, windowRect, MinWindow, "调试器");
             }
-            
+
             GUI.matrix = matrix;
             GUI.skin.label.alignment = labelAlignment;
             GUI.skin.textField.alignment = fieldAlignment;
-        }
-
-        public void Execute(PingUpdate message)
-        {
-            framePing = message.pingTime;
         }
 
         private void MaxWindow(int id)
@@ -144,7 +140,7 @@ namespace Astraia.Common
             {
                 window = Window.Console;
             }
-            
+
             GUI.contentColor = window == Window.Scene ? Color.white : Color.gray;
             if (GUILayout.Button(Window.Scene.ToString(), GUILayout.Height(30)))
             {

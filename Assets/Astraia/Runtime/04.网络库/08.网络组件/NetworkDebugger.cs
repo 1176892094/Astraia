@@ -17,9 +17,10 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkSimulator : MonoBehaviour
+    public abstract class NetworkDebugger : MonoBehaviour, IEvent<PingUpdate>
     {
-        public static NetworkSimulator Instance;
+        protected static string address;
+        protected double framePing;
         private double waitTime;
 
         public int clientIntervalReceivedPackets;
@@ -42,17 +43,27 @@ namespace Astraia.Net
         public int serverSentPacketsPerSecond;
         public long serverSentBytesPerSecond;
 
-        private readonly Items sendItems = new Items();
-        private readonly Items receiveItems = new Items();
+        private static readonly Items sendItems = new Items();
+        private static readonly Items receiveItems = new Items();
 
-        private void Awake()
+        protected virtual void Awake()
         {
-            Instance = this;
+            address = Service.Host.Ip();
         }
 
-        private void Start()
+        protected virtual void OnEnable()
         {
-            if (Transport.Instance != null)
+            EventManager.Listen(this);
+        }
+
+        protected virtual void OnDisable()
+        {
+            EventManager.Remove(this);
+        }
+
+        protected virtual void Start()
+        {
+            if (Transport.Instance)
             {
                 Transport.Instance.OnClientSend += OnClientSend;
                 Transport.Instance.OnServerSend += OnServerSend;
@@ -63,7 +74,7 @@ namespace Astraia.Net
 
         private void OnDestroy()
         {
-            if (Transport.Instance != null)
+            if (Transport.Instance)
             {
                 Transport.Instance.OnClientSend -= OnClientSend;
                 Transport.Instance.OnServerSend -= OnServerSend;
@@ -143,7 +154,7 @@ namespace Astraia.Net
             serverIntervalSentBytes = 0;
         }
 
-        public void OnGUIServer()
+        protected void OnGUIServer()
         {
             GUILayout.Label("向服务器发送数量:\t\t{0}".Format(clientSentPacketsPerSecond));
             GUILayout.Label("向服务器发送大小:\t\t{0}/s".Format(PrettyBytes(clientSentBytesPerSecond)));
@@ -151,7 +162,7 @@ namespace Astraia.Net
             GUILayout.Label("从服务器接收大小:\t\t{0}/s".Format(PrettyBytes(clientReceivedBytesPerSecond)));
         }
 
-        public void OnGUIClient()
+        protected void OnGUIClient()
         {
             GUILayout.Label("向客户端发送数量:\t\t{0}".Format(serverSentPacketsPerSecond));
             GUILayout.Label("向客户端发送大小:\t\t{0}/s".Format(PrettyBytes(serverSentBytesPerSecond)));
@@ -160,7 +171,7 @@ namespace Astraia.Net
         }
 
 
-        public void ItemReset()
+        protected void ItemReset()
         {
             sendItems.Reset();
             receiveItems.Reset();
@@ -200,16 +211,22 @@ namespace Astraia.Net
             return pools;
         }
 
-        internal void OnSend<T>(T message, int bytes) where T : struct, IMessage
+        internal static void OnSend<T>(T message, int bytes) where T : struct, IMessage
         {
-            var count = Service.Length.Invoke((uint)bytes);
-            sendItems.Record(message, count + bytes);
+            if (!string.IsNullOrEmpty(address))
+            {
+                var count = Service.Length.Invoke((uint)bytes);
+                sendItems.Record(message, count + bytes);
+            }
         }
 
-        internal void OnReceive<T>(T message, int bytes) where T : struct, IMessage
+        internal static void OnReceive<T>(T message, int bytes) where T : struct, IMessage
         {
-            var count = Service.Length.Invoke((uint)bytes + 2);
-            receiveItems.Record(message, count + bytes + 2);
+            if (!string.IsNullOrEmpty(address))
+            {
+                var count = Service.Length.Invoke((uint)bytes + 2);
+                receiveItems.Record(message, count + bytes + 2);
+            }
         }
 
         private class Items
@@ -313,6 +330,11 @@ namespace Astraia.Net
                     Release = 0;
                 }
             }
+        }
+
+        public void Execute(PingUpdate message)
+        {
+            framePing = message.pingTime;
         }
     }
 }

@@ -21,7 +21,6 @@ namespace Astraia.Common
         private IList<Pool> sendList = new List<Pool>();
         private IList<Pool> receiveList = new List<Pool>();
         private float waitTime;
-        private string address;
 
         private void NetworkWindow()
         {
@@ -54,28 +53,25 @@ namespace Astraia.Common
             GUILayout.BeginHorizontal();
 
             GUILayout.BeginVertical("Box", GUILayout.Width((screenWidth - 28) / 2));
-            NetworkSimulator.Instance?.OnGUIServer();
+            OnGUIServer();
             GUILayout.EndVertical();
 
             GUILayout.BeginVertical("Box");
-            NetworkSimulator.Instance?.OnGUIClient();
+            OnGUIClient();
             GUILayout.EndVertical();
 
             GUILayout.EndHorizontal();
 
-            if (NetworkSimulator.Instance)
+            if (waitTime < Time.unscaledTime)
             {
-                if (waitTime < Time.unscaledTime)
-                {
-                    waitTime = Time.unscaledTime + 1;
-                    sendList = NetworkSimulator.Instance.SendReference();
-                    receiveList = NetworkSimulator.Instance.ReceiveReference();
-                    NetworkSimulator.Instance.ItemReset();
-                }
-
-                NetworkMessage(sendList, "发送队列", "每秒发送\t\t每秒发送\t\t全局发送\t\t全局发送");
-                NetworkMessage(receiveList, "接收队列", "每秒接收\t\t每秒接收\t\t全局接收\t\t全局接收");
+                waitTime = Time.unscaledTime + 1;
+                sendList = SendReference();
+                receiveList = ReceiveReference();
+                ItemReset();
             }
+
+            NetworkMessage(sendList, "发送队列", "每秒发送\t\t每秒发送\t\t全局发送\t\t全局发送");
+            NetworkMessage(receiveList, "接收队列", "每秒接收\t\t每秒接收\t\t全局接收\t\t全局接收");
 
 
             GUILayout.EndScrollView();
