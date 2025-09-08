@@ -255,12 +255,10 @@ namespace Astraia.Editor
 
             if (Resolve.IsEditor(assembly))
             {
-                var InitializeOnLoadMethodAttributeType = Import(typeof(InitializeOnLoadMethodAttribute));
-                InitializeOnLoadMethodAttribute = InitializeOnLoadMethodAttributeType.Resolve();
+                InitializeOnLoadMethodAttribute = Import<InitializeOnLoadMethodAttribute>().Resolve();
             }
-
-            var RuntimeInitializeOnLoadMethodAttributeType = Import(typeof(RuntimeInitializeOnLoadMethodAttribute));
-            RuntimeInitializeOnLoadMethodAttribute = RuntimeInitializeOnLoadMethodAttributeType.Resolve();
+            
+            RuntimeInitializeOnLoadMethodAttribute = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
         }
     }
 }

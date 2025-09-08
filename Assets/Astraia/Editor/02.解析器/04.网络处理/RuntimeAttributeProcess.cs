@@ -20,14 +20,9 @@ namespace Astraia.Editor
 {
     internal static class RuntimeAttribute
     {
-          /// <summary>
+        /// <summary>
         /// 初始化读写流
         /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="module"></param>
-        /// <param name="writer"></param>
-        /// <param name="reader"></param>
-        /// <param name="td"></param>
         public static void RuntimeInitializeOnLoad(AssemblyDefinition assembly, Module module, Writer writer, Reader reader, TypeDefinition td)
         {
             var method = new MethodDefinition(nameof(RuntimeInitializeOnLoad), MethodAttributes.Public | MethodAttributes.Static, module.Import(typeof(void)));
@@ -47,11 +42,8 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 添加 RuntimeInitializeLoad 属性类型
+        /// [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="module"></param>
-        /// <param name="md"></param>
         private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Module module, MethodDefinition md)
         {
             var ctor = module.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
@@ -61,28 +53,18 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 添加 RuntimeInitializeLoad 属性标记
+        /// [InitializeOnLoadMethod]
         /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="module"></param>
-        /// <param name="md"></param>
         private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Module module, MethodDefinition md)
         {
             var ctor = module.InitializeOnLoadMethodAttribute.GetConstructors().First();
             var attribute = new CustomAttribute(assembly.MainModule.ImportReference(ctor));
             md.CustomAttributes.Add(attribute);
         }
-        
+
         /// <summary>
         /// 在Process中调用
         /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="resolver"></param>
-        /// <param name="logger"></param>
-        /// <param name="writer"></param>
-        /// <param name="reader"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
         public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writer writer, Reader reader, ref bool failed)
         {
             ProcessAssembly(assembly, resolver, logger, writer, reader, ref failed);
@@ -92,12 +74,6 @@ namespace Astraia.Editor
         /// <summary>
         /// 处理网络代码
         /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="resolver"></param>
-        /// <param name="logger"></param>
-        /// <param name="writer"></param>
-        /// <param name="reader"></param>
-        /// <param name="failed"></param>
         private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writer writer, Reader reader, ref bool failed)
         {
             AssemblyNameReference assemblyRef = null;
@@ -131,12 +107,6 @@ namespace Astraia.Editor
         /// <summary>
         /// 处理本地代码
         /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="assemblyDef"></param>
-        /// <param name="writer"></param>
-        /// <param name="reader"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
         private static bool ProcessCustomCode(AssemblyDefinition assembly, AssemblyDefinition assemblyDef, Writer writer, Reader reader, ref bool failed)
         {
             var changed = false;
@@ -160,10 +130,6 @@ namespace Astraia.Editor
         /// <summary>
         /// 加载声明的写入器
         /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="td"></param>
-        /// <param name="writer"></param>
-        /// <returns></returns>
         private static bool ProcessSetter(AssemblyDefinition assembly, TypeDefinition td, Writer writer)
         {
             var change = false;
@@ -194,10 +160,6 @@ namespace Astraia.Editor
         /// <summary>
         /// 加载声明的读取器
         /// </summary>
-        /// <param name="assembly"></param>
-        /// <param name="td"></param>
-        /// <param name="reader"></param>
-        /// <returns></returns>
         private static bool ProcessGetter(AssemblyDefinition assembly, TypeDefinition td, Reader reader)
         {
             var change = false;
@@ -228,12 +190,6 @@ namespace Astraia.Editor
         /// <summary>
         /// 加载读写流的信息
         /// </summary>
-        /// <param name="module"></param>
-        /// <param name="writer"></param>
-        /// <param name="reader"></param>
-        /// <param name="td"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
         private static bool ProcessMessage(ModuleDefinition module, Writer writer, Reader reader, TypeDefinition td, ref bool failed)
         {
             var change = false;
@@ -244,7 +200,7 @@ namespace Astraia.Editor
                 change = true;
             }
 
-            foreach (var nested in td.NestedTypes)
+            foreach (var nested in td.NestedTypes) // 嵌套类型
             {
                 change |= ProcessMessage(module, writer, reader, nested, ref failed);
             }
