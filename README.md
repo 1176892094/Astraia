@@ -5,9 +5,9 @@
 ```c#
     public class Example
     {
-        private SafeInt playerId; // 对内存进行绑定的变量 防止内存修改
-        private SafeFloat playerHp;
-        private SafeBytes buffer;
+        private Xor.Int playerId; // 对内存进行绑定的变量 防止内存修改
+        private Xor.Float playerHp;
+        private Xor.Bytes buffer;
 
         public void Save()
         {
