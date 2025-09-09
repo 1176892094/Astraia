@@ -38,12 +38,12 @@ namespace Astraia.Editor
         /// <summary>
         /// 调用Rpc取代方法的方法
         /// </summary>
-        public const string INV_METHOD = "Cmd_";
+        public const string INV_METHOD = "_0";
 
         /// <summary>
         /// Rpc的取代方法
         /// </summary>
-        public const string RPC_METHOD = "Rpc_";
+        public const string RPC_METHOD = "_1";
 
         /// <summary>
         /// 序列化网络变量

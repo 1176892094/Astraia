@@ -152,8 +152,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         public static string GenerateMethodName(string prefix, MethodDefinition md)
         {
-            prefix += md.Name;
-            return prefix;
+            return md.Name + prefix;
             //return md.Parameters.Aggregate(prefix, (s, parameter) => s + "_" + NetworkMessage.Id(parameter.ParameterType.Name));
         }
     }
