@@ -208,7 +208,7 @@ namespace Astraia
                 }
             };
 
-            typeof(Button).GetProperty("text", Service.Find.Instance)?.SetValue(button, text);
+            typeof(Button).GetProperty("text", Service.Ref.Instance)?.SetValue(button, text);
             parent.Add(button);
         }
 

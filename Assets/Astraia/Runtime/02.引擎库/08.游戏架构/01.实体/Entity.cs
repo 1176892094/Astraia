@@ -32,7 +32,7 @@ namespace Astraia
         {
             foreach (var agent in agentList)
             {
-                AddComponent(Service.Find.Type(agent));
+                AddComponent(Service.Ref.GetType(agent));
             }
         }
 

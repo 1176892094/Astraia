@@ -17,7 +17,7 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static class Find
+        public static class Ref
         {
             private static readonly Dictionary<string, Type> cacheTypes = new();
             public static readonly Dictionary<string, Assembly> assemblies = new();
@@ -44,7 +44,7 @@ namespace Astraia
                 OnLoadComplete?.Invoke();
             }
 
-            public static Assembly Assembly(string name)
+            public static Assembly GetAssembly(string name)
             {
                 if (assemblies.TryGetValue(name, out var result))
                 {
@@ -69,7 +69,7 @@ namespace Astraia
                 return result;
             }
 
-            public static Type Type(string name)
+            public static Type GetType(string name)
             {
                 if (cacheTypes.TryGetValue(name, out var result))
                 {
@@ -93,7 +93,7 @@ namespace Astraia
                 }
                 else
                 {
-                    var assembly = Assembly(name.Substring(index + 1).Trim());
+                    var assembly = GetAssembly(name.Substring(index + 1).Trim());
                     if (assembly != null)
                     {
                         result = assembly.GetType(name.Substring(0, index));

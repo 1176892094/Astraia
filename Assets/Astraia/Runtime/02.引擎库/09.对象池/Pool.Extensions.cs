@@ -64,7 +64,7 @@ namespace Astraia
 
         public static void Inject(this Component inject, object target)
         {
-            var fields = target.GetType().GetFields(Service.Find.Instance);
+            var fields = target.GetType().GetFields(Service.Ref.Instance);
             foreach (var field in fields)
             {
                 if (field.GetCustomAttribute<InjectAttribute>(true) == null)
@@ -100,13 +100,13 @@ namespace Astraia
 
                     field.SetValue(target, component);
 
-                    var method = target.GetType().GetMethod(name, Service.Find.Instance);
+                    var method = target.GetType().GetMethod(name, Service.Ref.Instance);
                     if (method == null)
                     {
                         continue;
                     }
 
-                    var cacheType = Service.Find.Type("UnityEngine.UI.Button,UnityEngine.UI");
+                    var cacheType = Service.Ref.GetType("UnityEngine.UI.Button,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var button))
                     {
                         var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
@@ -126,7 +126,7 @@ namespace Astraia
                         continue;
                     }
 
-                    cacheType = Service.Find.Type("UnityEngine.UI.Toggle,UnityEngine.UI");
+                    cacheType = Service.Ref.GetType("UnityEngine.UI.Toggle,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var toggle))
                     {
                         var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
@@ -146,7 +146,7 @@ namespace Astraia
                         continue;
                     }
 
-                    cacheType = Service.Find.Type("TMPro.TMP_InputField,Unity.TextMeshPro");
+                    cacheType = Service.Ref.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
                     if (component.TryGetComponent(cacheType, out var inputField))
                     {
                         var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();

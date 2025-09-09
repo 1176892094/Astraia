@@ -244,7 +244,7 @@ namespace Astraia.Net
         public static Type ReadType(this MemoryReader reader)
         {
             var type = reader.ReadString();
-            return string.IsNullOrWhiteSpace(type) ? null : Service.Find.Type(type);
+            return string.IsNullOrWhiteSpace(type) ? null : Service.Ref.GetType(type);
         }
     }
 }

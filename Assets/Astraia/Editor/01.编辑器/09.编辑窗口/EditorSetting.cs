@@ -140,8 +140,8 @@ namespace Astraia
                 }
             }
 
-            EditorApplication.delayCall -= Service.Find.LoadData;
-            EditorApplication.delayCall += Service.Find.LoadData;
+            EditorApplication.delayCall -= Service.Ref.LoadData;
+            EditorApplication.delayCall += Service.Ref.LoadData;
             EditorApplication.delayCall -= DataManager.LoadDataTable;
             EditorApplication.delayCall += DataManager.LoadDataTable;
         }

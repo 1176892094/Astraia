@@ -20,7 +20,7 @@ namespace Astraia.Common
     {
         public static async void LoadDataTable()
         {
-            var assembly = Service.Find.Assembly(GlobalSetting.Instance.assemblyName);
+            var assembly = Service.Ref.GetAssembly(GlobalSetting.Instance.assemblyName);
             if (assembly == null)
             {
                 EventManager.Invoke(new DataComplete());
@@ -57,7 +57,7 @@ namespace Astraia.Common
                     assetData ??= UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(GlobalSetting.GetEditorPath(nickName));
 #endif
                     var assetType = assembly.GetType(assetName.Substring(0, assetName.Length - 5));
-                    var properties = assetType.GetProperties(Service.Find.Instance);
+                    var properties = assetType.GetProperties(Service.Ref.Instance);
                     foreach (var property in properties)
                     {
                         if (property.GetCustomAttribute(typeof(PrimaryAttribute)) != null)

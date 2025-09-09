@@ -154,7 +154,7 @@ namespace Astraia
             
             var fileData = (IDataTable)ScriptableObject.CreateInstance(GlobalSetting.GetTableName(sheetName));
             if (fileData == null) return;
-            var fileType = Service.Find.Type(GlobalSetting.GetDataName(sheetName));
+            var fileType = Service.Ref.GetType(GlobalSetting.GetDataName(sheetName));
             await Task.Run(() =>
             {
                 var instance = (IData)Activator.CreateInstance(fileType);

@@ -32,7 +32,7 @@ namespace Astraia.Common
         {
             foreach (var agent in systemList)
             {
-                var result = Service.Find.Type(agent);
+                var result = Service.Ref.GetType(agent);
                 if (result != null)
                 {
                     systemData[result] = (ISystem)Activator.CreateInstance(result);
