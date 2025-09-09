@@ -15,10 +15,10 @@ namespace Astraia
 {
     public static partial class Service
     {
-        internal static class Length
+        public static partial class Zip
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int Invoke(ulong length)
+            internal static int Invoke(ulong length)
             {
                 if (length == 0)
                 {
@@ -36,7 +36,7 @@ namespace Astraia
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void EncodeULong(MemoryWriter writer, ulong length)
+            internal static void EncodeULong(MemoryWriter writer, ulong length)
             {
                 while (length >= 0x80)
                 {
@@ -48,7 +48,7 @@ namespace Astraia
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong DecodeULong(MemoryReader reader)
+            internal static ulong DecodeULong(MemoryReader reader)
             {
                 var shift = 0;
                 var length = 0UL;
@@ -68,7 +68,7 @@ namespace Astraia
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong ZigZagEncode(long n)
+            internal static ulong ZigZagEncode(long n)
             {
                 return (ulong)((n << 1) ^ (n >> 63));
             }
@@ -80,7 +80,7 @@ namespace Astraia
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void EncodeUInt(MemoryWriter writer, uint length)
+            internal static void EncodeUInt(MemoryWriter writer, uint length)
             {
                 while (length >= 0x80)
                 {
@@ -92,7 +92,7 @@ namespace Astraia
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static uint DecodeUInt(MemoryReader reader)
+            internal static uint DecodeUInt(MemoryReader reader)
             {
                 var shift = 0;
                 var length = 0U;
@@ -112,13 +112,13 @@ namespace Astraia
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static uint ZigZagEncode(int n)
+            internal static uint ZigZagEncode(int n)
             {
                 return (uint)((n << 1) ^ (n >> 31));
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int ZigZagDecode(uint n)
+            internal static int ZigZagDecode(uint n)
             {
                 return (int)((n >> 1) ^ -(int)(n & 1));
             }

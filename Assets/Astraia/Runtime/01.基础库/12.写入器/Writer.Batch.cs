@@ -27,7 +27,7 @@ namespace Astraia
 
         public void AddMessage(ArraySegment<byte> segment)
         {
-            var length = Service.Length.Invoke((ulong)segment.Count);
+            var length = Service.Zip.Invoke((ulong)segment.Count);
             if (writer != null && writer.position + length + segment.Count > maxLength)
             {
                 writers.Enqueue(writer);
@@ -35,7 +35,7 @@ namespace Astraia
             }
 
             writer ??= MemoryWriter.Pop();
-            Service.Length.EncodeULong(writer, (ulong)segment.Count);
+            Service.Zip.EncodeULong(writer, (ulong)segment.Count);
             writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 
