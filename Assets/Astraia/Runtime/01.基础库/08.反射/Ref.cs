@@ -20,7 +20,7 @@ namespace Astraia
         public static class Ref
         {
             private static readonly Dictionary<string, Type> cacheTypes = new();
-            public static readonly Dictionary<string, Assembly> assemblies = new();
+            private static readonly Dictionary<string, Assembly> assemblies = new();
             public const BindingFlags Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
             public const BindingFlags Instance = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
             public static event Action<Type> OnLoad;
