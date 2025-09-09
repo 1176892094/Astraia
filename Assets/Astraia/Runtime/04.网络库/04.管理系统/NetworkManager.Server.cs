@@ -29,7 +29,7 @@ namespace Astraia.Net
 
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
-            internal static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
+            public static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
 
             private static State state = State.Disconnect;
             
@@ -49,14 +49,9 @@ namespace Astraia.Net
 
             internal static void Start(EntryMode mode)
             {
-                switch (mode)
+                if (mode is EntryMode.Host or EntryMode.Server)
                 {
-                    case EntryMode.Host:
-                        Transport.Instance.StartServer();
-                        break;
-                    case EntryMode.Server:
-                        Transport.Instance.StartServer();
-                        break;
+                    Transport.Instance.StartServer();
                 }
 
                 Register();
