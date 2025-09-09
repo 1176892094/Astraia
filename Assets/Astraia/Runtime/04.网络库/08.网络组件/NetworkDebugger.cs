@@ -181,7 +181,7 @@ namespace Astraia.Net
             receiveItems.Reset();
         }
 
-       protected static string PrettyBytes(long bytes)
+        protected static string PrettyBytes(long bytes)
         {
             if (bytes < 1024)
             {
@@ -268,7 +268,13 @@ namespace Astraia.Net
                     var data = NetworkAttribute.GetInvoke(method);
                     if (data != null)
                     {
-                        item.Path = "{0}.{1}".Format(data.Method.DeclaringType, data.Method.Name.Replace("Cmd_", ""));
+                        var name = data.Method.Name;
+                        if (name.EndsWith("_0"))
+                        {
+                            name = name.Substring(0, name.Length - 2);
+                        }
+
+                        item.Path = "{0}.{1}".Format(data.Method.DeclaringType, name);
                     }
 
                     item.Type = type;
