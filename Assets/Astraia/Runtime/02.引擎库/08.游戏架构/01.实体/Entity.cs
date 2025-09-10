@@ -55,6 +55,7 @@ namespace Astraia
             OnHide = null;
             agentList.Clear();
             agentData.Clear();
+            ArgsManager.Dispose(GetEntityId());
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
