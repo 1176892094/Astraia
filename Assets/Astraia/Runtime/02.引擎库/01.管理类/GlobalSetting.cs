@@ -141,9 +141,9 @@ namespace Astraia
             source.canvas = new GameObject(nameof(PageManager)).AddComponent<Canvas>();
             source.canvas.renderMode = RenderMode.ScreenSpaceCamera;
             source.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
-            for (var layer = UILayer.Layer1; layer <= UILayer.Layer6; layer++)
+            for (var i = UILayer.Layer1; i <= UILayer.Layer6; i++)
             {
-                var format = "Pool - Canvas/{0}".Format(layer);
+                var format = "Pool - Canvas/{0}".Format(i);
                 var parent = new GameObject(format).AddComponent<RectTransform>();
                 parent.gameObject.layer = LayerMask.NameToLayer("UI");
                 parent.SetParent(source.canvas.transform);
@@ -153,7 +153,7 @@ namespace Astraia
                 parent.offsetMax = Vector2.zero;
                 parent.localScale = Vector3.one;
                 parent.localPosition = Vector3.zero;
-                GlobalManager.layerData.Add(layer, parent);
+                GlobalManager.layerData.Add(i, parent);
             }
 
             source.canvas.gameObject.AddComponent<GraphicRaycaster>();

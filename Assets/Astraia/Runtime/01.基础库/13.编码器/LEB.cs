@@ -18,44 +18,44 @@ namespace Astraia
         public static class LEB
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal static int Invoke(ulong length)
+            internal static int Invoke(ulong value)
             {
-                if (length == 0)
+                if (value == 0)
                 {
                     return 1;
                 }
 
-                var result = 0;
-                while (length > 0)
+                var count = 0;
+                while (value > 0)
                 {
-                    result++;
-                    length >>= 7;
+                    count++;
+                    value >>= 7;
                 }
 
-                return result;
+                return count;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal static void EncodeULong(MemoryWriter writer, ulong length)
+            internal static void EncodeULong(MemoryWriter writer, ulong value)
             {
-                while (length >= 0x80)
+                while (value >= 0x80)
                 {
-                    writer.Write((byte)((length & 0x7F) | 0x80));
-                    length >>= 7;
+                    writer.Write((byte)((value & 0x7F) | 0x80));
+                    value >>= 7;
                 }
 
-                writer.Write((byte)length);
+                writer.Write((byte)value);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static ulong DecodeULong(MemoryReader reader)
             {
                 var shift = 0;
-                var length = 0UL;
+                var value = 0UL;
                 while (true)
                 {
                     var bit = reader.Read<byte>();
-                    length |= (ulong)(bit & 0x7F) << shift;
+                    value |= (ulong)(bit & 0x7F) << shift;
                     if ((bit & 0x80) == 0)
                     {
                         break;
@@ -64,7 +64,7 @@ namespace Astraia
                     shift += 7;
                 }
 
-                return length;
+                return value;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -80,26 +80,26 @@ namespace Astraia
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal static void EncodeUInt(MemoryWriter writer, uint length)
+            internal static void EncodeUInt(MemoryWriter writer, uint value)
             {
-                while (length >= 0x80)
+                while (value >= 0x80)
                 {
-                    writer.Write((byte)((length & 0x7F) | 0x80));
-                    length >>= 7;
+                    writer.Write((byte)((value & 0x7F) | 0x80));
+                    value >>= 7;
                 }
 
-                writer.Write((byte)length);
+                writer.Write((byte)value);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static uint DecodeUInt(MemoryReader reader)
             {
                 var shift = 0;
-                var length = 0U;
+                var value = 0U;
                 while (true)
                 {
                     var bit = reader.Read<byte>();
-                    length |= (uint)(bit & 0x7F) << shift;
+                    value |= (uint)(bit & 0x7F) << shift;
                     if ((bit & 0x80) == 0)
                     {
                         break;
@@ -108,7 +108,7 @@ namespace Astraia
                     shift += 7;
                 }
 
-                return length;
+                return value;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
