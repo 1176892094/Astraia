@@ -102,12 +102,12 @@ namespace Astraia.Common
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        
+
         private void Start()
         {
             PackManager.LoadAssetData();
         }
-        
+
         private void Update()
         {
             SystemManager.Update();
@@ -128,5 +128,12 @@ namespace Astraia.Common
             // HeapManager.Dispose();
             GC.Collect();
         }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit
+    {
     }
 }
