@@ -15,7 +15,7 @@ using System.Runtime.CompilerServices;
 
 namespace Astraia.Common
 {
-    internal static partial class ArgManager
+    internal static partial class ArgsManager
     {
         private static readonly Dictionary<int, Dictionary<Type, IPool>> poolData = new Dictionary<int, Dictionary<Type, IPool>>();
 
@@ -26,9 +26,9 @@ namespace Astraia.Common
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Get<T>(int owner, Enum id)
+        public static T Get<T>(int owner, Enum id, T value)
         {
-            return LoadPool<T>(owner).Get(id);
+            return LoadPool<T>(owner).Get(id, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -37,13 +37,13 @@ namespace Astraia.Common
             if (!poolData.TryGetValue(owner, out var pools))
             {
                 pools = new Dictionary<Type, IPool>();
-                poolData[owner] = pools;
+                poolData.Add(owner, pools);
             }
 
             if (!pools.TryGetValue(typeof(T), out var pool))
             {
-                pool = new Pool<T>();
-                pools[typeof(T)] = pool;
+                pool = Pool<T>.Create(typeof(T), typeof(T).Name);
+                pools.Add(typeof(T), pool);
             }
 
             return (Pool<T>)pool;
@@ -64,7 +64,7 @@ namespace Astraia.Common
             }
         }
 
-        public static void Dispose()
+        internal static void Dispose()
         {
             var copies = new List<int>(poolData.Keys);
             foreach (var owner in copies)

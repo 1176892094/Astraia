@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 namespace Astraia.Common
 {
-    internal static partial class ArgManager
+    internal static partial class ArgsManager
     {
         public sealed class Pool<T> : IPool
         {
@@ -29,18 +29,17 @@ namespace Astraia.Common
 
             public void Set(Enum id, T value)
             {
-                Enqueue++;
-                Acquire--;
-                Release++;
                 fields[id] = value;
             }
 
-            public T Get(Enum id)
+            public T Get(Enum id, T value)
             {
-                Dequeue++;
-                Acquire++;
-                Release--;
-                return fields[id];
+                if (fields.TryGetValue(id, out var result))
+                {
+                    return result;
+                }
+
+                return value;
             }
 
             void IDisposable.Dispose()

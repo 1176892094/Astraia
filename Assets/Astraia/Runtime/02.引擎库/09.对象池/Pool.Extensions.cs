@@ -11,6 +11,7 @@
 
 using System;
 using System.Reflection;
+using Astraia.Common;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -18,6 +19,16 @@ namespace Astraia
 {
     public static partial class Extensions
     {
+        public static T GetValue<T>(this Entity owner, Enum id, T value = default)
+        {
+            return owner ? ArgsManager.Get(owner.GetEntityId(), id, value) : default;
+        }
+
+        public static void SetValue<T>(this Entity owner, Enum id, T value)
+        {
+            ArgsManager.Set(owner.GetEntityId(), id, value);
+        }
+
         public static T GetOrAddComponent<T>(this Transform transform) where T : Component
         {
             var component = transform.GetComponent<T>();
