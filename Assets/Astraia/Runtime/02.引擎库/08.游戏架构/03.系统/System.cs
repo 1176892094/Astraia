@@ -10,15 +10,10 @@
 // // *********************************************************************************
 
 
-
 namespace Astraia.Common
 {
-
-
     public interface ISystem
     {
         void Update();
     }
-
-
 }
