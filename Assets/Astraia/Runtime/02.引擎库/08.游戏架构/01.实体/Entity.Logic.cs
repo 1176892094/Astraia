@@ -17,8 +17,20 @@ namespace Astraia
 {
     using static GlobalManager;
 
-    internal static class EntityManager
+    public static class EntityManager
     {
+        private static readonly List<Entity> Empty = new List<Entity>();
+
+        public static List<Entity> Query<T>() where T : IAgent
+        {
+            if (queryData.TryGetValue(typeof(T), out var agents))
+            {
+                return agents;
+            }
+
+            return Empty;
+        }
+
         private static List<Entity> GetQueries(Type queryType)
         {
             if (!queryData.TryGetValue(queryType, out var queries))
@@ -30,7 +42,7 @@ namespace Astraia
             return queries;
         }
 
-        public static IAgent AddComponent(Entity owner, IAgent agent, Type keyType, Type queryType = null)
+        internal static IAgent AddComponent(Entity owner, IAgent agent, Type keyType, Type queryType = null)
         {
             queryType ??= keyType;
             var agents = owner.agentData;
@@ -62,7 +74,7 @@ namespace Astraia
             }
         }
 
-        public static IAgent AddComponent(Entity owner, Type keyType, Type realType, Type queryType = null)
+        internal static IAgent AddComponent(Entity owner, Type keyType, Type realType, Type queryType = null)
         {
             queryType ??= keyType;
             var agents = owner.agentData;
@@ -94,8 +106,8 @@ namespace Astraia
                 HeapManager.Enqueue(agent, realType);
             }
         }
-        
-        public static void Dispose()
+
+        internal static void Dispose()
         {
             foreach (var queries in queryData.Values)
             {

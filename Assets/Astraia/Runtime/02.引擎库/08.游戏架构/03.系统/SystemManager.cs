@@ -3,32 +3,39 @@
 // // # Unity: 6000.3.5f1
 // // # Author: 云谷千羽
 // // # Version: 1.0.0
-// // # History: 2025-09-05 15:09:25
-// // # Recently: 2025-09-05 15:09:25
+// // # History: 2025-09-10 22:09:08
+// // # Recently: 2025-09-10 22:09:08
 // // # Copyright: 2024, 云谷千羽
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+using Sirenix.OdinInspector;
+#endif
 
 namespace Astraia.Common
 {
     using static GlobalManager;
 
-    public static class SystemManager
+    internal sealed class SystemManager : MonoBehaviour
     {
-        private static readonly List<Entity> Empty = new List<Entity>();
-
-        public static List<Entity> Query<T>() where T : IAgent
+        private void Awake()
         {
-            if (queryData.TryGetValue(typeof(T), out var agents))
+            foreach (var agent in systemList)
             {
-                return agents;
+                var result = Service.Ref.GetType(agent);
+                if (result != null)
+                {
+                    systemData[result] = (ISystem)Activator.CreateInstance(result);
+                }
             }
-
-            return Empty;
         }
-        internal static void Update()
+
+        private void Update()
         {
             foreach (var panel in panelData.Values)
             {
@@ -54,5 +61,19 @@ namespace Astraia.Common
             asyncData.Clear();
             systemData.Clear();
         }
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        private static List<string> Systems = GlobalSetting.systems;
+
+        [HideInEditorMode, ShowInInspector]
+        private IEnumerable<ISystem> systems
+        {
+            get => systemData.Values.ToList();
+            set => Debug.LogError(value);
+        }
+
+        [HideInPlayMode, ValueDropdown("Systems")]
+#endif
+        [SerializeField]
+        private List<string> systemList = new List<string>();
     }
 }
