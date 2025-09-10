@@ -15,7 +15,7 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static partial class Zip
+        public static class LEB
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static int Invoke(ulong length)

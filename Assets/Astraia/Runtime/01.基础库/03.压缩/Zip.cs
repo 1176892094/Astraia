@@ -17,7 +17,7 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static partial class Zip
+        public static  class Zip
         {
             public static string Compress(string data)
             {
