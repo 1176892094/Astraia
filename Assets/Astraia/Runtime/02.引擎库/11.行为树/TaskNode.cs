@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public abstract class BTNode
+    public abstract class TaskNode
     {
         private State state = State.Failure;
         private bool started;
@@ -57,29 +57,22 @@ namespace Astraia
             Failure
         }
 
-        public sealed class Sequence : BTNode
+        public sealed class Sequence : TaskNode
         {
-            private BTNode[] nodes;
-            private int index;
+            private TaskNode[] nodes;
 
-            public static Sequence Create(BTNode[] nodes)
+            public static Sequence Create(TaskNode[] nodes)
             {
                 var sequence = Activator.CreateInstance<Sequence>();
                 sequence.nodes = nodes;
                 return sequence;
             }
 
-            protected override void OnEnter()
-            {
-                index = 0;
-            }
-
             protected override State OnUpdate()
             {
-                while (index < nodes.Length)
+                foreach (var node in nodes)
                 {
-                    var result = nodes[index].Tick();
-
+                    var result = node.Tick();
                     if (result == State.Running)
                     {
                         return State.Running;
@@ -89,37 +82,28 @@ namespace Astraia
                     {
                         return State.Failure;
                     }
-
-                    index++;
                 }
 
                 return State.Success;
             }
         }
 
-        public sealed class Selector : BTNode
+        public sealed class Selector : TaskNode
         {
-            private BTNode[] nodes;
-            private int index;
+            private TaskNode[] nodes;
 
-            public static Selector Create(BTNode[] nodes)
+            public static Selector Create(TaskNode[] nodes)
             {
                 var selector = Activator.CreateInstance<Selector>();
                 selector.nodes = nodes;
                 return selector;
             }
 
-            protected override void OnEnter()
-            {
-                index = 0;
-            }
-
             protected override State OnUpdate()
             {
-                while (index < nodes.Length)
+                foreach (var node in nodes)
                 {
-                    var result = nodes[index].Tick();
-
+                    var result = node.Tick();
                     if (result == State.Running)
                     {
                         return State.Running;
@@ -129,80 +113,19 @@ namespace Astraia
                     {
                         return State.Success;
                     }
-
-                    index++;
                 }
 
                 return State.Failure;
             }
         }
 
-        public sealed class Operator : BTNode
+        public sealed class Parallel : TaskNode
         {
-            private BTNode[] nodes;
-            private int index;
-
-            public static Operator Create(BTNode[] nodes)
-            {
-                var operation = Activator.CreateInstance<Operator>();
-                operation.nodes = nodes;
-                return operation;
-            }
-
-            protected override void OnEnter()
-            {
-                index = Service.Random.Next(nodes.Length);
-            }
-
-            protected override State OnUpdate()
-            {
-                return nodes[index].Tick();
-            }
-        }
-
-        public sealed class Repeater : BTNode
-        {
-            private BTNode node;
-            private int count;
-            private int repeat;
-
-            public static Repeater Create(BTNode node, int repeat = -1)
-            {
-                var repeater = Activator.CreateInstance<Repeater>();
-                repeater.node = node;
-                repeater.repeat = repeat;
-                return repeater;
-            }
-
-            protected override void OnEnter()
-            {
-                count = 0;
-            }
-
-            protected override State OnUpdate()
-            {
-                if (repeat >= 0 && count >= repeat)
-                {
-                    return State.Success;
-                }
-
-                var result = node.Tick();
-                if (result == State.Success || result == State.Failure)
-                {
-                    count++;
-                }
-
-                return State.Running;
-            }
-        }
-
-        public sealed class Parallel : BTNode
-        {
-            private BTNode[] nodes;
+            private TaskNode[] nodes;
             private int success;
             private int failure;
 
-            public static Parallel Create(BTNode[] nodes, int success = -1, int failure = -1)
+            public static Parallel Create(TaskNode[] nodes, int success = -1, int failure = -1)
             {
                 var parallel = Activator.CreateInstance<Parallel>();
                 parallel.nodes = nodes;
@@ -245,11 +168,64 @@ namespace Astraia
             }
         }
 
-        public sealed class Inverter : BTNode
+        public sealed class Operator : TaskNode
         {
-            private BTNode node;
+            private TaskNode[] nodes;
 
-            public static Inverter Create(BTNode node)
+            public static Operator Create(TaskNode[] nodes)
+            {
+                var operation = Activator.CreateInstance<Operator>();
+                operation.nodes = nodes;
+                return operation;
+            }
+
+            protected override State OnUpdate()
+            {
+                return nodes[Service.Random.Next(nodes.Length)].Tick();
+            }
+        }
+
+        public sealed class Repeater : TaskNode
+        {
+            private TaskNode node;
+            private int count;
+            private int repeat;
+
+            public static Repeater Create(TaskNode node, int repeat = -1)
+            {
+                var repeater = Activator.CreateInstance<Repeater>();
+                repeater.node = node;
+                repeater.repeat = repeat;
+                return repeater;
+            }
+
+            protected override void OnEnter()
+            {
+                count = 0;
+            }
+
+            protected override State OnUpdate()
+            {
+                if (repeat >= 0 && count >= repeat)
+                {
+                    return State.Success;
+                }
+
+                var result = node.Tick();
+                if (result == State.Success || result == State.Failure)
+                {
+                    count++;
+                }
+
+                return State.Running;
+            }
+        }
+
+        public sealed class Inverter : TaskNode
+        {
+            private TaskNode node;
+
+            public static Inverter Create(TaskNode node)
             {
                 var inverter = Activator.CreateInstance<Inverter>();
                 inverter.node = node;
@@ -273,11 +249,11 @@ namespace Astraia
             }
         }
 
-        public sealed class Success : BTNode
+        public sealed class Success : TaskNode
         {
-            private BTNode node;
+            private TaskNode node;
 
-            public static Success Create(BTNode node)
+            public static Success Create(TaskNode node)
             {
                 var success = Activator.CreateInstance<Success>();
                 success.node = node;
@@ -290,11 +266,11 @@ namespace Astraia
             }
         }
 
-        public sealed class Failure : BTNode
+        public sealed class Failure : TaskNode
         {
-            private BTNode node;
+            private TaskNode node;
 
-            public static Failure Create(BTNode node)
+            public static Failure Create(TaskNode node)
             {
                 var failure = Activator.CreateInstance<Failure>();
                 failure.node = node;
@@ -307,7 +283,7 @@ namespace Astraia
             }
         }
 
-        public sealed class WaitTime : BTNode
+        public sealed class WaitTime : TaskNode
         {
             private float waitTime;
             private float duration;

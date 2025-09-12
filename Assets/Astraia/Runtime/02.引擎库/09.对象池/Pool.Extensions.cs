@@ -19,12 +19,12 @@ namespace Astraia
 {
     public static partial class Extensions
     {
-        public static T GetValue<T>(this Entity owner, Enum id, T value = default)
+        public static T GetValue<T>(this Component owner, Enum id, T value = default)
         {
             return owner ? ArgsManager.Get(owner.GetEntityId(), id, value) : default;
         }
 
-        public static void SetValue<T>(this Entity owner, Enum id, T value)
+        public static void SetValue<T>(this Component owner, Enum id, T value)
         {
             ArgsManager.Set(owner.GetEntityId(), id, value);
         }
@@ -120,7 +120,7 @@ namespace Astraia
                     var cacheType = Service.Ref.GetType("UnityEngine.UI.Button,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var button))
                     {
-                        var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
+                        var panel = inject.GetComponent<Entity>()?.HasComponent<UIPanel>();
                         if (panel != null)
                         {
                             button.GetValue<UnityEvent>("onClick").AddListener(() =>
@@ -140,7 +140,7 @@ namespace Astraia
                     cacheType = Service.Ref.GetType("UnityEngine.UI.Toggle,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var toggle))
                     {
-                        var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
+                        var panel = inject.GetComponent<Entity>()?.HasComponent<UIPanel>();
                         if (panel != null)
                         {
                             toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value =>
@@ -160,7 +160,7 @@ namespace Astraia
                     cacheType = Service.Ref.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
                     if (component.TryGetComponent(cacheType, out var inputField))
                     {
-                        var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
+                        var panel = inject.GetComponent<Entity>()?.HasComponent<UIPanel>();
                         if (panel != null)
                         {
                             inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>

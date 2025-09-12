@@ -48,20 +48,6 @@ namespace Astraia
             return Builder.ToString();
         }
 
-        public static string Format<T1, T2, T3, T4, T5>(this string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
-        {
-            Builder.Length = 0;
-            Builder.AppendFormat(format, arg1, arg2, arg3, arg4, arg5);
-            return Builder.ToString();
-        }
-
-        public static string Format<T1, T2, T3, T4, T5, T6>(this string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
-        {
-            Builder.Length = 0;
-            Builder.AppendFormat(format, arg1, arg2, arg3, arg4, arg5, arg6);
-            return Builder.ToString();
-        }
-
         public static bool IsNullOrEmpty(this string result)
         {
             return string.IsNullOrEmpty(result);

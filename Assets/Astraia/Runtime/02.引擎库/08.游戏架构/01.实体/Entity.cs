@@ -89,7 +89,7 @@ namespace Astraia
             return (T)EntityManager.AddComponent(this, typeof(T), typeof(T));
         }
 
-        public T FindComponent<T>() where T : IAgent
+        public T HasComponent<T>() where T : IAgent
         {
             return agentData.TryGetValue(typeof(T), out var agent) ? (T)agent : default;
         }
@@ -109,7 +109,7 @@ namespace Astraia
             return EntityManager.AddComponent(this, keyType, realType, queryType);
         }
 
-        public IAgent FindComponent(Type keyType)
+        public IAgent HasComponent(Type keyType)
         {
             return agentData.TryGetValue(keyType, out var agent) ? agent : null;
         }
