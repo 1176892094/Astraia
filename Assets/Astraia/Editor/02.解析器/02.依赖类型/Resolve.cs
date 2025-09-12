@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Linq;
 using Mono.Cecil;
 
 namespace Astraia.Editor
@@ -18,54 +19,39 @@ namespace Astraia.Editor
     {
         public static bool IsEditor(AssemblyDefinition ad)
         {
-            foreach (var ar in ad.MainModule.AssemblyReferences)
-            {
-                if (ar.Name.StartsWith(nameof(UnityEditor)))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return ad.MainModule.AssemblyReferences.Any(r => r.Name.StartsWith(nameof(UnityEditor)));
         }
 
         public static MethodReference GetProperty(TypeReference tr, AssemblyDefinition ad, string name)
         {
-            foreach (var pd in tr.Resolve().Properties)
-            {
-                if (pd.Name == name)
-                {
-                    var mr = ad.MainModule.ImportReference(pd.GetMethod);
-                    return mr;
-                }
-            }
-
-            return null;
+            return tr.Resolve().Properties.Where(pd => pd.Name == name).Select(pd => ad.MainModule.ImportReference(pd.GetMethod)).FirstOrDefault();
         }
 
         public static MethodDefinition GetConstructor(TypeReference tr)
         {
-            foreach (var md in tr.Resolve().Methods)
+            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Const.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
+        }
+
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match)
+        {
+            return tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
+        }
+
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Logger log, Predicate<MethodDefinition> match, ref bool failed)
+        {
+            var mr = GetMethod(tr, ad, match);
+            if (mr == null)
             {
-                if (md.Name == Const.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0)
-                {
-                    return md;
-                }
+                log.Error($"在类型 {tr.Name} 中没有找到方法", tr);
+                failed = true;
             }
 
-            return null;
+            return mr;
         }
 
         public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Logger log, string name, ref bool failed)
         {
-            if (tr == null)
-            {
-                log.Error($"没有无法解析方法: {name}");
-                failed = true;
-                return null;
-            }
-
-            var mr = GetMethod(tr, ad, log, method => method.Name == name, ref failed);
+            var mr = GetMethod(tr, ad, method => method.Name == name);
             if (mr == null)
             {
                 log.Error($"在类型 {tr.Name} 中没有找到名称 {name} 的方法", tr);
@@ -75,22 +61,7 @@ namespace Astraia.Editor
             return mr;
         }
 
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Logger log, Func<MethodDefinition, bool> func, ref bool failed)
-        {
-            foreach (var md in tr.Resolve().Methods)
-            {
-                if (func.Invoke(md))
-                {
-                    return ad.MainModule.ImportReference(md);
-                }
-            }
-
-            log.Error($"在类型 {tr.Name} 中没有找到方法", tr);
-            failed = true;
-            return null;
-        }
-
-        public static MethodReference GetMethodInParent(TypeReference tr, AssemblyDefinition ad, string name)
+        public static MethodReference GetMethodByParent(TypeReference tr, AssemblyDefinition ad, string name)
         {
             while (true)
             {

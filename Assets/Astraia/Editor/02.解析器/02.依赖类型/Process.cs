@@ -81,14 +81,18 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 处理 NetworkModule
+        ///     处理 NetworkModule
         /// </summary>
         /// <param name="td"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
         private bool ProcessNetworkModule(TypeDefinition td, ref bool failed)
         {
-            if (!td.IsClass) return false;
+            if (!td.IsClass)
+            {
+                return false;
+            }
+
             if (!td.IsDerivedFrom<NetworkModule>())
             {
                 return false;
@@ -96,7 +100,7 @@ namespace Astraia.Editor
 
             var modules = new List<TypeDefinition>();
 
-            TypeDefinition parent = td;
+            var parent = td;
             while (parent != null)
             {
                 if (parent.Is<NetworkModule>())
@@ -115,8 +119,8 @@ namespace Astraia.Editor
                 }
             }
 
-            bool changed = false;
-            foreach (TypeDefinition m in modules)
+            var changed = false;
+            foreach (var m in modules)
             {
                 changed |= new NetworkModuleProcess(assembly, access, module, writer, reader, logger, m).Process(ref failed);
             }
@@ -125,13 +129,13 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 处理功能
+        ///     处理功能
         /// </summary>
         /// <param name="md"></param>
         /// <returns></returns>
         private bool ProcessModule(ModuleDefinition md)
         {
-            bool result = false;
+            var result = false;
             foreach (var td in md.Types)
             {
                 if (td.IsClass && td.BaseType.IsResolve())
@@ -144,7 +148,7 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 处理方法中的参数
+        ///     处理方法中的参数
         /// </summary>
         /// <param name="prefix"></param>
         /// <param name="md"></param>
@@ -152,7 +156,6 @@ namespace Astraia.Editor
         public static string GenerateMethodName(string prefix, MethodDefinition md)
         {
             return md.Name + prefix;
-            //return md.Parameters.Aggregate(prefix, (s, parameter) => s + "_" + NetworkMessage.Id(parameter.ParameterType.Name));
         }
     }
 }
