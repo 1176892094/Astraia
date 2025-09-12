@@ -53,7 +53,7 @@ namespace Astraia
             OnHide = null;
             moduleList.Clear();
             moduleData.Clear();
-            ArgsManager.Dispose(GetEntityId());
+            Blackboard.Dispose(GetEntityId());
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR

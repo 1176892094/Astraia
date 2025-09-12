@@ -15,7 +15,7 @@ using System.Runtime.CompilerServices;
 
 namespace Astraia.Common
 {
-    internal static partial class ArgsManager
+    internal static partial class Blackboard
     {
         private static readonly Dictionary<int, Dictionary<Type, IPool>> poolData = new Dictionary<int, Dictionary<Type, IPool>>();
 

@@ -19,14 +19,14 @@ namespace Astraia
 {
     public static partial class Extensions
     {
-        public static T GetValue<T>(this Component owner, Enum id, T value = default)
+        public static T GetValue<T>(this Entity owner, Enum id, T value = default)
         {
-            return owner ? ArgsManager.Get(owner.GetEntityId(), id, value) : default;
+            return owner ? Blackboard.Get(owner.GetEntityId(), id, value) : default;
         }
 
-        public static void SetValue<T>(this Component owner, Enum id, T value)
+        public static void SetValue<T>(this Entity owner, Enum id, T value)
         {
-            ArgsManager.Set(owner.GetEntityId(), id, value);
+            Blackboard.Set(owner.GetEntityId(), id, value);
         }
 
         public static T GetOrAddComponent<T>(this Transform transform) where T : Component
