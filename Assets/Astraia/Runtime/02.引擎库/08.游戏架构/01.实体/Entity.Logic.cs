@@ -51,15 +51,8 @@ namespace Astraia
             {
                 queries.Add(owner);
                 agents.Add(keyType, agent);
-                owner.Inject(agent);
-                agent.Create(owner);
-                agent.Dequeue();
+                AddEvent(owner, agent);
                 owner.OnFade += Enqueue;
-                if (agent is IActive active)
-                {
-                    owner.OnShow += active.OnShow;
-                    owner.OnHide += active.OnHide;
-                }
             }
 
             return agent;
@@ -84,15 +77,8 @@ namespace Astraia
                 agent = HeapManager.Dequeue<IAgent>(realType);
                 queries.Add(owner);
                 agents.Add(keyType, agent);
-                owner.Inject(agent);
-                agent.Create(owner);
-                agent.Dequeue();
+                AddEvent(owner, agent);
                 owner.OnFade += Enqueue;
-                if (agent is IActive active)
-                {
-                    owner.OnShow += active.OnShow;
-                    owner.OnHide += active.OnHide;
-                }
             }
 
             return agent;
@@ -104,6 +90,32 @@ namespace Astraia
                 queries.Remove(owner);
                 if (queries.Count == 0) queryData.Remove(keyType);
                 HeapManager.Enqueue(agent, realType);
+            }
+        }
+
+        private static void AddEvent(Entity owner, IAgent agent)
+        {
+            owner.Inject(agent);
+            agent.Create(owner);
+            agent.Dequeue();
+
+            var events = agent.GetType().GetInterfaces();
+            foreach (var @event in events)
+            {
+                if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IAutoEvent<>))
+                {
+                    var eventType = typeof(IAutoEvent<>).MakeGenericType(@event.GetGenericArguments());
+                    var agentShow = (Action)Delegate.CreateDelegate(typeof(Action), agent, eventType.GetMethod("Listen", Service.Ref.Instance)!);
+                    var agentHide = (Action)Delegate.CreateDelegate(typeof(Action), agent, eventType.GetMethod("Remove", Service.Ref.Instance)!);
+                    owner.OnShow += agentShow;
+                    owner.OnHide += agentHide;
+                }
+            }
+
+            if (agent is IActive active)
+            {
+                owner.OnShow += active.OnShow;
+                owner.OnHide += active.OnHide;
             }
         }
 

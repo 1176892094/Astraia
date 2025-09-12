@@ -265,7 +265,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 75954605}
-  - component: {fileID: 75954607}
+  - component: {fileID: 75954609}
   - component: {fileID: 75954608}
   m_Layer: 0
   m_Name: GameManager
@@ -291,20 +291,6 @@ Transform:
   - {fileID: 513527315}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &75954607
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 75954604}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29d754d3d815494ba4129c364ad5e0dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.Common.System
-  systemList:
-  - Runtime.GameSystem, Assembly-CSharp
 --- !u!114 &75954608
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -319,6 +305,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Astraia.Run::Astraia.Entity
   agentList:
   - Runtime.GameManager, Assembly-CSharp
+--- !u!114 &75954609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 75954604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9ee071739be4815ba5ee5311fc50b47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Run::Astraia.Common.SystemManager
+  systemList:
+  - Runtime.GameSystem, Assembly-CSharp
 --- !u!1 &83117112
 GameObject:
   m_ObjectHideFlags: 0

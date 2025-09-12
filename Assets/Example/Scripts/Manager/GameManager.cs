@@ -27,7 +27,7 @@ namespace Runtime
     }
 
     [Serializable]
-    public class GameManager : Singleton<GameManager, Entity>, IEvent<ServerReady>, IEvent<ServerConnect>
+    public class GameManager : Singleton<GameManager, Entity>, IAutoEvent<ServerReady>, IAutoEvent<ServerConnect>
     {
         [SerializeField] private Vector2 center;
         [SerializeField] private Vector2 content;
@@ -42,18 +42,6 @@ namespace Runtime
             GlobalManager.Instance.gameObject.AddComponent<DebugManager>();
             Application.targetFrameRate = 60;
             PageManager.Show<LabelPanel>();
-        }
-
-        public override void OnShow()
-        {
-            EventManager.Listen<ServerReady>(this);
-            EventManager.Listen<ServerConnect>(this);
-        }
-
-        public override void OnHide()
-        {
-            EventManager.Remove<ServerReady>(this);
-            EventManager.Remove<ServerConnect>(this);
         }
 
         public void Update()

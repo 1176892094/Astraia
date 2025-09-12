@@ -45,6 +45,18 @@ namespace Astraia
                         break;
                     }
                 }
+
+                var interfaces = targetType.GetInterfaces();
+                foreach (var interfaceType in interfaces)
+                {
+                    var result = interfaceType.GetMethod(name, (BindingFlags)62, null, parameters, null);
+                    if (result != null)
+                    {
+                        method = LoadFunction(result);
+                        methods[name] = method;
+                        break;
+                    }
+                }
             }
 
             if (method == null)
@@ -137,7 +149,8 @@ namespace Astraia
         private static Func<object, object[], object> LoadFunction(MethodInfo method)
         {
             var name = "invoke_{0}_{1}".Format(method.DeclaringType!.Name, method.Name);
-            var DM = new DynamicMethod(name, typeof(object), new[] { typeof(object), typeof(object[]) }, method.DeclaringType, true);
+            var type = method.DeclaringType.IsInterface ? typeof(object) : method.DeclaringType;
+            var DM = new DynamicMethod(name, typeof(object), new[] { typeof(object), typeof(object[]) }, type, true);
             var IL = DM.GetILGenerator();
 
             if (!method.IsStatic)
