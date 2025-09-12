@@ -164,7 +164,7 @@ namespace Astraia.Editor
         {
             if (md.IsAbstract)
             {
-                log.Error($"{mode}不能作用在抽象方法中。", md);
+                log.Error("{0}不能作用在抽象方法中。".Format(mode), md);
                 failed = true;
                 return;
             }
@@ -224,7 +224,7 @@ namespace Astraia.Editor
         {
             if (md.IsStatic)
             {
-                log.Error($"{md.Name} 方法不能是静态的。", md);
+                log.Error("{0} 方法不能是静态的。".Format(md.Name), md);
                 failed = true;
                 return false;
             }
@@ -242,21 +242,21 @@ namespace Astraia.Editor
         {
             if (mr.ReturnType.Is<IEnumerator>())
             {
-                log.Error($"{mr.Name} 方法不能被迭代。", mr);
+                log.Error("{0} 方法不能被迭代。".Format(mr.Name), mr);
                 failed = true;
                 return false;
             }
 
             if (!mr.ReturnType.Is(typeof(void)))
             {
-                log.Error($"{mr.Name} 方法不能有返回值。", mr);
+                log.Error("{0} 方法不能有返回值。".Format(mr.Name), mr);
                 failed = true;
                 return false;
             }
 
             if (mr.HasGenericParameters)
             {
-                log.Error($"{mr.Name} 方法不能有泛型参数。", mr);
+                log.Error("{0} 方法不能有泛型参数。".Format(mr.Name), mr);
                 failed = true;
                 return false;
             }
@@ -298,7 +298,7 @@ namespace Astraia.Editor
         {
             if (param.ParameterType.IsGenericParameter)
             {
-                log.Error($"{method.Name} 方法不能有泛型参数。", method);
+                log.Error("{0} 方法不能有泛型参数。".Format(method.Name), method);
                 failed = true;
                 return false;
             }
@@ -308,21 +308,21 @@ namespace Astraia.Editor
 
             if (param.IsOut)
             {
-                log.Error($"{method.Name} 方法不能携带 out 关键字。", method);
+                log.Error("{0} 方法不能携带 out 关键字。".Format(method.Name), method);
                 failed = true;
                 return false;
             }
 
             if (!sendTarget && connection && !(rpcType == InvokeMode.TargetRpc && firstParam))
             {
-                log.Error($"{method.Name} 方法无效的参数 {param}，不能传递网络连接。", method);
+                log.Error("{0} 方法无效的参数 {1}，不能传递网络连接。".Format(method.Name,param), method);
                 failed = true;
                 return false;
             }
 
             if (param.IsOptional && !sendTarget)
             {
-                log.Error($"{method.Name} 方法不能有可选参数。", method);
+                log.Error("{0} 方法不能有可选参数。".Format(method.Name), method);
                 failed = true;
                 return false;
             }
@@ -345,7 +345,7 @@ namespace Astraia.Editor
             {
                 if (!RemoveFinalRetInstruction(cctor))
                 {
-                    log.Error($"{generate.Name} 无效的静态构造函数。", cctor);
+                    log.Error("{0} 无效的静态构造函数。".Format(generate.Name), cctor);
                     failed = true;
                     return;
                 }
@@ -468,7 +468,7 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    log.Error($"不支持 {syncVar.Name} 的类型", syncVar);
+                    log.Error("不支持 {0} 的类型".Format(syncVar.Name), syncVar);
                     failed = true;
                     return;
                 }
@@ -510,7 +510,7 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    log.Error($"不支持 {syncVar.Name} 的类型", syncVar);
+                    log.Error("不支持 {0} 的类型".Format(syncVar.Name), syncVar);
                     failed = true;
                     return;
                 }
@@ -635,7 +635,7 @@ namespace Astraia.Editor
                 var readFunc = reader.GetFunction(syncVar.FieldType, ref failed);
                 if (readFunc == null)
                 {
-                    log.Error($"不支持 {syncVar.Name} 的类型。", syncVar);
+                    log.Error("不支持 {0} 的类型。".Format(syncVar.Name), syncVar);
                     failed = true;
                     return;
                 }

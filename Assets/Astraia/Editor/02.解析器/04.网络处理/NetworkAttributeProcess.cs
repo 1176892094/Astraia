@@ -279,7 +279,7 @@ namespace Astraia.Editor
                 var cached = writer.GetFunction(pd.ParameterType, ref failed);
                 if (cached == null)
                 {
-                    log.Error($"{method.Name} 有无效的参数 {pd}。不支持类型 {pd.ParameterType}。", method);
+                    log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(method.Name, pd, pd.ParameterType), method);
                     failed = true;
                     return false;
                 }
@@ -325,7 +325,7 @@ namespace Astraia.Editor
 
                 if (cached == null)
                 {
-                    log.Error($"{method.Name} 有无效的参数 {pd}。不支持类型 {pd.ParameterType}。", method);
+                    log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(method.Name, pd, pd.ParameterType), method);
                     failed = true;
                     return false;
                 }
@@ -391,7 +391,7 @@ namespace Astraia.Editor
         {
             worker.Emit(OpCodes.Call, module.GetClientActive);
             worker.Emit(OpCodes.Brtrue, label);
-            worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是客户端不是活跃的。");
+            worker.Emit(OpCodes.Ldstr, "{0} 远程调用 {1} 方法，但是客户端不是活跃的。".Format(error, mdName));
             worker.Emit(OpCodes.Call, module.LogError);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
@@ -409,7 +409,7 @@ namespace Astraia.Editor
         {
             worker.Emit(OpCodes.Call, module.GetServerActive);
             worker.Emit(OpCodes.Brtrue, label);
-            worker.Emit(OpCodes.Ldstr, $"{error} 远程调用 {mdName} 方法，但是服务器不是活跃的。");
+            worker.Emit(OpCodes.Ldstr, "{0} 远程调用 {1} 方法，但是服务器不是活跃的。".Format(error, mdName));
             worker.Emit(OpCodes.Call, module.LogError);
             worker.Emit(OpCodes.Ret);
             worker.Append(label);
@@ -487,14 +487,14 @@ namespace Astraia.Editor
 
                         if (baseMethod == null)
                         {
-                            log.Error($"找不到base方法: {fullName}", md);
+                            log.Error("找不到base方法: {0}".Format(fullName), md);
                             failed = true;
                             return;
                         }
 
                         if (!baseMethod.IsVirtual)
                         {
-                            log.Error($"找不到virtual的方法: {fullName}", md);
+                            log.Error("找不到virtual的方法: {0}".Format(fullName), md);
                             failed = true;
                             return;
                         }

@@ -56,7 +56,7 @@ namespace Astraia.Editor
             var mr = GetMethod(tr, ad, match);
             if (mr == null)
             {
-                log.Error($"在类型 {tr.Name} 中没有找到方法", tr);
+                log.Error("在类型 {0} 中没有找到方法".Format(tr.Name), tr);
                 failed = true;
             }
 
@@ -68,7 +68,7 @@ namespace Astraia.Editor
             var mr = GetMethod(tr, ad, method => method.Name == name);
             if (mr == null)
             {
-                log.Error($"在类型 {tr.Name} 中没有找到名称 {name} 的方法", tr);
+                log.Error("在类型 {0} 中没有找到名称 {1} 的方法".Format(tr.Name,name), tr);
                 failed = true;
             }
 

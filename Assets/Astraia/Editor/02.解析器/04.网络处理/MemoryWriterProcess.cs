@@ -63,7 +63,7 @@ namespace Astraia.Editor
             {
                 if (tr is ArrayType { Rank: > 1 })
                 {
-                    log.Error($"无法为多维数组 {tr.Name} 生成写入器", tr);
+                    log.Error("无法为多维数组 {0} 生成写入器".Format(tr.Name), tr);
                     return null;
                 }
 
@@ -73,13 +73,13 @@ namespace Astraia.Editor
             var td = tr.Resolve();
             if (td == null)
             {
-                log.Error($"无法为空类型 {tr.Name} 生成写入器", tr);
+                log.Error("无法为空类型 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (tr.IsByReference)
             {
-                log.Error($"无法为反射 {tr.Name} 生成写入器", tr);
+                log.Error("无法为反射 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
@@ -107,37 +107,37 @@ namespace Astraia.Editor
 
             if (td.IsDerivedFrom<Component>())
             {
-                log.Error($"无法为组件 {tr.Name} 生成写入器", tr);
+                log.Error("无法为组件 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (tr.Is<Object>())
             {
-                log.Error($"无法为对象 {tr.Name} 生成写入器", tr);
+                log.Error("无法为对象 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (tr.Is<ScriptableObject>())
             {
-                log.Error($"无法为可视化脚本 {tr.Name} 生成写入器", tr);
+                log.Error("无法为可视化脚本 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (td.HasGenericParameters)
             {
-                log.Error($"无法为泛型参数 {tr.Name} 生成写入器", tr);
+                log.Error("无法为泛型参数 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (td.IsInterface)
             {
-                log.Error($"无法为接口 {tr.Name} 生成写入器", tr);
+                log.Error("无法为接口 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (td.IsAbstract)
             {
-                log.Error($"无法为抽象或泛型 {tr.Name} 生成写入器", tr);
+                log.Error("无法为抽象或泛型 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
@@ -170,7 +170,7 @@ namespace Astraia.Editor
 
             if (func == null)
             {
-                log.Error($"无法为 {tr} 生成写入器", tr);
+                log.Error("无法为 {0} 生成写入器".Format(tr.Name), tr);
                 failed = true;
                 return md;
             }
@@ -221,7 +221,7 @@ namespace Astraia.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition($"Write{NetworkMessage.Id(tr.FullName)}", Const.RAW_ATTRS, module.Import(typeof(void)));
+            var md = new MethodDefinition("Write{0}".Format(NetworkMessage.Id(tr.FullName)), Const.RAW_ATTRS, module.Import(typeof(void)));
             md.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
             md.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, tr));
             md.Body.InitLocals = true;

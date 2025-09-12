@@ -63,7 +63,7 @@ namespace Astraia.Editor
             {
                 if (tr is ArrayType { Rank: > 1 })
                 {
-                    log.Error($"无法为多维数组 {tr.Name} 生成读取器", tr);
+                    log.Error("无法为多维数组 {0} 生成读取器".Format(tr.Name), tr);
                     failed = true;
                     return null;
                 }
@@ -74,14 +74,14 @@ namespace Astraia.Editor
             var td = tr.Resolve();
             if (td == null)
             {
-                log.Error($"无法为空类型 {tr.Name} 生成读取器", tr);
+                log.Error("无法为空类型 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.IsByReference)
             {
-                log.Error($"无法为反射 {tr.Name} 生成读取器", tr);
+                log.Error("无法为反射 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
@@ -110,42 +110,42 @@ namespace Astraia.Editor
 
             if (td.IsDerivedFrom<Component>())
             {
-                log.Error($"无法为组件 {tr.Name} 生成读取器", tr);
+                log.Error("无法为组件 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.Is<Object>())
             {
-                log.Error($"无法为对象 {tr.Name} 生成读取器", tr);
+                log.Error("无法为对象 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.Is<ScriptableObject>())
             {
-                log.Error($"无法为可视化脚本 {tr.Name} 生成读取器", tr);
+                log.Error("无法为可视化脚本 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.HasGenericParameters)
             {
-                log.Error($"无法为泛型参数 {tr.Name} 生成读取器", tr);
+                log.Error("无法为泛型参数 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsInterface)
             {
-                log.Error($"无法为接口 {tr.Name} 生成读取器", tr);
+                log.Error("无法为接口 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsAbstract)
             {
-                log.Error($"无法为抽象或泛型 {tr.Name} 生成读取器", tr);
+                log.Error("无法为抽象或泛型 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
@@ -184,7 +184,7 @@ namespace Astraia.Editor
 
             if (func == null)
             {
-                log.Error($"无法为 {tr} 生成读取器", tr);
+                log.Error("无法为 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return md;
             }
@@ -238,7 +238,7 @@ namespace Astraia.Editor
                 var ctor = Resolve.GetConstructor(tr);
                 if (ctor == null)
                 {
-                    log.Error($"{tr.Name} 不能被反序列化，因为它没有默认的构造函数", tr);
+                    log.Error("{0} 不能被反序列化，因为它没有默认的构造函数".Format(tr.Name), tr);
                     failed = true;
                 }
                 else
@@ -256,7 +256,7 @@ namespace Astraia.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition($"Read{NetworkMessage.Id(tr.FullName)}", Const.RAW_ATTRS, tr);
+            var md = new MethodDefinition("Read{0}".Format(NetworkMessage.Id(tr.FullName)), Const.RAW_ATTRS, tr);
             md.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             md.Body.InitLocals = true;
             Register(tr, md);
@@ -288,7 +288,7 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    log.Error($"{field.Name} 有不受支持的类型", field);
+                    log.Error("{0} 有不受支持的类型".Format(field.Name), field);
                     failed = true;
                 }
 

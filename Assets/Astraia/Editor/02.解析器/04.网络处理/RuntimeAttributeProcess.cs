@@ -95,7 +95,7 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    log.Error($"自动生成网络代码失败: {assemblyRef}");
+                    log.Error("自动生成网络代码失败: {0}".Format(assemblyRef));
                 }
             }
             else
