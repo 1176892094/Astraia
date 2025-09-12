@@ -45,7 +45,7 @@ namespace Astraia
         internal static IModule AddComponent(Entity owner, IModule module, Type keyType, Type queryType = null)
         {
             queryType ??= keyType;
-            var agents = owner.agentData;
+            var agents = owner.moduleData;
             var queries = GetQueries(queryType);
             if (!agents.ContainsKey(keyType))
             {
@@ -70,7 +70,7 @@ namespace Astraia
         internal static IModule AddComponent(Entity owner, Type keyType, Type realType, Type queryType = null)
         {
             queryType ??= keyType;
-            var agents = owner.agentData;
+            var agents = owner.moduleData;
             var queries = GetQueries(queryType);
             if (!agents.TryGetValue(keyType, out var agent))
             {

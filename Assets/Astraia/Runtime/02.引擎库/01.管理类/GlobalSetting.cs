@@ -270,7 +270,7 @@ namespace Astraia
             }
         }
 
-        public static readonly List<string> agents = new List<string>();
+        public static readonly List<string> modules = new List<string>();
         public static readonly List<string> systems = new List<string>();
 
         public static void LoadSetting(Type result)
@@ -287,7 +287,7 @@ namespace Astraia
 
             if (typeof(IModule).IsAssignableFrom(result))
             {
-                agents.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
+                modules.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
             }
             else if (typeof(ISystem).IsAssignableFrom(result))
             {
@@ -297,7 +297,7 @@ namespace Astraia
 
         public static void LoadComplete()
         {
-            agents.Sort(StringComparer.Ordinal);
+            modules.Sort(StringComparer.Ordinal);
             systems.Sort(StringComparer.Ordinal);
         }
     }

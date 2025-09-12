@@ -11,7 +11,6 @@
 
 #if UNITY_EDITOR
 using System.Collections.Generic;
-using Astraia.Common;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,12 +19,12 @@ namespace Astraia.Net
     [CustomPreview(typeof(GameObject))]
     internal class NetworkPreview : ObjectPreview
     {
-        private struct AgentData
+        private struct ModuleData
         {
             public readonly GUIContent name;
             public readonly NetworkModule value;
 
-            public AgentData(GUIContent name, NetworkModule value)
+            public ModuleData(GUIContent name, NetworkModule value)
             {
                 this.name = name;
                 this.value = value;
@@ -106,7 +105,7 @@ namespace Astraia.Net
                     var height = newRect.y + 10;
 
                     height = DrawEntityData(entity, width, height);
-                    _ = DrawAgentData(entity, width, height);
+                    _ = DrawModuleData(entity, width, height);
                 }
             }
         }
@@ -133,17 +132,17 @@ namespace Astraia.Net
             return entityRect.y;
         }
 
-        private float DrawAgentData(NetworkEntity entity, float width, float height)
+        private float DrawModuleData(NetworkEntity entity, float width, float height)
         {
-            var agentData = GetAgentData(entity);
-            var agentSize = GetMaxAgentSize(agentData);
+            var moduleData = GetModuleData(entity);
+            var agentSize = GetMaxModuleSize(moduleData);
             var agentRect = new Rect(width, height, agentSize.x, agentSize.y);
 
-            GUI.Label(agentRect, new GUIContent("Network Agent :"), styles.label);
+            GUI.Label(agentRect, new GUIContent("Network Module :"), styles.label);
             agentRect.x += 20;
             agentRect.y += agentRect.height + 5f;
 
-            foreach (var data in agentData)
+            foreach (var data in moduleData)
             {
                 if (data.value != null)
                 {
@@ -176,7 +175,7 @@ namespace Astraia.Net
             return rect;
         }
 
-        private Vector2 GetMaxAgentSize(IList<AgentData> copies)
+        private Vector2 GetMaxModuleSize(IList<ModuleData> copies)
         {
             var rect = Vector2.zero;
             foreach (var data in copies)
@@ -196,15 +195,15 @@ namespace Astraia.Net
             return rect;
         }
 
-        private static IList<AgentData> GetAgentData(NetworkEntity entity)
+        private static IList<ModuleData> GetModuleData(NetworkEntity entity)
         {
-            var copies = new List<AgentData>();
+            var copies = new List<ModuleData>();
 
-            foreach (var agent in entity.agentData.Values)
+            foreach (var agent in entity.moduleData.Values)
             {
                 if (agent is NetworkModule result)
                 {
-                    copies.Add(new AgentData(new GUIContent(result.GetType().FullName), result));
+                    copies.Add(new ModuleData(new GUIContent(result.GetType().FullName), result));
                 }
             }
 

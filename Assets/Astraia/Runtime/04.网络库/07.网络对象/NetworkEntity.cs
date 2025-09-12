@@ -56,7 +56,7 @@ namespace Astraia.Net
             base.OnEnable();
             if ((state & ModuleState.Awake) == 0)
             {
-                foreach (var agent in agentData.Values)
+                foreach (var agent in moduleData.Values)
                 {
                     if (agent is NetworkModule entity)
                     {

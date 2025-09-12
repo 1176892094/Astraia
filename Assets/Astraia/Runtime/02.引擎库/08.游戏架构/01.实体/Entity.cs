@@ -22,7 +22,7 @@ namespace Astraia
 {
     public partial class Entity : MonoBehaviour
     {
-        internal readonly Dictionary<Type, IModule> agentData = new Dictionary<Type, IModule>();
+        internal readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
@@ -52,21 +52,21 @@ namespace Astraia
             OnShow = null;
             OnHide = null;
             agentList.Clear();
-            agentData.Clear();
+            moduleData.Clear();
             ArgsManager.Dispose(GetEntityId());
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        private static List<string> Agents = GlobalSetting.agents;
+        private static List<string> Modules = GlobalSetting.modules;
 
         [HideInEditorMode, ShowInInspector]
-        private IEnumerable<IModule> agents
+        private IEnumerable<IModule> modules
         {
-            get => agentData.Values.ToList();
+            get => moduleData.Values.ToList();
             set => Debug.LogError(value);
         }
 
-        [HideInPlayMode, ValueDropdown("Agents")]
+        [HideInPlayMode, ValueDropdown("Modules")]
 #endif
         [SerializeField]
         private List<string> agentList = new List<string>();
@@ -91,7 +91,7 @@ namespace Astraia
 
         public T HasComponent<T>() where T : IModule
         {
-            return agentData.TryGetValue(typeof(T), out var agent) ? (T)agent : default;
+            return moduleData.TryGetValue(typeof(T), out var agent) ? (T)agent : default;
         }
 
         public IModule AddComponent(Type realType)
@@ -111,7 +111,7 @@ namespace Astraia
 
         public IModule HasComponent(Type keyType)
         {
-            return agentData.TryGetValue(keyType, out var agent) ? agent : null;
+            return moduleData.TryGetValue(keyType, out var agent) ? agent : null;
         }
     }
 }
