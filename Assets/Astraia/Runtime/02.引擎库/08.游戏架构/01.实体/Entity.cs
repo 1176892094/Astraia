@@ -114,4 +114,17 @@ namespace Astraia
             return moduleData.TryGetValue(keyType, out var module) ? module : null;
         }
     }
+
+    public static partial class Extensions
+    {
+        public static T GetValue<T>(this Entity owner, Enum id, T value = default)
+        {
+            return owner ? Blackboard.Get(owner.GetEntityId(), id, value) : default;
+        }
+
+        public static void SetValue<T>(this Entity owner, Enum id, T value)
+        {
+            Blackboard.Set(owner.GetEntityId(), id, value);
+        }
+    }
 }
