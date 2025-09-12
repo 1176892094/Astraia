@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public abstract class TaskNode
+    public abstract class Root
     {
         private State state = State.Failure;
         private bool started;
@@ -57,11 +57,11 @@ namespace Astraia
             Failure
         }
 
-        public sealed class Sequence : TaskNode
+        public sealed class Sequence : Root
         {
-            private TaskNode[] nodes;
+            private Root[] nodes;
 
-            public static Sequence Create(TaskNode[] nodes)
+            public static Sequence Create(Root[] nodes)
             {
                 var sequence = Activator.CreateInstance<Sequence>();
                 sequence.nodes = nodes;
@@ -88,11 +88,11 @@ namespace Astraia
             }
         }
 
-        public sealed class Selector : TaskNode
+        public sealed class Selector : Root
         {
-            private TaskNode[] nodes;
+            private Root[] nodes;
 
-            public static Selector Create(TaskNode[] nodes)
+            public static Selector Create(Root[] nodes)
             {
                 var selector = Activator.CreateInstance<Selector>();
                 selector.nodes = nodes;
@@ -119,13 +119,13 @@ namespace Astraia
             }
         }
 
-        public sealed class Parallel : TaskNode
+        public sealed class Parallel : Root
         {
-            private TaskNode[] nodes;
+            private Root[] nodes;
             private int success;
             private int failure;
 
-            public static Parallel Create(TaskNode[] nodes, int success = -1, int failure = -1)
+            public static Parallel Create(Root[] nodes, int success = -1, int failure = -1)
             {
                 var parallel = Activator.CreateInstance<Parallel>();
                 parallel.nodes = nodes;
@@ -168,11 +168,11 @@ namespace Astraia
             }
         }
 
-        public sealed class Operator : TaskNode
+        public sealed class Operator : Root
         {
-            private TaskNode[] nodes;
+            private Root[] nodes;
 
-            public static Operator Create(TaskNode[] nodes)
+            public static Operator Create(Root[] nodes)
             {
                 var operation = Activator.CreateInstance<Operator>();
                 operation.nodes = nodes;
@@ -185,13 +185,13 @@ namespace Astraia
             }
         }
 
-        public sealed class Repeater : TaskNode
+        public sealed class Repeater : Root
         {
-            private TaskNode node;
+            private Root node;
             private int count;
             private int repeat;
 
-            public static Repeater Create(TaskNode node, int repeat = -1)
+            public static Repeater Create(Root node, int repeat = -1)
             {
                 var repeater = Activator.CreateInstance<Repeater>();
                 repeater.node = node;
@@ -221,11 +221,11 @@ namespace Astraia
             }
         }
 
-        public sealed class Inverter : TaskNode
+        public sealed class Inverter : Root
         {
-            private TaskNode node;
+            private Root node;
 
-            public static Inverter Create(TaskNode node)
+            public static Inverter Create(Root node)
             {
                 var inverter = Activator.CreateInstance<Inverter>();
                 inverter.node = node;
@@ -249,11 +249,11 @@ namespace Astraia
             }
         }
 
-        public sealed class Success : TaskNode
+        public sealed class Success : Root
         {
-            private TaskNode node;
+            private Root node;
 
-            public static Success Create(TaskNode node)
+            public static Success Create(Root node)
             {
                 var success = Activator.CreateInstance<Success>();
                 success.node = node;
@@ -266,11 +266,11 @@ namespace Astraia
             }
         }
 
-        public sealed class Failure : TaskNode
+        public sealed class Failure : Root
         {
-            private TaskNode node;
+            private Root node;
 
-            public static Failure Create(TaskNode node)
+            public static Failure Create(Root node)
             {
                 var failure = Activator.CreateInstance<Failure>();
                 failure.node = node;
@@ -283,7 +283,7 @@ namespace Astraia
             }
         }
 
-        public sealed class WaitTime : TaskNode
+        public sealed class WaitTime : Root
         {
             private float waitTime;
             private float duration;
