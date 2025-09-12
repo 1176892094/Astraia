@@ -65,16 +65,16 @@ namespace Astraia.Editor
         /// <summary>
         /// 在Process中调用
         /// </summary>
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writer writer, Reader reader, ref bool failed)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILog log, Writer writer, Reader reader, ref bool failed)
         {
-            ProcessAssembly(assembly, resolver, logger, writer, reader, ref failed);
+            ProcessAssembly(assembly, resolver, log, writer, reader, ref failed);
             return ProcessCustomCode(assembly, assembly, writer, reader, ref failed);
         }
 
         /// <summary>
         /// 处理网络代码
         /// </summary>
-        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, Logger logger, Writer writer, Reader reader, ref bool failed)
+        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILog log, Writer writer, Reader reader, ref bool failed)
         {
             AssemblyNameReference assemblyRef = null;
             foreach (var reference in assembly.MainModule.AssemblyReferences)
@@ -95,12 +95,12 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    logger.Error($"自动生成网络代码失败: {assemblyRef}");
+                    log.Error($"自动生成网络代码失败: {assemblyRef}");
                 }
             }
             else
             {
-                logger.Error("注册程序集 Astraia.Net.dll 失败");
+                log.Error("注册程序集 Astraia.Net.dll 失败");
             }
         }
 

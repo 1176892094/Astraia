@@ -33,7 +33,7 @@ namespace Astraia.Editor
 
         public override ILPostProcessResult Process(ICompiledAssembly assembly)
         {
-            var log = new LogPostProcessor();
+            var log = new Log();
             using var ar = new AssemblyResolver(assembly, log);
             using var ss = new MemoryStream(assembly.InMemoryAssembly.PdbData);
             var rp = new ReaderParameters

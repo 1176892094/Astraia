@@ -23,12 +23,12 @@ namespace Astraia.Editor
         private readonly Dictionary<string, AssemblyDefinition> definitions = new Dictionary<string, AssemblyDefinition>();
         private readonly Dictionary<string, string> assemblies = new Dictionary<string, string>();
         private readonly ICompiledAssembly assembly;
-        private readonly Logger logger;
+        private readonly ILog log;
         private AssemblyDefinition definition;
 
-        public AssemblyResolver(ICompiledAssembly assembly, Logger logger)
+        public AssemblyResolver(ICompiledAssembly assembly, ILog log)
         {
-            this.logger = logger;
+            this.log = log;
             this.assembly = assembly;
         }
 
@@ -57,7 +57,7 @@ namespace Astraia.Editor
 
             if (reference == null)
             {
-                logger.Warn("无法找到文件:" + assembly);
+                log.Warn("无法找到文件:" + assembly);
                 return null;
             }
 

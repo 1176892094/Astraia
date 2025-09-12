@@ -29,13 +29,13 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="module"></param>
         /// <param name="reader"></param>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="func"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessClientRpc(Module module, Reader reader, Logger logger, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ProcessClientRpc(Module module, Reader reader, ILog log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Process.GenerateMethodName(Const.INV_METHOD, md);
             var rpc = new MethodDefinition(rpcName, Const.RPC_ATTRS, module.Import(typeof(void)));
@@ -46,7 +46,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
 
-            if (!ReadArguments(md, reader, logger, worker, InvokeMode.ClientRpc, ref failed))
+            if (!ReadArguments(md, reader, log, worker, InvokeMode.ClientRpc, ref failed))
             {
                 return null;
             }
@@ -63,21 +63,21 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="module"></param>
         /// <param name="writer"></param>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="ca"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessClientRpcInvoke(Module module, Writer writer, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessClientRpcInvoke(Module module, Writer writer, ILog log, TypeDefinition td,
             MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
-            var rpc = BaseInvokeMethod(logger, td, md, ref failed);
+            var rpc = BaseInvokeMethod(log, td, md, ref failed);
             var worker = md.Body.GetILProcessor();
             NetworkModuleProcess.WriteInitLocals(worker, module);
             NetworkModuleProcess.WritePopSetter(worker, module);
 
-            if (!WriteArguments(worker, writer, logger, md, InvokeMode.ClientRpc, ref failed))
+            if (!WriteArguments(worker, writer, log, md, InvokeMode.ClientRpc, ref failed))
             {
                 return null;
             }
@@ -98,13 +98,13 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="module"></param>
         /// <param name="reader"></param>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="func"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessServerRpc(Module module, Reader reader, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessServerRpc(Module module, Reader reader, ILog log, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Process.GenerateMethodName(Const.INV_METHOD, md);
@@ -116,7 +116,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
 
-            if (!ReadArguments(md, reader, logger, worker, InvokeMode.ServerRpc, ref failed))
+            if (!ReadArguments(md, reader, log, worker, InvokeMode.ServerRpc, ref failed))
             {
                 return null;
             }
@@ -141,21 +141,21 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="module"></param>
         /// <param name="writer"></param>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="ca"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessServerRpcInvoke(Module module, Writer writer, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessServerRpcInvoke(Module module, Writer writer, ILog log, TypeDefinition td,
             MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
-            var rpc = BaseInvokeMethod(logger, td, md, ref failed);
+            var rpc = BaseInvokeMethod(log, td, md, ref failed);
             var worker = md.Body.GetILProcessor();
             NetworkModuleProcess.WriteInitLocals(worker, module);
             NetworkModuleProcess.WritePopSetter(worker, module);
 
-            if (!WriteArguments(worker, writer, logger, md, InvokeMode.ServerRpc, ref failed))
+            if (!WriteArguments(worker, writer, log, md, InvokeMode.ServerRpc, ref failed))
             {
                 return null;
             }
@@ -177,13 +177,13 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="module"></param>
         /// <param name="reader"></param>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="func"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpc(Module module, Reader reader, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessTargetRpc(Module module, Reader reader, ILog log, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Process.GenerateMethodName(Const.INV_METHOD, md);
@@ -200,7 +200,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldnull);
             }
 
-            if (!ReadArguments(md, reader, logger, worker, InvokeMode.TargetRpc, ref failed))
+            if (!ReadArguments(md, reader, log, worker, InvokeMode.TargetRpc, ref failed))
             {
                 return null;
             }
@@ -217,21 +217,21 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="module"></param>
         /// <param name="writer"></param>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="ca"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpcInvoke(Module module, Writer writer, Logger logger, TypeDefinition td,
+        public static MethodDefinition ProcessTargetRpcInvoke(Module module, Writer writer, ILog log, TypeDefinition td,
             MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
-            var rpc = BaseInvokeMethod(logger, td, md, ref failed);
+            var rpc = BaseInvokeMethod(log, td, md, ref failed);
             var worker = md.Body.GetILProcessor();
             NetworkModuleProcess.WriteInitLocals(worker, module);
             NetworkModuleProcess.WritePopSetter(worker, module);
 
-            if (!WriteArguments(worker, writer, logger, md, InvokeMode.TargetRpc, ref failed))
+            if (!WriteArguments(worker, writer, log, md, InvokeMode.TargetRpc, ref failed))
             {
                 return null;
             }
@@ -253,12 +253,12 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="worker"></param>
         /// <param name="writer"></param>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="method"></param>
         /// <param name="mode"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool WriteArguments(ILProcessor worker, Writer writer, Logger logger, MethodDefinition method, InvokeMode mode, ref bool failed)
+        private static bool WriteArguments(ILProcessor worker, Writer writer, ILog log, MethodDefinition method, InvokeMode mode, ref bool failed)
         {
             var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
             var argument = 1;
@@ -279,7 +279,7 @@ namespace Astraia.Editor
                 var cached = writer.GetFunction(pd.ParameterType, ref failed);
                 if (cached == null)
                 {
-                    logger.Error($"{method.Name} 有无效的参数 {pd}。不支持类型 {pd.ParameterType}。", method);
+                    log.Error($"{method.Name} 有无效的参数 {pd}。不支持类型 {pd.ParameterType}。", method);
                     failed = true;
                     return false;
                 }
@@ -298,12 +298,12 @@ namespace Astraia.Editor
         /// </summary>
         /// <param name="method"></param>
         /// <param name="reader"></param>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="worker"></param>
         /// <param name="mode"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool ReadArguments(MethodDefinition method, Reader reader, Logger logger, ILProcessor worker, InvokeMode mode, ref bool failed)
+        private static bool ReadArguments(MethodDefinition method, Reader reader, ILog log, ILProcessor worker, InvokeMode mode, ref bool failed)
         {
             var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
             var argument = 1;
@@ -325,7 +325,7 @@ namespace Astraia.Editor
 
                 if (cached == null)
                 {
-                    logger.Error($"{method.Name} 有无效的参数 {pd}。不支持类型 {pd.ParameterType}。", method);
+                    log.Error($"{method.Name} 有无效的参数 {pd}。不支持类型 {pd.ParameterType}。", method);
                     failed = true;
                     return false;
                 }
@@ -418,12 +418,12 @@ namespace Astraia.Editor
         /// <summary>
         /// 处理基本的Rpc方法
         /// </summary>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static MethodDefinition BaseInvokeMethod(Logger logger, TypeDefinition td, MethodDefinition md, ref bool failed)
+        private static MethodDefinition BaseInvokeMethod(ILog log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
             var newName = Process.GenerateMethodName(Const.RPC_METHOD, md);
             var method = new MethodDefinition(newName, md.Attributes, md.ReturnType)
@@ -454,18 +454,18 @@ namespace Astraia.Editor
             md.CustomDebugInformations.Clear();
             (md.DebugInformation.Scope, method.DebugInformation.Scope) = (method.DebugInformation.Scope, md.DebugInformation.Scope);
             td.Methods.Add(method);
-            ProcessBaseMethod(logger, td, method, ref failed);
+            ProcessBaseMethod(log, td, method, ref failed);
             return method;
         }
 
         /// <summary>
         /// 处理修正的Rpc方法
         /// </summary>
-        /// <param name="logger"></param>
+        /// <param name="log"></param>
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="failed"></param>
-        private static void ProcessBaseMethod(Logger logger, TypeDefinition td, MethodDefinition md, ref bool failed)
+        private static void ProcessBaseMethod(ILog log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
             var fullName = md.Name;
             if (!fullName.StartsWith(Const.RPC_METHOD))
@@ -487,14 +487,14 @@ namespace Astraia.Editor
 
                         if (baseMethod == null)
                         {
-                            logger.Error($"找不到base方法: {fullName}", md);
+                            log.Error($"找不到base方法: {fullName}", md);
                             failed = true;
                             return;
                         }
 
                         if (!baseMethod.IsVirtual)
                         {
-                            logger.Error($"找不到virtual的方法: {fullName}", md);
+                            log.Error($"找不到virtual的方法: {fullName}", md);
                             failed = true;
                             return;
                         }

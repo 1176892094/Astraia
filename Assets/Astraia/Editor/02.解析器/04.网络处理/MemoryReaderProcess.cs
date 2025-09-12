@@ -23,13 +23,13 @@ namespace Astraia.Editor
     {
         private readonly Dictionary<TypeReference, MethodReference> methods = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly Module module;
-        private readonly Logger logger;
+        private readonly ILog log;
         private readonly TypeDefinition generate;
         private readonly AssemblyDefinition assembly;
 
-        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition generate, Logger logger)
+        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition generate, ILog log)
         {
-            this.logger = logger;
+            this.log = log;
             this.module = module;
             this.assembly = assembly;
             this.generate = generate;
@@ -63,7 +63,7 @@ namespace Astraia.Editor
             {
                 if (tr is ArrayType { Rank: > 1 })
                 {
-                    logger.Error($"无法为多维数组 {tr.Name} 生成读取器", tr);
+                    log.Error($"无法为多维数组 {tr.Name} 生成读取器", tr);
                     failed = true;
                     return null;
                 }
@@ -74,14 +74,14 @@ namespace Astraia.Editor
             var td = tr.Resolve();
             if (td == null)
             {
-                logger.Error($"无法为空类型 {tr.Name} 生成读取器", tr);
+                log.Error($"无法为空类型 {tr.Name} 生成读取器", tr);
                 failed = true;
                 return null;
             }
 
             if (tr.IsByReference)
             {
-                logger.Error($"无法为反射 {tr.Name} 生成读取器", tr);
+                log.Error($"无法为反射 {tr.Name} 生成读取器", tr);
                 failed = true;
                 return null;
             }
@@ -110,42 +110,42 @@ namespace Astraia.Editor
 
             if (td.IsDerivedFrom<Component>())
             {
-                logger.Error($"无法为组件 {tr.Name} 生成读取器", tr);
+                log.Error($"无法为组件 {tr.Name} 生成读取器", tr);
                 failed = true;
                 return null;
             }
 
             if (tr.Is<Object>())
             {
-                logger.Error($"无法为对象 {tr.Name} 生成读取器", tr);
+                log.Error($"无法为对象 {tr.Name} 生成读取器", tr);
                 failed = true;
                 return null;
             }
 
             if (tr.Is<ScriptableObject>())
             {
-                logger.Error($"无法为可视化脚本 {tr.Name} 生成读取器", tr);
+                log.Error($"无法为可视化脚本 {tr.Name} 生成读取器", tr);
                 failed = true;
                 return null;
             }
 
             if (td.HasGenericParameters)
             {
-                logger.Error($"无法为泛型参数 {tr.Name} 生成读取器", tr);
+                log.Error($"无法为泛型参数 {tr.Name} 生成读取器", tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsInterface)
             {
-                logger.Error($"无法为接口 {tr.Name} 生成读取器", tr);
+                log.Error($"无法为接口 {tr.Name} 生成读取器", tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsAbstract)
             {
-                logger.Error($"无法为抽象或泛型 {tr.Name} 生成读取器", tr);
+                log.Error($"无法为抽象或泛型 {tr.Name} 生成读取器", tr);
                 failed = true;
                 return null;
             }
@@ -184,13 +184,13 @@ namespace Astraia.Editor
 
             if (func == null)
             {
-                logger.Error($"无法为 {tr} 生成读取器", tr);
+                log.Error($"无法为 {tr} 生成读取器", tr);
                 failed = true;
                 return md;
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Resolve.GetMethod(extensions, assembly, logger, name, ref failed);
+            var mr = Resolve.GetMethod(extensions, assembly, log, name, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -238,7 +238,7 @@ namespace Astraia.Editor
                 var ctor = Resolve.GetConstructor(tr);
                 if (ctor == null)
                 {
-                    logger.Error($"{tr.Name} 不能被反序列化，因为它没有默认的构造函数", tr);
+                    log.Error($"{tr.Name} 不能被反序列化，因为它没有默认的构造函数", tr);
                     failed = true;
                 }
                 else
@@ -288,7 +288,7 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    logger.Error($"{field.Name} 有不受支持的类型", field);
+                    log.Error($"{field.Name} 有不受支持的类型", field);
                     failed = true;
                 }
 

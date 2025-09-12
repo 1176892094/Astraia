@@ -22,14 +22,14 @@ namespace Astraia.Editor
 
     internal class SyncVarProcess
     {
-        private readonly Logger logger;
+        private readonly ILog log;
         private readonly Module module;
         private readonly SyncVarAccess access;
         private readonly AssemblyDefinition assembly;
 
-        public SyncVarProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Logger logger)
+        public SyncVarProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, ILog log)
         {
-            this.logger = logger;
+            this.log = log;
             this.access = access;
             this.module = module;
             this.assembly = assembly;
@@ -118,7 +118,7 @@ namespace Astraia.Editor
 
             if (fixMethods.Count == 0)
             {
-                logger.Error($"无法注册 {syncVar.Name} 请修改为 {HookMethod(hookMethod, syncVar.FieldType)}", syncVar);
+                log.Error($"无法注册 {syncVar.Name} 请修改为 {HookMethod(hookMethod, syncVar.FieldType)}", syncVar);
                 failed = true;
                 return null;
             }
@@ -131,7 +131,7 @@ namespace Astraia.Editor
                 }
             }
 
-            logger.Error($"参数类型错误 {syncVar.Name} 请修改为 {HookMethod(hookMethod, syncVar.FieldType)}", syncVar);
+            log.Error($"参数类型错误 {syncVar.Name} 请修改为 {HookMethod(hookMethod, syncVar.FieldType)}", syncVar);
             failed = true;
             return null;
         }
@@ -176,21 +176,21 @@ namespace Astraia.Editor
 
                 if ((fd.Attributes & FieldAttributes.Static) != 0)
                 {
-                    logger.Error($"{fd.Name} 不能是静态字段。", fd);
+                    log.Error($"{fd.Name} 不能是静态字段。", fd);
                     failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsGenericParameter)
                 {
-                    logger.Error($"{fd.Name} 不能用泛型参数。", fd);
+                    log.Error($"{fd.Name} 不能用泛型参数。", fd);
                     failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsArray)
                 {
-                    logger.Error($"{fd.Name} 不能使用数组。", fd);
+                    log.Error($"{fd.Name} 不能使用数组。", fd);
                     failed = true;
                     continue;
                 }
@@ -202,7 +202,7 @@ namespace Astraia.Editor
 
                 if (dirtyBits > Const.SYNC_LIMIT)
                 {
-                    logger.Error($"{td.Name} 网络变量数量大于 {Const.SYNC_LIMIT}。", td);
+                    log.Error($"{td.Name} 网络变量数量大于 {Const.SYNC_LIMIT}。", td);
                     failed = true;
                 }
             }

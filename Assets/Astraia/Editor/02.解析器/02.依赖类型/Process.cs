@@ -25,11 +25,11 @@ namespace Astraia.Editor
         private SyncVarAccess access;
         private TypeDefinition process;
         private AssemblyDefinition assembly;
-        private readonly Logger logger;
+        private readonly ILog log;
 
-        public Process(Logger logger)
+        public Process(ILog log)
         {
-            this.logger = logger;
+            this.log = log;
         }
 
         public bool Execute(AssemblyDefinition assembly, IAssemblyResolver resolver, out bool change)
@@ -49,11 +49,11 @@ namespace Astraia.Editor
                 }
 
                 access = new SyncVarAccess();
-                module = new Module(assembly, logger, ref failed);
+                module = new Module(assembly, log, ref failed);
                 process = new TypeDefinition(Const.GEN_TYPE, Const.GEN_NAME, Const.GEN_ATTRS, module.Import<object>());
-                writer = new Writer(assembly, module, process, logger);
-                reader = new Reader(assembly, module, process, logger);
-                change = RuntimeAttribute.Process(assembly, resolver, logger, writer, reader, ref failed);
+                writer = new Writer(assembly, module, process, log);
+                reader = new Reader(assembly, module, process, log);
+                change = RuntimeAttribute.Process(assembly, resolver, log, writer, reader, ref failed);
 
                 var mainModule = assembly.MainModule;
 
@@ -75,7 +75,7 @@ namespace Astraia.Editor
             catch (Exception e)
             {
                 failed = true;
-                logger.Error(e.ToString());
+                log.Error(e.ToString());
                 return false;
             }
         }
@@ -122,7 +122,7 @@ namespace Astraia.Editor
             var changed = false;
             foreach (var m in modules)
             {
-                changed |= new NetworkModuleProcess(assembly, access, module, writer, reader, logger, m).Process(ref failed);
+                changed |= new NetworkModuleProcess(assembly, access, module, writer, reader, log, m).Process(ref failed);
             }
 
             return changed;

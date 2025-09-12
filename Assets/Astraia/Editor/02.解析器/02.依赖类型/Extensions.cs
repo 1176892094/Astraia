@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Astraia.Net;
 using Mono.Cecil;
 using UnityEngine;
@@ -22,14 +23,14 @@ namespace Astraia.Editor
         /// <summary>
         /// 指定类型判断
         /// </summary>
-        public static bool Is(this TypeReference self, Type type)
+        public static bool Is(this TypeReference self, Type t)
         {
-            if (type.IsGenericType)
+            if (t.IsGenericType)
             {
-                return self.GetElementType().FullName == type.FullName;
+                return self.GetElementType().FullName == t.FullName;
             }
 
-            return self.FullName == type.FullName;
+            return self.FullName == t.FullName;
         }
 
         /// <summary>
@@ -43,7 +44,7 @@ namespace Astraia.Editor
         /// <summary>
         /// 是指定类型的派生类型
         /// </summary>
-        private static bool IsDerivedFrom(this TypeReference self, Type type)
+        private static bool IsDerivedFrom(this TypeReference self, Type t)
         {
             var td = self.Resolve();
             if (!td.IsClass)
@@ -57,12 +58,12 @@ namespace Astraia.Editor
                 return false;
             }
 
-            if (tr.Is(type))
+            if (tr.Is(t))
             {
                 return true;
             }
 
-            return tr.IsResolve() && IsDerivedFrom(tr.Resolve(), type);
+            return tr.IsResolve() && IsDerivedFrom(tr.Resolve(), t);
         }
 
         /// <summary>
@@ -87,8 +88,7 @@ namespace Astraia.Editor
 
                 if (self.Scope.Name == "mscorlib")
                 {
-                    var resolved = self.Resolve();
-                    return resolved != null;
+                    return self.Resolve() != null;
                 }
 
                 try
@@ -125,16 +125,15 @@ namespace Astraia.Editor
         /// </summary>
         public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
         {
-            var result = new List<MethodDefinition>();
-            foreach (var method in self.Methods)
-            {
-                if (method.Name == name)
-                {
-                    result.Add(method);
-                }
-            }
+            return self.Methods.Where(method => method.Name == name);
+        }
 
-            return result;
+        /// <summary>
+        /// 判断自定义特性
+        /// </summary>
+        public static bool HasCustomAttribute<T>(this ICustomAttributeProvider self)
+        {
+            return self.CustomAttributes.Any(custom => custom.AttributeType.Is<T>());
         }
 
         /// <summary>
@@ -142,31 +141,7 @@ namespace Astraia.Editor
         /// </summary>
         public static CustomAttribute GetCustomAttribute<T>(this ICustomAttributeProvider self)
         {
-            foreach (var custom in self.CustomAttributes)
-            {
-                if (custom.AttributeType.Is<T>())
-                {
-                    return custom;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// 获取自定义特性
-        /// </summary>
-        public static bool HasCustomAttribute<T>(this ICustomAttributeProvider self)
-        {
-            foreach (var custom in self.CustomAttributes)
-            {
-                if (custom.AttributeType.Is<T>())
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<T>());
         }
 
         /// <summary>
@@ -195,7 +170,7 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 获取宿主实力泛型字段
+        /// 获取宿主实例泛型字段
         /// </summary>
         /// <param name="self"></param>
         /// <returns></returns>
@@ -231,8 +206,7 @@ namespace Astraia.Editor
         {
             var instance = new GenericInstanceMethod(self);
             instance.GenericArguments.Add(tr);
-            var readFunc = md.ImportReference(instance);
-            return readFunc;
+            return md.ImportReference(instance);
         }
 
         /// <summary>
@@ -258,23 +232,8 @@ namespace Astraia.Editor
         {
             while (self != null)
             {
-                foreach (var field in self.Fields)
+                foreach (var field in self.Fields.Where(field => !field.IsStatic && !field.IsPrivate && !field.IsFamily && !field.IsAssembly && !field.IsNotSerialized))
                 {
-                    if (field.IsStatic || field.IsPrivate || field.IsFamily)
-                    {
-                        continue;
-                    }
-
-                    if (field.IsAssembly)
-                    {
-                        continue;
-                    }
-
-                    if (field.IsNotSerialized)
-                    {
-                        continue;
-                    }
-
                     yield return field;
                 }
 
@@ -301,19 +260,11 @@ namespace Astraia.Editor
 
             if (self.HasMethods)
             {
-                var result = new List<MethodDefinition>();
-                foreach (var method in self.Methods)
+                foreach (var method in self.Methods.Where(method => method.IsConstructor))
                 {
-                    if (method.IsConstructor)
-                    {
-                        result.Add(method);
-                    }
+                    yield return method;
                 }
-
-                return result;
             }
-
-            return Array.Empty<MethodDefinition>();
         }
 
         /// <summary>
@@ -324,20 +275,16 @@ namespace Astraia.Editor
             var td = self;
             while (td != null)
             {
-                foreach (var implementation in td.Interfaces)
+                if (td.Interfaces.Any(i => i.InterfaceType.Is<T>()))
                 {
-                    if (implementation.InterfaceType.Is<T>())
-                    {
-                        return true;
-                    }
+                    return true;
                 }
 
                 try
                 {
-                    var tr = td.BaseType;
-                    td = tr?.Resolve();
+                    td = td.BaseType?.Resolve();
                 }
-                catch (AssemblyResolutionException)
+                catch
                 {
                     break;
                 }
@@ -359,12 +306,9 @@ namespace Astraia.Editor
         /// </summary>
         public static TypeReference GetEnumUnderlyingType(this TypeDefinition self)
         {
-            foreach (var field in self.Fields)
+            foreach (var field in self.Fields.Where(field => !field.IsStatic))
             {
-                if (!field.IsStatic)
-                {
-                    return field.FieldType;
-                }
+                return field.FieldType;
             }
 
             throw new ArgumentException("无效的枚举类型: " + self.FullName);
@@ -378,20 +322,16 @@ namespace Astraia.Editor
             var td = self;
             while (td != null)
             {
-                foreach (var md in td.Methods)
+                foreach (var md in td.Methods.Where(md => md.Name == name))
                 {
-                    if (md.Name == name)
-                    {
-                        return md;
-                    }
+                    return md;
                 }
 
                 try
                 {
-                    var tr = td.BaseType;
-                    td = tr?.Resolve();
+                    td = td.BaseType?.Resolve();
                 }
-                catch (AssemblyResolutionException)
+                catch
                 {
                     break;
                 }
@@ -410,25 +350,25 @@ namespace Astraia.Editor
                 return self;
             }
 
-            var arguments = (GenericInstanceType)self;
-            var generic = new GenericInstanceType(self.Resolve());
-            foreach (var tr in arguments.GenericArguments)
+            var args = (GenericInstanceType)self;
+            var it = new GenericInstanceType(self.Resolve());
+            foreach (var tr in args.GenericArguments)
             {
-                generic.GenericArguments.Add(tr);
+                it.GenericArguments.Add(tr);
             }
 
-            for (var i = 0; i < generic.GenericArguments.Count; i++)
+            for (var i = 0; i < it.GenericArguments.Count; i++)
             {
-                if (!generic.GenericArguments[i].IsGenericParameter)
+                if (!it.GenericArguments[i].IsGenericParameter)
                 {
                     continue;
                 }
 
-                var tr = child.FindMatchingGenericArgument(generic.GenericArguments[i].Name);
-                generic.GenericArguments[i] = self.Module.ImportReference(tr);
+                var tr = child.FindMatchingGenericArgument(it.GenericArguments[i].Name);
+                it.GenericArguments[i] = self.Module.ImportReference(tr);
             }
 
-            return generic;
+            return it;
         }
 
         /// <summary>
@@ -444,11 +384,9 @@ namespace Astraia.Editor
 
             for (var i = 0; i < td.GenericParameters.Count; i++)
             {
-                var param = td.GenericParameters[i];
-                if (param.Name == name)
+                if (td.GenericParameters[i].Name == name)
                 {
-                    var generic = (GenericInstanceType)self;
-                    return generic.GenericArguments[i];
+                    return ((GenericInstanceType)self).GenericArguments[i];
                 }
             }
 
