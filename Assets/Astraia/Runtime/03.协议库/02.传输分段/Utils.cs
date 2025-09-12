@@ -16,7 +16,7 @@ namespace Astraia
 {
     internal static class Utils
     {
-        public static void Encode32U(byte[] p, int offset, uint value)
+        public static void Encode(byte[] p, int offset, uint value)
         {
             p[0 + offset] = (byte)(value >> 0);
             p[1 + offset] = (byte)(value >> 8);
@@ -24,7 +24,7 @@ namespace Astraia
             p[3 + offset] = (byte)(value >> 24);
         }
 
-        public static uint Decode32U(byte[] p, int offset)
+        public static uint Decode(byte[] p, int offset)
         {
             uint result = 0;
             result |= p[0 + offset];

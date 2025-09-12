@@ -111,7 +111,7 @@ namespace Astraia
             }
 
             var channel = segment.Array[segment.Offset];
-            var result =  Utils.Decode32U(segment.Array, segment.Offset + 1);
+            var result =  Utils.Decode(segment.Array, segment.Offset + 1);
             if (result == 0)
             {
                 Logs.Error(Log.E133.Format(cookie, result));

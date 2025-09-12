@@ -60,7 +60,7 @@ namespace Astraia
                 }
 
                 var channel = segment.Array[segment.Offset];
-                var result = Utils.Decode32U(segment.Array, segment.Offset + 1);
+                var result = Utils.Decode(segment.Array, segment.Offset + 1);
 
                 if (state == State.Connected)
                 {
