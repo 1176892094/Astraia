@@ -7,9 +7,9 @@ namespace Astraia.Net
     [Serializable]
     public class NetworkAnimator : NetworkModule
     {
-        public Animator animator;
-
         private AnimatorControllerParameter[] animatorParams;
+        
+        private Animator animator;
 
         private float[] layerWeight;
 
@@ -25,9 +25,9 @@ namespace Astraia.Net
 
         private double sendTime = double.MinValue;
 
-        public override void Dequeue()
+        public void Setup(Animator animator)
         {
-            animator = owner.GetComponent<Animator>();
+            this.animator = animator;
             animatorParams = animator.parameters.Where(parameter => !animator.IsParameterControlledByCurve(parameter.nameHash)).ToArray();
             layerWeight = new float[animator.layerCount];
             animationHash = new int[animator.layerCount];
@@ -48,7 +48,7 @@ namespace Astraia.Net
             sendTime = double.MinValue;
         }
 
-        public void OnUpdate()
+        public void Update()
         {
             if (!animator.enabled)
             {
