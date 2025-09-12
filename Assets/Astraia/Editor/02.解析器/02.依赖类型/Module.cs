@@ -65,79 +65,79 @@ namespace Astraia.Editor
         public readonly MethodReference CreateInstance;
 
         /// <summary>
-        /// 读取泛型的 NetworkAgent
+        /// 读取泛型的 NetworkModule
         /// </summary>
-        public readonly MethodReference ReadNetworkAgent;
+        public readonly MethodReference ReadNetworkModule;
 
         /// <summary>
-        /// NetworkAgent.SendServerRpcInternal
+        /// NetworkModule.SendServerRpcInternal
         /// </summary>
         public readonly MethodReference SendServerRpcInternal;
 
         /// <summary>
-        /// NetworkAgent.SendTargetRpcInternal
+        /// NetworkModule.SendTargetRpcInternal
         /// </summary>
         public readonly MethodReference SendTargetRpcInternal;
 
         /// <summary>
-        /// NetworkAgent.SendClientRpcInternal
+        /// NetworkModule.SendClientRpcInternal
         /// </summary>
         public readonly MethodReference SendClientRpcInternal;
 
         /// <summary>
-        /// NetworkAgent.SyncVarSetterGeneral
+        /// NetworkModule.SyncVarSetterGeneral
         /// </summary>
         public readonly MethodReference SyncVarSetterGeneral;
 
         /// <summary>
-        /// NetworkAgent.SyncVarSetterGameObject
+        /// NetworkModule.SyncVarSetterGameObject
         /// </summary>
         public readonly MethodReference SyncVarSetterGameObject;
 
         /// <summary>
-        /// NetworkAgent.SyncVarSetterNetworkEntity
+        /// NetworkModule.SyncVarSetterNetworkEntity
         /// </summary>
         public readonly MethodReference SyncVarSetterNetworkEntity;
 
         /// <summary>
-        /// NetworkAgent.SyncVarSetterNetworkAgent
+        /// NetworkModule.SyncVarSetterNetworkModule
         /// </summary>
-        public readonly MethodReference SyncVarSetterNetworkAgent;
+        public readonly MethodReference SyncVarSetterNetworkModule;
 
         /// <summary>
-        /// NetworkAgent.SyncVarGetterGeneral
+        /// NetworkModule.SyncVarGetterGeneral
         /// </summary>
         public readonly MethodReference SyncVarGetterGeneral;
 
         /// <summary>
-        /// NetworkAgent.SyncVarGetterGameObject
+        /// NetworkModule.SyncVarGetterGameObject
         /// </summary>
         public readonly MethodReference SyncVarGetterGameObject;
 
         /// <summary>
-        /// NetworkAgent.SyncVarGetterNetworkEntity
+        /// NetworkModule.SyncVarGetterNetworkEntity
         /// </summary>
         public readonly MethodReference SyncVarGetterNetworkEntity;
 
         /// <summary>
-        /// NetworkAgent.SyncVarGetterNetworkAgent
+        /// NetworkModule.SyncVarGetterNetworkModule
         /// </summary>
-        public readonly MethodReference SyncVarGetterNetworkAgent;
+        public readonly MethodReference SyncVarGetterNetworkModule;
 
         /// <summary>
-        /// NetworkAgent.GetSyncVarGameObject
+        /// NetworkModule.GetSyncVarGameObject
         /// </summary>
         public readonly MethodReference GetSyncVarGameObject;
 
         /// <summary>
-        /// NetworkAgent.GetSyncVarNetworkEntity
+        /// NetworkModule.GetSyncVarNetworkEntity
         /// </summary>
         public readonly MethodReference GetSyncVarNetworkEntity;
 
         /// <summary>
-        /// NetworkAgent.GetSyncVarNetworkAgent
+        /// NetworkModule.GetSyncVarNetworkModule
         /// </summary>
-        public readonly MethodReference GetSyncVarNetworkAgent;
+        public readonly MethodReference GetSyncVarNetworkModule;
 
         /// <summary>
         /// NetworkUtilsRpc.RegisterServerRpc
@@ -203,27 +203,27 @@ namespace Astraia.Editor
             GetClientActive = Resolve.GetMethod(Import(typeof(NetworkManager.Client)), assembly, logger, "get_isActive", ref failed);
             GetServerActive = Resolve.GetMethod(Import(typeof(NetworkManager.Server)), assembly, logger, "get_isActive", ref failed);
 
-            ReadNetworkAgent = Resolve.GetMethod(Import(typeof(Net.Extensions)), assembly, logger, method => method.Name == nameof(Net.Extensions.ReadNetworkAgent) && method.HasGenericParameters, ref failed);
+            ReadNetworkModule = Resolve.GetMethod(Import(typeof(Net.Extensions)), assembly, logger, method => method.Name == nameof(Net.Extensions.ReadNetworkModule) && method.HasGenericParameters, ref failed);
 
-            var NetworkAgentType = Import<NetworkAgent>();
-            SyncVarDirty = Resolve.GetProperty(NetworkAgentType, assembly, "syncVarDirty");
-            SyncVarSetterGeneral = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SyncVarSetterGeneral", ref failed);
-            SyncVarSetterGameObject = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SyncVarSetterGameObject", ref failed);
-            SyncVarSetterNetworkAgent = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SyncVarSetterNetworkAgent", ref failed);
-            SyncVarSetterNetworkEntity = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SyncVarSetterNetworkEntity", ref failed);
+            var NetworkModuleType = Import<NetworkModule>();
+            SyncVarDirty = Resolve.GetProperty(NetworkModuleType, assembly, "syncVarDirty");
+            SyncVarSetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SyncVarSetterGeneral", ref failed);
+            SyncVarSetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SyncVarSetterGameObject", ref failed);
+            SyncVarSetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SyncVarSetterNetworkModule", ref failed);
+            SyncVarSetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SyncVarSetterNetworkEntity", ref failed);
             
-            SyncVarGetterGeneral = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SyncVarGetterGeneral", ref failed);
-            SyncVarGetterGameObject = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SyncVarGetterGameObject", ref failed);
-            SyncVarGetterNetworkAgent = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SyncVarGetterNetworkAgent", ref failed);
-            SyncVarGetterNetworkEntity = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SyncVarGetterNetworkEntity", ref failed);
+            SyncVarGetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SyncVarGetterGeneral", ref failed);
+            SyncVarGetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SyncVarGetterGameObject", ref failed);
+            SyncVarGetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SyncVarGetterNetworkModule", ref failed);
+            SyncVarGetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SyncVarGetterNetworkEntity", ref failed);
             
-            GetSyncVarGameObject = Resolve.GetMethod(NetworkAgentType, assembly, logger, "GetSyncVarGameObject", ref failed);
-            GetSyncVarNetworkAgent = Resolve.GetMethod(NetworkAgentType, assembly, logger, "GetSyncVarNetworkAgent", ref failed);
-            GetSyncVarNetworkEntity = Resolve.GetMethod(NetworkAgentType, assembly, logger, "GetSyncVarNetworkEntity", ref failed);
+            GetSyncVarGameObject = Resolve.GetMethod(NetworkModuleType, assembly, logger, "GetSyncVarGameObject", ref failed);
+            GetSyncVarNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, logger, "GetSyncVarNetworkModule", ref failed);
+            GetSyncVarNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, logger, "GetSyncVarNetworkEntity", ref failed);
             
-            SendServerRpcInternal = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SendServerRpcInternal", ref failed);
-            SendClientRpcInternal = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SendClientRpcInternal", ref failed);
-            SendTargetRpcInternal = Resolve.GetMethod(NetworkAgentType, assembly, logger, "SendTargetRpcInternal", ref failed);
+            SendServerRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SendServerRpcInternal", ref failed);
+            SendClientRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SendClientRpcInternal", ref failed);
+            SendTargetRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, logger, "SendTargetRpcInternal", ref failed);
             
             RegisterServerRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, logger, "RegisterServerRpc", ref failed);
             RegisterClientRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, logger, "RegisterClientRpc", ref failed);

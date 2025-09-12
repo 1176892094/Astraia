@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkTransform : NetworkAgent
+    public class NetworkTransform : NetworkModule
     {
         [SerializeField] private Transform target;
 
@@ -198,7 +198,7 @@ namespace Astraia.Net
         // SyncVar Color
         // 总长：1B   ulong(压缩)
         // 类型：2B   ushort
-        // 遮罩：1B   ulong(压缩)  判断组件变动组件 最多 64 NetworkAgent
+        // 遮罩：1B   ulong(压缩)  判断组件变动组件 最多 64 NetworkModule
         // 索引：1B   ulong(压缩)  网络变量最大数量 最多 64 SyncVar
         // 校验：1B   byte  
         // 对象：1B   uint(压缩)

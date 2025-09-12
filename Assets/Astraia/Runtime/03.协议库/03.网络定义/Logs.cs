@@ -108,7 +108,7 @@ namespace Astraia
         public const string E243 = "无法为客户端 {0} 进行处理消息。未知的消息 {1}。";
         public const string E244 = "无法为客户端 {0} 进行处理消息。残留消息: {1}。";
         public const string E245 = "服务器不是活跃的。";
-        public const string E246 = "网络对象 {0} 没有 NetworkObject 组件";
+        public const string E246 = "网络对象 {0} 没有 NetworkEntity 组件";
         public const string E247 = "网络对象 {0} 已经生成。";
         public const string E248 = "在客户端 {0} 找到了空的网络对象。";
 
@@ -121,7 +121,7 @@ namespace Astraia
         public const string E256 = "您必须连接到大厅以更新房间信息!";
         public const string E257 = "没有连接到有效的传输！";
 
-        //NetworkBehaviour
+        //NetworkModule
         public const string E260 = "序列化对象失败。对象名称: {0}[{1}][{2}]\n{3}";
         public const string E261 = "反序列化字节不匹配。读取字节: {0} 哈希对比:{1}/{2}";
         public const string E262 = "调用 {0} 但是客户端不是活跃的。";
@@ -133,7 +133,7 @@ namespace Astraia
         public const string E268 = "调用 {0} 但是对象的连接为空。对象名称：{1}";
         public const string E269 = "设置网络变量的对象未初始化。对象名称: {0}";
         
-        //NetworkObject
+        //NetworkEntity
         public const string E274 = "网络对象 {0} 在构建前需要打开并重新保存。因为网络对象 {1} 没有场景Id";
         public const string E275 = "Assigned AssetId";
         public const string E276 = "调用了已经删除的网络对象。{0} [{1}] {2}";

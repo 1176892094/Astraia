@@ -23,9 +23,9 @@ namespace Astraia.Net
         private struct AgentData
         {
             public readonly GUIContent name;
-            public readonly NetworkAgent value;
+            public readonly NetworkModule value;
 
-            public AgentData(GUIContent name, NetworkAgent value)
+            public AgentData(GUIContent name, NetworkModule value)
             {
                 this.name = name;
                 this.value = value;
@@ -202,7 +202,7 @@ namespace Astraia.Net
 
             foreach (var agent in entity.agentData.Values)
             {
-                if (agent is NetworkAgent result)
+                if (agent is NetworkModule result)
                 {
                     copies.Add(new AgentData(new GUIContent(result.GetType().FullName), result));
                 }

@@ -11,7 +11,7 @@
 
 namespace Astraia.Common
 {
-    public interface IAgent
+    public interface IModule
     {
         void Create(Entity owner);
 

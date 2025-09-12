@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkAnimator : NetworkAgent
+    public class NetworkAnimator : NetworkModule
     {
         public Animator animator;
 

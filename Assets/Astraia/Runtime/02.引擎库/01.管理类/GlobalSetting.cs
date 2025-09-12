@@ -285,7 +285,7 @@ namespace Astraia
                 return;
             }
 
-            if (typeof(IAgent).IsAssignableFrom(result))
+            if (typeof(IModule).IsAssignableFrom(result))
             {
                 agents.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
             }

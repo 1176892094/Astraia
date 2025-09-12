@@ -19,7 +19,7 @@ using UnityEngine.EventSystems;
 namespace Astraia
 {
     [Serializable]
-    public sealed class UIPage<TItem> : Agent<Entity>, IAgent, IEnumerable<KeyValuePair<int, IGrid<TItem>>>
+    public sealed class UIPage<TItem> : Module<Entity>, IModule, IEnumerable<KeyValuePair<int, IGrid<TItem>>>
     {
         private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
         private IList<TItem> items;
@@ -37,13 +37,13 @@ namespace Astraia
         private int numX => (int)assetRect.x + (direction ? 0 : 1);
         private int numY => (int)assetRect.y + (direction ? 1 : 0);
 
-        void IAgent.Dequeue()
+        void IModule.Dequeue()
         {
             selection = false;
             restarted = false;
         }
 
-        void IAgent.Enqueue()
+        void IModule.Enqueue()
         {
             Rebuild();
             items = null;

@@ -16,7 +16,7 @@ using Astraia.Common;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel : Agent<Entity>, IActive
+    public abstract class UIPanel : Module<Entity>, IActive
     {
         internal HashSet<int> group = new HashSet<int>();
         public UIState state = UIState.Common;

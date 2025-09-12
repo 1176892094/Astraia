@@ -130,7 +130,7 @@ namespace Astraia.Net
             writer.WriteUInt(value.objectId);
         }
 
-        public static void WriteNetworkAgent(this MemoryWriter writer, NetworkAgent value)
+        public static void WriteNetworkModule(this MemoryWriter writer, NetworkModule value)
         {
             if (value == null)
             {

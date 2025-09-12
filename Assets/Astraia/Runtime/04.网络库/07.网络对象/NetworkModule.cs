@@ -19,7 +19,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public abstract partial class NetworkAgent : Agent<NetworkEntity>
+    public abstract partial class NetworkModule : Module<NetworkEntity>
     {
         internal byte sourceId;
 

@@ -15,7 +15,7 @@ using System.Collections.Generic;
 namespace Astraia
 {
     [Serializable]
-    public abstract class Feature<TEntity> : Agent<TEntity> where TEntity : Entity
+    public abstract class Feature<TEntity> : Module<TEntity> where TEntity : Entity
     {
         private readonly Dictionary<Enum, Xor.Float> features = new Dictionary<Enum, Xor.Float>();
 

@@ -116,7 +116,7 @@ namespace Astraia.Net
             return objectId != 0 ? (NetworkEntity)objectId : null;
         }
 
-        public static NetworkAgent ReadNetworkAgent(this MemoryReader reader)
+        public static NetworkModule ReadNetworkModule(this MemoryReader reader)
         {
             var entity = reader.ReadNetworkEntity();
             return entity != null ? entity.agents[reader.ReadByte()] : null;
@@ -156,9 +156,9 @@ namespace Astraia.Net
             return texture == null ? null : Sprite.Create(texture, reader.ReadRect(), reader.ReadVector2());
         }
         
-        public static T ReadNetworkAgent<T>(this MemoryReader reader) where T : NetworkAgent
+        public static T ReadNetworkModule<T>(this MemoryReader reader) where T : NetworkModule
         {
-            return reader.ReadNetworkAgent() as T;
+            return reader.ReadNetworkModule() as T;
         }
 
         public static NetworkVariable ReadNetworkVariable(this MemoryReader reader)

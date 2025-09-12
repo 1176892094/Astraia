@@ -42,7 +42,7 @@ namespace Astraia.Net
 
         internal MemoryWriter other = new MemoryWriter();
 
-        internal List<NetworkAgent> agents = new List<NetworkAgent>();
+        internal List<NetworkModule> agents = new List<NetworkModule>();
 
         public bool isOwner => (mode & AgentMode.Owner) != 0;
 
@@ -58,7 +58,7 @@ namespace Astraia.Net
             {
                 foreach (var agent in agentData.Values)
                 {
-                    if (agent is NetworkAgent entity)
+                    if (agent is NetworkModule entity)
                     {
                         agents.Add(entity);
                     }

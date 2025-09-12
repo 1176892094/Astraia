@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace Astraia.Editor
 {
-    internal partial class NetworkAgentProcess
+    internal partial class NetworkModuleProcess
     {
         private Dictionary<FieldDefinition, FieldDefinition> syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
@@ -38,7 +38,7 @@ namespace Astraia.Editor
         private readonly List<KeyValuePair<MethodDefinition, int>> targetRpcList = new List<KeyValuePair<MethodDefinition, int>>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
-        public NetworkAgentProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader,
+        public NetworkModuleProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader,
             Logger logger, TypeDefinition type)
         {
             generate = type;
@@ -111,13 +111,13 @@ namespace Astraia.Editor
 
         public static void AddInvokeParameters(Module module, ICollection<ParameterDefinition> collection)
         {
-            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, module.Import<NetworkAgent>()));
+            collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, module.Import<NetworkModule>()));
             collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             collection.Add(new ParameterDefinition("target", ParameterAttributes.None, module.Import<NetworkClient>()));
         }
     }
 
-    internal partial class NetworkAgentProcess
+    internal partial class NetworkModuleProcess
     {
         /// <summary>
         /// 处理Rpc方法
@@ -331,7 +331,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkAgentProcess
+    internal partial class NetworkModuleProcess
     {
         /// <summary>
         /// 注入静态构造函数
@@ -422,7 +422,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkAgentProcess
+    internal partial class NetworkModuleProcess
     {
         /// <summary>
         /// 生成SyncVar的序列化方法
@@ -460,7 +460,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
-                var writeFunc = writer.GetFunction(syncVar.FieldType.IsDerivedFrom<NetworkAgent>() ? module.Import<NetworkAgent>() : syncVar.FieldType, ref failed);
+                var writeFunc = writer.GetFunction(syncVar.FieldType.IsDerivedFrom<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType, ref failed);
 
                 if (writeFunc != null)
                 {
@@ -501,7 +501,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
                 var writeFunc = writer.GetFunction(
-                    syncVar.FieldType.IsDerivedFrom<NetworkAgent>() ? module.Import<NetworkAgent>() : syncVar.FieldType,
+                    syncVar.FieldType.IsDerivedFrom<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType,
                     ref failed);
 
                 if (writeFunc != null)
@@ -621,13 +621,13 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldflda, objectId);
                 worker.Emit(OpCodes.Call, module.SyncVarGetterNetworkEntity);
             }
-            else if (syncVar.FieldType.IsDerivedFrom<NetworkAgent>() || syncVar.FieldType.Is<NetworkAgent>())
+            else if (syncVar.FieldType.IsDerivedFrom<NetworkModule>() || syncVar.FieldType.Is<NetworkModule>())
             {
                 var objectId = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
-                var getFunc = module.SyncVarGetterNetworkAgent.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
+                var getFunc = module.SyncVarGetterNetworkModule.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else

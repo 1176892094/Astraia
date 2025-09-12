@@ -156,7 +156,7 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 处理每个NetworkAgent的SyncVar
+        /// 处理每个NetworkModule的SyncVar
         /// </summary>
         /// <param name="td"></param>
         /// <param name="failed"></param>
@@ -228,7 +228,7 @@ namespace Astraia.Editor
         private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarIds, long dirtyBits, ref bool failed)
         {
             FieldDefinition objectId = null;
-            if (fd.FieldType.IsDerivedFrom<NetworkAgent>() || fd.FieldType.Is<NetworkAgent>())
+            if (fd.FieldType.IsDerivedFrom<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
             {
                 objectId = new FieldDefinition($"{fd.Name}Id", FieldAttributes.Family, module.Import<NetworkVariable>())
                 {
@@ -307,14 +307,14 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, module.GetSyncVarNetworkEntity);
                 worker.Emit(OpCodes.Ret);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkAgent>() || fd.FieldType.Is<NetworkAgent>())
+            else if (fd.FieldType.IsDerivedFrom<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, netIdFieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                var getFunc = module.GetSyncVarNetworkAgent.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
+                var getFunc = module.GetSyncVarNetworkModule.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
                 worker.Emit(OpCodes.Ret);
             }
@@ -384,11 +384,11 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
                 worker.Emit(OpCodes.Call, module.SyncVarSetterNetworkEntity);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkAgent>() || fd.FieldType.Is<NetworkAgent>())
+            else if (fd.FieldType.IsDerivedFrom<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, netIdFieldReference);
-                var getFunc = module.SyncVarSetterNetworkAgent.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
+                var getFunc = module.SyncVarSetterNetworkModule.MakeGenericInstanceType(assembly.MainModule, fd.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else

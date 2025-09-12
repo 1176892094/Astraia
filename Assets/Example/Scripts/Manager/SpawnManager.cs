@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class SpawnManager : NetworkAgent
+    public class SpawnManager : NetworkModule
     {
         public static SpawnManager Instance;
 

@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using Astraia.Net;
 using Mono.Cecil;
-using UnityEngine;
 
 namespace Astraia.Editor
 {
@@ -82,32 +81,32 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 处理 NetworkAgent
+        /// 处理 NetworkModule
         /// </summary>
         /// <param name="td"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private bool ProcessNetworkBehavior(TypeDefinition td, ref bool failed)
+        private bool ProcessNetworkModule(TypeDefinition td, ref bool failed)
         {
             if (!td.IsClass) return false;
-            if (!td.IsDerivedFrom<NetworkAgent>())
+            if (!td.IsDerivedFrom<NetworkModule>())
             {
                 return false;
             }
 
-            var behaviours = new List<TypeDefinition>();
+            var modules = new List<TypeDefinition>();
 
             TypeDefinition parent = td;
             while (parent != null)
             {
-                if (parent.Is<NetworkAgent>())
+                if (parent.Is<NetworkModule>())
                 {
                     break;
                 }
 
                 try
                 {
-                    behaviours.Insert(0, parent);
+                    modules.Insert(0, parent);
                     parent = parent.BaseType.Resolve();
                 }
                 catch (AssemblyResolutionException)
@@ -117,9 +116,9 @@ namespace Astraia.Editor
             }
 
             bool changed = false;
-            foreach (TypeDefinition behaviour in behaviours)
+            foreach (TypeDefinition m in modules)
             {
-                changed |= new NetworkAgentProcess(assembly, access, module, writer, reader, logger, behaviour).Process(ref failed);
+                changed |= new NetworkModuleProcess(assembly, access, module, writer, reader, logger, m).Process(ref failed);
             }
 
             return changed;
@@ -137,7 +136,7 @@ namespace Astraia.Editor
             {
                 if (td.IsClass && td.BaseType.IsResolve())
                 {
-                    result |= ProcessNetworkBehavior(td, ref failed);
+                    result |= ProcessNetworkModule(td, ref failed);
                 }
             }
 

@@ -100,9 +100,9 @@ namespace Astraia.Editor
                 return AddCollection(tr, elementType, nameof(Net.Extensions.WriteList), ref failed);
             }
 
-            if (tr.IsDerivedFrom<NetworkAgent>() || tr.Is<NetworkAgent>())
+            if (tr.IsDerivedFrom<NetworkModule>() || tr.Is<NetworkModule>())
             {
-                return AddNetworkAgent(tr);
+                return AddNetworkModule(tr);
             }
 
             if (td.IsDerivedFrom<Component>())
@@ -188,11 +188,11 @@ namespace Astraia.Editor
             return md;
         }
 
-        private MethodReference AddNetworkAgent(TypeReference tr)
+        private MethodReference AddNetworkModule(TypeReference tr)
         {
-            if (!methods.TryGetValue(module.Import<NetworkAgent>(), out var mr))
+            if (!methods.TryGetValue(module.Import<NetworkModule>(), out var mr))
             {
-                throw new MissingMethodException("获取 NetworkAgent 方法丢失");
+                throw new MissingMethodException("获取 NetworkModule 方法丢失");
             }
 
             Register(tr, mr);

@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public delegate void InvokeDelegate(NetworkAgent component, MemoryReader reader, NetworkClient client);
+    public delegate void InvokeDelegate(NetworkModule component, MemoryReader reader, NetworkClient client);
 
     public static class NetworkAttribute
     {
@@ -65,14 +65,14 @@ namespace Astraia.Net
             return false;
         }
 
-        internal static bool Invoke(ushort id, InvokeMode mode, NetworkClient client, MemoryReader reader, NetworkAgent component)
+        internal static bool Invoke(ushort id, InvokeMode mode, NetworkClient client, MemoryReader reader, NetworkModule component)
         {
             if (!messages.TryGetValue(id, out var message) || message == null || message.mode != mode)
             {
                 return false;
             }
 
-            if (!message.component.IsInstanceOfType(component)) // 判断是否是 NetworkAgent 的实例或派生类型的实例
+            if (!message.component.IsInstanceOfType(component)) // 判断是否是 NetworkModule 的实例或派生类型的实例
             {
                 return false;
             }

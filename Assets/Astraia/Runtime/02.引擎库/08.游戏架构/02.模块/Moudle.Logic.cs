@@ -16,13 +16,13 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public abstract class Agent<T> : IAgent where T : Entity
+    public abstract class Module<T> : IModule where T : Entity
     {
         public T owner;
         public Transform transform => owner?.transform;
         public GameObject gameObject => owner?.gameObject;
 
-        void IAgent.Create(Entity owner)
+        void IModule.Create(Entity owner)
         {
             this.owner = (T)owner;
         }
@@ -35,9 +35,9 @@ namespace Astraia
         {
         }
 
-        public static implicit operator bool(Agent<T> agent)
+        public static implicit operator bool(Module<T> module)
         {
-            return agent != null && agent.owner && agent.owner.isActiveAndEnabled;
+            return module != null && module.owner && module.owner.isActiveAndEnabled;
         }
     }
 }

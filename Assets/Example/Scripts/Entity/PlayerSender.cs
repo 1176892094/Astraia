@@ -18,7 +18,7 @@ using UnityEngine;
 namespace Runtime
 {
     [Serializable]
-    public class PlayerSender : NetworkAgent, IStartAuthority
+    public class PlayerSender : NetworkModule, IStartAuthority
     {
         [SyncVar(nameof(OnColorValueChanged))] public Color syncColor;
         private new Player owner => (Player)base.owner;

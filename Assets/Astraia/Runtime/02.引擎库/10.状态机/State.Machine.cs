@@ -16,7 +16,7 @@ using Astraia.Common;
 namespace Astraia
 {
     [Serializable]
-    public abstract class StateMachine<TEntity> : Agent<TEntity> where TEntity : Entity
+    public abstract class StateMachine<TEntity> : Module<TEntity> where TEntity : Entity
     {
         private Dictionary<int, IState> states = new Dictionary<int, IState>();
         private IState current;
