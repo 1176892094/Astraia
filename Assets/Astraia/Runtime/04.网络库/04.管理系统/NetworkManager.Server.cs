@@ -385,14 +385,14 @@ namespace Astraia.Net
 
                 if (client != null && Mode == EntryMode.Host && client.clientId == Host)
                 {
-                    entity.mode |= AgentMode.Owner;
+                    entity.mode |= ModuleMode.Owner;
                 }
 
                 if (!entity.isServer && entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
-                    entity.mode |= AgentMode.Server;
-                    entity.mode = Client.isActive ? entity.mode | AgentMode.Client : entity.mode & ~AgentMode.Owner;
+                    entity.mode |= ModuleMode.Server;
+                    entity.mode = Client.isActive ? entity.mode | ModuleMode.Client : entity.mode & ~ModuleMode.Owner;
                     spawns[entity.objectId] = entity;
                     entity.OnStartServer();
                 }
@@ -467,7 +467,7 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopServer();
-                entity.state |= AgentState.Destroy;
+                entity.state |= ModuleState.Destroy;
                 Object.Destroy(entity.gameObject);
             }
         }
