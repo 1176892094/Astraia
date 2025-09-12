@@ -109,7 +109,7 @@ namespace Astraia
                     var cacheType = Service.Ref.GetType("UnityEngine.UI.Button,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var button))
                     {
-                        var panel = inject.GetComponent<Entity>()?.HasComponent<UIPanel>();
+                        var panel = inject.GetComponent<Entity>()?.AskComponent<UIPanel>();
                         if (panel != null)
                         {
                             button.GetValue<UnityEvent>("onClick").AddListener(() =>
@@ -129,7 +129,7 @@ namespace Astraia
                     cacheType = Service.Ref.GetType("UnityEngine.UI.Toggle,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var toggle))
                     {
-                        var panel = inject.GetComponent<Entity>()?.HasComponent<UIPanel>();
+                        var panel = inject.GetComponent<Entity>()?.AskComponent<UIPanel>();
                         if (panel != null)
                         {
                             toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value =>
@@ -149,7 +149,7 @@ namespace Astraia
                     cacheType = Service.Ref.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
                     if (component.TryGetComponent(cacheType, out var inputField))
                     {
-                        var panel = inject.GetComponent<Entity>()?.HasComponent<UIPanel>();
+                        var panel = inject.GetComponent<Entity>()?.AskComponent<UIPanel>();
                         if (panel != null)
                         {
                             inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>

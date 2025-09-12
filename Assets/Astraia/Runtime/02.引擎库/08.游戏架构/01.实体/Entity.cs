@@ -89,7 +89,7 @@ namespace Astraia
             return (T)EntityManager.AddComponent(this, typeof(T), typeof(T));
         }
 
-        public T HasComponent<T>() where T : IModule
+        public T AskComponent<T>() where T : IModule
         {
             return moduleData.TryGetValue(typeof(T), out var module) ? (T)module : default;
         }
@@ -109,7 +109,7 @@ namespace Astraia
             return EntityManager.AddComponent(this, keyType, realType, queryType);
         }
 
-        public IModule HasComponent(Type keyType)
+        public IModule AskComponent(Type keyType)
         {
             return moduleData.TryGetValue(keyType, out var module) ? module : null;
         }

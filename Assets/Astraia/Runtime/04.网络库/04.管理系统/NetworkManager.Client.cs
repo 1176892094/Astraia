@@ -292,8 +292,8 @@ namespace Astraia.Net
                     {
                         spawns[message.objectId] = entity;
                         entity.gameObject.SetActive(true);
-                        entity.mode = message.isOwner ? entity.mode | ModuleMode.Owner : entity.mode & ~ModuleMode.Owner;
-                        entity.mode |= ModuleMode.Client;
+                        entity.mode = message.isOwner ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                        entity.mode |= EntityMode.Client;
                         entity.OnNotifyAuthority();
                         entity.OnStartClient();
                     }
@@ -328,7 +328,7 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopClient();
-                entity.mode &= ~ModuleMode.Owner;
+                entity.mode &= ~EntityMode.Owner;
                 entity.OnNotifyAuthority();
                 spawns.Remove(message.objectId);
 
@@ -349,7 +349,7 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopClient();
-                entity.mode &= ~ModuleMode.Owner;
+                entity.mode &= ~EntityMode.Owner;
                 entity.OnNotifyAuthority();
                 spawns.Remove(message.objectId);
 
@@ -473,8 +473,8 @@ namespace Astraia.Net
                 }
 
                 entity.objectId = message.objectId;
-                entity.mode = message.isOwner ? entity.mode | ModuleMode.Owner : entity.mode & ~ModuleMode.Owner;
-                entity.mode |= ModuleMode.Client;
+                entity.mode = message.isOwner ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                entity.mode |= EntityMode.Client;
                 entity.transform.localPosition = message.position;
                 entity.transform.localRotation = message.rotation;
                 entity.transform.localScale = message.localScale;
