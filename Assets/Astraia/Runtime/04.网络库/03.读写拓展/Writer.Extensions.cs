@@ -79,7 +79,7 @@ namespace Astraia.Net
 
         public static void WriteInt(this MemoryWriter writer, int value)
         {
-            writer.WriteUInt(Service.LEB.ZigZagEncode(value));
+            writer.WriteUInt(Service.Bit.ZigZagEncode(value));
         }
 
         public static void WriteIntNullable(this MemoryWriter writer, int? value)
@@ -89,7 +89,7 @@ namespace Astraia.Net
 
         public static void WriteUInt(this MemoryWriter writer, uint value)
         {
-            Service.LEB.EncodeUInt(writer, value);
+            Service.Bit.EncodeUInt(writer, value);
         }
 
         public static void WriteUIntNullable(this MemoryWriter writer, uint? value)
@@ -99,7 +99,7 @@ namespace Astraia.Net
 
         public static void WriteLong(this MemoryWriter writer, long value)
         {
-            writer.WriteULong(Service.LEB.ZigZagEncode(value));
+            writer.WriteULong(Service.Bit.ZigZagEncode(value));
         }
 
         public static void WriteLongNullable(this MemoryWriter writer, long? value)
@@ -109,7 +109,7 @@ namespace Astraia.Net
 
         public static void WriteULong(this MemoryWriter writer, ulong value)
         {
-            Service.LEB.EncodeULong(writer, value);
+            Service.Bit.EncodeULong(writer, value);
         }
 
         public static void WriteULongNullable(this MemoryWriter writer, ulong? value)
@@ -170,11 +170,11 @@ namespace Astraia.Net
         {
             if (value == null)
             {
-                Service.LEB.EncodeULong(writer, 0);
+                Service.Bit.EncodeULong(writer, 0);
                 return;
             }
 
-            Service.LEB.EncodeULong(writer, checked((uint)value.Length) + 1);
+            Service.Bit.EncodeULong(writer, checked((uint)value.Length) + 1);
             writer.WriteBytes(value, 0, value.Length);
         }
 
@@ -182,11 +182,11 @@ namespace Astraia.Net
         {
             if (value == default)
             {
-                Service.LEB.EncodeULong(writer, 0);
+                Service.Bit.EncodeULong(writer, 0);
                 return;
             }
 
-            Service.LEB.EncodeULong(writer, checked((uint)value.Count) + 1);
+            Service.Bit.EncodeULong(writer, checked((uint)value.Count) + 1);
             writer.WriteBytes(value.Array, value.Offset, value.Count);
         }
 
@@ -199,11 +199,11 @@ namespace Astraia.Net
         {
             if (values == null)
             {
-                Service.LEB.EncodeULong(writer, 0);
+                Service.Bit.EncodeULong(writer, 0);
                 return;
             }
 
-            Service.LEB.EncodeULong(writer, checked((uint)values.Count) + 1);
+            Service.Bit.EncodeULong(writer, checked((uint)values.Count) + 1);
             foreach (var value in values)
             {
                 writer.Invoke(value);
@@ -214,11 +214,11 @@ namespace Astraia.Net
         {
             if (values == null)
             {
-                Service.LEB.EncodeULong(writer, 0);
+                Service.Bit.EncodeULong(writer, 0);
                 return;
             }
 
-            Service.LEB.EncodeULong(writer, checked((uint)values.Count) + 1);
+            Service.Bit.EncodeULong(writer, checked((uint)values.Count) + 1);
             foreach (var value in values)
             {
                 writer.Invoke(value);
@@ -229,11 +229,11 @@ namespace Astraia.Net
         {
             if (values == null)
             {
-                Service.LEB.EncodeULong(writer, 0);
+                Service.Bit.EncodeULong(writer, 0);
                 return;
             }
 
-            Service.LEB.EncodeULong(writer, checked((uint)values.Length) + 1);
+            Service.Bit.EncodeULong(writer, checked((uint)values.Length) + 1);
             foreach (var value in values)
             {
                 writer.Invoke(value);

@@ -15,7 +15,7 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static class LEB
+        public static class Bit
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static int Invoke(ulong value)

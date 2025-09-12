@@ -219,7 +219,7 @@ namespace Astraia.Net
         {
             if (!string.IsNullOrEmpty(address))
             {
-                var count = Service.LEB.Invoke((uint)bytes);
+                var count = Service.Bit.Invoke((uint)bytes);
                 sendItems.Record(message, count + bytes);
             }
         }
@@ -228,7 +228,7 @@ namespace Astraia.Net
         {
             if (!string.IsNullOrEmpty(address))
             {
-                var count = Service.LEB.Invoke((uint)bytes + 2);
+                var count = Service.Bit.Invoke((uint)bytes + 2);
                 receiveItems.Record(message, count + bytes + 2);
             }
         }

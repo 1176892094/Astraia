@@ -12,6 +12,8 @@
 using System;
 using System.Collections.Generic;
 
+// ReSharper disable All
+
 namespace Astraia.Common
 {
     internal static partial class ArgsManager
