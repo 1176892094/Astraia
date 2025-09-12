@@ -18,11 +18,15 @@ namespace Astraia.Common
     public interface IEvent<in T> where T : struct, IEvent
     {
         void Execute(T message);
-    }
-    
-    public interface IAutoEvent<in T> : IEvent<T> where T : struct, IEvent
-    {
+
+        /// <summary>
+        /// Reflection
+        /// </summary>
         void Listen() => EventManager.Listen(this);
+
+        /// <summary>
+        /// Reflection
+        /// </summary>
         void Remove() => EventManager.Remove(this);
     }
 }

@@ -35,7 +35,7 @@ namespace Astraia.Common
             }
         }
 
-        private void Update()
+        public static void OnUpdate()
         {
             foreach (var panel in panelData.Values)
             {

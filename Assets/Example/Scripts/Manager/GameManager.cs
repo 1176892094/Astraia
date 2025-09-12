@@ -27,7 +27,7 @@ namespace Runtime
     }
 
     [Serializable]
-    public class GameManager : Singleton<GameManager, Entity>, IAutoEvent<ServerReady>, IAutoEvent<ServerConnect>
+    public class GameManager : Singleton<GameManager, Entity>, IEvent<ServerReady>, IEvent<ServerConnect>
     {
         [SerializeField] private Vector2 center;
         [SerializeField] private Vector2 content;

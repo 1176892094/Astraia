@@ -108,6 +108,11 @@ namespace Astraia.Common
             PackManager.LoadAssetData();
         }
 
+        private void Update()
+        {
+            SystemManager.OnUpdate();
+        }
+
         private async void OnDestroy()
         {
             Instance = null;

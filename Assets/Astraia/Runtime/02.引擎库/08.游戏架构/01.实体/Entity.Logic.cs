@@ -102,9 +102,9 @@ namespace Astraia
             var events = agent.GetType().GetInterfaces();
             foreach (var @event in events)
             {
-                if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IAutoEvent<>))
+                if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
                 {
-                    var eventType = typeof(IAutoEvent<>).MakeGenericType(@event.GetGenericArguments());
+                    var eventType = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
                     var agentShow = (Action)Delegate.CreateDelegate(typeof(Action), agent, eventType.GetMethod("Listen", Service.Ref.Instance)!);
                     var agentHide = (Action)Delegate.CreateDelegate(typeof(Action), agent, eventType.GetMethod("Remove", Service.Ref.Instance)!);
                     owner.OnShow += agentShow;
