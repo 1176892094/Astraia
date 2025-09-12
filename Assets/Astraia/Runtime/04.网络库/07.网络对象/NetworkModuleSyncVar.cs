@@ -257,7 +257,7 @@ namespace Astraia.Net
             if (entity != null)
             {
                 newValue = entity.objectId;
-                index = entity.sourceId;
+                index = entity.moduleId;
                 if (newValue == 0)
                 {
                     Debug.LogWarning(Log.E269.Format(entity.gameObject.name));
@@ -279,7 +279,7 @@ namespace Astraia.Net
                 return null;
             }
         
-            field = (T)oldObject.agents[variable.sourceId];
+            field = (T)oldObject.modules[variable.moduleId];
             return field;
         }
         
@@ -291,7 +291,7 @@ namespace Astraia.Net
             if (entity != null)
             {
                 newValue = entity.objectId;
-                index = entity.sourceId;
+                index = entity.moduleId;
                 if (newValue == 0)
                 {
                     Debug.LogWarning(Log.E269.Format(entity.gameObject.name));

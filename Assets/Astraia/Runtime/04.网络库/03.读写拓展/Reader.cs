@@ -119,7 +119,7 @@ namespace Astraia.Net
         public static NetworkModule ReadNetworkModule(this MemoryReader reader)
         {
             var entity = reader.ReadNetworkEntity();
-            return entity != null ? entity.agents[reader.ReadByte()] : null;
+            return entity != null ? entity.modules[reader.ReadByte()] : null;
         }
 
         public static Transform ReadTransform(this MemoryReader reader)
@@ -164,14 +164,14 @@ namespace Astraia.Net
         public static NetworkVariable ReadNetworkVariable(this MemoryReader reader)
         {
             var objectId = reader.ReadUInt();
-            byte agentId = 0;
+            byte moduleId = 0;
 
             if (objectId != 0)
             {
-                agentId = reader.ReadByte();
+                moduleId = reader.ReadByte();
             }
 
-            return new NetworkVariable(objectId, agentId);
+            return new NetworkVariable(objectId, moduleId);
         }
     }
 }

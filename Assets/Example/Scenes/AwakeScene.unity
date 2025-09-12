@@ -303,7 +303,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6fc4ddccc2b4d45821658f66d8f36e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Run::Astraia.Entity
-  agentList:
+  moduleList:
   - Runtime.GameManager, Assembly-CSharp
 --- !u!114 &75954609
 MonoBehaviour:

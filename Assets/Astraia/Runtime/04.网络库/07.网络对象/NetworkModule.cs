@@ -21,7 +21,7 @@ namespace Astraia.Net
     [Serializable]
     public abstract partial class NetworkModule : Module<NetworkEntity>
     {
-        internal byte sourceId;
+        internal byte moduleId;
 
         public SyncMode syncDirection;
 
@@ -175,7 +175,7 @@ namespace Astraia.Net
             var message = new ServerRpcMessage
             {
                 objectId = objectId,
-                sourceId = sourceId,
+                sourceId = moduleId,
                 methodHash = (ushort)methodHash,
                 segment = writer,
             };
@@ -200,7 +200,7 @@ namespace Astraia.Net
             var message = new ClientRpcMessage
             {
                 objectId = objectId,
-                sourceId = sourceId,
+                sourceId = moduleId,
                 methodHash = (ushort)methodHash,
                 segment = writer
             };
@@ -242,7 +242,7 @@ namespace Astraia.Net
             var message = new ClientRpcMessage
             {
                 objectId = objectId,
-                sourceId = sourceId,
+                sourceId = moduleId,
                 methodHash = (ushort)methodHash,
                 segment = writer
             };

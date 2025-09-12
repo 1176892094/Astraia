@@ -414,7 +414,7 @@ namespace Astraia.Net
                 var isOwner = entity.client == client;
                 var transform = entity.transform;
                 ArraySegment<byte> segment = default;
-                if (entity.agents.Count != 0)
+                if (entity.modules.Count != 0)
                 {
                     entity.ServerSerialize(true, owner, other);
                     segment = isOwner ? owner : other;

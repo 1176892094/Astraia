@@ -29,9 +29,9 @@ namespace Astraia
 
         protected virtual void Awake()
         {
-            foreach (var agent in agentList)
+            foreach (var module in moduleList)
             {
-                AddComponent(Service.Ref.GetType(agent));
+                AddComponent(Service.Ref.GetType(module));
             }
         }
 
@@ -51,7 +51,7 @@ namespace Astraia
             OnFade = null;
             OnShow = null;
             OnHide = null;
-            agentList.Clear();
+            moduleList.Clear();
             moduleData.Clear();
             ArgsManager.Dispose(GetEntityId());
         }
@@ -69,19 +69,19 @@ namespace Astraia
         [HideInPlayMode, ValueDropdown("Modules")]
 #endif
         [SerializeField]
-        private List<string> agentList = new List<string>();
+        private List<string> moduleList = new List<string>();
     }
 
     public partial class Entity
     {
-        public T AddComponent<T>(T agent) where T : IModule
+        public T AddComponent<T>(T module) where T : IModule
         {
-            return (T)EntityManager.AddComponent(this, agent, agent.GetType());
+            return (T)EntityManager.AddComponent(this, module, module.GetType());
         }
 
-        public T AddComponent<T>(T agent, Type queryType) where T : IModule
+        public T AddComponent<T>(T module, Type queryType) where T : IModule
         {
-            return (T)EntityManager.AddComponent(this, agent, agent.GetType(), queryType);
+            return (T)EntityManager.AddComponent(this, module, module.GetType(), queryType);
         }
 
         public T AddComponent<T>() where T : IModule
@@ -91,7 +91,7 @@ namespace Astraia
 
         public T HasComponent<T>() where T : IModule
         {
-            return moduleData.TryGetValue(typeof(T), out var agent) ? (T)agent : default;
+            return moduleData.TryGetValue(typeof(T), out var module) ? (T)module : default;
         }
 
         public IModule AddComponent(Type realType)
@@ -111,7 +111,7 @@ namespace Astraia
 
         public IModule HasComponent(Type keyType)
         {
-            return moduleData.TryGetValue(keyType, out var agent) ? agent : null;
+            return moduleData.TryGetValue(keyType, out var module) ? module : null;
         }
     }
 }

@@ -16,24 +16,24 @@ namespace Astraia.Net
     [Serializable]
     public struct NetworkVariable : IEquatable<NetworkVariable>
     {
-        public byte sourceId;
+        public byte moduleId;
         public uint objectId;
       
 
-        public NetworkVariable(uint objectId, int sourceId)
+        public NetworkVariable(uint objectId, int moduleId)
         {
             this.objectId = objectId;
-            this.sourceId = (byte)sourceId;
+            this.moduleId = (byte)moduleId;
         }
 
-        public bool Equals(uint objectId, int sourceId)
+        public bool Equals(uint objectId, int moduleId)
         {
-            return this.objectId == objectId && this.sourceId == sourceId;
+            return this.objectId == objectId && this.moduleId == moduleId;
         }
 
         public bool Equals(NetworkVariable other)
         {
-            return objectId == other.objectId && sourceId == other.sourceId;
+            return objectId == other.objectId && moduleId == other.moduleId;
         }
 
         public override bool Equals(object obj)
@@ -43,7 +43,7 @@ namespace Astraia.Net
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(objectId, sourceId);
+            return HashCode.Combine(objectId, moduleId);
         }
     }
 }

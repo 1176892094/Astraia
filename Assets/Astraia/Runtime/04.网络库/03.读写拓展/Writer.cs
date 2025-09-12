@@ -139,7 +139,7 @@ namespace Astraia.Net
             }
 
             writer.WriteNetworkEntity(value.owner);
-            writer.WriteByte(value.sourceId);
+            writer.WriteByte(value.moduleId);
         }
 
         public static void WriteTransform(this MemoryWriter writer, Transform value)

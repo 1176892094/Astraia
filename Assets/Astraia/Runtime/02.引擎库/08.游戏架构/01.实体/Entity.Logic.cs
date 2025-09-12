@@ -23,9 +23,9 @@ namespace Astraia
 
         public static List<Entity> Query<T>() where T : IModule
         {
-            if (queryData.TryGetValue(typeof(T), out var agents))
+            if (queryData.TryGetValue(typeof(T), out var modules))
             {
-                return agents;
+                return modules;
             }
 
             return Empty;
@@ -45,12 +45,12 @@ namespace Astraia
         internal static IModule AddComponent(Entity owner, IModule module, Type keyType, Type queryType = null)
         {
             queryType ??= keyType;
-            var agents = owner.moduleData;
+            var modules = owner.moduleData;
             var queries = GetQueries(queryType);
-            if (!agents.ContainsKey(keyType))
+            if (!modules.ContainsKey(keyType))
             {
                 queries.Add(owner);
-                agents.Add(keyType, module);
+                modules.Add(keyType, module);
                 AddEvent(owner, module);
                 owner.OnFade += Enqueue;
             }
@@ -60,7 +60,7 @@ namespace Astraia
             void Enqueue()
             {
                 module.Enqueue();
-                agents.Remove(keyType);
+                modules.Remove(keyType);
                 queries.Remove(owner);
                 if (queries.Count == 0) queryData.Remove(keyType);
                 HeapManager.Enqueue(module, keyType);
@@ -70,26 +70,26 @@ namespace Astraia
         internal static IModule AddComponent(Entity owner, Type keyType, Type realType, Type queryType = null)
         {
             queryType ??= keyType;
-            var agents = owner.moduleData;
+            var modules = owner.moduleData;
             var queries = GetQueries(queryType);
-            if (!agents.TryGetValue(keyType, out var agent))
+            if (!modules.TryGetValue(keyType, out var module))
             {
-                agent = HeapManager.Dequeue<IModule>(realType);
+                module = HeapManager.Dequeue<IModule>(realType);
                 queries.Add(owner);
-                agents.Add(keyType, agent);
-                AddEvent(owner, agent);
+                modules.Add(keyType, module);
+                AddEvent(owner, module);
                 owner.OnFade += Enqueue;
             }
 
-            return agent;
+            return module;
 
             void Enqueue()
             {
-                agent.Enqueue();
-                agents.Remove(keyType);
+                module.Enqueue();
+                modules.Remove(keyType);
                 queries.Remove(owner);
                 if (queries.Count == 0) queryData.Remove(keyType);
-                HeapManager.Enqueue(agent, realType);
+                HeapManager.Enqueue(module, realType);
             }
         }
 
@@ -105,10 +105,10 @@ namespace Astraia
                 if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
                 {
                     var eventType = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
-                    var agentShow = (Action)Delegate.CreateDelegate(typeof(Action), module, eventType.GetMethod("Listen", Service.Ref.Instance)!);
-                    var agentHide = (Action)Delegate.CreateDelegate(typeof(Action), module, eventType.GetMethod("Remove", Service.Ref.Instance)!);
-                    owner.OnShow += agentShow;
-                    owner.OnHide += agentHide;
+                    var moduleShow = (Action)Delegate.CreateDelegate(typeof(Action), module, eventType.GetMethod("Listen", Service.Ref.Instance)!);
+                    var moduleHide = (Action)Delegate.CreateDelegate(typeof(Action), module, eventType.GetMethod("Remove", Service.Ref.Instance)!);
+                    owner.OnShow += moduleShow;
+                    owner.OnHide += moduleHide;
                 }
             }
 

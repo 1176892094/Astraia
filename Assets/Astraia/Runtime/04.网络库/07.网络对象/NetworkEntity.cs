@@ -42,7 +42,7 @@ namespace Astraia.Net
 
         internal MemoryWriter other = new MemoryWriter();
 
-        internal List<NetworkModule> agents = new List<NetworkModule>();
+        internal List<NetworkModule> modules = new List<NetworkModule>();
 
         public bool isOwner => (mode & ModuleMode.Owner) != 0;
 
@@ -56,17 +56,17 @@ namespace Astraia.Net
             base.OnEnable();
             if ((state & ModuleState.Awake) == 0)
             {
-                foreach (var agent in moduleData.Values)
+                foreach (var module in moduleData.Values)
                 {
-                    if (agent is NetworkModule entity)
+                    if (module is NetworkModule entity)
                     {
-                        agents.Add(entity);
+                        modules.Add(entity);
                     }
                 }
 
-                for (byte i = 0; i < agents.Count; ++i)
+                for (byte i = 0; i < modules.Count; ++i)
                 {
-                    agents[i].sourceId = i;
+                    modules[i].moduleId = i;
                 }
 
                 state |= ModuleState.Awake;
@@ -89,7 +89,7 @@ namespace Astraia.Net
 
             owner = null;
             other = null;
-            agents = null;
+            modules = null;
             client = null;
             base.OnDestroy();
         }
@@ -192,7 +192,7 @@ namespace Astraia.Net
             return (mask & (ulong)(1 << index)) != 0;
         }
 
-        internal void InvokeMessage(byte agentId, ushort function, InvokeMode mode, MemoryReader reader, NetworkClient client = null)
+        internal void InvokeMessage(byte moduleId, ushort function, InvokeMode mode, MemoryReader reader, NetworkClient client = null)
         {
             if (transform == null)
             {
@@ -200,13 +200,13 @@ namespace Astraia.Net
                 return;
             }
 
-            if (agentId >= agents.Count)
+            if (moduleId >= modules.Count)
             {
-                Debug.LogWarning(Log.E277.Format(objectId, agentId));
+                Debug.LogWarning(Log.E277.Format(objectId, moduleId));
                 return;
             }
 
-            if (!NetworkAttribute.Invoke(function, mode, client, reader, agents[agentId]))
+            if (!NetworkAttribute.Invoke(function, mode, client, reader, modules[moduleId]))
             {
                 Debug.LogError(Log.E278.Format(mode, function, gameObject.name, objectId));
             }
@@ -226,11 +226,11 @@ namespace Astraia.Net
 
         internal void ClearDirty(bool total)
         {
-            foreach (var agent in agents)
+            foreach (var module in modules)
             {
-                if (agent.IsDirty() || total)
+                if (module.IsDirty() || total)
                 {
-                    agent.ClearDirty();
+                    module.ClearDirty();
                 }
             }
         }
@@ -239,9 +239,9 @@ namespace Astraia.Net
         {
             if ((state & ModuleState.Spawn) == 0)
             {
-                foreach (var agent in agents)
+                foreach (var module in modules)
                 {
-                    if (agent is IStartClient result)
+                    if (module is IStartClient result)
                     {
                         result.OnStartClient();
                     }
@@ -255,9 +255,9 @@ namespace Astraia.Net
         {
             if ((state & ModuleState.Spawn) != 0)
             {
-                foreach (var agent in agents)
+                foreach (var module in modules)
                 {
-                    if (agent is IStopClient result)
+                    if (module is IStopClient result)
                     {
                         result.OnStopClient();
                     }
@@ -267,9 +267,9 @@ namespace Astraia.Net
 
         internal void OnStartServer()
         {
-            foreach (var agent in agents)
+            foreach (var module in modules)
             {
-                if (agent is IStartServer result)
+                if (module is IStartServer result)
                 {
                     result.OnStartServer();
                 }
@@ -278,9 +278,9 @@ namespace Astraia.Net
 
         internal void OnStopServer()
         {
-            foreach (var agent in agents)
+            foreach (var module in modules)
             {
-                if (agent is IStopServer result)
+                if (module is IStopServer result)
                 {
                     result.OnStopServer();
                 }
@@ -289,9 +289,9 @@ namespace Astraia.Net
 
         private void OnStartAuthority()
         {
-            foreach (var agent in agents)
+            foreach (var module in modules)
             {
-                if (agent is IStartAuthority result)
+                if (module is IStartAuthority result)
                 {
                     result.OnStartAuthority();
                 }
@@ -300,9 +300,9 @@ namespace Astraia.Net
 
         private void OnStopAuthority()
         {
-            foreach (var agent in agents)
+            foreach (var module in modules)
             {
-                if (agent is IStopAuthority result)
+                if (module is IStopAuthority result)
                 {
                     result.OnStopAuthority();
                 }

@@ -168,7 +168,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f46525886dd94e1cad6393357b1f3917, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agentList:
+  moduleList:
   - Runtime.PlayerSender, Assembly-CSharp
   - Astraia.Net.NetworkTransform, Astraia.Net
   assetId: 30001

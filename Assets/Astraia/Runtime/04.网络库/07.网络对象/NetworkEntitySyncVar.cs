@@ -18,7 +18,7 @@ namespace Astraia.Net
     {
         internal void ServerSerialize(bool initialize, MemoryWriter owner, MemoryWriter other)
         {
-            var components = agents;
+            var components = modules;
             var (ownerMask, otherMask) = ServerDirtyMasks(initialize);
 
             if (ownerMask != 0)
@@ -59,7 +59,7 @@ namespace Astraia.Net
 
         internal void ClientSerialize(MemoryWriter writer)
         {
-            var components = agents;
+            var components = modules;
             var dirtyMask = ClientDirtyMask();
             if (dirtyMask != 0)
             {
@@ -78,7 +78,7 @@ namespace Astraia.Net
 
         internal bool ServerDeserialize(MemoryReader reader)
         {
-            var components = agents;
+            var components = modules;
             var mask = Service.Bit.DecodeULong(reader);
 
             for (var i = 0; i < components.Count; ++i)
@@ -104,7 +104,7 @@ namespace Astraia.Net
 
         internal void ClientDeserialize(MemoryReader reader, bool initialize)
         {
-            var components = agents;
+            var components = modules;
             var mask = Service.Bit.DecodeULong(reader);
 
             for (var i = 0; i < components.Count; ++i)
@@ -122,7 +122,7 @@ namespace Astraia.Net
             ulong ownerMask = 0;
             ulong otherMask = 0;
 
-            var components = agents;
+            var components = modules;
             for (var i = 0; i < components.Count; ++i)
             {
                 var component = components[i];
@@ -145,7 +145,7 @@ namespace Astraia.Net
         private ulong ClientDirtyMask()
         {
             ulong mask = 0;
-            var components = agents;
+            var components = modules;
             for (var i = 0; i < components.Count; ++i)
             {
                 var component = components[i];

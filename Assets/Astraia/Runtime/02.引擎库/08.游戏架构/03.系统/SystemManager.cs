@@ -25,9 +25,9 @@ namespace Astraia.Common
     {
         private void Awake()
         {
-            foreach (var agent in systemList)
+            foreach (var module in systemList)
             {
-                var result = Service.Ref.GetType(agent);
+                var result = Service.Ref.GetType(module);
                 if (result != null)
                 {
                     systemData[result] = (ISystem)Activator.CreateInstance(result);

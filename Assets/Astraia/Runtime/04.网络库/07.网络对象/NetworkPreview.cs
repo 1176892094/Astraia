@@ -46,7 +46,7 @@ namespace Astraia.Net
         private class Styles
         {
             public readonly GUIStyle label = new GUIStyle(EditorStyles.label);
-            public readonly GUIStyle agentName = new GUIStyle(EditorStyles.boldLabel);
+            public readonly GUIStyle moduleName = new GUIStyle(EditorStyles.boldLabel);
 
             public Styles()
             {
@@ -61,14 +61,14 @@ namespace Astraia.Net
                 label.onFocused.textColor = textColor;
                 label.onHover.textColor = textColor;
 
-                agentName.normal.textColor = textColor;
-                agentName.active.textColor = textColor;
-                agentName.focused.textColor = textColor;
-                agentName.hover.textColor = textColor;
-                agentName.onNormal.textColor = textColor;
-                agentName.onActive.textColor = textColor;
-                agentName.onFocused.textColor = textColor;
-                agentName.onHover.textColor = textColor;
+                moduleName.normal.textColor = textColor;
+                moduleName.active.textColor = textColor;
+                moduleName.focused.textColor = textColor;
+                moduleName.hover.textColor = textColor;
+                moduleName.onNormal.textColor = textColor;
+                moduleName.onActive.textColor = textColor;
+                moduleName.onFocused.textColor = textColor;
+                moduleName.onHover.textColor = textColor;
             }
         }
 
@@ -123,7 +123,7 @@ namespace Astraia.Net
             foreach (var data in entityData)
             {
                 GUI.Label(entityRect, data.name, styles.label);
-                GUI.Label(nameRect, data.value, styles.agentName);
+                GUI.Label(nameRect, data.value, styles.moduleName);
                 entityRect.y += entityRect.height;
                 entityRect.x = width;
                 nameRect.y += nameRect.height;
@@ -135,20 +135,20 @@ namespace Astraia.Net
         private float DrawModuleData(NetworkEntity entity, float width, float height)
         {
             var moduleData = GetModuleData(entity);
-            var agentSize = GetMaxModuleSize(moduleData);
-            var agentRect = new Rect(width, height, agentSize.x, agentSize.y);
+            var moduleSize = GetMaxModuleSize(moduleData);
+            var moduleRect = new Rect(width, height, moduleSize.x, moduleSize.y);
 
-            GUI.Label(agentRect, new GUIContent("Network Module :"), styles.label);
-            agentRect.x += 20;
-            agentRect.y += agentRect.height + 5f;
+            GUI.Label(moduleRect, new GUIContent("Network Module :"), styles.label);
+            moduleRect.x += 20;
+            moduleRect.y += moduleRect.height + 5f;
 
             foreach (var data in moduleData)
             {
                 if (data.value != null)
                 {
-                    GUI.Label(agentRect, data.name, styles.agentName);
-                    agentRect.y += agentRect.height + 5f;
-                    height = agentRect.y;
+                    GUI.Label(moduleRect, data.name, styles.moduleName);
+                    moduleRect.y += moduleRect.height + 5f;
+                    height = moduleRect.y;
                 }
             }
 
@@ -199,9 +199,9 @@ namespace Astraia.Net
         {
             var copies = new List<ModuleData>();
 
-            foreach (var agent in entity.moduleData.Values)
+            foreach (var module in entity.moduleData.Values)
             {
-                if (agent is NetworkModule result)
+                if (module is NetworkModule result)
                 {
                     copies.Add(new ModuleData(new GUIContent(result.GetType().FullName), result));
                 }
