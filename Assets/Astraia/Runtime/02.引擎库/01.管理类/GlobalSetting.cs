@@ -68,7 +68,7 @@ namespace Astraia
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("资源加载")] [LabelText("资源加载根目录")]
 #endif
-        public string assetSourcePath = "Assets/Template";
+        public string assetSourcePath = "Assets/Sources";
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("资源加载")] [LabelText("资源服务器地址")]
 #endif

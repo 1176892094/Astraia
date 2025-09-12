@@ -21,7 +21,7 @@ namespace Astraia
         private Dictionary<int, IState> states = new Dictionary<int, IState>();
         private IState current;
 
-        public void OnUpdate()
+        public void Tick()
         {
             current?.OnUpdate();
         }
