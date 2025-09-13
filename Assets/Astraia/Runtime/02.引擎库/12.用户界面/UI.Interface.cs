@@ -15,9 +15,4 @@ namespace Astraia.Common
     {
         void Update();
     }
-
-    internal interface IScroll
-    {
-        void Create();
-    }
 }

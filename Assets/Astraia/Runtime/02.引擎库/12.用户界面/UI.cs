@@ -29,7 +29,6 @@ namespace Astraia.Common
 
             var owner = obj.GetOrAddComponent<Entity>();
             var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
-            (panel as IScroll)?.Create();
             owner.AddComponent(panel);
             owner.OnShow += panel.Listen;
             owner.OnHide += panel.Remove;
