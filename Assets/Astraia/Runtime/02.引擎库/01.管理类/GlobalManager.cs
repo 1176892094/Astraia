@@ -79,7 +79,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, GameObject> rootData = new Dictionary<string, GameObject>();
+        internal static readonly Dictionary<string, GameObject> poolRoot = new Dictionary<string, GameObject>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif

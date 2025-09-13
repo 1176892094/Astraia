@@ -40,11 +40,11 @@ namespace Astraia.Common
         public static void Hide(GameObject item)
         {
             if (!Instance) return;
-            if (!rootData.TryGetValue(item.name, out var pool))
+            if (!poolRoot.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(item.name));
                 pool.transform.SetParent(Instance.transform);
-                rootData.Add(item.name, pool);
+                poolRoot.Add(item.name, pool);
             }
 
             item.SetActive(false);
@@ -72,7 +72,7 @@ namespace Astraia.Common
             }
 
             poolData.Clear();
-            rootData.Clear();
+            poolRoot.Clear();
         }
     }
 }

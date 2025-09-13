@@ -115,11 +115,11 @@ namespace Astraia.Common
         public static void Stop(AudioSource source)
         {
             if (!Instance) return;
-            if (!rootData.TryGetValue(source.name, out var pool))
+            if (!poolRoot.TryGetValue(source.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(source.name));
                 pool.transform.SetParent(Instance.transform);
-                rootData.Add(source.name, pool);
+                poolRoot.Add(source.name, pool);
             }
 
             source.Stop();
