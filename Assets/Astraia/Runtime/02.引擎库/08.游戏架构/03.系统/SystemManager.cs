@@ -9,32 +9,14 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-using Sirenix.OdinInspector;
-#endif
 
 namespace Astraia.Common
 {
     using static GlobalManager;
 
-    internal sealed class SystemManager : MonoBehaviour
+    internal static class SystemManager
     {
-        private void Awake()
-        {
-            foreach (var system in systemList)
-            {
-                var result = Service.Ref.GetType(system);
-                if (result != null)
-                {
-                    systemLoop.Add((ISystem)Activator.CreateInstance(result));
-                }
-            }
-        }
-
-        internal static void OnUpdate()
+        internal static void Update()
         {
             foreach (var system in systemLoop)
             {
@@ -54,23 +36,9 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
+            panelLoop.Clear();
             timerLoop.Clear();
             systemLoop.Clear();
         }
-
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        private static List<string> Systems = GlobalSetting.systems;
-
-        [HideInEditorMode, ShowInInspector]
-        private IEnumerable<ISystem> systems
-        {
-            get => systemLoop;
-            set => Debug.LogError(value);
-        }
-
-        [HideInPlayMode, ValueDropdown("Systems")]
-#endif
-        [SerializeField]
-        private List<string> systemList = new List<string>();
     }
 }

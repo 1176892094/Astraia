@@ -114,7 +114,7 @@ namespace Astraia.Common
 
         private void Update()
         {
-            SystemManager.OnUpdate();
+            SystemManager.Update();
         }
 
         private async void OnDestroy()

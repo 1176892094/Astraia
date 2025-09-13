@@ -19,7 +19,7 @@ using UnityEngine.EventSystems;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel<T> : UIPanel, IModule, IEnumerable<KeyValuePair<int, IGrid<T>>>
+    public abstract class UIPanel<T> : UIPanel, IModule, IPanel, IEnumerable<KeyValuePair<int, IGrid<T>>>
     {
         private readonly Dictionary<int, IGrid<T>> grids = new Dictionary<int, IGrid<T>>();
         private IList<T> items;
@@ -45,7 +45,13 @@ namespace Astraia
             owner.OnHide += Reload;
         }
 
-        public override void Update()
+        void IPanel.Update()
+        {
+            Scroll();
+            Update();
+        }
+
+        private void Scroll()
         {
             if (!content)
             {

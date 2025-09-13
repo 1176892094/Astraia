@@ -18,7 +18,12 @@ using Object = UnityEngine.Object;
 namespace Astraia.Common
 {
     using static GlobalManager;
-    
+
+    internal interface IPanel
+    {
+        void Update();
+    }
+
     public static class UIManager
     {
         private static async Task<UIPanel> Load(string path, Type type)
