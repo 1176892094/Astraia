@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -135,8 +136,22 @@ namespace Astraia.Common
         public static void SetLayer(Transform panel, int layer)
         {
             if (!Instance) return;
-            var transform = panel.GetComponent<RectTransform>();
-            transform.SetParent(layerData[layer]);
+            if (!layerData.TryGetValue(layer, out var parent))
+            {
+                var format = "Pool - Canvas-{0}".Format(layer);
+                parent = new GameObject(format).AddComponent<RectTransform>();
+                parent.gameObject.layer = LayerMask.NameToLayer("UI");
+                SetTransform(parent, Instance.canvas.transform);
+                parent.SetSiblingIndex(layerData.Keys.Count(key => key < layer));
+                layerData.Add(layer, parent);
+            }
+
+            SetTransform(panel.GetComponent<RectTransform>(), parent);
+        }
+
+        private static void SetTransform(RectTransform transform, Transform parent)
+        {
+            transform.SetParent(parent);
             transform.anchorMin = Vector2.zero;
             transform.anchorMax = Vector2.one;
             transform.offsetMin = Vector2.zero;

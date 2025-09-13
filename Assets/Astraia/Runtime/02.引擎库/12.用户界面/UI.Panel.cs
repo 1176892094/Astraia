@@ -12,7 +12,6 @@
 using System;
 using System.Reflection;
 using Astraia.Common;
-using UnityEngine;
 
 namespace Astraia
 {
@@ -36,8 +35,8 @@ namespace Astraia
 
     public abstract partial class UIPanel
     {
-        [SerializeField] internal int groupMask;
-        [SerializeField] internal int layerMask;
+        internal int groupMask;
+        internal int layerMask;
 
         void IModule.Create(Entity owner) => Create(owner);
 
