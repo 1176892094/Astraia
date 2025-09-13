@@ -24,6 +24,11 @@ namespace Astraia.Common
         void Update();
     }
 
+    internal interface ICreate
+    {
+        void Create();
+    }
+
     public static class UIManager
     {
         private static async Task<UIPanel> Load(string path, Type type)
@@ -34,7 +39,8 @@ namespace Astraia.Common
 
             var owner = obj.GetOrAddComponent<Entity>();
             var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
-            owner.AddComponent(panel, typeof(UIPanel));
+            (panel as ICreate)?.Create();
+            owner.AddComponent(panel);
             owner.OnShow += panel.Listen;
             owner.OnHide += panel.Remove;
             owner.OnFade += panel.group.Clear;
