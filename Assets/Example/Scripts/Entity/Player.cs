@@ -16,11 +16,11 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
-        public PlayerSender Sender => AskComponent<PlayerSender>();
-        public PlayerMachine Machine => AskComponent<PlayerMachine>();
-        public PlayerFeature Feature => AskComponent<PlayerFeature>();
-        public PlayerOperate Operate => AskComponent<PlayerOperate>();
-        public NetworkTransform Transform => AskComponent<NetworkTransform>();
+        public PlayerSender Sender => FindComponent<PlayerSender>();
+        public PlayerMachine Machine => FindComponent<PlayerMachine>();
+        public PlayerFeature Feature => FindComponent<PlayerFeature>();
+        public PlayerOperate Operate => FindComponent<PlayerOperate>();
+        public NetworkTransform Transform => FindComponent<NetworkTransform>();
         private Ray2D DLRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
         private Ray2D DRRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
         private Ray2D RURay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);

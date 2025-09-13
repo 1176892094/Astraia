@@ -118,7 +118,7 @@ namespace Astraia.Common
             manifest = null;
             Instance = null;
             await Task.Yield();
-            PageManager.Dispose();
+            UIManager.Dispose();
             PackManager.Dispose();
             PoolManager.Dispose();
             AudioManager.Dispose();
@@ -126,8 +126,8 @@ namespace Astraia.Common
             EventManager.Dispose();
             SystemManager.Dispose();
             EntityManager.Dispose();
+            HeapManager.Dispose();
             Blackboard.Dispose();
-            // HeapManager.Dispose();
             GC.Collect();
         }
     }

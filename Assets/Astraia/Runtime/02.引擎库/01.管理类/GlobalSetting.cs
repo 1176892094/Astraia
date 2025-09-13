@@ -138,7 +138,7 @@ namespace Astraia
         private static void RuntimeInitializeOnLoad()
         {
             var source = new GameObject(nameof(GlobalManager)).AddComponent<GlobalManager>();
-            source.canvas = new GameObject(nameof(PageManager)).AddComponent<Canvas>();
+            source.canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
             source.canvas.renderMode = RenderMode.ScreenSpaceCamera;
             source.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
             for (var i = UILayer.Layer1; i <= UILayer.Layer6; i++)
