@@ -22,4 +22,12 @@ namespace Astraia
     public class PrimaryAttribute : Attribute
     {
     }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class UIGroupAttribute : Attribute
+    {
+        public readonly int groupMask;
+
+        public UIGroupAttribute(int groupMask) => this.groupMask = groupMask;
+    }
 }

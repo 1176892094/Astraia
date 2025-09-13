@@ -37,7 +37,6 @@ namespace Astraia.Common
             owner.AddComponent(panel, typeof(UIPanel));
             owner.OnShow += panel.Listen;
             owner.OnHide += panel.Remove;
-            owner.OnFade += panel.group.Clear;
 
             SetLayer(panel.transform, panel.layer);
             panelData.Add(type, panel);
@@ -133,7 +132,7 @@ namespace Astraia.Common
             }
         }
 
-        public static void SetLayer(Transform panel, UILayer layer)
+        public static void SetLayer(Transform panel, int layer)
         {
             if (!Instance) return;
             var transform = panel.GetComponent<RectTransform>();

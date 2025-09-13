@@ -19,7 +19,7 @@ using UnityEngine.EventSystems;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel<T> : UIPanel, IModule, IPanel, IEnumerable<KeyValuePair<int, IGrid<T>>>
+    public abstract class UIPanel<T> : UIPanel, IPanel, IEnumerable<KeyValuePair<int, IGrid<T>>>
     {
         private readonly Dictionary<int, IGrid<T>> grids = new Dictionary<int, IGrid<T>>();
         private IList<T> items;
@@ -37,9 +37,9 @@ namespace Astraia
         private int numX => (int)assetRect.x + (direction ? 0 : 1);
         private int numY => (int)assetRect.y + (direction ? 1 : 0);
 
-        void IModule.Create(Entity owner)
+        internal override void Create(Entity owner)
         {
-            this.owner = owner;
+            base.Create(owner);
             selection = false;
             restarted = false;
             owner.OnHide += Reload;

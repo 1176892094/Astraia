@@ -10,16 +10,16 @@
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
+using System.Reflection;
 using Astraia.Common;
+using UnityEngine;
 
 namespace Astraia
 {
     [Serializable]
-    public abstract partial class UIPanel : Module<Entity>, IActive, IPanel
+    public abstract partial class UIPanel : Module<Entity>, IModule, IActive, IPanel
     {
         public UIState state = UIState.Common;
-        public UILayer layer = UILayer.Layer1;
 
         public virtual void Update()
         {
@@ -36,8 +36,11 @@ namespace Astraia
 
     public abstract partial class UIPanel
     {
-        internal HashSet<int> group = new HashSet<int>();
-        
+        [SerializeField] internal int groupMask;
+        [SerializeField] internal int layer = 1;
+
+        void IModule.Create(Entity owner) => Create(owner);
+
         internal void Listen()
         {
             GlobalManager.panelLoop.Add(this);
@@ -46,6 +49,51 @@ namespace Astraia
         internal void Remove()
         {
             GlobalManager.panelLoop.Remove(this);
+        }
+
+        internal virtual void Create(Entity owner)
+        {
+            this.owner = owner;
+            var combineMask = 0;
+            var current = GetType();
+            while (current != null)
+            {
+                var attribute = current.GetCustomAttribute<UIGroupAttribute>(false);
+                if (attribute != null)
+                {
+                    combineMask |= attribute.groupMask;
+                }
+
+                current = current.BaseType;
+            }
+
+            if (combineMask != 0)
+            {
+                groupMask = combineMask;
+                for (var i = 0; i < 32; i++)
+                {
+                    var bit = 1 << i;
+                    if ((groupMask & bit) != 0)
+                    {
+                        UIGroup.Listen(bit, this);
+                    }
+                }
+            }
+
+            owner.OnFade += () =>
+            {
+                if (groupMask == 0) return;
+                for (var i = 0; i < 32; i++)
+                {
+                    var bit = 1 << i;
+                    if ((groupMask & bit) != 0)
+                    {
+                        UIGroup.Remove(bit, this);
+                    }
+                }
+
+                groupMask = 0;
+            };
         }
     }
 }

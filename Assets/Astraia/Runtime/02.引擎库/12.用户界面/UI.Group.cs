@@ -18,7 +18,7 @@ namespace Astraia
 
     public static class UIGroup
     {
-        public static void Listen(int group, UIPanel panel)
+        internal static void Listen(int group, UIPanel panel)
         {
             if (!Instance) return;
             if (!groupData.TryGetValue(group, out var panels))
@@ -27,24 +27,19 @@ namespace Astraia
                 groupData.Add(group, panels);
             }
 
-            if (panel.group.Add(group))
-            {
-                panels.Add(panel);
-            }
+            panels.Add(panel);
         }
 
-        public static void Remove(int group, UIPanel panel)
+        internal static void Remove(int group, UIPanel panel)
         {
             if (!Instance) return;
-            if (!groupData.TryGetValue(group, out var panels))
-            {
-                panels = new HashSet<UIPanel>();
-                groupData.Add(group, panels);
-            }
-
-            if (panel.group.Remove(group))
+            if (groupData.TryGetValue(group, out var panels))
             {
                 panels.Remove(panel);
+                if (panels.Count == 0)
+                {
+                    groupData.Remove(group);
+                }
             }
         }
 
@@ -74,13 +69,13 @@ namespace Astraia
 
         internal static void Show(UIPanel panel)
         {
-            foreach (var group in panel.group)
+            foreach (var pair in groupData)
             {
-                if (groupData.TryGetValue(group, out var panels))
+                if ((panel.groupMask & pair.Key) != 0)
                 {
-                    foreach (var other in panels)
+                    foreach (var other in pair.Value)
                     {
-                        if (panel != other)
+                        if (other != panel)
                         {
                             other.gameObject.SetActive(false);
                         }

@@ -95,7 +95,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly Dictionary<UILayer, RectTransform> layerData = new Dictionary<UILayer, RectTransform>();
+        internal static readonly Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
