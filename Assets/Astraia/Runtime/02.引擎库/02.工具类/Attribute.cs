@@ -30,4 +30,11 @@ namespace Astraia
 
         public UIGroupAttribute(int groupMask) => this.groupMask = groupMask;
     }
+    [AttributeUsage(AttributeTargets.Class)]
+    public class UILayerAttribute : Attribute
+    {
+        public readonly int layerMask;
+
+        public UILayerAttribute(int layerMask) => this.layerMask = layerMask;
+    }
 }

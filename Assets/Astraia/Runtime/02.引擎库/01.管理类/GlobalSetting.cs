@@ -137,13 +137,13 @@ namespace Astraia
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            var source = new GameObject(nameof(GlobalManager)).AddComponent<GlobalManager>();
+            var source = new GameObject(nameof(PoolManager)).AddComponent<GlobalManager>();
             source.canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
             source.canvas.renderMode = RenderMode.ScreenSpaceCamera;
             source.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
-            for (var i = UILayer.Layer1; i <= UILayer.Layer6; i++)
+            for (var i = 0; i < 6; i++)
             {
-                var format = "Pool - Canvas/{0}".Format(i);
+                var format = "Pool - Canvas-{0}".Format(i);
                 var parent = new GameObject(format).AddComponent<RectTransform>();
                 parent.gameObject.layer = LayerMask.NameToLayer("UI");
                 parent.SetParent(source.canvas.transform);

@@ -37,7 +37,7 @@ namespace Astraia
     public abstract partial class UIPanel
     {
         [SerializeField] internal int groupMask;
-        [SerializeField] internal int layer = 1;
+        [SerializeField] internal int layerMask;
 
         void IModule.Create(Entity owner) => Create(owner);
 
@@ -56,16 +56,23 @@ namespace Astraia
             this.owner = owner;
             var combineMask = 0;
             var current = GetType();
+            var layerAttr = current.GetCustomAttribute<UILayerAttribute>(true);
+            if (layerAttr != null)
+            {
+                layerMask = layerAttr.layerMask;
+            }
+
             while (current != null)
             {
-                var attribute = current.GetCustomAttribute<UIGroupAttribute>(false);
-                if (attribute != null)
+                var groupAttr = current.GetCustomAttribute<UIGroupAttribute>(false);
+                if (groupAttr != null)
                 {
-                    combineMask |= attribute.groupMask;
+                    combineMask |= groupAttr.groupMask;
                 }
 
                 current = current.BaseType;
             }
+
 
             if (combineMask != 0)
             {

@@ -38,7 +38,7 @@ namespace Astraia.Common
             owner.OnShow += panel.Listen;
             owner.OnHide += panel.Remove;
 
-            SetLayer(panel.transform, panel.layer);
+            SetLayer(panel.transform, panel.layerMask);
             panelData.Add(type, panel);
             return panel;
         }
