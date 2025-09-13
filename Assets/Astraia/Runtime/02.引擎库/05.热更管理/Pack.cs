@@ -242,14 +242,11 @@ namespace Astraia.Common
             }
 
             var assetTask = AssetBundle.LoadFromMemoryAsync(result);
-            var assetName = Path.GetFileNameWithoutExtension(assetData.path);
             while (!assetTask.isDone && Instance)
             {
-                EventManager.Invoke(new AssetUpdate(assetName, assetTask.progress));
                 await Task.Yield();
             }
-
-            EventManager.Invoke(new AssetUpdate(assetName, 1));
+            
             return assetTask.assetBundle;
         }
 

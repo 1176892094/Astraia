@@ -150,6 +150,7 @@ namespace Astraia.Common
             {
                 assetPack = await assetTask;
                 GlobalManager.assetPack.Add(assetPath, assetPack);
+                EventManager.Invoke(new AssetUpdate(assetPath));
                 return assetPack;
             }
             finally
