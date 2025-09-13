@@ -32,9 +32,6 @@ namespace Astraia.Common
                     systemData.Add((ISystem)Activator.CreateInstance(result));
                 }
             }
-
-            systemData.Add(new UISystem());
-            systemData.Add(new AsyncSystem());
         }
 
         internal static void OnUpdate()
@@ -42,6 +39,16 @@ namespace Astraia.Common
             foreach (var system in systemData)
             {
                 system.Update();
+            }
+
+            for (int i = panelPage.Count - 1; i >= 0; i--)
+            {
+                panelPage[i].Update();
+            }
+
+            for (int i = asyncData.Count - 1; i >= 0; i--)
+            {
+                asyncData[i].Update();
             }
         }
 
@@ -65,27 +72,5 @@ namespace Astraia.Common
 #endif
         [SerializeField]
         private List<string> systemList = new List<string>();
-    }
-
-    public struct UISystem : ISystem
-    {
-        public void Update()
-        {
-            for (int i = panelPage.Count - 1; i >= 0; i--)
-            {
-                panelPage[i].Update();
-            }
-        }
-    }
-
-    public struct AsyncSystem : ISystem
-    {
-        public void Update()
-        {
-            for (int i = asyncData.Count - 1; i >= 0; i--)
-            {
-                asyncData[i].Update();
-            }
-        }
     }
 }
