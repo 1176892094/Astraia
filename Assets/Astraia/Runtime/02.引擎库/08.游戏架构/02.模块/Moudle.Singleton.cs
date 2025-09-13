@@ -15,13 +15,11 @@ namespace Astraia
 {
     public abstract class Singleton<T, E> : Module<E>, IModule, IActive where T : Singleton<T, E> where E : Entity
     {
-        private static T instance;
-
-        public static T Instance => instance;
+        public static T Instance { get; private set; }
 
         void IModule.Create(Entity owner)
         {
-            instance = (T)this;
+            Instance = (T)this;
             this.owner = (E)owner;
         }
 
