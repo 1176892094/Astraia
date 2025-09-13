@@ -35,7 +35,15 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
+        internal static readonly List<IPanel> panelPage = new List<IPanel>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [ShowInInspector]
+#endif
         internal static readonly List<IAsync> asyncData = new List<IAsync>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [ShowInInspector]
+#endif
+        internal static readonly List<ISystem> systemData = new List<ISystem>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
@@ -76,10 +84,6 @@ namespace Astraia.Common
         [ShowInInspector]
 #endif
         internal static readonly Dictionary<Type, List<Entity>> queryData = new Dictionary<Type, List<Entity>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly Dictionary<Type, ISystem> systemData = new Dictionary<Type, ISystem>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif

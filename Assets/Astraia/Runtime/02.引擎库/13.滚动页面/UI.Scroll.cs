@@ -19,10 +19,10 @@ using UnityEngine.EventSystems;
 namespace Astraia
 {
     [Serializable]
-    public sealed class UIPage<TItem> : Module<Entity>, IEnumerable<KeyValuePair<int, IGrid<TItem>>>
+    public abstract class UIPanel<T> : UIPanel, IEnumerable<KeyValuePair<int, IGrid<T>>>
     {
-        private readonly Dictionary<int, IGrid<TItem>> grids = new Dictionary<int, IGrid<TItem>>();
-        private IList<TItem> items;
+        private readonly Dictionary<int, IGrid<T>> grids = new Dictionary<int, IGrid<T>>();
+        private IList<T> items;
         private int minIndex;
         private int maxIndex;
         private int numCache;
@@ -33,7 +33,7 @@ namespace Astraia
         internal bool direction;
         internal Type assetType;
         internal Rect assetRect;
-        internal RectTransform content;
+        [Inject] public RectTransform content;
         private int numX => (int)assetRect.x + (direction ? 0 : 1);
         private int numY => (int)assetRect.y + (direction ? 1 : 0);
 
@@ -41,15 +41,10 @@ namespace Astraia
         {
             selection = false;
             restarted = false;
+            owner.OnHide += Reload;
         }
 
-        public override void Enqueue()
-        {
-            Rebuild();
-            items = null;
-        }
-
-        public void Update()
+        public override void Update()
         {
             if (!content)
             {
@@ -80,7 +75,7 @@ namespace Astraia
 
             if (numCache != items.Count)
             {
-                Rebuild();
+                Reload(false);
                 numCache = items.Count;
             }
 
@@ -151,7 +146,7 @@ namespace Astraia
 
         private async void Load(int min, int max)
         {
-            for (var i = min; i <= max; ++i)
+            for (var i = min; i <= max; i++)
             {
                 if (grids.ContainsKey(i))
                 {
@@ -175,7 +170,7 @@ namespace Astraia
 
                 grids[i] = null;
                 var item = await PoolManager.Show("Prefabs/" + assetType.Name);
-                var grid = (IGrid<TItem>)item.GetOrAddComponent(assetType);
+                var grid = (IGrid<T>)item.GetOrAddComponent(assetType);
                 var rect = (RectTransform)grid.transform;
                 rect.SetParent(content);
                 rect.sizeDelta = new Vector2(assetRect.width, assetRect.height);
@@ -199,7 +194,7 @@ namespace Astraia
             }
         }
 
-        public void SetItem(IList<TItem> items)
+        public void SetItem(IList<T> items)
         {
             this.items = items;
             if (items != null)
@@ -219,12 +214,17 @@ namespace Astraia
                 numCache = items.Count;
             }
 
-            Rebuild();
+            Reload(false);
             selected = selection;
             content.anchoredPosition = Vector2.zero;
         }
 
-        private void Rebuild()
+        public void Reload()
+        {
+            Reload(true);
+        }
+
+        private void Reload(bool remove)
         {
             minIndex = -1;
             maxIndex = -1;
@@ -240,12 +240,17 @@ namespace Astraia
                 }
             }
 
+            if (remove)
+            {
+                items = null;
+            }
+
             grids.Clear();
         }
 
-        public void Move(IGrid<TItem> grid, MoveDirection move)
+        public void Move(IGrid<T> grid, MoveDirection move)
         {
-            IGrid<TItem> current;
+            IGrid<T> current;
             switch (move)
             {
                 case MoveDirection.Left when !direction:
@@ -294,8 +299,8 @@ namespace Astraia
                     return;
             }
         }
-        
-        public IEnumerator<KeyValuePair<int, IGrid<TItem>>> GetEnumerator()
+
+        public IEnumerator<KeyValuePair<int, IGrid<T>>> GetEnumerator()
         {
             return grids.GetEnumerator();
         }

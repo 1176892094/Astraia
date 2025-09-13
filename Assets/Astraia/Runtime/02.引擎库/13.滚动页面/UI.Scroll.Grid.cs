@@ -24,9 +24,9 @@ namespace Astraia.Common
         void Dispose();
     }
 
-    public interface IGrid<TItem> : IGrid
+    public interface IGrid<T> : IGrid
     {
-        TItem item { get; }
-        void SetItem(TItem item);
+        T item { get; }
+        void SetItem(T item);
     }
 }

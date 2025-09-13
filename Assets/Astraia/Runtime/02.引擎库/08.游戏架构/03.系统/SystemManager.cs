@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 #if UNITY_EDITOR && ODIN_INSPECTOR
 using Sirenix.OdinInspector;
@@ -25,34 +24,24 @@ namespace Astraia.Common
     {
         private void Awake()
         {
-            foreach (var module in systemList)
+            foreach (var system in systemList)
             {
-                var result = Service.Ref.GetType(module);
+                var result = Service.Ref.GetType(system);
                 if (result != null)
                 {
-                    systemData[result] = (ISystem)Activator.CreateInstance(result);
+                    systemData.Add((ISystem)Activator.CreateInstance(result));
                 }
             }
+
+            systemData.Add(new UISystem());
+            systemData.Add(new AsyncSystem());
         }
 
-        public static void OnUpdate()
+        internal static void OnUpdate()
         {
-            foreach (var panel in panelData.Values)
-            {
-                if (panel)
-                {
-                    panel.Update();
-                }
-            }
-
-            foreach (var system in systemData.Values)
+            foreach (var system in systemData)
             {
                 system.Update();
-            }
-
-            for (int i = asyncData.Count - 1; i >= 0; i--)
-            {
-                asyncData[i].Update();
             }
         }
 
@@ -61,13 +50,14 @@ namespace Astraia.Common
             asyncData.Clear();
             systemData.Clear();
         }
+
 #if UNITY_EDITOR && ODIN_INSPECTOR
         private static List<string> Systems = GlobalSetting.systems;
 
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<ISystem> systems
         {
-            get => systemData.Values.ToList();
+            get => systemData;
             set => Debug.LogError(value);
         }
 
@@ -75,5 +65,27 @@ namespace Astraia.Common
 #endif
         [SerializeField]
         private List<string> systemList = new List<string>();
+    }
+
+    public struct UISystem : ISystem
+    {
+        public void Update()
+        {
+            for (int i = panelPage.Count - 1; i >= 0; i--)
+            {
+                panelPage[i].Update();
+            }
+        }
+    }
+
+    public struct AsyncSystem : ISystem
+    {
+        public void Update()
+        {
+            for (int i = asyncData.Count - 1; i >= 0; i--)
+            {
+                asyncData[i].Update();
+            }
+        }
     }
 }

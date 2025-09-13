@@ -45,10 +45,6 @@ namespace Astraia
             if (panel.group.Remove(group))
             {
                 panels.Remove(panel);
-                if (panels.Count == 0)
-                {
-                    groupData.Remove(group);
-                }
             }
         }
 

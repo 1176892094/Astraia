@@ -16,9 +16,8 @@ using Astraia.Common;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel : Module<Entity>, IActive
+    public abstract partial class UIPanel : Module<Entity>, IActive, IPanel
     {
-        internal HashSet<int> group = new HashSet<int>();
         public UIState state = UIState.Common;
         public UILayer layer = UILayer.Layer1;
 
@@ -32,6 +31,21 @@ namespace Astraia
 
         public virtual void OnHide()
         {
+        }
+    }
+
+    public abstract partial class UIPanel
+    {
+        internal HashSet<int> group = new HashSet<int>();
+        
+        internal void Listen()
+        {
+            GlobalManager.panelPage.Add(this);
+        }
+
+        internal void Remove()
+        {
+            GlobalManager.panelPage.Remove(this);
         }
     }
 }

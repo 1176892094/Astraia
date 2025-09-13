@@ -16,31 +16,25 @@ namespace Astraia
 {
     public static partial class Extensions
     {
-        public static UIPage<T> Set<T>(this UIPage<T> self, Type value)
+        public static UIPanel<T> Set<T>(this UIPanel<T> self, Type value)
         {
             self.assetType = value;
             return self;
         }
 
-        public static UIPage<T> Set<T>(this UIPage<T> self, int value)
+        public static UIPanel<T> Set<T>(this UIPanel<T> self, int value)
         {
             self.direction = value != 0;
             return self;
         }
 
-        public static UIPage<T> Set<T>(this UIPage<T> self, int x, int y, int w, int h)
+        public static UIPanel<T> Set<T>(this UIPanel<T> self, int x, int y, int w, int h)
         {
             self.assetRect = new Rect(x, y, w, h);
             return self;
         }
-
-        public static UIPage<T> Set<T>(this UIPage<T> self, RectTransform value)
-        {
-            self.content = value;
-            return self;
-        }
-
-        public static UIPage<T> Set<T>(this UIPage<T> self, bool value)
+        
+        public static UIPanel<T> Set<T>(this UIPanel<T> self, bool value)
         {
             self.selection = value;
             return self;
