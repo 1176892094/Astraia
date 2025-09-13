@@ -314,9 +314,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 75954604}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9ee071739be4815ba5ee5311fc50b47, type: 3}
+  m_Script: {fileID: 11500000, guid: 29d754d3d815494ba4129c364ad5e0dc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.Common.SystemManager
+  m_EditorClassIdentifier: Astraia.Run::Astraia.System
   systemList:
   - Runtime.GameSystem, Assembly-CSharp
 --- !u!1 &83117112

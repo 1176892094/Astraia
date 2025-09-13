@@ -12,18 +12,14 @@
 
 using System;
 using System.Collections.Generic;
+using Astraia.Common;
 using UnityEngine;
 #if UNITY_EDITOR && ODIN_INSPECTOR
 using Sirenix.OdinInspector;
 #endif
 
-namespace Astraia.Common
+namespace Astraia
 {
-    public interface ISystem
-    {
-        void Update();
-    }
-
     internal sealed class System : MonoBehaviour
     {
         private void Awake()

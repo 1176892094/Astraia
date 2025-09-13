@@ -14,6 +14,11 @@ namespace Astraia.Common
 {
     using static GlobalManager;
 
+    public interface ISystem
+    {
+        void Update();
+    }
+
     internal static class SystemManager
     {
         internal static void Update()
