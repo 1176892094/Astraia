@@ -113,6 +113,11 @@ namespace Astraia
         {
             return moduleData.TryGetValue(keyType, out var module) ? module : null;
         }
+        
+        public IEnumerable<IModule> FindComponents()
+        {
+            return moduleData.Values;
+        }
     }
 
     public static partial class Extensions

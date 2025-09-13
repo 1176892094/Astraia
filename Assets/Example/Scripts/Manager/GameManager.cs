@@ -39,9 +39,8 @@ namespace Runtime
             mainCamera = Object.FindFirstObjectByType<Camera>();
             GlobalManager.Instance.canvas.worldCamera = mainCamera;
             GlobalManager.Instance.canvas.sortingOrder = 10;
-            GlobalManager.Instance.gameObject.AddComponent<DebugManager>();
             Application.targetFrameRate = 60;
-            PageManager.Show<LabelPanel>();
+            UIManager.Show<LabelPanel>();
         }
 
         public void Update()
