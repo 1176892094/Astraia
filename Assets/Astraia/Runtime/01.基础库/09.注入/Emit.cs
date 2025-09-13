@@ -13,12 +13,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+#if UNITY_EDITOR
 using System.Reflection.Emit;
+#endif
 
 namespace Astraia
 {
     internal static class Emit
     {
+#if UNITY_EDITOR
         private static readonly Dictionary<Type, Dictionary<string, Func<object, object>>> getterCache = new();
         private static readonly Dictionary<Type, Dictionary<string, Action<object, object>>> setterCache = new();
         private static readonly Dictionary<Type, Dictionary<string, Func<object, object[], object>>> methodCache = new();
@@ -265,5 +268,138 @@ namespace Astraia
             IL.Emit(OpCodes.Ret);
             return (Action<object, object>)DM.CreateDelegate(typeof(Action<object, object>));
         }
+#else
+        private static readonly Dictionary<Type, Dictionary<string, FieldInfo>> fieldData = new();
+        private static readonly Dictionary<Type, Dictionary<string, MethodInfo>> methodData = new();
+        private static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> propertyData = new();
+
+        public static object Invoke(object target, string name, params object[] args)
+        {
+            var result = target as Type ?? target.GetType();
+            var method = GetMethod(result, name, args.Select(r => r.GetType()).ToArray());
+            if (method != null)
+            {
+                return method.Invoke(target is Type ? null : target, args);
+            }
+
+            throw new MissingMethodException(result.FullName, name);
+        }
+
+        public static object GetValue(object target, string name)
+        {
+            var source = target as Type ?? target.GetType();
+            var field = GetField(source, name);
+            if (field != null)
+            {
+                return field.GetValue(target is Type ? null : target);
+            }
+
+            var property = GetProperty(source, name);
+            if (property != null)
+            {
+                return property.GetValue(target is Type ? null : target);
+            }
+
+            throw new MissingMemberException(source.FullName, name);
+        }
+
+        public static void SetValue(object target, string name, object value)
+        {
+            var source = target as Type ?? target.GetType();
+            var field = GetField(source, name);
+            if (field != null)
+            {
+                field.SetValue(target is Type ? null : target, value);
+                return;
+            }
+
+            var property = GetProperty(source, name);
+            if (property != null)
+            {
+                property.SetValue(target is Type ? null : target, value);
+                return;
+            }
+
+            throw new MissingMemberException(source.FullName, name);
+        }
+
+        private static MethodInfo GetMethod(this Type type, string name, params Type[] args)
+        {
+            if (!methodData.TryGetValue(type, out var results))
+            {
+                results = new Dictionary<string, MethodInfo>();
+                methodData[type] = results;
+            }
+
+            if (!results.TryGetValue(name, out var result))
+            {
+                for (var current = type; current != null; current = current.BaseType)
+                {
+                    result = current.GetMethod(name, (BindingFlags)62, null, args, null);
+                    if (result != null)
+                    {
+                        return results[name] = result;
+                    }
+                }
+
+                foreach (var current in type.GetInterfaces())
+                {
+                    result = current.GetMethod(name, (BindingFlags)62, null, args, null);
+                    if (result != null)
+                    {
+                        return results[name] = result;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static FieldInfo GetField(this Type type, string name)
+        {
+            if (!fieldData.TryGetValue(type, out var results))
+            {
+                results = new Dictionary<string, FieldInfo>();
+                fieldData[type] = results;
+            }
+
+            if (!results.TryGetValue(name, out var result))
+            {
+                for (var current = type; current != null; current = current.BaseType)
+                {
+                    result = current.GetField(name, (BindingFlags)62);
+                    if (result != null)
+                    {
+                        return results[name] = result;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static PropertyInfo GetProperty(this Type type, string name)
+        {
+            if (!propertyData.TryGetValue(type, out var results))
+            {
+                results = new Dictionary<string, PropertyInfo>();
+                propertyData[type] = results;
+            }
+
+            if (!results.TryGetValue(name, out var result))
+            {
+                for (var current = type; current != null; current = current.BaseType)
+                {
+                    result = current.GetProperty(name, (BindingFlags)62);
+                    if (result != null)
+                    {
+                        return results[name] = result;
+                    }
+                }
+            }
+
+            return result;
+        }
+#endif
     }
 }
