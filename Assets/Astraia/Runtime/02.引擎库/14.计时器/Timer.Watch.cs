@@ -19,23 +19,24 @@ namespace Astraia
     using static GlobalManager;
 
     [Serializable]
-    public sealed partial class Tween : IAsync
+    public sealed partial class Watch : ITimer
     {
         private Component owner;
         private int complete;
-        private float progress;
+        private int progress;
+        private float waitTime;
         private float nextTime;
         private float duration;
+        private Action onUpdate;
         private Action onComplete;
         private Action onContinue;
-        private Action<float> onUpdate;
 
-        internal static Tween Create(Component owner, float duration)
+        internal static Watch Create(Component owner, float duration)
         {
-            var item = HeapManager.Dequeue<Tween>();
-            asyncData.Add(item);
+            var item = HeapManager.Dequeue<Watch>();
+            timerLoop.Add(item);
             item.owner = owner;
-            item.progress = 0;
+            item.progress = 1;
             item.nextTime = 0;
             item.complete = 0;
             item.duration = duration;
@@ -48,12 +49,12 @@ namespace Astraia
                 item.complete = 1;
                 item.onUpdate = null;
                 item.onContinue = null;
-                asyncData.Remove(item);
+                timerLoop.Remove(item);
                 HeapManager.Enqueue(item);
             }
         }
 
-        void IAsync.Update()
+        void ITimer.Update()
         {
             try
             {
@@ -63,20 +64,25 @@ namespace Astraia
                     return;
                 }
 
+                waitTime = Time.time;
                 if (nextTime <= 0)
                 {
-                    nextTime = Time.time;
+                    nextTime = waitTime + duration;
                 }
 
-                progress = (Time.time - nextTime) / duration;
-                if (progress > 1)
+                if (waitTime <= nextTime)
                 {
-                    progress = 1;
+                    return;
                 }
 
-                onUpdate.Invoke(progress);
+                progress--;
+                nextTime = waitTime + duration;
+                if (onUpdate != null)
+                {
+                    onUpdate.Invoke();
+                }
 
-                if (progress >= 1)
+                if (progress == 0)
                 {
                     complete = 2;
                     onComplete += onContinue;
@@ -90,30 +96,49 @@ namespace Astraia
             }
         }
 
-        public Tween OnUpdate(Action<float> onUpdate)
+        public Watch OnUpdate(Action onUpdate)
         {
             this.onUpdate += onUpdate;
             return this;
         }
 
-        public Tween OnComplete(Action onComplete)
+        public Watch OnComplete(Action onComplete)
         {
             this.onComplete += onComplete;
             return this;
         }
 
-        public Tween Break()
+        public Watch Set(float duration)
+        {
+            this.duration = duration;
+            nextTime = waitTime + duration;
+            return this;
+        }
+
+        public Watch Add(float duration)
+        {
+            nextTime += duration;
+            return this;
+        }
+
+        public Watch Loops(int progress = 0)
+        {
+            this.progress = progress;
+            return this;
+        }
+
+        public Watch Break()
         {
             onComplete.Invoke();
             return this;
         }
     }
 
-    public sealed partial class Tween : INotifyCompletion
+    public sealed partial class Watch : INotifyCompletion
     {
         public bool IsCompleted => complete > 0;
-
-        public Tween GetAwaiter()
+        
+        public Watch GetAwaiter()
         {
             return this;
         }

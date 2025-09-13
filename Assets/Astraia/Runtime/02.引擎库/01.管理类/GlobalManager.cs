@@ -35,15 +35,15 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<IPanel> panelPage = new List<IPanel>();
+        internal static readonly List<IPanel> panelLoop = new List<IPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<IAsync> asyncData = new List<IAsync>();
+        internal static readonly List<ITimer> timerLoop = new List<ITimer>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        internal static readonly List<ISystem> systemData = new List<ISystem>();
+        internal static readonly List<ISystem> systemLoop = new List<ISystem>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
 #endif

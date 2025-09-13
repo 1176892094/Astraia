@@ -29,33 +29,33 @@ namespace Astraia.Common
                 var result = Service.Ref.GetType(system);
                 if (result != null)
                 {
-                    systemData.Add((ISystem)Activator.CreateInstance(result));
+                    systemLoop.Add((ISystem)Activator.CreateInstance(result));
                 }
             }
         }
 
         internal static void OnUpdate()
         {
-            foreach (var system in systemData)
+            foreach (var system in systemLoop)
             {
                 system.Update();
             }
 
-            for (int i = panelPage.Count - 1; i >= 0; i--)
+            for (int i = panelLoop.Count - 1; i >= 0; i--)
             {
-                panelPage[i].Update();
+                panelLoop[i].Update();
             }
 
-            for (int i = asyncData.Count - 1; i >= 0; i--)
+            for (int i = timerLoop.Count - 1; i >= 0; i--)
             {
-                asyncData[i].Update();
+                timerLoop[i].Update();
             }
         }
 
         internal static void Dispose()
         {
-            asyncData.Clear();
-            systemData.Clear();
+            timerLoop.Clear();
+            systemLoop.Clear();
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -64,7 +64,7 @@ namespace Astraia.Common
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<ISystem> systems
         {
-            get => systemData;
+            get => systemLoop;
             set => Debug.LogError(value);
         }
 

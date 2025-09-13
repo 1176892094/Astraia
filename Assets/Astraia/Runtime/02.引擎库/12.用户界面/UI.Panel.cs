@@ -40,12 +40,12 @@ namespace Astraia
         
         internal void Listen()
         {
-            GlobalManager.panelPage.Add(this);
+            GlobalManager.panelLoop.Add(this);
         }
 
         internal void Remove()
         {
-            GlobalManager.panelPage.Remove(this);
+            GlobalManager.panelLoop.Remove(this);
         }
     }
 }

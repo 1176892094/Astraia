@@ -18,17 +18,7 @@ using Object = UnityEngine.Object;
 namespace Astraia.Common
 {
     using static GlobalManager;
-
-    internal interface IPanel
-    {
-        void Update();
-    }
-
-    internal interface ICreate
-    {
-        void Create();
-    }
-
+    
     public static class UIManager
     {
         private static async Task<UIPanel> Load(string path, Type type)
@@ -39,7 +29,7 @@ namespace Astraia.Common
 
             var owner = obj.GetOrAddComponent<Entity>();
             var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
-            (panel as ICreate)?.Create();
+            (panel as IScroll)?.Create();
             owner.AddComponent(panel);
             owner.OnShow += panel.Listen;
             owner.OnHide += panel.Remove;
