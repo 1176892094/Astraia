@@ -80,27 +80,27 @@ namespace Astraia
                 if (!typeof(Transform).IsAssignableFrom(field.FieldType))
                 {
                     var component = inject.GetComponent(field.FieldType);
-                    if (component != null)
+                    if (component)
                     {
                         field.SetValue(target, component);
                         continue;
                     }
                 }
 
-                var name = char.ToUpper(field.Name[0]) + field.Name.Substring(1);
-                var child = inject.transform.GetChild(name);
-                if (child != null)
+                var upper = char.ToUpper(field.Name[0]) + field.Name.Substring(1);
+                var child = inject.transform.GetChild(upper);
+                if (child)
                 {
                     var component = child.GetComponent(field.FieldType);
-                    if (component == null)
+                    if (!component)
                     {
-                        Debug.Log("没有找到依赖注入的组件: {0} {1} != {2}".Format(field.FieldType, field.FieldType.Name, name));
+                        Debug.Log("没有找到依赖注入的组件: {0} {1} != {2}".Format(field.FieldType, field.FieldType.Name, upper));
                         continue;
                     }
 
                     field.SetValue(target, component);
 
-                    var method = target.GetType().GetMethod(name, Service.Ref.Instance);
+                    var method = target.GetType().GetMethod(upper, Service.Ref.Instance);
                     if (method == null)
                     {
                         continue;
@@ -116,13 +116,13 @@ namespace Astraia
                             {
                                 if (panel.state != UIState.Freeze)
                                 {
-                                    target.Invoke(name);
+                                    target.Invoke(upper);
                                 }
                             });
                             return;
                         }
 
-                        button.GetValue<UnityEvent>("onClick").AddListener(() => target.Invoke(name));
+                        button.GetValue<UnityEvent>("onClick").AddListener(() => target.Invoke(upper));
                         continue;
                     }
 
@@ -136,13 +136,13 @@ namespace Astraia
                             {
                                 if (panel.state != UIState.Freeze)
                                 {
-                                    target.Invoke(name, value);
+                                    target.Invoke(upper, value);
                                 }
                             });
                             return;
                         }
 
-                        toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value => target.Invoke(name, value));
+                        toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value => target.Invoke(upper, value));
                         continue;
                     }
 
@@ -156,13 +156,13 @@ namespace Astraia
                             {
                                 if (panel.state != UIState.Freeze)
                                 {
-                                    target.Invoke(name, value);
+                                    target.Invoke(upper, value);
                                 }
                             });
                             return;
                         }
 
-                        inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => target.Invoke(name, value));
+                        inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => target.Invoke(upper, value));
                     }
                 }
             }
@@ -179,7 +179,7 @@ namespace Astraia
                 }
 
                 var result = child.GetChild(name);
-                if (result != null)
+                if (result)
                 {
                     return result;
                 }
