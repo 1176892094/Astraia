@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using UnityEngine;
 
 namespace Astraia
 {
@@ -36,5 +37,20 @@ namespace Astraia
         public readonly int layerMask;
 
         public UILayerAttribute(int layerMask) => this.layerMask = layerMask;
+    }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class UIAssetAttribute : Attribute
+    {
+        public Rect assetRect;
+        public bool selection;
+        public bool direction;
+
+        public UIAssetAttribute(int x, int y, int w, int h, bool direction = false, bool selection = false)
+        {
+            this.direction = direction;
+            this.selection = selection;
+            assetRect = new Rect(x, y, w, h);
+        }
     }
 }

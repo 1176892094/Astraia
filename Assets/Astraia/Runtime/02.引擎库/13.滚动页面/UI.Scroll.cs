@@ -12,6 +12,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using Astraia.Common;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,9 +20,9 @@ using UnityEngine.EventSystems;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel<T> : UIPanel, IPanel, IEnumerable<KeyValuePair<int, IGrid<T>>>
+    public abstract class UIPanel<T, TGrid> : UIPanel, IMove, IPanel, IEnumerable<KeyValuePair<int, TGrid>> where TGrid : Component, IGrid<T>
     {
-        private readonly Dictionary<int, IGrid<T>> grids = new Dictionary<int, IGrid<T>>();
+        private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
         private IList<T> items;
         private int minIndex;
         private int maxIndex;
@@ -31,7 +32,6 @@ namespace Astraia
 
         internal bool selection;
         internal bool direction;
-        internal Type assetType;
         internal Rect assetRect;
         [Inject] public RectTransform content;
         private int numX => (int)assetRect.x + (direction ? 0 : 1);
@@ -40,17 +40,16 @@ namespace Astraia
         internal override void Create(Entity owner)
         {
             base.Create(owner);
-            selection = false;
+            var assetAttr = GetType().GetCustomAttribute<UIAssetAttribute>(true);
+            if (assetAttr != null)
+            {
+                direction = assetAttr.direction;
+                selection = assetAttr.selection;
+                assetRect = assetAttr.assetRect;
+            }
+
             restarted = false;
             owner.OnHide += Reload;
-        }
-
-        public void Create<TGrid>(int x, int y, int w, int h, bool direction = false, bool selection = false) where TGrid : IGrid<T>
-        {
-            this.direction = direction;
-            this.selection = selection;
-            assetType = typeof(TGrid);
-            assetRect = new Rect(x, y, w, h);
         }
 
         void IPanel.Update()
@@ -184,8 +183,8 @@ namespace Astraia
                 }
 
                 grids[i] = null;
-                var item = await PoolManager.Show("Prefabs/" + assetType.Name);
-                var grid = (IGrid<T>)item.GetOrAddComponent(assetType);
+                var item = await PoolManager.Show("Prefabs/" + typeof(TGrid).Name);
+                var grid = (TGrid)item.GetOrAddComponent(typeof(TGrid));
                 var rect = (RectTransform)grid.transform;
                 rect.SetParent(content);
                 rect.sizeDelta = new Vector2(assetRect.width, assetRect.height);
@@ -263,15 +262,15 @@ namespace Astraia
             grids.Clear();
         }
 
-        public void Move(IGrid<T> grid, MoveDirection move)
+        public void Move(IGrid grid, MoveDirection move)
         {
-            IGrid<T> current;
+            TGrid current;
             switch (move)
             {
                 case MoveDirection.Left when !direction:
                     for (int i = 0; i < numY; i++)
                     {
-                        if (grids.TryGetValue(minIndex + i + numY, out current) && current == grid)
+                        if (grids.TryGetValue(minIndex + i + numY, out current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.right * assetRect.width;
                             return;
@@ -282,7 +281,7 @@ namespace Astraia
                 case MoveDirection.Up when direction:
                     for (int i = 0; i < numX; i++)
                     {
-                        if (grids.TryGetValue(minIndex + i + numX, out current) && current == grid)
+                        if (grids.TryGetValue(minIndex + i + numX, out current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.down * assetRect.height;
                             return;
@@ -293,7 +292,7 @@ namespace Astraia
                 case MoveDirection.Right when !direction:
                     for (int i = 0; i < numY; i++)
                     {
-                        if (grids.TryGetValue(maxIndex - i - numY, out current) && current == grid)
+                        if (grids.TryGetValue(maxIndex - i - numY, out current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.left * assetRect.width;
                             return;
@@ -304,7 +303,7 @@ namespace Astraia
                 case MoveDirection.Down when direction:
                     for (int i = 0; i < numX; i++)
                     {
-                        if (grids.TryGetValue(maxIndex - i - numX, out current) && current == grid)
+                        if (grids.TryGetValue(maxIndex - i - numX, out current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.up * assetRect.height;
                             return;
@@ -315,7 +314,7 @@ namespace Astraia
             }
         }
 
-        public IEnumerator<KeyValuePair<int, IGrid<T>>> GetEnumerator()
+        public IEnumerator<KeyValuePair<int, TGrid>> GetEnumerator()
         {
             return grids.GetEnumerator();
         }
