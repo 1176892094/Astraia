@@ -18,7 +18,7 @@ namespace Astraia
     public class InjectAttribute : Attribute
     {
     }
-    
+
     [AttributeUsage(AttributeTargets.Property)]
     public class PrimaryAttribute : Attribute
     {
@@ -31,6 +31,7 @@ namespace Astraia
 
         public UIGroupAttribute(int groupMask) => this.groupMask = groupMask;
     }
+
     [AttributeUsage(AttributeTargets.Class)]
     public class UILayerAttribute : Attribute
     {
@@ -42,9 +43,9 @@ namespace Astraia
     [AttributeUsage(AttributeTargets.Class)]
     public class UIAssetAttribute : Attribute
     {
-        public Rect assetRect;
-        public bool selection;
-        public bool direction;
+        public readonly bool selection;
+        public readonly bool direction;
+        public readonly Rect assetRect;
 
         public UIAssetAttribute(int x, int y, int w, int h, bool direction = false, bool selection = false)
         {

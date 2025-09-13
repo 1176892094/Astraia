@@ -104,9 +104,9 @@ namespace Astraia
             {
                 if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
                 {
-                    var eventType = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
-                    var moduleShow = (Action)Delegate.CreateDelegate(typeof(Action), module, eventType.GetMethod("Listen", Service.Ref.Instance)!);
-                    var moduleHide = (Action)Delegate.CreateDelegate(typeof(Action), module, eventType.GetMethod("Remove", Service.Ref.Instance)!);
+                    var moduleType = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
+                    var moduleShow = (Action)Delegate.CreateDelegate(typeof(Action), module, moduleType.GetMethod("Listen", Service.Ref.Instance)!);
+                    var moduleHide = (Action)Delegate.CreateDelegate(typeof(Action), module, moduleType.GetMethod("Remove", Service.Ref.Instance)!);
                     owner.OnShow += moduleShow;
                     owner.OnHide += moduleHide;
                 }

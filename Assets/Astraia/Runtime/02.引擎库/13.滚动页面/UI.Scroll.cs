@@ -264,13 +264,12 @@ namespace Astraia
 
         public void Move(IGrid grid, MoveDirection move)
         {
-            TGrid current;
             switch (move)
             {
                 case MoveDirection.Left when !direction:
                     for (int i = 0; i < numY; i++)
                     {
-                        if (grids.TryGetValue(minIndex + i + numY, out current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(minIndex + i + numY, out var current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.right * assetRect.width;
                             return;
@@ -281,7 +280,7 @@ namespace Astraia
                 case MoveDirection.Up when direction:
                     for (int i = 0; i < numX; i++)
                     {
-                        if (grids.TryGetValue(minIndex + i + numX, out current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(minIndex + i + numX, out var current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.down * assetRect.height;
                             return;
@@ -292,7 +291,7 @@ namespace Astraia
                 case MoveDirection.Right when !direction:
                     for (int i = 0; i < numY; i++)
                     {
-                        if (grids.TryGetValue(maxIndex - i - numY, out current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(maxIndex - i - numY, out var current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.left * assetRect.width;
                             return;
@@ -303,7 +302,7 @@ namespace Astraia
                 case MoveDirection.Down when direction:
                     for (int i = 0; i < numX; i++)
                     {
-                        if (grids.TryGetValue(maxIndex - i - numX, out current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(maxIndex - i - numX, out var current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.up * assetRect.height;
                             return;
