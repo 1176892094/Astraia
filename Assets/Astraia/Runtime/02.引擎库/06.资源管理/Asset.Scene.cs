@@ -29,8 +29,16 @@ namespace Astraia.Common
                 if (assetData != null)
                 {
                     EventManager.Invoke(new SceneAwake(assetPath));
-                    var operation = SceneManager.LoadSceneAsync(assetPath, LoadSceneMode.Single);
-                    await Instance.Wait(operation).OnUpdate(progress => EventManager.Invoke(new SceneUpdate(progress)));
+                    var request = SceneManager.LoadSceneAsync(assetPath, LoadSceneMode.Single);
+                    if (request != null)
+                    {
+                        while (!request.isDone && Instance)
+                        {
+                            EventManager.Invoke(new SceneUpdate(request.progress));
+                            await Task.Yield();
+                        }
+                    }
+
                     EventManager.Invoke(new SceneComplete());
                     return;
                 }

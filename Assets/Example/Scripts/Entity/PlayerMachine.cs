@@ -59,7 +59,7 @@ namespace Runtime
             renderer = owner.GetComponent<SpriteRenderer>();
         }
 
-        public void Update()
+        public void OnUpdate()
         {
             if (Feature.moveX > 0)
             {
@@ -96,6 +96,8 @@ namespace Runtime
             {
                 JumpUpdate();
             }
+
+            Tick();
         }
 
         private void FallUpdate()

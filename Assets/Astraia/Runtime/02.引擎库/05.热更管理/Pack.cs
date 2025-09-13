@@ -185,8 +185,13 @@ namespace Astraia.Common
             using (var request = UnityWebRequest.Get(packUri))
             {
                 var result = request.SendWebRequest();
-                await Instance.Wait(result).OnUpdate(progress => EventManager.Invoke(new PackUpdate(packName, progress, request.downloadProgress)));
-                EventManager.Invoke(new PackUpdate(packName, 1, 1));
+                while (!result.isDone && Instance)
+                {
+                    EventManager.Invoke(new PackUpdate(packName, request.downloadProgress));
+                    await Task.Yield();
+                }
+
+                EventManager.Invoke(new PackUpdate(packName, 1));
                 if (request.result != UnityWebRequest.Result.Success)
                 {
                     Debug.Log("请求服务器下载 {0} 失败!\n".Format(packName));
@@ -236,8 +241,15 @@ namespace Astraia.Common
                 }
             }
 
-            var assetPack = AssetBundle.LoadFromMemoryAsync(result);
-            var assetTask = await Instance.Wait(assetPack).OnUpdate(progress => EventManager.Invoke(new AssetUpdate(assetData.path, progress)));
+            var assetTask = AssetBundle.LoadFromMemoryAsync(result);
+            var assetName = Path.GetFileNameWithoutExtension(assetData.path);
+            while (!assetTask.isDone && Instance)
+            {
+                EventManager.Invoke(new AssetUpdate(assetName, assetTask.progress));
+                await Task.Yield();
+            }
+
+            EventManager.Invoke(new AssetUpdate(assetName, 1));
             return assetTask.assetBundle;
         }
 

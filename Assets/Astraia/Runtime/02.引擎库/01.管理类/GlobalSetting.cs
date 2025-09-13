@@ -81,7 +81,7 @@ namespace Astraia
         [FoldoutGroup("其他设置")] [LabelText("密钥版本")] [PropertyOrder(1)]
 #endif
         public string[] secretGroup;
-#if ODIN_INSPECTOR
+#if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector] [FoldoutGroup("数据表")] [LabelText("数据表程序集")] [PropertyOrder(-1)]
 #endif
         public string assemblyName = "HotUpdate.Data";

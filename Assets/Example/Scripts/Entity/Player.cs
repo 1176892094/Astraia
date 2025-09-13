@@ -16,11 +16,11 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
-        public PlayerSender Sender => HasComponent<PlayerSender>();
-        public PlayerMachine Machine => HasComponent<PlayerMachine>();
-        public PlayerFeature Feature => HasComponent<PlayerFeature>();
-        public PlayerOperate Operate => HasComponent<PlayerOperate>();
-        public NetworkTransform Transform => HasComponent<NetworkTransform>();
+        public PlayerSender Sender => AskComponent<PlayerSender>();
+        public PlayerMachine Machine => AskComponent<PlayerMachine>();
+        public PlayerFeature Feature => AskComponent<PlayerFeature>();
+        public PlayerOperate Operate => AskComponent<PlayerOperate>();
+        public NetworkTransform Transform => AskComponent<NetworkTransform>();
         private Ray2D DLRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
         private Ray2D DRRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
         private Ray2D RURay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
@@ -45,7 +45,6 @@ namespace Runtime
             if (isOwner)
             {
                 Operate.OnUpdate();
-                Machine.Update();
                 Machine.OnUpdate();
                 Feature.OnUpdate();
             }

@@ -19,12 +19,7 @@ namespace Astraia
         {
             return owner && owner.gameObject.activeInHierarchy;
         }
-
-        public static Async<T> Wait<T>(this Component owner, T operation) where T : AsyncOperation
-        {
-            return operation != null ? Async<T>.Create(owner, operation) : null;
-        }
-
+        
         public static Watch Wait(this Component current, float duration = 0)
         {
             return Watch.Create(current, duration);

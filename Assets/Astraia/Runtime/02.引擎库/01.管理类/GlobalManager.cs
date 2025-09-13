@@ -115,6 +115,7 @@ namespace Astraia.Common
 
         private async void OnDestroy()
         {
+            manifest = null;
             Instance = null;
             await Task.Yield();
             PageManager.Dispose();
