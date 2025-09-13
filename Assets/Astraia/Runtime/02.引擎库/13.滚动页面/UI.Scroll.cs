@@ -45,6 +45,14 @@ namespace Astraia
             owner.OnHide += Reload;
         }
 
+        public void Create<TGrid>(int x, int y, int w, int h, bool direction = false, bool selection = false) where TGrid : IGrid<T>
+        {
+            this.direction = direction;
+            this.selection = selection;
+            assetType = typeof(TGrid);
+            assetRect = new Rect(x, y, w, h);
+        }
+
         void IPanel.Update()
         {
             Scroll();
