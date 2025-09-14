@@ -51,7 +51,7 @@ namespace Astraia
 
                 var writeAssets = false;
                 var assembly = GlobalSetting.GetTextByIndex(AssetText.Assembly);
-                dataTables.Add(GlobalSetting.assemblyPath, assembly.Replace("REPLACE", GlobalSetting.ASSET_TABLE));
+                dataTables.Add(GlobalSetting.assemblyPath, assembly.Replace("REPLACE", GlobalSetting.ASSET_DATA));
                 var progress = 0f;
                 foreach (var data in dataTables)
                 {

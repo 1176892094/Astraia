@@ -21,8 +21,7 @@ namespace Astraia
 {
     public class EditorProcess : AssetPostprocessor
     {
-        private static string root => GlobalSetting.ASSET_FILE;
-        private static int offset => root.EndsWith("/") ? root.Length : root.Length + 1;
+        private static int offset => GlobalSetting.ASSET_PATH.EndsWith("/") ? GlobalSetting.ASSET_PATH.Length : GlobalSetting.ASSET_PATH.Length + 1;
 
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
@@ -36,11 +35,11 @@ namespace Astraia
                 var newPath = movedAssets[i];
                 var oldPath = movedFromAssetPaths[i];
 
-                if (newPath.StartsWith(root))
+                if (newPath.StartsWith(GlobalSetting.ASSET_PATH))
                 {
                     ProcessAsset(newPath);
                 }
-                else if (oldPath.StartsWith(root))
+                else if (oldPath.StartsWith(GlobalSetting.ASSET_PATH))
                 {
                     var importer = AssetImporter.GetAtPath(newPath);
                     if (importer != null && !string.IsNullOrEmpty(importer.assetBundleName))
@@ -58,7 +57,7 @@ namespace Astraia
 
         private static void ProcessAsset(string path)
         {
-            if (!path.StartsWith(root))
+            if (!path.StartsWith(GlobalSetting.ASSET_PATH))
             {
                 return;
             }

@@ -12,97 +12,82 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
+using Astraia;
 using Astraia.Common;
 using UnityEditor;
 using UnityEngine;
 
-namespace Astraia
+internal static class EditorBuilder
 {
-    internal static class EditorBuilder
+    private static string ComputeMD5(string filePath)
     {
-        private static readonly uint[] Table;
-
-        static EditorBuilder()
+        using var md5 = MD5.Create();
+        using var stream = File.OpenRead(filePath);
+        var hash = md5.ComputeHash(stream);
+        var sb = new StringBuilder(hash.Length * 2);
+        foreach (var b in hash)
         {
-            Table = new uint[256];
-            const uint POLYNOMIAL = 0xEDB88320;
-            for (uint i = 0; i < Table.Length; ++i)
-            {
-                var result = i;
-                for (var j = 0; j < 8; ++j)
-                {
-                    result = (result >> 1) ^ ((result & 1) == 1 ? POLYNOMIAL : 0);
-                }
-
-                Table[i] = result;
-            }
+            sb.Append(b.ToString("X2"));
         }
 
-        private static uint Compute(string filePath)
-        {
-            using var stream = File.OpenRead(filePath);
-            var buffer = new byte[8192];
-            int bytesRead;
-            var result = 0xFFFFFFFF;
-            while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
-            {
-                for (var i = 0; i < bytesRead; i++)
-                {
-                    var index = (byte)((result & 0xFF) ^ buffer[i]);
-                    result = (result >> 8) ^ Table[index];
-                }
-            }
+        return sb.ToString();
+    }
 
-            return ~result;
+
+    [MenuItem("Tools/Astraia/热更资源构建", priority = 3)]
+    private static async void BuildAsset()
+    {
+        var startTime = EditorApplication.timeSinceStartup;
+        var folderPath = Directory.CreateDirectory(GlobalSetting.remoteAssetPath);
+        BuildPipeline.BuildAssetBundles(GlobalSetting.remoteAssetPath, BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.assetPlatform);
+
+        var oldHashes = new Dictionary<string, string>();
+        if (File.Exists(GlobalSetting.remoteAssetData))
+        {
+            var readJson = await File.ReadAllTextAsync(GlobalSetting.remoteAssetData);
+            var oldData = JsonManager.FromJson<List<PackData>>(readJson);
+            oldHashes = oldData.ToDictionary(d => d.name, d => d.code);
         }
 
-        [MenuItem("Tools/Astraia/热更资源构建", priority = 3)]
-        private static async void BuildAsset()
+        var filePacks = new List<PackData>();
+        var fileInfos = folderPath.GetFiles();
+
+        foreach (var fileInfo in fileInfos)
         {
-            var folderPath = Directory.CreateDirectory(GlobalSetting.remoteAssetPath);
-            BuildPipeline.BuildAssetBundles(GlobalSetting.remoteAssetPath, BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.assetPlatform);
-            var elapseTime = EditorApplication.timeSinceStartup;
-
-            var fileHash = new HashSet<string>();
-            var isExists = File.Exists(GlobalSetting.remoteAssetData);
-            if (isExists)
+            if (fileInfo.Extension != "")
             {
-                var readJson = await File.ReadAllTextAsync(GlobalSetting.remoteAssetData);
-                fileHash = JsonManager.FromJson<List<PackData>>(readJson).Select(data => data.code).ToHashSet();
+                continue;
             }
 
-            var filePacks = new List<PackData>();
-            var fileInfos = folderPath.GetFiles();
-            foreach (var fileInfo in fileInfos)
+            var md5Before = ComputeMD5(fileInfo.FullName);
+            if (oldHashes.TryGetValue(fileInfo.Name, out var oldMd5) && md5Before == oldMd5)
             {
-                if (fileInfo.Extension != "")
-                {
-                    continue;
-                }
-
-                var nameHash = Compute(fileInfo.FullName).ToString("X8");
-                if (isExists && fileHash.Contains(nameHash))
-                {
-                    filePacks.Add(new PackData(nameHash, fileInfo.Name, (int)fileInfo.Length));
-                    continue;
-                }
-
-                await Task.Run(() =>
-                {
-                    var readBytes = File.ReadAllBytes(fileInfo.FullName);
-                    readBytes = Service.Xor.Encrypt(readBytes);
-                    File.WriteAllBytes(fileInfo.FullName, readBytes);
-                });
-                nameHash = Compute(fileInfo.FullName).ToString("X8");
-                filePacks.Add(new PackData(nameHash, fileInfo.Name, (int)fileInfo.Length));
-                Debug.Log("加密AB包: {0}".Format(fileInfo.FullName));
+                filePacks.Add(new PackData(md5Before, fileInfo.Name, (int)fileInfo.Length));
+                Debug.Log("跳过未变更文件: {0}".Format(fileInfo.Name));
+                continue;
             }
 
-            await File.WriteAllTextAsync(GlobalSetting.remoteAssetData, JsonManager.ToJson(filePacks));
-            elapseTime = EditorApplication.timeSinceStartup - elapseTime;
-            Debug.Log("加密 AssetBundle 完成。耗时:<color=#00FF00> {0:F} </color>秒".Format(elapseTime));
-            AssetDatabase.Refresh();
+            await Task.Run(() =>
+            {
+                var bytes = File.ReadAllBytes(fileInfo.FullName);
+                bytes = Service.Xor.Encrypt(bytes);
+
+                var tempPath = fileInfo.FullName + ".tmp";
+                File.WriteAllBytes(tempPath, bytes);
+                File.Replace(tempPath, fileInfo.FullName, null);
+            });
+
+            var md5After = ComputeMD5(fileInfo.FullName);
+            filePacks.Add(new PackData(md5After, fileInfo.Name, (int)fileInfo.Length));
+            Debug.Log("加密并更新文件: {0}".Format(fileInfo.Name));
         }
+
+        await File.WriteAllTextAsync(GlobalSetting.remoteAssetData, JsonManager.ToJson(filePacks));
+        var elapsed = EditorApplication.timeSinceStartup - startTime;
+        Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(elapsed));
+        AssetDatabase.Refresh();
     }
 }

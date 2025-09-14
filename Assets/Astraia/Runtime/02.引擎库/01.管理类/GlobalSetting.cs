@@ -30,10 +30,10 @@ namespace Astraia
         public static GlobalSetting Instance => instance ??= Resources.Load<GlobalSetting>(nameof(GlobalSetting));
 
 
-        public const string ASSET_FILE = "Assets/Sources";
-        public const string ASSET_DATA = "AssetBundle.json";
-        public const string ASSET_BUILD = "AssetBundles";
-        public const string ASSET_TABLE = "HotUpdate.Data";
+        public const string ASSET_PACK = "AssetBundles";
+        public const string ASSET_PATH = "Assets/Sources";
+        public const string ASSET_JSON = "AssetBundle.json";
+        public const string ASSET_DATA = "HotUpdate.Data";
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("资源加载")] [LabelText("资源构建平台")] [PropertyOrder(-3)]
@@ -80,13 +80,13 @@ namespace Astraia
         [FoldoutGroup("资源加载")]
         [LabelText("远端资源路径")]
 #endif
-        public static string assetRemotePath => "{0}/{1}".Format(Instance.assetRemoteData, ASSET_BUILD);
+        public static string assetRemotePath => "{0}/{1}".Format(Instance.assetRemoteData, ASSET_PACK);
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源加载")]
         [LabelText("资源存储路径")]
 #endif
-        public static string assetPackPath => "{0}/{1}".Format(Application.persistentDataPath, ASSET_BUILD);
+        public static string assetPackPath => "{0}/{1}".Format(Application.persistentDataPath, ASSET_PACK);
 
         private static readonly Dictionary<AssetText, TextAsset> itemText = new Dictionary<AssetText, TextAsset>();
 
@@ -114,7 +114,7 @@ namespace Astraia
 
         public static string GetTablePath(string assetName) => "DataTable/{0}".Format(assetName);
 
-        public static string GetEditorPath(string assetName) => "{0}/{1}.asset".Format(ASSET_FILE, GetTablePath(assetName));
+        public static string GetEditorPath(string assetName) => "{0}/{1}.asset".Format(ASSET_PATH, GetTablePath(assetName));
 
         public static string GetPacketPath(string fileName) => Path.Combine(assetPackPath, fileName);
 
@@ -185,13 +185,13 @@ namespace Astraia
         [FoldoutGroup("数据表")]
         [LabelText("数据表程序集")]
 #endif
-        public static string assemblyPath => "{0}/{1}.asmdef".Format(ScriptPath, ASSET_TABLE);
+        public static string assemblyPath => "{0}/{1}.asmdef".Format(ScriptPath, ASSET_DATA);
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("数据表")]
         [LabelText("资源生成路径")]
 #endif
-        public static string dataTablePath => "{0}/DataTable".Format(ASSET_FILE);
+        public static string dataTablePath => "{0}/DataTable".Format(ASSET_PATH);
 
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
@@ -202,7 +202,7 @@ namespace Astraia
         [FoldoutGroup("资源构建")]
         [LabelText("资源构建路径")]
 #endif
-        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? Path.Combine(projectDataPath, ASSET_BUILD) : Application.streamingAssetsPath;
+        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? Path.Combine(projectDataPath, ASSET_PACK) : Application.streamingAssetsPath;
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
@@ -214,7 +214,7 @@ namespace Astraia
         [FoldoutGroup("资源构建")]
         [LabelText("校验文件路径")]
 #endif
-        public static string remoteAssetData => "{0}/{1}".Format(remoteAssetPath, ASSET_DATA);
+        public static string remoteAssetData => "{0}/{1}".Format(remoteAssetPath, ASSET_JSON);
 
         public static string GetEnumPath(string name) => "{0}/01.枚举类/{1}.cs".Format(ScriptPath, name);
 
@@ -224,7 +224,7 @@ namespace Astraia
 
         public static string GetAssetPath(string name) => "{0}/{1}DataTable.asset".Format(dataTablePath, name);
 
-        public static string GetDataName(string name) => "Astraia.Table.{0}Data,{1}".Format(name, ASSET_TABLE);
+        public static string GetDataName(string name) => "Astraia.Table.{0}Data,{1}".Format(name, ASSET_DATA);
 
         public static string GetTableName(string name) => "Astraia.Table.{0}DataTable".Format(name);
 
