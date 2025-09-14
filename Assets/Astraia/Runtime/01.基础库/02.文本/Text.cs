@@ -18,8 +18,7 @@ namespace Astraia
     {
         public static class Text
         {
-            [ThreadStatic] 
-            private static UTF8Encoding encoding;
+            [ThreadStatic] private static UTF8Encoding encoding;
 
             private static UTF8Encoding Encoding => encoding ??= new UTF8Encoding(false, true);
 

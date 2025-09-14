@@ -440,7 +440,7 @@ namespace Astraia.Net
 
                 if (message.sceneId == 0)
                 {
-                    var prefab = await PoolManager.Show(GlobalSetting.GetPanelPath(message.assetId.ToString()));
+                    var prefab = await AssetManager.Load<GameObject>(GlobalSetting.GetPanelPath(message.assetId.ToString()));
                     if (!prefab.TryGetComponent(out entity))
                     {
                         Debug.LogError(Log.E224.Format(prefab.name));
