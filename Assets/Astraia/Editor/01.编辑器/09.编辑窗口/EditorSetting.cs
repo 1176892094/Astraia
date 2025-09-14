@@ -139,9 +139,6 @@ namespace Astraia
                     EditorUtility.ClearProgressBar();
                 }
             }
-
-            EditorApplication.delayCall -= Service.Ref.LoadData;
-            EditorApplication.delayCall += Service.Ref.LoadData;
             EditorApplication.delayCall -= DataManager.LoadDataTable;
             EditorApplication.delayCall += DataManager.LoadDataTable;
         }

@@ -19,28 +19,32 @@ namespace Astraia
     {
         public static class Ref
         {
-            private static readonly Dictionary<string, Type> cacheTypes = new();
-            private static readonly Dictionary<string, Assembly> assemblies = new();
-            public const BindingFlags Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            public const BindingFlags Instance = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            private static readonly Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
+            private static readonly Dictionary<string, Type> cacheTypes = new Dictionary<string, Type>();
+            
+            public const BindingFlags Static = (BindingFlags)56;
+            public const BindingFlags Instance = (BindingFlags)52;
+            
             public static event Action<Type> OnLoad;
             public static event Action OnLoadComplete;
 
-            public static void LoadData()
+            public static void LoadData(HashSet<string> cacheName)
             {
                 var assemblyData = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (var assembly in assemblyData)
                 {
-                    var assemblyName = assembly.GetName().Name;
-                    assemblies[assemblyName] = assembly;
-                    var types = assembly.GetTypes();
-                    foreach (var type in types)
+                    var name = assembly.GetName().Name;
+                    assemblies[name] = assembly;
+                    if (cacheName.Contains(name) || name.StartsWith("Assembly-CSharp"))
                     {
-                        var typeName = "{0},{1}".Format(type.FullName, assemblyName);
-                        cacheTypes[typeName] = type;
-                        OnLoad?.Invoke(type);
+                        foreach (var result in assembly.GetTypes())
+                        {
+                            cacheTypes["{0},{1}".Format(result.FullName, name)] = result;
+                            OnLoad?.Invoke(result);
+                        }
                     }
                 }
+
                 OnLoadComplete?.Invoke();
             }
 

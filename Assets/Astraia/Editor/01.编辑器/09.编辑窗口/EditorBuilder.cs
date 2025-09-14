@@ -82,7 +82,7 @@ internal static class EditorBuilder
 
             var md5After = ComputeMD5(fileInfo.FullName);
             filePacks.Add(new PackData(md5After, fileInfo.Name, (int)fileInfo.Length));
-            Debug.Log("加密并更新文件: {0}".Format(fileInfo.Name));
+            Debug.Log("加密并更新文件: {0}".Color("G").Format(fileInfo.Name));
         }
 
         await File.WriteAllTextAsync(GlobalSetting.remoteAssetData, JsonManager.ToJson(filePacks));
