@@ -9,17 +9,15 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System.Collections.Generic;
-
 namespace Astraia
 {
     public static partial class Service
     {
-        public static class Word
+        internal static partial class Word
         {
             private static readonly Node root = new Node();
 
-            internal static void Register(string text)
+            public static void Register(string text)
             {
                 var cache = Zip.Decompress(text);
                 var words = cache.Split('\n');
@@ -46,7 +44,7 @@ namespace Astraia
                 current.finish = true;
             }
 
-            public static string Replace(string text, char mask = '*')
+            public static string Replace(string text, char mask)
             {
                 var chars = text.ToCharArray();
                 for (var i = 0; i < chars.Length; i++)
@@ -71,12 +69,6 @@ namespace Astraia
                 }
 
                 return new string(chars);
-            }
-
-            private class Node
-            {
-                public readonly Dictionary<char, Node> nodes = new Dictionary<char, Node>();
-                public bool finish;
             }
         }
     }
