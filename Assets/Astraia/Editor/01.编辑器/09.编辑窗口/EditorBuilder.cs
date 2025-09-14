@@ -74,10 +74,7 @@ internal static class EditorBuilder
             {
                 var bytes = File.ReadAllBytes(fileInfo.FullName);
                 bytes = Service.Xor.Encrypt(bytes);
-
-                var tempPath = fileInfo.FullName + ".tmp";
-                File.WriteAllBytes(tempPath, bytes);
-                File.Replace(tempPath, fileInfo.FullName, null);
+                File.WriteAllBytes(fileInfo.FullName, bytes);
             });
 
             var md5After = ComputeMD5(fileInfo.FullName);

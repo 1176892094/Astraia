@@ -21,10 +21,10 @@ namespace Astraia
         {
             private static readonly Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
             private static readonly Dictionary<string, Type> cacheTypes = new Dictionary<string, Type>();
-            
+
             public const BindingFlags Static = (BindingFlags)56;
             public const BindingFlags Instance = (BindingFlags)52;
-            
+
             public static event Action<Type> OnLoad;
             public static event Action OnLoadComplete;
 
