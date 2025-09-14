@@ -21,7 +21,7 @@ namespace Astraia
 {
     public class EditorProcess : AssetPostprocessor
     {
-        private static string root => GlobalSetting.Instance.assetSourcePath;
+        private static string root => GlobalSetting.ASSET_FILE;
         private static int offset => root.EndsWith("/") ? root.Length : root.Length + 1;
 
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)

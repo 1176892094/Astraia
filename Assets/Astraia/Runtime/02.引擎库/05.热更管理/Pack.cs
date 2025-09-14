@@ -38,8 +38,8 @@ namespace Astraia.Common
                 }
             }
 
-            var fileUri = GlobalSetting.GetServerPath(GlobalSetting.assetPackData);
-            var serverRequest = await LoadServerRequest(GlobalSetting.assetPackData, fileUri);
+            var fileUri = GlobalSetting.GetServerPath(GlobalSetting.ASSET_DATA);
+            var serverRequest = await LoadServerRequest(GlobalSetting.ASSET_DATA, fileUri);
             if (!string.IsNullOrEmpty(serverRequest))
             {
                 var assetPacks = JsonManager.FromJson<List<PackData>>(serverRequest);
@@ -54,8 +54,8 @@ namespace Astraia.Common
                 return;
             }
 
-            var persistentData = GlobalSetting.GetPacketPath(GlobalSetting.assetPackData);
-            var streamingAsset = GlobalSetting.GetClientPath(GlobalSetting.assetPackData);
+            var persistentData = GlobalSetting.GetPacketPath(GlobalSetting.ASSET_DATA);
+            var streamingAsset = GlobalSetting.GetClientPath(GlobalSetting.ASSET_DATA);
             var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
             if (!string.IsNullOrEmpty(clientRequest))
             {
@@ -106,7 +106,7 @@ namespace Astraia.Common
             var success = await LoadPacketRequest(fileNames);
             if (success)
             {
-                var filePath = GlobalSetting.GetPacketPath(GlobalSetting.assetPackData);
+                var filePath = GlobalSetting.GetPacketPath(GlobalSetting.ASSET_DATA);
                 await File.WriteAllTextAsync(filePath, serverRequest);
             }
 

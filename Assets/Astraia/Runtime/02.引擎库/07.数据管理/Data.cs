@@ -20,7 +20,7 @@ namespace Astraia.Common
     {
         public static async void LoadDataTable()
         {
-            var assembly = Service.Ref.GetAssembly(GlobalSetting.Instance.assemblyName);
+            var assembly = Service.Ref.GetAssembly(GlobalSetting.ASSET_TABLE);
             if (assembly == null)
             {
                 EventManager.Invoke(new DataComplete());

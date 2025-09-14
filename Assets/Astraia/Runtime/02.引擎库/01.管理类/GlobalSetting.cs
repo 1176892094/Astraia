@@ -29,6 +29,12 @@ namespace Astraia
         private static GlobalSetting instance;
         public static GlobalSetting Instance => instance ??= Resources.Load<GlobalSetting>(nameof(GlobalSetting));
 
+
+        public const string ASSET_FILE = "Assets/Sources";
+        public const string ASSET_DATA = "AssetBundle.json";
+        public const string ASSET_BUILD = "AssetBundles";
+        public const string ASSET_TABLE = "HotUpdate.Data";
+
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("资源加载")] [LabelText("资源构建平台")] [PropertyOrder(-3)]
 #endif
@@ -58,18 +64,6 @@ namespace Astraia
 #endif
         public AssetMode assetLoadMode = AssetMode.Simulate;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("资源构建")] [LabelText("资源校验文件")]
-#endif
-        public string assetLoadName = "AssetBundle";
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("资源加载")] [LabelText("资源构建文件夹")]
-#endif
-        public string assetBuildPath = "AssetBundles";
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("资源加载")] [LabelText("资源加载根目录")]
-#endif
-        public string assetSourcePath = "Assets/Sources";
-#if UNITY_EDITOR && ODIN_INSPECTOR
         [FoldoutGroup("资源加载")] [LabelText("资源服务器地址")]
 #endif
         public string assetRemoteData = "http://192.168.0.3:8000/AssetBundles";
@@ -82,23 +76,17 @@ namespace Astraia
 #endif
         public string[] secretGroup;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector] [FoldoutGroup("数据表")] [LabelText("数据表程序集")] [PropertyOrder(-1)]
-#endif
-        public string assemblyName = "HotUpdate.Data";
-#if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源加载")]
         [LabelText("远端资源路径")]
 #endif
-        public static string assetRemotePath => "{0}/{1}".Format(Instance.assetRemoteData, Instance.assetBuildPath);
+        public static string assetRemotePath => "{0}/{1}".Format(Instance.assetRemoteData, ASSET_BUILD);
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源加载")]
         [LabelText("资源存储路径")]
 #endif
-        public static string assetPackPath => "{0}/{1}".Format(Application.persistentDataPath, Instance.assetBuildPath);
-
-        public static string assetPackData => "{0}.json".Format(Instance.assetLoadName);
+        public static string assetPackPath => "{0}/{1}".Format(Application.persistentDataPath, ASSET_BUILD);
 
         private static readonly Dictionary<AssetText, TextAsset> itemText = new Dictionary<AssetText, TextAsset>();
 
@@ -126,7 +114,7 @@ namespace Astraia
 
         public static string GetTablePath(string assetName) => "DataTable/{0}".Format(assetName);
 
-        public static string GetEditorPath(string assetName) => "{0}/{1}.asset".Format(Instance.assetSourcePath, GetTablePath(assetName));
+        public static string GetEditorPath(string assetName) => "{0}/{1}.asset".Format(ASSET_FILE, GetTablePath(assetName));
 
         public static string GetPacketPath(string fileName) => Path.Combine(assetPackPath, fileName);
 
@@ -197,19 +185,19 @@ namespace Astraia
         [FoldoutGroup("数据表")]
         [LabelText("数据表程序集")]
 #endif
-        public static string assemblyPath => "{0}/{1}.asmdef".Format(ScriptPath, Instance.assemblyName);
+        public static string assemblyPath => "{0}/{1}.asmdef".Format(ScriptPath, ASSET_TABLE);
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("数据表")]
         [LabelText("资源生成路径")]
 #endif
-        public static string dataTablePath => "{0}/DataTable".Format(Instance.assetSourcePath);
+        public static string dataTablePath => "{0}/DataTable".Format(ASSET_FILE);
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
         [LabelText("资源构建路径")]
 #endif
-        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? Instance.assetBuildPath : Application.streamingAssetsPath;
+        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? ASSET_BUILD : Application.streamingAssetsPath;
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
@@ -221,7 +209,7 @@ namespace Astraia
         [FoldoutGroup("资源构建")]
         [LabelText("校验文件路径")]
 #endif
-        public static string remoteAssetData => "{0}/{1}.json".Format(remoteAssetPath, Instance.assetLoadName);
+        public static string remoteAssetData => "{0}/{1}".Format(remoteAssetPath, ASSET_DATA);
 
         public static string GetEnumPath(string name) => "{0}/01.枚举类/{1}.cs".Format(ScriptPath, name);
 
@@ -231,7 +219,7 @@ namespace Astraia
 
         public static string GetAssetPath(string name) => "{0}/{1}DataTable.asset".Format(dataTablePath, name);
 
-        public static string GetDataName(string name) => "Astraia.Table.{0}Data,{1}".Format(name, Instance.assemblyName);
+        public static string GetDataName(string name) => "Astraia.Table.{0}Data,{1}".Format(name, ASSET_TABLE);
 
         public static string GetTableName(string name) => "Astraia.Table.{0}DataTable".Format(name);
 
@@ -280,7 +268,7 @@ namespace Astraia
                 systems.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
             }
         }
-
+        
         public static void LoadComplete()
         {
             modules.Sort(StringComparer.Ordinal);
