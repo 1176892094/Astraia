@@ -15,6 +15,7 @@ using Text = UnityEngine.UI.Text;
 
 namespace Runtime
 {
+    [UILayer(1)]
     public class LabelPanel : UIPanel
     {
         [Inject] private Text message;
