@@ -192,12 +192,17 @@ namespace Astraia
         [LabelText("资源生成路径")]
 #endif
         public static string dataTablePath => "{0}/DataTable".Format(ASSET_FILE);
+
+        [ShowInInspector]
+        [FoldoutGroup("资源构建")]
+        [LabelText("项目工程路径")]
+        public static string projectDataPath => Path.GetDirectoryName(Application.dataPath);
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
         [LabelText("资源构建路径")]
 #endif
-        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? ASSET_BUILD : Application.streamingAssetsPath;
+        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? Path.Combine(projectDataPath, ASSET_BUILD) : Application.streamingAssetsPath;
 #if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
@@ -268,7 +273,7 @@ namespace Astraia
                 systems.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
             }
         }
-        
+
         public static void LoadComplete()
         {
             modules.Sort(StringComparer.Ordinal);
