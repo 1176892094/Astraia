@@ -17,8 +17,10 @@ using Astraia.Common;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
-#if UNITY_EDITOR && ODIN_INSPECTOR
+#if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
+#endif
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
 
@@ -192,10 +194,11 @@ namespace Astraia
         [LabelText("资源生成路径")]
 #endif
         public static string dataTablePath => "{0}/DataTable".Format(ASSET_PATH);
-
+#if ODIN_INSPECTOR
         [ShowInInspector]
         [FoldoutGroup("资源构建")]
         [LabelText("项目工程路径")]
+#endif
         public static string projectDataPath => Path.GetDirectoryName(Application.dataPath);
 #if ODIN_INSPECTOR
         [ShowInInspector]

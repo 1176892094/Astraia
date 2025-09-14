@@ -10,13 +10,13 @@
 // *********************************************************************************
 
 using UnityEngine;
-using UnityEngine.EventSystems;
+
 
 namespace Astraia.Common
 {
     public interface IMove
     {
-        void Move(IGrid grid, MoveDirection move);
+        void Move(IGrid grid, int move);
     }
 
     public interface IGrid

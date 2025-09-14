@@ -15,7 +15,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using Astraia.Common;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Astraia
 {
@@ -262,11 +261,11 @@ namespace Astraia
             grids.Clear();
         }
 
-        public void Move(IGrid grid, MoveDirection move)
+        public void Move(IGrid grid, int move)
         {
             switch (move)
             {
-                case MoveDirection.Left when !direction:
+                case 0 when !direction:
                     for (int i = 0; i < numY; i++)
                     {
                         if (grids.TryGetValue(minIndex + i + numY, out var current) && current == (TGrid)grid)
@@ -277,7 +276,7 @@ namespace Astraia
                     }
 
                     return;
-                case MoveDirection.Up when direction:
+                case 1 when direction:
                     for (int i = 0; i < numX; i++)
                     {
                         if (grids.TryGetValue(minIndex + i + numX, out var current) && current == (TGrid)grid)
@@ -288,7 +287,7 @@ namespace Astraia
                     }
 
                     return;
-                case MoveDirection.Right when !direction:
+                case 2 when !direction:
                     for (int i = 0; i < numY; i++)
                     {
                         if (grids.TryGetValue(maxIndex - i - numY, out var current) && current == (TGrid)grid)
@@ -299,7 +298,7 @@ namespace Astraia
                     }
 
                     return;
-                case MoveDirection.Down when direction:
+                case 3 when direction:
                     for (int i = 0; i < numX; i++)
                     {
                         if (grids.TryGetValue(maxIndex - i - numX, out var current) && current == (TGrid)grid)
