@@ -40,7 +40,7 @@ namespace Astraia
         internal override void Create(Entity owner)
         {
             base.Create(owner);
-            var assetAttr = GetType().GetCustomAttribute<UIAssetAttribute>(true);
+            var assetAttr = GetType().GetCustomAttribute<UIPanelAttribute>(true);
             if (assetAttr != null)
             {
                 direction = assetAttr.direction;

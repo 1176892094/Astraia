@@ -41,13 +41,13 @@ namespace Astraia
     }
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class UIAssetAttribute : Attribute
+    public class UIPanelAttribute : Attribute
     {
         public readonly bool selection;
         public readonly bool direction;
         public readonly Rect assetRect;
 
-        public UIAssetAttribute(int x, int y, int w, int h, bool direction = false, bool selection = false)
+        public UIPanelAttribute(int x, int y, int w, int h, bool direction = false, bool selection = false)
         {
             this.direction = direction;
             this.selection = selection;
