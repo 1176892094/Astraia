@@ -191,10 +191,10 @@ namespace Astraia
             private int count;
             private int repeat;
 
-            public static Repeater Create(RootNode node, int repeat = -1)
+            public static Repeater Create(RootNode[] nodes, int repeat = -1)
             {
                 var repeater = Activator.CreateInstance<Repeater>();
-                repeater.node = node;
+                repeater.node = nodes[0];
                 repeater.repeat = repeat;
                 return repeater;
             }
@@ -225,10 +225,10 @@ namespace Astraia
         {
             private RootNode node;
 
-            public static Inverter Create(RootNode node)
+            public static Inverter Create(RootNode[] nodes)
             {
                 var inverter = Activator.CreateInstance<Inverter>();
-                inverter.node = node;
+                inverter.node = nodes[0];
                 return inverter;
             }
 
@@ -253,10 +253,10 @@ namespace Astraia
         {
             private RootNode node;
 
-            public static Success Create(RootNode node)
+            public static Success Create(RootNode[] nodes)
             {
                 var success = Activator.CreateInstance<Success>();
-                success.node = node;
+                success.node = nodes[0];
                 return success;
             }
 
@@ -270,10 +270,10 @@ namespace Astraia
         {
             private RootNode node;
 
-            public static Failure Create(RootNode node)
+            public static Failure Create(RootNode[] nodes)
             {
                 var failure = Activator.CreateInstance<Failure>();
-                failure.node = node;
+                failure.node = nodes[0];
                 return failure;
             }
 
