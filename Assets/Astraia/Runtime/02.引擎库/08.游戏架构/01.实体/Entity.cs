@@ -53,7 +53,7 @@ namespace Astraia
             OnHide = null;
             moduleList.Clear();
             moduleData.Clear();
-            Blackboard.Dispose(GetEntityId());
+            Blackboard.Dispose(GetInstanceID());
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -124,12 +124,12 @@ namespace Astraia
     {
         public static T GetValue<T>(this Entity owner, Enum id, T value = default)
         {
-            return owner ? Blackboard.Get(owner.GetEntityId(), id, value) : default;
+            return owner ? Blackboard.Get(owner.GetInstanceID(), id, value) : default;
         }
 
         public static void SetValue<T>(this Entity owner, Enum id, T value)
         {
-            Blackboard.Set(owner.GetEntityId(), id, value);
+            Blackboard.Set(owner.GetInstanceID(), id, value);
         }
     }
 }
