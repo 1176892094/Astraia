@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using Astraia;
 using Astraia.Common;
 using Astraia.Net;
@@ -97,5 +98,13 @@ namespace Runtime
         {
             AssetManager.Load<GameObject>("Prefabs/30001", obj => { NetworkManager.Server.Spawn(obj, message.client); });
         }
+
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+        public static void Initialized()
+        {
+            Service.Ref.Register(new HashSet<string>());
+        }
+#endif
     }
 }
