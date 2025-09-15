@@ -38,6 +38,7 @@ namespace Astraia.Common
                 }
             }
 
+            var serverData = new Dictionary<string, PackData>();
             var fileUri = GlobalSetting.GetServerPath(GlobalSetting.ASSET_JSON);
             var serverRequest = await LoadServerRequest(GlobalSetting.ASSET_JSON, fileUri);
             if (!string.IsNullOrEmpty(serverRequest))
@@ -54,6 +55,7 @@ namespace Astraia.Common
                 return;
             }
 
+            var clientData = new Dictionary<string, PackData>();
             var persistentData = GlobalSetting.GetPacketPath(GlobalSetting.ASSET_JSON);
             var streamingAsset = GlobalSetting.GetClientPath(GlobalSetting.ASSET_JSON);
             var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
@@ -246,7 +248,7 @@ namespace Astraia.Common
             {
                 await Task.Yield();
             }
-            
+
             return assetTask.assetBundle;
         }
 
@@ -276,12 +278,6 @@ namespace Astraia.Common
             }
 #endif
             return (0, string.Empty);
-        }
-
-        internal static void Dispose()
-        {
-            clientData.Clear();
-            serverData.Clear();
         }
     }
 }

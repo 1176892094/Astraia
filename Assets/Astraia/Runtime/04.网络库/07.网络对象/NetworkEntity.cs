@@ -105,6 +105,7 @@ namespace Astraia.Net
         }
 
 #if UNITY_EDITOR
+        private static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
         protected virtual void OnValidate()
         {
             if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
@@ -162,7 +163,7 @@ namespace Astraia.Net
             void AssignSceneId()
             {
                 if (Application.isPlaying) return;
-                var duplicate = GlobalManager.sceneData.TryGetValue(sceneId, out var entity) && entity != null && entity != gameObject;
+                var duplicate = sceneData.TryGetValue(sceneId, out var entity) && entity != null && entity != gameObject;
                 if (sceneId == 0 || duplicate)
                 {
                     sceneId = 0;
@@ -173,14 +174,14 @@ namespace Astraia.Net
 
                     Undo.RecordObject(gameObject, Log.E275);
                     var random = (uint)Service.Random.Next();
-                    duplicate = GlobalManager.sceneData.TryGetValue(random, out entity) && entity != null && entity != gameObject;
+                    duplicate = sceneData.TryGetValue(random, out entity) && entity != null && entity != gameObject;
                     if (!duplicate)
                     {
                         sceneId = random;
                     }
                 }
 
-                GlobalManager.sceneData[sceneId] = gameObject;
+                sceneData[sceneId] = gameObject;
             }
         }
 #endif

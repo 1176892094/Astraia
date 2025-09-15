@@ -76,12 +76,12 @@ namespace Astraia
     {
         public T AddComponent<T>(T module) where T : IModule
         {
-            return (T)EntityManager.AddComponent(this, module, module.GetType());
+            return (T)EntityManager.AddComponent(this, module.GetType(), module);
         }
 
         public T AddComponent<T>(T module, Type queryType) where T : IModule
         {
-            return (T)EntityManager.AddComponent(this, module, module.GetType(), queryType);
+            return (T)EntityManager.AddComponent(this, module.GetType(), module, queryType);
         }
 
         public T AddComponent<T>() where T : IModule
@@ -113,7 +113,7 @@ namespace Astraia
         {
             return moduleData.TryGetValue(keyType, out var module) ? module : null;
         }
-        
+
         public IEnumerable<IModule> FindComponents()
         {
             return moduleData.Values;

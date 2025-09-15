@@ -13,9 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-using Sirenix.OdinInspector;
-#endif
 
 namespace Astraia.Common
 {
@@ -33,73 +30,61 @@ namespace Astraia.Common
 
         internal static AssetBundleManifest manifest;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly List<ISystem> systemLoop = new List<ISystem>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly List<IPanel> panelLoop = new List<IPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly List<ITimer> timerLoop = new List<ITimer>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly List<AudioSource> audioData = new List<AudioSource>();
+        internal static readonly List<AudioSource> audioLoop = new List<AudioSource>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly Dictionary<string, PackData> clientData = new Dictionary<string, PackData>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly Dictionary<string, PackData> serverData = new Dictionary<string, PackData>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<string, (string, string)> assetData = new Dictionary<string, (string, string)>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly Dictionary<string, AssetBundle> assetPack = new Dictionary<string, AssetBundle>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly Dictionary<string, Task<AssetBundle>> assetTask = new Dictionary<string, Task<AssetBundle>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<string, string> assetPath = new Dictionary<string, string>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly Dictionary<string, AssetBundle> assetPack = new Dictionary<string, AssetBundle>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly Dictionary<string, Task<AssetBundle>> assetTask = new Dictionary<string, Task<AssetBundle>>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<string, GameObject> poolRoot = new Dictionary<string, GameObject>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<Type, List<Entity>> queryData = new Dictionary<Type, List<Entity>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<Type, UIPanel> panelData = new Dictionary<Type, UIPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
-#endif
-        internal static readonly Dictionary<int, HashSet<UIPanel>> groupData = new Dictionary<int, HashSet<UIPanel>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowInInspector]
+        [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
+        internal static readonly Dictionary<int, HashSet<UIPanel>> groupData = new Dictionary<int, HashSet<UIPanel>>();
 
         private void Awake()
         {
@@ -123,7 +108,6 @@ namespace Astraia.Common
             Instance = null;
             await Task.Yield();
             UIManager.Dispose();
-            PackManager.Dispose();
             PoolManager.Dispose();
             AudioManager.Dispose();
             AssetManager.Dispose();
@@ -134,12 +118,5 @@ namespace Astraia.Common
             Blackboard.Dispose();
             GC.Collect();
         }
-    }
-}
-
-namespace System.Runtime.CompilerServices
-{
-    public static class IsExternalInit
-    {
     }
 }

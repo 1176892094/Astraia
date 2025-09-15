@@ -31,22 +31,16 @@ namespace Astraia
             return Empty;
         }
 
-        private static List<Entity> GetQueries(Type queryType)
+        internal static IModule AddComponent(Entity owner, Type keyType, IModule module, Type queryType = null)
         {
+            queryType ??= keyType;
             if (!queryData.TryGetValue(queryType, out var queries))
             {
                 queries = new List<Entity>();
                 queryData.Add(queryType, queries);
             }
 
-            return queries;
-        }
-
-        internal static IModule AddComponent(Entity owner, IModule module, Type keyType, Type queryType = null)
-        {
-            queryType ??= keyType;
             var modules = owner.moduleData;
-            var queries = GetQueries(queryType);
             if (!modules.ContainsKey(keyType))
             {
                 queries.Add(owner);
@@ -70,8 +64,13 @@ namespace Astraia
         internal static IModule AddComponent(Entity owner, Type keyType, Type realType, Type queryType = null)
         {
             queryType ??= keyType;
+            if (!queryData.TryGetValue(queryType, out var queries))
+            {
+                queries = new List<Entity>();
+                queryData.Add(queryType, queries);
+            }
+
             var modules = owner.moduleData;
-            var queries = GetQueries(queryType);
             if (!modules.TryGetValue(keyType, out var module))
             {
                 module = HeapManager.Dequeue<IModule>(realType);

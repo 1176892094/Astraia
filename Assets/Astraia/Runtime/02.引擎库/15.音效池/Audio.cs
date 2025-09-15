@@ -46,7 +46,7 @@ namespace Astraia.Common
             }
             set
             {
-                foreach (var audio in audioData)
+                foreach (var audio in audioLoop)
                 {
                     audio.volume = value;
                 }
@@ -86,7 +86,7 @@ namespace Astraia.Common
             if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
             var source = LoadPool(target).Load();
-            audioData.Add(source);
+            audioLoop.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
             source.clip = await AssetManager.Load<AudioClip>(target);
@@ -101,7 +101,7 @@ namespace Astraia.Common
             if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
             var source = LoadPool(target).Load();
-            audioData.Add(source);
+            audioLoop.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
             source.clip = await AssetManager.Load<AudioClip>(target);
@@ -125,7 +125,7 @@ namespace Astraia.Common
             source.Stop();
             source.gameObject.SetActive(false);
             source.transform.SetParent(pool.transform);
-            audioData.Remove(source);
+            audioLoop.Remove(source);
             LoadPool(source.name).Push(source);
         }
 
@@ -143,7 +143,7 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            audioData.Clear();
+            audioLoop.Clear();
         }
     }
 }

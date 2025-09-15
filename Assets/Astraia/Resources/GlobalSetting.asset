@@ -58,7 +58,7 @@ MonoBehaviour:
   smtpPort: 587
   smtpUsername: 1176892094@qq.com
   smtpPassword: 
-  assetLoadMode: 0
+  assetLoadMode: 1
   assetRemoteData: http://192.168.1.4:8000/Documents/GitHub/Astraia-Game
   secretVersion: 1
   secretGroup:
