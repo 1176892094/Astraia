@@ -28,7 +28,7 @@ namespace Astraia
             public static event Action<Type> OnLoad;
             public static event Action OnLoadComplete;
 
-            public static void LoadData(HashSet<string> cacheName)
+            public static void Register(HashSet<string> cacheName)
             {
                 var assemblyData = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (var assembly in assemblyData)

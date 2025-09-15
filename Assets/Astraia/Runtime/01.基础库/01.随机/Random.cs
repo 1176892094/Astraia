@@ -50,12 +50,7 @@ namespace Astraia
             {
                 return value * (max - min) + min;
             }
-
-            public static void Next(float min, float max, out float value)
-            {
-                value = Next(0, 2) == 0 ? Next(min, max) : Next(-max, -min);
-            }
-
+            
             public static void NextBytes(byte[] bytes)
             {
                 random.NextBytes(bytes);
