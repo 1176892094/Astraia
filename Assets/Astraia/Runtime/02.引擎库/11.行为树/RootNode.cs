@@ -315,10 +315,16 @@ namespace Astraia
             }
         }
 
+        [Serializable]
         public sealed class WaitTime : RootNode
         {
+            [SerializeField] private float duration;
             private float waitTime;
-            private float duration;
+
+
+            public WaitTime()
+            {
+            }
 
             public WaitTime(float duration)
             {
