@@ -20,9 +20,9 @@ namespace Astraia
             return owner && owner.gameObject.activeInHierarchy;
         }
         
-        public static Watch Wait(this Component current, float duration = 0)
+        public static Timer Wait(this Component current, float duration = 0)
         {
-            return Watch.Create(current, duration);
+            return Timer.Create(current, duration);
         }
 
         public static Tween Play(this Component current, float duration)
