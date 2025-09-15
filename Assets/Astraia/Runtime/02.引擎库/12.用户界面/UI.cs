@@ -118,7 +118,7 @@ namespace Astraia.Common
             }
         }
 
-        public static void Clear()
+        public static void Destroy()
         {
             var copies = new List<Type>(panelData.Keys);
             foreach (var panel in copies)
