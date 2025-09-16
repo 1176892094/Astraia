@@ -24,31 +24,15 @@ namespace Astraia.Common
 
 namespace Astraia
 {
-    internal sealed class DefaultNode : INode
-    {
-        private Action OnUpdate;
-
-        public NodeState Tick()
-        {
-            OnUpdate.Invoke();
-            return NodeState.Success;
-        }
-
-        public static DefaultNode Create(Action OnUpdate)
-        {
-            return new DefaultNode { OnUpdate = OnUpdate };
-        }
-    }
-
     public abstract class CompositeNode : INode
     {
-        protected IList<INode> nodes;
+        public IList<INode> nodes;
         public abstract NodeState Tick();
     }
 
     public abstract class DecoratorNode : INode
     {
-        protected INode node;
+        public INode node;
         public abstract NodeState Tick();
     }
 
@@ -189,7 +173,7 @@ namespace Astraia
     }
 
     [Serializable]
-    public sealed class Nearness : CompositeNode
+    public sealed class Actuator : CompositeNode
     {
         private int index = -1;
 
@@ -210,9 +194,9 @@ namespace Astraia
             return result;
         }
 
-        public static Nearness Create(params INode[] nodes)
+        public static Actuator Create(params INode[] nodes)
         {
-            return new Nearness { nodes = nodes };
+            return new Actuator { nodes = nodes };
         }
     }
 

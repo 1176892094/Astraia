@@ -43,7 +43,7 @@ namespace Astraia
 
         protected virtual INode Create()
         {
-            return DefaultNode.Create(OnUpdate);
+            return StateNode.Create(OnUpdate);
         }
 
         protected virtual void OnEnter()
@@ -56,6 +56,22 @@ namespace Astraia
 
         protected virtual void OnExit()
         {
+        }
+
+        private class StateNode : INode
+        {
+            private Action OnUpdate;
+
+            public NodeState Tick()
+            {
+                OnUpdate.Invoke();
+                return NodeState.Success;
+            }
+
+            public static StateNode Create(Action OnUpdate)
+            {
+                return new StateNode { OnUpdate = OnUpdate };
+            }
         }
     }
 }
