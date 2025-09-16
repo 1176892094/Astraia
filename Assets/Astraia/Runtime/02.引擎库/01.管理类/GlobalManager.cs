@@ -85,6 +85,11 @@ namespace Astraia.Common
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<int, HashSet<UIPanel>> groupData = new Dictionary<int, HashSet<UIPanel>>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly Dictionary<int, Queue<TaskNode>> nodeData = new Dictionary<int, Queue<TaskNode>>();
+
 
         private void Awake()
         {
@@ -109,6 +114,7 @@ namespace Astraia.Common
             await Task.Yield();
             UIManager.Dispose();
             PoolManager.Dispose();
+            NodeManager.Dispose();
             AudioManager.Dispose();
             AssetManager.Dispose();
             EventManager.Dispose();

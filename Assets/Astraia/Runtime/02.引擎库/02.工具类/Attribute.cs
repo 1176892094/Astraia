@@ -10,20 +10,24 @@
 // // *********************************************************************************
 
 using System;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Astraia
 {
+    [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Field)]
     public class InjectAttribute : Attribute
     {
     }
 
+    [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Property)]
     public class PrimaryAttribute : Attribute
     {
     }
 
+    [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]
     public class UIGroupAttribute : Attribute
     {
@@ -32,6 +36,7 @@ namespace Astraia
         public UIGroupAttribute(int groupMask) => this.groupMask = groupMask;
     }
 
+    [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]
     public class UILayerAttribute : Attribute
     {
@@ -40,6 +45,7 @@ namespace Astraia
         public UILayerAttribute(int layerMask) => this.layerMask = layerMask;
     }
 
+    [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]
     public class UIPanelAttribute : Attribute
     {

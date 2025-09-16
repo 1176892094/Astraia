@@ -14,16 +14,16 @@ using System.Collections.Generic;
 
 namespace Astraia.Common
 {
+    using static GlobalManager;
+
     public static class NodeManager
     {
-        private static readonly Dictionary<int, Queue<TaskNode>> poolData = new Dictionary<int, Queue<TaskNode>>();
-
         public static TaskNode Dequeue(int id, string root, Func<NodeData, TaskNode> func)
         {
-            if (!poolData.TryGetValue(id, out var pool))
+            if (!nodeData.TryGetValue(id, out var pool))
             {
                 pool = new Queue<TaskNode>();
-                poolData.Add(id, pool);
+                nodeData.Add(id, pool);
             }
 
             return pool.Count > 0 ? pool.Dequeue() : LoadNode(GetRoot(root), func);
@@ -31,10 +31,10 @@ namespace Astraia.Common
 
         public static void Enqueue(int id, TaskNode node)
         {
-            if (!poolData.TryGetValue(id, out var pool))
+            if (!nodeData.TryGetValue(id, out var pool))
             {
                 pool = new Queue<TaskNode>();
-                poolData.Add(id, pool);
+                nodeData.Add(id, pool);
             }
 
             pool.Enqueue(node);
@@ -142,6 +142,11 @@ namespace Astraia.Common
 
             result.Add(reason.Substring(index).Trim());
             return result;
+        }
+
+        internal static void Dispose()
+        {
+            nodeData.Clear();
         }
     }
 }
