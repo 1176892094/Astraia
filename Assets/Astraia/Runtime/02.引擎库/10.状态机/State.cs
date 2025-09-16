@@ -34,22 +34,16 @@ namespace Astraia
         void IState.Create(Entity owner)
         {
             this.owner = (T)owner;
-            OnCreate();
+            node = Create();
         }
 
         void IState.OnEnter() => OnEnter();
         void IState.OnUpdate() => node.Tick();
         void IState.OnExit() => OnExit();
 
-        private NodeState Tick()
+        protected virtual INode Create()
         {
-            OnUpdate();
-            return NodeState.Success;
-        }
-
-        protected virtual void OnCreate()
-        {
-            node = ActionNode.Create(Tick);
+            return DefaultNode.Create(OnUpdate);
         }
 
         protected virtual void OnEnter()

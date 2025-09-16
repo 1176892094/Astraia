@@ -24,6 +24,22 @@ namespace Astraia.Common
 
 namespace Astraia
 {
+    internal sealed class DefaultNode : INode
+    {
+        private Action OnUpdate;
+
+        public NodeState Tick()
+        {
+            OnUpdate.Invoke();
+            return NodeState.Success;
+        }
+
+        public static DefaultNode Create(Action OnUpdate)
+        {
+            return new DefaultNode { OnUpdate = OnUpdate };
+        }
+    }
+
     public abstract class CompositeNode : INode
     {
         protected IList<INode> nodes;
@@ -34,17 +50,6 @@ namespace Astraia
     {
         protected INode node;
         public abstract NodeState Tick();
-    }
-
-    public sealed class ActionNode : INode
-    {
-        private Func<NodeState> func;
-        public NodeState Tick() => func.Invoke();
-
-        public static ActionNode Create(Func<NodeState> func)
-        {
-            return new ActionNode { func = func };
-        }
     }
 
     [Serializable]
@@ -118,12 +123,6 @@ namespace Astraia
     [Serializable]
     public sealed class Parallel : CompositeNode
     {
-        public enum Mode
-        {
-            All,
-            Any
-        }
-
         private Mode mode;
 
         public override NodeState Tick()
@@ -180,6 +179,12 @@ namespace Astraia
         public static Parallel Create(params INode[] nodes)
         {
             return new Parallel { nodes = nodes };
+        }
+
+        public enum Mode
+        {
+            All,
+            Any
         }
     }
 
