@@ -97,7 +97,7 @@ namespace Runtime
                 JumpUpdate();
             }
 
-            Tick();
+            Update();
         }
 
         private void FallUpdate()

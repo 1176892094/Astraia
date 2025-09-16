@@ -16,7 +16,7 @@ namespace Astraia.Common
 {
     public interface IState
     {
-        void Create(Entity id);
+        void Create(Entity owner);
         void OnEnter();
         void OnUpdate();
         void OnExit();
@@ -28,14 +28,40 @@ namespace Astraia
     [Serializable]
     public abstract class State<T> : IState where T : Entity
     {
+        public INode node;
         public T owner;
 
-        void IState.Create(Entity owner) => this.owner = (T)owner;
+        void IState.Create(Entity owner)
+        {
+            this.owner = (T)owner;
+            OnCreate();
+        }
 
-        public abstract void OnEnter();
+        void IState.OnEnter() => OnEnter();
+        void IState.OnUpdate() => node.Tick();
+        void IState.OnExit() => OnExit();
 
-        public abstract void OnUpdate();
+        private NodeState Tick()
+        {
+            OnUpdate();
+            return NodeState.Success;
+        }
 
-        public abstract void OnExit();
+        protected virtual void OnCreate()
+        {
+            node = ActionNode.Create(Tick);
+        }
+
+        protected virtual void OnEnter()
+        {
+        }
+
+        protected virtual void OnUpdate()
+        {
+        }
+
+        protected virtual void OnExit()
+        {
+        }
     }
 }

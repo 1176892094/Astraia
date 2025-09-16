@@ -48,14 +48,11 @@ namespace Astraia
         Freeze,
         Stable,
     }
-    
-    public enum UILayer : byte
+
+    public enum NodeState : byte
     {
-        Layer1,
-        Layer2,
-        Layer3,
-        Layer4,
-        Layer5,
-        Layer6,
+        Running,
+        Success,
+        Failure
     }
 }

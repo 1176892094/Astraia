@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using Astraia.Common;
+using UnityEngine;
 
 namespace Astraia
 {
@@ -19,34 +20,29 @@ namespace Astraia
     public abstract class StateMachine<TEntity> : Module<TEntity> where TEntity : Entity
     {
         private Dictionary<int, IState> states = new Dictionary<int, IState>();
-        private IState current;
+        [SerializeReference] private IState state;
 
-        public void Tick()
+        public void Create(int key, Type value)
         {
-            current?.OnUpdate();
-        }
-        
-        public void Create(int state, Type value)
-        {
-            if (!states.TryGetValue(state, out var item))
+            if (!states.TryGetValue(key, out var item))
             {
                 item = (IState)Activator.CreateInstance(value);
-                states.Add(state, item);
+                states.Add(key, item);
             }
 
             item.Create(owner);
         }
 
-        public void Switch(int state)
+        public void Update()
         {
-            current?.OnExit();
-            states.TryGetValue(state, out current);
-            current?.OnEnter();
+            state?.OnUpdate();
         }
 
-        public override void Enqueue()
+        public void Switch(int key)
         {
-            states.Clear();
+            state?.OnExit();
+            states.TryGetValue(key, out state);
+            state?.OnEnter();
         }
     }
 }
