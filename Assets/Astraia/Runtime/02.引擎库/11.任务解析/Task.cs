@@ -10,26 +10,16 @@
 // // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Astraia.Common;
 using Threading = System.Threading.Tasks;
-
-namespace Astraia.Common
-{
-    public interface ITask
-    {
-        Task<NodeState> Execute();
-    }
-}
 
 namespace Astraia
 {
     [Serializable]
-    public abstract partial class TaskNode : ITask
+    public abstract partial class TaskNode
     {
-        public IList<ITask> nodes = Array.Empty<ITask>();
-        public abstract Task<NodeState> Execute();
+        public TaskNode[] nodes = Array.Empty<TaskNode>();
+        public abstract Task<NodeState> Execute(int id);
 
         protected static class Task
         {
@@ -42,11 +32,11 @@ namespace Astraia
     {
         internal sealed class Sequence : TaskNode
         {
-            public override async Task<NodeState> Execute()
+            public override async Task<NodeState> Execute(int id)
             {
                 foreach (var node in nodes)
                 {
-                    var state = await node.Execute();
+                    var state = await node.Execute(id);
                     if (state == NodeState.Failure)
                     {
                         return NodeState.Failure;
@@ -59,11 +49,11 @@ namespace Astraia
 
         internal sealed class Selector : TaskNode
         {
-            public override async Task<NodeState> Execute()
+            public override async Task<NodeState> Execute(int id)
             {
                 foreach (var node in nodes)
                 {
-                    var state = await node.Execute();
+                    var state = await node.Execute(id);
                     if (state == NodeState.Success)
                     {
                         return NodeState.Success;
@@ -76,15 +66,15 @@ namespace Astraia
 
         internal sealed class Actuator : TaskNode
         {
-            public override async Task<NodeState> Execute()
+            public override async Task<NodeState> Execute(int id)
             {
-                if (nodes == null || nodes.Count == 0)
+                if (nodes == null || nodes.Length == 0)
                 {
                     return NodeState.Success;
                 }
 
-                var index = Service.Random.Next(nodes.Count);
-                var state = await nodes[index].Execute();
+                var index = Service.Random.Next(nodes.Length);
+                var state = await nodes[index].Execute(id);
                 if (state == NodeState.Success)
                 {
                     return NodeState.Success;
@@ -98,13 +88,13 @@ namespace Astraia
         {
             public int count;
 
-            public override async Task<NodeState> Execute()
+            public override async Task<NodeState> Execute(int id)
             {
                 foreach (var node in nodes)
                 {
                     for (int i = 0; i < count; i++)
                     {
-                        var state = await node.Execute();
+                        var state = await node.Execute(id);
                         if (state == NodeState.Failure)
                         {
                             return NodeState.Failure;
