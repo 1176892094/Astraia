@@ -28,7 +28,7 @@ namespace Astraia
     [Serializable]
     public abstract partial class TaskNode : ITask
     {
-        public IList<ITask> nodes;
+        public IList<ITask> nodes = Array.Empty<ITask>();
         public abstract Task<NodeState> Execute();
 
         protected static class Task

@@ -26,13 +26,13 @@ namespace Astraia
 {
     public abstract class CompositeNode : INode
     {
-        public IList<INode> nodes;
+        protected IList<INode> nodes;
         public abstract NodeState Tick();
     }
 
     public abstract class DecoratorNode : INode
     {
-        public INode node;
+        protected INode node;
         public abstract NodeState Tick();
     }
 
