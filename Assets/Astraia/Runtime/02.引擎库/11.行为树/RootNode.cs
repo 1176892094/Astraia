@@ -12,10 +12,8 @@
 using System;
 using UnityEngine;
 
-
 namespace Astraia
 {
-    [Serializable]
     public abstract class RootNode
     {
         private State state = State.Failure;
@@ -60,23 +58,20 @@ namespace Astraia
         [Serializable]
         public sealed class Sequence : RootNode
         {
-            [SerializeField] private RootNode[] nodes;
+            public RootNode[] nodes;
+            private int index;
 
-            public Sequence(RootNode[] nodes)
+            protected override void OnEnter()
             {
-                this.nodes = nodes;
-            }
-
-            public static Sequence Create(RootNode[] nodes)
-            {
-                return new Sequence(nodes);
+                index = 0;
             }
 
             protected override State OnUpdate()
             {
-                foreach (var node in nodes)
+                while (index < nodes.Length)
                 {
-                    var result = node.Tick();
+                    var result = nodes[index].Tick();
+
                     if (result == State.Running)
                     {
                         return State.Running;
@@ -86,32 +81,36 @@ namespace Astraia
                     {
                         return State.Failure;
                     }
+
+                    index++;
                 }
 
                 return State.Success;
+            }
+
+            public static Sequence Create(RootNode[] nodes)
+            {
+                return new Sequence() { nodes = nodes };
             }
         }
 
         [Serializable]
         public sealed class Selector : RootNode
         {
-            [SerializeField] private RootNode[] nodes;
+            public RootNode[] nodes;
+            private int index;
 
-            public Selector(RootNode[] nodes)
+            protected override void OnEnter()
             {
-                this.nodes = nodes;
-            }
-
-            public static Selector Create(RootNode[] nodes)
-            {
-                return new Selector(nodes);
+                index = 0;
             }
 
             protected override State OnUpdate()
             {
-                foreach (var node in nodes)
+                while (index < nodes.Length)
                 {
-                    var result = node.Tick();
+                    var result = nodes[index].Tick();
+
                     if (result == State.Running)
                     {
                         return State.Running;
@@ -121,30 +120,86 @@ namespace Astraia
                     {
                         return State.Success;
                     }
+
+                    index++;
                 }
 
                 return State.Failure;
+            }
+
+            public static Selector Create(RootNode[] nodes)
+            {
+                return new Selector() { nodes = nodes };
+            }
+        }
+
+        [Serializable]
+        public sealed class Random : RootNode
+        {
+            public RootNode[] nodes;
+            private int index;
+
+            protected override void OnEnter()
+            {
+                index = Service.Random.Next(nodes.Length);
+            }
+
+            protected override State OnUpdate()
+            {
+                return nodes[index].Tick();
+            }
+
+            public static Random Create(RootNode[] nodes)
+            {
+                return new Random() { nodes = nodes };
+            }
+        }
+
+        [Serializable]
+        public sealed class Repeater : RootNode
+        {
+            public RootNode node;
+            private int count;
+            private int index;
+
+            protected override void OnEnter()
+            {
+                index = 0;
+            }
+
+            protected override State OnUpdate()
+            {
+                if (count >= 0 && index >= count)
+                {
+                    return State.Success;
+                }
+
+                var result = node.Tick();
+                if (result == State.Success || result == State.Failure)
+                {
+                    index++;
+                }
+
+                return State.Running;
+            }
+
+            public static Repeater Create(RootNode node, int count = -1)
+            {
+                return new Repeater() { node = node, count = count };
+            }
+
+            public static Repeater Create(RootNode[] nodes)
+            {
+                return new Repeater() { node = nodes[0], count = -1 };
             }
         }
 
         [Serializable]
         public sealed class Parallel : RootNode
         {
-            [SerializeField] private RootNode[] nodes;
+            public RootNode[] nodes;
             private int success;
             private int failure;
-
-            public Parallel(RootNode[] nodes, int success = -1, int failure = -1)
-            {
-                this.nodes = nodes;
-                this.success = success < 0 ? nodes.Length : success;
-                this.failure = failure < 0 ? nodes.Length : failure;
-            }
-
-            public static Parallel Create(RootNode[] nodes)
-            {
-                return new Parallel(nodes);
-            }
 
             protected override State OnUpdate()
             {
@@ -178,83 +233,22 @@ namespace Astraia
 
                 return State.Running;
             }
-        }
 
-        [Serializable]
-        public sealed class Operator : RootNode
-        {
-            [SerializeField] private RootNode[] nodes;
-
-            public Operator(RootNode[] nodes)
+            public static Parallel Create(RootNode[] nodes, int success, int failure)
             {
-                this.nodes = nodes;
+                return new Parallel() { nodes = nodes, success = success < 0 ? nodes.Length : success, failure = failure < 0 ? nodes.Length : failure };
             }
 
-            public static Operator Create(RootNode[] nodes)
+            public static Parallel Create(RootNode[] nodes)
             {
-                return new Operator(nodes);
-            }
-
-            protected override State OnUpdate()
-            {
-                return nodes[Service.Random.Next(nodes.Length)].Tick();
-            }
-        }
-
-        [Serializable]
-        public sealed class Repeater : RootNode
-        {
-            [SerializeField] private RootNode node;
-            private int count;
-            private int repeat;
-
-            public Repeater(RootNode node, int repeat = -1)
-            {
-                this.node = node;
-                this.repeat = repeat;
-            }
-
-            public static Repeater Create(RootNode[] nodes)
-            {
-                return new Repeater(nodes[0]);
-            }
-
-            protected override void OnEnter()
-            {
-                count = 0;
-            }
-
-            protected override State OnUpdate()
-            {
-                if (repeat >= 0 && count >= repeat)
-                {
-                    return State.Success;
-                }
-
-                var result = node.Tick();
-                if (result == State.Success || result == State.Failure)
-                {
-                    count++;
-                }
-
-                return State.Running;
+                return new Parallel() { nodes = nodes, success = -1, failure = -1 };
             }
         }
 
         [Serializable]
         public sealed class Inverter : RootNode
         {
-            [SerializeField] private RootNode node;
-
-            public Inverter(RootNode node)
-            {
-                this.node = node;
-            }
-
-            public static Inverter Create(RootNode[] nodes)
-            {
-                return new Inverter(nodes[0]);
-            }
+            public RootNode node;
 
             protected override State OnUpdate()
             {
@@ -271,70 +265,65 @@ namespace Astraia
 
                 return State.Running;
             }
+
+            public static Inverter Create(RootNode node)
+            {
+                return new Inverter() { node = node };
+            }
+
+            public static Inverter Create(RootNode[] nodes)
+            {
+                return new Inverter() { node = nodes[0] };
+            }
         }
 
         [Serializable]
         public sealed class Success : RootNode
         {
-            [SerializeField] private RootNode node;
-
-            public Success(RootNode node)
-            {
-                this.node = node;
-            }
-
-            public static Success Create(RootNode[] nodes)
-            {
-                return new Success(nodes[0]);
-            }
+            public RootNode node;
 
             protected override State OnUpdate()
             {
                 return node.Tick() == State.Running ? State.Running : State.Success;
+            }
+
+            public static Success Create(RootNode node)
+            {
+                return new Success() { node = node };
+            }
+
+            public static Success Create(RootNode[] nodes)
+            {
+                return new Success() { node = nodes[0] };
             }
         }
 
         [Serializable]
         public sealed class Failure : RootNode
         {
-            [SerializeField] private RootNode node;
-
-            public Failure(RootNode node)
-            {
-                this.node = node;
-            }
-
-            public static Failure Create(RootNode[] nodes)
-            {
-                return new Failure(nodes[0]);
-            }
+            public RootNode node;
 
             protected override State OnUpdate()
             {
                 return node.Tick() == State.Running ? State.Running : State.Failure;
+            }
+
+            public static Failure Create(RootNode node)
+            {
+                return new Failure() { node = node };
+            }
+
+            public static Failure Create(RootNode[] nodes)
+            {
+                return new Failure() { node = nodes[0] };
             }
         }
 
         [Serializable]
         public sealed class WaitTime : RootNode
         {
-            [SerializeField] private float duration;
+            public float duration;
             private float waitTime;
-
-
-            public WaitTime()
-            {
-            }
-
-            public WaitTime(float duration)
-            {
-                this.duration = duration;
-            }
-
-            public static WaitTime Create(float duration)
-            {
-                return new WaitTime(duration);
-            }
 
             protected override void OnEnter()
             {
@@ -349,6 +338,11 @@ namespace Astraia
             protected override void OnExit()
             {
                 waitTime = 0;
+            }
+
+            public static WaitTime Create(float duration)
+            {
+                return new WaitTime() { duration = duration };
             }
         }
     }
