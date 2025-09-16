@@ -11,35 +11,62 @@
 
 using System;
 using System.Collections.Generic;
-using Astraia.Common;
 
-namespace Astraia
+namespace Astraia.Common
 {
-    public static partial class Extensions
+    public static class NodeManager
     {
-        public static TaskNode ToNode(this string reason, Func<TaskData, TaskNode> OnResolve)
-        {
-            var root = reason.GetRoot();
-            return string.IsNullOrEmpty(root.name) ? root.LoadNode(OnResolve) : null;
-        }
+        private static readonly Dictionary<int, Queue<TaskNode>> poolData = new Dictionary<int, Queue<TaskNode>>();
 
-        private static TaskNode LoadNode(this TaskData root, Func<TaskData, TaskNode> OnResolve)
+        public static TaskNode Dequeue(int id, string root, Func<NodeData, TaskNode> func)
         {
-            TaskNode result = null;
-            if (OnResolve != null)
+            if (!poolData.TryGetValue(id, out var pool))
             {
-                result = OnResolve.Invoke(root);
+                pool = new Queue<TaskNode>();
+                poolData.Add(id, pool);
             }
 
-            foreach (var node in root.items)
+            return pool.Count > 0 ? pool.Dequeue() : LoadNode(GetRoot(root), func);
+        }
+
+        public static void Enqueue(int id, TaskNode node)
+        {
+            if (!poolData.TryGetValue(id, out var pool))
             {
-                LoadNode(node, OnResolve);
+                pool = new Queue<TaskNode>();
+                poolData.Add(id, pool);
+            }
+
+            pool.Enqueue(node);
+        }
+
+        private static TaskNode LoadNode(NodeData root, Func<NodeData, TaskNode> func)
+        {
+            if (root.name == null)
+            {
+                return null;
+            }
+
+            var result = func.Invoke(root);
+            if (result == null)
+            {
+                return null;
+            }
+
+            result.nodes = new TaskNode[root.items.Count];
+            for (int i = 0; i < root.items.Count; i++)
+            {
+                var node = LoadNode(root.items[i], func);
+                if (node != null)
+                {
+                    result.nodes[i] = node;
+                }
             }
 
             return result;
         }
 
-        private static TaskData GetRoot(this string reason)
+        private static NodeData GetRoot(string reason)
         {
             if (string.IsNullOrEmpty(reason))
             {
@@ -49,16 +76,16 @@ namespace Astraia
             var index = reason.IndexOf('(');
             if (index < 0)
             {
-                return new TaskData(reason);
+                return new NodeData(reason);
             }
 
             var result = reason.Substring(0, index).Trim();
             var braced = Parse(reason, index);
 
-            var node = new TaskData(result);
+            var node = new NodeData(result);
             foreach (var child in Split(braced))
             {
-                node.items.Add(child.GetRoot());
+                node.items.Add(GetRoot(child));
             }
 
             return node;

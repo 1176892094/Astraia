@@ -15,15 +15,15 @@ using System.Collections.Generic;
 namespace Astraia.Common
 {
     [Serializable]
-    public struct TaskData
+    public struct NodeData
     {
-        public List<TaskData> items;
+        public List<NodeData> items;
         public string name;
 
-        public TaskData(string name)
+        public NodeData(string name)
         {
             this.name = name;
-            items = new List<TaskData>();
+            items = new List<NodeData>();
         }
     }
 }
