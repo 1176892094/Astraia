@@ -11,6 +11,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Threading = System.Threading;
 
 namespace Astraia
 {
@@ -18,12 +19,12 @@ namespace Astraia
     public abstract partial class TaskNode
     {
         public TaskNode[] nodes = Array.Empty<TaskNode>();
-        public abstract Task<State> Execute(int id);
+        public abstract Task<State> Execute(Entity owner, int id);
 
         protected static class Task
         {
-            public static readonly Task<State> Success = System.Threading.Tasks.Task.FromResult(State.Success);
-            public static readonly Task<State> Failure = System.Threading.Tasks.Task.FromResult(State.Failure);
+            public static readonly Task<State> Success = Threading.Tasks.Task.FromResult(State.Success);
+            public static readonly Task<State> Failure = Threading.Tasks.Task.FromResult(State.Failure);
         }
 
         public enum State
@@ -37,11 +38,11 @@ namespace Astraia
     {
         internal sealed class Sequence : TaskNode
         {
-            public override async Task<State> Execute(int id)
+            public override async Task<State> Execute(Entity owner, int id)
             {
                 foreach (var node in nodes)
                 {
-                    var state = await node.Execute(id);
+                    var state = await node.Execute(owner, id);
                     if (state == State.Failure)
                     {
                         return State.Failure;
@@ -54,11 +55,11 @@ namespace Astraia
 
         internal sealed class Selector : TaskNode
         {
-            public override async Task<State> Execute(int id)
+            public override async Task<State> Execute(Entity owner, int id)
             {
                 foreach (var node in nodes)
                 {
-                    var state = await node.Execute(id);
+                    var state = await node.Execute(owner, id);
                     if (state == State.Success)
                     {
                         return State.Success;
@@ -71,7 +72,7 @@ namespace Astraia
 
         internal sealed class Actuator : TaskNode
         {
-            public override async Task<State> Execute(int id)
+            public override async Task<State> Execute(Entity owner, int id)
             {
                 if (nodes == null || nodes.Length == 0)
                 {
@@ -79,7 +80,7 @@ namespace Astraia
                 }
 
                 var index = Service.Random.Next(nodes.Length);
-                var state = await nodes[index].Execute(id);
+                var state = await nodes[index].Execute(owner, id);
                 if (state == State.Success)
                 {
                     return State.Success;
@@ -93,13 +94,13 @@ namespace Astraia
         {
             public int count;
 
-            public override async Task<State> Execute(int id)
+            public override async Task<State> Execute(Entity owner, int id)
             {
                 foreach (var node in nodes)
                 {
                     for (int i = 0; i < count; i++)
                     {
-                        var state = await node.Execute(id);
+                        var state = await node.Execute(owner, id);
                         if (state == State.Failure)
                         {
                             return State.Failure;
@@ -107,6 +108,17 @@ namespace Astraia
                     }
                 }
 
+                return State.Success;
+            }
+        }
+
+        internal sealed class WaitTime : TaskNode
+        {
+            public float waitTime;
+
+            public override async Task<State> Execute(Entity owner, int id)
+            {
+                await owner.Wait(waitTime);
                 return State.Success;
             }
         }
