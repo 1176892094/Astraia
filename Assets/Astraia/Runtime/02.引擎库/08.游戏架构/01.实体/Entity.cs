@@ -89,6 +89,11 @@ namespace Astraia
             return (T)EntityManager.AddComponent(this, typeof(T), typeof(T));
         }
 
+        public T AddComponent<T>(Type realType) where T : IModule
+        {
+            return (T)EntityManager.AddComponent(this, typeof(T), realType);
+        }
+
         public T FindComponent<T>() where T : IModule
         {
             return moduleData.TryGetValue(typeof(T), out var module) ? (T)module : default;
