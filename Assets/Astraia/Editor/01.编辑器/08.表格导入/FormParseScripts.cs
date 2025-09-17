@@ -153,7 +153,23 @@ namespace Astraia
                 var index = field.Key.LastIndexOf(':');
                 var fieldName = index < 0 ? field.Key : field.Key.Substring(0, index);
                 index = field.Value.LastIndexOf(':');
-                var fieldType = index < 0 ? field.Value : field.Value.Substring(0, index);
+                string fieldType;
+                if (index < 0)
+                {
+                    fieldType = field.Value;
+                }
+                else
+                {
+                    if (field.Value.EndsWith("[]"))
+                    {
+                        fieldType = field.Value.Substring(0, index) + "[]";
+                    }
+                    else
+                    {
+                        fieldType = field.Value.Substring(0, index);
+                    }
+                }
+
                 var fieldData = char.ToLower(fieldName[0]) + fieldName.Substring(1);
 #if ODIN_INSPECTOR
                 builder.AppendFormat("#if ODIN_INSPECTOR && UNITY_EDITOR\n");

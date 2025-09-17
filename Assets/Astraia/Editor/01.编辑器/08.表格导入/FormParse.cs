@@ -19,14 +19,14 @@ namespace Astraia
         private const int NAME_LINE = 1;
         private const int TYPE_LINE = 2;
         private const int DATA_LINE = 3;
-        
+
         private static readonly string[] Array =
         {
             "int", "long", "bool", "float", "double", "string",
             "Vector2", "Vector3", "Vector4", "Vector2Int", "Vector3Int"
         };
-        
-        
+
+
         private static bool IsBasic(string assetType)
         {
             if (string.IsNullOrEmpty(assetType))
@@ -35,7 +35,7 @@ namespace Astraia
             }
 
             assetType = assetType.Trim();
-            if (assetType.EndsWith(":enum"))
+            if (assetType.EndsWith(":enum") || assetType.EndsWith(":enum[]"))
             {
                 return true;
             }
