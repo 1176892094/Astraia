@@ -130,7 +130,7 @@ namespace Astraia
                         if (grid != null)
                         {
                             grid.Dispose();
-                            PoolManager.Hide(grid.gameObject);
+                            PoolManager.Enqueue(grid.gameObject);
                         }
 
                         grids.Remove(i);
@@ -144,7 +144,7 @@ namespace Astraia
                         if (grid != null)
                         {
                             grid.Dispose();
-                            PoolManager.Hide(grid.gameObject);
+                            PoolManager.Enqueue(grid.gameObject);
                         }
 
                         grids.Remove(i);
@@ -182,7 +182,7 @@ namespace Astraia
                 }
 
                 grids[i] = null;
-                var item = PoolManager.Show("Prefabs/" + typeof(TGrid).Name);
+                var item = PoolManager.Dequeue("Prefabs/" + typeof(TGrid).Name);
                 var grid = (TGrid)item.GetOrAddComponent(typeof(TGrid));
                 var rect = (RectTransform)grid.transform;
                 rect.SetParent(content);
@@ -192,7 +192,7 @@ namespace Astraia
                 if (!grids.ContainsKey(i))
                 {
                     grid.Dispose();
-                    PoolManager.Hide(grid.gameObject);
+                    PoolManager.Enqueue(grid.gameObject);
                     return;
                 }
 
@@ -248,7 +248,7 @@ namespace Astraia
                     if (grid != null)
                     {
                         grid.Dispose();
-                        PoolManager.Hide(grid.gameObject);
+                        PoolManager.Enqueue(grid.gameObject);
                     }
                 }
             }

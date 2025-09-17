@@ -17,7 +17,7 @@ namespace Astraia.Common
 
     public static partial class PoolManager
     {
-        public static GameObject Show(string path)
+        public static GameObject Dequeue(string path)
         {
             if (!Instance) return null;
             var item = LoadPool(path).Load();
@@ -26,7 +26,7 @@ namespace Astraia.Common
             return item;
         }
 
-        public static void Hide(GameObject item)
+        public static void Enqueue(GameObject item)
         {
             if (!Instance) return;
             if (!poolRoot.TryGetValue(item.name, out var pool))

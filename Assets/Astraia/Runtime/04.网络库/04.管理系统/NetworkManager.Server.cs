@@ -449,7 +449,7 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopServer();
-                PoolManager.Hide(entity.gameObject);
+                PoolManager.Enqueue(entity.gameObject);
                 entity.Reset();
             }
 
