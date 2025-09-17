@@ -182,10 +182,9 @@ namespace Astraia
                 }
 
                 grids[i] = null;
-                var item = PoolManager.Dequeue("Prefabs/" + typeof(TGrid).Name);
+                var item = PoolManager.Dequeue("Prefabs/" + typeof(TGrid).Name, content);
                 var grid = (TGrid)item.GetOrAddComponent(typeof(TGrid));
                 var rect = (RectTransform)grid.transform;
-                rect.SetParent(content);
                 rect.sizeDelta = new Vector2(assetRect.width, assetRect.height);
                 rect.localScale = Vector3.one;
                 rect.localPosition = new Vector3(posX, posY, 0);

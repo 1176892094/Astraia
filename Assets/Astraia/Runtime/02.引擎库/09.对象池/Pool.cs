@@ -26,6 +26,37 @@ namespace Astraia.Common
             return item;
         }
 
+        public static GameObject Dequeue(string path, Vector3 position)
+        {
+            if (!Instance) return null;
+            var item = LoadPool(path).Load();
+            item.transform.SetParent(null);
+            item.transform.position = position;
+            item.SetActive(true);
+            return item;
+        }
+
+        public static GameObject Dequeue(string path, Vector3 position, Quaternion rotation)
+        {
+            if (!Instance) return null;
+            var item = LoadPool(path).Load();
+            item.transform.SetParent(null);
+            item.transform.position = position;
+            item.transform.rotation = rotation;
+            item.SetActive(true);
+            return item;
+        }
+
+        public static GameObject Dequeue(string path, Transform parent)
+        {
+            if (!Instance) return null;
+            var item = LoadPool(path).Load();
+            item.transform.SetParent(parent);
+            item.transform.localPosition = Vector3.zero;
+            item.SetActive(true);
+            return item;
+        }
+
         public static void Enqueue(GameObject item)
         {
             if (!Instance) return;
