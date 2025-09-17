@@ -157,6 +157,7 @@ namespace Astraia.Net
                     else if (opcode == OpCodes.CreateRoom)
                     {
                         connection.address = reader.ReadString();
+                        EventManager.Invoke(new LobbyCreateRoom(connection.address));
                     }
                     else if (opcode == OpCodes.JoinRoom)
                     {

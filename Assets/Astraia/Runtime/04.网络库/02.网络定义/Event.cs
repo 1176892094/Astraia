@@ -122,7 +122,17 @@ namespace Astraia.Common
     public struct LobbyDisconnect : IEvent
     {
     }
-    
+
+    public struct LobbyCreateRoom : IEvent
+    {
+        public string roomId { get; private set; }
+
+        public LobbyCreateRoom(string roomId)
+        {
+            this.roomId = roomId;
+        }
+    }
+
     public struct PingUpdate : IEvent
     {
         public double pingTime { get; private set; }
@@ -132,8 +142,8 @@ namespace Astraia.Common
             this.pingTime = pingTime;
         }
     }
-    
-    
+
+
     [Serializable]
     public struct RoomData
     {
