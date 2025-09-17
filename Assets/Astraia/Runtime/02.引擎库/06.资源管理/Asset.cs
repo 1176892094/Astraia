@@ -3,8 +3,8 @@
 // // # Unity: 6000.3.5f1
 // // # Author: 云谷千羽
 // // # Version: 1.0.0
-// // # History: 2025-04-09 22:04:43
-// // # Recently: 2025-04-09 22:04:43
+// // # History: 2025-09-18 01:09:36
+// // # Recently: 2025-09-18 01:09:36
 // // # Copyright: 2024, 云谷千羽
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
@@ -20,6 +20,96 @@ namespace Astraia.Common
 
     public static partial class AssetManager
     {
+        public static T Load<T>(string path) where T : Object
+        {
+            try
+            {
+                if (!Instance) return null;
+                var asset = LoadAsset<T>(path);
+                if (asset != null)
+                {
+                    return asset;
+                }
+
+                Debug.LogWarning("加载资源 {0} 为空!".Format(path));
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("加载资源 {0} 失败!\n{1}".Format(path, e));
+            }
+
+            return null;
+        }
+
+        public static T[] LoadAll<T>(string path) where T : Object
+        {
+            try
+            {
+                if (!Instance) return null;
+                var asset = LoadAssetAll<T>(path);
+                if (asset != null)
+                {
+                    return asset;
+                }
+
+                Debug.LogWarning("加载资源 {0} 为空!".Format(path));
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("加载资源 {0} 失败!\n{1}".Format(path, e));
+            }
+
+            return null;
+        }
+
+        private static T LoadAsset<T>(string path) where T : Object
+        {
+            T asset;
+            if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
+            {
+                var item = LoadAssetData(path);
+                assetPack.TryGetValue(item.path, out var data);
+                asset = Actuator.LoadAt<T>(item.name, data);
+            }
+            else
+            {
+                asset = Simulate.LoadAt<T>(path);
+            }
+
+            asset ??= Resource.LoadAt<T>(path);
+            return asset;
+        }
+
+        private static T[] LoadAssetAll<T>(string path) where T : Object
+        {
+            T[] asset;
+            if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
+            {
+                var item = LoadAssetData(path);
+                assetPack.TryGetValue(item.path, out var data);
+                asset = Actuator.LoadBy<T>(item.name, data);
+            }
+            else
+            {
+                asset = Simulate.LoadBy<T>(path);
+            }
+
+            asset ??= Resource.LoadBy<T>(path);
+            return asset;
+        }
+
+        private static (string path, string name) LoadAssetData(string path)
+        {
+            if (!assetData.TryGetValue(path, out var asset))
+            {
+                var index = path.LastIndexOf('/');
+                asset = index < 0 ? (null, path) : (path.Substring(0, index).ToLower(), path.Substring(index + 1));
+                assetData.Add(path, asset);
+            }
+
+            return asset;
+        }
+
         public static async void LoadAssetData()
         {
             var platform = await LoadAssetPack(GlobalSetting.Instance.assetPlatform.ToString());
@@ -36,160 +126,36 @@ namespace Astraia.Common
             EventManager.Invoke(new AssetComplete());
         }
 
-        public static async Task<T> Load<T>(string assetPath) where T : Object
+        private static async Task<AssetBundle> LoadAssetPack(string path)
         {
-            try
-            {
-                if (!Instance) return null;
-                var assetData = await LoadAsset(assetPath, typeof(T));
-                if (assetData != null)
-                {
-                    return (T)assetData;
-                }
-
-                Debug.LogWarning("加载资源 {0} 为空!".Format(assetPath));
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning("加载资源 {0} 失败!\n{1}".Format(assetPath, e));
-            }
-
-            return null;
-        }
-
-        public static async void Load<T>(string assetPath, Action<T> assetAction) where T : Object
-        {
-            try
-            {
-                if (!Instance) return;
-                var assetData = await LoadAsset(assetPath, typeof(T));
-                if (assetData != null)
-                {
-                    assetAction.Invoke((T)assetData);
-                    return;
-                }
-
-                Debug.LogWarning("加载资源 {0} 为空!".Format(assetPath));
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning("加载资源 {0} 失败!\n{1}".Format(assetPath, e));
-            }
-        }
-
-        private static async Task<Object> LoadAsset(string assetPath, Type assetType)
-        {
-            if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
-            {
-                var assetItem = await LoadAssetData(assetPath);
-                var assetPack = await LoadAssetPack(assetItem.path);
-                var assetData = LoadByAssetPack(assetItem.name, assetType, assetPack);
-                assetData ??= LoadByResources(assetPath, assetType);
-                return assetData;
-            }
-            else
-            {
-                var assetData = LoadBySimulates(assetPath, assetType);
-                assetData ??= LoadByResources(assetPath, assetType);
-                return assetData;
-            }
-        }
-
-        private static async Task<(string path, string name)> LoadAssetData(string assetPath)
-        {
-            if (!GlobalManager.assetData.TryGetValue(assetPath, out var assetData))
-            {
-                var index = assetPath.LastIndexOf('/');
-                if (index < 0)
-                {
-                    assetData = (string.Empty, assetPath);
-                }
-                else
-                {
-                    var assetPack = assetPath.Substring(0, index).ToLower();
-                    assetData = (assetPack, assetPath.Substring(index + 1));
-                }
-
-                GlobalManager.assetData.Add(assetPath, assetData);
-            }
-
-            var platform = await LoadAssetPack(GlobalSetting.Instance.assetPlatform.ToString());
-            manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
-
-            var assetPacks = manifest.GetAllDependencies(assetData.Item1);
-            foreach (var assetPack in assetPacks)
-            {
-                _ = LoadAssetPack(assetPack);
-            }
-
-            return assetData;
-        }
-
-        private static async Task<AssetBundle> LoadAssetPack(string assetPath)
-        {
-            if (string.IsNullOrEmpty(assetPath))
+            if (string.IsNullOrEmpty(path))
             {
                 return null;
             }
 
-            if (GlobalManager.assetPack.TryGetValue(assetPath, out var assetPack))
+            if (assetPack.TryGetValue(path, out var pack))
             {
-                return assetPack;
+                return pack;
             }
 
-            if (GlobalManager.assetTask.TryGetValue(assetPath, out var assetTask))
+            if (assetTask.TryGetValue(path, out var request))
             {
-                return await assetTask;
+                return await request;
             }
 
-            var persistentData = GlobalSetting.GetPacketPath(assetPath);
-            var streamingAsset = GlobalSetting.GetClientPath(assetPath);
-            assetTask = PackManager.LoadAssetRequest(persistentData, streamingAsset);
-            GlobalManager.assetTask.Add(assetPath, assetTask);
+            request = PackManager.LoadAssetRequest(GlobalSetting.GetPacketPath(path), GlobalSetting.GetClientPath(path));
+            assetTask.Add(path, request);
             try
             {
-                assetPack = await assetTask;
-                GlobalManager.assetPack.Add(assetPath, assetPack);
-                EventManager.Invoke(new AssetUpdate(assetPath));
-                return assetPack;
+                pack = await request;
+                assetPack.Add(path, pack);
+                EventManager.Invoke(new AssetUpdate(path));
+                return pack;
             }
             finally
             {
-                GlobalManager.assetTask.Remove(assetPath);
+                assetTask.Remove(path);
             }
-        }
-
-        private static Object LoadByAssetPack(string assetPath, Type assetType, AssetBundle assetPack)
-        {
-            if (assetPack == null) return null;
-            var request = assetPack.LoadAssetAsync(assetPath, assetType);
-            return request.asset is GameObject ? Object.Instantiate(request.asset) : request.asset;
-        }
-
-        private static Object LoadByResources(string assetPath, Type assetType)
-        {
-            var request = Resources.Load(assetPath, assetType);
-            return request is GameObject ? Object.Instantiate(request) : request;
-        }
-
-        private static Object LoadBySimulates(string assetPath, Type assetType)
-        {
-#if UNITY_EDITOR
-            if (!GlobalManager.assetPath.TryGetValue(assetPath, out var assetData)) return null;
-            var request = UnityEditor.AssetDatabase.LoadAssetAtPath(assetData, assetType);
-            return request is GameObject ? Object.Instantiate(request) : request;
-#else
-            return null;
-#endif
-        }
-
-        internal static void Dispose()
-        {
-            assetPath.Clear();
-            assetData.Clear();
-            assetTask.Clear();
-            assetPack.Clear();
-            AssetBundle.UnloadAllAssetBundles(true);
         }
     }
 }

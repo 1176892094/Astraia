@@ -93,26 +93,6 @@ namespace Astraia.Common
     {
     }
 
-    public struct DataAwake : IEvent
-    {
-        public readonly string[] names;
-
-        public DataAwake(string[] names)
-        {
-            this.names = names;
-        }
-    }
-
-    public struct DataUpdate : IEvent
-    {
-        public readonly string name;
-
-        public DataUpdate(string name)
-        {
-            this.name = name;
-        }
-    }
-
     public struct DataComplete : IEvent
     {
     }

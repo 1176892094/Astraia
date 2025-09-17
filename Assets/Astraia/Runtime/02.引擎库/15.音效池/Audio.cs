@@ -56,12 +56,12 @@ namespace Astraia.Common
             }
         }
 
-        public static async void PlayMusic(string name, Action<AudioSource> action = null)
+        public static void PlayMusic(string name, Action<AudioSource> action = null)
         {
             if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
             var source = Instance.source;
-            source.clip = await AssetManager.Load<AudioClip>(target);
+            source.clip = AssetManager.Load<AudioClip>(target);
             source.loop = true;
             source.volume = MusicVolume;
             action?.Invoke(source);
@@ -81,7 +81,7 @@ namespace Astraia.Common
             }
         }
 
-        public static async void PlayLoop(string name, Action<AudioSource> action = null)
+        public static void PlayLoop(string name, Action<AudioSource> action = null)
         {
             if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
@@ -89,14 +89,14 @@ namespace Astraia.Common
             audioLoop.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
-            source.clip = await AssetManager.Load<AudioClip>(target);
+            source.clip = AssetManager.Load<AudioClip>(target);
             source.loop = true;
             source.volume = AudioVolume;
             action?.Invoke(source);
             source.Play();
         }
 
-        public static async void PlayOnce(string name, Action<AudioSource> action = null)
+        public static void PlayOnce(string name, Action<AudioSource> action = null)
         {
             if (!Instance) return;
             var target = GlobalSetting.GetAudioPath(name);
@@ -104,12 +104,12 @@ namespace Astraia.Common
             audioLoop.Add(source);
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
-            source.clip = await AssetManager.Load<AudioClip>(target);
+            source.clip = AssetManager.Load<AudioClip>(target);
             source.loop = false;
             source.volume = AudioVolume;
             action?.Invoke(source);
             source.Play();
-            await source.Wait(source.clip.length).OnUpdate(() => Stop(source));
+            source.Wait(source.clip.length).OnUpdate(() => Stop(source));
         }
 
         public static void Stop(AudioSource source)

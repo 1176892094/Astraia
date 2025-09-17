@@ -430,7 +430,7 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static async void SpawnObject(SpawnMessage message)
+            private static void SpawnObject(SpawnMessage message)
             {
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
@@ -440,7 +440,7 @@ namespace Astraia.Net
 
                 if (message.sceneId == 0)
                 {
-                    var prefab = await AssetManager.Load<GameObject>(GlobalSetting.GetPanelPath(message.assetId.ToString()));
+                    var prefab = AssetManager.Load<GameObject>(GlobalSetting.GetPanelPath(message.assetId.ToString()));
                     if (!prefab.TryGetComponent(out entity))
                     {
                         Debug.LogError(Log.E224.Format(prefab.name));

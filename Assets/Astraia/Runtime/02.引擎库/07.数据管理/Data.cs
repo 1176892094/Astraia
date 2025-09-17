@@ -18,7 +18,7 @@ namespace Astraia.Common
 {
     public static partial class DataManager
     {
-        public static async void LoadDataTable()
+        public static void LoadDataTable()
         {
             var assembly = Service.Ref.GetAssembly(GlobalSetting.ASSET_DATA);
             if (assembly == null)
@@ -42,7 +42,6 @@ namespace Astraia.Common
                 return;
             }
 
-            EventManager.Invoke(new DataAwake(assetNames.ToArray()));
             foreach (var assetName in assetNames)
             {
                 var nickName = assetName.Substring(assetName.LastIndexOf('.') + 1);
@@ -51,7 +50,7 @@ namespace Astraia.Common
                     ScriptableObject assetData = null;
                     if (Application.isPlaying)
                     {
-                        assetData = await AssetManager.Load<ScriptableObject>(GlobalSetting.GetTablePath(nickName));
+                        assetData = AssetManager.Load<ScriptableObject>(GlobalSetting.GetTablePath(nickName));
                     }
 #if UNITY_EDITOR
                     assetData ??= UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(GlobalSetting.GetEditorPath(nickName));
@@ -76,8 +75,6 @@ namespace Astraia.Common
                             }
                         }
                     }
-
-                    EventManager.Invoke(new DataUpdate(nickName));
                 }
                 catch (Exception e)
                 {

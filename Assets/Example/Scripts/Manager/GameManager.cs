@@ -90,13 +90,15 @@ namespace Runtime
         {
             if (NetworkManager.Server.connections == 1)
             {
-                AssetManager.Load<GameObject>("Prefabs/10001", obj => { NetworkManager.Server.Spawn(obj); });
+                var obj = AssetManager.Load<GameObject>("Prefabs/10001");
+                NetworkManager.Server.Spawn(obj);
             }
         }
 
         public void Execute(ServerReady message)
         {
-            AssetManager.Load<GameObject>("Prefabs/30001", obj => { NetworkManager.Server.Spawn(obj, message.client); });
+            var obj = AssetManager.Load<GameObject>("Prefabs/30001");
+            NetworkManager.Server.Spawn(obj, message.client);
         }
 
 #if UNITY_EDITOR

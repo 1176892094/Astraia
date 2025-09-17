@@ -3,8 +3,8 @@
 // // # Unity: 6000.3.5f1
 // // # Author: 云谷千羽
 // // # Version: 1.0.0
-// // # History: 2025-04-09 22:04:25
-// // # Recently: 2025-04-09 22:04:25
+// // # History: 2025-09-18 02:09:04
+// // # Recently: 2025-09-18 02:09:04
 // // # Copyright: 2024, 云谷千羽
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
@@ -25,8 +25,8 @@ namespace Astraia.Common
             try
             {
                 if (!Instance) return;
-                var assetData = await LoadSceneAsset(GlobalSetting.GetScenePath(assetPath));
-                if (assetData != null)
+                var scene = LoadSceneAsset(GlobalSetting.GetScenePath(assetPath));
+                if (!string.IsNullOrEmpty(scene))
                 {
                     EventManager.Invoke(new SceneAwake(assetPath));
                     var request = SceneManager.LoadSceneAsync(assetPath, LoadSceneMode.Single);
@@ -51,23 +51,31 @@ namespace Astraia.Common
             }
         }
 
-        private static async Task<string> LoadSceneAsset(string assetPath)
+        private static string LoadSceneAsset(string path)
         {
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
             {
-                var assetItem = await LoadAssetData(assetPath);
-                var assetPack = await LoadAssetPack(assetItem.path);
-                var assetData = assetPack.GetAllScenePaths();
-                foreach (var data in assetData)
+                var item = LoadAssetData(path);
+                var data = assetPack[item.path].GetAllScenePaths();
+                foreach (var scene in data)
                 {
-                    if (data == assetItem.name)
+                    if (scene == item.name)
                     {
-                        return data;
+                        return scene;
                     }
                 }
             }
 
-            return assetPath.Substring(assetPath.LastIndexOf('/') + 1);
+            return path.Substring(path.LastIndexOf('/') + 1);
+        }
+
+        internal static void Dispose()
+        {
+            assetPath.Clear();
+            assetData.Clear();
+            assetTask.Clear();
+            assetPack.Clear();
+            AssetBundle.UnloadAllAssetBundles(true);
         }
     }
 }

@@ -9,8 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Astraia.Common
@@ -19,22 +17,13 @@ namespace Astraia.Common
 
     public static partial class PoolManager
     {
-        public static async Task<GameObject> Show(string path)
+        public static GameObject Show(string path)
         {
             if (!Instance) return null;
-            var item = await LoadPool(path).Load();
+            var item = LoadPool(path).Load();
             item.transform.SetParent(null);
             item.SetActive(true);
             return item;
-        }
-
-        public static async void Show(string path, Action<GameObject> action)
-        {
-            if (!Instance) return;
-            var item = await LoadPool(path).Load();
-            item.transform.SetParent(null);
-            item.SetActive(true);
-            action.Invoke(item);
         }
 
         public static void Hide(GameObject item)

@@ -157,7 +157,7 @@ namespace Astraia
             Load(min, max);
         }
 
-        private async void Load(int min, int max)
+        private void Load(int min, int max)
         {
             for (var i = min; i <= max; i++)
             {
@@ -182,7 +182,7 @@ namespace Astraia
                 }
 
                 grids[i] = null;
-                var item = await PoolManager.Show("Prefabs/" + typeof(TGrid).Name);
+                var item = PoolManager.Show("Prefabs/" + typeof(TGrid).Name);
                 var grid = (TGrid)item.GetOrAddComponent(typeof(TGrid));
                 var rect = (RectTransform)grid.transform;
                 rect.SetParent(content);

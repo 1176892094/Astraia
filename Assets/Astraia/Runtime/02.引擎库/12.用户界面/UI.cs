@@ -12,7 +12,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -27,9 +26,9 @@ namespace Astraia.Common
 
     public static class UIManager
     {
-        private static async Task<UIPanel> Load(string path, Type type)
+        private static UIPanel Load(string path, Type type)
         {
-            var obj = await AssetManager.Load<GameObject>(path);
+            var obj = AssetManager.Load<GameObject>(path);
             obj.SetActive(false);
             obj.name = path;
 
@@ -44,12 +43,12 @@ namespace Astraia.Common
             return panel;
         }
 
-        public static async void Show<T>(Action<T> action = null) where T : UIPanel
+        public static void Show<T>(Action<T> action = null) where T : UIPanel
         {
             if (!Instance) return;
             if (!panelData.TryGetValue(typeof(T), out var panel))
             {
-                panel = await Load(GlobalSetting.GetPanelPath(typeof(T).Name), typeof(T));
+                panel = Load(GlobalSetting.GetPanelPath(typeof(T).Name), typeof(T));
             }
 
             UIGroup.Show(panel);
@@ -81,12 +80,12 @@ namespace Astraia.Common
             }
         }
 
-        public static async void Show(Type type, Action<UIPanel> action = null)
+        public static void Show(Type type, Action<UIPanel> action = null)
         {
             if (!Instance) return;
             if (!panelData.TryGetValue(type, out var panel))
             {
-                panel = await Load(GlobalSetting.GetPanelPath(type.Name), type);
+                panel = Load(GlobalSetting.GetPanelPath(type.Name), type);
             }
 
             UIGroup.Show(panel);

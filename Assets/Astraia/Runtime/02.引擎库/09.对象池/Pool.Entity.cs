@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Astraia.Common
@@ -31,7 +30,7 @@ namespace Astraia.Common
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
 
-            public async Task<GameObject> Load()
+            public GameObject Load()
             {
                 Dequeue++;
                 Acquire++;
@@ -50,7 +49,7 @@ namespace Astraia.Common
                     Dequeue++;
                 }
 
-                item = await AssetManager.Load<GameObject>(Path);
+                item = AssetManager.Load<GameObject>(Path);
                 item.name = Path;
                 return item;
             }
