@@ -251,7 +251,7 @@ namespace Astraia
                 }
             }
         }
-        
+
         public static readonly List<string> modules = new List<string>();
         public static readonly List<string> systems = new List<string>();
 
@@ -271,7 +271,8 @@ namespace Astraia
             {
                 modules.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
             }
-            else if (typeof(ISystem).IsAssignableFrom(result))
+
+            if (typeof(ISystem).IsAssignableFrom(result))
             {
                 systems.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
             }
