@@ -225,35 +225,8 @@ namespace Astraia.Common
             return result;
         }
 
-        internal static async Task<AssetBundle> LoadAssetRequest(string persistentData, string streamingAsset)
-        {
-            var assetData = await LoadRequest(persistentData, streamingAsset);
-            byte[] result = null;
-            if (assetData.mode == 1)
-            {
-                result = await Task.Run(() => Service.Xor.Decrypt(File.ReadAllBytes(assetData.path)));
-            }
-            else if (assetData.mode == 2)
-            {
-                using var request = UnityWebRequest.Get(assetData.path);
-                await request.SendWebRequest();
-                if (request.result == UnityWebRequest.Result.Success)
-                {
-                    result = await Task.Run(() => Service.Xor.Decrypt(request.downloadHandler.data));
-                }
-            }
-
-            var assetTask = AssetBundle.LoadFromMemoryAsync(result);
-            while (!assetTask.isDone && Instance)
-            {
-                await Task.Yield();
-            }
-
-            return assetTask.assetBundle;
-        }
-
 #pragma warning disable CS1998
-        private static async Task<(int mode, string path)> LoadRequest(string persistentData, string streamingAsset)
+        internal static async Task<(int mode, string path)> LoadRequest(string persistentData, string streamingAsset)
 #pragma warning restore CS1998
         {
             if (File.Exists(persistentData))

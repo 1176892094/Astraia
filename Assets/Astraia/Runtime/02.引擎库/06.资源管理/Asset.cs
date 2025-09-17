@@ -10,8 +10,10 @@
 // // *********************************************************************************
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 using Object = UnityEngine.Object;
 
 namespace Astraia.Common
@@ -110,23 +112,23 @@ namespace Astraia.Common
             return asset;
         }
 
-        public static async void LoadAssetData()
+        public static async void LoadAssetBundle()
         {
-            var platform = await LoadAssetPack(GlobalSetting.Instance.assetPlatform.ToString());
+            var platform = await LoadAssetBundle(GlobalSetting.Instance.assetPlatform.ToString());
             manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
             EventManager.Invoke(new AssetAwake(manifest.GetAllAssetBundles()));
 
             var assetPacks = manifest.GetAllAssetBundles();
             foreach (var assetPack in assetPacks)
             {
-                _ = LoadAssetPack(assetPack);
+                _ = LoadAssetBundle(assetPack);
             }
 
             await Task.WhenAll(assetTask.Values);
             EventManager.Invoke(new AssetComplete());
         }
 
-        private static async Task<AssetBundle> LoadAssetPack(string path)
+        public static async Task<AssetBundle> LoadAssetBundle(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -143,7 +145,7 @@ namespace Astraia.Common
                 return await request;
             }
 
-            request = PackManager.LoadAssetRequest(GlobalSetting.GetPacketPath(path), GlobalSetting.GetClientPath(path));
+            request = LoadRequest(GlobalSetting.GetPacketPath(path), GlobalSetting.GetClientPath(path));
             assetTask.Add(path, request);
             try
             {
@@ -156,6 +158,33 @@ namespace Astraia.Common
             {
                 assetTask.Remove(path);
             }
+        }
+
+        private static async Task<AssetBundle> LoadRequest(string persistentData, string streamingAsset)
+        {
+            var item = await PackManager.LoadRequest(persistentData, streamingAsset);
+            byte[] bytes = null;
+            if (item.mode == 1)
+            {
+                bytes = await Task.Run(() => Service.Xor.Decrypt(File.ReadAllBytes(item.path)));
+            }
+            else if (item.mode == 2)
+            {
+                using var request = UnityWebRequest.Get(item.path);
+                await request.SendWebRequest();
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    bytes = await Task.Run(() => Service.Xor.Decrypt(request.downloadHandler.data));
+                }
+            }
+
+            var result = AssetBundle.LoadFromMemoryAsync(bytes);
+            while (!result.isDone && Instance)
+            {
+                await Task.Yield();
+            }
+
+            return result.assetBundle;
         }
     }
 }

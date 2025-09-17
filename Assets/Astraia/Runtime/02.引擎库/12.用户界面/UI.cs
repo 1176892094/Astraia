@@ -28,12 +28,12 @@ namespace Astraia.Common
     {
         private static UIPanel Load(string path, Type type)
         {
-            var obj = AssetManager.Load<GameObject>(path);
-            obj.SetActive(false);
-            obj.name = path;
-
-            var owner = obj.GetOrAddComponent<Entity>();
+            var asset = AssetManager.Load<GameObject>(path);
+            asset.SetActive(false);
+            asset.name = path;
+            
             var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
+            var owner = asset.GetOrAddComponent<Entity>();
             owner.AddComponent(panel, typeof(UIPanel));
             owner.OnShow += panel.Listen;
             owner.OnHide += panel.Remove;

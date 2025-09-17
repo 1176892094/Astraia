@@ -9,7 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
 using UnityEngine;
 
 namespace Astraia.Common
@@ -56,16 +55,16 @@ namespace Astraia.Common
             }
         }
 
-        public static void PlayMusic(string name, Action<AudioSource> action = null)
+        public static AudioSource PlayMusic(string name)
         {
-            if (!Instance) return;
+            if (!Instance) return null;
             var target = GlobalSetting.GetAudioPath(name);
             var source = Instance.source;
             source.clip = AssetManager.Load<AudioClip>(target);
             source.loop = true;
             source.volume = MusicVolume;
-            action?.Invoke(source);
             source.Play();
+            return source;
         }
 
         public static void StopMusic(bool pause = true)
@@ -81,9 +80,9 @@ namespace Astraia.Common
             }
         }
 
-        public static void PlayLoop(string name, Action<AudioSource> action = null)
+        public static AudioSource PlayLoop(string name)
         {
-            if (!Instance) return;
+            if (!Instance) return null;
             var target = GlobalSetting.GetAudioPath(name);
             var source = LoadPool(target).Load();
             audioLoop.Add(source);
@@ -92,13 +91,13 @@ namespace Astraia.Common
             source.clip = AssetManager.Load<AudioClip>(target);
             source.loop = true;
             source.volume = AudioVolume;
-            action?.Invoke(source);
             source.Play();
+            return source;
         }
 
-        public static void PlayOnce(string name, Action<AudioSource> action = null)
+        public static AudioSource PlayOnce(string name)
         {
-            if (!Instance) return;
+            if (!Instance) return null;
             var target = GlobalSetting.GetAudioPath(name);
             var source = LoadPool(target).Load();
             audioLoop.Add(source);
@@ -107,9 +106,9 @@ namespace Astraia.Common
             source.clip = AssetManager.Load<AudioClip>(target);
             source.loop = false;
             source.volume = AudioVolume;
-            action?.Invoke(source);
             source.Play();
             source.Wait(source.clip.length).OnUpdate(() => Stop(source));
+            return source;
         }
 
         public static void Stop(AudioSource source)
