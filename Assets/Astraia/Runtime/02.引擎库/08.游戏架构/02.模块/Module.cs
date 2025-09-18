@@ -23,6 +23,7 @@ namespace Astraia.Common
     public interface IActive
     {
         void OnShow();
+        
         void OnHide();
     }
 }

@@ -4,16 +4,7 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes:
-  - enabled: 1
-    path: Assets/Sources/Scenes/GameScene.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/Sources/Scenes/LoginScene.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/Sources/Scenes/TechScene.unity
-    guid: 00000000000000000000000000000000
+  m_Scenes: []
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

@@ -16,7 +16,7 @@ using Astraia.Common;
 namespace Astraia
 {
     [Serializable]
-    public abstract partial class UIPanel : Module<Entity>, IModule, IActive, IPanel
+    public abstract partial class UIPanel : Module<Entity>, IModule, IActive
     {
         public UIState state = UIState.Common;
 
@@ -33,22 +33,14 @@ namespace Astraia
         }
     }
 
-    public abstract partial class UIPanel
+    public abstract partial class UIPanel : IPanel
     {
         internal int groupMask;
         internal int layerMask;
 
         void IModule.Create(Entity owner) => Create(owner);
-
-        internal void Listen()
-        {
-            GlobalManager.panelLoop.Add(this);
-        }
-
-        internal void Remove()
-        {
-            GlobalManager.panelLoop.Remove(this);
-        }
+        void IPanel.Listen() => GlobalManager.panelLoop.Add(this);
+        void IPanel.Remove() => GlobalManager.panelLoop.Remove(this);
 
         internal virtual void Create(Entity owner)
         {

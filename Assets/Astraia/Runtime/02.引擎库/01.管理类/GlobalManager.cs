@@ -118,7 +118,6 @@ namespace Astraia.Common
             AudioManager.Dispose();
             AssetManager.Dispose();
             EventManager.Dispose();
-            ParamManager.Dispose();
             EntityManager.Dispose();
             SystemManager.Dispose();
             GC.Collect();

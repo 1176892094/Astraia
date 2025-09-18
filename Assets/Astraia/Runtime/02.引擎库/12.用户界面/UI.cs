@@ -22,6 +22,10 @@ namespace Astraia.Common
     internal interface IPanel
     {
         void Update();
+
+        void Listen();
+
+        void Remove();
     }
 
     public static class UIManager
@@ -35,8 +39,8 @@ namespace Astraia.Common
             var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
             var owner = asset.GetOrAddComponent<Entity>();
             owner.AddComponent(panel, typeof(UIPanel));
-            owner.OnShow += panel.Listen;
-            owner.OnHide += panel.Remove;
+            owner.OnShow += ((IPanel)panel).Listen;
+            owner.OnHide += ((IPanel)panel).Remove;
 
             SetLayer(panel.transform, panel.layerMask);
             panelData.Add(type, panel);

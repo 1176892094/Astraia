@@ -35,6 +35,11 @@ namespace Astraia
         {
         }
 
+        public static implicit operator T(Module<T> module)
+        {
+            return module.owner;
+        }
+
         public static implicit operator bool(Module<T> module)
         {
             return module != null && module.owner && module.owner.isActiveAndEnabled;

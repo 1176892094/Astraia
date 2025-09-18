@@ -26,6 +26,7 @@ namespace Astraia
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
+      
 
         protected virtual void Awake()
         {
@@ -53,7 +54,6 @@ namespace Astraia
             OnHide = null;
             moduleList.Clear();
             moduleData.Clear();
-            ParamManager.Dispose(GetInstanceID());
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -129,12 +129,12 @@ namespace Astraia
     {
         public static T GetValue<T>(this Entity owner, Enum id, T value = default)
         {
-            return owner ? ParamManager.Get(owner.GetInstanceID(), id, value) : default;
+            return Variable<T>.Get(owner, id, value);
         }
 
         public static void SetValue<T>(this Entity owner, Enum id, T value)
         {
-            ParamManager.Set(owner.GetInstanceID(), id, value);
+            Variable<T>.Set(owner, id, value);
         }
     }
 }
