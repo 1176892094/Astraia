@@ -17,7 +17,7 @@ namespace Astraia.Common
     public static partial class EventManager
     {
         [Serializable]
-        private class Pool<T> : IPool where T : struct, IEvent
+        private class Pool<T> : IPool where T : IEvent
         {
             private readonly HashSet<IEvent<T>> cached = new HashSet<IEvent<T>>();
             private event Action<T> OnExecute;

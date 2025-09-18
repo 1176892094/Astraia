@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
+#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
+
 namespace Astraia.Common
 {
     using static GlobalManager;
@@ -34,7 +36,7 @@ namespace Astraia.Common
             {
                 Directory.CreateDirectory(GlobalSetting.downloadLocalPath);
             }
-            
+
             var serverFile = GlobalSetting.GetServerPath(GlobalSetting.ASSET_JSON);
             var serverRequest = await LoadServerRequest(GlobalSetting.ASSET_JSON, serverFile);
             var serverData = new Dictionary<string, BundleData>();
@@ -222,9 +224,8 @@ namespace Astraia.Common
             return result;
         }
 
-#pragma warning disable CS1998
+
         internal static async Task<(int mode, string path)> LoadRequest(string persistentData, string streamingAsset)
-#pragma warning restore CS1998
         {
             if (File.Exists(persistentData))
             {

@@ -21,10 +21,7 @@ namespace Astraia
             private static readonly Dictionary<byte, byte[]> KeyMap = new Dictionary<byte, byte[]>();
             private const int LENGTH = 16;
 
-            static Xor()
-            {
-                LoadData(0, "A1B2C3D4E5F6G7H8");
-            }
+            static Xor() => LoadData(0, "A1B2C3D4E5F6G7H8");
 
             public static void LoadData(byte version, string data)
             {

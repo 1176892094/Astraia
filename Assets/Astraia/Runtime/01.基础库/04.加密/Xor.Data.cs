@@ -18,9 +18,7 @@ namespace Astraia
 {
     public static class Xor
     {
-        public struct Exception : IEvent
-        {
-        }
+        public record Exception : IEvent;
 
         [Serializable]
         public struct Int : IEquatable<Int>

@@ -9,93 +9,32 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit
+    {
+    }
+}
+
 namespace Astraia.Common
 {
-    public struct OnLoadBundle : IEvent
-    {
-        public readonly int count;
-        public readonly long amount;
+    public record OnLoadBundle(int count, long amount) : IEvent;
 
-        public OnLoadBundle(int count, long amount)
-        {
-            this.count = count;
-            this.amount = amount;
-        }
-    }
+    public record OnBundleUpdate(string name, float progress) : IEvent;
 
-    public struct OnBundleUpdate : IEvent
-    {
-        public readonly string name;
-        public readonly float progress;
+    public record OnBundleComplete(int status, string message) : IEvent;
 
-        public OnBundleUpdate(string name, float progress)
-        {
-            this.name = name;
-            this.progress = progress;
-        }
-    }
+    public record OnLoadAsset(string[] names) : IEvent;
 
-    public struct OnBundleComplete : IEvent
-    {
-        public readonly int status;
-        public readonly string message;
+    public record OnAssetUpdate(string name) : IEvent;
 
-        public OnBundleComplete(int status, string message)
-        {
-            this.status = status;
-            this.message = message;
-        }
-    }
+    public record OnAssetComplete : IEvent;
 
-    public struct OnLoadAsset : IEvent
-    {
-        public readonly string[] names;
+    public record OnLoadScene(string name) : IEvent;
 
-        public OnLoadAsset(string[] names)
-        {
-            this.names = names;
-        }
-    }
+    public record OnSceneUpdate(float progress) : IEvent;
 
-    public struct OnAssetUpdate : IEvent
-    {
-        public readonly string name;
+    public record OnSceneComplete : IEvent;
 
-        public OnAssetUpdate(string name)
-        {
-            this.name = name;
-        }
-    }
-
-    public struct OnAssetComplete : IEvent
-    {
-    }
-
-    public struct OnLoadScene : IEvent
-    {
-        public readonly string name;
-
-        public OnLoadScene(string name)
-        {
-            this.name = name;
-        }
-    }
-
-    public struct OnSceneUpdate : IEvent
-    {
-        public readonly float progress;
-
-        public OnSceneUpdate(float progress)
-        {
-            this.progress = progress;
-        }
-    }
-
-    public struct OnSceneComplete : IEvent
-    {
-    }
-
-    public struct OnDataComplete : IEvent
-    {
-    }
+    public record OnDataComplete : IEvent;
 }

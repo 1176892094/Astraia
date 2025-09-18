@@ -23,12 +23,7 @@ namespace Astraia
 
         public static List<Entity> Query<T>() where T : IModule
         {
-            if (queryData.TryGetValue(typeof(T), out var modules))
-            {
-                return modules;
-            }
-
-            return Empty;
+            return queryData.GetValueOrDefault(typeof(T), Empty);
         }
 
         internal static IModule AddComponent(Entity owner, Type keyType, IModule module, Type queryType = null)

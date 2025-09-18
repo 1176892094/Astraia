@@ -20,25 +20,25 @@ namespace Astraia.Common
         internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Listen<T>(IEvent<T> data) where T : struct, IEvent
+        public static void Listen<T>(IEvent<T> data) where T : IEvent
         {
             LoadPool<T>().Listen(data);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Remove<T>(IEvent<T> data) where T : struct, IEvent
+        public static void Remove<T>(IEvent<T> data) where T : IEvent
         {
             LoadPool<T>().Remove(data);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Invoke<T>(T data) where T : struct, IEvent
+        public static void Invoke<T>(T data) where T : IEvent
         {
             LoadPool<T>().Invoke(data);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Pool<T> LoadPool<T>() where T : struct, IEvent
+        private static Pool<T> LoadPool<T>() where T : IEvent
         {
             if (poolData.TryGetValue(typeof(T), out var pool))
             {

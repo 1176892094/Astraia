@@ -15,7 +15,7 @@ namespace Astraia.Common
     {
     }
 
-    public interface IEvent<in T> where T : struct, IEvent
+    public interface IEvent<in T> where T : IEvent
     {
         void Execute(T message);
 

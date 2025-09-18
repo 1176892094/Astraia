@@ -166,10 +166,7 @@ namespace Astraia.Net
 
                     var endPoint = result.RemoteEndPoint;
                     var response = reader.Invoke<ResponseMessage>();
-                    EventManager.Invoke(new ServerResponse(new UriBuilder(response.uri)
-                    {
-                        Host = endPoint.Address.ToString()
-                    }.Uri, endPoint));
+                    EventManager.Invoke(new ServerResponse(new UriBuilder(response.uri) { Host = endPoint.Address.ToString() }.Uri));
                 }
                 catch (ObjectDisposedException)
                 {

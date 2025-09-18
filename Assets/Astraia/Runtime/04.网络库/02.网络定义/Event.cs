@@ -10,176 +10,37 @@
 // *********************************************************************************
 
 using System;
-using System.Net;
 using Astraia.Net;
 
 namespace Astraia.Common
 {
-    public struct ServerConnect : IEvent
-    {
-        public NetworkClient client { get; private set; }
+    public record ServerConnect(NetworkClient client) : IEvent;
 
-        public ServerConnect(NetworkClient client)
-        {
-            this.client = client;
-        }
-    }
+    public record ServerDisconnect(NetworkClient client) : IEvent;
 
-    public struct ServerDisconnect : IEvent
-    {
-        public NetworkClient client { get; private set; }
+    public record ServerReady(NetworkClient client) : IEvent;
 
-        public ServerDisconnect(NetworkClient client)
-        {
-            this.client = client;
-        }
-    }
+    public record ClientConnect : IEvent;
 
-    public struct ServerReady : IEvent
-    {
-        public NetworkClient client { get; private set; }
+    public record ClientDisconnect : IEvent;
 
-        public ServerReady(NetworkClient client)
-        {
-            this.client = client;
-        }
-    }
+    public record ClientNotReady : IEvent;
+    
+    public record ServerChangeScene(string sceneName) : IEvent;
 
-    public struct ServerChangeScene : IEvent
-    {
-        public string sceneName { get; private set; }
+    public record ServerSceneChanged(string sceneName) : IEvent;
 
-        public ServerChangeScene(string sceneName)
-        {
-            this.sceneName = sceneName;
-        }
-    }
+    public record ClientChangeScene(string sceneName) : IEvent;
 
-    public struct ServerSceneChanged : IEvent
-    {
-        public string sceneName { get; private set; }
+    public record ClientSceneChanged(string sceneName) : IEvent;
 
-        public ServerSceneChanged(string sceneName)
-        {
-            this.sceneName = sceneName;
-        }
-    }
+    public record ServerResponse(Uri uri) : IEvent;
 
-    public struct ClientConnect : IEvent
-    {
-    }
+    public record LobbyUpdate(RoomData[] rooms) : IEvent;
 
-    public struct ClientDisconnect : IEvent
-    {
-    }
+    public record LobbyDisconnect : IEvent;
 
-    public struct ClientNotReady : IEvent
-    {
-    }
+    public record LobbyCreateRoom(string room) : IEvent;
 
-    public struct ClientChangeScene : IEvent
-    {
-        public string sceneName { get; private set; }
-
-        public ClientChangeScene(string sceneName)
-        {
-            this.sceneName = sceneName;
-        }
-    }
-
-    public struct ClientSceneChanged : IEvent
-    {
-        public string sceneName { get; private set; }
-
-        public ClientSceneChanged(string sceneName)
-        {
-            this.sceneName = sceneName;
-        }
-    }
-
-    public struct ServerResponse : IEvent
-    {
-        public Uri uri { get; private set; }
-        public IPEndPoint endPoint { get; private set; }
-
-        public ServerResponse(Uri uri, IPEndPoint endPoint)
-        {
-            this.uri = uri;
-            this.endPoint = endPoint;
-        }
-    }
-
-    public struct LobbyUpdate : IEvent
-    {
-        public RoomData[] rooms { get; private set; }
-
-        public LobbyUpdate(RoomData[] rooms)
-        {
-            this.rooms = rooms;
-        }
-    }
-
-    public struct LobbyDisconnect : IEvent
-    {
-    }
-
-    public struct LobbyCreateRoom : IEvent
-    {
-        public string roomId { get; private set; }
-
-        public LobbyCreateRoom(string roomId)
-        {
-            this.roomId = roomId;
-        }
-    }
-
-    public struct PingUpdate : IEvent
-    {
-        public double pingTime { get; private set; }
-
-        public PingUpdate(double pingTime)
-        {
-            this.pingTime = pingTime;
-        }
-    }
-
-
-    [Serializable]
-    public struct RoomData
-    {
-        /// <summary>
-        /// 房间拥有者
-        /// </summary>
-        public int clientId;
-
-        /// <summary>
-        /// 是否显示
-        /// </summary>
-        public RoomMode roomMode;
-
-        /// <summary>
-        /// 房间最大人数
-        /// </summary>
-        public int maxCount;
-
-        /// <summary>
-        /// 额外房间数据
-        /// </summary>
-        public string roomData;
-
-        /// <summary>
-        /// 房间Id
-        /// </summary>
-        public string roomId;
-
-        /// <summary>
-        /// 房间名称
-        /// </summary>
-        public string roomName;
-
-        /// <summary>
-        /// 客户端数量
-        /// </summary>
-        public int[] clients;
-    }
+    public record PingUpdate(double pingTime) : IEvent;
 }
