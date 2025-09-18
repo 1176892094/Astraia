@@ -21,7 +21,7 @@ namespace Astraia.Common
 
     internal static class BundleManager
     {
-        public static async void Download()
+        public static async void Update()
         {
             if (!Instance) return;
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Resources)

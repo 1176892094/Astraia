@@ -98,7 +98,7 @@ namespace Astraia.Common
 
         private void Start()
         {
-            BundleManager.Download();
+            BundleManager.Update();
         }
 
         private void Update()
