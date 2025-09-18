@@ -16,8 +16,7 @@ namespace Astraia
         StandaloneOSX = 2,
         StandaloneWindows = 5,
         IOS = 9,
-        Android = 13,
-        WebGL = 20
+        Android = 13
     }
 
     internal enum AssetText : byte
@@ -32,15 +31,15 @@ namespace Astraia
 
     internal enum AssetMode : byte
     {
-        Simulate,
-        Local,
-        Remote
+        Resources,
+        LocalMode,
+        RemoteMode
     }
 
     internal enum BuildMode : byte
     {
-        StreamingAssets,
-        BuildPath,
+        AssetBundlePath,
+        StreamingAssets
     }
 
     public enum UIState : byte

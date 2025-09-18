@@ -53,7 +53,7 @@ namespace Astraia.Common
 
         private static string LoadSceneAsset(string reason)
         {
-            if (GlobalSetting.Instance.assetLoadMode != AssetMode.Simulate)
+            if (GlobalSetting.Instance.assetLoadMode != AssetMode.Resources)
             {
                 var item = LoadAssetData(reason);
                 if (assetPack.TryGetValue(item.path, out var result))

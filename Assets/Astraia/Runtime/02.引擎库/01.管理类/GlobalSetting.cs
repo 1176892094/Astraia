@@ -38,17 +38,22 @@ namespace Astraia
         public const string ASSET_PATH = "Assets/AssetBundles";
         public const string ASSET_JSON = "AssetBundle.json";
         public const string ASSET_DATA = "HotUpdate.Data";
-
-        public AssetPlatform assetPlatform = AssetPlatform.StandaloneWindows;
-        public BadWordFilter badWordFilter = BadWordFilter.Enable;
-        public byte secretVersion = 1;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [OnValueChanged("UpdateSceneSetting")]
+        [EnumToggleButtons]
 #endif
-        public AssetMode assetLoadMode = AssetMode.Simulate;
-
+        public AssetPlatform assetPlatform = AssetPlatform.StandaloneWindows;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [EnumToggleButtons] [OnValueChanged("UpdateSceneSetting")]
+#endif
+        public AssetMode assetLoadMode = AssetMode.Resources;
         public string assetLocalPath = "http://192.168.0.3:8000/AssetBundles";
         public string assetRemotePath = "http://192.168.0.3:8000/AssetBundles";
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [EnumToggleButtons]
+#endif
+        public WordFilter wordFilter = WordFilter.Enable;
+
+        public byte secretVersion = 1;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [PropertyOrder(2)]
 #endif
@@ -62,13 +67,13 @@ namespace Astraia
         [ShowInInspector]
         [PropertyOrder(1)]
 #endif
-        private static string downloadRemotePath => Instance.assetLoadMode == AssetMode.Remote ? Instance.assetRemotePath : Instance.assetLocalPath;
+        private static string downloadRemotePath => Instance.assetLoadMode == AssetMode.RemoteMode ? Instance.assetRemotePath : Instance.assetLocalPath;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
         [PropertyOrder(1)]
 #endif
         public static string downloadRemoteData => "{0}/{1}".Format(downloadRemotePath, ASSET_PACK);
-        
+
         public static string GetTextByIndex(AssetText option)
         {
             if (itemText.Count > 0)
@@ -123,13 +128,13 @@ namespace Astraia
                 Service.Xor.LoadData(i, Instance.secretGroup[i]);
             }
 
-            if (Instance.badWordFilter != BadWordFilter.Disable)
+            if (Instance.wordFilter != WordFilter.Disable)
             {
                 Service.Word.LoadData(GetTextByIndex(AssetText.BadWord));
             }
         }
 
-        public enum BadWordFilter : byte
+        public enum WordFilter : byte
         {
             Enable,
             Disable
@@ -138,7 +143,10 @@ namespace Astraia
 #if UNITY_EDITOR
     internal partial class GlobalSetting
     {
-        public BuildMode BuildPath = BuildMode.StreamingAssets;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [EnumToggleButtons]
+#endif
+        public BuildMode BuildPath = BuildMode.AssetBundlePath;
 #if ODIN_INSPECTOR
         [PropertyOrder(2)]
 #endif
@@ -168,7 +176,7 @@ namespace Astraia
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? Path.Combine(remoteBuildData, ASSET_PACK) : Application.streamingAssetsPath;
+        public static string remoteBuildPath => Instance.BuildPath == BuildMode.AssetBundlePath ? Path.Combine(remoteBuildData, ASSET_PACK) : Application.streamingAssetsPath;
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
@@ -198,13 +206,13 @@ namespace Astraia
                 var scenePath = AssetDatabase.GetAssetPath(sceneAsset);
                 if (assets.Contains(scenePath))
                 {
-                    if (Instance.assetLoadMode == AssetMode.Simulate) continue;
+                    if (Instance.assetLoadMode == AssetMode.Resources) continue;
                     var scenes = EditorBuildSettings.scenes.Where(scene => scene.path != scenePath);
                     EditorBuildSettings.scenes = scenes.ToArray();
                 }
                 else
                 {
-                    if (Instance.assetLoadMode != AssetMode.Simulate) continue;
+                    if (Instance.assetLoadMode != AssetMode.Resources) continue;
                     var scenes = EditorBuildSettings.scenes.ToList();
                     scenes.Add(new EditorBuildSettingsScene(scenePath, true));
                     EditorBuildSettings.scenes = scenes.ToArray();

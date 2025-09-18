@@ -24,7 +24,7 @@ namespace Astraia.Common
         public static async void Download()
         {
             if (!Instance) return;
-            if (GlobalSetting.Instance.assetLoadMode == AssetMode.Simulate)
+            if (GlobalSetting.Instance.assetLoadMode == AssetMode.Resources)
             {
                 EventManager.Invoke(new OnBundleComplete(0, "启动本地资源加载。"));
                 return;

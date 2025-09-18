@@ -67,7 +67,7 @@ namespace Astraia
         {
 #if ODIN_INSPECTOR
             var window = GetWindow<EditorSetting>();
-            window.position = GUIHelper.GetEditorWindowRect().AlignCenter(800, 600);
+            window.position = GUIHelper.GetEditorWindowRect().AlignCenter(1000, 600);
             window.Show();
 #endif
         }
