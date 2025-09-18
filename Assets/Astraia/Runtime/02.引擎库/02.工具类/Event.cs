@@ -13,11 +13,13 @@ namespace Astraia.Common
 {
     public struct OnLoadBundle : IEvent
     {
-        public readonly int[] sizes;
+        public readonly int count;
+        public readonly long size;
 
-        public OnLoadBundle(int[] sizes)
+        public OnLoadBundle(int count, long size)
         {
-            this.sizes = sizes;
+            this.count = count;
+            this.size = size;
         }
     }
 

@@ -38,9 +38,10 @@ namespace Astraia.Common
                 }
             }
 
+
+            var serverFile = GlobalSetting.GetServerPath(GlobalSetting.ASSET_JSON);
+            var serverRequest = await LoadServerRequest(GlobalSetting.ASSET_JSON, serverFile);
             var serverData = new Dictionary<string, BundleData>();
-            var fileUri = GlobalSetting.GetServerPath(GlobalSetting.ASSET_JSON);
-            var serverRequest = await LoadServerRequest(GlobalSetting.ASSET_JSON, fileUri);
             if (!string.IsNullOrEmpty(serverRequest))
             {
                 var bundles = JsonManager.FromJson<List<BundleData>>(serverRequest);
@@ -55,10 +56,10 @@ namespace Astraia.Common
                 return;
             }
 
-            var clientData = new Dictionary<string, BundleData>();
             var persistentData = GlobalSetting.GetBundlePath(GlobalSetting.ASSET_JSON);
             var streamingAsset = GlobalSetting.GetClientPath(GlobalSetting.ASSET_JSON);
             var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
+            var clientData = new Dictionary<string, BundleData>();
             if (!string.IsNullOrEmpty(clientRequest))
             {
                 var bundles = JsonManager.FromJson<List<BundleData>>(clientRequest);
@@ -68,44 +69,44 @@ namespace Astraia.Common
                 }
             }
 
-            var fileNames = new List<string>();
+            var modifyData = new HashSet<string>();
             foreach (var fileName in serverData.Keys)
             {
                 if (clientData.TryGetValue(fileName, out var bundle))
                 {
                     if (serverData[fileName] != bundle)
                     {
-                        fileNames.Add(fileName);
+                        modifyData.Add(fileName);
                     }
 
                     clientData.Remove(fileName);
                 }
                 else
                 {
-                    fileNames.Add(fileName);
+                    modifyData.Add(fileName);
                 }
             }
 
-            var fileSizes = new int[fileNames.Count];
-            for (int i = 0; i < fileNames.Count; i++)
+            var modifySize = 0L;
+            foreach (var modifyName in modifyData)
             {
-                if (serverData.TryGetValue(fileNames[i], out var bundle))
+                if (serverData.TryGetValue(modifyName, out var bundle))
                 {
-                    fileSizes[i] = bundle.size;
+                    modifySize += bundle.size;
                 }
             }
 
-            EventManager.Invoke(new OnLoadBundle(fileSizes));
-            foreach (var bundle in clientData.Keys)
+            EventManager.Invoke(new OnLoadBundle(modifyData.Count, modifySize));
+            foreach (var deleteData in clientData.Keys)
             {
-                var filePath = GlobalSetting.GetBundlePath(bundle);
+                var filePath = GlobalSetting.GetBundlePath(deleteData);
                 if (File.Exists(filePath))
                 {
                     File.Delete(filePath);
                 }
             }
 
-            var success = await LoadBundleRequest(fileNames);
+            var success = await LoadBundleRequest(modifyData);
             if (success)
             {
                 var filePath = GlobalSetting.GetBundlePath(GlobalSetting.ASSET_JSON);
@@ -115,20 +116,19 @@ namespace Astraia.Common
             EventManager.Invoke(new OnBundleComplete(1, success ? "更新完成!" : "更新失败!"));
         }
 
-        private static async Task<bool> LoadBundleRequest(List<string> fileNames)
+        private static async Task<bool> LoadBundleRequest(HashSet<string> fileNames)
         {
-            var bundleNames = new HashSet<string>(fileNames);
             for (var i = 0; i < 5; i++)
             {
-                foreach (var bundleName in bundleNames)
+                foreach (var fileName in fileNames)
                 {
-                    var bundleUri = GlobalSetting.GetServerPath(bundleName);
-                    var bundleData = await LoadBundleRequest(bundleName, bundleUri);
-                    var bundlePath = GlobalSetting.GetBundlePath(bundleName);
+                    var serverFile = GlobalSetting.GetServerPath(fileName);
+                    var bundleData = await LoadBundleRequest(fileName, serverFile);
+                    var bundlePath = GlobalSetting.GetBundlePath(fileName);
                     await Task.Run(() => File.WriteAllBytes(bundlePath, bundleData));
-                    if (fileNames.Contains(bundleName))
+                    if (fileNames.Contains(fileName))
                     {
-                        fileNames.Remove(bundleName);
+                        fileNames.Remove(fileName);
                     }
                 }
 
