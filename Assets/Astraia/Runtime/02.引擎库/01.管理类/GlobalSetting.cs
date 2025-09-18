@@ -32,11 +32,10 @@ namespace Astraia
         private static GlobalSetting instance;
 
         public static GlobalSetting Instance => instance ??= Resources.Load<GlobalSetting>(nameof(GlobalSetting));
-
-
+        
         public const string ASSET_PACK = "AssetBundles";
-        public const string ASSET_PATH = "Assets/AssetBundles";
         public const string ASSET_JSON = "AssetBundle.json";
+        public const string ASSET_PATH = "Assets/AssetBundles";
         public const string ASSET_DATA = "HotUpdate.Data";
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [EnumToggleButtons]
