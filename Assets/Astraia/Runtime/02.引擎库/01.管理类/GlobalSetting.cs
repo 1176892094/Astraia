@@ -143,12 +143,12 @@ namespace Astraia
 
             for (byte i = 1; i < Instance.secretGroup.Length; i++)
             {
-                Service.Xor.Register(i, Instance.secretGroup[i]);
+                Service.Xor.LoadData(i, Instance.secretGroup[i]);
             }
 
             if (Instance.badWordFilter != BadWordFilter.Disable)
             {
-                Service.Word.Register(GetTextByIndex(AssetText.BadWord));
+                Service.Word.LoadData(GetTextByIndex(AssetText.BadWord));
             }
         }
 

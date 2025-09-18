@@ -28,14 +28,14 @@ namespace Astraia
             public static event Action<Type> OnLoad;
             public static event Action OnLoadComplete;
 
-            public static void Register(HashSet<string> cacheName)
+            public static void LoadData(HashSet<string> assemblyList)
             {
                 var assemblyData = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (var assembly in assemblyData)
                 {
                     var name = assembly.GetName().Name;
                     assemblies[name] = assembly;
-                    if (cacheName.Contains(name) || name.StartsWith("Assembly-CSharp"))
+                    if (assemblyList.Contains(name) || name.StartsWith("Assembly-CSharp"))
                     {
                         foreach (var result in assembly.GetTypes())
                         {

@@ -121,7 +121,7 @@ namespace Astraia.Common
             SystemManager.Dispose();
             EntityManager.Dispose();
             HeapManager.Dispose();
-            Blackboard.Dispose();
+            ParamManager.Dispose();
             GC.Collect();
         }
     }

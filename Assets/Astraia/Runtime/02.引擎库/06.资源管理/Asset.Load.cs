@@ -70,7 +70,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR
                 if (assetPath.TryGetValue(path, out var data))
                 {
-                    return UnityEditor.AssetDatabase.LoadAllAssetsAtPath(data).Cast<T>().ToArray();
+                    return UnityEditor.AssetDatabase.LoadAllAssetRepresentationsAtPath(data).Cast<T>().ToArray();
                 }
 
                 return null;

@@ -23,10 +23,10 @@ namespace Astraia
 
             static Xor()
             {
-                Register(0, "A1B2C3D4E5F6G7H8");
+                LoadData(0, "A1B2C3D4E5F6G7H8");
             }
 
-            public static void Register(byte version, string data)
+            public static void LoadData(byte version, string data)
             {
                 var item = Text.GetBytes(data);
                 if (item.Length != LENGTH)

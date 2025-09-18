@@ -16,7 +16,7 @@ using System.Collections.Generic;
 
 namespace Astraia.Common
 {
-    internal static partial class Blackboard
+    internal static partial class ParamManager
     {
         public sealed class Pool<T> : IPool
         {

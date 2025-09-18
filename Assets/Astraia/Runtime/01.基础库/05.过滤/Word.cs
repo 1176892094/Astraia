@@ -17,7 +17,7 @@ namespace Astraia
         {
             private static readonly Node root = new Node();
 
-            public static void Register(string text)
+            public static void LoadData(string text)
             {
                 var cache = Zip.Decompress(text);
                 var words = cache.Split('\n');
