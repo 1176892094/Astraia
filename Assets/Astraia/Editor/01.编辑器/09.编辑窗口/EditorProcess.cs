@@ -99,6 +99,7 @@ namespace Astraia
             }
         }
 
+        [InitializeOnLoadMethod]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void RuntimeInitializeOnLoad()
         {

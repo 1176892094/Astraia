@@ -26,7 +26,6 @@ namespace Astraia.Common
         {
             try
             {
-                if (!Instance) return null;
                 var asset = LoadAsset<T>(reason);
                 if (asset != null)
                 {
@@ -47,7 +46,6 @@ namespace Astraia.Common
         {
             try
             {
-                if (!Instance) return null;
                 var asset = LoadAssetAll<T>(reason);
                 if (asset != null)
                 {
