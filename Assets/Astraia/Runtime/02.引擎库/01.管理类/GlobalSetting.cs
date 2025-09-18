@@ -50,7 +50,7 @@ namespace Astraia
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [EnumToggleButtons]
 #endif
-        public WordFilter wordFilter = WordFilter.Enable;
+        public InputMask inputMask = InputMask.Enable;
 
         public byte secretVersion = 1;
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -127,16 +127,10 @@ namespace Astraia
                 Service.Xor.LoadData(i, Instance.secretGroup[i]);
             }
 
-            if (Instance.wordFilter != WordFilter.Disable)
+            if (Instance.inputMask != InputMask.Disable)
             {
-                Service.Word.LoadData(GetTextByIndex(AssetText.BadWord));
+                Service.Input.LoadData(GetTextByIndex(AssetText.Input));
             }
-        }
-
-        public enum WordFilter : byte
-        {
-            Enable,
-            Disable
         }
     }
 #if UNITY_EDITOR

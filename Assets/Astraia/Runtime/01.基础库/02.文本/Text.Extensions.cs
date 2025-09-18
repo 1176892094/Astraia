@@ -47,31 +47,5 @@ namespace Astraia
             Builder.AppendFormat(format, arg1, arg2, arg3, arg4);
             return Builder.ToString();
         }
-
-        public static bool IsNullOrEmpty(this string result)
-        {
-            return string.IsNullOrEmpty(result);
-        }
-
-        public static bool IsNullOrWhiteSpace(this string result)
-        {
-            return string.IsNullOrWhiteSpace(result);
-        }
-
-        public static string Color(this string result, string format)
-        {
-            return format switch
-            {
-                "R" => "<color=#FF0000>{0}</color>".Format(result), // 红
-                "G" => "<color=#00FF00>{0}</color>".Format(result), // 绿
-                "B" => "<color=#0000FF>{0}</color>".Format(result), // 蓝
-                "Y" => "<color=#FFFF00>{0}</color>".Format(result), // 黄
-                "O" => "<color=#FFAA00>{0}</color>".Format(result), // 橙
-                "S" => "<color=#00FFFF>{0}</color>".Format(result), // 青
-                "P" => "<color=#FFAAFF>{0}</color>".Format(result), // 紫
-                "W" => "<color=#FFFFFF>{0}</color>".Format(result), // 白
-                _ => "<color=#{0}>{1}</color>".Format(format, result)
-            };
-        }
     }
 }

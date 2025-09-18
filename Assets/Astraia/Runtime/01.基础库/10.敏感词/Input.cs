@@ -9,11 +9,13 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System.Collections.Generic;
+
 namespace Astraia
 {
     public static partial class Service
     {
-        internal static partial class Word
+        internal static class Input
         {
             private static readonly Node root = new Node();
 
@@ -44,7 +46,7 @@ namespace Astraia
                 current.finish = true;
             }
 
-            public static string Replace(string text, char mask)
+            public static string Mask(string text, char mask)
             {
                 var chars = text.ToCharArray();
                 for (var i = 0; i < chars.Length; i++)
@@ -69,6 +71,12 @@ namespace Astraia
                 }
 
                 return new string(chars);
+            }
+
+            private class Node
+            {
+                public readonly Dictionary<char, Node> nodes = new Dictionary<char, Node>();
+                public bool finish;
             }
         }
     }

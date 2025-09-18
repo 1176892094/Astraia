@@ -25,7 +25,7 @@ namespace Astraia
         Enum,
         Struct,
         DataTable,
-        BadWord,
+        Input,
         Icons,
     }
 
@@ -34,6 +34,12 @@ namespace Astraia
         Resources,
         LocalMode,
         RemoteMode
+    }
+    
+    internal enum InputMask : byte
+    {
+        Enable,
+        Disable
     }
 
     internal enum BuildMode : byte
