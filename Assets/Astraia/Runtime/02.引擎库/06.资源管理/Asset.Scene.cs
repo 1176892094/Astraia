@@ -51,15 +51,15 @@ namespace Astraia.Common
             }
         }
 
-        private static string LoadSceneAsset(string path)
+        private static string LoadSceneAsset(string reason)
         {
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
             {
-                var item = LoadAssetData(path);
+                var item = LoadAssetData(reason);
                 if (assetPack.TryGetValue(item.path, out var result))
                 {
-                    var data = result.GetAllScenePaths();
-                    foreach (var scene in data)
+                    var scenes = result.GetAllScenePaths();
+                    foreach (var scene in scenes)
                     {
                         if (scene == item.name)
                         {
@@ -69,7 +69,7 @@ namespace Astraia.Common
                 }
             }
 
-            return path.Substring(path.LastIndexOf('/') + 1);
+            return reason.Substring(reason.LastIndexOf('/') + 1);
         }
 
         internal static void Dispose()

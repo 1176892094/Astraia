@@ -37,8 +37,7 @@ namespace Astraia.Common
                     Directory.CreateDirectory(GlobalSetting.assetPackPath);
                 }
             }
-
-
+            
             var serverFile = GlobalSetting.GetServerPath(GlobalSetting.ASSET_JSON);
             var serverRequest = await LoadServerRequest(GlobalSetting.ASSET_JSON, serverFile);
             var serverData = new Dictionary<string, BundleData>();
@@ -118,6 +117,7 @@ namespace Astraia.Common
 
         private static async Task<bool> LoadBundleRequest(HashSet<string> fileNames)
         {
+            var copies = new HashSet<string>(fileNames);
             for (var i = 0; i < 5; i++)
             {
                 foreach (var fileName in fileNames)
@@ -126,19 +126,19 @@ namespace Astraia.Common
                     var bundleData = await LoadBundleRequest(fileName, serverFile);
                     var bundlePath = GlobalSetting.GetBundlePath(fileName);
                     await Task.Run(() => File.WriteAllBytes(bundlePath, bundleData));
-                    if (fileNames.Contains(fileName))
+                    if (copies.Contains(fileName))
                     {
-                        fileNames.Remove(fileName);
+                        copies.Remove(fileName);
                     }
                 }
 
-                if (fileNames.Count == 0)
+                if (copies.Count == 0)
                 {
                     break;
                 }
             }
 
-            return fileNames.Count == 0;
+            return copies.Count == 0;
         }
 
         private static async Task<string> LoadServerRequest(string bundleName, string bundleUri)

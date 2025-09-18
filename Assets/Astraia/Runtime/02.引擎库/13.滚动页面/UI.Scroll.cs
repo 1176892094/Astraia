@@ -127,7 +127,7 @@ namespace Astraia
                 {
                     if (grids.TryGetValue(i, out var grid))
                     {
-                        if (grid != null)
+                        if (grid)
                         {
                             grid.Dispose();
                             PoolManager.Enqueue(grid.gameObject);
@@ -141,7 +141,7 @@ namespace Astraia
                 {
                     if (grids.TryGetValue(i, out var grid))
                     {
-                        if (grid != null)
+                        if (grid)
                         {
                             grid.Dispose();
                             PoolManager.Enqueue(grid.gameObject);
@@ -244,7 +244,7 @@ namespace Astraia
             {
                 if (grids.TryGetValue(i, out var grid))
                 {
-                    if (grid != null)
+                    if (grid)
                     {
                         grid.Dispose();
                         PoolManager.Enqueue(grid.gameObject);
