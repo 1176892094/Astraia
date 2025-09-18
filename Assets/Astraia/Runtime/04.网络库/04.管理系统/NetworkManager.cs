@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public sealed partial class NetworkManager : MonoBehaviour, IEvent<SceneComplete>
+    public sealed partial class NetworkManager : MonoBehaviour, IEvent<OnSceneComplete>
     {
         public static NetworkManager Instance;
         
@@ -84,7 +84,7 @@ namespace Astraia.Net
             }
         }
 
-        public void Execute(SceneComplete message)
+        public void Execute(OnSceneComplete message)
         {
             switch (Mode)
             {

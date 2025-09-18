@@ -20,34 +20,34 @@ namespace Astraia.Common
 
     public static partial class AssetManager
     {
-        public static async void LoadScene(string assetPath)
+        public static async void LoadScene(string reason)
         {
             try
             {
                 if (!Instance) return;
-                var scene = LoadSceneAsset(GlobalSetting.GetScenePath(assetPath));
+                var scene = LoadSceneAsset(GlobalSetting.GetScenePath(reason));
                 if (!string.IsNullOrEmpty(scene))
                 {
-                    EventManager.Invoke(new SceneAwake(assetPath));
-                    var request = SceneManager.LoadSceneAsync(assetPath, LoadSceneMode.Single);
+                    EventManager.Invoke(new OnLoadScene(reason));
+                    var request = SceneManager.LoadSceneAsync(reason, LoadSceneMode.Single);
                     if (request != null)
                     {
                         while (!request.isDone && Instance)
                         {
-                            EventManager.Invoke(new SceneUpdate(request.progress));
+                            EventManager.Invoke(new OnSceneUpdate(request.progress));
                             await Task.Yield();
                         }
                     }
 
-                    EventManager.Invoke(new SceneComplete());
+                    EventManager.Invoke(new OnSceneComplete());
                     return;
                 }
 
-                Debug.LogWarning("加载资源 {0} 为空!".Format(assetPath));
+                Debug.LogWarning("加载资源 {0} 为空!".Format(reason));
             }
             catch (Exception e)
             {
-                Debug.LogWarning("加载场景 {0} 失败!\n{1}".Format(assetPath, e));
+                Debug.LogWarning("加载场景 {0} 失败!\n{1}".Format(reason, e));
             }
         }
 

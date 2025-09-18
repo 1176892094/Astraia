@@ -11,89 +11,89 @@
 
 namespace Astraia.Common
 {
-    public struct PackAwake : IEvent
+    public struct OnLoadBundle : IEvent
     {
         public readonly int[] sizes;
 
-        public PackAwake(int[] sizes)
+        public OnLoadBundle(int[] sizes)
         {
             this.sizes = sizes;
         }
     }
 
-    public struct PackUpdate : IEvent
+    public struct OnBundleUpdate : IEvent
     {
         public readonly string name;
         public readonly float progress;
 
-        public PackUpdate(string name, float progress)
+        public OnBundleUpdate(string name, float progress)
         {
             this.name = name;
             this.progress = progress;
         }
     }
 
-    public struct PackComplete : IEvent
+    public struct OnBundleComplete : IEvent
     {
         public readonly int status;
         public readonly string message;
 
-        public PackComplete(int status, string message)
+        public OnBundleComplete(int status, string message)
         {
             this.status = status;
             this.message = message;
         }
     }
 
-    public struct AssetAwake : IEvent
+    public struct OnLoadAsset : IEvent
     {
         public readonly string[] names;
 
-        public AssetAwake(string[] names)
+        public OnLoadAsset(string[] names)
         {
             this.names = names;
         }
     }
 
-    public struct AssetUpdate : IEvent
+    public struct OnAssetUpdate : IEvent
     {
         public readonly string name;
 
-        public AssetUpdate(string name)
+        public OnAssetUpdate(string name)
         {
             this.name = name;
         }
     }
 
-    public struct AssetComplete : IEvent
+    public struct OnAssetComplete : IEvent
     {
     }
 
-    public struct SceneAwake : IEvent
+    public struct OnLoadScene : IEvent
     {
         public readonly string name;
 
-        public SceneAwake(string name)
+        public OnLoadScene(string name)
         {
             this.name = name;
         }
     }
 
-    public struct SceneUpdate : IEvent
+    public struct OnSceneUpdate : IEvent
     {
         public readonly float progress;
 
-        public SceneUpdate(float progress)
+        public OnSceneUpdate(float progress)
         {
             this.progress = progress;
         }
     }
 
-    public struct SceneComplete : IEvent
+    public struct OnSceneComplete : IEvent
     {
     }
 
-    public struct DataComplete : IEvent
+    public struct OnDataComplete : IEvent
     {
     }
 }

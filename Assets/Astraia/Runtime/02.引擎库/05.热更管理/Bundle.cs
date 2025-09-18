@@ -19,14 +19,14 @@ namespace Astraia.Common
 {
     using static GlobalManager;
 
-    internal static class PacketManager
+    internal static class BundleManager
     {
         public static async void Download()
         {
             if (!Instance) return;
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Simulate)
             {
-                EventManager.Invoke(new PackComplete(0, "启动本地资源加载。"));
+                EventManager.Invoke(new OnBundleComplete(0, "启动本地资源加载。"));
                 return;
             }
 
@@ -38,42 +38,42 @@ namespace Astraia.Common
                 }
             }
 
-            var serverData = new Dictionary<string, PacketData>();
+            var serverData = new Dictionary<string, BundleData>();
             var fileUri = GlobalSetting.GetServerPath(GlobalSetting.ASSET_JSON);
             var serverRequest = await LoadServerRequest(GlobalSetting.ASSET_JSON, fileUri);
             if (!string.IsNullOrEmpty(serverRequest))
             {
-                var assetPacks = JsonManager.FromJson<List<PacketData>>(serverRequest);
-                foreach (var assetPack in assetPacks)
+                var bundles = JsonManager.FromJson<List<BundleData>>(serverRequest);
+                foreach (var bundle in bundles)
                 {
-                    serverData.Add(assetPack.name, assetPack);
+                    serverData.Add(bundle.name, bundle);
                 }
             }
             else
             {
-                EventManager.Invoke(new PackComplete(-1, "没有连接到服务器!"));
+                EventManager.Invoke(new OnBundleComplete(-1, "没有连接到服务器!"));
                 return;
             }
 
-            var clientData = new Dictionary<string, PacketData>();
-            var persistentData = GlobalSetting.GetPacketPath(GlobalSetting.ASSET_JSON);
+            var clientData = new Dictionary<string, BundleData>();
+            var persistentData = GlobalSetting.GetBundlePath(GlobalSetting.ASSET_JSON);
             var streamingAsset = GlobalSetting.GetClientPath(GlobalSetting.ASSET_JSON);
             var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
             if (!string.IsNullOrEmpty(clientRequest))
             {
-                var assetPacks = JsonManager.FromJson<List<PacketData>>(clientRequest);
-                foreach (var assetPack in assetPacks)
+                var bundles = JsonManager.FromJson<List<BundleData>>(clientRequest);
+                foreach (var bundle in bundles)
                 {
-                    clientData.Add(assetPack.name, assetPack);
+                    clientData.Add(bundle.name, bundle);
                 }
             }
 
             var fileNames = new List<string>();
             foreach (var fileName in serverData.Keys)
             {
-                if (clientData.TryGetValue(fileName, out var assetPack))
+                if (clientData.TryGetValue(fileName, out var bundle))
                 {
-                    if (serverData[fileName] != assetPack)
+                    if (serverData[fileName] != bundle)
                     {
                         fileNames.Add(fileName);
                     }
@@ -89,46 +89,46 @@ namespace Astraia.Common
             var fileSizes = new int[fileNames.Count];
             for (int i = 0; i < fileNames.Count; i++)
             {
-                if (serverData.TryGetValue(fileNames[i], out var assetPack))
+                if (serverData.TryGetValue(fileNames[i], out var bundle))
                 {
-                    fileSizes[i] = assetPack.size;
+                    fileSizes[i] = bundle.size;
                 }
             }
 
-            EventManager.Invoke(new PackAwake(fileSizes));
-            foreach (var clientPack in clientData.Keys)
+            EventManager.Invoke(new OnLoadBundle(fileSizes));
+            foreach (var bundle in clientData.Keys)
             {
-                var filePath = GlobalSetting.GetPacketPath(clientPack);
+                var filePath = GlobalSetting.GetBundlePath(bundle);
                 if (File.Exists(filePath))
                 {
                     File.Delete(filePath);
                 }
             }
 
-            var success = await LoadPacketRequest(fileNames);
+            var success = await LoadBundleRequest(fileNames);
             if (success)
             {
-                var filePath = GlobalSetting.GetPacketPath(GlobalSetting.ASSET_JSON);
+                var filePath = GlobalSetting.GetBundlePath(GlobalSetting.ASSET_JSON);
                 await File.WriteAllTextAsync(filePath, serverRequest);
             }
 
-            EventManager.Invoke(new PackComplete(1, success ? "更新完成!" : "更新失败!"));
+            EventManager.Invoke(new OnBundleComplete(1, success ? "更新完成!" : "更新失败!"));
         }
 
-        private static async Task<bool> LoadPacketRequest(List<string> fileNames)
+        private static async Task<bool> LoadBundleRequest(List<string> fileNames)
         {
-            var packNames = new HashSet<string>(fileNames);
+            var bundleNames = new HashSet<string>(fileNames);
             for (var i = 0; i < 5; i++)
             {
-                foreach (var packName in packNames)
+                foreach (var bundleName in bundleNames)
                 {
-                    var packUri = GlobalSetting.GetServerPath(packName);
-                    var packData = await LoadPacketRequest(packName, packUri);
-                    var packPath = GlobalSetting.GetPacketPath(packName);
-                    await Task.Run(() => File.WriteAllBytes(packPath, packData));
-                    if (fileNames.Contains(packName))
+                    var bundleUri = GlobalSetting.GetServerPath(bundleName);
+                    var bundleData = await LoadBundleRequest(bundleName, bundleUri);
+                    var bundlePath = GlobalSetting.GetBundlePath(bundleName);
+                    await Task.Run(() => File.WriteAllBytes(bundlePath, bundleData));
+                    if (fileNames.Contains(bundleName))
                     {
-                        fileNames.Remove(packName);
+                        fileNames.Remove(bundleName);
                     }
                 }
 
@@ -141,11 +141,11 @@ namespace Astraia.Common
             return fileNames.Count == 0;
         }
 
-        private static async Task<string> LoadServerRequest(string packName, string packUri)
+        private static async Task<string> LoadServerRequest(string bundleName, string bundleUri)
         {
             for (var i = 0; i < 5; i++)
             {
-                using (var request = UnityWebRequest.Head(packUri))
+                using (var request = UnityWebRequest.Head(bundleUri))
                 {
                     request.timeout = 1;
                     await request.SendWebRequest();
@@ -155,12 +155,12 @@ namespace Astraia.Common
                     }
                 }
 
-                using (var request = UnityWebRequest.Get(packUri))
+                using (var request = UnityWebRequest.Get(bundleUri))
                 {
                     await request.SendWebRequest();
                     if (request.result != UnityWebRequest.Result.Success)
                     {
-                        Debug.Log("请求服务器下载 {0} 失败!\n".Format(packName));
+                        Debug.Log("请求服务器下载 {0} 失败!\n".Format(bundleName));
                         continue;
                     }
 
@@ -171,32 +171,32 @@ namespace Astraia.Common
             return null;
         }
 
-        private static async Task<byte[]> LoadPacketRequest(string packName, string packUri)
+        private static async Task<byte[]> LoadBundleRequest(string bundleName, string bundleUri)
         {
-            using (var request = UnityWebRequest.Head(packUri))
+            using (var request = UnityWebRequest.Head(bundleUri))
             {
                 request.timeout = 1;
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.Log("请求服务器校验 {0} 失败!\n".Format(packName));
+                    Debug.Log("请求服务器校验 {0} 失败!\n".Format(bundleName));
                     return null;
                 }
             }
 
-            using (var request = UnityWebRequest.Get(packUri))
+            using (var request = UnityWebRequest.Get(bundleUri))
             {
                 var result = request.SendWebRequest();
                 while (!result.isDone && Instance)
                 {
-                    EventManager.Invoke(new PackUpdate(packName, request.downloadProgress));
+                    EventManager.Invoke(new OnBundleUpdate(bundleName, request.downloadProgress));
                     await Task.Yield();
                 }
 
-                EventManager.Invoke(new PackUpdate(packName, 1));
+                EventManager.Invoke(new OnBundleUpdate(bundleName, 1));
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.Log("请求服务器下载 {0} 失败!\n".Format(packName));
+                    Debug.Log("请求服务器下载 {0} 失败!\n".Format(bundleName));
                     return null;
                 }
 

@@ -23,7 +23,7 @@ namespace Astraia.Common
             var assembly = Service.Ref.GetAssembly(GlobalSetting.ASSET_DATA);
             if (assembly == null)
             {
-                EventManager.Invoke(new DataComplete());
+                EventManager.Invoke(new OnDataComplete());
                 return;
             }
 
@@ -38,7 +38,7 @@ namespace Astraia.Common
 
             if (assetNames.Count == 0)
             {
-                EventManager.Invoke(new DataComplete());
+                EventManager.Invoke(new OnDataComplete());
                 return;
             }
 
@@ -82,7 +82,7 @@ namespace Astraia.Common
                 }
             }
 
-            EventManager.Invoke(new DataComplete());
+            EventManager.Invoke(new OnDataComplete());
         }
 
         public static T Get<T>(int key) where T : IData

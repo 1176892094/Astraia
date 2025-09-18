@@ -21,41 +21,41 @@ namespace Astraia.Common
     {
         private static class Actuator
         {
-            public static T LoadAt<T>(string path, AssetBundle pack) where T : Object
+            public static T LoadAt<T>(string reason, AssetBundle bundle) where T : Object
             {
-                if (pack == null) return null;
-                var asset = pack.LoadAsset<T>(path);
+                if (bundle == null) return null;
+                var asset = bundle.LoadAsset<T>(reason);
                 return asset is GameObject ? Object.Instantiate(asset) : asset;
             }
 
-            public static T[] LoadBy<T>(string path, AssetBundle pack) where T : Object
+            public static T[] LoadBy<T>(string reason, AssetBundle bundle) where T : Object
             {
-                return pack.LoadAssetWithSubAssets<T>(path);
+                return bundle.LoadAssetWithSubAssets<T>(reason);
             }
         }
 
         private static class Resource
         {
-            public static T LoadAt<T>(string path) where T : Object
+            public static T LoadAt<T>(string reason) where T : Object
             {
-                var asset = Resources.Load<T>(path);
+                var asset = Resources.Load<T>(reason);
                 return asset is GameObject ? Object.Instantiate(asset) : asset;
             }
 
-            public static T[] LoadBy<T>(string path) where T : Object
+            public static T[] LoadBy<T>(string reason) where T : Object
             {
-                return Resources.LoadAll<T>(path);
+                return Resources.LoadAll<T>(reason);
             }
         }
 
         private static class Simulate
         {
-            public static T LoadAt<T>(string path) where T : Object
+            public static T LoadAt<T>(string reason) where T : Object
             {
 #if UNITY_EDITOR
-                if (assetPath.TryGetValue(path, out var data))
+                if (assetPath.TryGetValue(reason, out var result))
                 {
-                    var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(data);
+                    var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(result);
                     return asset is GameObject ? Object.Instantiate(asset) : asset;
                 }
 
@@ -65,12 +65,12 @@ namespace Astraia.Common
 #endif
             }
 
-            public static T[] LoadBy<T>(string path) where T : Object
+            public static T[] LoadBy<T>(string reason) where T : Object
             {
 #if UNITY_EDITOR
-                if (assetPath.TryGetValue(path, out var data))
+                if (assetPath.TryGetValue(reason, out var result))
                 {
-                    return UnityEditor.AssetDatabase.LoadAllAssetRepresentationsAtPath(data).Cast<T>().ToArray();
+                    return UnityEditor.AssetDatabase.LoadAllAssetRepresentationsAtPath(result).Cast<T>().ToArray();
                 }
 
                 return null;

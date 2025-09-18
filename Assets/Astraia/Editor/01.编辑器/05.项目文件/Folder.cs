@@ -55,7 +55,7 @@ namespace Astraia
             { "HotUpdate", "Scripts" },
             { "Extensions", "Editor" },
             { "Tilemaps", "Terrains" },
-            { "Sources", "Resources" },
+            { "AssetBundles", "Resources" },
             { "StreamingAssets", "Resources" },
         };
 

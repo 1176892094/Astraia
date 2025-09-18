@@ -33,7 +33,7 @@ namespace Astraia
 
 
         public const string ASSET_PACK = "AssetBundles";
-        public const string ASSET_PATH = "Assets/Sources";
+        public const string ASSET_PATH = "Assets/AssetBundles";
         public const string ASSET_JSON = "AssetBundle.json";
         public const string ASSET_DATA = "HotUpdate.Data";
 
@@ -118,7 +118,7 @@ namespace Astraia
 
         public static string GetEditorPath(string assetName) => "{0}/{1}.asset".Format(ASSET_PATH, GetTablePath(assetName));
 
-        public static string GetPacketPath(string fileName) => Path.Combine(assetPackPath, fileName);
+        public static string GetBundlePath(string fileName) => Path.Combine(assetPackPath, fileName);
 
         public static string GetServerPath(string fileName) => Path.Combine(assetRemotePath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
 

@@ -22,91 +22,91 @@ namespace Astraia.Common
 
     public static partial class AssetManager
     {
-        public static T Load<T>(string path) where T : Object
+        public static T Load<T>(string reason) where T : Object
         {
             try
             {
                 if (!Instance) return null;
-                var asset = LoadAsset<T>(path);
+                var asset = LoadAsset<T>(reason);
                 if (asset != null)
                 {
                     return asset;
                 }
 
-                Debug.LogWarning("加载资源 {0} 为空!".Format(path));
+                Debug.LogWarning("加载资源 {0} 为空!".Format(reason));
             }
             catch (Exception e)
             {
-                Debug.LogWarning("加载资源 {0} 失败!\n{1}".Format(path, e));
+                Debug.LogWarning("加载资源 {0} 失败!\n{1}".Format(reason, e));
             }
 
             return null;
         }
 
-        public static T[] LoadAll<T>(string path) where T : Object
+        public static T[] LoadAll<T>(string reason) where T : Object
         {
             try
             {
                 if (!Instance) return null;
-                var asset = LoadAssetAll<T>(path);
+                var asset = LoadAssetAll<T>(reason);
                 if (asset != null)
                 {
                     return asset;
                 }
 
-                Debug.LogWarning("加载资源 {0} 为空!".Format(path));
+                Debug.LogWarning("加载资源 {0} 为空!".Format(reason));
             }
             catch (Exception e)
             {
-                Debug.LogWarning("加载资源 {0} 失败!\n{1}".Format(path, e));
+                Debug.LogWarning("加载资源 {0} 失败!\n{1}".Format(reason, e));
             }
 
             return null;
         }
 
-        private static T LoadAsset<T>(string path) where T : Object
+        private static T LoadAsset<T>(string reason) where T : Object
         {
             T asset;
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
             {
-                var item = LoadAssetData(path);
-                assetPack.TryGetValue(item.path, out var data);
-                asset = Actuator.LoadAt<T>(item.name, data);
+                var item = LoadAssetData(reason);
+                assetPack.TryGetValue(item.path, out var result);
+                asset = Actuator.LoadAt<T>(item.name, result);
             }
             else
             {
-                asset = Simulate.LoadAt<T>(path);
+                asset = Simulate.LoadAt<T>(reason);
             }
 
-            asset ??= Resource.LoadAt<T>(path);
+            asset ??= Resource.LoadAt<T>(reason);
             return asset;
         }
 
-        private static T[] LoadAssetAll<T>(string path) where T : Object
+        private static T[] LoadAssetAll<T>(string reason) where T : Object
         {
             T[] asset;
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
             {
-                var item = LoadAssetData(path);
-                assetPack.TryGetValue(item.path, out var data);
-                asset = Actuator.LoadBy<T>(item.name, data);
+                var item = LoadAssetData(reason);
+                assetPack.TryGetValue(item.path, out var result);
+                asset = Actuator.LoadBy<T>(item.name, result);
             }
             else
             {
-                asset = Simulate.LoadBy<T>(path);
+                asset = Simulate.LoadBy<T>(reason);
             }
 
-            asset ??= Resource.LoadBy<T>(path);
+            asset ??= Resource.LoadBy<T>(reason);
             return asset;
         }
 
-        private static (string path, string name) LoadAssetData(string path)
+        private static (string path, string name) LoadAssetData(string reason)
         {
-            if (!assetData.TryGetValue(path, out var asset))
+            if (!assetData.TryGetValue(reason, out var asset))
             {
-                var index = path.LastIndexOf('/');
-                asset = index < 0 ? (null, path) : (path.Substring(0, index).ToLower(), path.Substring(index + 1));
-                assetData.Add(path, asset);
+                var index = reason.LastIndexOf('/');
+                asset = index < 0 ? (null, reason) : (reason.Substring(0, index).ToLower(), reason.Substring(index + 1));
+                assetData.Add(reason, asset);
             }
 
             return asset;
@@ -116,53 +116,53 @@ namespace Astraia.Common
         {
             var platform = await LoadAssetBundle(GlobalSetting.Instance.assetPlatform.ToString());
             manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
-            EventManager.Invoke(new AssetAwake(manifest.GetAllAssetBundles()));
+            EventManager.Invoke(new OnLoadAsset(manifest.GetAllAssetBundles()));
 
-            var assetPacks = manifest.GetAllAssetBundles();
-            foreach (var assetPack in assetPacks)
+            var bundles = manifest.GetAllAssetBundles();
+            foreach (var bundle in bundles)
             {
-                _ = LoadAssetBundle(assetPack);
+                _ = LoadAssetBundle(bundle);
             }
 
             await Task.WhenAll(assetTask.Values);
-            EventManager.Invoke(new AssetComplete());
+            EventManager.Invoke(new OnAssetComplete());
         }
 
-        public static async Task<AssetBundle> LoadAssetBundle(string path)
+        public static async Task<AssetBundle> LoadAssetBundle(string reason)
         {
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(reason))
             {
                 return null;
             }
 
-            if (assetPack.TryGetValue(path, out var pack))
+            if (assetPack.TryGetValue(reason, out var bundle))
             {
-                return pack;
+                return bundle;
             }
 
-            if (assetTask.TryGetValue(path, out var request))
+            if (assetTask.TryGetValue(reason, out var request))
             {
                 return await request;
             }
 
-            request = LoadRequest(GlobalSetting.GetPacketPath(path), GlobalSetting.GetClientPath(path));
-            assetTask.Add(path, request);
+            request = LoadRequest(GlobalSetting.GetBundlePath(reason), GlobalSetting.GetClientPath(reason));
+            assetTask.Add(reason, request);
             try
             {
-                pack = await request;
-                assetPack.Add(path, pack);
-                EventManager.Invoke(new AssetUpdate(path));
-                return pack;
+                bundle = await request;
+                assetPack.Add(reason, bundle);
+                EventManager.Invoke(new OnAssetUpdate(reason));
+                return bundle;
             }
             finally
             {
-                assetTask.Remove(path);
+                assetTask.Remove(reason);
             }
         }
 
         private static async Task<AssetBundle> LoadRequest(string persistentData, string streamingAsset)
         {
-            var item = await PacketManager.LoadRequest(persistentData, streamingAsset);
+            var item = await BundleManager.LoadRequest(persistentData, streamingAsset);
             byte[] bytes = null;
             if (item.mode == 1)
             {

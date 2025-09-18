@@ -18,8 +18,7 @@ using UnityEngine.UIElements;
 namespace Astraia
 {
     using static EventManager;
-
-
+    
     internal static class TabPro
     {
         private static readonly Dictionary<Object, TabProPage> DockAreas = new Dictionary<Object, TabProPage>();
