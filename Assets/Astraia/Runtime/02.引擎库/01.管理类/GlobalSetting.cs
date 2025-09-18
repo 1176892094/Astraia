@@ -40,10 +40,6 @@ namespace Astraia
         public const string ASSET_DATA = "HotUpdate.Data";
 
         public AssetPlatform assetPlatform = AssetPlatform.StandaloneWindows;
-        public string smtpServer = "smtp.qq.com";
-        public int smtpPort = 587;
-        public string smtpUsername = "1176892094@qq.com";
-        public string smtpPassword;
         public BadWordFilter badWordFilter = BadWordFilter.Enable;
         public byte secretVersion = 1;
 #if UNITY_EDITOR && ODIN_INSPECTOR

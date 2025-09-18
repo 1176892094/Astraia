@@ -12,7 +12,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace Astraia.Common
@@ -87,23 +86,23 @@ namespace Astraia.Common
 
             if (GUILayout.Button("Report", GUILayout.Height(30)))
             {
-                var mailBody = new StringBuilder(1024);
-                foreach (var message in messages)
-                {
-                    mailBody.Append(message + "\n\n" + message.stackTrace + "\n\n");
-                }
-
-                Service.Mail.Send(new MailData
-                {
-                    smtpServer = GlobalSetting.Instance.smtpServer,
-                    smtpPort = GlobalSetting.Instance.smtpPort,
-                    senderName = "Astraia",
-                    senderAddress = GlobalSetting.Instance.smtpUsername,
-                    senderPassword = GlobalSetting.Instance.smtpPassword,
-                    targetAddress = GlobalSetting.Instance.smtpUsername,
-                    mailName = "来自《Astraia》的调试日志:",
-                    mailBody = mailBody.ToString()
-                });
+                // var mailBody = new StringBuilder(1024);
+                // foreach (var message in messages)
+                // {
+                //     mailBody.Append(message + "\n\n" + message.stackTrace + "\n\n");
+                // }
+                //
+                // Service.Mail.Send(new MailData
+                // {
+                //     smtpServer = GlobalSetting.Instance.smtpServer,
+                //     smtpPort = GlobalSetting.Instance.smtpPort,
+                //     senderName = "Astraia",
+                //     senderAddress = GlobalSetting.Instance.smtpUsername,
+                //     senderPassword = GlobalSetting.Instance.smtpPassword,
+                //     targetAddress = GlobalSetting.Instance.smtpUsername,
+                //     mailName = "来自《Astraia》的调试日志:",
+                //     mailBody = mailBody.ToString()
+                // });
             }
 
             GUILayout.EndHorizontal();
