@@ -48,11 +48,11 @@ internal static class EditorBuilder
         if (File.Exists(GlobalSetting.remoteAssetData))
         {
             var readJson = await File.ReadAllTextAsync(GlobalSetting.remoteAssetData);
-            var oldData = JsonManager.FromJson<List<PackData>>(readJson);
+            var oldData = JsonManager.FromJson<List<PacketData>>(readJson);
             oldHashes = oldData.ToDictionary(d => d.name, d => d.code);
         }
 
-        var filePacks = new List<PackData>();
+        var filePacks = new List<PacketData>();
         var fileInfos = folderPath.GetFiles();
 
         foreach (var fileInfo in fileInfos)
@@ -65,7 +65,7 @@ internal static class EditorBuilder
             var md5Before = ComputeMD5(fileInfo.FullName);
             if (oldHashes.TryGetValue(fileInfo.Name, out var oldMd5) && md5Before == oldMd5)
             {
-                filePacks.Add(new PackData(md5Before, fileInfo.Name, (int)fileInfo.Length));
+                filePacks.Add(new PacketData(md5Before, fileInfo.Name, (int)fileInfo.Length));
                 Debug.Log("跳过未变更文件: {0}".Format(fileInfo.Name));
                 continue;
             }
@@ -78,7 +78,7 @@ internal static class EditorBuilder
             });
 
             var md5After = ComputeMD5(fileInfo.FullName);
-            filePacks.Add(new PackData(md5After, fileInfo.Name, (int)fileInfo.Length));
+            filePacks.Add(new PacketData(md5After, fileInfo.Name, (int)fileInfo.Length));
             Debug.Log("加密并更新文件: {0}".Color("G").Format(fileInfo.Name));
         }
 

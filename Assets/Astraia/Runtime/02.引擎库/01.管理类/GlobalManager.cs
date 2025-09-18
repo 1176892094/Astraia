@@ -89,8 +89,7 @@ namespace Astraia.Common
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<int, Queue<TaskNode>> nodeData = new Dictionary<int, Queue<TaskNode>>();
-
-
+        
         private void Awake()
         {
             Instance = this;
@@ -99,7 +98,7 @@ namespace Astraia.Common
 
         private void Start()
         {
-            PackManager.LoadAssetData();
+            PacketManager.Download();
         }
 
         private void Update()
@@ -115,13 +114,13 @@ namespace Astraia.Common
             UIManager.Dispose();
             PoolManager.Dispose();
             NodeManager.Dispose();
+            HeapManager.Dispose();
             AudioManager.Dispose();
             AssetManager.Dispose();
             EventManager.Dispose();
-            SystemManager.Dispose();
-            EntityManager.Dispose();
-            HeapManager.Dispose();
             ParamManager.Dispose();
+            EntityManager.Dispose();
+            SystemManager.Dispose();
             GC.Collect();
         }
     }

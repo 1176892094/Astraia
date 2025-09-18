@@ -19,9 +19,9 @@ namespace Astraia.Common
 {
     using static GlobalManager;
 
-    internal static class PackManager
+    internal static class PacketManager
     {
-        public static async void LoadAssetData()
+        public static async void Download()
         {
             if (!Instance) return;
             if (GlobalSetting.Instance.assetLoadMode == AssetMode.Simulate)
@@ -38,12 +38,12 @@ namespace Astraia.Common
                 }
             }
 
-            var serverData = new Dictionary<string, PackData>();
+            var serverData = new Dictionary<string, PacketData>();
             var fileUri = GlobalSetting.GetServerPath(GlobalSetting.ASSET_JSON);
             var serverRequest = await LoadServerRequest(GlobalSetting.ASSET_JSON, fileUri);
             if (!string.IsNullOrEmpty(serverRequest))
             {
-                var assetPacks = JsonManager.FromJson<List<PackData>>(serverRequest);
+                var assetPacks = JsonManager.FromJson<List<PacketData>>(serverRequest);
                 foreach (var assetPack in assetPacks)
                 {
                     serverData.Add(assetPack.name, assetPack);
@@ -55,13 +55,13 @@ namespace Astraia.Common
                 return;
             }
 
-            var clientData = new Dictionary<string, PackData>();
+            var clientData = new Dictionary<string, PacketData>();
             var persistentData = GlobalSetting.GetPacketPath(GlobalSetting.ASSET_JSON);
             var streamingAsset = GlobalSetting.GetClientPath(GlobalSetting.ASSET_JSON);
             var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
             if (!string.IsNullOrEmpty(clientRequest))
             {
-                var assetPacks = JsonManager.FromJson<List<PackData>>(clientRequest);
+                var assetPacks = JsonManager.FromJson<List<PacketData>>(clientRequest);
                 foreach (var assetPack in assetPacks)
                 {
                     clientData.Add(assetPack.name, assetPack);

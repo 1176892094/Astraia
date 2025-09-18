@@ -162,7 +162,7 @@ namespace Astraia.Common
 
         private static async Task<AssetBundle> LoadRequest(string persistentData, string streamingAsset)
         {
-            var item = await PackManager.LoadRequest(persistentData, streamingAsset);
+            var item = await PacketManager.LoadRequest(persistentData, streamingAsset);
             byte[] bytes = null;
             if (item.mode == 1)
             {

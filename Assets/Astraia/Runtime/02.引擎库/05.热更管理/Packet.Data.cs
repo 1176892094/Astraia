@@ -14,31 +14,31 @@ using System;
 namespace Astraia
 {
     [Serializable]
-    internal struct PackData : IEquatable<PackData>
+    internal struct PacketData : IEquatable<PacketData>
     {
         public string code;
         public string name;
         public int size;
 
-        public PackData(string code, string name, int size)
+        public PacketData(string code, string name, int size)
         {
             this.code = code;
             this.name = name;
             this.size = size;
         }
 
-        public static bool operator ==(PackData a, PackData b) => a.code == b.code;
+        public static bool operator ==(PacketData a, PacketData b) => a.code == b.code;
 
-        public static bool operator !=(PackData a, PackData b) => a.code != b.code;
+        public static bool operator !=(PacketData a, PacketData b) => a.code != b.code;
 
-        public bool Equals(PackData other)
+        public bool Equals(PacketData other)
         {
             return size == other.size && code == other.code && name == other.name;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is PackData other && Equals(other);
+            return obj is PacketData other && Equals(other);
         }
 
         public override int GetHashCode()
