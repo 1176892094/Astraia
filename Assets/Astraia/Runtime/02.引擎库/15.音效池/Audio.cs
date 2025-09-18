@@ -107,7 +107,7 @@ namespace Astraia.Common
             source.loop = false;
             source.volume = AudioVolume;
             source.Play();
-            source.Wait(source.clip.length).OnUpdate(() => Stop(source));
+            source.Wait(source.clip.length).OnComplete(() => Stop(source));
             return source;
         }
 

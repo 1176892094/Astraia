@@ -25,13 +25,12 @@ namespace Astraia
         private IList<T> items;
         private int minIndex;
         private int maxIndex;
-        private int numCache;
-        private bool selected;
+        private int numIndex;
+        private bool selecting;
         private bool restarted;
-
-        internal bool selection;
-        internal bool direction;
-        internal Rect assetRect;
+        private bool selection;
+        private bool direction;
+        private Rect assetRect;
         [Inject] public RectTransform content;
         private int numX => (int)assetRect.x + (direction ? 0 : 1);
         private int numY => (int)assetRect.y + (direction ? 1 : 0);
@@ -86,10 +85,10 @@ namespace Astraia
                 return;
             }
 
-            if (numCache != items.Count)
+            if (numIndex != items.Count)
             {
                 Reload(false);
-                numCache = items.Count;
+                numIndex = items.Count;
             }
 
             int min;
@@ -196,9 +195,9 @@ namespace Astraia
                 }
 
                 grids[i] = grid;
-                if (selected && i == max)
+                if (selecting && i == max)
                 {
-                    selected = false;
+                    selecting = false;
                     grids[min].Select();
                 }
 
@@ -223,11 +222,11 @@ namespace Astraia
                     content.sizeDelta = new Vector2(value * assetRect.width, 0);
                 }
 
-                numCache = items.Count;
+                numIndex = items.Count;
             }
 
             Reload(false);
-            selected = selection;
+            selecting = selection;
             content.anchoredPosition = Vector2.zero;
         }
 
@@ -236,7 +235,7 @@ namespace Astraia
             Reload(true);
         }
 
-        private void Reload(bool remove)
+        public void Reload(bool remove)
         {
             minIndex = -1;
             maxIndex = -1;
