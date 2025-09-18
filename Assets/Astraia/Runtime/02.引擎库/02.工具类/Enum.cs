@@ -33,7 +33,8 @@ namespace Astraia
     internal enum AssetMode : byte
     {
         Simulate,
-        Authentic
+        Local,
+        Remote
     }
 
     internal enum BuildMode : byte

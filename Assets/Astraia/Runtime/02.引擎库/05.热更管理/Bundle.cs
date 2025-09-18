@@ -30,12 +30,9 @@ namespace Astraia.Common
                 return;
             }
 
-            if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
+            if (!Directory.Exists(GlobalSetting.downloadLocalPath))
             {
-                if (!Directory.Exists(GlobalSetting.assetPackPath))
-                {
-                    Directory.CreateDirectory(GlobalSetting.assetPackPath);
-                }
+                Directory.CreateDirectory(GlobalSetting.downloadLocalPath);
             }
             
             var serverFile = GlobalSetting.GetServerPath(GlobalSetting.ASSET_JSON);

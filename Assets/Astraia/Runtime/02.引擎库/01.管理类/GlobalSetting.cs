@@ -28,7 +28,9 @@ namespace Astraia
 {
     internal partial class GlobalSetting : ScriptableObject
     {
+        private static readonly Dictionary<AssetText, TextAsset> itemText = new Dictionary<AssetText, TextAsset>();
         private static GlobalSetting instance;
+
         public static GlobalSetting Instance => instance ??= Resources.Load<GlobalSetting>(nameof(GlobalSetting));
 
 
@@ -37,61 +39,40 @@ namespace Astraia
         public const string ASSET_JSON = "AssetBundle.json";
         public const string ASSET_DATA = "HotUpdate.Data";
 
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("资源加载")] [LabelText("资源构建平台")] [PropertyOrder(-3)]
-#endif
         public AssetPlatform assetPlatform = AssetPlatform.StandaloneWindows;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("其他设置")] [LabelText("敏感词过滤")]
-#endif
-        public BadWordFilter badWordFilter = BadWordFilter.Enable;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("邮件服务")]
-#endif
         public string smtpServer = "smtp.qq.com";
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("邮件服务")]
-#endif
         public int smtpPort = 587;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("邮件服务")]
-#endif
         public string smtpUsername = "1176892094@qq.com";
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("邮件服务")]
-#endif
         public string smtpPassword;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("资源加载")] [LabelText("资源加载模式")] [OnValueChanged("UpdateSceneSetting")]
-#endif
-        public AssetMode assetLoadMode = AssetMode.Simulate;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("资源加载")] [LabelText("资源服务器地址")]
-#endif
-        public string assetRemoteData = "http://192.168.0.3:8000/AssetBundles";
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("其他设置")] [LabelText("密钥版本")]
-#endif
+        public BadWordFilter badWordFilter = BadWordFilter.Enable;
         public byte secretVersion = 1;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [FoldoutGroup("其他设置")] [LabelText("密钥版本")] [PropertyOrder(1)]
+        [OnValueChanged("UpdateSceneSetting")]
+#endif
+        public AssetMode assetLoadMode = AssetMode.Simulate;
+
+        public string assetLocalPath = "http://192.168.0.3:8000/AssetBundles";
+        public string assetRemotePath = "http://192.168.0.3:8000/AssetBundles";
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [PropertyOrder(2)]
 #endif
         public string[] secretGroup;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("资源加载")]
-        [LabelText("远端资源路径")]
+        [PropertyOrder(1)]
 #endif
-        public static string assetRemotePath => "{0}/{1}".Format(Instance.assetRemoteData, ASSET_PACK);
+        public static string downloadLocalPath => "{0}/{1}".Format(Application.persistentDataPath, ASSET_PACK);
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("资源加载")]
-        [LabelText("资源存储路径")]
+        [PropertyOrder(1)]
 #endif
-        public static string assetPackPath => "{0}/{1}".Format(Application.persistentDataPath, ASSET_PACK);
-
-        private static readonly Dictionary<AssetText, TextAsset> itemText = new Dictionary<AssetText, TextAsset>();
-
+        private static string downloadRemotePath => Instance.assetLoadMode == AssetMode.Remote ? Instance.assetRemotePath : Instance.assetLocalPath;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [ShowInInspector]
+        [PropertyOrder(1)]
+#endif
+        public static string downloadRemoteData => "{0}/{1}".Format(downloadRemotePath, ASSET_PACK);
+        
         public static string GetTextByIndex(AssetText option)
         {
             if (itemText.Count > 0)
@@ -118,9 +99,9 @@ namespace Astraia
 
         public static string GetEditorPath(string assetName) => "{0}/{1}.asset".Format(ASSET_PATH, GetTablePath(assetName));
 
-        public static string GetBundlePath(string fileName) => Path.Combine(assetPackPath, fileName);
+        public static string GetBundlePath(string fileName) => Path.Combine(downloadLocalPath, fileName);
 
-        public static string GetServerPath(string fileName) => Path.Combine(assetRemotePath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
+        public static string GetServerPath(string fileName) => Path.Combine(downloadRemoteData, Path.Combine(Instance.assetPlatform.ToString(), fileName));
 
         public static string GetClientPath(string fileName) => Path.Combine(Application.streamingAssetsPath, Path.Combine(Instance.assetPlatform.ToString(), fileName));
 
@@ -161,61 +142,43 @@ namespace Astraia
 #if UNITY_EDITOR
     internal partial class GlobalSetting
     {
-        [HideInInspector] public List<string> sceneAssets = new List<string>();
-
-#if ODIN_INSPECTOR
-        [PropertyOrder(1)] [FoldoutGroup("资源加载")] [LabelText("忽略资源")]
-#endif
-        public List<Object> ignoreAssets = new List<Object>();
-
-#if ODIN_INSPECTOR
-        [FoldoutGroup("资源构建")] [LabelText("资源构建路径")] [PropertyOrder(-2)] [ShowInInspector]
-#endif
         public BuildMode BuildPath = BuildMode.StreamingAssets;
 #if ODIN_INSPECTOR
+        [PropertyOrder(2)]
+#endif
+        public List<Object> sceneAssets = new List<Object>();
+#if ODIN_INSPECTOR
+        [PropertyOrder(2)]
+#endif
+        public List<Object> ignoreAssets = new List<Object>();
+#if ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("数据表")]
-        [LabelText("脚本生成路径")]
 #endif
         public static string ScriptPath
         {
             get => EditorPrefs.GetString(nameof(ScriptPath), "Assets/Scripts/DataTable");
             set => EditorPrefs.SetString(nameof(ScriptPath), value);
         }
+
+        public static string dataTablePath => "{0}/DataTable".Format(ASSET_PATH);
 #if ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("数据表")]
-        [LabelText("数据表程序集")]
 #endif
         public static string assemblyPath => "{0}/{1}.asmdef".Format(ScriptPath, ASSET_DATA);
 #if ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("数据表")]
-        [LabelText("资源生成路径")]
 #endif
-        public static string dataTablePath => "{0}/DataTable".Format(ASSET_PATH);
+        public static string remoteBuildData => Path.GetDirectoryName(Application.dataPath);
 #if ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("资源构建")]
-        [LabelText("项目工程路径")]
 #endif
-        public static string projectDataPath => Path.GetDirectoryName(Application.dataPath);
+        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? Path.Combine(remoteBuildData, ASSET_PACK) : Application.streamingAssetsPath;
 #if ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("资源构建")]
-        [LabelText("资源构建路径")]
-#endif
-        public static string remoteBuildPath => Instance.BuildPath == BuildMode.BuildPath ? Path.Combine(projectDataPath, ASSET_PACK) : Application.streamingAssetsPath;
-#if ODIN_INSPECTOR
-        [ShowInInspector]
-        [FoldoutGroup("资源构建")]
-        [LabelText("资源构建平台")]
 #endif
         public static string remoteAssetPath => Path.Combine(remoteBuildPath, Instance.assetPlatform.ToString());
 #if ODIN_INSPECTOR
         [ShowInInspector]
-        [FoldoutGroup("资源构建")]
-        [LabelText("校验文件路径")]
 #endif
         public static string remoteAssetData => "{0}/{1}".Format(remoteAssetPath, ASSET_JSON);
 
@@ -233,9 +196,10 @@ namespace Astraia
 
         public static void UpdateSceneSetting()
         {
-            var assets = EditorBuildSettings.scenes.Select(scene => scene.path).ToList();
-            foreach (var scenePath in Instance.sceneAssets)
+            var assets = EditorBuildSettings.scenes.Select(scene => scene.path).ToHashSet();
+            foreach (var sceneAsset in Instance.sceneAssets)
             {
+                var scenePath = AssetDatabase.GetAssetPath(sceneAsset);
                 if (assets.Contains(scenePath))
                 {
                     if (Instance.assetLoadMode == AssetMode.Simulate) continue;
@@ -244,7 +208,7 @@ namespace Astraia
                 }
                 else
                 {
-                    if (Instance.assetLoadMode == AssetMode.Authentic) continue;
+                    if (Instance.assetLoadMode != AssetMode.Simulate) continue;
                     var scenes = EditorBuildSettings.scenes.ToList();
                     scenes.Add(new EditorBuildSettingsScene(scenePath, true));
                     EditorBuildSettings.scenes = scenes.ToArray();

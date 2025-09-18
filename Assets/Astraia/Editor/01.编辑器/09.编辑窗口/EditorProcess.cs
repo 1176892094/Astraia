@@ -78,9 +78,9 @@ namespace Astraia
                 return;
             }
 
-            if (asset is SceneAsset && !GlobalSetting.Instance.sceneAssets.Contains(path))
+            if (asset is SceneAsset && !GlobalSetting.Instance.sceneAssets.Contains(asset))
             {
-                GlobalSetting.Instance.sceneAssets.Add(path);
+                GlobalSetting.Instance.sceneAssets.Add(asset);
             }
 
             var split = path.Substring(offset).TrimStart('/');

@@ -67,7 +67,7 @@ namespace Astraia.Common
         private static T LoadAsset<T>(string reason) where T : Object
         {
             T asset;
-            if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
+            if (GlobalSetting.Instance.assetLoadMode != AssetMode.Simulate)
             {
                 var item = LoadAssetData(reason);
                 assetPack.TryGetValue(item.path, out var result);
@@ -85,7 +85,7 @@ namespace Astraia.Common
         private static T[] LoadAssetAll<T>(string reason) where T : Object
         {
             T[] asset;
-            if (GlobalSetting.Instance.assetLoadMode == AssetMode.Authentic)
+            if (GlobalSetting.Instance.assetLoadMode != AssetMode.Simulate)
             {
                 var item = LoadAssetData(reason);
                 assetPack.TryGetValue(item.path, out var result);
