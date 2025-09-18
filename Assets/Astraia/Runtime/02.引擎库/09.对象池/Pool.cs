@@ -17,7 +17,7 @@ namespace Astraia.Common
 
     public static partial class PoolManager
     {
-        public static GameObject Dequeue(string path)
+        public static GameObject Show(string path)
         {
             if (!Instance) return null;
             var item = LoadPool(path).Load();
@@ -26,7 +26,7 @@ namespace Astraia.Common
             return item;
         }
 
-        public static GameObject Dequeue(string path, Vector3 position)
+        public static GameObject Show(string path, Vector3 position)
         {
             if (!Instance) return null;
             var item = LoadPool(path).Load();
@@ -36,7 +36,7 @@ namespace Astraia.Common
             return item;
         }
 
-        public static GameObject Dequeue(string path, Vector3 position, Quaternion rotation)
+        public static GameObject Show(string path, Vector3 position, Quaternion rotation)
         {
             if (!Instance) return null;
             var item = LoadPool(path).Load();
@@ -47,7 +47,7 @@ namespace Astraia.Common
             return item;
         }
 
-        public static GameObject Dequeue(string path, Transform parent)
+        public static GameObject Show(string path, Transform parent)
         {
             if (!Instance) return null;
             var item = LoadPool(path).Load();
@@ -57,7 +57,7 @@ namespace Astraia.Common
             return item;
         }
 
-        public static void Enqueue(GameObject item)
+        public static void Hide(GameObject item)
         {
             if (!Instance) return;
             if (!poolRoot.TryGetValue(item.name, out var pool))

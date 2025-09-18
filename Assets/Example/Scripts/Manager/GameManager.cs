@@ -105,7 +105,7 @@ namespace Runtime
         [UnityEditor.InitializeOnLoadMethod]
         public static void Initialized()
         {
-            Service.Ref.Register(new HashSet<string>());
+            Service.Ref.LoadData(new HashSet<string>());
         }
 #endif
     }

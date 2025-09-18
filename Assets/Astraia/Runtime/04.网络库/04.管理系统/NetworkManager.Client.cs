@@ -337,7 +337,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                PoolManager.Enqueue(entity.gameObject);
+                PoolManager.Hide(entity.gameObject);
                 entity.Reset();
             }
 
