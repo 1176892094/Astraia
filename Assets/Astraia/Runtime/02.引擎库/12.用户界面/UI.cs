@@ -31,7 +31,7 @@ namespace Astraia.Common
             var asset = AssetManager.Load<GameObject>(path);
             asset.SetActive(false);
             asset.name = path;
-            
+
             var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
             var owner = asset.GetOrAddComponent<Entity>();
             owner.AddComponent(panel, typeof(UIPanel));
@@ -43,16 +43,16 @@ namespace Astraia.Common
             return panel;
         }
 
-        public static void Show<T>(Action<T> action = null) where T : UIPanel
+        public static T Show<T>() where T : UIPanel
         {
-            if (!Instance) return;
+            if (!Instance) return null;
             if (!panelData.TryGetValue(typeof(T), out var panel))
             {
                 panel = Load(GlobalSetting.GetPanelPath(typeof(T).Name), typeof(T));
             }
 
             UIGroup.Show(panel);
-            action?.Invoke((T)panel);
+            return (T)panel;
         }
 
         public static void Hide<T>() where T : UIPanel
@@ -80,16 +80,16 @@ namespace Astraia.Common
             }
         }
 
-        public static void Show(Type type, Action<UIPanel> action = null)
+        public static UIPanel Show(Type type)
         {
-            if (!Instance) return;
+            if (!Instance) return null;
             if (!panelData.TryGetValue(type, out var panel))
             {
                 panel = Load(GlobalSetting.GetPanelPath(type.Name), type);
             }
 
             UIGroup.Show(panel);
-            action?.Invoke(panel);
+            return panel;
         }
 
         public static void Hide(Type type)
