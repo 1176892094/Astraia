@@ -33,19 +33,19 @@ namespace Astraia.Common
     {
         private static UIPanel Load(string path, Type type)
         {
-            var cache = path;
-            var value = type.GetCustomAttribute<UIAssetAttribute>();
-            if (value != null)
+            var name = path;
+            var item = type.GetCustomAttribute<UIPathAttribute>(true);
+            if (item != null)
             {
-                path = GlobalSetting.GetPanelPath(value.assetPath);
+                path = GlobalSetting.GetPrefabPath(item.assetPath);
             }
 
-            var asset = AssetManager.Load<GameObject>(path);
-            asset.SetActive(false);
-            asset.name = cache;
+            var data = AssetManager.Load<GameObject>(path);
+            data.SetActive(false);
+            data.name = name;
 
             var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
-            var owner = asset.GetOrAddComponent<Entity>();
+            var owner = data.GetOrAddComponent<Entity>();
             owner.AddComponent(panel, typeof(UIPanel));
             owner.OnShow += ((IPanel)panel).Listen;
             owner.OnHide += ((IPanel)panel).Remove;
@@ -60,7 +60,7 @@ namespace Astraia.Common
             if (!Instance) return null;
             if (!panelData.TryGetValue(typeof(T), out var panel))
             {
-                panel = Load(GlobalSetting.GetPanelPath(typeof(T).Name), typeof(T));
+                panel = Load(GlobalSetting.GetPrefabPath(typeof(T).Name), typeof(T));
             }
 
             UIGroup.Show(panel);
@@ -97,7 +97,7 @@ namespace Astraia.Common
             if (!Instance) return null;
             if (!panelData.TryGetValue(type, out var panel))
             {
-                panel = Load(GlobalSetting.GetPanelPath(type.Name), type);
+                panel = Load(GlobalSetting.GetPrefabPath(type.Name), type);
             }
 
             UIGroup.Show(panel);

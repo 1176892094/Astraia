@@ -35,8 +35,8 @@ namespace Astraia
 
     public abstract partial class UIPanel : IPanel
     {
-        internal int groupMask;
         internal int layerMask;
+        internal int groupMask;
 
         void IModule.Create(Entity owner) => Create(owner);
         void IPanel.Listen() => GlobalManager.panelLoop.Add(this);
@@ -45,53 +45,54 @@ namespace Astraia
         internal virtual void Create(Entity owner)
         {
             this.owner = owner;
-            var combineMask = 0;
             var current = GetType();
-            var layerAttr = current.GetCustomAttribute<UILayerAttribute>(true);
-            if (layerAttr != null)
+            var attribute = current.GetCustomAttribute<UIMaskAttribute>(true);
+            if (attribute != null)
             {
-                layerMask = layerAttr.layerMask;
+                layerMask = attribute.layerMask;
             }
 
+            groupMask = 0;
             while (current != null)
             {
-                var groupAttr = current.GetCustomAttribute<UIGroupAttribute>(false);
-                if (groupAttr != null)
+                attribute = current.GetCustomAttribute<UIMaskAttribute>(false);
+                if (attribute != null)
                 {
-                    combineMask |= groupAttr.groupMask;
+                    groupMask |= attribute.groupMask;
                 }
 
                 current = current.BaseType;
             }
-
-
-            if (combineMask != 0)
+            
+            if (groupMask != 0)
             {
-                groupMask = combineMask;
-                for (var i = 0; i < 32; i++)
+                Register();
+                owner.OnFade += UnRegister;
+            }
+        }
+
+        private void Register()
+        {
+            for (var i = 0; i < 32; i++)
+            {
+                var bit = 1 << i;
+                if ((groupMask & bit) != 0)
                 {
-                    var bit = 1 << i;
-                    if ((groupMask & bit) != 0)
-                    {
-                        UIGroup.Listen(bit, this);
-                    }
+                    UIGroup.Listen(bit, this);
                 }
             }
+        }
 
-            owner.OnFade += () =>
+        private void UnRegister()
+        {
+            for (var i = 0; i < 32; i++)
             {
-                if (groupMask == 0) return;
-                for (var i = 0; i < 32; i++)
+                var bit = 1 << i;
+                if ((groupMask & bit) != 0)
                 {
-                    var bit = 1 << i;
-                    if ((groupMask & bit) != 0)
-                    {
-                        UIGroup.Remove(bit, this);
-                    }
+                    UIGroup.Remove(bit, this);
                 }
-
-                groupMask = 0;
-            };
+            }
         }
     }
 }

@@ -93,10 +93,10 @@ namespace Astraia
 
         public static string GetAudioPath(string assetName) => "Audios/{0}".Format(assetName);
 
-        public static string GetPanelPath(string assetName) => "Prefabs/{0}".Format(assetName);
-
         public static string GetTablePath(string assetName) => "DataTable/{0}".Format(assetName);
-
+        
+        public static string GetPrefabPath(string assetName) => "Prefabs/{0}".Format(assetName);
+        
         public static string GetEditorPath(string assetName) => "{0}/{1}.asset".Format(ASSET_PATH, GetTablePath(assetName));
 
         public static string GetBundlePath(string fileName) => Path.Combine(downloadLocalPath, fileName);

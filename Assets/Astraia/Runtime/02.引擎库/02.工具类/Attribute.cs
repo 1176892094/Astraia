@@ -29,43 +29,38 @@ namespace Astraia
 
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]
-    public class UIGroupAttribute : Attribute
-    {
-        public readonly int groupMask;
-
-        public UIGroupAttribute(int groupMask) => this.groupMask = groupMask;
-    }
-
-    [MeansImplicitUse]
-    [AttributeUsage(AttributeTargets.Class)]
-    public class UILayerAttribute : Attribute
+    public class UIMaskAttribute : Attribute
     {
         public readonly int layerMask;
+        public readonly int groupMask;
 
-        public UILayerAttribute(int layerMask) => this.layerMask = layerMask;
+        public UIMaskAttribute(int layerMask, int groupMask = 0)
+        {
+            this.layerMask = layerMask;
+            this.groupMask = groupMask;
+        }
     }
 
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]
-    public class UIAssetAttribute : Attribute
+    public class UIPathAttribute : Attribute
     {
         public readonly string assetPath;
-
-        public UIAssetAttribute(string assetPath) => this.assetPath = assetPath;
+        public UIPathAttribute(string assetPath) => this.assetPath = assetPath;
     }
 
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]
-    public class UIPanelAttribute : Attribute
+    public class UIRectAttribute : Attribute
     {
+        public readonly bool vertical;
         public readonly bool selection;
-        public readonly bool direction;
         public readonly Rect assetRect;
 
-        public UIPanelAttribute(int x, int y, int w, int h, bool direction = false, bool selection = false)
+        public UIRectAttribute(int x, int y, int w, int h, int assetData = 1)
         {
-            this.direction = direction;
-            this.selection = selection;
+            vertical = (assetData | 1 << 0) != 0;
+            selection = (assetData | 1 << 1) != 0;
             assetRect = new Rect(x, y, w, h);
         }
     }

@@ -27,37 +27,37 @@ namespace Astraia
         private int minIndex;
         private int maxIndex;
         private int numIndex;
-        private bool selecting;
+        private bool selected;
+        private bool vertical;
         private bool restarted;
         private bool selection;
-        private bool direction;
         private Rect assetRect;
         private string assetPath;
 
         [Inject] public RectTransform content;
-        private int numX => (int)assetRect.x + (direction ? 0 : 1);
-        private int numY => (int)assetRect.y + (direction ? 1 : 0);
+        private int numX => (int)assetRect.x + (vertical ? 0 : 1);
+        private int numY => (int)assetRect.y + (vertical ? 1 : 0);
 
         internal override void Create(Entity owner)
         {
             base.Create(owner);
-            var panelAttr = GetType().GetCustomAttribute<UIPanelAttribute>(true);
+            var panelAttr = GetType().GetCustomAttribute<UIRectAttribute>(true);
             if (panelAttr != null)
             {
-                direction = panelAttr.direction;
+                vertical = panelAttr.vertical;
                 selection = panelAttr.selection;
                 assetRect = panelAttr.assetRect;
             }
             
-            assetName = "Prefabs/{0}".Format(typeof(TGrid).Name);
+            assetName = GlobalSetting.GetPrefabPath(typeof(TGrid).Name);
             assetPath = assetName;
-            
-            var asstAttr = typeof(TGrid).GetCustomAttribute<UIAssetAttribute>(true);
+
+            var asstAttr = typeof(TGrid).GetCustomAttribute<UIPathAttribute>(true);
             if (asstAttr != null)
             {
-                assetPath = "Prefabs/{0}".Format(asstAttr.assetPath);
+                assetPath = GlobalSetting.GetPrefabPath(asstAttr.assetPath);
             }
-
+            
             restarted = false;
             owner.OnHide += Reload;
         }
@@ -78,7 +78,7 @@ namespace Astraia
             if (!restarted)
             {
                 restarted = true;
-                if (direction)
+                if (vertical)
                 {
                     content.anchorMin = Vector2.up;
                     content.anchorMax = Vector2.one;
@@ -107,7 +107,7 @@ namespace Astraia
             int max;
             int idx;
             float pos;
-            if (direction)
+            if (vertical)
             {
                 pos = content.anchoredPosition.y;
                 idx = (int)(pos / assetRect.height);
@@ -179,7 +179,7 @@ namespace Astraia
 
                 float posX;
                 float posY;
-                if (direction)
+                if (vertical)
                 {
                     var idx = i / numX;
                     posX = i % numX * assetRect.width + assetRect.width / 2;
@@ -192,6 +192,7 @@ namespace Astraia
                     posY = -(i % numY) * assetRect.height - assetRect.height / 2;
                 }
 
+                grids[i] = null;
                 var item = PoolManager.Show(assetPath, assetName, content);
                 var grid = (TGrid)item.GetOrAddComponent(typeof(TGrid));
                 var rect = (RectTransform)grid.transform;
@@ -206,9 +207,9 @@ namespace Astraia
                 }
 
                 grids[i] = grid;
-                if (selecting && i == max)
+                if (selected && i == max)
                 {
-                    selecting = false;
+                    selected = false;
                     grids[min].Select();
                 }
 
@@ -222,7 +223,7 @@ namespace Astraia
             if (items != null)
             {
                 float value = items.Count;
-                if (direction)
+                if (vertical)
                 {
                     value = Mathf.Ceil(value / numX);
                     content.sizeDelta = new Vector2(0, value * assetRect.height);
@@ -237,7 +238,7 @@ namespace Astraia
             }
 
             Reload(false);
-            selecting = selection;
+            selected = selection;
             content.anchoredPosition = Vector2.zero;
         }
 
@@ -274,7 +275,7 @@ namespace Astraia
         {
             switch (move)
             {
-                case 0 when !direction:
+                case 0 when !vertical:
                     for (int i = 0; i < numY; i++)
                     {
                         if (grids.TryGetValue(minIndex + i + numY, out var current) && current == (TGrid)grid)
@@ -285,7 +286,7 @@ namespace Astraia
                     }
 
                     return;
-                case 1 when direction:
+                case 1 when vertical:
                     for (int i = 0; i < numX; i++)
                     {
                         if (grids.TryGetValue(minIndex + i + numX, out var current) && current == (TGrid)grid)
@@ -296,7 +297,7 @@ namespace Astraia
                     }
 
                     return;
-                case 2 when !direction:
+                case 2 when !vertical:
                     for (int i = 0; i < numY; i++)
                     {
                         if (grids.TryGetValue(maxIndex - i - numY, out var current) && current == (TGrid)grid)
@@ -307,7 +308,7 @@ namespace Astraia
                     }
 
                     return;
-                case 3 when direction:
+                case 3 when vertical:
                     for (int i = 0; i < numX; i++)
                     {
                         if (grids.TryGetValue(maxIndex - i - numX, out var current) && current == (TGrid)grid)
