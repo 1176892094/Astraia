@@ -22,6 +22,7 @@ namespace Astraia
     public abstract class UIPanel<T, TGrid> : UIPanel, IMove, IPanel, IEnumerable<KeyValuePair<int, TGrid>> where TGrid : Component, IGrid<T>
     {
         private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
+        private string assetName;
         private IList<T> items;
         private int minIndex;
         private int maxIndex;
@@ -32,6 +33,7 @@ namespace Astraia
         private bool direction;
         private Rect assetRect;
         private string assetPath;
+
         [Inject] public RectTransform content;
         private int numX => (int)assetRect.x + (direction ? 0 : 1);
         private int numY => (int)assetRect.y + (direction ? 1 : 0);
@@ -39,12 +41,21 @@ namespace Astraia
         internal override void Create(Entity owner)
         {
             base.Create(owner);
-            var assetAttr = GetType().GetCustomAttribute<UIPanelAttribute>(true);
-            if (assetAttr != null)
+            var panelAttr = GetType().GetCustomAttribute<UIPanelAttribute>(true);
+            if (panelAttr != null)
             {
-                direction = assetAttr.direction;
-                selection = assetAttr.selection;
-                assetRect = assetAttr.assetRect;
+                direction = panelAttr.direction;
+                selection = panelAttr.selection;
+                assetRect = panelAttr.assetRect;
+            }
+            
+            assetName = "Prefabs/{0}".Format(typeof(TGrid).Name);
+            assetPath = assetName;
+            
+            var asstAttr = typeof(TGrid).GetCustomAttribute<UIAssetAttribute>(true);
+            if (asstAttr != null)
+            {
+                assetPath = "Prefabs/{0}".Format(asstAttr.assetPath);
             }
 
             restarted = false;
@@ -181,21 +192,12 @@ namespace Astraia
                     posY = -(i % numY) * assetRect.height - assetRect.height / 2;
                 }
 
-                grids[i] = null;
-                if (string.IsNullOrEmpty(assetPath))
-                {
-                    var value = typeof(TGrid).GetCustomAttribute<UIAssetAttribute>(true);
-                    assetPath = value != null ? value.assetPath : typeof(TGrid).Name;
-                }
-
-                var name = "Prefabs/{0}".Format(typeof(TGrid).Name);
-                var item = PoolManager.Show("Prefabs/{0}".Format(assetPath), name, content);
-                item.name = name;
+                var item = PoolManager.Show(assetPath, assetName, content);
                 var grid = (TGrid)item.GetOrAddComponent(typeof(TGrid));
                 var rect = (RectTransform)grid.transform;
                 rect.sizeDelta = new Vector2(assetRect.width, assetRect.height);
-                rect.localScale = Vector3.one;
                 rect.localPosition = new Vector3(posX, posY, 0);
+                rect.localScale = Vector3.one;
                 if (!grids.ContainsKey(i))
                 {
                     grid.Dispose();
