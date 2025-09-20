@@ -28,6 +28,26 @@ namespace Astraia
             return string.IsNullOrWhiteSpace(result);
         }
 
+        public static string Limit(this string result, int count)
+        {
+            var value = string.Empty;
+            var input = 0;
+            foreach (var c in result)
+            {
+                var charWeight = c >= 0x4E00 && c <= 0x9FFF ? 2 : 1;
+
+                if (input + charWeight > count)
+                {
+                    break;
+                }
+
+                input += charWeight;
+                value += c;
+            }
+
+            return value;
+        }
+
         public static string Color(this string result, string format)
         {
             return format switch
