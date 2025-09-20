@@ -33,9 +33,16 @@ namespace Astraia.Common
     {
         private static UIPanel Load(string path, Type type)
         {
+            var cache = path;
+            var value = type.GetCustomAttribute<UIAssetAttribute>();
+            if (value != null)
+            {
+                path = GlobalSetting.GetPanelPath(value.assetPath);
+            }
+
             var asset = AssetManager.Load<GameObject>(path);
             asset.SetActive(false);
-            asset.name = path;
+            asset.name = cache;
 
             var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
             var owner = asset.GetOrAddComponent<Entity>();
@@ -53,8 +60,7 @@ namespace Astraia.Common
             if (!Instance) return null;
             if (!panelData.TryGetValue(typeof(T), out var panel))
             {
-                var value = typeof(T).GetCustomAttribute<UIAssetAttribute>();
-                panel = Load(GlobalSetting.GetPanelPath(value != null ? value.assetPath : typeof(T).Name), typeof(T));
+                panel = Load(GlobalSetting.GetPanelPath(typeof(T).Name), typeof(T));
             }
 
             UIGroup.Show(panel);
@@ -91,8 +97,7 @@ namespace Astraia.Common
             if (!Instance) return null;
             if (!panelData.TryGetValue(type, out var panel))
             {
-                var value = type.GetCustomAttribute<UIAssetAttribute>();
-                panel = Load(GlobalSetting.GetPanelPath(value != null ? value.assetPath : type.Name), type);
+                panel = Load(GlobalSetting.GetPanelPath(type.Name), type);
             }
 
             UIGroup.Show(panel);

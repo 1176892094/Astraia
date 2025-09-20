@@ -184,11 +184,13 @@ namespace Astraia
                 grids[i] = null;
                 if (string.IsNullOrEmpty(assetPath))
                 {
-                    var value = typeof(TGrid).GetCustomAttribute<UIAssetAttribute>();
+                    var value = typeof(TGrid).GetCustomAttribute<UIAssetAttribute>(true);
                     assetPath = value != null ? value.assetPath : typeof(TGrid).Name;
                 }
 
-                var item = PoolManager.Show("Prefabs/" + assetPath, content);
+                var name = "Prefabs/{0}".Format(typeof(TGrid).Name);
+                var item = PoolManager.Show("Prefabs/{0}".Format(assetPath), name, content);
+                item.name = name;
                 var grid = (TGrid)item.GetOrAddComponent(typeof(TGrid));
                 var rect = (RectTransform)grid.transform;
                 rect.sizeDelta = new Vector2(assetRect.width, assetRect.height);

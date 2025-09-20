@@ -57,6 +57,16 @@ namespace Astraia.Common
             return item;
         }
 
+        public static GameObject Show(string path, string key, Transform parent)
+        {
+            if (!Instance) return null;
+            var item = LoadPool(path, key).Load();
+            item.transform.SetParent(parent);
+            item.transform.localPosition = Vector3.zero;
+            item.SetActive(true);
+            return item;
+        }
+
         public static void Hide(GameObject item)
         {
             if (!Instance) return;
@@ -81,6 +91,18 @@ namespace Astraia.Common
 
             pool = Pool.Create(typeof(GameObject), path);
             poolData.Add(path, pool);
+            return (Pool)pool;
+        }
+
+        private static Pool LoadPool(string path, string key)
+        {
+            if (poolData.TryGetValue(key, out var pool))
+            {
+                return (Pool)pool;
+            }
+
+            pool = Pool.Create(typeof(GameObject), path);
+            poolData.Add(key, pool);
             return (Pool)pool;
         }
 
