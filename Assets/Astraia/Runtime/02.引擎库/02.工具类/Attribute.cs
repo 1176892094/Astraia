@@ -59,8 +59,8 @@ namespace Astraia
 
         public UIRectAttribute(int x, int y, int w, int h, int assetData = 1)
         {
-            vertical = (assetData | 1 << 0) != 0;
-            selection = (assetData | 1 << 1) != 0;
+            vertical = (assetData & 1 << 0) != 0;
+            selection = (assetData & 1 << 1) != 0;
             assetRect = new Rect(x, y, w, h);
         }
     }
