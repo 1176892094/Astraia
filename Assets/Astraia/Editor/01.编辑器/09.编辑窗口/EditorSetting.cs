@@ -46,7 +46,7 @@ namespace Astraia
             get => EditorPrefs.GetString(nameof(ExcelPathKey), Environment.CurrentDirectory);
             set => EditorPrefs.SetString(nameof(ExcelPathKey), value);
         }
-        
+
         public static void LoadWindows(Type result)
         {
             if (!result.IsAbstract && !result.IsGenericType)

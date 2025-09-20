@@ -26,13 +26,17 @@ namespace Astraia
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
-      
+
 
         protected virtual void Awake()
         {
             foreach (var module in moduleList)
             {
-                AddComponent(Service.Ref.GetType(module));
+                var result = Service.Ref.GetType(module);
+                if (result != null)
+                {
+                    AddComponent(result);
+                }
             }
         }
 
