@@ -47,6 +47,15 @@ namespace Astraia
 
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]
+    public class UIAssetAttribute : Attribute
+    {
+        public readonly string assetPath;
+
+        public UIAssetAttribute(string assetPath) => this.assetPath = assetPath;
+    }
+
+    [MeansImplicitUse]
+    [AttributeUsage(AttributeTargets.Class)]
     public class UIPanelAttribute : Attribute
     {
         public readonly bool selection;

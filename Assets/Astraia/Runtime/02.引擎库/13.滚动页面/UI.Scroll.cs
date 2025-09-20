@@ -31,6 +31,7 @@ namespace Astraia
         private bool selection;
         private bool direction;
         private Rect assetRect;
+        private string assetPath;
         [Inject] public RectTransform content;
         private int numX => (int)assetRect.x + (direction ? 0 : 1);
         private int numY => (int)assetRect.y + (direction ? 1 : 0);
@@ -181,7 +182,13 @@ namespace Astraia
                 }
 
                 grids[i] = null;
-                var item = PoolManager.Show("Prefabs/" + typeof(TGrid).Name, content);
+                if (string.IsNullOrEmpty(assetPath))
+                {
+                    var value = typeof(TGrid).GetCustomAttribute<UIAssetAttribute>();
+                    assetPath = value != null ? value.assetPath : typeof(TGrid).Name;
+                }
+
+                var item = PoolManager.Show("Prefabs/" + assetPath, content);
                 var grid = (TGrid)item.GetOrAddComponent(typeof(TGrid));
                 var rect = (RectTransform)grid.transform;
                 rect.sizeDelta = new Vector2(assetRect.width, assetRect.height);

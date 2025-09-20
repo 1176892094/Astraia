@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -52,7 +53,8 @@ namespace Astraia.Common
             if (!Instance) return null;
             if (!panelData.TryGetValue(typeof(T), out var panel))
             {
-                panel = Load(GlobalSetting.GetPanelPath(typeof(T).Name), typeof(T));
+                var value = typeof(T).GetCustomAttribute<UIAssetAttribute>();
+                panel = Load(GlobalSetting.GetPanelPath(value != null ? value.assetPath : typeof(T).Name), typeof(T));
             }
 
             UIGroup.Show(panel);
@@ -89,7 +91,8 @@ namespace Astraia.Common
             if (!Instance) return null;
             if (!panelData.TryGetValue(type, out var panel))
             {
-                panel = Load(GlobalSetting.GetPanelPath(type.Name), type);
+                var value = type.GetCustomAttribute<UIAssetAttribute>();
+                panel = Load(GlobalSetting.GetPanelPath(value != null ? value.assetPath : type.Name), type);
             }
 
             UIGroup.Show(panel);
