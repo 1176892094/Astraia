@@ -20,7 +20,7 @@ namespace Astraia.Common
     {
         public static void LoadDataTable()
         {
-            var assembly = Service.Ref.GetAssembly(GlobalSetting.ASSET_DATA);
+            var assembly = Service.Ref.GetAssembly(GlobalSetting.Define);
             if (assembly == null)
             {
                 EventManager.Invoke(new OnDataComplete());
@@ -47,17 +47,18 @@ namespace Astraia.Common
                 var nickName = assetName.Substring(assetName.LastIndexOf('.') + 1);
                 try
                 {
-                    ScriptableObject assetData;
+                    ScriptableObject assetData = null;
                     if (Application.isPlaying)
                     {
-                        assetData = AssetManager.Load<ScriptableObject>(GlobalSetting.GetTablePath(nickName));
+                        assetData = AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(nickName));
                     }
                     else
                     {
 #if UNITY_EDITOR
-                        assetData = UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(GlobalSetting.GetEditorPath(nickName));
+                        assetData = UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(GlobalSetting.EditTable.Format(nickName));
 #endif
                     }
+
                     var assetType = assembly.GetType(assetName.Substring(0, assetName.Length - 5));
                     var properties = assetType.GetProperties(Service.Ref.Instance);
                     foreach (var property in properties)

@@ -48,16 +48,16 @@ namespace Astraia
                 selection = panelAttr.selection;
                 assetRect = panelAttr.assetRect;
             }
-            
-            assetName = GlobalSetting.GetPrefabPath(typeof(TGrid).Name);
+
+            assetName = GlobalSetting.Prefab.Format(typeof(TGrid).Name);
             assetPath = assetName;
 
             var asstAttr = typeof(TGrid).GetCustomAttribute<UIPathAttribute>(true);
             if (asstAttr != null)
             {
-                assetPath = GlobalSetting.GetPrefabPath(asstAttr.assetPath);
+                assetPath = GlobalSetting.Prefab.Format(asstAttr.assetPath);
             }
-            
+
             restarted = false;
             owner.OnHide += Reload;
         }

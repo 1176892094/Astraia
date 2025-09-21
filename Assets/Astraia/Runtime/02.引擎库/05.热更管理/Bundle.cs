@@ -26,19 +26,19 @@ namespace Astraia.Common
         public static async void Update()
         {
             if (!Instance) return;
-            if (GlobalSetting.Instance.assetLoadMode == AssetMode.Resources)
+            if (GlobalSetting.Instance.AssetMode == AssetMode.Resources)
             {
                 EventManager.Invoke(new OnBundleComplete(0, "启动本地资源加载。"));
                 return;
             }
 
-            if (!Directory.Exists(GlobalSetting.downloadLocalPath))
+            if (!Directory.Exists(GlobalSetting.BundlePath))
             {
-                Directory.CreateDirectory(GlobalSetting.downloadLocalPath);
+                Directory.CreateDirectory(GlobalSetting.BundlePath);
             }
 
-            var serverFile = GlobalSetting.GetServerPath(GlobalSetting.ASSET_JSON);
-            var serverRequest = await LoadServerRequest(GlobalSetting.ASSET_JSON, serverFile);
+            var serverFile = GlobalSetting.ServerPath.Format(GlobalSetting.Verify);
+            var serverRequest = await LoadServerRequest(GlobalSetting.Verify, serverFile);
             var serverData = new Dictionary<string, BundleData>();
             if (!string.IsNullOrEmpty(serverRequest))
             {
@@ -54,8 +54,8 @@ namespace Astraia.Common
                 return;
             }
 
-            var persistentData = GlobalSetting.GetBundlePath(GlobalSetting.ASSET_JSON);
-            var streamingAsset = GlobalSetting.GetClientPath(GlobalSetting.ASSET_JSON);
+            var persistentData = GlobalSetting.TargetPath.Format(GlobalSetting.Verify);
+            var streamingAsset = GlobalSetting.ClientPath.Format(GlobalSetting.Verify);
             var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
             var clientData = new Dictionary<string, BundleData>();
             if (!string.IsNullOrEmpty(clientRequest))
@@ -97,7 +97,7 @@ namespace Astraia.Common
             EventManager.Invoke(new OnLoadBundle(modifyData.Count, modifySize));
             foreach (var deleteData in clientData.Keys)
             {
-                var filePath = GlobalSetting.GetBundlePath(deleteData);
+                var filePath = GlobalSetting.TargetPath.Format(deleteData);
                 if (File.Exists(filePath))
                 {
                     File.Delete(filePath);
@@ -107,7 +107,7 @@ namespace Astraia.Common
             var success = await LoadBundleRequest(modifyData);
             if (success)
             {
-                var filePath = GlobalSetting.GetBundlePath(GlobalSetting.ASSET_JSON);
+                var filePath = GlobalSetting.TargetPath.Format(GlobalSetting.Verify);
                 await File.WriteAllTextAsync(filePath, serverRequest);
             }
 
@@ -121,9 +121,9 @@ namespace Astraia.Common
             {
                 foreach (var fileName in fileNames)
                 {
-                    var serverFile = GlobalSetting.GetServerPath(fileName);
+                    var serverFile = GlobalSetting.ServerPath.Format(fileName);
                     var bundleData = await LoadBundleRequest(fileName, serverFile);
-                    var bundlePath = GlobalSetting.GetBundlePath(fileName);
+                    var bundlePath = GlobalSetting.TargetPath.Format(fileName);
                     await Task.Run(() => File.WriteAllBytes(bundlePath, bundleData));
                     if (copies.Contains(fileName))
                     {

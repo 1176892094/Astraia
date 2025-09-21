@@ -65,7 +65,7 @@ namespace Astraia.Common
         private static T LoadAsset<T>(string reason) where T : Object
         {
             T asset;
-            if (GlobalSetting.Instance.assetLoadMode != AssetMode.Resources)
+            if (GlobalSetting.Instance.AssetMode != AssetMode.Resources)
             {
                 var item = LoadAssetData(reason);
                 assetPack.TryGetValue(item.path, out var result);
@@ -83,7 +83,7 @@ namespace Astraia.Common
         private static T[] LoadAssetAll<T>(string reason) where T : Object
         {
             T[] asset;
-            if (GlobalSetting.Instance.assetLoadMode != AssetMode.Resources)
+            if (GlobalSetting.Instance.AssetMode != AssetMode.Resources)
             {
                 var item = LoadAssetData(reason);
                 assetPack.TryGetValue(item.path, out var result);
@@ -112,7 +112,7 @@ namespace Astraia.Common
 
         public static async void LoadAssetBundle()
         {
-            var platform = await LoadAssetBundle(GlobalSetting.Instance.assetPlatform.ToString());
+            var platform = await LoadAssetBundle(GlobalSetting.Instance.BuildTarget.ToString());
             manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
             EventManager.Invoke(new OnLoadAsset(manifest.GetAllAssetBundles()));
 
@@ -143,7 +143,7 @@ namespace Astraia.Common
                 return await request;
             }
 
-            request = LoadRequest(GlobalSetting.GetBundlePath(reason), GlobalSetting.GetClientPath(reason));
+            request = LoadRequest(GlobalSetting.TargetPath.Format(reason), GlobalSetting.ClientPath.Format(reason));
             assetTask.Add(reason, request);
             try
             {

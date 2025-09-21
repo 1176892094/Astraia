@@ -440,7 +440,7 @@ namespace Astraia.Net
 
                 if (message.sceneId == 0)
                 {
-                    var result = GlobalSetting.GetPrefabPath(message.assetId.ToString());
+                    var result = GlobalSetting.Prefab.Format(message.assetId);
                     var prefab = AssetManager.Load<GameObject>(result);
                     if (!prefab.TryGetComponent(out entity))
                     {

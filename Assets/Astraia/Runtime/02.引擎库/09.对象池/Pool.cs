@@ -57,6 +57,17 @@ namespace Astraia.Common
             return item;
         }
 
+        public static GameObject Show(string path, Transform parent, Vector3 localScale)
+        {
+            if (!Instance) return null;
+            var item = LoadPool(path).Load();
+            item.transform.SetParent(parent);
+            item.transform.localScale = localScale;
+            item.transform.localPosition = Vector3.zero;
+            item.SetActive(true);
+            return item;
+        }
+
         public static GameObject Show(string path, string name, Transform parent)
         {
             if (!Instance) return null;

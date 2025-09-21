@@ -19,7 +19,7 @@ namespace Astraia
         Android = 13
     }
 
-    internal enum AssetText : byte
+    internal enum AssetData : byte
     {
         Assembly,
         Enum,

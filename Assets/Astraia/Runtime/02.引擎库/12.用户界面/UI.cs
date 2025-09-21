@@ -37,7 +37,7 @@ namespace Astraia.Common
             var item = type.GetCustomAttribute<UIPathAttribute>(true);
             if (item != null)
             {
-                path = GlobalSetting.GetPrefabPath(item.assetPath);
+                path = GlobalSetting.Prefab.Format(item.assetPath);
             }
 
             var data = AssetManager.Load<GameObject>(path);
@@ -60,7 +60,7 @@ namespace Astraia.Common
             if (!Instance) return null;
             if (!panelData.TryGetValue(typeof(T), out var panel))
             {
-                panel = Load(GlobalSetting.GetPrefabPath(typeof(T).Name), typeof(T));
+                panel = Load(GlobalSetting.Prefab.Format(typeof(T).Name), typeof(T));
             }
 
             UIGroup.Show(panel);
@@ -97,7 +97,7 @@ namespace Astraia.Common
             if (!Instance) return null;
             if (!panelData.TryGetValue(type, out var panel))
             {
-                panel = Load(GlobalSetting.GetPrefabPath(type.Name), type);
+                panel = Load(GlobalSetting.Prefab.Format(type.Name), type);
             }
 
             UIGroup.Show(panel);

@@ -50,8 +50,8 @@ namespace Astraia
                 }
 
                 var writeAssets = false;
-                var assembly = GlobalSetting.GetTextByIndex(AssetText.Assembly);
-                dataTables.Add(GlobalSetting.assemblyPath, assembly.Replace("REPLACE", GlobalSetting.ASSET_DATA));
+                var assembly = GlobalSetting.GetText(AssetData.Assembly);
+                dataTables.Add(GlobalSetting.Assembly, assembly.Replace("REPLACE", GlobalSetting.Define));
                 var progress = 0f;
                 foreach (var data in dataTables)
                 {
@@ -141,7 +141,7 @@ namespace Astraia
         private static (string, string) WriteTable(string className, Dictionary<string, string> fields)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
-            var scriptText = GlobalSetting.GetTextByIndex(AssetText.DataTable).Replace("Template", className);
+            var scriptText = GlobalSetting.GetText(AssetData.DataTable).Replace("Template", className);
 
             foreach (var field in fields)
             {
@@ -201,13 +201,13 @@ namespace Astraia
             scriptText = scriptText.Replace("//TODO:2", builder.ToString());
             builder.Length = 0;
             HeapManager.Enqueue(builder);
-            return (GlobalSetting.GetDataPath(className), scriptText);
+            return (GlobalSetting.DataPath.Format(className), scriptText);
         }
 
         private static (string, string) WriteStruct(string className, string classType)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
-            var scriptText = GlobalSetting.GetTextByIndex(AssetText.Struct).Replace("Template", className);
+            var scriptText = GlobalSetting.GetText(AssetData.Struct).Replace("Template", className);
 
             var members = classType.Substring(1, classType.IndexOf('}') - 1).Split(',');
             foreach (var member in members)
@@ -232,13 +232,13 @@ namespace Astraia
             scriptText = scriptText.Replace("//TODO:1", builder.ToString());
             builder.Length = 0;
             HeapManager.Enqueue(builder);
-            return (GlobalSetting.GetItemPath(className), scriptText);
+            return (GlobalSetting.ItemPath.Format(className), scriptText);
         }
 
         private static (string, string) WriteEnum(string className, IEnumerable<string> members)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
-            var scriptText = GlobalSetting.GetTextByIndex(AssetText.Enum).Replace("Template", className);
+            var scriptText = GlobalSetting.GetText(AssetData.Enum).Replace("Template", className);
 
             foreach (var member in members)
             {
@@ -258,7 +258,7 @@ namespace Astraia
             scriptText = scriptText.Replace("//TODO:1", builder.ToString());
             builder.Length = 0;
             HeapManager.Enqueue(builder);
-            return (GlobalSetting.GetEnumPath(className), scriptText);
+            return (GlobalSetting.EnumPath.Format(className), scriptText);
         }
 
         private static bool WriteScripts(string filePath, string fileData)

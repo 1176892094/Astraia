@@ -41,13 +41,13 @@ internal static class EditorBuilder
     private static async void BuildAsset()
     {
         var startTime = EditorApplication.timeSinceStartup;
-        var folderPath = Directory.CreateDirectory(GlobalSetting.remoteAssetPath);
-        BuildPipeline.BuildAssetBundles(GlobalSetting.remoteAssetPath, BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.assetPlatform);
+        var folderPath = Directory.CreateDirectory(GlobalSetting.RemoteAssetPath);
+        BuildPipeline.BuildAssetBundles(GlobalSetting.RemoteAssetPath, BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.BuildTarget);
 
         var oldHashes = new Dictionary<string, string>();
-        if (File.Exists(GlobalSetting.remoteAssetData))
+        if (File.Exists(GlobalSetting.RemoteAssetData))
         {
-            var readJson = await File.ReadAllTextAsync(GlobalSetting.remoteAssetData);
+            var readJson = await File.ReadAllTextAsync(GlobalSetting.RemoteAssetData);
             var oldData = JsonManager.FromJson<List<BundleData>>(readJson);
             oldHashes = oldData.ToDictionary(d => d.name, d => d.code);
         }
@@ -82,7 +82,7 @@ internal static class EditorBuilder
             Debug.Log("加密并更新文件: {0}".Color("G").Format(fileInfo.Name));
         }
 
-        await File.WriteAllTextAsync(GlobalSetting.remoteAssetData, JsonManager.ToJson(filePacks));
+        await File.WriteAllTextAsync(GlobalSetting.RemoteAssetData, JsonManager.ToJson(filePacks));
         var elapsed = EditorApplication.timeSinceStartup - startTime;
         Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(elapsed));
         AssetDatabase.Refresh();

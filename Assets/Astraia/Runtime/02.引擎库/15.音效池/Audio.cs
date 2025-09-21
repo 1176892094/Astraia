@@ -58,7 +58,7 @@ namespace Astraia.Common
         public static AudioSource PlayMusic(string name)
         {
             if (!Instance) return null;
-            var target = GlobalSetting.GetAudioPath(name);
+            var target = GlobalSetting.Audio.Format(name);
             var source = Instance.source;
             source.clip = AssetManager.Load<AudioClip>(target);
             source.loop = true;
@@ -83,7 +83,7 @@ namespace Astraia.Common
         public static AudioSource PlayLoop(string name)
         {
             if (!Instance) return null;
-            var target = GlobalSetting.GetAudioPath(name);
+            var target = GlobalSetting.Audio.Format(name);
             var source = LoadPool(target).Load();
             audioLoop.Add(source);
             source.transform.SetParent(null);
@@ -98,7 +98,7 @@ namespace Astraia.Common
         public static AudioSource PlayOnce(string name)
         {
             if (!Instance) return null;
-            var target = GlobalSetting.GetAudioPath(name);
+            var target = GlobalSetting.Audio.Format(name);
             var source = LoadPool(target).Load();
             audioLoop.Add(source);
             source.transform.SetParent(null);

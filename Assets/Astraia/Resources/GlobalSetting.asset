@@ -52,13 +52,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00978f1164bf4da9a2ece05f4c00289f, type: 3}
   m_Name: GlobalSetting
   m_EditorClassIdentifier: 
-  assetPlatform: 9
-  assetLoadMode: 0
-  assetLocalPath: http://192.168.1.5:8000/Documents/GitHub/Astraia-Game
-  assetRemotePath: http://192.168.0.3:8000/AssetBundles
-  inputMask: 0
-  secretVersion: 1
-  secretGroup:
+  BuildTarget: 9
+  AssetMode: 1
+  EncryptKey: 1
+  LocalPath: http://192.168.1.5:8000/Documents/GitHub/Astraia-Game
+  RemotePath: http://192.168.0.3:8000
+  InputMask: 0
+  EncryptGroup:
   - I1J2K3L4M5N6O7P8
   - Q1R2S3T4U5V6W7X8
   BuildPath: 0

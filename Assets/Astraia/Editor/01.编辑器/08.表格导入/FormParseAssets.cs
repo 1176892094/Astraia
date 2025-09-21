@@ -134,27 +134,27 @@ namespace Astraia
         private static async Task WriteAssets(string sheetName, List<string[]> scriptTexts)
         {
 
-            var filePath = GlobalSetting.GetDataPath(sheetName);
+            var filePath = GlobalSetting.DataPath.Format(sheetName);
             if (!File.Exists(filePath))
             {
                 return;
             }
 
-            filePath = Path.GetDirectoryName(GlobalSetting.GetAssetPath(sheetName));
+            filePath = Path.GetDirectoryName(GlobalSetting.EditSheet.Format(sheetName));
             if (!string.IsNullOrEmpty(filePath) && !Directory.Exists(filePath))
             {
                 Directory.CreateDirectory(filePath);
             }
 
-            filePath = GlobalSetting.GetAssetPath(sheetName);
+            filePath = GlobalSetting.EditSheet.Format(sheetName);
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
             }
             
-            var fileData = (IDataTable)ScriptableObject.CreateInstance(GlobalSetting.GetTableName(sheetName));
+            var fileData = (IDataTable)ScriptableObject.CreateInstance(GlobalSetting.SheetName.Format(sheetName));
             if (fileData == null) return;
-            var fileType = Service.Ref.GetType(GlobalSetting.GetDataName(sheetName));
+            var fileType = Service.Ref.GetType(GlobalSetting.SheetData.Format(sheetName));
             await Task.Run(() =>
             {
                 var instance = (IData)Activator.CreateInstance(fileType);

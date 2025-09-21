@@ -25,7 +25,7 @@ namespace Astraia.Common
             try
             {
                 if (!Instance) return;
-                var scene = LoadSceneAsset(GlobalSetting.GetScenePath(reason));
+                var scene = LoadSceneAsset(GlobalSetting.Scene.Format(reason));
                 if (!string.IsNullOrEmpty(scene))
                 {
                     EventManager.Invoke(new OnLoadScene(reason));
@@ -53,7 +53,7 @@ namespace Astraia.Common
 
         private static string LoadSceneAsset(string reason)
         {
-            if (GlobalSetting.Instance.assetLoadMode != AssetMode.Resources)
+            if (GlobalSetting.Instance.AssetMode != AssetMode.Resources)
             {
                 var item = LoadAssetData(reason);
                 if (assetPack.TryGetValue(item.path, out var result))
