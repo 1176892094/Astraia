@@ -31,9 +31,9 @@ namespace Astraia
 
     internal enum AssetMode : byte
     {
-        Resources,
-        LocalMode,
-        RemoteMode
+        Resource,
+        Simulate,
+        Actuator
     }
     
     internal enum InputMask : byte

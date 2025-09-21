@@ -47,17 +47,17 @@ namespace Astraia
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [EnumToggleButtons] [OnValueChanged("UpdateSceneSetting")]
 #endif
-        public AssetMode AssetMode = AssetMode.Resources;
+        public AssetMode AssetMode = AssetMode.Resource;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowIf("AssetMode", AssetMode.Resources)] [ValueDropdown("UpdateEncryptGroup")]
+        [ShowIf("AssetMode", AssetMode.Resource)] [ValueDropdown("UpdateEncryptGroup")]
 #endif
         public byte EncryptKey = 1;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowIf("AssetMode", AssetMode.LocalMode)]
+        [ShowIf("AssetMode", AssetMode.Simulate)]
 #endif
         public string LocalPath = "http://192.168.0.1:8000/AssetBundles";
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowIf("AssetMode", AssetMode.RemoteMode)]
+        [ShowIf("AssetMode", AssetMode.Actuator)]
 #endif
         public string RemotePath = "http://192.168.0.1:8000";
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -70,7 +70,7 @@ namespace Astraia
         public string[] EncryptGroup;
 
         private static string EditorPath => Target.Format(Path.GetDirectoryName(Application.dataPath));
-        private static string OptionPath => Instance.AssetMode == AssetMode.RemoteMode ? Instance.RemotePath : Instance.LocalPath;
+        private static string OptionPath => Instance.AssetMode == AssetMode.Actuator ? Instance.RemotePath : Instance.LocalPath;
         public static string BundlePath => Target.Format(Application.persistentDataPath);
         public static string TargetPath => Target.Format(Application.persistentDataPath) + "/{0}";
         public static string ServerPath => Path.Combine(Target.Format(OptionPath), Instance.BuildTarget + "/{0}");
@@ -175,13 +175,13 @@ namespace Astraia
                 var scenePath = AssetDatabase.GetAssetPath(sceneAsset);
                 if (assets.Contains(scenePath))
                 {
-                    if (Instance.AssetMode == AssetMode.Resources) continue;
+                    if (Instance.AssetMode == AssetMode.Resource) continue;
                     var scenes = EditorBuildSettings.scenes.Where(scene => scene.path != scenePath);
                     EditorBuildSettings.scenes = scenes.ToArray();
                 }
                 else
                 {
-                    if (Instance.AssetMode != AssetMode.Resources) continue;
+                    if (Instance.AssetMode != AssetMode.Resource) continue;
                     var scenes = EditorBuildSettings.scenes.ToList();
                     scenes.Add(new EditorBuildSettingsScene(scenePath, true));
                     EditorBuildSettings.scenes = scenes.ToArray();
