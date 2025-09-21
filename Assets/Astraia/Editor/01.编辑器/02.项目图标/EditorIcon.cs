@@ -27,7 +27,7 @@ namespace Astraia
 
         static EditorIcon()
         {
-            var data = Service.Zip.Decompress(GlobalSetting.GetText(AssetData.Icons));
+            var data = Service.Zip.Decompress(GlobalSetting.LoadAsset(AssetData.Icons));
             items = JsonManager.FromJson<List<KeyValue>>(data).ToDictionary(p => p.Key, p => p.Value);
         }
 

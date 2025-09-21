@@ -50,7 +50,7 @@ namespace Astraia
                 }
 
                 var writeAssets = false;
-                var assembly = GlobalSetting.GetText(AssetData.Assembly);
+                var assembly = GlobalSetting.LoadAsset(AssetData.Assembly);
                 dataTables.Add(GlobalSetting.Assembly, assembly.Replace("REPLACE", GlobalSetting.Define));
                 var progress = 0f;
                 foreach (var data in dataTables)
@@ -141,7 +141,7 @@ namespace Astraia
         private static (string, string) WriteTable(string className, Dictionary<string, string> fields)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
-            var scriptText = GlobalSetting.GetText(AssetData.DataTable).Replace("Template", className);
+            var scriptText = GlobalSetting.LoadAsset(AssetData.DataTable).Replace("Template", className);
 
             foreach (var field in fields)
             {
@@ -207,7 +207,7 @@ namespace Astraia
         private static (string, string) WriteStruct(string className, string classType)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
-            var scriptText = GlobalSetting.GetText(AssetData.Struct).Replace("Template", className);
+            var scriptText = GlobalSetting.LoadAsset(AssetData.Struct).Replace("Template", className);
 
             var members = classType.Substring(1, classType.IndexOf('}') - 1).Split(',');
             foreach (var member in members)
@@ -238,7 +238,7 @@ namespace Astraia
         private static (string, string) WriteEnum(string className, IEnumerable<string> members)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
-            var scriptText = GlobalSetting.GetText(AssetData.Enum).Replace("Template", className);
+            var scriptText = GlobalSetting.LoadAsset(AssetData.Enum).Replace("Template", className);
 
             foreach (var member in members)
             {

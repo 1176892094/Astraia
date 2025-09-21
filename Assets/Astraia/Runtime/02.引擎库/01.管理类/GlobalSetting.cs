@@ -28,7 +28,6 @@ namespace Astraia
 {
     internal partial class GlobalSetting : ScriptableObject
     {
-        private static readonly Dictionary<AssetData, TextAsset> assetData = new Dictionary<AssetData, TextAsset>();
         private static GlobalSetting instance;
 
         public static GlobalSetting Instance => instance ??= Resources.Load<GlobalSetting>(nameof(GlobalSetting));
@@ -101,11 +100,13 @@ namespace Astraia
 
             if (Instance.InputMask != InputMask.Disable)
             {
-                Service.Input.LoadData(GetText(AssetData.Input));
+                Service.Input.LoadData(LoadAsset(AssetData.Input));
             }
         }
 
-        public static string GetText(AssetData option)
+        private static readonly Dictionary<AssetData, TextAsset> assetData = new Dictionary<AssetData, TextAsset>();
+
+        public static string LoadAsset(AssetData option)
         {
             if (assetData.Count > 0)
             {
