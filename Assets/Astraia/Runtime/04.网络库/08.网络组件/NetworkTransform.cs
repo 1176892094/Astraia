@@ -91,7 +91,7 @@ namespace Astraia.Net
             sendTime = double.MinValue;
         }
 
-        public void OnUpdate()
+        public void Update()
         {
             if (isServer && !isVerify)
             {
@@ -103,7 +103,7 @@ namespace Astraia.Net
             }
         }
 
-        public void OnLateUpdate()
+        public void LateUpdate()
         {
             if (isServer && isVerify && isModify)
             {

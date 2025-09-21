@@ -17,7 +17,7 @@ namespace Astraia.Common
 {
     internal static class Variable<T>
     {
-        private static readonly Dictionary<Entity, Dictionary<Enum, T>> variables = new Dictionary<Entity, Dictionary<Enum, T>>();
+        public static readonly Dictionary<Entity, Dictionary<Enum, T>> variables = new Dictionary<Entity, Dictionary<Enum, T>>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Set(Entity owner, Enum id, T value)
@@ -26,7 +26,7 @@ namespace Astraia.Common
             {
                 results = new Dictionary<Enum, T>();
                 variables.Add(owner, results);
-                owner.OnFade += () =>
+                owner.OnFaded += () =>
                 {
                     results.Clear();
                     variables.Remove(owner);

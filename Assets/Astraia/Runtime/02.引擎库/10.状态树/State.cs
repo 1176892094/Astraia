@@ -28,8 +28,8 @@ namespace Astraia
     [Serializable]
     public abstract class State<T> : IState where T : Entity
     {
+        public T owner { get; protected set; }
         public INode node;
-        public T owner;
 
         void IState.Create(Entity owner)
         {

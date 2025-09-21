@@ -89,7 +89,8 @@ namespace Astraia.Common
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<int, Queue<TaskNode>> nodeData = new Dictionary<int, Queue<TaskNode>>();
-        
+
+
         private void Awake()
         {
             Instance = this;

@@ -18,7 +18,7 @@ namespace Astraia
     [Serializable]
     public abstract class Module<T> : IModule where T : Entity
     {
-        public T owner;
+        public T owner { get; protected set; }
         public Transform transform => owner?.transform;
         public GameObject gameObject => owner?.gameObject;
 

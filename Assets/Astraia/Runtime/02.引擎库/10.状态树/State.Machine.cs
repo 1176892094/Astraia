@@ -26,11 +26,10 @@ namespace Astraia
         {
             if (!states.TryGetValue(key, out var item))
             {
-                item = (IState)Activator.CreateInstance(value);
+                item = HeapManager.Dequeue<IState>(value);
                 states.Add(key, item);
+                item.Create(owner);
             }
-
-            item.Create(owner);
         }
 
         public void Update()
@@ -43,6 +42,17 @@ namespace Astraia
             state?.OnExit();
             states.TryGetValue(key, out state);
             state?.OnEnter();
+        }
+
+        public override void Enqueue()
+        {
+            foreach (var value in states.Values)
+            {
+                HeapManager.Enqueue(value, value.GetType());
+            }
+
+            state = null;
+            states.Clear();
         }
     }
 }

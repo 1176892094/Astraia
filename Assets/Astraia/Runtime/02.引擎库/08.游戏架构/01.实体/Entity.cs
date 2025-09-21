@@ -23,6 +23,7 @@ namespace Astraia
     public partial class Entity : MonoBehaviour
     {
         internal readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
+        internal event Action OnFaded;
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
@@ -56,6 +57,8 @@ namespace Astraia
             OnFade = null;
             OnShow = null;
             OnHide = null;
+            OnFaded?.Invoke();
+            OnFaded = null;
             moduleList.Clear();
             moduleData.Clear();
         }
