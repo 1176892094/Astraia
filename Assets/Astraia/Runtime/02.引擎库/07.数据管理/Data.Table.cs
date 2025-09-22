@@ -19,7 +19,6 @@ namespace Astraia.Common
         private static class DataTable<Key, Data> where Data : IData
         {
             private static Dictionary<Key, Data> itemData;
-            public static IReadOnlyList<Data> items;
 
             public static Data Get(Key key)
             {
@@ -38,8 +37,7 @@ namespace Astraia.Common
                     itemData = new Dictionary<Key, Data>();
                     if (assetData is DataTable<Data> dataTable)
                     {
-                        items = dataTable.items;
-                        foreach (var item in items)
+                        foreach (var item in dataTable.items)
                         {
                             var data = item.GetValue<Key>(property);
                             if (!itemData.TryAdd(data, item))
@@ -47,6 +45,8 @@ namespace Astraia.Common
                                 Debug.LogWarning("加载数据 {0} 失败。键值重复: {1}".Format(name, data));
                             }
                         }
+
+                        DataTable<Data>.Items = dataTable.items;
                     }
                 }
             }

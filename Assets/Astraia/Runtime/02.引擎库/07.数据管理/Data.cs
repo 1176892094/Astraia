@@ -69,13 +69,13 @@ namespace Astraia.Common
                             {
                                 typeof(DataTable<,>).MakeGenericType(typeof(int), assetType).Invoke("Add", assetData, property.Name, nickName);
                             }
-                            else if (property.PropertyType == typeof(string))
-                            {
-                                typeof(DataTable<,>).MakeGenericType(typeof(string), assetType).Invoke("Add", assetData, property.Name, nickName);
-                            }
                             else if (property.PropertyType.IsEnum)
                             {
                                 typeof(DataTable<,>).MakeGenericType(typeof(Enum), assetType).Invoke("Add", assetData, property.Name, nickName);
+                            }
+                            else if (property.PropertyType == typeof(string))
+                            {
+                                typeof(DataTable<,>).MakeGenericType(typeof(string), assetType).Invoke("Add", assetData, property.Name, nickName);
                             }
                         }
                     }
@@ -94,31 +94,21 @@ namespace Astraia.Common
             return DataTable<int, T>.Get(key);
         }
 
+        public static T Get<T>(Enum key) where T : IData
+        {
+            return DataTable<Enum, T>.Get(key);
+        }
+        
         public static T Get<T>(string key) where T : IData
         {
             return DataTable<string, T>.Get(key);
         }
 
-        public static T Get<T>(Enum key) where T : IData
-        {
-            return DataTable<Enum, T>.Get(key);
-        }
-
         public static IReadOnlyList<T> GetTable<T>() where T : IData
         {
-            if (DataTable<int, T>.items != null)
+            if (DataTable<T>.Items != null)
             {
-                return DataTable<int, T>.items;
-            }
-
-            if (DataTable<Enum, T>.items != null)
-            {
-                return DataTable<Enum, T>.items;
-            }
-
-            if (DataTable<string, T>.items != null)
-            {
-                return DataTable<string, T>.items;
+                return DataTable<T>.Items;
             }
 
             Debug.LogError("获取 {0} 失败!".Format(typeof(T).Name));

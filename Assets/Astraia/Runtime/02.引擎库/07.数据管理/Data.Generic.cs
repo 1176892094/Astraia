@@ -19,6 +19,7 @@ namespace Astraia
     [Serializable]
     public abstract class DataTable<T> : ScriptableObject, IDataTable where T : IData
     {
+        internal static List<T> Items;
         public List<T> items = new List<T>();
         void IDataTable.AddData(IData data) => items.Add((T)data);
     }
