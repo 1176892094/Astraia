@@ -16,7 +16,7 @@ using Astraia.Common;
 namespace Astraia
 {
     [Serializable]
-    public abstract partial class UIPanel : Module<Entity>, IModule, IActive
+    public abstract partial class UIPanel : Module<Entity>, IModule, ISystem, IActive
     {
         public UIState state = UIState.Common;
 
@@ -33,7 +33,7 @@ namespace Astraia
         }
     }
 
-    public abstract partial class UIPanel : ISystem
+    public abstract partial class UIPanel
     {
         internal int layerMask;
         internal int groupMask;

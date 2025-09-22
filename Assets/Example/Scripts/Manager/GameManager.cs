@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using Astraia;
 using Astraia.Common;
 using Astraia.Net;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -34,6 +35,7 @@ namespace Runtime
             GlobalManager.Instance.canvas.sortingOrder = 10;
             Application.targetFrameRate = 60;
             UIManager.Show<LabelPanel>();
+            UIManager.Show<LoadPanel>();
         }
 
         public void Update()

@@ -50,7 +50,7 @@ namespace Astraia
             {
                 foreach (var panel in panels)
                 {
-                    panel.gameObject.SetActive(true);
+                    SetActive(panel, true);
                 }
             }
         }
@@ -62,7 +62,7 @@ namespace Astraia
             {
                 foreach (var panel in panels)
                 {
-                    panel.gameObject.SetActive(false);
+                    SetActive(panel, false);
                 }
             }
         }
@@ -77,13 +77,34 @@ namespace Astraia
                     {
                         if (other != panel)
                         {
-                            other.gameObject.SetActive(false);
+                            SetActive(other, false);
                         }
                     }
                 }
             }
 
-            panel.gameObject.SetActive(true);
+            SetActive(panel, true);
+        }
+
+        internal static async void SetActive(UIPanel panel, bool state)
+        {
+            if (panel is ITween Tween)
+            {
+                if (state)
+                {
+                    panel.gameObject.SetActive(true);
+                    await Tween.OnShow();
+                }
+                else
+                {
+                    await Tween.OnHide();
+                    panel.gameObject.SetActive(false);
+                }
+            }
+            else
+            {
+                panel.gameObject.SetActive(state);
+            }
         }
     }
 }

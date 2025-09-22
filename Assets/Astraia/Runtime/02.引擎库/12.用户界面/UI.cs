@@ -19,7 +19,13 @@ using Object = UnityEngine.Object;
 namespace Astraia.Common
 {
     using static GlobalManager;
-    
+
+    public interface ITween
+    {
+        Tween OnShow();
+        Tween OnHide();
+    }
+
     public static class UIManager
     {
         private static UIPanel Load(string path, Type type)
@@ -60,7 +66,7 @@ namespace Astraia.Common
             if (!Instance) return;
             if (panelData.TryGetValue(typeof(T), out var panel))
             {
-                panel.gameObject.SetActive(false);
+                UIGroup.SetActive(panel, false);
             }
         }
 
@@ -97,7 +103,7 @@ namespace Astraia.Common
             if (!Instance) return;
             if (panelData.TryGetValue(type, out var panel))
             {
-                panel.gameObject.SetActive(false);
+                UIGroup.SetActive(panel, false);
             }
         }
 
