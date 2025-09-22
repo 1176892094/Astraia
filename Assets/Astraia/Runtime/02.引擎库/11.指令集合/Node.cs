@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Threading = System.Threading;
 
@@ -21,22 +22,35 @@ namespace Astraia
         public TaskNode[] nodes = Array.Empty<TaskNode>();
         public abstract Task<State> Execute(Entity owner, int id);
 
-        protected static class Task
-        {
-            public static readonly Task<State> Success = Threading.Tasks.Task.FromResult(State.Success);
-            public static readonly Task<State> Failure = Threading.Tasks.Task.FromResult(State.Failure);
-        }
-
         public enum State
         {
             Success,
             Failure
         }
+
+        [Serializable]
+        public struct Node
+        {
+            public List<Node> items;
+            public string name;
+
+            public Node(string name)
+            {
+                this.name = name;
+                items = new List<Node>();
+            }
+        }
+
+        protected static class Task
+        {
+            public static readonly Task<State> Success = Threading.Tasks.Task.FromResult(State.Success);
+            public static readonly Task<State> Failure = Threading.Tasks.Task.FromResult(State.Failure);
+        }
     }
 
     public partial class TaskNode
     {
-        internal sealed class Sequence : TaskNode
+        private sealed class Sequence : TaskNode
         {
             public override async Task<State> Execute(Entity owner, int id)
             {
@@ -53,7 +67,7 @@ namespace Astraia
             }
         }
 
-        internal sealed class Selector : TaskNode
+        private sealed class Selector : TaskNode
         {
             public override async Task<State> Execute(Entity owner, int id)
             {
@@ -70,7 +84,7 @@ namespace Astraia
             }
         }
 
-        internal sealed class Actuator : TaskNode
+        private sealed class Actuator : TaskNode
         {
             public override async Task<State> Execute(Entity owner, int id)
             {
@@ -90,7 +104,7 @@ namespace Astraia
             }
         }
 
-        internal sealed class Repeater : TaskNode
+        private sealed class Repeater : TaskNode
         {
             public int count;
 
@@ -112,7 +126,7 @@ namespace Astraia
             }
         }
 
-        internal sealed class WaitTime : TaskNode
+        private sealed class WaitTime : TaskNode
         {
             public float waitTime;
 

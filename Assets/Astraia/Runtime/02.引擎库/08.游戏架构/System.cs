@@ -140,7 +140,6 @@ namespace Astraia.Common
 
         public static void Dispose()
         {
-            audioLoop.Clear();
             systemLoop.Clear();
         }
     }

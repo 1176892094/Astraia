@@ -11,36 +11,30 @@
 
 using System;
 using System.Collections.Generic;
+using Astraia.Common;
 
-namespace Astraia.Common
+namespace Astraia
 {
-    using static GlobalManager;
-
-    public static class NodeManager
+    public static partial class Extensions
     {
-        public static TaskNode Dequeue(int id, string root, Func<NodeData, TaskNode> func)
+        public static TaskNode GetNode(this string root, Func<TaskNode.Node, TaskNode> func)
         {
-            if (!nodeData.TryGetValue(id, out var pool))
-            {
-                pool = new Queue<TaskNode>();
-                nodeData.Add(id, pool);
-            }
-
-            return pool.Count > 0 ? pool.Dequeue() : LoadNode(GetRoot(root), func);
+            return LoadNode(GetRoot(root), func);
         }
 
-        public static void Enqueue(int id, TaskNode node)
+        public static void Destroy(this TaskNode root)
         {
-            if (!nodeData.TryGetValue(id, out var pool))
+            if (root == null) return;
+            foreach (var child in root.nodes)
             {
-                pool = new Queue<TaskNode>();
-                nodeData.Add(id, pool);
+                Destroy(child);
             }
 
-            pool.Enqueue(node);
+            root.nodes = Array.Empty<TaskNode>();
+            HeapManager.Enqueue(root, root.GetType());
         }
 
-        private static TaskNode LoadNode(NodeData root, Func<NodeData, TaskNode> func)
+        private static TaskNode LoadNode(TaskNode.Node root, Func<TaskNode.Node, TaskNode> func)
         {
             if (root.name == null)
             {
@@ -66,7 +60,7 @@ namespace Astraia.Common
             return result;
         }
 
-        private static NodeData GetRoot(string reason)
+        private static TaskNode.Node GetRoot(string reason)
         {
             if (string.IsNullOrEmpty(reason))
             {
@@ -76,13 +70,13 @@ namespace Astraia.Common
             var index = reason.IndexOf('(');
             if (index < 0)
             {
-                return new NodeData(reason);
+                return new TaskNode.Node(reason);
             }
 
             var result = reason.Substring(0, index).Trim();
             var braced = Parse(reason, index);
 
-            var node = new NodeData(result);
+            var node = new TaskNode.Node(result);
             foreach (var child in Split(braced))
             {
                 node.items.Add(GetRoot(child));
@@ -142,11 +136,6 @@ namespace Astraia.Common
 
             result.Add(reason.Substring(index).Trim());
             return result;
-        }
-
-        internal static void Dispose()
-        {
-            nodeData.Clear();
         }
     }
 }

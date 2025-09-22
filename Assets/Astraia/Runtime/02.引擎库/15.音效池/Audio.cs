@@ -160,5 +160,11 @@ namespace Astraia.Common
             audioLoop.Remove(source);
             PoolManager.Hide(source.gameObject);
         }
+
+        internal static void Dispose()
+        {
+            audioLoop.Clear();
+            audioState = AudioState.Play;
+        }
     }
 }
