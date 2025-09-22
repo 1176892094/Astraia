@@ -47,18 +47,7 @@ namespace Astraia.Common
                 var nickName = assetName.Substring(assetName.LastIndexOf('.') + 1);
                 try
                 {
-                    ScriptableObject assetData = null;
-                    if (Application.isPlaying)
-                    {
-                        assetData = AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(nickName));
-                    }
-                    else
-                    {
-#if UNITY_EDITOR
-                        assetData = UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(GlobalSetting.EditTable.Format(nickName));
-#endif
-                    }
-
+                    var assetData = AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(nickName));
                     var assetType = assembly.GetType(assetName.Substring(0, assetName.Length - 5));
                     var properties = assetType.GetProperties(Service.Ref.Instance);
                     foreach (var property in properties)
@@ -98,7 +87,7 @@ namespace Astraia.Common
         {
             return DataTable<Enum, T>.Get(key);
         }
-        
+
         public static T Get<T>(string key) where T : IData
         {
             return DataTable<string, T>.Get(key);

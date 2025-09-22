@@ -20,12 +20,11 @@ namespace Astraia
     {
         public static IModule AddComponent(Entity owner, Type keyType, IModule module)
         {
-            var modules = owner.moduleData;
-            if (!modules.ContainsKey(keyType))
+            if (!owner.moduleData.ContainsKey(keyType))
             {
                 AddEvent(owner, module);
-                modules.Add(keyType, module);
                 owner.OnFade += Enqueue;
+                owner.moduleData.Add(keyType, module);
             }
 
             return module;
@@ -33,20 +32,19 @@ namespace Astraia
             void Enqueue()
             {
                 module.Enqueue();
-                modules.Remove(keyType);
+                owner.moduleData.Remove(keyType);
                 HeapManager.Enqueue(module, keyType);
             }
         }
 
         public static IModule AddComponent(Entity owner, Type keyType, Type realType)
         {
-            var modules = owner.moduleData;
-            if (!modules.TryGetValue(keyType, out var module))
+            if (!owner.moduleData.TryGetValue(keyType, out var module))
             {
                 module = HeapManager.Dequeue<IModule>(realType);
                 AddEvent(owner, module);
-                modules.Add(keyType, module);
                 owner.OnFade += Enqueue;
+                owner.moduleData.Add(keyType, module);
             }
 
             return module;
@@ -54,7 +52,7 @@ namespace Astraia
             void Enqueue()
             {
                 module.Enqueue();
-                modules.Remove(keyType);
+                owner.moduleData.Remove(keyType);
                 HeapManager.Enqueue(module, realType);
             }
         }
@@ -70,11 +68,11 @@ namespace Astraia
             {
                 if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
                 {
-                    var moduleType = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
-                    var moduleShow = (Action)Delegate.CreateDelegate(typeof(Action), module, moduleType.GetMethod("Listen", Service.Ref.Instance)!);
-                    var moduleHide = (Action)Delegate.CreateDelegate(typeof(Action), module, moduleType.GetMethod("Remove", Service.Ref.Instance)!);
-                    owner.OnShow += moduleShow;
-                    owner.OnHide += moduleHide;
+                    var result = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
+                    var onShow = (Action)Delegate.CreateDelegate(typeof(Action), module, result.GetMethod("Listen", Service.Ref.Instance)!);
+                    var onHide = (Action)Delegate.CreateDelegate(typeof(Action), module, result.GetMethod("Remove", Service.Ref.Instance)!);
+                    owner.OnShow += onShow;
+                    owner.OnHide += onHide;
                 }
             }
 
