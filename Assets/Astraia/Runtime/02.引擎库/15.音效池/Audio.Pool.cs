@@ -20,8 +20,9 @@ namespace Astraia.Common
         [Serializable]
         private class Pool : IPool
         {
-            private readonly HashSet<AudioSource> cached = new HashSet<AudioSource>();
+            private readonly LinkedList<AudioSource> cached = new LinkedList<AudioSource>();
             private readonly Queue<AudioSource> unused = new Queue<AudioSource>();
+            private int Capacity;
 
             public Type Type { get; private set; }
             public string Path { get; private set; }
@@ -35,29 +36,36 @@ namespace Astraia.Common
                 Dequeue++;
                 Acquire++;
                 AudioSource item;
+
                 if (unused.Count > 0)
                 {
                     item = unused.Dequeue();
-                    cached.Remove(item);
                     Release--;
                     if (item)
                     {
+                        cached.AddFirst(item);
                         return item;
                     }
+                }
 
-                    Enqueue++;
-                    Dequeue++;
+                if (cached.Count >= Capacity && Capacity > 0)
+                {
+                    item = cached.Last.Value;
+                    cached.RemoveLast();
+                    cached.AddFirst(item);
+                    return item;
                 }
 
                 item = new GameObject(Path).AddComponent<AudioSource>();
                 item.name = Path;
+                cached.AddFirst(item);
                 return item;
             }
 
             public void Push(AudioSource item)
             {
                 Enqueue++;
-                if (cached.Add(item))
+                if (cached.Remove(item))
                 {
                     Acquire--;
                     Release++;
@@ -71,11 +79,12 @@ namespace Astraia.Common
                 unused.Clear();
             }
 
-            public static Pool Create(Type type, string path)
+            public static Pool Create(Type type, string path, int capacity)
             {
                 var instance = new Pool();
                 instance.Type = type;
                 instance.Path = path;
+                instance.Capacity = capacity;
                 return instance;
             }
         }

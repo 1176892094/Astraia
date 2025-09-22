@@ -44,9 +44,6 @@ namespace Astraia.Common
                     {
                         return item;
                     }
-
-                    Enqueue++;
-                    Dequeue++;
                 }
 
                 item = AssetManager.Load<GameObject>(Path);

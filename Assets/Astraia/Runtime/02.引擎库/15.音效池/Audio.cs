@@ -144,14 +144,14 @@ namespace Astraia.Common
             LoadPool(source.name).Push(source);
         }
 
-        private static Pool LoadPool(string path)
+        private static Pool LoadPool(string path, int capacity = 3)
         {
             if (poolData.TryGetValue(path, out var pool))
             {
                 return (Pool)pool;
             }
 
-            pool = Pool.Create(typeof(AudioSource), path);
+            pool = Pool.Create(typeof(AudioSource), path, capacity);
             poolData.Add(path, pool);
             return (Pool)pool;
         }
