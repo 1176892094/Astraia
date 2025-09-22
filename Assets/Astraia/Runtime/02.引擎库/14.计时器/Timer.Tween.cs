@@ -16,10 +16,8 @@ using UnityEngine;
 
 namespace Astraia
 {
-    using static GlobalManager;
-
     [Serializable]
-    public sealed partial class Tween : ITimer
+    public sealed partial class Tween : ISystem
     {
         private Component owner;
         private int complete;
@@ -33,7 +31,7 @@ namespace Astraia
         internal static Tween Create(Component owner, float duration)
         {
             var item = HeapManager.Dequeue<Tween>();
-            timerLoop.Add(item);
+            SystemManager.AddSystem(100, item);
             item.owner = owner;
             item.progress = 0;
             item.nextTime = 0;
@@ -48,12 +46,12 @@ namespace Astraia
                 item.complete = 1;
                 item.onUpdate = null;
                 item.onContinue = null;
-                timerLoop.Remove(item);
+                SystemManager.SubSystem(100, item);
                 HeapManager.Enqueue(item);
             }
         }
 
-        void ITimer.Update()
+        void ISystem.Update()
         {
             try
             {

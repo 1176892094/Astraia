@@ -32,15 +32,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly List<ISystem> systemLoop = new List<ISystem>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly List<ISystem> panelLoop = new List<ISystem>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly List<ITimer> timerLoop = new List<ITimer>();
+        internal static readonly Dictionary<int, List<ISystem>> systemLoop = new Dictionary<int, List<ISystem>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif

@@ -16,15 +16,8 @@ using UnityEngine;
 
 namespace Astraia
 {
-    using static GlobalManager;
-
-    internal interface ITimer
-    {
-        void Update();
-    }
-    
     [Serializable]
-    public sealed partial class Timer : ITimer
+    public sealed partial class Timer : ISystem
     {
         private Component owner;
         private int complete;
@@ -39,7 +32,7 @@ namespace Astraia
         internal static Timer Create(Component owner, float duration)
         {
             var item = HeapManager.Dequeue<Timer>();
-            timerLoop.Add(item);
+            SystemManager.AddSystem(100, item);
             item.owner = owner;
             item.progress = 1;
             item.nextTime = 0;
@@ -54,12 +47,12 @@ namespace Astraia
                 item.complete = 1;
                 item.onUpdate = null;
                 item.onContinue = null;
-                timerLoop.Remove(item);
+                SystemManager.SubSystem(100, item);
                 HeapManager.Enqueue(item);
             }
         }
 
-        void ITimer.Update()
+        void ISystem.Update()
         {
             try
             {

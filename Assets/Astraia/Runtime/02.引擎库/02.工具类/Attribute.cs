@@ -26,6 +26,18 @@ namespace Astraia
     public class PrimaryAttribute : Attribute
     {
     }
+    
+    [MeansImplicitUse]
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SystemAttribute : Attribute
+    {
+        public readonly int index;
+
+        public SystemAttribute(int index)
+        {
+            this.index = index;
+        }
+    }
 
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]

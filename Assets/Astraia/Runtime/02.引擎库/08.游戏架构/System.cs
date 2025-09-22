@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 
 namespace Astraia.Common
 {
@@ -17,13 +18,33 @@ namespace Astraia.Common
 
     public interface ISystem
     {
+        int index => 0;
         void Update();
-        void AddSystem() => systemLoop.Add(this);
-        void SubSystem() => systemLoop.Remove(this);
+        void AddSystem() => SystemManager.AddSystem(index, this);
+        void SubSystem() => SystemManager.SubSystem(index, this);
     }
-    
+
     internal static class SystemManager
     {
+        public static void AddSystem(int index, ISystem system)
+        {
+            if (!systemLoop.TryGetValue(index, out var systems))
+            {
+                systems = new List<ISystem>();
+                systemLoop.Add(index, systems);
+            }
+
+            systems.Add(system);
+        }
+
+        public static void SubSystem(int index, ISystem system)
+        {
+            if (systemLoop.TryGetValue(index, out var systems))
+            {
+                systems.Remove(system);
+            }
+        }
+
         public static IModule AddComponent(Entity owner, Type keyType, IModule module)
         {
             if (!owner.moduleData.ContainsKey(keyType))
@@ -108,26 +129,17 @@ namespace Astraia.Common
 
         public static void Update()
         {
-            for (int i = systemLoop.Count - 1; i >= 0; i--)
+            foreach (var systems in systemLoop.Values)
             {
-                systemLoop[i].Update();
-            }
-
-            for (int i = panelLoop.Count - 1; i >= 0; i--)
-            {
-                panelLoop[i].Update();
-            }
-
-            for (int i = timerLoop.Count - 1; i >= 0; i--)
-            {
-                timerLoop[i].Update();
+                for (int i = systems.Count - 1; i >= 0; i--)
+                {
+                    systems[i].Update();
+                }
             }
         }
 
         public static void Dispose()
         {
-            panelLoop.Clear();
-            timerLoop.Clear();
             systemLoop.Clear();
         }
     }
