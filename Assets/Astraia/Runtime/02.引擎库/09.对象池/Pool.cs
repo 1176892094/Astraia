@@ -20,7 +20,7 @@ namespace Astraia.Common
         public static GameObject Show(string path)
         {
             if (!Instance) return null;
-            var item = LoadPool(path).Load();
+            var item = LoadPool(path, path).Load();
             item.transform.SetParent(null);
             item.SetActive(true);
             return item;
@@ -29,7 +29,7 @@ namespace Astraia.Common
         public static GameObject Show(string path, Vector3 position)
         {
             if (!Instance) return null;
-            var item = LoadPool(path).Load();
+            var item = LoadPool(path, path).Load();
             item.transform.SetParent(null);
             item.transform.position = position;
             item.SetActive(true);
@@ -39,7 +39,7 @@ namespace Astraia.Common
         public static GameObject Show(string path, Vector3 position, Quaternion rotation)
         {
             if (!Instance) return null;
-            var item = LoadPool(path).Load();
+            var item = LoadPool(path, path).Load();
             item.transform.SetParent(null);
             item.transform.position = position;
             item.transform.rotation = rotation;
@@ -50,7 +50,7 @@ namespace Astraia.Common
         public static GameObject Show(string path, Transform parent)
         {
             if (!Instance) return null;
-            var item = LoadPool(path).Load();
+            var item = LoadPool(path, path).Load();
             item.transform.SetParent(parent);
             item.transform.localPosition = Vector3.zero;
             item.SetActive(true);
@@ -60,7 +60,7 @@ namespace Astraia.Common
         public static GameObject Show(string path, Transform parent, Vector3 localScale)
         {
             if (!Instance) return null;
-            var item = LoadPool(path).Load();
+            var item = LoadPool(path, path).Load();
             item.transform.SetParent(parent);
             item.transform.localScale = localScale;
             item.transform.localPosition = Vector3.zero;
@@ -91,19 +91,16 @@ namespace Astraia.Common
 
             item.SetActive(false);
             item.transform.SetParent(pool.transform);
-            LoadPool(item.name).Push(item);
+            LoadPool(item.name, item.name).Push(item);
         }
 
-        private static Pool LoadPool(string path)
+        internal static AudioSource Play(string path)
         {
-            if (poolData.TryGetValue(path, out var pool))
-            {
-                return (Pool)pool;
-            }
-
-            pool = Pool.Create(typeof(GameObject), path);
-            poolData.Add(path, pool);
-            return (Pool)pool;
+            if (!Instance) return null;
+            var item = LoadPool(path).Load();
+            item.transform.SetParent(null);
+            item.gameObject.SetActive(true);
+            return item.GetComponent<AudioSource>();
         }
 
         private static Pool LoadPool(string path, string name)
@@ -113,9 +110,31 @@ namespace Astraia.Common
                 return (Pool)pool;
             }
 
-            pool = Pool.Create(typeof(GameObject), path);
+            pool = Pool.Create(typeof(GameObject), path, Load);
             poolData.Add(name, pool);
             return (Pool)pool;
+        }
+
+        private static Pool LoadPool(string path)
+        {
+            if (poolData.TryGetValue(path, out var pool))
+            {
+                return (Pool)pool;
+            }
+
+            pool = Pool.Create(typeof(AudioSource), path, Create, 3, 3, 1);
+            poolData.Add(path, pool);
+            return (Pool)pool;
+        }
+
+        private static GameObject Load(string path)
+        {
+            return AssetManager.Load<GameObject>(path);
+        }
+
+        private static GameObject Create(string path)
+        {
+            return new GameObject(path, typeof(AudioSource));
         }
 
         internal static void Dispose()
