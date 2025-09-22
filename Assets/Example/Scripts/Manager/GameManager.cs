@@ -34,6 +34,7 @@ namespace Runtime
             GlobalManager.Instance.canvas.sortingOrder = 10;
             Application.targetFrameRate = 60;
             UIManager.Show<LabelPanel>();
+            UIManager.Show<LoadPanel>();
         }
 
         public void Update()
