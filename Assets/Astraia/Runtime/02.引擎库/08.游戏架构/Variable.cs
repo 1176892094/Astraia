@@ -12,12 +12,13 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace Astraia.Common
 {
     internal static class Variable<T>
     {
-        public static readonly Dictionary<Entity, Dictionary<Enum, T>> variables = new Dictionary<Entity, Dictionary<Enum, T>>();
+        private static readonly Dictionary<Entity, Dictionary<Enum, T>> variables = new Dictionary<Entity, Dictionary<Enum, T>>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Set(Entity owner, Enum id, T value)
@@ -44,6 +45,18 @@ namespace Astraia.Common
             }
 
             return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Dispose(Entity owner)
+        {
+            if (variables.TryGetValue(owner, out var results))
+            {
+                Debug.Log("持有者: {0}  类型: {1}  数量: {2}".Format(owner.name, typeof(T), results.Count));
+                results.Clear();
+            }
+
+            variables.Remove(owner);
         }
     }
 }

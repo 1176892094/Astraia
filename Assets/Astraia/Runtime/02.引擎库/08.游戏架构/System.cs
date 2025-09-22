@@ -85,6 +85,17 @@ namespace Astraia
             }
         }
 
+        public static void Destroy(Entity owner)
+        {
+            foreach (var variable in owner.variables)
+            {
+                typeof(Variable<>).MakeGenericType(variable).Invoke("Dispose", owner);
+            }
+
+            owner.variables.Clear();
+            owner.variables = null;
+        }
+
         public static void Update()
         {
             for (int i = panelLoop.Count - 1; i >= 0; i--)

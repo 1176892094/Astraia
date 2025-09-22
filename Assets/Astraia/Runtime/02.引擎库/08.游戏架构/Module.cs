@@ -65,14 +65,14 @@ namespace Astraia
         }
     }
 
-    public abstract class Singleton<T, E> : Module<E>, IModule, IActive where T : Singleton<T, E> where E : Entity
+    public abstract class Singleton<T, TOwner> : Module<TOwner>, IModule, IActive where T : Singleton<T, TOwner> where TOwner : Entity
     {
         public static T Instance { get; private set; }
 
         void IModule.Create(Entity owner)
         {
             Instance = (T)this;
-            this.owner = (E)owner;
+            this.owner = (TOwner)owner;
         }
 
         public virtual void OnShow()

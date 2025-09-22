@@ -22,13 +22,12 @@ namespace Astraia
 {
     public partial class Entity : MonoBehaviour
     {
-        internal readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
-        internal readonly List<Type> variables = new List<Type>();
+        internal Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
+        internal List<Type> variables = new List<Type>();
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
-
-
+        
         protected virtual void Awake()
         {
             foreach (var module in moduleList)
@@ -38,14 +37,6 @@ namespace Astraia
                 {
                     AddComponent(result);
                 }
-            }
-        }
-
-        private void Clear()
-        {
-            foreach (var variable in variables)
-            {
-                //  typeof(Variable<>).MakeGenericType(variable).Invoke("Dispose", assetData, property.Name, nickName);
             }
         }
 
@@ -67,6 +58,7 @@ namespace Astraia
             OnHide = null;
             moduleList.Clear();
             moduleData.Clear();
+            SystemManager.Destroy(this);
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -137,7 +129,10 @@ namespace Astraia
 
         public static void SetValue<T>(this Entity owner, Enum id, T value)
         {
-            Variable<T>.Set(owner, id, value);
+            if (owner && owner.variables != null)
+            {
+                Variable<T>.Set(owner, id, value);
+            }
         }
     }
 }
