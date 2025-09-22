@@ -38,9 +38,6 @@ namespace Astraia.Common
             var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
             var owner = data.GetOrAddComponent<Entity>();
             owner.AddComponent(panel);
-            owner.OnShow += ((IPanel)panel).Listen;
-            owner.OnHide += ((IPanel)panel).Remove;
-
             SetLayer(panel.transform, panel.layerMask);
             panelData.Add(type, panel);
             return panel;

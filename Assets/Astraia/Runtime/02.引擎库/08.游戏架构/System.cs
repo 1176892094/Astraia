@@ -14,21 +14,14 @@ using System;
 namespace Astraia.Common
 {
     using static GlobalManager;
-    
+
     public interface ISystem
     {
         void Update();
-        void Listen() => systemLoop.Add(this);
-        void Remove() => systemLoop.Remove(this);
+        void AddSystem() => systemLoop.Add(this);
+        void SubSystem() => systemLoop.Remove(this);
     }
-
-    internal interface IPanel
-    {
-        void Update();
-        void Listen() => panelLoop.Add(this);
-        void Remove() => panelLoop.Remove(this);
-    }
-
+    
     internal static class SystemManager
     {
         public static IModule AddComponent(Entity owner, Type keyType, IModule module)
@@ -91,8 +84,8 @@ namespace Astraia.Common
 
             if (module is ISystem system)
             {
-                owner.OnShow += system.Listen;
-                owner.OnHide += system.Remove;
+                owner.OnShow += system.AddSystem;
+                owner.OnHide += system.SubSystem;
             }
 
             if (module is IActive active)

@@ -36,7 +36,7 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly List<IPanel> panelLoop = new List<IPanel>();
+        internal static readonly List<ISystem> panelLoop = new List<ISystem>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif

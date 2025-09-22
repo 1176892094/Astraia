@@ -27,7 +27,7 @@ namespace Astraia
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
-        
+
         protected virtual void Awake()
         {
             foreach (var module in moduleList)

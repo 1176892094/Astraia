@@ -19,7 +19,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel<T, TGrid> : UIPanel, IMove, IPanel, IEnumerable<KeyValuePair<int, TGrid>> where TGrid : Component, IGrid<T>
+    public abstract class UIPanel<T, TGrid> : UIPanel, IMove, ISystem, IEnumerable<KeyValuePair<int, TGrid>> where TGrid : Component, IGrid<T>
     {
         private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
         private string assetName;
@@ -62,7 +62,7 @@ namespace Astraia
             owner.OnHide += Reload;
         }
 
-        void IPanel.Update()
+        void ISystem.Update()
         {
             Scroll();
             Update();

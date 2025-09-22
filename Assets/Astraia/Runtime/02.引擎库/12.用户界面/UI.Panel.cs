@@ -33,12 +33,14 @@ namespace Astraia
         }
     }
 
-    public abstract partial class UIPanel : IPanel
+    public abstract partial class UIPanel : ISystem
     {
         internal int layerMask;
         internal int groupMask;
 
         void IModule.Create(Entity owner) => Create(owner);
+        void ISystem.AddSystem() => GlobalManager.panelLoop.Add(this);
+        void ISystem.SubSystem() => GlobalManager.panelLoop.Remove(this);
 
         internal virtual void Create(Entity owner)
         {
@@ -61,7 +63,7 @@ namespace Astraia
 
                 current = current.BaseType;
             }
-            
+
             if (groupMask != 0)
             {
                 Register();
