@@ -190,7 +190,6 @@ namespace Astraia
         }
 
         public static readonly List<string> modules = new List<string>();
-        public static readonly List<string> systems = new List<string>();
 
         public static void LoadSetting(Type result)
         {
@@ -200,17 +199,12 @@ namespace Astraia
                 {
                     modules.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
                 }
-                else if (typeof(ISystem).IsAssignableFrom(result))
-                {
-                    systems.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
-                }
             }
         }
 
         public static void LoadComplete()
         {
             modules.Sort(StringComparer.Ordinal);
-            systems.Sort(StringComparer.Ordinal);
         }
     }
 #endif

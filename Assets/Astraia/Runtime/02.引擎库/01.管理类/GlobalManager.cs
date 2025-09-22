@@ -32,10 +32,6 @@ namespace Astraia.Common
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly List<ISystem> systemLoop = new List<ISystem>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
         internal static readonly List<IPanel> panelLoop = new List<IPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
@@ -69,10 +65,6 @@ namespace Astraia.Common
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
         internal static readonly Dictionary<string, GameObject> poolRoot = new Dictionary<string, GameObject>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly Dictionary<Type, List<Entity>> queryData = new Dictionary<Type, List<Entity>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -119,7 +111,6 @@ namespace Astraia.Common
             AudioManager.Dispose();
             AssetManager.Dispose();
             EventManager.Dispose();
-            EntityManager.Dispose();
             SystemManager.Dispose();
             GC.Collect();
         }

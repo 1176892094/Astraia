@@ -23,7 +23,7 @@ namespace Astraia
     public partial class Entity : MonoBehaviour
     {
         internal readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
-        internal event Action OnFaded;
+        internal readonly List<Type> variables = new List<Type>();
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
@@ -38,6 +38,14 @@ namespace Astraia
                 {
                     AddComponent(result);
                 }
+            }
+        }
+
+        private void Clear()
+        {
+            foreach (var variable in variables)
+            {
+                //  typeof(Variable<>).MakeGenericType(variable).Invoke("Dispose", assetData, property.Name, nickName);
             }
         }
 
@@ -57,8 +65,6 @@ namespace Astraia
             OnFade = null;
             OnShow = null;
             OnHide = null;
-            OnFaded?.Invoke();
-            OnFaded = null;
             moduleList.Clear();
             moduleData.Clear();
         }
@@ -83,22 +89,17 @@ namespace Astraia
     {
         public T AddComponent<T>(T module) where T : IModule
         {
-            return (T)EntityManager.AddComponent(this, module.GetType(), module);
-        }
-
-        public T AddComponent<T>(T module, Type queryType) where T : IModule
-        {
-            return (T)EntityManager.AddComponent(this, module.GetType(), module, queryType);
+            return (T)SystemManager.AddComponent(this, module.GetType(), module);
         }
 
         public T AddComponent<T>() where T : IModule
         {
-            return (T)EntityManager.AddComponent(this, typeof(T), typeof(T));
+            return (T)SystemManager.AddComponent(this, typeof(T), typeof(T));
         }
 
         public T AddComponent<T>(Type realType) where T : IModule
         {
-            return (T)EntityManager.AddComponent(this, typeof(T), realType);
+            return (T)SystemManager.AddComponent(this, typeof(T), realType);
         }
 
         public T FindComponent<T>() where T : IModule
@@ -106,19 +107,14 @@ namespace Astraia
             return moduleData.TryGetValue(typeof(T), out var module) ? (T)module : default;
         }
 
-        public IModule AddComponent(Type realType)
+        public IModule AddComponent(Type keyType)
         {
-            return EntityManager.AddComponent(this, realType, realType);
+            return SystemManager.AddComponent(this, keyType, keyType);
         }
 
         public IModule AddComponent(Type keyType, Type realType)
         {
-            return EntityManager.AddComponent(this, keyType, realType);
-        }
-
-        public IModule AddComponent(Type queryType, Type keyType, Type realType)
-        {
-            return EntityManager.AddComponent(this, keyType, realType, queryType);
+            return SystemManager.AddComponent(this, keyType, realType);
         }
 
         public IModule FindComponent(Type keyType)

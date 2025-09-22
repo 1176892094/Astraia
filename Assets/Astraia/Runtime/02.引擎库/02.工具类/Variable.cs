@@ -25,12 +25,8 @@ namespace Astraia.Common
             if (!variables.TryGetValue(owner, out var results))
             {
                 results = new Dictionary<Enum, T>();
+                owner.variables.Add(typeof(T));
                 variables.Add(owner, results);
-                owner.OnFaded += () =>
-                {
-                    results.Clear();
-                    variables.Remove(owner);
-                };
             }
 
             results[id] = value;

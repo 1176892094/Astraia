@@ -10,37 +10,21 @@
 // // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 using Astraia.Common;
 
 namespace Astraia
 {
     using static GlobalManager;
 
-    public static class EntityManager
+    internal static class SystemManager
     {
-        private static readonly List<Entity> Empty = new List<Entity>();
-
-        public static List<Entity> Query<T>() where T : IModule
+        public static IModule AddComponent(Entity owner, Type keyType, IModule module)
         {
-            return queryData.GetValueOrDefault(typeof(T), Empty);
-        }
-
-        internal static IModule AddComponent(Entity owner, Type keyType, IModule module, Type queryType = null)
-        {
-            queryType ??= keyType;
-            if (!queryData.TryGetValue(queryType, out var queries))
-            {
-                queries = new List<Entity>();
-                queryData.Add(queryType, queries);
-            }
-
             var modules = owner.moduleData;
             if (!modules.ContainsKey(keyType))
             {
-                queries.Add(owner);
-                modules.Add(keyType, module);
                 AddEvent(owner, module);
+                modules.Add(keyType, module);
                 owner.OnFade += Enqueue;
             }
 
@@ -50,28 +34,18 @@ namespace Astraia
             {
                 module.Enqueue();
                 modules.Remove(keyType);
-                queries.Remove(owner);
-                if (queries.Count == 0) queryData.Remove(keyType);
                 HeapManager.Enqueue(module, keyType);
             }
         }
 
-        internal static IModule AddComponent(Entity owner, Type keyType, Type realType, Type queryType = null)
+        public static IModule AddComponent(Entity owner, Type keyType, Type realType)
         {
-            queryType ??= keyType;
-            if (!queryData.TryGetValue(queryType, out var queries))
-            {
-                queries = new List<Entity>();
-                queryData.Add(queryType, queries);
-            }
-
             var modules = owner.moduleData;
             if (!modules.TryGetValue(keyType, out var module))
             {
                 module = HeapManager.Dequeue<IModule>(realType);
-                queries.Add(owner);
-                modules.Add(keyType, module);
                 AddEvent(owner, module);
+                modules.Add(keyType, module);
                 owner.OnFade += Enqueue;
             }
 
@@ -81,8 +55,6 @@ namespace Astraia
             {
                 module.Enqueue();
                 modules.Remove(keyType);
-                queries.Remove(owner);
-                if (queries.Count == 0) queryData.Remove(keyType);
                 HeapManager.Enqueue(module, realType);
             }
         }
@@ -113,14 +85,23 @@ namespace Astraia
             }
         }
 
-        internal static void Dispose()
+        public static void Update()
         {
-            foreach (var queries in queryData.Values)
+            for (int i = panelLoop.Count - 1; i >= 0; i--)
             {
-                queries.Clear();
+                panelLoop[i].Update();
             }
 
-            queryData.Clear();
+            for (int i = timerLoop.Count - 1; i >= 0; i--)
+            {
+                timerLoop[i].Update();
+            }
+        }
+
+        public static void Dispose()
+        {
+            panelLoop.Clear();
+            timerLoop.Clear();
         }
     }
 }
