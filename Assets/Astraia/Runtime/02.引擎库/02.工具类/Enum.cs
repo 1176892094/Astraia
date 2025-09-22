@@ -35,7 +35,7 @@ namespace Astraia
         Simulate,
         Actuator
     }
-    
+
     internal enum InputMask : byte
     {
         Enable,
@@ -60,5 +60,18 @@ namespace Astraia
         Running,
         Success,
         Failure
+    }
+
+    public enum AudioState : byte
+    {
+        Play,
+        Pause,
+        Stop,
+    }
+
+    public enum AudioMode : byte
+    {
+        Once,
+        Loop
     }
 }

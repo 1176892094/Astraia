@@ -17,6 +17,8 @@ namespace Astraia.Common
 
     public static partial class AudioManager
     {
+        private static AudioState audioState;
+
         public static float MusicVolume
         {
             get
@@ -55,60 +57,74 @@ namespace Astraia.Common
             }
         }
 
-        public static AudioSource PlayMusic(string name)
+        internal static void Update()
         {
-            if (!Instance) return null;
-            var target = GlobalSetting.Audio.Format(name);
-            var source = Instance.source;
-            source.clip = AssetManager.Load<AudioClip>(target);
-            source.loop = true;
-            source.volume = MusicVolume;
-            source.Play();
-            return source;
+            if (audioState == AudioState.Play)
+            {
+                for (int i = audioLoop.Count - 1; i >= 0; i--)
+                {
+                    if (!audioLoop[i].isPlaying)
+                    {
+                        Stop(audioLoop[i]);
+                    }
+                }
+            }
         }
 
-        public static void StopMusic(bool pause = true)
+        public static void Play(string name, AudioState state)
         {
             if (!Instance) return;
-            if (pause)
+            switch (state)
             {
-                Instance.source.Pause();
-            }
-            else
-            {
-                Instance.source.Stop();
+                case AudioState.Play:
+                    var result = GlobalSetting.Audio.Format(name);
+                    var source = Instance.source;
+                    source.clip = AssetManager.Load<AudioClip>(result);
+                    source.volume = MusicVolume;
+                    source.loop = true;
+                    source.Play();
+                    break;
+                case AudioState.Pause:
+                    Instance.source.Pause();
+                    break;
+                case AudioState.Stop:
+                    Instance.source.Stop();
+                    break;
             }
         }
 
-        public static AudioSource PlayLoop(string name)
+        public static AudioSource Play(string name, AudioMode mode = AudioMode.Once)
         {
             if (!Instance) return null;
-            var target = GlobalSetting.Audio.Format(name);
-            var source = LoadPool(target).Load();
-            audioLoop.Add(source);
+            var result = GlobalSetting.Audio.Format(name);
+            var source = LoadPool(result).Load();
             source.transform.SetParent(null);
             source.gameObject.SetActive(true);
-            source.clip = AssetManager.Load<AudioClip>(target);
-            source.loop = true;
+            source.clip = AssetManager.Load<AudioClip>(result);
+            source.loop = mode == AudioMode.Loop;
             source.volume = AudioVolume;
             source.Play();
+            audioLoop.Add(source);
             return source;
         }
 
-        public static AudioSource PlayOnce(string name)
+        public static void Stop(AudioState state)
         {
-            if (!Instance) return null;
-            var target = GlobalSetting.Audio.Format(name);
-            var source = LoadPool(target).Load();
-            audioLoop.Add(source);
-            source.transform.SetParent(null);
-            source.gameObject.SetActive(true);
-            source.clip = AssetManager.Load<AudioClip>(target);
-            source.loop = false;
-            source.volume = AudioVolume;
-            source.Play();
-            source.Wait(source.clip.length).OnComplete(() => Stop(source));
-            return source;
+            if (!Instance) return;
+            switch (state)
+            {
+                case AudioState.Play:
+                    audioState = state;
+                    foreach (var audio in audioLoop) audio.Play();
+                    break;
+                case AudioState.Pause:
+                    audioState = state;
+                    foreach (var audio in audioLoop) audio.Pause();
+                    break;
+                case AudioState.Stop:
+                    foreach (var audio in audioLoop) Stop(audio);
+                    break;
+            }
         }
 
         public static void Stop(AudioSource source)
@@ -122,9 +138,9 @@ namespace Astraia.Common
             }
 
             source.Stop();
+            audioLoop.Remove(source);
             source.gameObject.SetActive(false);
             source.transform.SetParent(pool.transform);
-            audioLoop.Remove(source);
             LoadPool(source.name).Push(source);
         }
 
@@ -138,11 +154,6 @@ namespace Astraia.Common
             pool = Pool.Create(typeof(AudioSource), path);
             poolData.Add(path, pool);
             return (Pool)pool;
-        }
-
-        internal static void Dispose()
-        {
-            audioLoop.Clear();
         }
     }
 }

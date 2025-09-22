@@ -136,10 +136,13 @@ namespace Astraia.Common
                     systems[i].Update();
                 }
             }
+
+            AudioManager.Update();
         }
 
         public static void Dispose()
         {
+            audioLoop.Clear();
             systemLoop.Clear();
         }
     }
