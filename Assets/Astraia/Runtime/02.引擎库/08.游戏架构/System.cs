@@ -10,11 +10,24 @@
 // // *********************************************************************************
 
 using System;
-using Astraia.Common;
 
-namespace Astraia
+namespace Astraia.Common
 {
     using static GlobalManager;
+    
+    public interface ISystem
+    {
+        void Update();
+        void Listen() => systemLoop.Add(this);
+        void Remove() => systemLoop.Remove(this);
+    }
+
+    internal interface IPanel
+    {
+        void Update();
+        void Listen() => panelLoop.Add(this);
+        void Remove() => panelLoop.Remove(this);
+    }
 
     internal static class SystemManager
     {
@@ -76,6 +89,12 @@ namespace Astraia
                 }
             }
 
+            if (module is ISystem system)
+            {
+                owner.OnShow += system.Listen;
+                owner.OnHide += system.Remove;
+            }
+
             if (module is IActive active)
             {
                 owner.OnShow += active.OnShow;
@@ -96,6 +115,11 @@ namespace Astraia
 
         public static void Update()
         {
+            for (int i = systemLoop.Count - 1; i >= 0; i--)
+            {
+                systemLoop[i].Update();
+            }
+
             for (int i = panelLoop.Count - 1; i >= 0; i--)
             {
                 panelLoop[i].Update();
@@ -111,6 +135,7 @@ namespace Astraia
         {
             panelLoop.Clear();
             timerLoop.Clear();
+            systemLoop.Clear();
         }
     }
 }

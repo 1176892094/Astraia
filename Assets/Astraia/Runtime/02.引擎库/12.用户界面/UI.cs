@@ -19,16 +19,7 @@ using Object = UnityEngine.Object;
 namespace Astraia.Common
 {
     using static GlobalManager;
-
-    internal interface IPanel
-    {
-        void Update();
-
-        void Listen();
-
-        void Remove();
-    }
-
+    
     public static class UIManager
     {
         private static UIPanel Load(string path, Type type)

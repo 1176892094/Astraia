@@ -39,8 +39,6 @@ namespace Astraia
         internal int groupMask;
 
         void IModule.Create(Entity owner) => Create(owner);
-        void IPanel.Listen() => GlobalManager.panelLoop.Add(this);
-        void IPanel.Remove() => GlobalManager.panelLoop.Remove(this);
 
         internal virtual void Create(Entity owner)
         {

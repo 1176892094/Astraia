@@ -49,12 +49,12 @@ namespace Runtime
                 Feature.OnUpdate();
             }
 
-            Transform.OnUpdate();
+            Transform.Update();
         }
 
         private void LateUpdate()
         {
-            Transform.OnLateUpdate();
+            Transform.LateUpdate();
         }
 
         private void OnDrawGizmos()

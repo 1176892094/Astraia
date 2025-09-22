@@ -19,16 +19,8 @@ using Object = UnityEngine.Object;
 
 namespace Runtime
 {
-    public struct GameSystem : ISystem
-    {
-        public void Update()
-        {
-            GameManager.Instance.Update();
-        }
-    }
-
     [Serializable]
-    public class GameManager : Singleton<GameManager, Entity>, IEvent<ServerReady>, IEvent<ServerConnect>
+    public class GameManager : Singleton<GameManager, Entity>, ISystem, IEvent<ServerReady>, IEvent<ServerConnect>
     {
         [SerializeField] private Vector2 center;
         [SerializeField] private Vector2 content;
