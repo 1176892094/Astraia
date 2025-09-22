@@ -193,12 +193,8 @@ namespace Astraia
                 }
 
                 grids[i] = null;
-                var item = PoolManager.Show(assetPath, assetName, content);
-                var grid = (TGrid)item.GetOrAddComponent(typeof(TGrid));
-                var rect = (RectTransform)grid.transform;
-                rect.sizeDelta = new Vector2(assetRect.width, assetRect.height);
-                rect.localPosition = new Vector3(posX, posY, 0);
-                rect.localScale = Vector3.one;
+                var grid = PoolManager.Show(assetPath, assetName).GetOrAddComponent<TGrid>();
+                SetGrid(grid.GetComponent<RectTransform>(), posX, posY);
                 if (!grids.ContainsKey(i))
                 {
                     grid.Dispose();
@@ -215,6 +211,14 @@ namespace Astraia
 
                 grid.SetItem(items[i]);
             }
+        }
+
+        private void SetGrid(RectTransform transform, float posX, float posY)
+        {
+            transform.transform.SetParent(content);
+            transform.localScale = Vector3.one;
+            transform.localPosition = new Vector3(posX, posY, 0);
+            transform.sizeDelta = new Vector2(assetRect.width, assetRect.height);
         }
 
         public void SetItem(IList<T> items)

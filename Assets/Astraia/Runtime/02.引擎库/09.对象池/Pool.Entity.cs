@@ -35,6 +35,13 @@ namespace Astraia.Common
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
 
+            public void Config(int capacity, int threshold, float timestamp)
+            {
+                Capacity = capacity;
+                Threshold = threshold;
+                Timestamp = timestamp;
+            }
+
             public GameObject Load()
             {
                 Dequeue++;
@@ -112,15 +119,12 @@ namespace Astraia.Common
                 unused.Clear();
             }
 
-            public static Pool Create(Type type, string path, Func<string, GameObject> onCreate, int capacity = 0, int threshold = 0, float timestamp = 0)
+            public static Pool Create(Type type, string path, Func<string, GameObject> onCreate)
             {
                 var instance = new Pool();
                 instance.Type = type;
                 instance.Path = path;
                 instance.OnCreate = onCreate;
-                instance.Capacity = capacity;
-                instance.Threshold = threshold;
-                instance.Timestamp = timestamp;
                 return instance;
             }
         }

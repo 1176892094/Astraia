@@ -105,7 +105,7 @@ namespace Astraia.Common
             }
 
             var result = GlobalSetting.Audio.Format(name);
-            var source = PoolManager.Play(result);
+            var source = PoolManager.GetAudio(result);
             source.clip = AssetManager.Load<AudioClip>(result);
             source.loop = mode == AudioMode.Loop;
             source.volume = AudioVolume;
