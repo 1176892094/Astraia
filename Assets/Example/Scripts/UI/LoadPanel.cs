@@ -16,20 +16,21 @@ using UnityEngine.UI;
 namespace Runtime
 {
     [UIMask(2)]
-    public class LoadPanel : UIPanel, ITween
+    public class LoadPanel : UIPanel, IOnFade
     {
         [Inject] public Image panel;
 
-        Tween ITween.OnShow()
+        public override async void OnShow()
         {
-            var animation = panel.DOFade(1, 0.25f);
-            animation.OnComplete(UIManager.Hide<LoadPanel>);
-            return animation;
+            await panel.DOFade(1, 0.25f);
+            UIManager.Hide<LoadPanel>();
         }
 
-        Tween ITween.OnHide()
+
+        public async void OnFade()
         {
-            return panel.DOFade(0, 0.5f);
+            await panel.DOFade(0, 0.5f);
+            gameObject.SetActive(false);
         }
     }
 }

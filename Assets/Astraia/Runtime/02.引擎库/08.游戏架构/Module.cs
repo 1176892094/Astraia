@@ -30,6 +30,11 @@ namespace Astraia.Common
 
         void OnHide();
     }
+
+    public interface IOnFade
+    {
+        void OnFade();
+    }
 }
 
 namespace Astraia

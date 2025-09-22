@@ -86,25 +86,15 @@ namespace Astraia
             SetActive(panel, true);
         }
 
-        internal static async void SetActive(UIPanel panel, bool state)
+        internal static void SetActive(UIPanel panel, bool state)
         {
-            if (panel is ITween Tween)
+            if (!state && panel is IOnFade onFade)
             {
-                if (state)
-                {
-                    panel.gameObject.SetActive(true);
-                    await Tween.OnShow();
-                }
-                else
-                {
-                    await Tween.OnHide();
-                    panel.gameObject.SetActive(false);
-                }
+                onFade.OnFade();
+                return;
             }
-            else
-            {
-                panel.gameObject.SetActive(state);
-            }
+
+            panel.gameObject.SetActive(state);
         }
     }
 }
