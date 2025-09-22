@@ -26,13 +26,12 @@ namespace Runtime
         }
 
         [ClientRpc]
-        public void LoadEffectClientRpc(Vector3 position)
+        public async void LoadEffectClientRpc(Vector3 position)
         {
-            var obj = PoolManager.Show("Prefabs/Effect");
-            var sprite = obj.GetComponent<SpriteRenderer>();
-            sprite.transform.position = position;
+            var sprite = PoolManager.Show("Prefabs/Effect", position).GetComponent<SpriteRenderer>();
             sprite.color = new Color(0, 0, 0, 1);
-            sprite.DOFade(0, 0.5f).OnComplete(() => PoolManager.Hide(obj));
+            await sprite.DOFade(0, 0.5f);
+            PoolManager.Hide(sprite.gameObject);
         }
     }
 }
