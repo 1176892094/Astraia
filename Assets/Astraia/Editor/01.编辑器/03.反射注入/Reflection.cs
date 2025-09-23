@@ -39,9 +39,9 @@ namespace Astraia
         private static readonly GUIContent content = new();
         private static IEnumerable<EditorWindow> allInspectors;
         private static IEnumerable<EditorWindow> allEditorWindows;
-        public static IEnumerable<EditorWindow> AllInspectors => allInspectors ??= Inspector.GetValue<IList>("m_AllInspectors").Cast<EditorWindow>().Where(r => r.GetType() == Inspector);
-        private static IEnumerable<EditorWindow> AllEditorWindows => allEditorWindows ??= typeof(EditorWindow).GetValue<List<EditorWindow>>("activeEditorWindows");
-        public static IEnumerable<Object> AllDockAreas => AllEditorWindows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent"));
+        public static IEnumerable<EditorWindow> AllInspectors => allInspectors ??= Emit.GetValue<IList>(Inspector, "m_AllInspectors").Cast<EditorWindow>().Where(r => r.GetType() == Inspector);
+        private static IEnumerable<EditorWindow> AllEditorWindows => allEditorWindows ??= Emit.GetValue<List<EditorWindow>>(typeof(EditorWindow), "activeEditorWindows");
+        public static IEnumerable<Object> AllDockAreas => AllEditorWindows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => Emit.GetValue<Object>(w, "m_Parent"));
 
         public static float NameLength(string name)
         {
@@ -51,44 +51,44 @@ namespace Astraia
 
         public static EditorWindow GetHierarchy()
         {
-            return Hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
+            return Emit.GetValue<EditorWindow>(Hierarchy, "s_LastInteractedHierarchy");
         }
 
         public static void HideIcon(EditorWindow window)
         {
             if (!window) return;
-            var result = window.GetValue("m_SceneHierarchy");
+            var result = Emit.GetValue(window, "m_SceneHierarchy");
             if (result == null) return;
-            result = result.GetValue("m_TreeView");
+            result = Emit.GetValue(result, "m_TreeView");
             if (result == null) return;
-            result = result.GetValue("gui");
+            result = Emit.GetValue(result, "gui");
             if (result == null) return;
-            result.SetValue<float>("k_IconWidth", 0);
-            result.SetValue<float>("k_SpaceBetweenIconAndText", 18);
+            Emit.SetValue<float>(result, "k_IconWidth", 0);
+            Emit.SetValue<float>(result, "k_SpaceBetweenIconAndText", 18);
         }
 
         public static void ShowContext(Rect position, Object context)
         {
-            typeof(EditorUtility).Invoke("DisplayObjectContextMenu", position, context, 0);
+            Emit.Invoke(typeof(EditorUtility), "DisplayObjectContextMenu", position, context, 0);
         }
 
         public static IEnumerable<TreeViewItem> GetItems()
         {
-            var window = Browser.GetValue<EditorWindow>("s_LastInteractedProjectBrowser");
+            var window = Emit.GetValue<EditorWindow>(Browser, "s_LastInteractedProjectBrowser");
             if (window == null) return null;
             IEnumerable<TreeViewItem> items = null;
-            var cached = window.GetValue("m_AssetTree");
+            var cached = Emit.GetValue(window, "m_AssetTree");
             if (cached != null)
             {
-                cached = cached.GetValue("data");
-                items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
+                cached = Emit.GetValue(cached, "data");
+                items = Emit.Invoke<IEnumerable<TreeViewItem>>(cached, "GetRows");
             }
 
-            cached = window.GetValue("m_FolderTree");
+            cached = Emit.GetValue(window, "m_FolderTree");
             if (cached != null)
             {
-                cached = cached.GetValue("data");
-                items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
+                cached = Emit.GetValue(cached, "data");
+                items = Emit.Invoke<IEnumerable<TreeViewItem>>(cached, "GetRows");
             }
 
             return items;

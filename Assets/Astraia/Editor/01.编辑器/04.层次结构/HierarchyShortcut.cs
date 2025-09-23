@@ -53,10 +53,10 @@ namespace Astraia
         
         private static void ExpandOrCompose(EditorWindow window)
         {
-            var scene = window.GetValue("m_SceneHierarchy");
-            var tree = scene.GetValue("m_TreeView");
-            var data = tree.GetValue("data");
-            var state = tree.GetValue<TreeViewState>("state");
+            var scene = Emit.GetValue(window, "m_SceneHierarchy");
+            var tree = Emit.GetValue(scene, "m_TreeView");
+            var data = Emit.GetValue(tree, "data");
+            var state = Emit.GetValue<TreeViewState>(tree, "state");
 
             var sceneActive = SceneManager.GetActiveScene();
             int sceneId = sceneActive.handle;
@@ -70,7 +70,7 @@ namespace Astraia
                     var id = state.expandedIDs[i];
                     if (EditorUtility.InstanceIDToObject(id) is GameObject)
                     {
-                        data.Invoke("SetExpanded", id, false);
+                        Emit.Invoke(data, "SetExpanded", id, false);
                     }
                 }
 
@@ -80,14 +80,14 @@ namespace Astraia
             {
                 if (!expandedScenes.Contains(sceneId))
                 {
-                    data.Invoke("SetExpanded", sceneId, true);
+                    Emit.Invoke(data, "SetExpanded", sceneId, true);
                     expandedScenes.Add(sceneId);
                 }
 
                 foreach (var root in sceneActive.GetRootGameObjects())
                 {
                     int rootId = root.GetInstanceID();
-                    data.Invoke("SetExpanded", rootId, true);
+                    Emit.Invoke(data, "SetExpanded", rootId, true);
                     // foreach (Transform child in root.transform)
                     // {
                     //     int childId = child.gameObject.GetInstanceID();

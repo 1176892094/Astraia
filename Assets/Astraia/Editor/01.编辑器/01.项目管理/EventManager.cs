@@ -17,7 +17,7 @@ namespace Astraia
     internal static class EventManager
     {
         private static readonly Event current;
-        private static readonly Event Event = current ??= typeof(Event).GetValue<Event>("s_Current");
+        private static readonly Event Event = current ??= Emit.GetValue<Event>(typeof(Event), "s_Current");
         public static bool isRepaint => Event.type == EventType.Repaint;
         public static bool isLayout => Event.type == EventType.Layout;
         public static KeyCode keyCode => Event.keyCode;

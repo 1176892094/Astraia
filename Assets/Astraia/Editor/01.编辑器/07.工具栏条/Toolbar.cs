@@ -34,7 +34,7 @@ namespace Astraia
             {
                 if (obj is ScriptableObject window)
                 {
-                    var parent = FindElement(window.GetValue<VisualElement>("m_Root"), "unity-editor-toolbar-container");
+                    var parent = FindElement(Emit.GetValue<VisualElement>(window, "m_Root"), "unity-editor-toolbar-container");
                     var element = parent.Q<VisualElement>("ToolbarLeftAlign");
                     if (element == null)
                     {

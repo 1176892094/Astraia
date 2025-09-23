@@ -56,15 +56,15 @@ namespace Astraia.Common
                         {
                             if (property.PropertyType == typeof(int))
                             {
-                                typeof(DataTable<,>).MakeGenericType(typeof(int), assetType).Invoke("Add", assetData, property.Name, nickName);
+                                Emit.Invoke(typeof(DataTable<,>).MakeGenericType(typeof(int), assetType), "Add", assetData, property.Name, nickName);
                             }
                             else if (property.PropertyType.IsEnum)
                             {
-                                typeof(DataTable<,>).MakeGenericType(typeof(Enum), assetType).Invoke("Add", assetData, property.Name, nickName);
+                                Emit.Invoke(typeof(DataTable<,>).MakeGenericType(typeof(Enum), assetType), "Add", assetData, property.Name, nickName);
                             }
                             else if (property.PropertyType == typeof(string))
                             {
-                                typeof(DataTable<,>).MakeGenericType(typeof(string), assetType).Invoke("Add", assetData, property.Name, nickName);
+                                Emit.Invoke(typeof(DataTable<,>).MakeGenericType(typeof(string), assetType), "Add", assetData, property.Name, nickName);
                             }
                         }
                     }

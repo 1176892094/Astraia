@@ -56,7 +56,7 @@ namespace Astraia
                 {
                     if (parent.IsGenericType && parent.GetGenericTypeDefinition() == typeof(EditorSingleton<>))
                     {
-                        windows[result] = result.GetValue<ScriptableObject>("Instance");
+                        windows[result] = Emit.GetValue<ScriptableObject>(result, "Instance");
                     }
                 }
             }

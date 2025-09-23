@@ -16,37 +16,37 @@ namespace Astraia
     public static class Emit
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static object GetValue(this object target, string name)
+        public static object GetValue(object target, string name)
         {
             return EmitHelper.GetValue(target, name);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T GetValue<T>(this object target, string name)
+        public static T GetValue<T>(object target, string name)
         {
             return (T)EmitHelper.GetValue(target, name);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetValue(this object target, string name, object value)
+        public static void SetValue(object target, string name, object value)
         {
             EmitHelper.SetValue(target, name, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetValue<T>(this object target, string name, T value)
+        public static void SetValue<T>(object target, string name, T value)
         {
             EmitHelper.SetValue(target, name, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static object Invoke(this object target, string name, params object[] args)
+        public static object Invoke(object target, string name, params object[] args)
         {
             return EmitHelper.Invoke(target, name, args);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Invoke<T>(this object target, string name, params object[] args)
+        public static T Invoke<T>(object target, string name, params object[] args)
         {
             return (T)EmitHelper.Invoke(target, name, args);
         }

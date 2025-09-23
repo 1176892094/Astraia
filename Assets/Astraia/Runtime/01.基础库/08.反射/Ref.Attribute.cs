@@ -11,12 +11,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace Astraia
 {
-    public static class Attributes<T> where T : Attribute
+    public static class Attribute<T> where T : Attribute
     {
         private static readonly Dictionary<MemberInfo, Dictionary<Type, T[]>> attributeCache = new();
 
@@ -36,7 +35,13 @@ namespace Astraia
 
             if (!mapper.TryGetValue(typeof(T), out var result))
             {
-                result = member.GetCustomAttributes(typeof(T), inherit).Cast<T>().ToArray();
+                var reason = member.GetCustomAttributes(typeof(T), inherit);
+                result = new T[reason.Length];
+                for (int i = 0; i < reason.Length; i++)
+                {
+                    result[i] = (T)reason[i];
+                }
+
                 mapper.Add(typeof(T), result);
             }
 

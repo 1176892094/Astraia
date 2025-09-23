@@ -16,7 +16,7 @@ public class Test : MonoBehaviour
         UIMaskAttribute attr = null;
         for (int i = 0; i < 100000; i++)
         {
-            attr = Attributes<UIMaskAttribute>.GetAttribute(type, false);
+            attr = Attribute<UIMaskAttribute>.GetAttribute(type, false);
             //   CustomAttributeExtensions.GetCustomAttribute<UIMaskAttribute>(type);
         }
 
