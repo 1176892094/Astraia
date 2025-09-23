@@ -130,8 +130,7 @@ namespace Astraia
         public const string EnumPath = Scripts + "/01.枚举类/{0}.cs";
         public const string ItemPath = Scripts + "/02.结构体/{0}.cs";
         public const string DataPath = Scripts + "/03.数据表/{0}DataTable.cs";
-        public const string EditTable = Bundle + "/" + Table + ".asset";
-        public const string EditSheet = Bundle + "/" + Table + "DataTable.asset";
+        public const string EditTable = Bundle + "/" + Table + "DataTable.asset";
         public const string SheetData = "Astraia.Table.{0}Data," + Define;
         public const string SheetName = "Astraia.Table.{0}DataTable";
 #if ODIN_INSPECTOR

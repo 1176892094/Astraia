@@ -140,13 +140,13 @@ namespace Astraia
                 return;
             }
 
-            filePath = Path.GetDirectoryName(GlobalSetting.EditSheet.Format(sheetName));
+            filePath = Path.GetDirectoryName(GlobalSetting.EditTable.Format(sheetName));
             if (!string.IsNullOrEmpty(filePath) && !Directory.Exists(filePath))
             {
                 Directory.CreateDirectory(filePath);
             }
 
-            filePath = GlobalSetting.EditSheet.Format(sheetName);
+            filePath = GlobalSetting.EditTable.Format(sheetName);
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);

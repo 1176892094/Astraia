@@ -52,7 +52,6 @@ namespace Astraia.Common
         {
             if (variables.TryGetValue(owner, out var results))
             {
-                Debug.Log("持有者: {0}  类型: {1}  数量: {2}".Format(owner.name, typeof(T), results.Count));
                 results.Clear();
             }
 
