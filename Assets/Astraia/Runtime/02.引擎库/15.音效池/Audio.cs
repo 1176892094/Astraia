@@ -63,7 +63,14 @@ namespace Astraia.Common
             {
                 for (var i = audioLoop.Count - 1; i >= 0; i--)
                 {
-                    if (!audioLoop[i].isPlaying)
+                    if (audioLoop[i])
+                    {
+                        if (!audioLoop[i].isPlaying)
+                        {
+                            Stop(audioLoop[i]);
+                        }
+                    }
+                    else
                     {
                         Stop(audioLoop[i]);
                     }
@@ -156,9 +163,13 @@ namespace Astraia.Common
                 return;
             }
 
-            source.Stop();
+            if (source)
+            {
+                source.Stop();
+                PoolManager.Hide(source.gameObject);
+            }
+
             audioLoop.Remove(source);
-            PoolManager.Hide(source.gameObject);
         }
 
         internal static void Dispose()
