@@ -22,12 +22,12 @@ namespace Astraia
             return LoadNode(GetRoot(root), func);
         }
 
-        public static void Destroy(this TaskNode root)
+        public static void Enqueue(this TaskNode root)
         {
             if (root == null) return;
             foreach (var child in root.nodes)
             {
-                Destroy(child);
+                Enqueue(child);
             }
 
             root.nodes = Array.Empty<TaskNode>();
