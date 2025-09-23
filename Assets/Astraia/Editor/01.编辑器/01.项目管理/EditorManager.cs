@@ -62,11 +62,11 @@ namespace Astraia
             focusedWindow = EditorWindow.focusedWindow;
             isMaximized = focusedWindow && focusedWindow.maximized;
 
-            var eventHandler = Emit.GetValue<EditorApplication.CallbackFunction>(typeof(EditorApplication), "globalEventHandler");
+            var eventHandler = typeof(EditorApplication).GetValue<EditorApplication.CallbackFunction>("globalEventHandler");
             eventHandler = Folder.Shortcuts + (eventHandler - Folder.Shortcuts);
             eventHandler = Hierarchy.Shortcuts + (eventHandler - Hierarchy.Shortcuts);
             eventHandler = Inspector.Shortcuts + (eventHandler - Inspector.Shortcuts);
-            Emit.SetValue(typeof(EditorApplication), "globalEventHandler", eventHandler);
+            typeof(EditorApplication).SetValue("globalEventHandler", eventHandler);
         }
 
         private static void Update()
@@ -95,7 +95,7 @@ namespace Astraia
                 }
             }
 
-            inputEventLast = Emit.GetValue<Event>(typeof(Event), "s_Current");
+            inputEventLast = typeof(Event).GetValue<Event>("s_Current");
             mouseOverWindow = EditorWindow.mouseOverWindow;
             if (mouseOverWindow)
             {

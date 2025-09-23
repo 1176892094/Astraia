@@ -61,8 +61,8 @@ namespace Astraia
 
             public TabProPage(Object dockArea)
             {
-                panes = Emit.GetValue<List<EditorWindow>>(dockArea, "m_Panes");
-                panel = Emit.GetValue<EditorWindow>(dockArea, "actualView").rootVisualElement.panel;
+                panes = dockArea.GetValue<List<EditorWindow>>("m_Panes");
+                panel = dockArea.GetValue<EditorWindow>("actualView").rootVisualElement.panel;
             }
 
             public void Register()

@@ -79,7 +79,7 @@ namespace Astraia
 
             if (icon == null)
             {
-                icon = Emit.Invoke<Texture2D>(typeof(EditorGUIUtility), "LoadIcon", reason);
+                icon = typeof(EditorGUIUtility).Invoke<Texture2D>("LoadIcon", reason);
             }
 
             if (icon == null)

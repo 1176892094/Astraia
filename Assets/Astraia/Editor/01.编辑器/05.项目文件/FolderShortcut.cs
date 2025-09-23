@@ -45,10 +45,10 @@ namespace Astraia
 
         private static void ExpandOrCompose(EditorWindow window)
         {
-            var mode = Emit.GetValue<int>(window, "m_ViewMode") == 0;
-            var tree = Emit.GetValue(window, mode ? "m_AssetTree" : "m_FolderTree");
-            var data = Emit.GetValue(tree, "data");
-            var state = Emit.GetValue<TreeViewState>(tree, "state");
+            var mode = window.GetValue<int>("m_ViewMode") == 0;
+            var tree = window.GetValue(mode ? "m_AssetTree" : "m_FolderTree");
+            var data = tree.GetValue("data");
+            var state = tree.GetValue<TreeViewState>("state");
 
             string[] roots = { "Assets", "Packages" };
 
@@ -60,7 +60,7 @@ namespace Astraia
                 int rootId = rootObj.GetInstanceID();
                 if (!state.expandedIDs.Contains(rootId))
                 {
-                    Emit.Invoke(data, "SetExpanded", rootId, true);
+                    data.Invoke("SetExpanded", rootId, true);
                 }
 
                 var subDirs = AssetDatabase.GetSubFolders(root);
@@ -86,7 +86,7 @@ namespace Astraia
                         var subObj = AssetDatabase.LoadAssetAtPath<Object>(subDir);
                         if (subObj != null)
                         {
-                            Emit.Invoke(data, "SetExpanded", subObj.GetInstanceID(), true);
+                            data.Invoke("SetExpanded", subObj.GetInstanceID(), true);
                         }
                     }
                 }
@@ -108,7 +108,7 @@ namespace Astraia
             var subObj = AssetDatabase.LoadAssetAtPath<Object>(folder);
             if (subObj != null)
             {
-                Emit.Invoke(data, "SetExpanded", subObj.GetInstanceID(), false);
+                data.Invoke("SetExpanded", subObj.GetInstanceID(), false);
                 var subDirs = AssetDatabase.GetSubFolders(folder);
                 foreach (var subDir in subDirs)
                 {

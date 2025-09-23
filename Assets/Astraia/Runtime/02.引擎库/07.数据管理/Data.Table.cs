@@ -39,7 +39,7 @@ namespace Astraia.Common
                     {
                         foreach (var item in dataTable.items)
                         {
-                            var data = Emit.GetValue<Key>(item, property);
+                            var data = item.GetValue<Key>(property);
                             if (!itemData.TryAdd(data, item))
                             {
                                 Debug.LogWarning("加载数据 {0} 失败。键值重复: {1}".Format(name, data));

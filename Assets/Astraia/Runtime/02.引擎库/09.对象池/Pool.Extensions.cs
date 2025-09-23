@@ -112,17 +112,17 @@ namespace Astraia
                         var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
                         if (panel != null)
                         {
-                            Emit.GetValue<UnityEvent>(button, "onClick").AddListener(() =>
+                            button.GetValue<UnityEvent>("onClick").AddListener(() =>
                             {
                                 if (panel.state != UIState.Freeze)
                                 {
-                                    Emit.Invoke(target, upper);
+                                    target.Invoke(upper);
                                 }
                             });
                             return;
                         }
 
-                        Emit.GetValue<UnityEvent>(button, "onClick").AddListener(() => Emit.Invoke(target, upper));
+                        button.GetValue<UnityEvent>("onClick").AddListener(() => target.Invoke(upper));
                         continue;
                     }
 
@@ -132,17 +132,17 @@ namespace Astraia
                         var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
                         if (panel != null)
                         {
-                            Emit.GetValue<UnityEvent<bool>>(toggle, "onValueChanged").AddListener(value =>
+                            toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value =>
                             {
                                 if (panel.state != UIState.Freeze)
                                 {
-                                    Emit.Invoke(target, upper, value);
+                                    target.Invoke(upper, value);
                                 }
                             });
                             return;
                         }
 
-                        Emit.GetValue<UnityEvent<bool>>(toggle, "onValueChanged").AddListener(value => Emit.Invoke(target, upper, value));
+                        toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value => target.Invoke(upper, value));
                         continue;
                     }
 
@@ -152,17 +152,17 @@ namespace Astraia
                         var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
                         if (panel != null)
                         {
-                            Emit.GetValue<UnityEvent<string>>(inputField, "onSubmit").AddListener(value =>
+                            inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                             {
                                 if (panel.state != UIState.Freeze)
                                 {
-                                    Emit.Invoke(target, upper, value);
+                                    target.Invoke(upper, value);
                                 }
                             });
                             return;
                         }
 
-                        Emit.GetValue<UnityEvent<string>>(inputField, "onSubmit").AddListener(value => Emit.Invoke(target, upper, value));
+                        inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => target.Invoke(upper, value));
                     }
                 }
             }

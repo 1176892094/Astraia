@@ -120,7 +120,7 @@ namespace Astraia.Common
         {
             foreach (var variable in owner.variables)
             {
-                Emit.Invoke(typeof(Variable<>).MakeGenericType(variable), "Dispose", owner);
+                typeof(Variable<>).MakeGenericType(variable).Invoke("Dispose", owner);
             }
 
             owner.variables.Clear();
