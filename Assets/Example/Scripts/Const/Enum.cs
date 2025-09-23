@@ -10,7 +10,6 @@
 // // *********************************************************************************
 
 using System;
-using UnityEngine;
 
 namespace Runtime
 {
@@ -46,12 +45,12 @@ namespace Runtime
 
     public static class StateConst
     {
-        public static readonly int Hop = Animator.StringToHash(nameof(Hop));
-        public static readonly int Idle = Animator.StringToHash(nameof(Idle));
-        public static readonly int Walk = Animator.StringToHash(nameof(Walk));
-        public static readonly int Jump = Animator.StringToHash(nameof(Jump));
-        public static readonly int Dash = Animator.StringToHash(nameof(Dash));
-        public static readonly int Grab = Animator.StringToHash(nameof(Grab));
-        public static readonly int Crash = Animator.StringToHash(nameof(Crash));
+        public const int Hop = 866648894;
+        public const int Idle = 2081823275;
+        public const int Walk = 765711723;
+        public const int Jump = 125937960;
+        public const int Dash = 995914302;
+        public const int Grab = -1347921612;
+        public const int Crash = 371843035;
     }
 }

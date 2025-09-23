@@ -18,29 +18,10 @@ namespace Astraia.Common
 
     public interface ISystem
     {
+        int index => 0;
         void Update();
-
-        void AddSystem()
-        {
-            var result = Attribute<SystemAttribute>.GetAttribute(GetType());
-            if (result != null)
-            {
-                SystemManager.AddSystem(result.index, this);
-            }
-
-            SystemManager.AddSystem(0, this);
-        }
-
-        void SubSystem()
-        {
-            var result = Attribute<SystemAttribute>.GetAttribute(GetType());
-            if (result != null)
-            {
-                SystemManager.SubSystem(result.index, this);
-            }
-
-            SystemManager.SubSystem(0, this);
-        }
+        void AddSystem() => SystemManager.AddSystem(index, this);
+        void SubSystem() => SystemManager.SubSystem(index, this);
     }
 
     internal static class SystemManager

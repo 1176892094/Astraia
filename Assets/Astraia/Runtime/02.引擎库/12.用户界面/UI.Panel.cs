@@ -32,7 +32,6 @@ namespace Astraia
         }
     }
 
-    [System(10)]
     public abstract partial class UIPanel
     {
         internal int layerMask;
