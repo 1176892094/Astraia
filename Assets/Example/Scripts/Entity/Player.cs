@@ -16,10 +16,10 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
+        public PlayerInput Input => FindComponent<PlayerInput>();
         public PlayerSender Sender => FindComponent<PlayerSender>();
         public PlayerMachine Machine => FindComponent<PlayerMachine>();
         public PlayerFeature Feature => FindComponent<PlayerFeature>();
-        public PlayerOperate Operate => FindComponent<PlayerOperate>();
         public NetworkTransform Transform => FindComponent<NetworkTransform>();
         private Ray2D DLRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
         private Ray2D DRRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
@@ -35,7 +35,7 @@ namespace Runtime
             base.Awake();
             AddComponent(typeof(PlayerFeature));
             AddComponent(typeof(PlayerMachine));
-            AddComponent(typeof(PlayerOperate));
+            AddComponent(typeof(PlayerInput));
             Transform.syncDirection = SyncMode.Client;
         }
 
@@ -44,9 +44,9 @@ namespace Runtime
         {
             if (isOwner)
             {
-                Operate.OnUpdate();
-                Machine.OnUpdate();
-                Feature.OnUpdate();
+                Input.Update();
+                Machine.Update();
+                Feature.Update();
             }
 
             Transform.Update();

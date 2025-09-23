@@ -34,7 +34,7 @@ namespace Runtime
             SetFloat(Attribute.DashSpeed, 5);
         }
 
-        public void OnUpdate()
+        public void Update()
         {
             if (owner.DRHit || owner.DLHit)
             {

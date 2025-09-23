@@ -18,7 +18,6 @@ namespace Runtime
     {
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
-        private PlayerFeature Feature => owner.Feature;
 
         public float velocityX
         {
@@ -57,106 +56,6 @@ namespace Runtime
         {
             rigidbody = owner.GetComponent<Rigidbody2D>();
             renderer = owner.GetComponent<SpriteRenderer>();
-        }
-
-        public void OnUpdate()
-        {
-            if (Feature.moveX > 0)
-            {
-                transform.localScale = new Vector3(Feature.moveX, 1, 1);
-            }
-            else if (Feature.moveX < 0)
-            {
-                transform.localScale = new Vector3(Feature.moveX, 1, 1);
-            }
-
-            DashUpdate();
-
-            if (Feature.state.HasFlag(StateType.Ground))
-            {
-                Feature.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
-                JumpUpdate();
-            }
-            else if (Feature.state.HasFlag(StateType.Wall))
-            {
-                if (!Feature.state.HasFlag(StateType.Climb))
-                {
-                    FallUpdate();
-                }
-
-                Feature.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
-                JumpUpdate();
-            }
-            else
-            {
-                FallUpdate();
-            }
-
-            if (Feature.GetFloat(Attribute.JumpGrace) > Time.time)
-            {
-                JumpUpdate();
-            }
-
-            Update();
-        }
-
-        private void FallUpdate()
-        {
-            if (Feature.state.HasFlag(StateType.Dash))
-            {
-                return;
-            }
-
-            if (Feature.state.HasFlag(StateType.Jumping))
-            {
-                velocityY -= 9.81f * Time.deltaTime;
-            }
-            else
-            {
-                velocityY -= 9.81f * Time.deltaTime * 2;
-            }
-
-            velocityY = Mathf.Max(-5, velocityY);
-        }
-
-        private void JumpUpdate()
-        {
-            if (Feature.GetInt(Attribute.JumpCount) <= 0)
-            {
-                return;
-            }
-
-            if (Feature.GetFloat(Attribute.JumpInput) < Time.time)
-            {
-                return;
-            }
-
-            if (!Feature.state.HasFlag(StateType.Jump))
-            {
-                Switch(StateConst.Jump);
-            }
-
-            Feature.SetFloat(Attribute.JumpInput, Time.time);
-        }
-
-        private void DashUpdate()
-        {
-            if (Feature.GetInt(Attribute.DashCount) <= 0)
-            {
-                return;
-            }
-
-            if (Feature.GetFloat(Attribute.DashInput) < Time.time)
-            {
-                return;
-            }
-
-            if (!Feature.state.HasFlag(StateType.Dash))
-            {
-                Switch(StateConst.Dash);
-            }
-
-            Feature.SetFloat(Attribute.DashInput, Time.time);
         }
     }
 }
