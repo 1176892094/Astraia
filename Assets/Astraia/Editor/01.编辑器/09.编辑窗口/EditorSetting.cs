@@ -88,6 +88,33 @@ namespace Astraia
             menuTree.MenuItems.Insert(0, menuItem);
             return menuTree;
         }
+
+        public class BooleanDrawer : OdinValueDrawer<bool>
+        {
+            protected override void DrawPropertyLayout(GUIContent label)
+            {
+                GUILayout.BeginHorizontal();
+                var value = ValueEntry.SmartValue;
+
+                GUILayout.Label(label, GUILayout.Width(EditorGUIUtility.labelWidth - 4));
+
+                var color = GUI.backgroundColor;
+                GUI.backgroundColor = value ? Color.green : color * 0.8f;
+                if (GUILayout.Button("Yes", SirenixGUIStyles.ButtonLeft))
+                {
+                    ValueEntry.SmartValue = true;
+                }
+
+                GUI.backgroundColor = !value ? Color.yellow : color * 0.8f;
+                if (GUILayout.Button("No", SirenixGUIStyles.ButtonRight))
+                {
+                    ValueEntry.SmartValue = false;
+                }
+
+                GUI.backgroundColor = color;
+                GUILayout.EndHorizontal();
+            }
+        }
 #endif
         [MenuItem("Tools/Astraia/表格数据导入", priority = 5)]
         private static async void ExcelToScripts()
@@ -139,6 +166,7 @@ namespace Astraia
                     EditorUtility.ClearProgressBar();
                 }
             }
+
             EditorApplication.delayCall -= DataManager.LoadDataTable;
             EditorApplication.delayCall += DataManager.LoadDataTable;
         }
