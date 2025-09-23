@@ -32,12 +32,12 @@ namespace Astraia
         }
     }
 
+    [System(10)]
     public abstract partial class UIPanel
     {
         internal int layerMask;
         internal int groupMask;
 
-        int ISystem.index => 10;
         void IModule.Create(Entity owner) => Create(owner);
 
         internal virtual void Create(Entity owner)
