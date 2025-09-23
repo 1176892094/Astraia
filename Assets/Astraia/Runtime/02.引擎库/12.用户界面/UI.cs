@@ -12,7 +12,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -25,7 +24,7 @@ namespace Astraia.Common
         private static UIPanel Load(string path, Type type)
         {
             var name = path;
-            var item = type.GetCustomAttribute<UIPathAttribute>(true);
+            var item = Attribute<UIPathAttribute>.GetAttribute(type);
             if (item != null)
             {
                 path = GlobalSetting.Prefab.Format(item.assetPath);

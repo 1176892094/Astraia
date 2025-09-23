@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using System.Reflection;
 using Astraia.Common;
 
 namespace Astraia
@@ -45,7 +44,7 @@ namespace Astraia
         {
             this.owner = owner;
             var current = GetType();
-            var attribute = current.GetCustomAttribute<UIMaskAttribute>(true);
+            var attribute = Attribute<UIMaskAttribute>.GetAttribute(current);
             if (attribute != null)
             {
                 layerMask = attribute.layerMask;
@@ -54,7 +53,7 @@ namespace Astraia
             groupMask = 0;
             while (current != null)
             {
-                attribute = current.GetCustomAttribute<UIMaskAttribute>(false);
+                attribute = Attribute<UIMaskAttribute>.GetAttribute(current, false);
                 if (attribute != null)
                 {
                     groupMask |= attribute.groupMask;

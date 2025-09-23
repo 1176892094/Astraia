@@ -10,7 +10,6 @@
 // // *********************************************************************************
 
 using System;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -67,7 +66,7 @@ namespace Astraia
             var fields = target.GetType().GetFields(Service.Ref.Instance);
             foreach (var field in fields)
             {
-                if (field.GetCustomAttribute<InjectAttribute>(true) == null)
+                if (Attribute<InjectAttribute>.GetAttribute(field) == null)
                 {
                     continue;
                 }

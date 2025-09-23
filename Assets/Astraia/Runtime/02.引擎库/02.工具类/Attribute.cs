@@ -26,7 +26,7 @@ namespace Astraia
     public class PrimaryAttribute : Attribute
     {
     }
-    
+
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]
     public class SystemAttribute : Attribute

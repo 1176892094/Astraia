@@ -41,7 +41,7 @@ namespace Astraia
         internal override void Create(Entity owner)
         {
             base.Create(owner);
-            var panelAttr = GetType().GetCustomAttribute<UIRectAttribute>(true);
+            var panelAttr = Attribute<UIRectAttribute>.GetAttribute(GetType());
             if (panelAttr != null)
             {
                 vertical = panelAttr.vertical;
@@ -52,7 +52,7 @@ namespace Astraia
             assetName = GlobalSetting.Prefab.Format(typeof(TGrid).Name);
             assetPath = assetName;
 
-            var asstAttr = typeof(TGrid).GetCustomAttribute<UIPathAttribute>(true);
+            var asstAttr = Attribute<UIPathAttribute>.GetAttribute(typeof(TGrid));
             if (asstAttr != null)
             {
                 assetPath = GlobalSetting.Prefab.Format(asstAttr.assetPath);
