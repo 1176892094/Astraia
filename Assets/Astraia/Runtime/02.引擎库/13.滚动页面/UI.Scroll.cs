@@ -12,7 +12,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using Astraia.Common;
 using UnityEngine;
 
@@ -38,9 +37,9 @@ namespace Astraia
         private int numX => (int)assetRect.x + (vertical ? 0 : 1);
         private int numY => (int)assetRect.y + (vertical ? 1 : 0);
 
-        internal override void Create(Entity owner)
+        internal override void Acquire(Entity owner)
         {
-            base.Create(owner);
+            base.Acquire(owner);
             var panelAttr = Attribute<UIRectAttribute>.GetAttribute(GetType());
             if (panelAttr != null)
             {

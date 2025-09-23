@@ -9,9 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using UnityEngine;
-
-
 namespace Astraia.Common
 {
     public interface IMove
@@ -21,10 +18,6 @@ namespace Astraia.Common
 
     public interface IGrid
     {
-        Transform transform { get; }
-
-        GameObject gameObject { get; }
-
         void Select();
 
         void Dispose();

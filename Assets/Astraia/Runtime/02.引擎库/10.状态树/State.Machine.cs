@@ -28,7 +28,7 @@ namespace Astraia
             {
                 item = HeapManager.Dequeue<IState>(value);
                 states.Add(key, item);
-                item.Create(owner);
+                item.Acquire(owner);
             }
         }
 

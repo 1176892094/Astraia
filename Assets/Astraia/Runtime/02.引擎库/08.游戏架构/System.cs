@@ -87,7 +87,7 @@ namespace Astraia.Common
         private static void AddEvent(Entity owner, IModule module)
         {
             owner.Inject(module);
-            module.Create(owner);
+            module.Acquire(owner);
             module.Dequeue();
 
             var events = module.GetType().GetInterfaces();

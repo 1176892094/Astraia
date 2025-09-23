@@ -17,7 +17,7 @@ namespace Astraia.Common
 {
     public interface IModule
     {
-        void Create(Entity owner);
+        void Acquire(Entity owner);
 
         void Dequeue();
 
@@ -30,11 +30,6 @@ namespace Astraia.Common
 
         void OnHide();
     }
-
-    public interface IOnFade
-    {
-        void OnFade();
-    }
 }
 
 namespace Astraia
@@ -46,7 +41,7 @@ namespace Astraia
         public Transform transform => owner?.transform;
         public GameObject gameObject => owner?.gameObject;
 
-        void IModule.Create(Entity owner)
+        void IModule.Acquire(Entity owner)
         {
             this.owner = (T)owner;
         }
@@ -74,7 +69,7 @@ namespace Astraia
     {
         public static T Instance { get; private set; }
 
-        void IModule.Create(Entity owner)
+        void IModule.Acquire(Entity owner)
         {
             Instance = (T)this;
             this.owner = (TOwner)owner;

@@ -15,7 +15,7 @@ using Astraia.Common;
 namespace Astraia
 {
     [Serializable]
-    public abstract partial class UIPanel : Module<Entity>, IModule, ISystem, IActive
+    public abstract partial class UIPanel : Module<Entity>, IModule, ISystem
     {
         public UIState state = UIState.Common;
 
@@ -38,9 +38,9 @@ namespace Astraia
         internal int groupMask;
 
         int ISystem.index => 10;
-        void IModule.Create(Entity owner) => Create(owner);
+        void IModule.Acquire(Entity owner) => Acquire(owner);
 
-        internal virtual void Create(Entity owner)
+        internal virtual void Acquire(Entity owner)
         {
             this.owner = owner;
             var current = GetType();

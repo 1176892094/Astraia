@@ -88,13 +88,25 @@ namespace Astraia
 
         internal static void SetActive(UIPanel panel, bool state)
         {
-            if (!state && panel is IOnFade onFade)
+            if (state != panel.gameObject.activeSelf)
             {
-                onFade.OnFade();
-                return;
-            }
+                if (state)
+                {
+                    panel.gameObject.SetActive(true);
+                    panel.OnShow();
+                    return;
+                }
 
-            panel.gameObject.SetActive(state);
+                if (panel is ITween)
+                {
+                    panel.OnHide();
+                }
+                else
+                {
+                    panel.OnHide();
+                    panel.gameObject.SetActive(false);
+                }
+            }
         }
     }
 }

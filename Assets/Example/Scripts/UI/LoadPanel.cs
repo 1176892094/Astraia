@@ -16,7 +16,7 @@ using UnityEngine.UI;
 namespace Runtime
 {
     [UIMask(2)]
-    public class LoadPanel : UIPanel, IOnFade
+    public class LoadPanel : UIPanel, ITween
     {
         [Inject] public Image panel;
 
@@ -27,7 +27,7 @@ namespace Runtime
         }
 
 
-        public async void OnFade()
+        public override async void OnHide()
         {
             await panel.DOFade(0, 0.5f);
             gameObject.SetActive(false);

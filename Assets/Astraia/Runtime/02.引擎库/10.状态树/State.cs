@@ -16,7 +16,7 @@ namespace Astraia.Common
 {
     public interface IState
     {
-        void Create(Entity owner);
+        void Acquire(Entity owner);
         void OnEnter();
         void OnUpdate();
         void OnExit();
@@ -31,17 +31,17 @@ namespace Astraia
         public T owner { get; protected set; }
         public INode node;
 
-        void IState.Create(Entity owner)
+        void IState.Acquire(Entity owner)
         {
             this.owner = (T)owner;
-            node = Create();
+            node = Acquire();
         }
 
         void IState.OnEnter() => OnEnter();
         void IState.OnUpdate() => node.Tick();
         void IState.OnExit() => OnExit();
 
-        protected virtual INode Create()
+        protected virtual INode Acquire()
         {
             return Node.Create(OnUpdate);
         }
