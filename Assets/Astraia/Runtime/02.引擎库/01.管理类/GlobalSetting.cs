@@ -31,7 +31,7 @@ namespace Astraia
         private static GlobalSetting instance;
 
         public static GlobalSetting Instance => instance ??= Resources.Load<GlobalSetting>(nameof(GlobalSetting));
-        
+
         public const string Scene = "Scenes/{0}";
         public const string Audio = "Audios/{0}";
         public const string Table = "DataTable/{0}";
@@ -157,7 +157,7 @@ namespace Astraia
         [ShowInInspector]
 #endif
         public static string RemoteAssetData => Path.Combine(RemoteAssetPath, Verify);
-
+#if ODIN_INSPECTOR
         private IEnumerable<ValueDropdownItem<byte>> UpdateEncryptGroup()
         {
             for (byte i = 1; i <= EncryptGroup.Length; i++)
@@ -165,7 +165,7 @@ namespace Astraia
                 yield return new ValueDropdownItem<byte>(EncryptGroup[i - 1], i);
             }
         }
-
+#endif
         public static void UpdateSceneSetting()
         {
             var assets = EditorBuildSettings.scenes.Select(scene => scene.path).ToHashSet();
