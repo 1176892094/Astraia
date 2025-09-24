@@ -23,7 +23,6 @@ namespace Astraia
     public partial class Entity : MonoBehaviour
     {
         internal Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
-        internal List<Type> variables = new List<Type>();
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
@@ -58,7 +57,6 @@ namespace Astraia
             OnHide = null;
             moduleList.Clear();
             moduleData.Clear();
-            SystemManager.Destroy(this);
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -117,22 +115,6 @@ namespace Astraia
         public IEnumerable<IModule> FindComponents()
         {
             return moduleData.Values;
-        }
-    }
-
-    public static partial class Extensions
-    {
-        public static T GetValue<T>(this Entity owner, Enum id, T value = default)
-        {
-            return Variable<T>.Get(owner, id, value);
-        }
-
-        public static void SetValue<T>(this Entity owner, Enum id, T value)
-        {
-            if (owner && owner.variables != null)
-            {
-                Variable<T>.Set(owner, id, value);
-            }
         }
     }
 }

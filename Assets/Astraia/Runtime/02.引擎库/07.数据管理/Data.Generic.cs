@@ -40,7 +40,7 @@ namespace Astraia
 
             public static void Add(List<TData> items, string name)
             {
-                if (itemData != null)
+                if (Application.isPlaying && itemData != null)
                 {
                     return;
                 }
@@ -70,7 +70,7 @@ namespace Astraia
                 {
                     return item;
                 }
-                
+
                 return default;
             }
         }

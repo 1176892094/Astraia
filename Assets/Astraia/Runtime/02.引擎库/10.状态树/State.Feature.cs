@@ -19,9 +19,9 @@ namespace Astraia
     {
         private readonly Dictionary<Enum, Xor.Float> features = new Dictionary<Enum, Xor.Float>();
 
-        public float GetFloat(Enum key)
+        public float GetFloat(Enum key, float value = 0)
         {
-            features.TryAdd(key, 0);
+            features.TryAdd(key, value);
             return features[key];
         }
 
@@ -43,9 +43,9 @@ namespace Astraia
             features[key] -= value;
         }
 
-        public int GetInt(Enum key)
+        public int GetInt(Enum key, float value = 0)
         {
-            features.TryAdd(key, 0);
+            features.TryAdd(key, value);
             return (int)features[key];
         }
 

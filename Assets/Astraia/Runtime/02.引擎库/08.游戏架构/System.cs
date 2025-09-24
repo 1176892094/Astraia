@@ -116,17 +116,6 @@ namespace Astraia.Common
             }
         }
 
-        public static void Destroy(Entity owner)
-        {
-            foreach (var variable in owner.variables)
-            {
-                Emit.Invoke(typeof(Variable<>).MakeGenericType(variable), "Dispose", owner);
-            }
-
-            owner.variables.Clear();
-            owner.variables = null;
-        }
-
         public static void Update()
         {
             foreach (var systems in systemLoop.Values)

@@ -37,8 +37,8 @@ namespace Astraia.Common
             if (!Instance) return null;
             var item = LoadPool(path).Load();
             item.transform.SetParent(null);
-            item.transform.position = position;
             item.SetActive(true);
+            item.transform.position = position;
             return item;
         }
 
@@ -47,9 +47,9 @@ namespace Astraia.Common
             if (!Instance) return null;
             var item = LoadPool(path).Load();
             item.transform.SetParent(null);
+            item.SetActive(true);
             item.transform.position = position;
             item.transform.rotation = rotation;
-            item.SetActive(true);
             return item;
         }
 
@@ -58,8 +58,8 @@ namespace Astraia.Common
             if (!Instance) return null;
             var item = LoadPool(path).Load();
             item.transform.SetParent(parent);
-            item.transform.localPosition = Vector3.zero;
             item.SetActive(true);
+            item.transform.localPosition = Vector3.zero;
             return item;
         }
 
@@ -68,9 +68,9 @@ namespace Astraia.Common
             if (!Instance) return null;
             var item = LoadPool(path).Load();
             item.transform.SetParent(parent);
+            item.SetActive(true);
             item.transform.localScale = scale;
             item.transform.localPosition = Vector3.zero;
-            item.SetActive(true);
             return item;
         }
 
