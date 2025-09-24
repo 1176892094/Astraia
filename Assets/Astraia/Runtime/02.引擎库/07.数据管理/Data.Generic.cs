@@ -17,23 +17,62 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public abstract class DataTable<T> : ScriptableObject, IDataTable where T : IData
+    public abstract class DataTable<TData> : ScriptableObject, IDataTable where TData : IData
     {
-        internal static List<T> Items;
-        public List<T> items = new List<T>();
-        void IDataTable.AddData(IData data) => items.Add((T)data);
-    }
-}
+        [SerializeField] internal List<TData> items = new List<TData>();
 
-namespace Astraia.Common
-{
-    public interface IData
-    {
-        void Create(string[] sheet, int column);
-    }
+        internal static DataTable<TData> Instance;
 
-    internal interface IDataTable
-    {
-        void AddData(IData data);
+        void IDataTable.AddData(IData data)
+        {
+            items.Add((TData)data);
+        }
+
+        void IDataTable.AddData<TKey>(string name)
+        {
+            Instance = this;
+            By<TKey>.Add(items, name);
+        }
+
+        internal static class By<TKey>
+        {
+            private static Dictionary<TKey, TData> itemData;
+
+            public static void Add(List<TData> items, string name)
+            {
+                if (itemData != null)
+                {
+                    return;
+                }
+
+                itemData = new Dictionary<TKey, TData>();
+                foreach (var item in items)
+                {
+                    var index = item.GetValue<TKey>(name);
+                    if (itemData.TryGetValue(index, out var value))
+                    {
+                        Debug.LogWarning("加载数据 {0} 失败。键值重复: {1}".Format(value, index));
+                        continue;
+                    }
+
+                    itemData.Add(index, item);
+                }
+            }
+
+            public static TData Get(TKey key)
+            {
+                if (itemData == null)
+                {
+                    return default;
+                }
+
+                if (itemData.TryGetValue(key, out var item))
+                {
+                    return item;
+                }
+                
+                return default;
+            }
+        }
     }
 }

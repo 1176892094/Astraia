@@ -11,12 +11,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Astraia.Common
 {
-    public static partial class DataManager
+    public static class DataManager
     {
         public static void LoadDataTable()
         {
@@ -41,30 +41,30 @@ namespace Astraia.Common
                 EventManager.Invoke(new OnDataComplete());
                 return;
             }
-
+            
             foreach (var assetName in assetNames)
             {
                 var nickName = assetName.Substring(assetName.LastIndexOf('.') + 1);
                 try
                 {
-                    var assetData = AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(nickName));
+                    var assetData = (IDataTable)AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(nickName));
                     var assetType = assembly.GetType(assetName.Substring(0, assetName.Length - 5));
                     var properties = assetType.GetProperties(Service.Ref.Instance);
                     foreach (var property in properties)
                     {
-                        if (property.GetCustomAttribute(typeof(PrimaryAttribute)) != null)
+                        if (Attribute<PrimaryAttribute>.GetAttribute(property) != null)
                         {
                             if (property.PropertyType == typeof(int))
                             {
-                                typeof(DataTable<,>).MakeGenericType(typeof(int), assetType).Invoke("Add", assetData, property.Name, nickName);
+                                assetData.AddData<int>(property.Name);
                             }
                             else if (property.PropertyType.IsEnum)
                             {
-                                typeof(DataTable<,>).MakeGenericType(typeof(Enum), assetType).Invoke("Add", assetData, property.Name, nickName);
+                                assetData.AddData<Enum>(property.Name);
                             }
                             else if (property.PropertyType == typeof(string))
                             {
-                                typeof(DataTable<,>).MakeGenericType(typeof(string), assetType).Invoke("Add", assetData, property.Name, nickName);
+                                assetData.AddData<string>(property.Name);
                             }
                         }
                     }
@@ -74,33 +74,32 @@ namespace Astraia.Common
                     Debug.LogError("加载 {0} 数据失败!\n{1}".Format(nickName, e));
                 }
             }
-
             EventManager.Invoke(new OnDataComplete());
         }
 
         public static T Get<T>(int key) where T : IData
         {
-            return DataTable<int, T>.Get(key);
+            return DataTable<T>.By<int>.Get(key);
         }
 
         public static T Get<T>(Enum key) where T : IData
         {
-            return DataTable<Enum, T>.Get(key);
+            return DataTable<T>.By<Enum>.Get(key);
         }
 
         public static T Get<T>(string key) where T : IData
         {
-            return DataTable<string, T>.Get(key);
+            return DataTable<T>.By<string>.Get(key);
         }
 
         public static IReadOnlyList<T> GetTable<T>() where T : IData
         {
-            if (DataTable<T>.Items != null)
+            if (DataTable<T>.Instance)
             {
-                return DataTable<T>.Items;
+                return DataTable<T>.Instance.items;
             }
 
-            Debug.LogError("获取 {0} 失败!".Format(typeof(T).Name));
+            Debug.LogWarning("获取 {0} 失败!".Format(typeof(T).Name));
             return null;
         }
     }

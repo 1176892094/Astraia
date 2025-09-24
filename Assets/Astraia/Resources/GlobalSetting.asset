@@ -53,7 +53,7 @@ MonoBehaviour:
   m_Name: GlobalSetting
   m_EditorClassIdentifier: 
   BuildTarget: 9
-  AssetMode: 1
+  AssetMode: 0
   EncryptKey: 1
   LocalPath: http://192.168.1.5:8000/Documents/GitHub/Astraia-Game
   RemotePath: http://192.168.0.3:8000
