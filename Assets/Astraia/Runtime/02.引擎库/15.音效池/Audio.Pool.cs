@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using UnityEngine;
 
 namespace Astraia.Common
@@ -17,29 +18,29 @@ namespace Astraia.Common
 
     public static partial class PoolManager
     {
-        internal static AudioSource GetAudio(string path)
+        internal static AudioSource Show(string path, Type type)
         {
             if (!Instance) return null;
-            var item = LoadAudio(path).Load();
+            var item = LoadPool(path, type).Load();
             item.transform.SetParent(null);
             item.gameObject.SetActive(true);
             return item.GetComponent<AudioSource>();
         }
 
-        private static Pool LoadAudio(string path)
+        private static Pool LoadPool(string path, Type type)
         {
             if (poolData.TryGetValue(path, out var pool))
             {
                 return (Pool)pool;
             }
 
-            pool = Pool.Create(typeof(AudioSource), path, AddAudio);
+            pool = Pool.Create(type, path, Create);
             poolData.Add(path, pool);
             Config(path, 3, 3, 1);
             return (Pool)pool;
         }
 
-        private static GameObject AddAudio(string path)
+        private static GameObject Create(string path)
         {
             return new GameObject(path, typeof(AudioSource));
         }

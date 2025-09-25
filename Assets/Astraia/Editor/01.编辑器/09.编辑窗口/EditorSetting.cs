@@ -143,6 +143,8 @@ namespace Astraia
                     AssetDatabase.Refresh();
                     EditorUtility.ClearProgressBar();
                 }
+
+                DataManager.LoadDataTable();
             }
         }
 
