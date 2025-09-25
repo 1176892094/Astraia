@@ -66,6 +66,7 @@ namespace Astraia
                 if (!writeAssets)
                 {
                     await WriteAssets(filePaths);
+                    DataManager.LoadDataTable();
                 }
 
                 return writeAssets;
