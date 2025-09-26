@@ -45,7 +45,17 @@ namespace Astraia
                             {
                                 Log.Warn(e.ToString());
                                 context.Response.StatusCode = 500;
-                                context.Response.Close();
+                            }
+                            finally
+                            {
+                                try
+                                {
+                                    context.Response.Close();
+                                }
+                                catch
+                                {
+                                    // ignored
+                                }
                             }
                         });
                     }
