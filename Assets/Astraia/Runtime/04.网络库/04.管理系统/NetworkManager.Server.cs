@@ -267,15 +267,15 @@ namespace Astraia.Net
                 if (clientId == 0)
                 {
                     Debug.LogWarning(Log.E239.Format(clientId));
-                    Transport.Instance.StopClient(clientId);
+                    Transport.Instance.Disconnect(clientId);
                 }
                 else if (clients.ContainsKey(clientId))
                 {
-                    Transport.Instance.StopClient(clientId);
+                    Transport.Instance.Disconnect(clientId);
                 }
                 else if (clients.Count >= Instance.connection)
                 {
-                    Transport.Instance.StopClient(clientId);
+                    Transport.Instance.Disconnect(clientId);
                 }
                 else
                 {

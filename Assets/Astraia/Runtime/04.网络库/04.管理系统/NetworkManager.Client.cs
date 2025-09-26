@@ -95,7 +95,7 @@ namespace Astraia.Net
                 state = State.Disconnect;
                 if (Transport.Instance != null)
                 {
-                    Transport.Instance.StopClient();
+                    Transport.Instance.Disconnect();
                 }
 
                 sendTime = 0;

@@ -26,9 +26,9 @@ namespace Astraia.Net
             NetworkManager.Lobby.connection = connection;
         }
 
-        public override int SendLength(int channel)
+        public override int GetLength(int channel)
         {
-            return connection.SendLength(channel);
+            return connection.GetLength(channel);
         }
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
@@ -87,7 +87,7 @@ namespace Astraia.Net
             }
         }
 
-        public override void StopClient(int clientId)
+        public override void Disconnect(int clientId)
         {
             if (NetworkManager.Lobby.players.TryGetValue(clientId, out var playerId))
             {
@@ -129,7 +129,7 @@ namespace Astraia.Net
             StartClient();
         }
 
-        public override void StopClient()
+        public override void Disconnect()
         {
             if (NetworkManager.Lobby.isActive)
             {

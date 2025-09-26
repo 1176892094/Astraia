@@ -19,34 +19,34 @@ namespace Astraia
 {
     internal partial class Server
     {
-        private readonly byte[] buffer;
         private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
         private readonly HashSet<int> copies = new HashSet<int>();
+        private readonly byte[] buffer;
         private readonly Setting setting;
-        private EndPoint endPoint;
-        private Socket socket;
+        private readonly Action<int> onConnect;
+        private readonly Action<int> onDisconnect;
+        private readonly Action<int, Error, string> onError;
+        private readonly Action<int, ArraySegment<byte>, int> onReceive;
 
-        public Server(Setting setting, Action<int> OnConnect, Action<int> OnDisconnect, Action<int, Error, string> OnError, Action<int, ArraySegment<byte>, int> OnReceive)
+        private Socket socket;
+        private EndPoint endPoint;
+
+        public Server(Setting setting, Action<int> onConnect, Action<int> onDisconnect, Action<int, Error, string> onError, Action<int, ArraySegment<byte>, int> onReceive)
         {
             this.setting = setting;
-            this.OnError = OnError;
-            this.OnReceive = OnReceive;
-            this.OnConnect = OnConnect;
-            this.OnDisconnect = OnDisconnect;
-            buffer = new byte[setting.MaxUnit];
+            this.onError = onError;
+            this.onConnect = onConnect;
+            this.onReceive = onReceive;
+            this.onDisconnect = onDisconnect;
+            buffer = new byte[setting.MaxData];
             endPoint = setting.DualMode ? new IPEndPoint(IPAddress.IPv6Any, 0) : new IPEndPoint(IPAddress.Any, 0);
         }
-
-        private event Action<int> OnConnect;
-        private event Action<int> OnDisconnect;
-        private event Action<int, Error, string> OnError;
-        private event Action<int, ArraySegment<byte>, int> OnReceive;
 
         public void Connect(ushort port)
         {
             if (socket != null)
             {
-                Logs.Warn(Log.E121);
+                Log.Warn(Log.E121);
                 return;
             }
 
@@ -59,7 +59,7 @@ namespace Astraia
                 }
                 catch (NotSupportedException e)
                 {
-                    Logs.Warn(Log.E122.Format(e));
+                    Log.Warn(Log.E122.Format(e));
                 }
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -78,120 +78,112 @@ namespace Astraia
                 socket.Bind(new IPEndPoint(IPAddress.Any, port));
             }
 
-            Utils.SetSocket(socket);
+            socket.Buffer();
         }
 
-        private bool TryReceive(out ArraySegment<byte> segment, out int clientId)
+        private bool TryReceive(out int id, out ArraySegment<byte> segment)
         {
-            clientId = 0;
+            id = 0;
             segment = default;
-            if (socket == null) return false;
             try
             {
-                if (!socket.Poll(0, SelectMode.SelectRead)) return false;
-                var size = socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
-                segment = new ArraySegment<byte>(buffer, 0, size);
-                clientId = endPoint.GetHashCode();
-                return true;
+                if (socket != null && socket.Poll(0, SelectMode.SelectRead))
+                {
+                    var count = socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
+                    segment = new ArraySegment<byte>(buffer, 0, count);
+                    id = endPoint.GetHashCode();
+                    return true;
+                }
+
+                return false;
             }
             catch (SocketException e)
             {
-                if (e.SocketErrorCode == SocketError.WouldBlock)
+                if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    return false;
+                    Log.Info(Log.E123.Format(e));
                 }
 
-                Logs.Info(Log.E123.Format(e));
                 return false;
             }
         }
 
-        public void Send(int clientId, ArraySegment<byte> segment, int channel)
+        public void Send(int id, ArraySegment<byte> segment, int channel)
         {
-            if (clients.TryGetValue(clientId, out var client))
+            if (clients.TryGetValue(id, out var client))
             {
                 client.SendData(segment, channel);
             }
         }
 
-        public void Disconnect(int clientId)
+        public void Disconnect(int id)
         {
-            if (clients.TryGetValue(clientId, out var client))
+            if (clients.TryGetValue(id, out var client))
             {
                 client.Disconnect();
             }
         }
 
-        private Client AddClient(int clientId)
+        private Client Register(int id)
         {
-            var cookie = (uint)Service.Random.Next();
-            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, cookie, endPoint);
+            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, (uint)Service.Random.Next(), endPoint);
 
             void OnConnect(Client client)
             {
-                clients.Add(clientId, client);
-                Logs.Info(Log.E125.Format(clientId));
-                this.OnConnect?.Invoke(clientId);
+                clients.Add(id, client);
+                Log.Info(Log.E125.Format(id));
+                onConnect.Invoke(id);
             }
 
             void OnDisconnect()
             {
-                if (copies.Add(clientId))
-                {
-                    Logs.Info(Log.E126.Format(clientId));
-                }
-
-                this.OnDisconnect?.Invoke(clientId);
+                copies.Add(id);
+                Log.Info(Log.E126.Format(id));
+                onDisconnect.Invoke(id);
             }
 
             void OnError(Error error, string message)
             {
-                this.OnError?.Invoke(clientId, error, message);
+                onError.Invoke(id, error, message);
             }
 
             void OnReceive(ArraySegment<byte> message, int channel)
             {
-                this.OnReceive?.Invoke(clientId, message, channel);
+                onReceive.Invoke(id, message, channel);
             }
 
             void OnSend(ArraySegment<byte> segment)
             {
                 try
                 {
-                    if (!clients.TryGetValue(clientId, out var client))
+                    if (clients.TryGetValue(id, out var client))
                     {
-                        // Log.Warn($"服务器向无效的客户端发送信息。客户端：{clientId}");
-                        return;
-                    }
-
-                    if (socket.Poll(0, SelectMode.SelectWrite))
-                    {
-                        socket.SendTo(segment.Array, segment.Offset, segment.Count, SocketFlags.None, client.endPoint);
+                        if (socket.Poll(0, SelectMode.SelectWrite))
+                        {
+                            socket.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, client.endPoint);
+                        }
                     }
                 }
                 catch (SocketException e)
                 {
-                    if (e.SocketErrorCode == SocketError.WouldBlock)
+                    if (e.SocketErrorCode != SocketError.WouldBlock)
                     {
-                        return;
+                        Log.Error(Log.E124.Format(e));
                     }
-
-                    Logs.Error(Log.E124.Format(e));
                 }
             }
         }
 
         public void EarlyUpdate()
         {
-            while (TryReceive(out var segment, out var clientId))
+            while (TryReceive(out var id, out var segment))
             {
-                if (!clients.TryGetValue(clientId, out var client))
+                if (!clients.TryGetValue(id, out var client))
                 {
-                    client = AddClient(clientId);
+                    client = Register(id);
                     client.Input(segment);
                     client.EarlyUpdate();
                 }
-
                 else
                 {
                     client.Input(segment);

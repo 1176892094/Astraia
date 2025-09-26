@@ -16,8 +16,8 @@ namespace Astraia
     [Serializable]
     internal struct Setting
     {
-        public uint MaxUnit;
-        public uint Timeout;
+        public uint MaxData;
+        public uint OverTime;
         public uint Interval;
         public uint DeadLink;
         public uint FastResend;
@@ -28,8 +28,8 @@ namespace Astraia
         public bool Congestion;
 
         public Setting(
-            uint MaxUnit = Kcp.IKCP_MTU_DEF,
-            uint Timeout = 10000,
+            uint MaxData = Kcp.IKCP_MTU_DEF,
+            uint OverTime = 10000,
             uint Interval = 10,
             uint DeadLink = Kcp.IKCP_DEADLINK,
             uint FastResend = 0,
@@ -39,8 +39,8 @@ namespace Astraia
             bool DualMode = true,
             bool Congestion = false)
         {
-            this.MaxUnit = MaxUnit;
-            this.Timeout = Timeout;
+            this.MaxData = MaxData;
+            this.OverTime = OverTime;
             this.Interval = Interval;
             this.DeadLink = DeadLink;
             this.FastResend = FastResend;

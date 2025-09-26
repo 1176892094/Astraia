@@ -13,19 +13,21 @@ using System;
 
 namespace Astraia
 {
-    internal static class Logs
+    internal static partial class Log
     {
-        public static Action<string> Info = Console.WriteLine;
-        public static Action<string> Warn = Console.WriteLine;
-        public static Action<string> Error = Console.Error.WriteLine;
+        public static Action<string> onInfo = Console.WriteLine;
+        public static Action<string> onWarn = Console.WriteLine;
+        public static Action<string> onError = Console.Error.WriteLine;
+        public static void Info(object message) => onInfo.Invoke(message.ToString());
+        public static void Warn(object message) => onWarn.Invoke(message.ToString());
+        public static void Error(object message) => onError.Invoke(message.ToString());
     }
 
-    internal static class Log
+    internal static partial class Log
     {
         public const string E101 = "发送缓冲: {0} => {1} : {2:F}";
         public const string E102 = "接收缓冲: {0} => {1} : {2:F}";
 
-        public const string E111 = "试图在未知的传输通道发送消息!";
         public const string E112 = "{0}: 发送可靠消息失败。消息大小: {1}";
         public const string E113 = "{0}: 发送不可靠消息失败。消息大小: {1}";
         public const string E114 = "{0}: 接收无效的网络消息。消息类型: {1}";
@@ -57,11 +59,11 @@ namespace Astraia
         public const string E148 = "{0}: 网络消息被重传了 {1} 次而没有得到确认！";
         public const string E149 = "{0}: 在 {1}ms 内没有收到任何消息后的连接超时！";
         public const string E150 = "{0}: 断开连接，因为它处理数据的速度不够快！";
-        public const string E151 = "{0}: 收到未通过验证的网络消息。消息类型: {1}";
+        public const string E151 = "{0}: 收到未通过验证的网络消息。消息类型: {1} 消息长度: {2}";
         public const string E152 = "{0}: 收到无效的网络消息。消息类型: {1}";
         public const string E153 = "{0}: 网络发生异常，断开连接。\n{1}";
-        
-         //NetworkManager
+
+        //NetworkManager
         public const string E201 = "服务器已经连接!";
         public const string E202 = "服务器已经停止!";
         public const string E203 = "客户端已经连接!";
@@ -132,7 +134,7 @@ namespace Astraia
         public const string E267 = "调用 {0} 但是对象未初始化。对象名称：{1}";
         public const string E268 = "调用 {0} 但是对象的连接为空。对象名称：{1}";
         public const string E269 = "设置网络变量的对象未初始化。对象名称: {0}";
-        
+
         //NetworkEntity
         public const string E274 = "网络对象 {0} 在构建前需要打开并重新保存。因为网络对象 {1} 没有场景Id";
         public const string E275 = "Assigned AssetId";

@@ -14,7 +14,7 @@ using System.Net.Sockets;
 
 namespace Astraia
 {
-    internal static class Utils
+    internal static class Process
     {
         public static void Encode(byte[] p, int offset, uint value)
         {
@@ -58,7 +58,7 @@ namespace Astraia
             return false;
         }
 
-        public static void SetSocket(Socket socket, int buffer = 1024 * 1024 * 7)
+        public static void Buffer(this Socket socket, int buffer = 1024 * 1024 * 7)
         {
             socket.Blocking = false;
             var sendBuffer = socket.SendBufferSize;
@@ -70,8 +70,8 @@ namespace Astraia
             }
             catch (SocketException)
             {
-                Logs.Info(Log.E101.Format(buffer, sendBuffer, sendBuffer / buffer));
-                Logs.Info(Log.E102.Format(buffer, receiveBuffer, receiveBuffer / buffer));
+                Log.Info(Log.E101.Format(buffer, sendBuffer, sendBuffer / buffer));
+                Log.Info(Log.E102.Format(buffer, receiveBuffer, receiveBuffer / buffer));
             }
         }
     }

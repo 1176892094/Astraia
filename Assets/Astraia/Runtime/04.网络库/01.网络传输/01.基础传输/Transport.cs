@@ -30,15 +30,15 @@ namespace Astraia.Net
         public Action<int, ArraySegment<byte>, int> OnServerSend;
         public Action<int, ArraySegment<byte>, int> OnServerReceive;
         
-        public abstract int SendLength(int channel);
+        public abstract int GetLength(int channel);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable);
         public abstract void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable);
         public abstract void StartServer();
         public abstract void StopServer();
-        public abstract void StopClient(int clientId);
+        public abstract void Disconnect(int clientId);
         public abstract void StartClient();
         public abstract void StartClient(Uri uri);
-        public abstract void StopClient();
+        public abstract void Disconnect();
         public abstract void ClientEarlyUpdate();
         public abstract void ClientAfterUpdate();
         public abstract void ServerEarlyUpdate();

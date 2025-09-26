@@ -26,7 +26,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("Astraia.Net")]
 [assembly: InternalsVisibleTo("Astraia.Lobby")]
-[assembly: InternalsVisibleTo("Astraia.Mysql")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

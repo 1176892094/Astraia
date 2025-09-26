@@ -17,40 +17,41 @@ namespace Astraia
 {
     internal sealed partial class Server
     {
-        private sealed class Client : Agent
+        private sealed class Client : Module
         {
             public readonly EndPoint endPoint;
+            private readonly Action onDisconnect;
+            private readonly Action<Client> onConnect;
+            private readonly Action<Error, string> onError;
+            private readonly Action<ArraySegment<byte>> onSend;
+            private readonly Action<ArraySegment<byte>, int> onReceive;
 
-            public Client(Action<Client> OnConnect, Action OnDisconnect, Action<Error, string> OnError, Action<ArraySegment<byte>, int> OnReceive, Action<ArraySegment<byte>> OnSend, Setting setting, uint cookie, EndPoint endPoint) : base(setting, cookie)
+            public Client(Action<Client> onConnect, Action onDisconnect, Action<Error, string> onError, Action<ArraySegment<byte>, int> onReceive,
+                Action<ArraySegment<byte>> onSend, Setting setting, uint userData, EndPoint endPoint) : base(setting, userData)
             {
-                this.OnSend = OnSend;
-                this.OnError = OnError;
-                this.OnConnect = OnConnect;
-                this.OnReceive = OnReceive;
-                this.OnDisconnect = OnDisconnect;
+                this.onSend = onSend;
+                this.onError = onError;
+                this.onConnect = onConnect;
+                this.onReceive = onReceive;
+                this.onDisconnect = onDisconnect;
                 this.endPoint = endPoint;
                 state = State.Connect;
             }
 
-            private event Action OnDisconnect;
-            private event Action<Client> OnConnect;
-            private event Action<Error, string> OnError;
-            private event Action<ArraySegment<byte>> OnSend;
-            private event Action<ArraySegment<byte>, int> OnReceive;
 
-            protected override void Connected()
+            protected override void OnConnected()
             {
                 SendReliable(Reliable.Connect);
-                OnConnect?.Invoke(this);
+                onConnect.Invoke(this);
             }
 
-            protected override void Disconnected() => OnDisconnect?.Invoke();
+            protected override void OnDisconnect() => onDisconnect.Invoke();
 
-            protected override void Send(ArraySegment<byte> segment) => OnSend?.Invoke(segment);
+            protected override void Send(ArraySegment<byte> segment) => onSend.Invoke(segment);
 
-            protected override void Receive(ArraySegment<byte> message, int channel) => OnReceive?.Invoke(message, channel);
+            protected override void Data(ArraySegment<byte> segment, int channel) => onReceive.Invoke(segment, channel);
 
-            protected override void LogError(Error error, string message) => OnError?.Invoke(error, message);
+            protected override void OnError(Error error, string message) => onError.Invoke(error, message);
 
             public void Input(ArraySegment<byte> segment)
             {
@@ -59,19 +60,19 @@ namespace Astraia
                     return;
                 }
 
-                var channel = segment.Array[segment.Offset];
-                var result = Utils.Decode(segment.Array, segment.Offset + 1);
+                var channel = segment.Array![segment.Offset];
+                var result = Process.Decode(segment.Array, segment.Offset + 1);
 
                 if (state == State.Connected)
                 {
-                    if (result != cookie)
+                    if (result != userData)
                     {
-                        Logs.Info(Log.E127.Format(endPoint, result, cookie));
+                        Log.Info(Log.E127.Format(endPoint, result, userData));
                         return;
                     }
                 }
 
-                Input(channel, new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4));
+                Input(new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4), channel);
             }
         }
     }

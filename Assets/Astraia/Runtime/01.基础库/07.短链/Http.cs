@@ -43,7 +43,7 @@ namespace Astraia
                             }
                             catch (Exception e)
                             {
-                                Logs.Warn(e.ToString());
+                                Log.Warn(e.ToString());
                                 context.Response.StatusCode = 500;
                                 context.Response.Close();
                             }
@@ -51,7 +51,7 @@ namespace Astraia
                     }
                     catch (Exception e)
                     {
-                        Logs.Warn(e.ToString());
+                        Log.Warn(e.ToString());
                     }
                 }
             }

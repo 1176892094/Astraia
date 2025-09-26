@@ -44,7 +44,7 @@ namespace Astraia.Net
             writer.WriteUShort(NetworkMessage<T>.Id);
             writer.Invoke(message);
          
-            if (writer.position > Transport.Instance.SendLength(channel))
+            if (writer.position > Transport.Instance.GetLength(channel))
             {
                 Debug.LogError(Log.E291.Format(writer.position));
                 return;
@@ -58,7 +58,7 @@ namespace Astraia.Net
         {
             if (!batches.TryGetValue(channel, out var batch))
             {
-                batch = new WriterBatch(Transport.Instance.SendLength(channel));
+                batch = new WriterBatch(Transport.Instance.GetLength(channel));
                 batches[channel] = batch;
             }
 
@@ -78,7 +78,7 @@ namespace Astraia.Net
         {
             isReady = false;
             NetworkManager.Client.isReady = false;
-            Transport.Instance.StopClient();
+            Transport.Instance.Disconnect();
         }
     }
 }

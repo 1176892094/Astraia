@@ -17,8 +17,8 @@ namespace Astraia.Net
 {
     public sealed class KcpTransport : Transport
     {
-        public uint maxUnit = 1200;
-        public uint timeout = 10000;
+        public uint unitData = 1200;
+        public uint overTime = 10000;
         public uint interval = 10;
         public uint deadLink = 40;
         public uint fastResend = 2;
@@ -30,10 +30,10 @@ namespace Astraia.Net
 
         private void Awake()
         {
-            Logs.Info = Debug.Log;
-            Logs.Warn = Debug.LogWarning;
-            Logs.Error = Debug.LogError;
-            var setting = new Setting(maxUnit, timeout, interval, deadLink, fastResend, sendWindow, receiveWindow);
+            Log.onInfo = Debug.Log;
+            Log.onWarn = Debug.LogWarning;
+            Log.onError = Debug.LogError;
+            var setting = new Setting(unitData, overTime, interval, deadLink, fastResend, sendWindow, receiveWindow);
             client = new Client(setting, ClientConnect, ClientDisconnect, ClientError, ClientReceive);
             server = new Server(setting, ServerConnect, ServerDisconnect, ServerError, ServerReceive);
             return;
@@ -58,29 +58,29 @@ namespace Astraia.Net
                 OnClientReceive.Invoke(message, channel);
             }
 
-            void ServerConnect(int clientId)
+            void ServerConnect(int id)
             {
-                OnServerConnect.Invoke(clientId);
+                OnServerConnect.Invoke(id);
             }
 
-            void ServerDisconnect(int clientId)
+            void ServerDisconnect(int id)
             {
-                OnServerDisconnect.Invoke(clientId);
+                OnServerDisconnect.Invoke(id);
             }
 
-            void ServerError(int clientId, Error error, string message)
+            void ServerError(int id, Error error, string message)
             {
             }
 
-            void ServerReceive(int clientId, ArraySegment<byte> message, int channel)
+            void ServerReceive(int id, ArraySegment<byte> message, int channel)
             {
-                OnServerReceive.Invoke(clientId, message, channel);
+                OnServerReceive.Invoke(id, message, channel);
             }
         }
 
-        public override int SendLength(int channel)
+        public override int GetLength(int channel)
         {
-            return channel == Channel.Reliable ? Agent.ReliableSize(maxUnit, receiveWindow) : Agent.UnreliableSize(maxUnit);
+            return channel == Channel.Reliable ? Module.KcpLength(unitData, receiveWindow) : Module.UdpLength(unitData);
         }
 
         public override void StartServer()
@@ -93,7 +93,7 @@ namespace Astraia.Net
             server.StopServer();
         }
 
-        public override void StopClient(int clientId)
+        public override void Disconnect(int clientId)
         {
             server.Disconnect(clientId);
         }
@@ -114,7 +114,7 @@ namespace Astraia.Net
             client.Connect(uri.Host, (ushort)(uri.IsDefaultPort ? port : uri.Port));
         }
 
-        public override void StopClient()
+        public override void Disconnect()
         {
             client.Disconnect();
         }

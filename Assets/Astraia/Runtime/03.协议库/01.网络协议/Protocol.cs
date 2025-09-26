@@ -21,11 +21,7 @@ namespace Astraia.Common
         private Action<byte[], int> output;
         public uint State => kcp->state;
         public uint Count => kcp->nrcv_buf + kcp->nrcv_que + kcp->nsnd_buf + kcp->nsnd_que;
-        public uint Death
-        {
-            get => kcp->dead_link;
-            set => kcp->dead_link = value;
-        }
+        public uint Death => kcp->dead_link;
 
         public Protocol(uint conv, Action<byte[], int> output)
         {
@@ -70,19 +66,25 @@ namespace Astraia.Common
             return Kcp.ikcp_peeksize(kcp);
         }
 
-        public void SetMtu(int mtu)
+        public void Clear()
         {
-            Kcp.ikcp_setmtu(kcp, mtu, ref buffer);
+            Kcp.iqueue_del_init(&kcp->snd_queue);
         }
 
-        public void SetNoDelay(int noDelay, int interval, int resend, int nc)
+        public void SetData(uint mtu, uint deadLink)
         {
-            Kcp.ikcp_nodelay(kcp, noDelay, interval, resend, nc);
+            kcp->dead_link = deadLink;
+            Kcp.ikcp_setmtu(kcp, (int)mtu, ref buffer);
         }
 
-        public void SetWindowSize(int sendWindow, int receiveWindow)
+        public void SetDelay(bool noDelay, uint interval, uint resend, bool nc)
         {
-            Kcp.ikcp_wndsize(kcp, sendWindow, receiveWindow);
+            Kcp.ikcp_nodelay(kcp, noDelay ? 1 : 0, (int)interval, (int)resend, nc ? 1 : 0);
+        }
+
+        public void SetWindow(uint send, uint receive)
+        {
+            Kcp.ikcp_wndsize(kcp, (int)send, (int)receive);
         }
 
         private int dispose;

@@ -16,27 +16,26 @@ using Astraia.Common;
 
 namespace Astraia
 {
-    internal sealed class Client : Agent
+    internal sealed class Client : Module
     {
         private readonly byte[] buffer;
         private readonly Setting setting;
-        private EndPoint endPoint;
+        private readonly Action onConnect;
+        private readonly Action onDisconnect;
+        private readonly Action<Error, string> onError;
+        private readonly Action<ArraySegment<byte>, int> onReceive;
         private Socket socket;
+        private EndPoint endPoint;
 
-        public Client(Setting setting, Action OnConnect, Action OnDisconnect, Action<Error, string> OnError, Action<ArraySegment<byte>, int> OnReceive) : base(setting)
+        public Client(Setting setting, Action onConnect, Action onDisconnect, Action<Error, string> onError, Action<ArraySegment<byte>, int> onReceive) : base(setting)
         {
             this.setting = setting;
-            this.OnError = OnError;
-            this.OnConnect = OnConnect;
-            this.OnReceive = OnReceive;
-            this.OnDisconnect = OnDisconnect;
-            buffer = new byte[setting.MaxUnit];
+            this.onError = onError;
+            this.onConnect = onConnect;
+            this.onReceive = onReceive;
+            this.onDisconnect = onDisconnect;
+            buffer = new byte[setting.MaxData];
         }
-
-        private event Action OnConnect;
-        private event Action OnDisconnect;
-        private event Action<Error, string> OnError;
-        private event Action<ArraySegment<byte>, int> OnReceive;
 
         public void Connect(string address, ushort port)
         {
@@ -44,50 +43,52 @@ namespace Astraia
             {
                 if (state != State.Disconnect)
                 {
-                    Logs.Warn(Log.E128);
+                    Log.Warn(Log.E128);
                     return;
                 }
 
                 var addresses = Dns.GetHostAddresses(address);
                 if (addresses.Length >= 1)
                 {
-                    Reset(setting);
+                    Rebuild(setting);
                     state = State.Connect;
                     endPoint = new IPEndPoint(addresses[0], port);
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-                    Utils.SetSocket(socket);
+                    socket.Buffer();
                     socket.Connect(endPoint);
-                    Logs.Info(Log.E130.Format(addresses[0], port));
+                    Log.Info(Log.E130.Format(addresses[0], port));
                     SendReliable(Reliable.Connect);
                 }
             }
             catch (SocketException e)
             {
-                LogError(Error.DnsResolve, Log.E141.Format(address, e));
-                OnDisconnect?.Invoke();
+                OnError(Error.解析失败, Log.E141.Format(address, e));
+                onDisconnect.Invoke();
             }
         }
 
         private bool TryReceive(out ArraySegment<byte> segment)
         {
             segment = default;
-            if (socket == null) return false;
             try
             {
-                if (!socket.Poll(0, SelectMode.SelectRead)) return false;
-                var size = socket.Receive(buffer, 0, buffer.Length, SocketFlags.None);
-                segment = new ArraySegment<byte>(buffer, 0, size);
-                return true;
+                if (socket != null && socket.Poll(0, SelectMode.SelectRead))
+                {
+                    var count = socket.Receive(buffer, 0, buffer.Length, SocketFlags.None);
+                    segment = new ArraySegment<byte>(buffer, 0, count);
+                    return true;
+                }
+
+                return false;
             }
             catch (SocketException e)
             {
-                if (e.SocketErrorCode == SocketError.WouldBlock)
+                if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    return false;
+                    Log.Info(Log.E132.Format(e));
+                    Disconnect();
                 }
 
-                Logs.Info(Log.E132.Format(e));
-                Disconnect();
                 return false;
             }
         }
@@ -96,7 +97,7 @@ namespace Astraia
         {
             if (state == State.Disconnect)
             {
-                Logs.Warn(Log.E129);
+                Log.Warn(Log.E129);
                 return;
             }
 
@@ -110,30 +111,30 @@ namespace Astraia
                 return;
             }
 
-            var channel = segment.Array[segment.Offset];
-            var result =  Utils.Decode(segment.Array, segment.Offset + 1);
+            var channel = segment.Array![segment.Offset];
+            var result = Process.Decode(segment.Array, segment.Offset + 1);
             if (result == 0)
             {
-                Logs.Error(Log.E133.Format(cookie, result));
+                Log.Error(Log.E133.Format(userData, result));
             }
 
-            if (cookie == 0)
+            if (userData == 0)
             {
-                cookie = result;
+                userData = result;
             }
-            else if (cookie != result)
+            else if (userData != result)
             {
-                Logs.Error(Log.E127.Format(endPoint, cookie, result));
+                Log.Error(Log.E127.Format(endPoint, userData, result));
                 return;
             }
 
-            Input(channel, new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4));
+            Input(new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4), channel);
         }
 
-        protected override void Connected()
+        protected override void OnConnected()
         {
-            Logs.Info(Log.E134);
-            OnConnect?.Invoke();
+            Log.Info(Log.E134);
+            onConnect.Invoke();
         }
 
         protected override void Send(ArraySegment<byte> segment)
@@ -143,7 +144,7 @@ namespace Astraia
             {
                 if (socket.Poll(0, SelectMode.SelectWrite))
                 {
-                    socket.Send(segment.Array, segment.Offset, segment.Count, SocketFlags.None);
+                    socket.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
                 }
             }
             catch (SocketException e)
@@ -154,24 +155,24 @@ namespace Astraia
                 }
 
 
-                Logs.Info(Log.E131.Format(e));
+                Log.Info(Log.E131.Format(e));
             }
         }
 
-        protected override void Receive(ArraySegment<byte> message, int channel)
+        protected override void Data(ArraySegment<byte> segment, int channel)
         {
-            OnReceive?.Invoke(message, channel);
+            onReceive.Invoke(segment, channel);
         }
 
-        protected override void LogError(Error error, string message)
+        protected override void OnError(Error error, string message)
         {
-            OnError?.Invoke(error, message);
+            onError.Invoke(error, message);
         }
 
-        protected override void Disconnected()
+        protected override void OnDisconnect()
         {
-            Logs.Info(Log.E135);
-            OnDisconnect?.Invoke();
+            Log.Info(Log.E135);
+            onDisconnect.Invoke();
             endPoint = null;
             socket?.Close();
             socket = null;
@@ -179,27 +180,23 @@ namespace Astraia
 
         public override void EarlyUpdate()
         {
-            if (state == State.Disconnect)
+            if (state != State.Disconnect)
             {
-                return;
-            }
+                while (TryReceive(out var segment))
+                {
+                    Input(segment);
+                }
 
-            while (TryReceive(out var segment))
-            {
-                Input(segment);
+                base.EarlyUpdate();
             }
-
-            base.EarlyUpdate();
         }
 
         public override void AfterUpdate()
         {
-            if (state == State.Disconnect)
+            if (state != State.Disconnect)
             {
-                return;
+                base.AfterUpdate();
             }
-
-            base.AfterUpdate();
         }
     }
 }
