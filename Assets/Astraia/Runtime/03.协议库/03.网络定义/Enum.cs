@@ -22,16 +22,21 @@ namespace Astraia
         未知异常 = 7
     }
 
-    internal enum OpCodes : byte
+    internal enum Lobby : byte
     {
-        Connect = 1,
-        Connected = 2,
-        JoinRoom = 3,
-        CreateRoom = 4,
-        UpdateRoom = 5,
-        LeaveRoom = 6,
-        UpdateData = 7,
-        KickRoom = 8,
+        身份验证成功 = 1,
+        请求进入大厅 = 2,
+        进入大厅成功 = 3,
+        请求创建房间 = 4,
+        创建房间成功 = 5,
+        请求加入房间 = 6,
+        加入房间成功 = 7,
+        请求离开房间 = 8,
+        离开房间成功 = 9,
+        请求移除玩家 = 10,
+        移除玩家成功 = 11,
+        更新房间数据 = 12,
+        同步网络数据 = 13,
     }
 
     internal enum State : byte

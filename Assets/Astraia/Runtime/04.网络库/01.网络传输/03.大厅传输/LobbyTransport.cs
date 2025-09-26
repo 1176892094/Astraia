@@ -36,7 +36,7 @@ namespace Astraia.Net
             if (NetworkManager.Lobby.players.TryGetValue(clientId, out var playerId))
             {
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)OpCodes.UpdateData);
+                writer.WriteByte((byte)Lobby.同步网络数据);
                 writer.WriteArraySegment(segment);
                 writer.WriteInt(playerId);
                 connection.SendToServer(writer);
@@ -46,7 +46,7 @@ namespace Astraia.Net
         public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
             using var writer = MemoryWriter.Pop();
-            writer.WriteByte((byte)OpCodes.UpdateData);
+            writer.WriteByte((byte)Lobby.同步网络数据);
             writer.WriteArraySegment(segment);
             writer.WriteInt(0);
             connection.SendToServer(writer);
@@ -68,7 +68,7 @@ namespace Astraia.Net
 
             NetworkManager.Lobby.isServer = true;
             using var writer = MemoryWriter.Pop();
-            writer.WriteByte((byte)OpCodes.CreateRoom);
+            writer.WriteByte((byte)Lobby.请求创建房间);
             writer.WriteString(roomName);
             writer.WriteString(roomData);
             writer.WriteInt(NetworkManager.Instance.connection);
@@ -82,7 +82,7 @@ namespace Astraia.Net
             {
                 NetworkManager.Lobby.isServer = false;
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)OpCodes.LeaveRoom);
+                writer.WriteByte((byte)Lobby.请求离开房间);
                 connection.SendToServer(writer);
             }
         }
@@ -92,7 +92,7 @@ namespace Astraia.Net
             if (NetworkManager.Lobby.players.TryGetValue(clientId, out var playerId))
             {
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)OpCodes.KickRoom);
+                writer.WriteByte((byte)Lobby.请求移除玩家);
                 writer.WriteInt(playerId);
                 connection.SendToServer(writer);
             }
@@ -114,7 +114,7 @@ namespace Astraia.Net
 
             NetworkManager.Lobby.isClient = true;
             using var writer = MemoryWriter.Pop();
-            writer.WriteByte((byte)OpCodes.JoinRoom);
+            writer.WriteByte((byte)Lobby.请求加入房间);
             writer.WriteString(connection.address);
             connection.SendToServer(writer);
         }
@@ -135,7 +135,7 @@ namespace Astraia.Net
             {
                 NetworkManager.Lobby.isClient = false;
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)OpCodes.LeaveRoom);
+                writer.WriteByte((byte)Lobby.请求离开房间);
                 connection.SendToServer(writer);
             }
         }

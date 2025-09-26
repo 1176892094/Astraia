@@ -99,7 +99,7 @@ namespace Astraia.Net
                 }
 
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)OpCodes.UpdateRoom);
+                writer.WriteByte((byte)Astraia.Lobby.更新房间数据);
                 writer.WriteString(roomName);
                 writer.WriteString(roomData);
                 writer.WriteByte((byte)roomMode);
@@ -141,25 +141,25 @@ namespace Astraia.Net
                 try
                 {
                     using var reader = MemoryReader.Pop(segment);
-                    var opcode = (OpCodes)reader.ReadByte();
-                    if (opcode == OpCodes.Connect)
+                    var opcode = (Astraia.Lobby)reader.ReadByte();
+                    if (opcode == Astraia.Lobby.身份验证成功)
                     {
                         using var writer = MemoryWriter.Pop();
-                        writer.WriteByte((byte)OpCodes.Connected);
+                        writer.WriteByte((byte)Astraia.Lobby.请求进入大厅);
                         writer.WriteString(Instance.authorization);
                         connection.SendToServer(writer);
                     }
-                    else if (opcode == OpCodes.Connected)
+                    else if (opcode == Astraia.Lobby.进入大厅成功)
                     {
                         state = State.Connected;
                         UpdateLobby();
                     }
-                    else if (opcode == OpCodes.CreateRoom)
+                    else if (opcode == Astraia.Lobby.创建房间成功)
                     {
                         connection.address = reader.ReadString();
                         EventManager.Invoke(new LobbyCreateRoom(connection.address));
                     }
-                    else if (opcode == OpCodes.JoinRoom)
+                    else if (opcode == Astraia.Lobby.加入房间成功)
                     {
                         if (isServer)
                         {
@@ -175,7 +175,7 @@ namespace Astraia.Net
                             Transport.Instance.OnClientConnect.Invoke();
                         }
                     }
-                    else if (opcode == OpCodes.LeaveRoom)
+                    else if (opcode == Astraia.Lobby.离开房间成功)
                     {
                         if (isClient)
                         {
@@ -183,7 +183,7 @@ namespace Astraia.Net
                             Transport.Instance.OnClientDisconnect.Invoke();
                         }
                     }
-                    else if (opcode == OpCodes.UpdateData)
+                    else if (opcode == Astraia.Lobby.同步网络数据)
                     {
                         var message = reader.ReadArraySegment();
                         if (isServer)
@@ -200,7 +200,7 @@ namespace Astraia.Net
                             Transport.Instance.OnClientReceive.Invoke(message, channel);
                         }
                     }
-                    else if (opcode == OpCodes.KickRoom)
+                    else if (opcode == Astraia.Lobby.移除玩家成功)
                     {
                         if (isServer)
                         {
