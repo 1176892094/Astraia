@@ -64,6 +64,6 @@ namespace Astraia.Net
         None,
         Position = 1 << 0,
         Rotation = 1 << 1,
-        Scale = 1 << 2,
+        Mutation = 1 << 2,
     }
 }

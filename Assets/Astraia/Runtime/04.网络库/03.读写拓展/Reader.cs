@@ -119,19 +119,19 @@ namespace Astraia.Net
         public static NetworkModule ReadNetworkModule(this MemoryReader reader)
         {
             var entity = reader.ReadNetworkEntity();
-            return entity != null ? entity.modules[reader.ReadByte()] : null;
+            return entity ? entity.modules[reader.ReadByte()] : null;
         }
 
         public static Transform ReadTransform(this MemoryReader reader)
         {
             var entity = reader.ReadNetworkEntity();
-            return entity != null ? entity.transform : null;
+            return entity ? entity.transform : null;
         }
 
         public static GameObject ReadGameObject(this MemoryReader reader)
         {
             var entity = reader.ReadNetworkEntity();
-            return entity != null ? entity.gameObject : null;
+            return entity ? entity.gameObject : null;
         }
 
         public static Texture2D ReadTexture2D(this MemoryReader reader)
@@ -155,7 +155,7 @@ namespace Astraia.Net
             var texture = reader.ReadTexture2D();
             return texture == null ? null : Sprite.Create(texture, reader.ReadRect(), reader.ReadVector2());
         }
-        
+
         public static T ReadNetworkModule<T>(this MemoryReader reader) where T : NetworkModule
         {
             return reader.ReadNetworkModule() as T;

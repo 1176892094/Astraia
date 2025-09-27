@@ -14,9 +14,9 @@ namespace Astraia.Net
 
         [SerializeField] private ushort port = 47777;
 
-        public int version;
+        [SerializeField] private int version;
 
-        public int duration = 1;
+        [SerializeField] private int duration = 1;
 
         private UdpClient udpClient;
 

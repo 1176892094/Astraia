@@ -84,7 +84,7 @@ namespace Astraia.Net
 
         public override bool HasPreviewGUI()
         {
-            return target != null && target is GameObject source && source.GetComponent<NetworkEntity>();
+            return target && target is GameObject source && source.GetComponent<NetworkEntity>();
         }
 
         public override void OnPreviewGUI(Rect rect, GUIStyle background)
@@ -94,7 +94,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if (target != null && target is GameObject source)
+            if (target && target is GameObject source)
             {
                 if (source.TryGetComponent(out NetworkEntity entity))
                 {

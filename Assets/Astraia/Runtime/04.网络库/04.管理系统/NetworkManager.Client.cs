@@ -498,7 +498,7 @@ namespace Astraia.Net
         {
             internal static void EarlyUpdate()
             {
-                if (Transport.Instance != null)
+                if (Transport.Instance)
                 {
                     Transport.Instance.ClientEarlyUpdate();
                 }
@@ -530,7 +530,7 @@ namespace Astraia.Net
                     }
                 }
 
-                if (Transport.Instance != null)
+                if (Transport.Instance)
                 {
                     Transport.Instance.ClientAfterUpdate();
                 }

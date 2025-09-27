@@ -19,35 +19,37 @@ namespace Astraia.Net
 {
     public abstract class NetworkDebugger : MonoBehaviour, IEvent<PingUpdate>
     {
-        protected static string address;
+        private static bool isRunning;
+        protected string address;
         protected double framePing;
         private double waitTime;
 
-        public int clientIntervalReceivedPackets;
-        public long clientIntervalReceivedBytes;
-        public int clientIntervalSentPackets;
-        public long clientIntervalSentBytes;
+        private int clientIntervalReceivedPackets;
+        private long clientIntervalReceivedBytes;
+        private int clientIntervalSentPackets;
+        private long clientIntervalSentBytes;
 
-        public int clientReceivedPacketsPerSecond;
-        public long clientReceivedBytesPerSecond;
-        public int clientSentPacketsPerSecond;
-        public long clientSentBytesPerSecond;
+        private int clientReceivedPacketsPerSecond;
+        private long clientReceivedBytesPerSecond;
+        private int clientSentPacketsPerSecond;
+        private long clientSentBytesPerSecond;
 
-        public int serverIntervalReceivedPackets;
-        public long serverIntervalReceivedBytes;
-        public int serverIntervalSentPackets;
-        public long serverIntervalSentBytes;
+        private int serverIntervalReceivedPackets;
+        private long serverIntervalReceivedBytes;
+        private int serverIntervalSentPackets;
+        private long serverIntervalSentBytes;
 
-        public int serverReceivedPacketsPerSecond;
-        public long serverReceivedBytesPerSecond;
-        public int serverSentPacketsPerSecond;
-        public long serverSentBytesPerSecond;
+        private int serverReceivedPacketsPerSecond;
+        private long serverReceivedBytesPerSecond;
+        private int serverSentPacketsPerSecond;
+        private long serverSentBytesPerSecond;
 
         private static readonly Items sendItems = new Items();
         private static readonly Items receiveItems = new Items();
 
         protected virtual void Awake()
         {
+            isRunning = true;
             address = Service.Host.Ip();
         }
 
@@ -201,14 +203,14 @@ namespace Astraia.Net
             return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
         }
 
-        internal IList<Pool> SendReference()
+        internal static IList<Pool> SendReference()
         {
             var pools = sendItems.messages.Values.Select(item => new Pool(item)).ToList();
             pools.AddRange(sendItems.function.Values.Select(item => new Pool(item)));
             return pools;
         }
 
-        internal IList<Pool> ReceiveReference()
+        internal static IList<Pool> ReceiveReference()
         {
             var pools = receiveItems.messages.Values.Select(item => new Pool(item)).ToList();
             pools.AddRange(receiveItems.function.Values.Select(item => new Pool(item)));
@@ -217,20 +219,14 @@ namespace Astraia.Net
 
         internal static void OnSend<T>(T message, int bytes) where T : struct, IMessage
         {
-            if (!string.IsNullOrEmpty(address))
-            {
-                var count = Service.Bit.Invoke((uint)bytes);
-                sendItems.Record(message, count + bytes);
-            }
+            if (!isRunning) return;
+            sendItems.Record(message, Service.Bit.Invoke((uint)bytes) + bytes);
         }
 
         internal static void OnReceive<T>(T message, int bytes) where T : struct, IMessage
         {
-            if (!string.IsNullOrEmpty(address))
-            {
-                var count = Service.Bit.Invoke((uint)bytes + 2);
-                receiveItems.Record(message, count + bytes + 2);
-            }
+            if (!isRunning) return;
+            receiveItems.Record(message, Service.Bit.Invoke((uint)bytes + 2) + bytes + 2);
         }
 
         private class Items

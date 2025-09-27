@@ -162,7 +162,7 @@ namespace Astraia.Net
             void AssignSceneId()
             {
                 if (Application.isPlaying) return;
-                var duplicate = sceneData.TryGetValue(sceneId, out var entity) && entity != null && entity != gameObject;
+                var duplicate = sceneData.TryGetValue(sceneId, out var entity) && entity && entity != gameObject;
                 if (sceneId == 0 || duplicate)
                 {
                     sceneId = 0;
@@ -172,7 +172,7 @@ namespace Astraia.Net
                     }
 
                     var random = (uint)Service.Rng.Next();
-                    duplicate = sceneData.TryGetValue(random, out entity) && entity != null && entity != gameObject;
+                    duplicate = sceneData.TryGetValue(random, out entity) && entity && entity != gameObject;
                     if (!duplicate)
                     {
                         sceneId = random;

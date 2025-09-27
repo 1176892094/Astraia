@@ -37,29 +37,7 @@ namespace Astraia.Net
                 }
             }
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterGeneral<T>(ref T field, Action<T, T> OnChanged, T value)
-        {
-            var oldValue = field;
-            field = value;
-            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref field))
-            {
-                OnChanged(oldValue, field);
-            }
-        }
-        
-        private static bool SyncVarEqualGeneral<T>(T value, ref T field)
-        {
-            return EqualityComparer<T>.Default.Equals(value, field);
-        }
-        
-        private void SetSyncVarGeneral<T>(T value, ref T field, ulong dirty)
-        {
-            SetSyncVarDirty(dirty);
-            field = value;
-        }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SyncVarSetterGameObject(GameObject value, ref GameObject field, ulong dirty, Action<GameObject, GameObject> OnChanged, ref uint objectId)
         {
@@ -78,74 +56,7 @@ namespace Astraia.Net
                 }
             }
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterGameObject(ref GameObject field, Action<GameObject, GameObject> OnChanged, MemoryReader reader, ref uint objectId)
-        {
-            var oldValue = objectId;
-            var oldObject = field;
-            objectId = reader.ReadUInt();
-            field = GetSyncVarGameObject(objectId, ref field);
-            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref objectId))
-            {
-                OnChanged(oldObject, field);
-            }
-        }
-        
-        private static bool SyncVarEqualGameObject(GameObject newObject, uint objectId)
-        {
-            uint newValue = 0;
-            if (newObject != null)
-            {
-                if (newObject.TryGetComponent(out NetworkEntity entity))
-                {
-                    newValue = entity.objectId;
-                    if (newValue == 0)
-                    {
-                        Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", newObject.name);
-                    }
-                }
-            }
-        
-            return newValue == objectId;
-        }
-        
-        private GameObject GetSyncVarGameObject(uint objectId, ref GameObject field)
-        {
-            if (isServer || !isClient)
-            {
-                return field;
-            }
-        
-            if (NetworkManager.Client.spawns.TryGetValue(objectId, out var oldObject) && oldObject != null)
-            {
-                return field = oldObject.gameObject;
-            }
-        
-            return null;
-        }
-        
-        private void SetSyncVarGameObject(GameObject newObject, ref GameObject objectField, ulong dirty, ref uint objectId)
-        {
-            if (GetSyncVarHook(dirty)) return;
-            uint newValue = 0;
-            if (newObject != null)
-            {
-                if (newObject.TryGetComponent(out NetworkEntity entity))
-                {
-                    newValue = entity.objectId;
-                    if (newValue == 0)
-                    {
-                        Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", newObject.name);
-                    }
-                }
-            }
-        
-            SetSyncVarDirty(dirty);
-            objectField = newObject;
-            objectId = newValue;
-        }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SyncVarSetterNetworkEntity(NetworkEntity value, ref NetworkEntity field, ulong dirty, Action<NetworkEntity, NetworkEntity> OnChanged, ref uint objectId)
         {
@@ -164,60 +75,7 @@ namespace Astraia.Net
                 }
             }
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterNetworkEntity(ref NetworkEntity field, Action<NetworkEntity, NetworkEntity> OnChanged, MemoryReader reader, ref uint objectId)
-        {
-            var oldValue = objectId;
-            var oldObject = field;
-            objectId = reader.ReadUInt();
-            field = GetSyncVarNetworkEntity(objectId, ref field);
-            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref objectId))
-            {
-                OnChanged(oldObject, field);
-            }
-        }
-        
-        private static bool SyncVarEqualNetworkEntity(NetworkEntity entity, uint objectId)
-        {
-            uint newValue = 0;
-            if (entity != null)
-            {
-                newValue = entity.objectId;
-                if (newValue == 0)
-                {
-                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
-                }
-            }
-        
-            return newValue == objectId;
-        }
-        
-        private NetworkEntity GetSyncVarNetworkEntity(uint objectId, ref NetworkEntity entity)
-        {
-            if (isServer || !isClient) return entity;
-            NetworkManager.Client.spawns.TryGetValue(objectId, out entity);
-            return entity;
-        }
-        
-        private void SetSyncVarNetworkEntity(NetworkEntity entity, ref NetworkEntity field, ulong dirty, ref uint objectId)
-        {
-            if (GetSyncVarHook(dirty)) return;
-            uint newValue = 0;
-            if (entity != null)
-            {
-                newValue = entity.objectId;
-                if (newValue == 0)
-                {
-                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
-                }
-            }
-        
-            SetSyncVarDirty(dirty);
-            objectId = newValue;
-            field = entity;
-        }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SyncVarSetterNetworkModule<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable variable) where T : NetworkModule
         {
@@ -236,71 +94,229 @@ namespace Astraia.Net
                 }
             }
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SyncVarGetterGeneral<T>(ref T field, Action<T, T> OnChanged, T value)
+        {
+            var oldValue = field;
+            field = value;
+            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref field))
+            {
+                OnChanged(oldValue, field);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SyncVarGetterGameObject(ref GameObject field, Action<GameObject, GameObject> OnChanged, MemoryReader reader, ref uint objectId)
+        {
+            var oldValue = objectId;
+            var value = field;
+            objectId = reader.ReadUInt();
+            field = GetSyncVarGameObject(objectId, ref field);
+            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref objectId))
+            {
+                OnChanged(value, field);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SyncVarGetterNetworkEntity(ref NetworkEntity field, Action<NetworkEntity, NetworkEntity> OnChanged, MemoryReader reader, ref uint objectId)
+        {
+            var oldValue = objectId;
+            var value = field;
+            objectId = reader.ReadUInt();
+            field = GetSyncVarNetworkEntity(objectId, ref field);
+            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref objectId))
+            {
+                OnChanged(value, field);
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SyncVarGetterNetworkModule<T>(ref T field, Action<T, T> OnChanged, MemoryReader reader, ref NetworkVariable variable) where T : NetworkModule
         {
             var oldValue = variable;
-            var oldObject = field;
+            var value = field;
             variable = reader.ReadNetworkVariable();
             field = GetSyncVarNetworkModule(variable, ref field);
             if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref variable))
             {
-                OnChanged(oldObject, field);
+                OnChanged(value, field);
             }
         }
-        
+
+        private static bool SyncVarEqualGeneral<T>(T value, ref T field)
+        {
+            return EqualityComparer<T>.Default.Equals(value, field);
+        }
+
+        private static bool SyncVarEqualGameObject(GameObject value, uint objectId)
+        {
+            var newValue = 0U;
+            if (value)
+            {
+                if (value.TryGetComponent(out NetworkEntity entity))
+                {
+                    newValue = entity.objectId;
+                    if (newValue == 0)
+                    {
+                        Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.name);
+                    }
+                }
+            }
+
+            return newValue == objectId;
+        }
+
+        private static bool SyncVarEqualNetworkEntity(NetworkEntity value, uint objectId)
+        {
+            var newValue = 0U;
+            if (value)
+            {
+                newValue = value.objectId;
+                if (newValue == 0)
+                {
+                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
+                }
+            }
+
+            return newValue == objectId;
+        }
+
         private static bool SyncVarEqualNetworkModule<T>(T entity, NetworkVariable variable) where T : NetworkModule
         {
             uint newValue = 0;
-            byte index = 0;
-            if (entity != null)
+            byte newIndex = 0;
+            if (entity)
             {
                 newValue = entity.objectId;
-                index = entity.moduleId;
+                newIndex = entity.moduleId;
                 if (newValue == 0)
                 {
                     Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
                 }
             }
-        
-            return variable.Equals(newValue, index);
+
+            return variable.Equals(newValue, newIndex);
         }
-        
+
+        private void SetSyncVarGeneral<T>(T value, ref T field, ulong dirty)
+        {
+            SetSyncVarDirty(dirty);
+            field = value;
+        }
+
+        private void SetSyncVarGameObject(GameObject value, ref GameObject field, ulong dirty, ref uint objectId)
+        {
+            if (GetSyncVarHook(dirty))
+            {
+                return;
+            }
+
+            var newValue = 0U;
+            if (value)
+            {
+                if (value.TryGetComponent(out NetworkEntity entity))
+                {
+                    newValue = entity.objectId;
+                    if (newValue == 0)
+                    {
+                        Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.name);
+                    }
+                }
+            }
+
+            SetSyncVarDirty(dirty);
+            objectId = newValue;
+            field = value;
+        }
+
+        private void SetSyncVarNetworkEntity(NetworkEntity value, ref NetworkEntity field, ulong dirty, ref uint objectId)
+        {
+            if (GetSyncVarHook(dirty))
+            {
+                return;
+            }
+
+            var newValue = 0U;
+            if (value)
+            {
+                newValue = value.objectId;
+                if (newValue == 0)
+                {
+                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
+                }
+            }
+
+            SetSyncVarDirty(dirty);
+            objectId = newValue;
+            field = value;
+        }
+
+        private void SetSyncVarNetworkModule<T>(T value, ref T field, ulong dirty, ref NetworkVariable variable) where T : NetworkModule
+        {
+            if (GetSyncVarHook(dirty))
+            {
+                return;
+            }
+
+            uint newValue = 0;
+            byte newIndex = 0;
+            if (value)
+            {
+                newValue = value.objectId;
+                newIndex = value.moduleId;
+                if (newValue == 0)
+                {
+                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
+                }
+            }
+
+            variable = new NetworkVariable(newValue, newIndex);
+            SetSyncVarDirty(dirty);
+            field = value;
+        }
+
+        private GameObject GetSyncVarGameObject(uint objectId, ref GameObject field)
+        {
+            if (isServer || !isClient)
+            {
+                return field;
+            }
+
+            if (NetworkManager.Client.spawns.TryGetValue(objectId, out var entity) && entity)
+            {
+                return field = entity.gameObject;
+            }
+
+            return null;
+        }
+
+        private NetworkEntity GetSyncVarNetworkEntity(uint objectId, ref NetworkEntity entity)
+        {
+            if (isServer || !isClient)
+            {
+                return entity;
+            }
+
+            NetworkManager.Client.spawns.TryGetValue(objectId, out entity);
+            return entity;
+        }
+
         public T GetSyncVarNetworkModule<T>(NetworkVariable variable, ref T field) where T : NetworkModule
         {
             if (isServer || !isClient)
             {
                 return field;
             }
-        
-            if (!NetworkManager.Client.spawns.TryGetValue(variable.objectId, out var oldObject))
+
+            if (!NetworkManager.Client.spawns.TryGetValue(variable.objectId, out var entity))
             {
                 return null;
             }
-        
-            field = (T)oldObject.modules[variable.moduleId];
+
+            field = (T)entity.modules[variable.moduleId];
             return field;
-        }
-        
-        private void SetSyncVarNetworkModule<T>(T entity, ref T field, ulong dirty, ref NetworkVariable variable) where T : NetworkModule
-        {
-            if (GetSyncVarHook(dirty)) return;
-            uint newValue = 0;
-            byte index = 0;
-            if (entity != null)
-            {
-                newValue = entity.objectId;
-                index = entity.moduleId;
-                if (newValue == 0)
-                {
-                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
-                }
-            }
-        
-            variable = new NetworkVariable(newValue, index);
-            SetSyncVarDirty(dirty);
-            field = entity;
         }
     }
 }
