@@ -197,7 +197,6 @@ namespace Astraia
 
         //NetworkManager.Lobby
         public const string E251 = "您必须连接到大厅以请求房间列表!";
-        public const string E252 = "http://{0}:{1}/api/compressed/servers";
         public const string E253 = "无法获取服务器列表: {0}:{1}";
         public const string E255 = "房间信息: {0}";
         public const string E256 = "您必须连接到大厅以更新房间信息!";

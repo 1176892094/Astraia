@@ -75,19 +75,18 @@ namespace Astraia.Net
                     return;
                 }
 
-                var uri = Log.E252.Format(address, port);
-                using var request = UnityWebRequest.Get(uri);
+                using var request = UnityWebRequest.Get("http://{0}:{1}/api/compressed/servers".Format(address, port));
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogWarning(Log.E253.Format(address, port));
+                    Log.E253.Warn(address, port);
                     return;
                 }
 
                 var rooms = Service.Zip.Decompress(request.downloadHandler.text);
                 var jsons = JsonManager.FromJson<RoomData[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
-                Debug.Log(Log.E255.Format(rooms));
+                Log.E255.Info(rooms);
             }
 
             public static void UpdateRoom(string roomName, string roomData, RoomMode roomMode)
