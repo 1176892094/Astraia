@@ -22,7 +22,7 @@ namespace Astraia.Net
 
         private void Awake()
         {
-            NetworkManager.Lobby.connection = transport;
+            NetworkManager.Lobby.transport = transport;
         }
 
         public override uint GetLength(int channel)

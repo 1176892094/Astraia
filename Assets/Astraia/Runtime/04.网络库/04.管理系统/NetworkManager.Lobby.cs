@@ -33,7 +33,7 @@ namespace Astraia.Net
 
             internal static bool isServer;
 
-            internal static Transport connection;
+            internal static Transport transport;
 
             public static bool isActive => state != State.Disconnect;
 
@@ -46,10 +46,10 @@ namespace Astraia.Net
 
             internal static void Start()
             {
-                Register();
-                connection.port = port;
-                connection.address = address;
-                connection.StartClient();
+                AddMessage();
+                transport.port = port;
+                transport.address = address;
+                transport.StartClient();
             }
 
             internal static void Stop()
@@ -63,7 +63,7 @@ namespace Astraia.Net
                     isClient = false;
                     state = State.Disconnect;
                     EventManager.Invoke(new LobbyDisconnect());
-                    connection.Disconnect();
+                    transport.Disconnect();
                 }
             }
 
@@ -103,25 +103,25 @@ namespace Astraia.Net
                 writer.WriteString(roomData);
                 writer.WriteByte((byte)roomMode);
                 writer.WriteInt(Instance.connection);
-                connection.SendToServer(writer);
+                transport.SendToServer(writer);
             }
         }
 
         public static partial class Lobby
         {
-            private static void Register()
+            private static void AddMessage()
             {
-                connection.OnClientConnect -= OnClientConnect;
-                connection.OnClientDisconnect -= OnClientDisconnect;
-                connection.OnClientReceive -= OnClientReceive;
-                connection.OnClientConnect += OnClientConnect;
-                connection.OnClientDisconnect += OnClientDisconnect;
-                connection.OnClientReceive += OnClientReceive;
+                transport.OnClientConnect -= OnClientConnect;
+                transport.OnClientDisconnect -= OnClientDisconnect;
+                transport.OnClientReceive -= OnClientReceive;
+                transport.OnClientConnect += OnClientConnect;
+                transport.OnClientDisconnect += OnClientDisconnect;
+                transport.OnClientReceive += OnClientReceive;
             }
 
             private static void OnClientConnect()
             {
-                if (connection == null)
+                if (transport == null)
                 {
                     Log.Error("没有连接到有效的传输！");
                     return;
@@ -146,7 +146,7 @@ namespace Astraia.Net
                         using var writer = MemoryWriter.Pop();
                         writer.WriteByte((byte)Astraia.Lobby.请求进入大厅);
                         writer.WriteString(Instance.authorization);
-                        connection.SendToServer(writer);
+                        transport.SendToServer(writer);
                     }
                     else if (opcode == Astraia.Lobby.进入大厅成功)
                     {
@@ -155,8 +155,8 @@ namespace Astraia.Net
                     }
                     else if (opcode == Astraia.Lobby.创建房间成功)
                     {
-                        connection.address = reader.ReadString();
-                        EventManager.Invoke(new LobbyCreateRoom(connection.address));
+                        transport.address = reader.ReadString();
+                        EventManager.Invoke(new LobbyCreateRoom(transport.address));
                     }
                     else if (opcode == Astraia.Lobby.加入房间成功)
                     {
