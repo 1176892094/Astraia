@@ -146,7 +146,7 @@ namespace Astraia.Net
                     {
                         if (!uint.TryParse(name, out var id))
                         {
-                            Debug.LogWarning("请将 {0} 名称修改为纯数字!".Format(gameObject), gameObject);
+                            Debug.LogWarning("请将 {0} 名称修改为数字格式!".Format(gameObject), gameObject);
                             return;
                         }
 

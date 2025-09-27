@@ -43,7 +43,9 @@ namespace Astraia.Net
                     EnableBroadcast = true,
                     MulticastLoopback = false
                 };
+#if UNITY_ANDROID
                 MulticastLock(true);
+#endif
                 ServerReceive();
             }
             else
@@ -60,7 +62,9 @@ namespace Astraia.Net
 
         public void StopDiscovery()
         {
+#if UNITY_ANDROID
             MulticastLock(false);
+#endif
             udpServer?.Close();
             udpClient?.Close();
             udpServer = null;
@@ -182,11 +186,10 @@ namespace Astraia.Net
 #if UNITY_ANDROID
         private bool multicast;
         private AndroidJavaObject multicastLock;
-#endif
 
         private void MulticastLock(bool enabled)
         {
-#if UNITY_ANDROID
+
             if (enabled)
             {
                 if (multicast) return;
@@ -202,8 +205,7 @@ namespace Astraia.Net
                 multicastLock?.Call("release");
                 multicast = false;
             }
-
-#endif
         }
+#endif
     }
 }

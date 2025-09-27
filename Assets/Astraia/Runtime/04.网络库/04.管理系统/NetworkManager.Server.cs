@@ -456,7 +456,7 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopServer();
-                PoolManager.Hide(entity.gameObject);
+                entity.gameObject.SetActive(false);
                 entity.Reset();
             }
 
