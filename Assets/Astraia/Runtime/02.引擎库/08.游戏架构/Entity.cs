@@ -22,10 +22,13 @@ namespace Astraia
 {
     public partial class Entity : MonoBehaviour
     {
-        internal Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
+        private readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
+
+        public ICollection<Type> Keys => moduleData.Keys;
+        public ICollection<IModule> Values => moduleData.Values;
 
         protected virtual void Awake()
         {
@@ -79,17 +82,17 @@ namespace Astraia
     {
         public T AddComponent<T>(T module) where T : IModule
         {
-            return (T)SystemManager.AddComponent(this, module.GetType(), module);
+            return (T)LoadComponent(module.GetType(), module);
         }
 
         public T AddComponent<T>() where T : IModule
         {
-            return (T)SystemManager.AddComponent(this, typeof(T), typeof(T));
+            return (T)LoadComponent(typeof(T), typeof(T));
         }
 
         public T AddComponent<T>(Type realType) where T : IModule
         {
-            return (T)SystemManager.AddComponent(this, typeof(T), realType);
+            return (T)LoadComponent(typeof(T), realType);
         }
 
         public T FindComponent<T>() where T : IModule
@@ -99,22 +102,89 @@ namespace Astraia
 
         public IModule AddComponent(Type keyType)
         {
-            return SystemManager.AddComponent(this, keyType, keyType);
+            return LoadComponent(keyType, keyType);
         }
 
         public IModule AddComponent(Type keyType, Type realType)
         {
-            return SystemManager.AddComponent(this, keyType, realType);
+            return LoadComponent(keyType, realType);
         }
 
         public IModule FindComponent(Type keyType)
         {
             return moduleData.TryGetValue(keyType, out var module) ? module : null;
         }
+    }
 
-        public IEnumerable<IModule> FindComponents()
+    public partial class Entity
+    {
+        private IModule LoadComponent(Type keyType, IModule module)
         {
-            return moduleData.Values;
+            if (!moduleData.ContainsKey(keyType))
+            {
+                AddEvent(module);
+                OnFade += Enqueue;
+                moduleData.Add(keyType, module);
+            }
+
+            return module;
+
+            void Enqueue()
+            {
+                module.Enqueue();
+                moduleData.Remove(keyType);
+                HeapManager.Enqueue(module, keyType);
+            }
+        }
+
+        private IModule LoadComponent(Type keyType, Type realType)
+        {
+            if (!moduleData.TryGetValue(keyType, out var module))
+            {
+                module = HeapManager.Dequeue<IModule>(realType);
+                AddEvent(module);
+                OnFade += Enqueue;
+                moduleData.Add(keyType, module);
+            }
+
+            return module;
+
+            void Enqueue()
+            {
+                module.Enqueue();
+                moduleData.Remove(keyType);
+                HeapManager.Enqueue(module, realType);
+            }
+        }
+
+        private void AddEvent(IModule module)
+        {
+            this.Inject(module);
+            module.Acquire(this);
+            module.Dequeue();
+
+            var events = module.GetType().GetInterfaces();
+            foreach (var @event in events)
+            {
+                if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
+                {
+                    var result = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
+                    OnShow += (Action)Delegate.CreateDelegate(typeof(Action), module, result.GetMethod("Listen", Service.Ref.Instance)!);
+                    OnHide += (Action)Delegate.CreateDelegate(typeof(Action), module, result.GetMethod("Remove", Service.Ref.Instance)!);
+                }
+            }
+
+            if (module is ISystem system)
+            {
+                OnShow += system.AddSystem;
+                OnHide += system.SubSystem;
+            }
+
+            if (module is IActive active)
+            {
+                OnShow += active.OnShow;
+                OnHide += active.OnHide;
+            }
         }
     }
 }

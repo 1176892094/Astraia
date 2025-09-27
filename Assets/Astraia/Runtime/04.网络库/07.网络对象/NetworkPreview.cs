@@ -199,7 +199,7 @@ namespace Astraia.Net
         {
             var copies = new List<ModuleData>();
 
-            foreach (var module in entity.moduleData.Values)
+            foreach (var module in entity.Values)
             {
                 if (module is NetworkModule result)
                 {
