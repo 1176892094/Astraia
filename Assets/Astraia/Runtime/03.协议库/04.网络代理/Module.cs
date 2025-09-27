@@ -22,8 +22,8 @@ namespace Astraia.Common
         private readonly byte[] rawSendBuffer;
         private readonly byte[] kcpSendBuffer;
         private readonly byte[] kcpDataBuffer;
-        private readonly int kcpLength;
-        private readonly int udpLength;
+        private readonly uint kcpLength;
+        private readonly uint udpLength;
         private readonly Stopwatch watch = new Stopwatch();
         private uint overTime;
         private uint pingTime;
@@ -66,14 +66,14 @@ namespace Astraia.Common
             Send(new ArraySegment<byte>(rawSendBuffer, 0, count + 1 + 4));
         }
 
-        public static int KcpLength(uint count, uint window)
+        public static uint KcpLength(uint count, uint window)
         {
-            return (int)((count - Kcp.IKCP_OVERHEAD - METADATA_SIZE) * (Math.Min(window, 255) - 1) - 1);
+            return (count - Kcp.IKCP_OVERHEAD - METADATA_SIZE) * (Math.Min(window, 255) - 1) - 1;
         }
 
-        public static int UdpLength(uint count)
+        public static uint UdpLength(uint count)
         {
-            return (int)count - METADATA_SIZE - 1;
+            return count - METADATA_SIZE - 1;
         }
 
         private bool TryReceive(out Reliable message, out ArraySegment<byte> segment)

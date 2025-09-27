@@ -17,10 +17,10 @@ namespace Astraia
     internal class WriterBatch
     {
         private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
-        private readonly int maxLength;
+        private readonly uint maxLength;
         private MemoryWriter writer;
 
-        public WriterBatch(int maxLength)
+        public WriterBatch(uint maxLength)
         {
             this.maxLength = maxLength;
         }

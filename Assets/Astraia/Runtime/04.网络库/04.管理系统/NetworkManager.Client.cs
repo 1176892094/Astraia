@@ -59,7 +59,7 @@ namespace Astraia.Net
                     Ready();
                     return;
                 }
-                
+
                 state = State.Connect;
                 AddMessage(EntryMode.Client);
                 connection = new NetworkServer();
@@ -77,10 +77,12 @@ namespace Astraia.Net
             internal static void Stop()
             {
                 if (!isActive) return;
-                var entities = spawns.Values.Where(entity => entity != null).ToList();
+                var entities = spawns.Values.Where(entity => entity).ToList();
                 foreach (var entity in entities)
                 {
                     entity.OnStopClient();
+                    entity.mode &= ~EntityMode.Owner;
+                    entity.OnNotifyAuthority();
                     if (entity.sceneId != 0)
                     {
                         entity.gameObject.SetActive(false);
@@ -93,19 +95,19 @@ namespace Astraia.Net
                 }
 
                 state = State.Disconnect;
-                if (Transport.Instance != null)
+                if (Transport.Instance)
                 {
                     Transport.Instance.Disconnect();
                 }
-
+                
                 sendTime = 0;
                 waitTime = 0;
                 pingTime = 0;
-                isReady = false;
                 spawns.Clear();
                 scenes.Clear();
                 messages.Clear();
                 connection = null;
+                isReady = false;
                 isLoadScene = false;
                 EventManager.Invoke(new ClientDisconnect());
             }

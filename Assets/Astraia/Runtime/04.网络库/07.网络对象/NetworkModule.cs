@@ -160,7 +160,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if ((channel & Channel.NonOwner) == 0 && !isOwner)
+            if ((channel & Channel.IgnoreOwner) == 0 && !isOwner)
             {
                 Debug.LogWarning("调用 {0} 但是客户端没有对象权限。对象名称：{1}".Format(name, owner.name), owner);
                 return;
@@ -210,7 +210,7 @@ namespace Astraia.Net
 
             foreach (var conn in NetworkManager.Server.clients.Values.Where(conn => conn.isReady))
             {
-                if ((channel & Channel.NonOwner) == 0 || conn != client)
+                if ((channel & Channel.IgnoreOwner) == 0 || conn != client)
                 {
                     conn.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
                 }

@@ -25,7 +25,7 @@ namespace Astraia.Net
             NetworkManager.Lobby.connection = transport;
         }
 
-        public override int GetLength(int channel)
+        public override uint GetLength(int channel)
         {
             return transport.GetLength(channel);
         }

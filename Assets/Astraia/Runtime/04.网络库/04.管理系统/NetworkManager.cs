@@ -53,6 +53,10 @@ namespace Astraia.Net
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Transport.Instance = GetComponent<Transport>();
+        }
+
+        private void Start()
+        {
             Application.runInBackground = true;
         }
 

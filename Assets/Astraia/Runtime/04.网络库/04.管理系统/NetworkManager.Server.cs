@@ -53,7 +53,7 @@ namespace Astraia.Net
                 {
                     Transport.Instance.StartServer();
                 }
-                
+
                 state = State.Connected;
                 AddMessage();
                 SpawnObjects();
@@ -73,7 +73,7 @@ namespace Astraia.Net
                     }
                 }
 
-                if (Transport.Instance != null)
+                if (Transport.Instance)
                 {
                     Transport.Instance.StopServer();
                 }
@@ -286,7 +286,15 @@ namespace Astraia.Net
             {
                 if (clients.TryGetValue(clientId, out var client))
                 {
-                    var entities = spawns.Values.Where(entity => entity.client == client).ToList();
+                    var entities = new List<NetworkEntity>();
+                    foreach (var entity in spawns.Values)
+                    {
+                        if (entity.client == client)
+                        {
+                            entities.Add(entity);
+                        }
+                    }
+
                     foreach (var entity in entities)
                     {
                         Object.Destroy(entity);

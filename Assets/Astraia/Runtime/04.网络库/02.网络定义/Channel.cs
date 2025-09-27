@@ -15,6 +15,6 @@ namespace Astraia.Net
     {
         public const byte Reliable = 1 << 0;
         public const byte Unreliable = 1 << 1;
-        public const byte NonOwner = 1 << 2;
+        public const byte IgnoreOwner = 1 << 2;
     }
 }

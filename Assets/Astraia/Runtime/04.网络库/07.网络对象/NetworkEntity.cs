@@ -89,8 +89,8 @@ namespace Astraia.Net
 
             owner = null;
             other = null;
-            modules = null;
             client = null;
+            modules = null;
             base.OnDestroy();
         }
 
