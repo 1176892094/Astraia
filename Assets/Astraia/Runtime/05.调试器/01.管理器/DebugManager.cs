@@ -86,6 +86,7 @@ namespace Astraia.Common
 
         protected override void Update()
         {
+            base.Update();
             if (frameTime > Time.realtimeSinceStartup)
             {
                 return;

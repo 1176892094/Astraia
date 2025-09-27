@@ -16,6 +16,7 @@ namespace Astraia.Net
     {
         public static readonly ushort Id = (ushort)NetworkMessage.Id(typeof(T).FullName);
     }
+
     public static class NetworkMessage
     {
         public static uint Id(string name)

@@ -53,16 +53,6 @@ namespace Astraia.Net
             address = Service.Host.Ip();
         }
 
-        protected virtual void OnEnable()
-        {
-            EventManager.Listen(this);
-        }
-
-        protected virtual void OnDisable()
-        {
-            EventManager.Remove(this);
-        }
-
         protected virtual void Start()
         {
             if (Transport.Instance)
@@ -72,6 +62,16 @@ namespace Astraia.Net
                 Transport.Instance.OnClientReceive += OnClientReceive;
                 Transport.Instance.OnServerReceive += OnServerReceive;
             }
+        }
+
+        protected virtual void OnEnable()
+        {
+            EventManager.Listen(this);
+        }
+
+        protected virtual void OnDisable()
+        {
+            EventManager.Remove(this);
         }
 
         protected virtual void Update()
@@ -177,7 +177,7 @@ namespace Astraia.Net
             GUILayout.Label("从客户端接收大小:\t\t{0}/s".Format(PrettyBytes(serverReceivedBytesPerSecond)));
         }
 
-        protected void ItemReset()
+        protected static void ItemReset()
         {
             sendItems.Reset();
             receiveItems.Reset();

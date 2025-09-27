@@ -32,45 +32,46 @@ namespace Astraia.Net
             var setting = new Setting(unitData, overTime, interval, deadLink, fastResend, sendWindow, receiveWindow);
             client = new Client(setting, ClientConnect, ClientDisconnect, ClientError, ClientReceive);
             server = new Server(setting, ServerConnect, ServerDisconnect, ServerError, ServerReceive);
-        }
+            return;
 
-        private void ClientConnect()
-        {
-            OnClientConnect.Invoke();
-        }
+            void ClientConnect()
+            {
+                OnClientConnect.Invoke();
+            }
 
-        private void ClientDisconnect()
-        {
-            OnClientDisconnect.Invoke();
-        }
+            void ClientDisconnect()
+            {
+                OnClientDisconnect.Invoke();
+            }
 
-        private void ClientError(Error error, string message)
-        {
-            Log.Warn("{0}: {1}", error, message);
-        }
+            void ClientError(Error error, string message)
+            {
+                Log.Warn("{0}: {1}", error, message);
+            }
 
-        private void ClientReceive(ArraySegment<byte> message, int channel)
-        {
-            OnClientReceive.Invoke(message, channel);
-        }
+            void ClientReceive(ArraySegment<byte> message, int channel)
+            {
+                OnClientReceive.Invoke(message, channel);
+            }
 
-        private void ServerConnect(int id)
-        {
-            OnServerConnect.Invoke(id);
-        }
+            void ServerConnect(int id)
+            {
+                OnServerConnect.Invoke(id);
+            }
 
-        private void ServerDisconnect(int id)
-        {
-            OnServerDisconnect.Invoke(id);
-        }
+            void ServerDisconnect(int id)
+            {
+                OnServerDisconnect.Invoke(id);
+            }
 
-        private void ServerError(int id, Error error, string message)
-        {
-        }
+            void ServerError(int id, Error error, string message)
+            {
+            }
 
-        private void ServerReceive(int id, ArraySegment<byte> message, int channel)
-        {
-            OnServerReceive.Invoke(id, message, channel);
+            void ServerReceive(int id, ArraySegment<byte> message, int channel)
+            {
+                OnServerReceive.Invoke(id, message, channel);
+            }
         }
 
         public override uint GetLength(int channel)

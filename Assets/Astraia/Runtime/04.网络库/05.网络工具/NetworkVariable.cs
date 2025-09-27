@@ -18,8 +18,7 @@ namespace Astraia.Net
     {
         public byte moduleId;
         public uint objectId;
-      
-
+        
         public NetworkVariable(uint objectId, int moduleId)
         {
             this.objectId = objectId;
