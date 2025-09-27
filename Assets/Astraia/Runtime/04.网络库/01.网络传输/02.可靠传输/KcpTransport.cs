@@ -11,7 +11,6 @@
 
 using System;
 using Astraia.Common;
-using UnityEngine;
 
 namespace Astraia.Net
 {
@@ -47,7 +46,7 @@ namespace Astraia.Net
 
             void ClientError(Error error, string message)
             {
-                Debug.LogWarning(Log.E210.Format(error, message));
+                Log.Warn("{0}: {1}", error, message);
             }
 
             void ClientReceive(ArraySegment<byte> message, int channel)

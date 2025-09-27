@@ -102,7 +102,7 @@ namespace Astraia.Net
                     newValue = entity.objectId;
                     if (newValue == 0)
                     {
-                        Debug.LogWarning(Log.E269.Format(newObject.name));
+                        Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", newObject.name);
                     }
                 }
             }
@@ -136,7 +136,7 @@ namespace Astraia.Net
                     newValue = entity.objectId;
                     if (newValue == 0)
                     {
-                        Debug.LogWarning(Log.E269.Format(newObject.name));
+                        Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", newObject.name);
                     }
                 }
             }
@@ -186,7 +186,7 @@ namespace Astraia.Net
                 newValue = entity.objectId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Log.E269.Format(entity.gameObject.name));
+                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
                 }
             }
         
@@ -209,7 +209,7 @@ namespace Astraia.Net
                 newValue = entity.objectId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Log.E269.Format(entity.gameObject.name));
+                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
                 }
             }
         
@@ -260,7 +260,7 @@ namespace Astraia.Net
                 index = entity.moduleId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Log.E269.Format(entity.gameObject.name));
+                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
                 }
             }
         
@@ -294,7 +294,7 @@ namespace Astraia.Net
                 index = entity.moduleId;
                 if (newValue == 0)
                 {
-                    Debug.LogWarning(Log.E269.Format(entity.gameObject.name));
+                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
                 }
             }
         

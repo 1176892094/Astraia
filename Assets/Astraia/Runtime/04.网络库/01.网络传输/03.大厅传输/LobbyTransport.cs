@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using UnityEngine;
 
 namespace Astraia.Net
 {
@@ -56,13 +55,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Lobby.isConnected)
             {
-                Debug.Log(Log.E208);
+                Log.Warn("没有连接到大厅!");
                 return;
             }
 
             if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
             {
-                Debug.Log(Log.E205);
+                Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 
@@ -102,13 +101,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Lobby.isConnected)
             {
-                Debug.Log(Log.E208);
+                Log.Warn("没有连接到大厅!");
                 return;
             }
 
             if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
             {
-                Debug.Log(Log.E205);
+                Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 

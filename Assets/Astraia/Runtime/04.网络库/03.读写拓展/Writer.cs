@@ -122,7 +122,7 @@ namespace Astraia.Net
 
             if (value.objectId == 0)
             {
-                Debug.LogWarning(Log.E209);
+                Log.Warn("网络对象的网络标识无效。");
                 writer.WriteUInt(0);
                 return;
             }
@@ -195,7 +195,7 @@ namespace Astraia.Net
             writer.WriteInt(value.Count);
             for (var i = 0; i < value.Count; i++)
             {
-                writer.Invoke(value.Array[value.Offset + i]);
+                writer.Invoke(value.Array![value.Offset + i]);
             }
         }
     }

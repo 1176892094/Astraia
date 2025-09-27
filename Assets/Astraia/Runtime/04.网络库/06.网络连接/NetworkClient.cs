@@ -52,7 +52,7 @@ namespace Astraia.Net
 
             if (writer.position > Transport.Instance.GetLength(channel))
             {
-                Debug.LogError(Log.E291.Format(writer.position));
+                Log.Error("发送消息大小过大！消息大小: {0}", writer.position);
                 return;
             }
 

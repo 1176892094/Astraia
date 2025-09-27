@@ -105,7 +105,7 @@ namespace Astraia.Net
         {
             if (Server.isActive)
             {
-                Debug.LogWarning(Log.E201);
+                Log.Warn("服务器已经连接!");
                 return;
             }
 
@@ -116,7 +116,7 @@ namespace Astraia.Net
         {
             if (!Server.isActive)
             {
-                Debug.LogWarning(Log.E202);
+                Log.Warn("服务器已经停止!");
                 return;
             }
 
@@ -127,7 +127,7 @@ namespace Astraia.Net
         {
             if (Client.isActive)
             {
-                Debug.LogWarning(Log.E203);
+                Log.Warn("客户端已经连接!");
                 return;
             }
 
@@ -138,7 +138,7 @@ namespace Astraia.Net
         {
             if (Client.isActive)
             {
-                Debug.LogWarning(Log.E203);
+                Log.Warn("客户端已经连接!");
                 return;
             }
 
@@ -149,7 +149,7 @@ namespace Astraia.Net
         {
             if (!Client.isActive)
             {
-                Debug.LogWarning(Log.E204);
+                Log.Warn("客户端已经停止!");
                 return;
             }
 
@@ -165,7 +165,7 @@ namespace Astraia.Net
         {
             if (Server.isActive || Client.isActive)
             {
-                Debug.LogWarning(Log.E205);
+                Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 
@@ -183,7 +183,7 @@ namespace Astraia.Net
         {
             if (Lobby.isActive)
             {
-                Debug.LogWarning(Log.E206);
+                Log.Warn("大厅服务器已经连接!");
                 return;
             }
 
@@ -194,7 +194,7 @@ namespace Astraia.Net
         {
             if (!Lobby.isActive)
             {
-                Debug.LogWarning(Log.E207);
+                Log.Warn("大厅服务器已经停止!");
                 return;
             }
 

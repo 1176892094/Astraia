@@ -31,7 +31,7 @@ namespace Astraia.Net
         {
             if (Application.platform == RuntimePlatform.WebGLPlayer)
             {
-                Debug.LogError(Log.E292);
+                Log.Error("网络发现不支持WebGL");
                 return;
             }
 
@@ -93,11 +93,11 @@ namespace Astraia.Net
                 writer.WriteInt(version);
                 writer.Invoke(new RequestMessage());
                 ArraySegment<byte> segment = writer;
-                udpClient.Send(segment.Array, segment.Count, endPoint);
+                udpClient.Send(segment.Array!, segment.Count, endPoint);
             }
             catch (Exception e)
             {
-                Debug.LogError(e);
+                Log.Error(e);
             }
         }
 
@@ -111,7 +111,7 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
                     if (version != reader.ReadInt())
                     {
-                        Debug.LogError(Log.E293);
+                        Log.Error("接收到的消息版本不同!");
                         return;
                     }
 
@@ -124,7 +124,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Debug.LogException(e);
+                    Log.Error(e);
                 }
             }
         }
@@ -142,11 +142,11 @@ namespace Astraia.Net
                     Port = Transport.Instance.port
                 }.Uri));
                 ArraySegment<byte> segment = writer;
-                udpServer.Send(segment.Array, segment.Count, endPoint);
+                udpServer.Send(segment.Array!, segment.Count, endPoint);
             }
             catch (Exception e)
             {
-                Debug.LogError(e);
+                Log.Error(e);
             }
         }
 
@@ -160,7 +160,7 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
                     if (version != reader.ReadInt())
                     {
-                        Debug.LogError(Log.E293);
+                        Log.Error("接收到的消息版本不同!");
                         return;
                     }
 
@@ -174,7 +174,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Debug.LogException(e);
+                    Log.Error(e);
                 }
             }
         }

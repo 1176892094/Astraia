@@ -88,21 +88,21 @@ namespace Astraia.Common
 
             if (count > kcpDataBuffer.Length)
             {
-                OnError(Error.无效接收, Log.E142.Format(GetType(), kcpDataBuffer.Length, count));
+                OnError(Error.无效接收, "{0}: 接收网络消息过大。消息大小: {1} < {2}。".Format(GetType(), kcpDataBuffer.Length, count));
                 Disconnect();
                 return false;
             }
 
             if (kcp.Receive(kcpDataBuffer, count) < 0)
             {
-                OnError(Error.无效接收, Log.E143.Format(GetType()));
+                OnError(Error.无效接收, "{0}: 接收网络消息失败。".Format(GetType()));
                 Disconnect();
                 return false;
             }
 
             if (!Process.IsReliable(kcpDataBuffer[0], out message))
             {
-                OnError(Error.无效接收, Log.E144.Format(GetType(), message));
+                OnError(Error.无效接收, "{0}: 未知的网络消息头部 {1}。".Format(GetType(), message));
                 Disconnect();
                 return false;
             }
@@ -118,14 +118,14 @@ namespace Astraia.Common
             {
                 if (kcp.Input(segment.Array, segment.Offset, segment.Count) != 0)
                 {
-                    Log.Warn(Log.E112.Format(GetType(), segment.Count - 1));
+                    Log.Warn("{0}: 发送可靠消息失败。消息大小: {1}", GetType(), segment.Count - 1);
                 }
             }
             else if (channel == Channel.Unreliable && segment.Count >= 1)
             {
                 if (!Process.IsUnreliable(segment.Array![segment.Offset], out var message))
                 {
-                    OnError(Error.无效接收, Log.E144.Format(GetType(), message));
+                    OnError(Error.无效接收, "{0}: 未知的网络消息头部 {1}。".Format(GetType(), message));
                     Disconnect();
                     return;
                 }
@@ -147,7 +147,7 @@ namespace Astraia.Common
         {
             if (segment.Count + 1 > kcpSendBuffer.Length)
             {
-                OnError(Error.无效发送, Log.E145.Format(GetType(), segment.Count, kcpLength));
+                OnError(Error.无效发送, "{0}: 发送网络消息过大。消息大小: {1} < {2}".Format(GetType(), segment.Count, kcpLength));
                 return;
             }
 
@@ -159,7 +159,7 @@ namespace Astraia.Common
 
             if (kcp.Send(kcpSendBuffer, 0, segment.Count + 1) < 0)
             {
-                OnError(Error.无效发送, Log.E146.Format(GetType(), segment.Count));
+                OnError(Error.无效发送, "{0}: 发送网络消息失败。消息大小: {1}。".Format(GetType(), segment.Count));
             }
         }
 
@@ -167,7 +167,7 @@ namespace Astraia.Common
         {
             if (segment.Count > udpLength)
             {
-                Log.Error(Log.E113.Format(GetType(), segment.Count));
+                Log.Error("{0}: 发送不可靠消息失败。消息大小: {1}", GetType(), segment.Count);
                 return;
             }
 
@@ -186,7 +186,7 @@ namespace Astraia.Common
         {
             if (segment.Count == 0)
             {
-                OnError(Error.无效发送, Log.E147.Format(GetType()));
+                OnError(Error.无效发送, "{0}: 尝试发送空消息。".Format(GetType()));
                 Disconnect();
                 return;
             }
@@ -222,13 +222,13 @@ namespace Astraia.Common
         {
             if (keepTime >= lastTime + overTime)
             {
-                OnError(Error.连接超时, Log.E149.Format(GetType(), overTime));
+                OnError(Error.连接超时, "{0}: 在 {1}ms 内没有收到任何消息后的连接超时！".Format(GetType(), overTime));
                 Disconnect();
             }
 
             if (kcp.State == unchecked((uint)-1))
             {
-                OnError(Error.连接超时, Log.E148.Format(GetType(), kcp.Death));
+                OnError(Error.连接超时, "{0}: 网络消息被重传了 {1} 次而没有得到确认！".Format(GetType(), kcp.Death));
                 Disconnect();
             }
 
@@ -240,7 +240,7 @@ namespace Astraia.Common
 
             if (kcp.Count >= 10000)
             {
-                OnError(Error.网络拥塞, Log.E150.Format(GetType()));
+                OnError(Error.网络拥塞, "{0}: 断开连接，因为它处理数据的速度不够快！".Format(GetType()));
                 kcp.Clear();
                 Disconnect();
             }
@@ -262,7 +262,7 @@ namespace Astraia.Common
                                 OnConnected();
                                 break;
                             case Reliable.Data:
-                                OnError(Error.无效接收, Log.E151.Format(GetType(), message, segment.Count));
+                                OnError(Error.无效接收, "{0}: 收到未通过验证的网络消息。消息类型: {1} 消息长度: {2}".Format(GetType(), message, segment.Count));
                                 Disconnect();
                                 break;
                         }
@@ -276,11 +276,11 @@ namespace Astraia.Common
                         switch (message)
                         {
                             case Reliable.Connect:
-                                OnError(Error.无效接收, Log.E114.Format(GetType(), message));
+                                OnError(Error.无效接收, "{0}: 接收无效的网络消息。消息类型: {1}".Format(GetType(), message));
                                 Disconnect();
                                 break;
                             case Reliable.Data when segment.Count == 0:
-                                OnError(Error.无效接收, Log.E152.Format(GetType(), message));
+                                OnError(Error.无效接收, "{0}: 收到无效的网络消息。消息类型: {1}".Format(GetType(), message));
                                 Disconnect();
                                 return;
                             case Reliable.Data:
@@ -292,17 +292,17 @@ namespace Astraia.Common
             }
             catch (SocketException e)
             {
-                OnError(Error.连接关闭, Log.E153.Format(GetType(), e));
+                OnError(Error.连接关闭, "{0}: 网络发生异常，断开连接。\n{1}".Format(GetType(), e));
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                OnError(Error.连接关闭, Log.E153.Format(GetType(), e));
+                OnError(Error.连接关闭, "{0}: 网络发生异常，断开连接。\n{1}".Format(GetType(), e));
                 Disconnect();
             }
             catch (Exception e)
             {
-                OnError(Error.未知异常, Log.E153.Format(GetType(), e));
+                OnError(Error.未知异常, "{0}: 网络发生异常，断开连接。\n{1}".Format(GetType(), e));
                 Disconnect();
             }
         }
@@ -318,17 +318,17 @@ namespace Astraia.Common
             }
             catch (SocketException e)
             {
-                OnError(Error.连接关闭, Log.E153.Format(GetType(), e));
+                OnError(Error.连接关闭, "{0}: 网络发生异常，断开连接。\n{1}".Format(GetType(), e));
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                OnError(Error.连接关闭, Log.E153.Format(GetType(), e));
+                OnError(Error.连接关闭, "{0}: 网络发生异常，断开连接。\n{1}".Format(GetType(), e));
                 Disconnect();
             }
             catch (Exception e)
             {
-                OnError(Error.未知异常, Log.E153.Format(GetType(), e));
+                OnError(Error.未知异常, "{0}: 网络发生异常，断开连接。\n{1}".Format(GetType(), e));
                 Disconnect();
             }
         }

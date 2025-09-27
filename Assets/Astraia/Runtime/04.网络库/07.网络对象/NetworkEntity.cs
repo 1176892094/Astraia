@@ -142,7 +142,6 @@ namespace Astraia.Net
             {
                 if (!string.IsNullOrWhiteSpace(assetPath))
                 {
-                    Undo.RecordObject(gameObject, Log.E275);
                     if (sceneId == 0)
                     {
                         if (!uint.TryParse(name, out var id))
@@ -169,10 +168,9 @@ namespace Astraia.Net
                     sceneId = 0;
                     if (BuildPipeline.isBuildingPlayer)
                     {
-                        throw new InvalidOperationException(Log.E274.Format(gameObject.scene.path, name));
+                        throw new Exception("网络对象 {0} 在构建前需要打开并重新保存。因为网络对象 {1} 没有场景Id".Format(gameObject.scene.path, name));
                     }
 
-                    Undo.RecordObject(gameObject, Log.E275);
                     var random = (uint)Service.Rng.Next();
                     duplicate = sceneData.TryGetValue(random, out entity) && entity != null && entity != gameObject;
                     if (!duplicate)
@@ -197,19 +195,19 @@ namespace Astraia.Net
         {
             if (transform == null)
             {
-                Debug.LogWarning(Log.E276.Format(mode, function, objectId));
+                Log.Warn("调用了已经删除的网络对象。{0} [{1}] {2}", mode, function, objectId);
                 return;
             }
 
             if (moduleId >= modules.Count)
             {
-                Debug.LogWarning(Log.E277.Format(objectId, moduleId));
+                Log.Warn("网络对象 {0} 没有找到网络行为组件 {1}", objectId, moduleId);
                 return;
             }
 
             if (!NetworkAttribute.Invoke(function, mode, client, reader, modules[moduleId]))
             {
-                Debug.LogError(Log.E278.Format(mode, function, gameObject.name, objectId));
+                Log.Error("无法调用{0} [{1}] 网络对象: {2} 网络标识: {3}", mode, function, gameObject.name, objectId);
             }
         }
 

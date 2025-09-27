@@ -43,7 +43,7 @@ namespace Astraia
             {
                 if (state != State.Disconnect)
                 {
-                    Log.Warn(Log.E128);
+                    Log.Warn("客户端已经连接!");
                     return;
                 }
 
@@ -56,13 +56,13 @@ namespace Astraia
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     socket.Buffer();
                     socket.Connect(endPoint);
-                    Log.Info(Log.E130.Format(addresses[0], port));
+                    Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
                     SendReliable(Reliable.Connect);
                 }
             }
             catch (SocketException e)
             {
-                OnError(Error.解析失败, Log.E141.Format(address, e));
+                OnError(Error.解析失败, "无法解析主机地址: {0}\n{1}".Format(address, e));
                 onDisconnect.Invoke();
             }
         }
@@ -85,7 +85,7 @@ namespace Astraia
             {
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    Log.Info(Log.E132.Format(e));
+                    Log.Info("客户端接收消息失败!\n{0}", e);
                     Disconnect();
                 }
 
@@ -97,7 +97,7 @@ namespace Astraia
         {
             if (state == State.Disconnect)
             {
-                Log.Warn(Log.E129);
+                Log.Warn("客户端没有连接，发送消息失败！");
                 return;
             }
 
@@ -115,7 +115,7 @@ namespace Astraia
             var result = Process.Decode(segment.Array, segment.Offset + 1);
             if (result == 0)
             {
-                Log.Error(Log.E133.Format(userData, result));
+                Log.Error("客户端 {0} 重新验证。旧: {1} 新: {2}", endPoint, userData, result);
             }
 
             if (userData == 0)
@@ -124,7 +124,7 @@ namespace Astraia
             }
             else if (userData != result)
             {
-                Log.Error(Log.E127.Format(endPoint, userData, result));
+                Log.Error("客户端 {0} 移除验证: {1} 预期: {2}", endPoint, userData, result);
                 return;
             }
 
@@ -133,7 +133,7 @@ namespace Astraia
 
         protected override void OnConnected()
         {
-            Log.Info(Log.E134);
+            Log.Info("客户端连接成功。");
             onConnect.Invoke();
         }
 
@@ -155,7 +155,7 @@ namespace Astraia
                 }
 
 
-                Log.Info(Log.E131.Format(e));
+                Log.Info("客户端发送消息失败!\n{0}", e);
             }
         }
 
@@ -171,7 +171,7 @@ namespace Astraia
 
         protected override void OnDisconnect()
         {
-            Log.Info(Log.E135);
+            Log.Info("客户端断开连接。");
             onDisconnect.Invoke();
             endPoint = null;
             socket?.Close();

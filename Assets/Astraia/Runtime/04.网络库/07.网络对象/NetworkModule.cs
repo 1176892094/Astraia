@@ -89,7 +89,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Debug.LogError(Log.E260.Format(gameObject.name, GetType(), owner.sceneId, e));
+                Log.Error("序列化对象失败。对象名称: {0}[{1}][{2}]\n{3}", owner.name, GetType(), owner.sceneId, e);
             }
 
             var endPosition = writer.position;
@@ -111,16 +111,16 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Debug.LogError(Log.E260.Format(gameObject.name, GetType(), owner.sceneId, e));
+                Log.Error("序列化对象失败。对象名称: {0}[{1}][{2}]\n{3}", owner.name, GetType(), owner.sceneId, e);
                 result = false;
             }
 
-            var size = reader.position - startPosition;
-            var count = (byte)(size & 0xFF);
+            var value = reader.position - startPosition;
+            var count = (byte)(value & 0xFF);
             if (count != safety)
             {
-                Debug.LogError(Log.E261.Format(size, count, safety));
-                var cleared = (uint)size & 0xFFFFFF00;
+                Log.Error("反序列化字节不匹配。读取字节: {0} 哈希对比:{1}/{2}", value, count, safety);
+                var cleared = (uint)value & 0xFFFFFF00;
                 reader.position = startPosition + (int)(cleared | safety);
                 result = false;
             }
@@ -146,29 +146,29 @@ namespace Astraia.Net
         {
         }
 
-        protected void SendServerRpcInternal(string methodName, int methodHash, MemoryWriter writer, int channel)
+        protected void SendServerRpcInternal(string name, int hash, MemoryWriter writer, int channel)
         {
             if (!NetworkManager.Client.isActive)
             {
-                Debug.LogError(Log.E262.Format(methodName), gameObject);
+                Debug.LogWarning("调用 {0} 但是客户端不是活跃的。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
 
             if (!NetworkManager.Client.isReady)
             {
-                Debug.LogWarning(Log.E263.Format(methodName, gameObject.name), gameObject);
+                Debug.LogWarning("调用 {0} 但是客户端没有准备就绪的。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
 
             if ((channel & Channel.NonOwner) == 0 && !isOwner)
             {
-                Debug.LogWarning(Log.E264.Format(methodName, gameObject.name), gameObject);
+                Debug.LogWarning("调用 {0} 但是客户端没有对象权限。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
 
             if (NetworkManager.Client.connection == null)
             {
-                Debug.LogError(Log.E265.Format(methodName, gameObject.name), gameObject);
+                Debug.LogWarning("调用 {0} 但是客户端的连接为空。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
 
@@ -176,24 +176,24 @@ namespace Astraia.Net
             {
                 objectId = objectId,
                 sourceId = moduleId,
-                methodHash = (ushort)methodHash,
+                methodHash = (ushort)hash,
                 segment = writer,
             };
 
             NetworkManager.Client.connection.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
         }
 
-        protected void SendClientRpcInternal(string methodName, int methodHash, MemoryWriter writer, int channel)
+        protected void SendClientRpcInternal(string name, int hash, MemoryWriter writer, int channel)
         {
             if (!NetworkManager.Server.isActive)
             {
-                Debug.LogError(Log.E266.Format(methodName), gameObject);
+                Debug.LogError("调用 {0} 但是服务器不是活跃的。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
 
             if (!isServer)
             {
-                Debug.LogWarning(Log.E267.Format(methodName, gameObject.name), gameObject);
+                Debug.LogWarning("调用 {0} 但是对象未初始化。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
 
@@ -201,7 +201,7 @@ namespace Astraia.Net
             {
                 objectId = objectId,
                 sourceId = moduleId,
-                methodHash = (ushort)methodHash,
+                methodHash = (ushort)hash,
                 segment = writer
             };
 
@@ -217,17 +217,17 @@ namespace Astraia.Net
             }
         }
 
-        protected void SendTargetRpcInternal(NetworkClient client, string methodName, int methodHash, MemoryWriter writer, int channel)
+        protected void SendTargetRpcInternal(NetworkClient client, string name, int hash, MemoryWriter writer, int channel)
         {
             if (!NetworkManager.Server.isActive)
             {
-                Debug.LogError(Log.E266.Format(methodName), gameObject);
+                Debug.LogError("调用 {0} 但是服务器不是活跃的。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
 
             if (!isServer)
             {
-                Debug.LogWarning(Log.E267.Format(methodName, gameObject.name), gameObject);
+                Debug.LogWarning("调用 {0} 但是对象未初始化。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
 
@@ -235,7 +235,7 @@ namespace Astraia.Net
 
             if (client == null)
             {
-                Debug.LogError(Log.E268.Format(methodName, gameObject.name), gameObject);
+                Debug.LogError("调用 {0} 但是对象的连接为空。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
 
@@ -243,7 +243,7 @@ namespace Astraia.Net
             {
                 objectId = objectId,
                 sourceId = moduleId,
-                methodHash = (ushort)methodHash,
+                methodHash = (ushort)hash,
                 segment = writer
             };
 

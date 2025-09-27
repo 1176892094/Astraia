@@ -67,7 +67,7 @@ namespace Astraia
                 {
                     if (result != userData)
                     {
-                        Log.Info(Log.E127.Format(endPoint, result, userData));
+                        Log.Info("客户端 {0} 移除验证: {1} 预期: {2}", endPoint, result, userData);
                         return;
                     }
                 }
