@@ -20,7 +20,7 @@ namespace Astraia
     internal partial class Server
     {
         private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
-        private readonly HashSet<int> copies = new HashSet<int>();
+        private readonly HashSet<int> removes = new HashSet<int>();
         private readonly byte[] buffer;
         private readonly Setting setting;
         private readonly Action<int> onConnect;
@@ -38,7 +38,7 @@ namespace Astraia
             this.onConnect = onConnect;
             this.onReceive = onReceive;
             this.onDisconnect = onDisconnect;
-            buffer = new byte[setting.MaxData];
+            buffer = new byte[setting.UnitData];
             endPoint = setting.DualMode ? new IPEndPoint(IPAddress.IPv6Any, 0) : new IPEndPoint(IPAddress.Any, 0);
         }
 
@@ -137,7 +137,7 @@ namespace Astraia
 
             void OnDisconnect()
             {
-                copies.Add(id);
+                removes.Add(id);
                 Log.Info("客户端 {0} 从服务器断开。", id);
                 onDisconnect.Invoke(id);
             }
@@ -195,12 +195,12 @@ namespace Astraia
                 client.EarlyUpdate();
             }
 
-            foreach (var client in copies)
+            foreach (var client in removes)
             {
                 clients.Remove(client);
             }
 
-            copies.Clear();
+            removes.Clear();
         }
 
         public void AfterUpdate()

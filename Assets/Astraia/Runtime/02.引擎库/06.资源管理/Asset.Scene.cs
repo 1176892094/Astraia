@@ -43,11 +43,11 @@ namespace Astraia.Common
                     return;
                 }
 
-                Debug.LogWarning("加载资源 {0} 为空!".Format(reason));
+                Log.Warn("加载资源 {0} 为空!".Format(reason));
             }
             catch (Exception e)
             {
-                Debug.LogWarning("加载场景 {0} 失败!\n{1}".Format(reason, e));
+                Log.Warn("加载场景 {0} 失败!\n{1}".Format(reason, e));
             }
         }
 

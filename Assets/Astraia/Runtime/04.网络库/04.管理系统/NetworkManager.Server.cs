@@ -53,10 +53,9 @@ namespace Astraia.Net
                 {
                     Transport.Instance.StartServer();
                 }
-
-                Register();
-                clients.Clear();
+                
                 state = State.Connected;
+                AddMessage();
                 SpawnObjects();
             }
 
@@ -138,7 +137,7 @@ namespace Astraia.Net
 
         public static partial class Server
         {
-            private static void Register()
+            private static void AddMessage()
             {
                 Transport.Instance.OnServerConnect -= OnServerConnect;
                 Transport.Instance.OnServerDisconnect -= OnServerDisconnect;
@@ -146,13 +145,13 @@ namespace Astraia.Net
                 Transport.Instance.OnServerConnect += OnServerConnect;
                 Transport.Instance.OnServerDisconnect += OnServerDisconnect;
                 Transport.Instance.OnServerReceive += OnServerReceive;
-                Register<PongMessage>(PongMessage);
-                Register<ReadyMessage>(ReadyMessage);
-                Register<EntityMessage>(EntityMessage);
-                Register<ServerRpcMessage>(ServerRpcMessage);
+                AddMessage<PongMessage>(PongMessage);
+                AddMessage<ReadyMessage>(ReadyMessage);
+                AddMessage<EntityMessage>(EntityMessage);
+                AddMessage<ServerRpcMessage>(ServerRpcMessage);
             }
 
-            public static void Register<T>(Action<NetworkClient, T> handle) where T : struct, IMessage
+            public static void AddMessage<T>(Action<NetworkClient, T> onReceive) where T : struct, IMessage
             {
                 messages[NetworkMessage<T>.Id] = (client, reader, channel) =>
                 {
@@ -161,7 +160,7 @@ namespace Astraia.Net
                         var position = reader.position;
                         var message = reader.Invoke<T>();
                         NetworkDebugger.OnReceive(message, reader.position - position);
-                        handle?.Invoke(client, message);
+                        onReceive.Invoke(client, message);
                     }
                     catch (Exception e)
                     {
@@ -171,7 +170,7 @@ namespace Astraia.Net
                 };
             }
 
-            public static void Register<T>(Action<NetworkClient, T, int> handle) where T : struct, IMessage
+            public static void AddMessage<T>(Action<NetworkClient, T, int> onReceive) where T : struct, IMessage
             {
                 messages[NetworkMessage<T>.Id] = (client, reader, channel) =>
                 {
@@ -180,7 +179,7 @@ namespace Astraia.Net
                         var position = reader.position;
                         var message = reader.Invoke<T>();
                         NetworkDebugger.OnReceive(message, reader.position - position);
-                        handle?.Invoke(client, message, channel);
+                        onReceive.Invoke(client, message, channel);
                     }
                     catch (Exception e)
                     {

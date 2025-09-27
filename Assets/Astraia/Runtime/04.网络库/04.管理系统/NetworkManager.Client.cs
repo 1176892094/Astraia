@@ -52,24 +52,24 @@ namespace Astraia.Net
             {
                 if (mode == EntryMode.Host)
                 {
-                    Register(EntryMode.Host);
                     state = State.Connected;
+                    AddMessage(EntryMode.Host);
                     connection = new NetworkServer();
                     Server.Connect(new NetworkClient());
                     Ready();
                     return;
                 }
-
-                Register(EntryMode.Client);
+                
                 state = State.Connect;
+                AddMessage(EntryMode.Client);
                 connection = new NetworkServer();
                 Transport.Instance.StartClient();
             }
 
             internal static void Start(Uri uri)
             {
-                Register(EntryMode.Client);
                 state = State.Connect;
+                AddMessage(EntryMode.Client);
                 connection = new NetworkServer();
                 Transport.Instance.StartClient(uri);
             }
@@ -174,7 +174,7 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static void Register(EntryMode mode)
+            private static void AddMessage(EntryMode mode)
             {
                 if (mode == EntryMode.Client)
                 {
@@ -186,17 +186,17 @@ namespace Astraia.Net
                     Transport.Instance.OnClientReceive += OnClientReceive;
                 }
 
-                Register<PingMessage>(PingMessage);
-                Register<NotReadyMessage>(NotReadyMessage);
-                Register<EntityMessage>(EntityMessage);
-                Register<ClientRpcMessage>(ClientRpcMessage);
-                Register<SceneMessage>(SceneMessage);
-                Register<SpawnMessage>(SpawnMessage);
-                Register<DespawnMessage>(DespawnMessage);
-                Register<DestroyMessage>(DestroyMessage);
+                AddMessage<PingMessage>(PingMessage);
+                AddMessage<NotReadyMessage>(NotReadyMessage);
+                AddMessage<EntityMessage>(EntityMessage);
+                AddMessage<ClientRpcMessage>(ClientRpcMessage);
+                AddMessage<SceneMessage>(SceneMessage);
+                AddMessage<SpawnMessage>(SpawnMessage);
+                AddMessage<DespawnMessage>(DespawnMessage);
+                AddMessage<DestroyMessage>(DestroyMessage);
             }
 
-            public static void Register<T>(Action<T> handle) where T : struct, IMessage
+            public static void AddMessage<T>(Action<T> onReceive) where T : struct, IMessage
             {
                 messages[NetworkMessage<T>.Id] = (client, reader, channel) =>
                 {
@@ -205,7 +205,7 @@ namespace Astraia.Net
                         var position = reader.position;
                         var message = reader.Invoke<T>();
                         NetworkDebugger.OnReceive(message, reader.position - position);
-                        handle?.Invoke(message);
+                        onReceive.Invoke(message);
                     }
                     catch (Exception e)
                     {

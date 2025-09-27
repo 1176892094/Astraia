@@ -12,7 +12,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Astraia.Common
 {
@@ -73,7 +72,7 @@ namespace Astraia.Common
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("加载 {0} 数据失败!\n{1}".Format(nickName, e));
+                    Log.Error("加载 {0} 数据失败!\n{1}".Format(nickName, e));
                 }
             }
 
@@ -103,7 +102,7 @@ namespace Astraia.Common
                 return DataTable<T>.Instance.items;
             }
 
-            Debug.LogWarning("获取 {0} 失败!".Format(typeof(T).Name));
+            Log.Warn("获取 {0} 失败!".Format(typeof(T).Name));
             return null;
         }
     }

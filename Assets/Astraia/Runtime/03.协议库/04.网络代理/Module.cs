@@ -37,11 +37,11 @@ namespace Astraia.Common
         {
             Rebuild(setting);
             this.userData = userData;
-            udpLength = UdpLength(setting.MaxData);
-            kcpLength = KcpLength(setting.MaxData, setting.ReceiveWindow);
+            udpLength = UdpLength(setting.UnitData);
+            kcpLength = KcpLength(setting.UnitData, setting.ReceiveWindow);
             kcpDataBuffer = new byte[1 + kcpLength];
             kcpSendBuffer = new byte[1 + kcpLength];
-            rawSendBuffer = new byte[setting.MaxData];
+            rawSendBuffer = new byte[setting.UnitData];
         }
 
         protected void Rebuild(Setting setting)
@@ -51,7 +51,7 @@ namespace Astraia.Common
             lastTime = 0;
             overTime = setting.OverTime;
             kcp = new Protocol(0, SendReliable);
-            kcp.SetData(setting.MaxData - METADATA_SIZE, setting.DeadLink);
+            kcp.SetData(setting.UnitData - METADATA_SIZE, setting.DeadLink);
             kcp.SetDelay(setting.NoDelay, setting.Interval, setting.FastResend, !setting.Congestion);
             kcp.SetWindow(setting.SendWindow, setting.ReceiveWindow);
             state = State.Disconnect;

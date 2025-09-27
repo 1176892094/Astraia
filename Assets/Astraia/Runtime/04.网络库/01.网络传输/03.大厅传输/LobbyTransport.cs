@@ -15,19 +15,19 @@ namespace Astraia.Net
 {
     public sealed class LobbyTransport : Transport
     {
-        public Transport connection;
+        public Transport transport;
         public string roomName;
         public string roomData;
         public RoomMode roomMode;
 
         private void Awake()
         {
-            NetworkManager.Lobby.connection = connection;
+            NetworkManager.Lobby.connection = transport;
         }
 
         public override int GetLength(int channel)
         {
-            return connection.GetLength(channel);
+            return transport.GetLength(channel);
         }
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
@@ -38,7 +38,7 @@ namespace Astraia.Net
                 writer.WriteByte((byte)Lobby.同步网络数据);
                 writer.WriteArraySegment(segment);
                 writer.WriteInt(playerId);
-                connection.SendToServer(writer);
+                transport.SendToServer(writer);
             }
         }
 
@@ -48,7 +48,7 @@ namespace Astraia.Net
             writer.WriteByte((byte)Lobby.同步网络数据);
             writer.WriteArraySegment(segment);
             writer.WriteInt(0);
-            connection.SendToServer(writer);
+            transport.SendToServer(writer);
         }
 
         public override void StartServer()
@@ -72,7 +72,7 @@ namespace Astraia.Net
             writer.WriteString(roomData);
             writer.WriteInt(NetworkManager.Instance.connection);
             writer.WriteByte((byte)roomMode);
-            connection.SendToServer(writer);
+            transport.SendToServer(writer);
         }
 
         public override void StopServer()
@@ -82,7 +82,7 @@ namespace Astraia.Net
                 NetworkManager.Lobby.isServer = false;
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求离开房间);
-                connection.SendToServer(writer);
+                transport.SendToServer(writer);
             }
         }
 
@@ -93,7 +93,7 @@ namespace Astraia.Net
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求移除玩家);
                 writer.WriteInt(playerId);
-                connection.SendToServer(writer);
+                transport.SendToServer(writer);
             }
         }
 
@@ -114,15 +114,15 @@ namespace Astraia.Net
             NetworkManager.Lobby.isClient = true;
             using var writer = MemoryWriter.Pop();
             writer.WriteByte((byte)Lobby.请求加入房间);
-            writer.WriteString(connection.address);
-            connection.SendToServer(writer);
+            writer.WriteString(transport.address);
+            transport.SendToServer(writer);
         }
 
         public override void StartClient(Uri uri)
         {
             if (uri != null)
             {
-                connection.address = uri.Host;
+                transport.address = uri.Host;
             }
 
             StartClient();
@@ -135,18 +135,18 @@ namespace Astraia.Net
                 NetworkManager.Lobby.isClient = false;
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求离开房间);
-                connection.SendToServer(writer);
+                transport.SendToServer(writer);
             }
         }
 
         public override void ClientEarlyUpdate()
         {
-            connection.ClientEarlyUpdate();
+            transport.ClientEarlyUpdate();
         }
 
         public override void ClientAfterUpdate()
         {
-            connection.ClientAfterUpdate();
+            transport.ClientAfterUpdate();
         }
 
         public override void ServerEarlyUpdate()

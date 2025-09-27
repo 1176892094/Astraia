@@ -51,7 +51,7 @@ namespace Astraia
                     var index = item.GetValue<TKey>(name);
                     if (itemData.TryGetValue(index, out var value))
                     {
-                        Debug.LogWarning("加载数据 {0} 失败。键值重复: {1}".Format(value, index));
+                        Log.Warn("加载数据 {0} 失败。键值重复: {1}".Format(value, index));
                         continue;
                     }
 

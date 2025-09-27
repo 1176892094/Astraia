@@ -34,7 +34,7 @@ namespace Astraia
             this.onConnect = onConnect;
             this.onReceive = onReceive;
             this.onDisconnect = onDisconnect;
-            buffer = new byte[setting.MaxData];
+            buffer = new byte[setting.UnitData];
         }
 
         public void Connect(string address, ushort port)
