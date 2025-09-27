@@ -167,6 +167,7 @@ namespace Astraia
                 }
             }
 
+            DataManager.isLoaded = false;
             EditorApplication.delayCall -= DataManager.LoadDataTable;
             EditorApplication.delayCall += DataManager.LoadDataTable;
         }

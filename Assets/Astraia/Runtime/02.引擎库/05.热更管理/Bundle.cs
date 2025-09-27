@@ -207,13 +207,13 @@ namespace Astraia.Common
         {
             var assetData = await LoadRequest(persistentData, streamingAsset);
             string result = null;
-            if (assetData.mode == 1)
+            if (assetData.Key == 1)
             {
-                result = await File.ReadAllTextAsync(assetData.path);
+                result = await File.ReadAllTextAsync(assetData.Value);
             }
-            else if (assetData.mode == 2)
+            else if (assetData.Key == 2)
             {
-                using var request = UnityWebRequest.Get(assetData.path);
+                using var request = UnityWebRequest.Get(assetData.Value);
                 await request.SendWebRequest();
                 if (request.result == UnityWebRequest.Result.Success)
                 {
@@ -225,7 +225,7 @@ namespace Astraia.Common
         }
 
 
-        internal static async Task<(int mode, string path)> LoadRequest(string persistentData, string streamingAsset)
+        internal static async Task<(int Key, string Value)> LoadRequest(string persistentData, string streamingAsset)
         {
             if (File.Exists(persistentData))
             {

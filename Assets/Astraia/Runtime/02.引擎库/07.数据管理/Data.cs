@@ -18,6 +18,8 @@ namespace Astraia.Common
 {
     public static class DataManager
     {
+        public static bool isLoaded;
+
         public static void LoadDataTable()
         {
             var assembly = Service.Ref.GetAssembly(GlobalSetting.Define);
@@ -41,7 +43,7 @@ namespace Astraia.Common
                 EventManager.Invoke(new OnDataComplete());
                 return;
             }
-            
+
             foreach (var assetName in assetNames)
             {
                 var nickName = assetName.Substring(assetName.LastIndexOf('.') + 1);
@@ -74,6 +76,8 @@ namespace Astraia.Common
                     Debug.LogError("加载 {0} 数据失败!\n{1}".Format(nickName, e));
                 }
             }
+
+            isLoaded = true;
             EventManager.Invoke(new OnDataComplete());
         }
 

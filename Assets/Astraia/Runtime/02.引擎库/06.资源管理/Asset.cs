@@ -74,8 +74,8 @@ namespace Astraia.Common
             if (GlobalSetting.Instance.AssetMode != AssetMode.Resource && Application.isPlaying)
             {
                 var item = LoadAssetData(reason);
-                assetPack.TryGetValue(item.path, out var result);
-                asset = Actuator.LoadAt<T>(item.name, result);
+                assetPack.TryGetValue(item.Key, out var result);
+                asset = Actuator.LoadAt<T>(item.Value, result);
             }
             else
             {
@@ -92,8 +92,8 @@ namespace Astraia.Common
             if (GlobalSetting.Instance.AssetMode != AssetMode.Resource && Application.isPlaying)
             {
                 var item = LoadAssetData(reason);
-                assetPack.TryGetValue(item.path, out var result);
-                asset = Actuator.LoadBy<T>(item.name, result);
+                assetPack.TryGetValue(item.Key, out var result);
+                asset = Actuator.LoadBy<T>(item.Value, result);
             }
             else
             {
@@ -104,7 +104,7 @@ namespace Astraia.Common
             return asset;
         }
 
-        private static (string path, string name) LoadAssetData(string reason)
+        private static (string Key, string Value) LoadAssetData(string reason)
         {
             if (!assetData.TryGetValue(reason, out var asset))
             {
@@ -168,13 +168,13 @@ namespace Astraia.Common
         {
             var item = await BundleManager.LoadRequest(persistentData, streamingAsset);
             byte[] bytes = null;
-            if (item.mode == 1)
+            if (item.Key == 1)
             {
-                bytes = await Task.Run(() => Service.Xor.Decrypt(File.ReadAllBytes(item.path)));
+                bytes = await Task.Run(() => Service.Xor.Decrypt(File.ReadAllBytes(item.Value)));
             }
-            else if (item.mode == 2)
+            else if (item.Key == 2)
             {
-                using var request = UnityWebRequest.Get(item.path);
+                using var request = UnityWebRequest.Get(item.Value);
                 await request.SendWebRequest();
                 if (request.result == UnityWebRequest.Result.Success)
                 {

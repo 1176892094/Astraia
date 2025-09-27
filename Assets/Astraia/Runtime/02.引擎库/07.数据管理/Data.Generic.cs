@@ -36,16 +36,16 @@ namespace Astraia
 
         internal static class By<TKey>
         {
-            private static Dictionary<TKey, TData> itemData;
+            private static readonly Dictionary<TKey, TData> itemData = new Dictionary<TKey, TData>();
 
             public static void Add(List<TData> items, string name)
             {
-                if (Application.isPlaying && itemData != null)
+                if (DataManager.isLoaded)
                 {
                     return;
                 }
 
-                itemData = new Dictionary<TKey, TData>();
+                itemData.Clear();
                 foreach (var item in items)
                 {
                     var index = item.GetValue<TKey>(name);
@@ -61,11 +61,6 @@ namespace Astraia
 
             public static TData Get(TKey key)
             {
-                if (itemData == null)
-                {
-                    return default;
-                }
-
                 if (itemData.TryGetValue(key, out var item))
                 {
                     return item;

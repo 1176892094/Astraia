@@ -56,12 +56,12 @@ namespace Astraia.Common
             if (GlobalSetting.Instance.AssetMode != AssetMode.Resource)
             {
                 var item = LoadAssetData(reason);
-                if (assetPack.TryGetValue(item.path, out var result))
+                if (assetPack.TryGetValue(item.Key, out var result))
                 {
                     var scenes = result.GetAllScenePaths();
                     foreach (var scene in scenes)
                     {
-                        if (scene == item.name)
+                        if (scene == item.Value)
                         {
                             return scene;
                         }
