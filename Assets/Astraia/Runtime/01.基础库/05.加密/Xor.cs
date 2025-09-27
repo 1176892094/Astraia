@@ -37,7 +37,7 @@ namespace Astraia
             public static unsafe byte[] Encrypt(byte[] data, byte version = 0)
             {
                 var iv = new byte[LENGTH];
-                Random.NextBytes(iv);
+                Rng.NextBytes(iv);
                 iv[0] = version;
 
                 var key = KeyMap[iv[0]];

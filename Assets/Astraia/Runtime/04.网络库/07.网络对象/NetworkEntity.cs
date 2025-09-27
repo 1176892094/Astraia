@@ -173,7 +173,7 @@ namespace Astraia.Net
                     }
 
                     Undo.RecordObject(gameObject, Log.E275);
-                    var random = (uint)Service.Random.Next();
+                    var random = (uint)Service.Rng.Next();
                     duplicate = sceneData.TryGetValue(random, out entity) && entity != null && entity != gameObject;
                     if (!duplicate)
                     {

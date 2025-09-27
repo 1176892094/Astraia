@@ -16,35 +16,38 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static class Text
+        public static partial class Text
         {
-            [ThreadStatic] private static UTF8Encoding encoding;
+            [ThreadStatic] private static StringBuilder stringBuilder;
 
-            private static UTF8Encoding Encoding => encoding ??= new UTF8Encoding(false, true);
+            private static StringBuilder StringBuilder => stringBuilder ??= new StringBuilder(1024);
 
-            public static byte[] GetBytes(string message)
+            internal static string Format<T>(string format, T arg1)
             {
-                return Encoding.GetBytes(message);
+                StringBuilder.Length = 0;
+                StringBuilder.AppendFormat(format, arg1);
+                return StringBuilder.ToString();
             }
 
-            public static string GetString(byte[] bytes)
+            internal static string Format<T1, T2>(string format, T1 arg1, T2 arg2)
             {
-                return Encoding.GetString(bytes);
+                StringBuilder.Length = 0;
+                StringBuilder.AppendFormat(format, arg1, arg2);
+                return StringBuilder.ToString();
             }
 
-            public static string GetString(byte[] bytes, int index, int count)
+            internal static string Format<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
             {
-                return Encoding.GetString(bytes, index, count);
+                StringBuilder.Length = 0;
+                StringBuilder.AppendFormat(format, arg1, arg2, arg3);
+                return StringBuilder.ToString();
             }
 
-            public static int GetByteCount(int count)
+            internal static string Format<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
             {
-                return Encoding.GetMaxByteCount(count);
-            }
-
-            public static int GetByteCount(string message, int count, byte[] buffer, int index)
-            {
-                return Encoding.GetBytes(message, 0, count, buffer, index);
+                StringBuilder.Length = 0;
+                StringBuilder.AppendFormat(format, arg1, arg2, arg3, arg4);
+                return StringBuilder.ToString();
             }
         }
     }

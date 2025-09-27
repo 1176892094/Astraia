@@ -90,7 +90,7 @@ namespace Astraia
                     return State.Success;
                 }
 
-                var index = Service.Random.Next(nodes.Length);
+                var index = Service.Rng.Next(nodes.Length);
                 var state = await nodes[index].Execute(data);
                 if (state == State.Success)
                 {

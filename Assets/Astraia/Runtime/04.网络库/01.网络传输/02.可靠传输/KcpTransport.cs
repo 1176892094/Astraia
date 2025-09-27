@@ -30,9 +30,6 @@ namespace Astraia.Net
 
         private void Awake()
         {
-            Log.onInfo = Debug.Log;
-            Log.onWarn = Debug.LogWarning;
-            Log.onError = Debug.LogError;
             var setting = new Setting(unitData, overTime, interval, deadLink, fastResend, sendWindow, receiveWindow);
             client = new Client(setting, ClientConnect, ClientDisconnect, ClientError, ClientReceive);
             server = new Server(setting, ServerConnect, ServerDisconnect, ServerError, ServerReceive);

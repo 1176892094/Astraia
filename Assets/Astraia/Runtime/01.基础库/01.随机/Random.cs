@@ -15,9 +15,9 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static class Random
+        public static class Rng
         {
-            private static readonly System.Random random = new System.Random(Environment.TickCount);
+            private static readonly Random random = new Random(Environment.TickCount);
 
             public static float value => (float)random.NextDouble();
 
@@ -36,6 +36,11 @@ namespace Astraia
                 return random.Next(min, max);
             }
 
+            public static int Next(Enum max)
+            {
+                return random.Next(Convert.ToInt32(max));
+            }
+
             public static int Next(Enum min, Enum max)
             {
                 return random.Next(Convert.ToInt32(min), Convert.ToInt32(max));
@@ -50,7 +55,7 @@ namespace Astraia
             {
                 return value * (max - min) + min;
             }
-            
+
             public static void NextBytes(byte[] bytes)
             {
                 random.NextBytes(bytes);

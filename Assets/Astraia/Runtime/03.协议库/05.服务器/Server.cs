@@ -126,7 +126,7 @@ namespace Astraia
 
         private Client Register(int id)
         {
-            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, (uint)Service.Random.Next(), endPoint);
+            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, (uint)Service.Rng.Next(), endPoint);
 
             void OnConnect(Client client)
             {

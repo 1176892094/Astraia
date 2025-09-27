@@ -85,7 +85,7 @@ namespace Astraia.Net
                 }
 
                 var rooms = Service.Zip.Decompress(request.downloadHandler.text);
-                var jsons = JsonManager.FromJson<RoomData[]>(Log.E254.Format(rooms));
+                var jsons = JsonManager.FromJson<RoomData[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
                 Debug.Log(Log.E255.Format(rooms));
             }
@@ -200,7 +200,7 @@ namespace Astraia.Net
                             Transport.Instance.OnClientReceive.Invoke(message, channel);
                         }
                     }
-                    else if (opcode == Astraia.Lobby.移除玩家成功)
+                    else if (opcode == Astraia.Lobby.断开玩家连接)
                     {
                         if (isServer)
                         {
