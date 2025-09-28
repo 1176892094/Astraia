@@ -97,7 +97,7 @@ namespace Astraia.Net
 
         public static implicit operator NetworkClient(int id)
         {
-            return NetworkManager.Server.clients[id];
+            return NetworkManager.Server.clients.TryGetValue(id, out var client) ? client : null;
         }
     }
 }

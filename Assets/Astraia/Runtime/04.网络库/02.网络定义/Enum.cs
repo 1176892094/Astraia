@@ -39,6 +39,13 @@ namespace Astraia.Net
         ClientRpc,
     }
 
+    internal enum EntitySpawn : byte
+    {
+        None,
+        Hide,
+        Show
+    }
+
     [Flags]
     internal enum EntityMode : byte
     {
