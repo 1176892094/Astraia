@@ -3,8 +3,8 @@
 // // # Unity: 6000.3.5f1
 // // # Author: 云谷千羽
 // // # Version: 1.0.0
-// // # History: 2025-09-28 18:09:21
-// // # Recently: 2025-09-28 18:09:22
+// // # History: 2025-09-27 21:09:40
+// // # Recently: 2025-09-27 21:09:40
 // // # Copyright: 2024, 云谷千羽
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
@@ -16,26 +16,30 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    [Serializable]
-    internal class NetworkSpatialHash : NetworkObserver, IEvent<ServerDisconnect>, IEvent<InterestUpdate>
+    public class NetworkObserving : MonoBehaviour, IEvent<ServerDisconnect>, IEvent<ServerObserver>
     {
-        private Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
+        private readonly Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
+        private readonly HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
         private Grid<NetworkClient> grids = new Grid<NetworkClient>(1024);
         private double waitTime;
 
         [SerializeField] private Vector2Int distance = new Vector2Int(30, 20);
         [SerializeField] private float interval = 1;
-        public Vector2Int resolution => distance / 2;
+
+        private void Awake()
+        {
+            NetworkManager.Server.observing = this;
+        }
 
         private void OnEnable()
         {
-            EventManager.Listen<InterestUpdate>(this);
+            EventManager.Listen<ServerObserver>(this);
             EventManager.Listen<ServerDisconnect>(this);
         }
 
         private void OnDisable()
         {
-            EventManager.Remove<InterestUpdate>(this);
+            EventManager.Remove<ServerObserver>(this);
             EventManager.Remove<ServerDisconnect>(this);
         }
 
@@ -44,7 +48,7 @@ namespace Astraia.Net
             players.Remove(message.client);
         }
 
-        public void Execute(InterestUpdate message)
+        public void Execute(ServerObserver message)
         {
             players[message.entity.client] = message.entity;
         }
@@ -71,7 +75,71 @@ namespace Astraia.Net
             }
         }
 
-        public override bool OnExecute(NetworkEntity entity, NetworkClient client)
+        private Vector2Int EntityToGrid(Vector3 position)
+        {
+            var resolution = distance / 2;
+            var x = Mathf.Max(1, resolution.x);
+            var y = Mathf.Max(1, resolution.y);
+            return new Vector2Int(Mathf.FloorToInt(position.x / x), Mathf.FloorToInt(position.y / y));
+        }
+
+        private void OnRebuild(NetworkEntity entity, HashSet<NetworkClient> clients)
+        {
+            var position = EntityToGrid(entity.transform.position);
+            grids.Set(position, clients);
+        }
+
+        public void Rebuild(NetworkEntity entity, bool initialize)
+        {
+            clients.Clear();
+            if (entity.spawn != EntitySpawn.Hide)
+            {
+                OnRebuild(entity, clients);
+            }
+
+            if (entity.client != null)
+            {
+                clients.Add(entity.client);
+            }
+
+            var changed = false;
+            foreach (var client in clients)
+            {
+                if (client.isReady)
+                {
+                    if (initialize || !entity.clients.Contains(client))
+                    {
+                        client.entities.Add(entity);
+                        NetworkManager.Server.SpawnToClient(client, entity);
+                        changed = true;
+                    }
+                }
+            }
+
+            foreach (var client in entity.clients)
+            {
+                if (!clients.Contains(client))
+                {
+                    client.entities.Remove(entity);
+                    client.Send(new DespawnMessage(entity.objectId));
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                entity.clients.Clear();
+                foreach (var client in clients)
+                {
+                    if (client.isReady)
+                    {
+                        entity.clients.Add(client);
+                    }
+                }
+            }
+        }
+
+        public bool OnExecute(NetworkEntity entity, NetworkClient client)
         {
             var entityGrid = EntityToGrid(entity.transform.position);
             if (players.TryGetValue(client, out var player) && player)
@@ -84,22 +152,10 @@ namespace Astraia.Net
             return false;
         }
 
-        private Vector2Int EntityToGrid(Vector3 position)
-        {
-            var x = Mathf.Max(1, resolution.x);
-            var y = Mathf.Max(1, resolution.y);
-            return new Vector2Int(Mathf.FloorToInt(position.x / x), Mathf.FloorToInt(position.y / y));
-        }
-
-        public override void OnRebuild(NetworkEntity entity, HashSet<NetworkClient> clients)
-        {
-            var position = EntityToGrid(entity.transform.position);
-            grids.Set(position, clients);
-        }
-
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
+            var resolution = distance / 2;
             var x = Mathf.Max(1, resolution.x);
             var y = Mathf.Max(1, resolution.y);
 
