@@ -34,6 +34,8 @@ namespace Astraia.Net
 
         internal EntityMode mode;
 
+        internal EntitySpawn spawn;
+
         internal EntityState state;
 
         internal NetworkClient client;
@@ -41,6 +43,8 @@ namespace Astraia.Net
         internal MemoryWriter owner = new MemoryWriter();
 
         internal MemoryWriter other = new MemoryWriter();
+
+        internal HashSet<int> clients = new HashSet<int>();
 
         internal List<NetworkModule> modules = new List<NetworkModule>();
 
@@ -90,6 +94,7 @@ namespace Astraia.Net
             owner = null;
             other = null;
             client = null;
+            clients = null;
             modules = null;
             base.OnDestroy();
         }
@@ -97,11 +102,44 @@ namespace Astraia.Net
         public virtual void Reset()
         {
             objectId = 0;
+            client = null;
             owner.position = 0;
             other.position = 0;
             mode = EntityMode.None;
             state = EntityState.None;
-            client = null;
+            SubObservers();
+        }
+
+        internal void AddObserver(NetworkClient client)
+        {
+            if (!clients.Contains(client))
+            {
+                if (clients.Count == 0)
+                {
+                    ClearDirty(true);
+                }
+
+                clients.Add(client);
+                NetworkManager.Server.AddEntity(this, client);
+            }
+        }
+
+        internal void SubObserver(NetworkClient client)
+        {
+            clients.Remove(client);
+        }
+
+        internal void SubObservers()
+        {
+            foreach (NetworkClient conn in clients)
+            {
+                if (conn != null)
+                {
+                    NetworkManager.Server.SubEntity(this, conn, true);
+                }
+            }
+
+            clients.Clear();
         }
 
 #if UNITY_EDITOR
