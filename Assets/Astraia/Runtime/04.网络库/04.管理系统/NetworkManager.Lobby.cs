@@ -23,6 +23,7 @@ namespace Astraia.Net
         public static partial class Lobby
         {
             internal static readonly Dictionary<int, int> clients = new Dictionary<int, int>();
+            
             internal static readonly Dictionary<int, int> players = new Dictionary<int, int>();
 
             private static State state = State.Disconnect;
