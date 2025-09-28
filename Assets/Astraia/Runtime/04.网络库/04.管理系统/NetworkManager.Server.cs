@@ -27,8 +27,6 @@ namespace Astraia.Net
         {
             private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
 
-            private static readonly Dictionary<int, HashSet<uint>> caches = new Dictionary<int, HashSet<uint>>();
-
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
             internal static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
@@ -82,11 +80,10 @@ namespace Astraia.Net
                 {
                     Transport.Instance.StopServer();
                 }
-                
+
                 sendTime = 0;
                 objectId = 0;
                 spawns.Clear();
-                caches.Clear();
                 clients.Clear();
                 messages.Clear();
                 isLoadScene = false;
@@ -117,16 +114,12 @@ namespace Astraia.Net
                 foreach (var client in clients.Values)
                 {
                     client.isReady = false;
-                    if (caches.TryGetValue(client, out var entities))
+                    foreach (var entity in client.entities)
                     {
-                        foreach (NetworkEntity entity in entities)
-                        {
-                            entity.SubObserver(client);
-                        }
-
-                        entities.Clear();
+                        entity.SubObserver(client);
                     }
 
+                    client.entities.Clear();
                     client.Send(new NotReadyMessage());
                 }
 
@@ -444,7 +437,7 @@ namespace Astraia.Net
                     spawns[entity.objectId] = entity;
                     entity.OnStartServer();
                 }
-                
+
                 SendToClients(entity, true);
             }
 
@@ -498,37 +491,6 @@ namespace Astraia.Net
                 });
             }
 
-            internal static void AddToClient(NetworkEntity entity, NetworkClient client)
-            {
-                if (!caches.TryGetValue(client, out var entities))
-                {
-                    entities = new HashSet<uint>();
-                    caches[client] = entities;
-                }
-
-                entities.Add(entity);
-                if (client.isReady)
-                {
-                    SpawnToClient(client, entity);
-                }
-            }
-
-            internal static void SubToClient(NetworkEntity entity, NetworkClient client, bool message)
-            {
-                if (caches.TryGetValue(client, out var entities))
-                {
-                    entities.Remove(entity);
-                    if (entities.Count == 0)
-                    {
-                        caches.Remove(client);
-                    }
-
-                    if (message)
-                    {
-                        client.Send(new DespawnMessage(entity.objectId));
-                    }
-                }
-            }
 
             public static void Despawn(GameObject obj)
             {
@@ -548,10 +510,15 @@ namespace Astraia.Net
 
             private static void DespawnToClient<T>(NetworkEntity entity, T message) where T : struct, IMessage
             {
-                spawns.Remove(entity.objectId);
-                foreach (NetworkClient client in entity.clients)
+                if (!isActive)
                 {
-                    client?.Send(message);
+                    return;
+                }
+
+                spawns.Remove(entity.objectId);
+                foreach (var client in entity.clients)
+                {
+                    client.Send(message);
                 }
 
                 entity.SubObservers();
@@ -560,7 +527,6 @@ namespace Astraia.Net
                     entity.OnStopClient();
                     entity.mode &= ~EntityMode.Owner;
                     entity.OnNotifyAuthority();
-                    Client.spawns.Remove(entity.objectId);
                 }
 
                 entity.OnStopServer();
@@ -611,9 +577,9 @@ namespace Astraia.Net
                 copies.AddRange(clients.Keys);
                 foreach (NetworkClient client in copies)
                 {
-                    if (client.isReady && caches.TryGetValue(client, out var entities))
+                    if (client.isReady)
                     {
-                        foreach (NetworkEntity entity in entities)
+                        foreach (var entity in client.entities)
                         {
                             if (!entity)
                             {

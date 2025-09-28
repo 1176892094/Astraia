@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using System.Collections.Generic;
+using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia.Net
@@ -43,17 +44,19 @@ namespace Astraia.Net
                 {
                     if (initialize || !entity.clients.Contains(client))
                     {
-                        NetworkManager.Server.AddToClient(entity, client);
+                        client.entities.Add(entity);
+                        NetworkManager.Server.SpawnToClient(client, entity);
                         changed = true;
                     }
                 }
             }
 
-            foreach (NetworkClient client in entity.clients)
+            foreach (var client in entity.clients)
             {
                 if (!observers.Contains(client))
                 {
-                    NetworkManager.Server.SubToClient(entity, client, false);
+                    client.entities.Remove(entity);
+                    client.Send(new DespawnMessage(entity.objectId));
                     changed = true;
                 }
             }

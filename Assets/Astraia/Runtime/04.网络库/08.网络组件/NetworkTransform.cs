@@ -21,7 +21,7 @@ namespace Astraia.Net
         [SerializeField, Range(0f, 1)] private float rotationSmooth = 0.5f;
 
         [SerializeField, Range(0f, 1)] private float mutationSmooth = 0.5f;
-        
+
         private Vector3 position;
 
         private Quaternion rotation;
@@ -105,7 +105,7 @@ namespace Astraia.Net
 
         public void LateUpdate()
         {
-            if (isServer && isVerify && isModify)
+            if (isServer && isVerify && NetworkManager.Server.isActive && isModify)
             {
                 SendToClientRpc(positionCache, rotationCache, mutationCache);
             }
@@ -194,7 +194,7 @@ namespace Astraia.Net
         // 缩放：12+1 Vector3? 
         // TODO：同步位置：1+2+1+1+2+1+13+1+1 = 23B
         // TODO：每秒同步：23*30 = 690B
-        
+
         // SyncVar Color
         // 总长：1B   ulong(压缩)
         // 类型：2B   ushort
@@ -205,7 +205,7 @@ namespace Astraia.Net
         // 片段：1B   Segment(压缩) 16 不超过 127字节 长度为 1
         // 变量：16B   Color
         // TODO：同步颜色：1+2+1+1+1+1+1+16 = 24B
-        
+
         //网络变量大小<127B： 8 + size
         //远程调用大小<127B： 8 + size
     }

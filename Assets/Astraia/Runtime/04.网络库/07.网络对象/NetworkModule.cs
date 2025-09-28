@@ -213,7 +213,7 @@ namespace Astraia.Net
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 
-            foreach (NetworkClient conn in owner.clients)
+            foreach (var conn in owner.clients)
             {
                 if (conn.isReady)
                 {

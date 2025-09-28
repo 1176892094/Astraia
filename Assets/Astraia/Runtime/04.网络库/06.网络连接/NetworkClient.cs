@@ -20,6 +20,7 @@ namespace Astraia.Net
     public sealed class NetworkClient
     {
         private Dictionary<int, WriterBatch> batches = new Dictionary<int, WriterBatch>();
+        internal HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
         internal ReaderBatch reader = new ReaderBatch();
         internal int clientId;
         internal bool isReady;
@@ -87,6 +88,7 @@ namespace Astraia.Net
         public void Disconnect()
         {
             isReady = false;
+            entities.Clear();
             Transport.Instance.Disconnect(clientId);
         }
 

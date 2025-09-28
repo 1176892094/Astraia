@@ -39,6 +39,16 @@ namespace Astraia.Net
             EventManager.Remove<ServerChangeScene>(this);
         }
 
+        public void Execute(ServerChangeScene message)
+        {
+            players.Clear();
+        }
+
+        public void Execute(InterestUpdate message)
+        {
+            players.Add(message.entity.client, message.entity);
+        }
+
         private void Update()
         {
             grids.Clear();
@@ -59,16 +69,6 @@ namespace Astraia.Net
                     NetworkManager.Server.SendToClients(entity, false);
                 }
             }
-        }
-
-        public void Execute(ServerChangeScene message)
-        {
-            players.Clear();
-        }
-
-        public void Execute(InterestUpdate message)
-        {
-            players.Add(message.entity.client, message.entity);
         }
 
         public override bool OnExecute(NetworkEntity entity, NetworkClient client)

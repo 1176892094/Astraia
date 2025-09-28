@@ -27,7 +27,7 @@ namespace Astraia.Net
         [HideInInspector] [SerializeField] internal uint assetId;
 
         [HideInInspector] [SerializeField] internal uint sceneId;
-        
+
         [SerializeField] internal EntitySpawn spawn;
 
         private int frameCount;
@@ -44,9 +44,9 @@ namespace Astraia.Net
 
         internal MemoryWriter other = new MemoryWriter();
 
-        internal HashSet<int> clients = new HashSet<int>();
-
         internal List<NetworkModule> modules = new List<NetworkModule>();
+
+        internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
 
         public bool isOwner => (mode & EntityMode.Owner) != 0;
 
@@ -120,7 +120,11 @@ namespace Astraia.Net
                 }
 
                 clients.Add(client);
-                NetworkManager.Server.AddToClient(this, client);
+                client.entities.Add(this);
+                if (client.isReady)
+                {
+                    NetworkManager.Server.SpawnToClient(client, this);
+                }
             }
         }
 
@@ -131,12 +135,9 @@ namespace Astraia.Net
 
         internal void SubObservers()
         {
-            foreach (NetworkClient conn in clients)
+            foreach (var conn in clients)
             {
-                if (conn != null)
-                {
-                    NetworkManager.Server.SubToClient(this, conn, true);
-                }
+                conn.entities.Remove(this);
             }
 
             clients.Clear();

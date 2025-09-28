@@ -388,6 +388,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     DespawnMessage(entity, message);
+                    spawns.Remove(message.objectId);
                 }
             }
 
@@ -396,6 +397,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     DespawnMessage(entity, message);
+                    spawns.Remove(message.objectId);
                 }
             }
 
@@ -409,7 +411,6 @@ namespace Astraia.Net
                 entity.OnStopClient();
                 entity.mode &= ~EntityMode.Owner;
                 entity.OnNotifyAuthority();
-                spawns.Remove(entity.objectId);
 
                 switch (message)
                 {
