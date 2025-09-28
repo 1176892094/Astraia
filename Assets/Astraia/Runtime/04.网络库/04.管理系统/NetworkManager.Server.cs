@@ -47,7 +47,7 @@ namespace Astraia.Net
 
             public static bool isLoadScene { get; internal set; }
 
-            public static NetworkObserver aoi { get; internal set; }
+            public static NetworkObserver observer { get; internal set; }
 
             public static int connections => clients.Count;
 
@@ -227,9 +227,9 @@ namespace Astraia.Net
                         }
                         else if (entity.spawn == EntitySpawn.None)
                         {
-                            if (aoi)
+                            if (observer)
                             {
-                                if (aoi.OnExecute(entity, client))
+                                if (observer.OnExecute(entity, client))
                                 {
                                     entity.AddObserver(client);
                                 }
@@ -450,9 +450,9 @@ namespace Astraia.Net
 
             internal static void SendToClients(NetworkEntity entity, bool initialize)
             {
-                if (aoi && entity.spawn != EntitySpawn.Show)
+                if (observer && entity.spawn != EntitySpawn.Show)
                 {
-                    aoi.Rebuild(entity, initialize);
+                    observer.Rebuild(entity, initialize);
                 }
                 else
                 {

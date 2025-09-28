@@ -20,12 +20,9 @@ namespace Astraia.Net
 
         private void Awake()
         {
-            NetworkManager.Server.aoi = this;
+            NetworkManager.Server.observer = this;
         }
-        
-        public abstract bool OnExecute(NetworkEntity entity, NetworkClient client);
-        public abstract void OnRebuild(NetworkEntity entity, HashSet<NetworkClient> clients);
-        
+
         public void Rebuild(NetworkEntity entity, bool initialize)
         {
             observers.Clear();
@@ -73,5 +70,8 @@ namespace Astraia.Net
                 }
             }
         }
+
+        public abstract bool OnExecute(NetworkEntity entity, NetworkClient client);
+        public abstract void OnRebuild(NetworkEntity entity, HashSet<NetworkClient> clients);
     }
 }
