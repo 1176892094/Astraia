@@ -72,12 +72,20 @@ namespace Astraia.Common
         public ArraySegment<byte> segment;
     }
 
+    internal struct SpawnBeginMessage : IMessage
+    {
+    }
+
+    internal struct SpawnEndMessage : IMessage
+    {
+    }
+
     internal struct DespawnMessage : IMessage
     {
         public readonly uint objectId;
         public DespawnMessage(uint objectId) => this.objectId = objectId;
     }
-    
+
     internal struct DestroyMessage : IMessage
     {
         public readonly uint objectId;

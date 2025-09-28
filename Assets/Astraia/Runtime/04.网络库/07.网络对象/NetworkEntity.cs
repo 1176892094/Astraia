@@ -120,7 +120,7 @@ namespace Astraia.Net
                 }
 
                 clients.Add(client);
-                NetworkManager.Server.AddEntity(this, client);
+                NetworkManager.Server.AddToClient(this, client);
             }
         }
 
@@ -135,7 +135,7 @@ namespace Astraia.Net
             {
                 if (conn != null)
                 {
-                    NetworkManager.Server.SubEntity(this, conn, true);
+                    NetworkManager.Server.SubToClient(this, conn, true);
                 }
             }
 
