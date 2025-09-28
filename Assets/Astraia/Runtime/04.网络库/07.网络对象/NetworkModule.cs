@@ -12,7 +12,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Astraia.Common;
 using UnityEngine;
@@ -197,6 +196,11 @@ namespace Astraia.Net
                 Debug.LogWarning("调用 {0} 但是对象未初始化。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
+            
+            if (owner.clients.Count == 0)
+            {
+                return;
+            }
 
             var message = new ClientRpcMessage
             {
@@ -209,11 +213,14 @@ namespace Astraia.Net
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 
-            foreach (var conn in NetworkManager.Server.clients.Values.Where(conn => conn.isReady))
+            foreach (NetworkClient conn in owner.clients)
             {
-                if ((channel & Channel.IgnoreOwner) == 0 || conn != client)
+                if (conn.isReady)
                 {
-                    conn.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
+                    if ((channel & Channel.IgnoreOwner) == 0 || conn != client)
+                    {
+                        conn.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
+                    }
                 }
             }
         }
