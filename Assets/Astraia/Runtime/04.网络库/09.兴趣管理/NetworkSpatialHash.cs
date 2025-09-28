@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    internal class NetworkSpatialHash : NetworkObserver, IEvent<InterestUpdate>, IEvent<ServerChangeScene>
+    internal class NetworkSpatialHash : NetworkObserver, IEvent<ServerDisconnect>, IEvent<InterestUpdate>
     {
         private Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
         private Grid<NetworkClient> grids = new Grid<NetworkClient>(1024);
@@ -30,23 +30,23 @@ namespace Astraia.Net
         private void OnEnable()
         {
             EventManager.Listen<InterestUpdate>(this);
-            EventManager.Listen<ServerChangeScene>(this);
+            EventManager.Listen<ServerDisconnect>(this);
         }
 
         private void OnDisable()
         {
             EventManager.Remove<InterestUpdate>(this);
-            EventManager.Remove<ServerChangeScene>(this);
+            EventManager.Remove<ServerDisconnect>(this);
         }
 
-        public void Execute(ServerChangeScene message)
+        public void Execute(ServerDisconnect message)
         {
-            players.Clear();
+            players.Remove(message.client);
         }
 
         public void Execute(InterestUpdate message)
         {
-            players.Add(message.entity.client, message.entity);
+            players[message.entity.client] = message.entity;
         }
 
         private void Update()
@@ -54,7 +54,7 @@ namespace Astraia.Net
             grids.Clear();
             foreach (var client in NetworkManager.Server.clients.Values)
             {
-                if (players.TryGetValue(client, out var player))
+                if (players.TryGetValue(client, out var player) && player)
                 {
                     var position = EntityToGrid(player.transform.position);
                     grids.Add(position, client);
@@ -74,7 +74,7 @@ namespace Astraia.Net
         public override bool OnExecute(NetworkEntity entity, NetworkClient client)
         {
             var entityGrid = EntityToGrid(entity.transform.position);
-            if (players.TryGetValue(client, out var player))
+            if (players.TryGetValue(client, out var player) && player)
             {
                 var playerGrid = EntityToGrid(player.transform.position);
                 var delta = entityGrid - playerGrid;
