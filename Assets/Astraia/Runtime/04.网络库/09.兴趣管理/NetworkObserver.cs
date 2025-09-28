@@ -10,7 +10,6 @@
 // // *********************************************************************************
 
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Astraia.Net
@@ -22,11 +21,9 @@ namespace Astraia.Net
         private void Awake()
         {
             NetworkManager.Server.aoi = this;
-            NetworkManager.Client.aoi = this;
         }
-
-        public abstract void Reset();
-        public abstract bool IsObserver(NetworkEntity entity, NetworkClient client);
+        
+        public abstract bool OnExecute(NetworkEntity entity, NetworkClient client);
         public abstract void OnRebuild(NetworkEntity entity, HashSet<NetworkClient> clients);
         
         public void Rebuild(NetworkEntity entity, bool initialize)

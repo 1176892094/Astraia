@@ -27,14 +27,14 @@ namespace Astraia.Net
         [HideInInspector] [SerializeField] internal uint assetId;
 
         [HideInInspector] [SerializeField] internal uint sceneId;
+        
+        [SerializeField] internal EntitySpawn spawn;
 
         private int frameCount;
 
         internal uint objectId;
 
         internal EntityMode mode;
-
-        internal EntitySpawn spawn;
 
         internal EntityState state;
 

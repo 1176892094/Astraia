@@ -82,12 +82,7 @@ namespace Astraia.Net
                 {
                     Transport.Instance.StopServer();
                 }
-
-                if (aoi)
-                {
-                    aoi.Reset();
-                }
-
+                
                 sendTime = 0;
                 objectId = 0;
                 spawns.Clear();
@@ -234,7 +229,7 @@ namespace Astraia.Net
                         {
                             if (aoi)
                             {
-                                if (aoi.IsObserver(entity, client))
+                                if (aoi.OnExecute(entity, client))
                                 {
                                     entity.AddObserver(client);
                                 }

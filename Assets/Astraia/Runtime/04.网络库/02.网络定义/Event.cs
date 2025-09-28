@@ -25,7 +25,7 @@ namespace Astraia.Common
     public record ClientDisconnect : IEvent;
 
     public record ClientNotReady : IEvent;
-    
+
     public record ServerChangeScene(string sceneName) : IEvent;
 
     public record ServerSceneChanged(string sceneName) : IEvent;
@@ -43,4 +43,6 @@ namespace Astraia.Common
     public record LobbyCreateRoom(string room) : IEvent;
 
     public record PingUpdate(double pingTime) : IEvent;
+
+    public record InterestUpdate(NetworkEntity entity) : IEvent;
 }
