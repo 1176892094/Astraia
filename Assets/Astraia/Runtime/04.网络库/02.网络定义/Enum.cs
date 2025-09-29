@@ -53,8 +53,8 @@ namespace Astraia.Net
         None = 0,
         Awake = 1 << 0,
         Spawn = 1 << 1,
-        Destroy = 1 << 2,
-        Authority = 1 << 3,
+        Owner = 1 << 2,
+        Destroy = 1 << 3,
     }
 
     [Flags]

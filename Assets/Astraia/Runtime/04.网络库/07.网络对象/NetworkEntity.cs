@@ -500,22 +500,22 @@ namespace Astraia.Net
 
         internal void OnNotifyAuthority()
         {
-            if ((state & EntityState.Authority) == 0 && isOwner)
+            if ((state & EntityState.Owner) == 0 && isOwner)
             {
                 OnStartAuthority();
             }
-            else if ((state & EntityState.Authority) != 0 && !isOwner)
+            else if ((state & EntityState.Owner) != 0 && !isOwner)
             {
                 OnStopAuthority();
             }
 
             if (isOwner)
             {
-                state |= EntityState.Authority;
+                state |= EntityState.Owner;
             }
             else
             {
-                state &= ~EntityState.Authority;
+                state &= ~EntityState.Owner;
             }
         }
 
