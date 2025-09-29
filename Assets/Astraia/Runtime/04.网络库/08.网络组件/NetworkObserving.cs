@@ -90,7 +90,7 @@ namespace Astraia.Net
             grids.Set(position, clients);
         }
 
-        public void Rebuild(NetworkEntity entity, bool initialize)
+        public void Rebuild(NetworkEntity entity, bool isReady)
         {
             clients.Clear();
             if (entity.data != EntityData.Hide)
@@ -108,7 +108,7 @@ namespace Astraia.Net
             {
                 if (client.isReady)
                 {
-                    if (initialize || !entity.clients.Contains(client))
+                    if (isReady || !entity.clients.Contains(client))
                     {
                         client.entities.Add(entity);
                         NetworkManager.Server.SpawnToClient(client, entity);

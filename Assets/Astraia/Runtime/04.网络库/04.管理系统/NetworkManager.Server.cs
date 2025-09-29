@@ -215,10 +215,7 @@ namespace Astraia.Net
                         {
                             entity.AddObserver(client);
                         }
-                        else if (entity.data == EntityData.Hide)
-                        {
-                        }
-                        else if (entity.data == EntityData.None)
+                        else if (entity.data == EntityData.Pool)
                         {
                             if (observing)
                             {
@@ -441,15 +438,15 @@ namespace Astraia.Net
                 SendToClients(entity, true);
             }
 
-            internal static void SendToClients(NetworkEntity entity, bool initialize)
+            internal static void SendToClients(NetworkEntity entity, bool isReady)
             {
                 if (observing && entity.data != EntityData.Show)
                 {
-                    observing.Rebuild(entity, initialize);
+                    observing.Rebuild(entity, isReady);
                 }
                 else
                 {
-                    if (initialize)
+                    if (isReady)
                     {
                         if (entity.data != EntityData.Hide)
                         {
@@ -478,20 +475,20 @@ namespace Astraia.Net
                     segment = isOwner ? owner : other;
                 }
 
-                byte stateId = 0;
+                byte opcode = 0;
                 if (isOwner)
                 {
-                    stateId |= 1;
+                    opcode |= 1;
                 }
 
-                if (entity.data.HasFlag(EntityData.Pool))
+                if (entity.data == EntityData.Pool)
                 {
-                    stateId |= 2;
+                    opcode |= 2;
                 }
 
                 client.Send(new SpawnMessage
                 {
-                    opcode = stateId,
+                    opcode = opcode,
                     assetId = entity.assetId,
                     sceneId = entity.sceneId,
                     objectId = entity.objectId,
