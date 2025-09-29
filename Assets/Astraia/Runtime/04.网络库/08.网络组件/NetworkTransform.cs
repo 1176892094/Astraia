@@ -105,7 +105,7 @@ namespace Astraia.Net
 
         public void LateUpdate()
         {
-            if (isServer && isVerify && NetworkManager.Server.isActive && isModify)
+            if (isServer && isVerify && NetworkManager.isServer && isModify)
             {
                 SendToClientRpc(positionCache, rotationCache, mutationCache);
             }

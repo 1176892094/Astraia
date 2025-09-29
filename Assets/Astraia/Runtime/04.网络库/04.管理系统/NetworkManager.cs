@@ -30,11 +30,11 @@ namespace Astraia.Net
 
         private string sceneName;
 
-        public static bool isHost => Server.isActive && Client.isActive;
+        public static bool isHost => isServer && isClient;
         
-        public static bool isServer => Server.isActive;
+        public static bool isServer => Server.state != State.Disconnect;
 
-        public static bool isClient => Client.isActive;
+        public static bool isClient => Client.state != State.Disconnect;
 
         private void Awake()
         {
@@ -65,12 +65,12 @@ namespace Astraia.Net
                 StopLobby();
             }
 
-            if (Client.isConnected)
+            if (Client.isActive)
             {
                 StopClient();
             }
 
-            if (Server.isActive)
+            if (isServer)
             {
                 StopServer();
             }
@@ -95,18 +95,18 @@ namespace Astraia.Net
 
         public static void StartServer()
         {
-            if (Server.isActive)
+            if (isServer)
             {
                 Log.Warn("服务器已经连接!");
                 return;
             }
 
-            Server.Start();
+            Server.Start(true);
         }
 
         public static void StopServer()
         {
-            if (!Server.isActive)
+            if (!isServer)
             {
                 Log.Warn("服务器已经停止!");
                 return;
@@ -117,18 +117,18 @@ namespace Astraia.Net
 
         public static void StartClient()
         {
-            if (Client.isActive)
+            if (isClient)
             {
                 Log.Warn("客户端已经连接!");
                 return;
             }
 
-            Client.Start();
+            Client.Start(true);
         }
 
         public static void StartClient(Uri uri)
         {
-            if (Client.isActive)
+            if (isClient)
             {
                 Log.Warn("客户端已经连接!");
                 return;
@@ -139,7 +139,7 @@ namespace Astraia.Net
 
         public static void StopClient()
         {
-            if (!Client.isActive)
+            if (!isClient)
             {
                 Log.Warn("客户端已经停止!");
                 return;
@@ -148,15 +148,15 @@ namespace Astraia.Net
             Client.Stop();
         }
 
-        public static void StartHost(bool isServer = true)
+        public static void StartHost(bool transport = true)
         {
-            if (Server.isActive || Client.isActive)
+            if (isServer || isClient)
             {
                 Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 
-            Server.Start(isServer);
+            Server.Start(transport);
             Client.Start(false);
         }
 

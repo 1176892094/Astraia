@@ -33,13 +33,11 @@ namespace Astraia.Net
 
             private static readonly List<NetworkClient> copies = new List<NetworkClient>();
 
-            private static State state = State.Disconnect;
+            internal static State state = State.Disconnect;
 
             private static uint objectId;
 
             private static double sendTime;
-
-            public static bool isActive => state != State.Disconnect;
 
             public static bool isReady => clients.Values.All(client => client.isReady);
 
@@ -49,9 +47,9 @@ namespace Astraia.Net
 
             public static int connections => clients.Count;
 
-            internal static void Start(bool isServer = true)
+            internal static void Start(bool transport)
             {
-                if (isServer)
+                if (transport)
                 {
                     Transport.Instance.StartServer();
                 }
@@ -63,7 +61,7 @@ namespace Astraia.Net
 
             internal static void Stop()
             {
-                if (!isActive) return;
+                if (!isServer) return;
                 copies.Clear();
                 copies.AddRange(clients.Values);
                 foreach (var client in copies)
@@ -84,6 +82,7 @@ namespace Astraia.Net
 
                 sendTime = 0;
                 objectId = 0;
+                copies.Clear();
                 spawns.Clear();
                 clients.Clear();
                 messages.Clear();
@@ -125,7 +124,7 @@ namespace Astraia.Net
                 }
 
                 EventManager.Invoke(new ServerChangeScene(sceneName));
-                if (!isActive) return;
+                if (!isServer) return;
                 isLoadScene = true;
                 Instance.sceneName = sceneName;
 
@@ -199,12 +198,12 @@ namespace Astraia.Net
                 };
             }
 
-            internal static void PongMessage(NetworkClient client, PongMessage message)
+            private static void PongMessage(NetworkClient client, PongMessage message)
             {
                 client.Send(new PingMessage(message.clientTime), Channel.Unreliable);
             }
 
-            internal static void ReadyMessage(NetworkClient client, ReadyMessage message)
+            private static void ReadyMessage(NetworkClient client, ReadyMessage message)
             {
                 client.isReady = true;
                 client.Send(new SpawnBeginMessage());
@@ -237,7 +236,7 @@ namespace Astraia.Net
                 EventManager.Invoke(new ServerReady(client));
             }
 
-            internal static void EntityMessage(NetworkClient client, EntityMessage message)
+            private static void EntityMessage(NetworkClient client, EntityMessage message)
             {
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
@@ -265,7 +264,7 @@ namespace Astraia.Net
                 }
             }
 
-            internal static void ServerRpcMessage(NetworkClient client, ServerRpcMessage message, int channel)
+            private static void ServerRpcMessage(NetworkClient client, ServerRpcMessage message, int channel)
             {
                 if (!client.isReady)
                 {
@@ -355,7 +354,6 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-
                     if (!messages.TryGetValue(message, out var action))
                     {
                         Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", clientId, message);
@@ -392,15 +390,15 @@ namespace Astraia.Net
                 }
             }
 
-            public static void Spawn(GameObject gameObject, NetworkClient client = null)
+            public static void Spawn(GameObject obj, NetworkClient client = null)
             {
-                if (!isActive)
+                if (!isServer)
                 {
                     Log.Warn("服务器不是活跃的。");
                     return;
                 }
 
-                if (!gameObject.TryGetComponent(out NetworkEntity entity))
+                if (!obj.TryGetComponent(out NetworkEntity entity))
                 {
                     Log.Error("网络对象 {0} 没有 NetworkEntity 组件", entity);
                     return;
@@ -423,7 +421,7 @@ namespace Astraia.Net
                 {
                     entity.objectId = ++objectId;
                     entity.mode |= EntityMode.Server;
-                    entity.mode = Client.isActive ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Owner;
+                    entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Owner;
                     spawns[entity.objectId] = entity;
                     entity.OnStartServer();
                 }
@@ -557,7 +555,7 @@ namespace Astraia.Net
 
             internal static void AfterUpdate()
             {
-                if (isActive)
+                if (isServer)
                 {
                     if (NetworkSystem.Tick(Instance.sendRate, ref sendTime))
                     {

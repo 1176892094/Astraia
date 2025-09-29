@@ -36,7 +36,7 @@ namespace Astraia.Net
             }
 
             StopDiscovery();
-            if (NetworkManager.Server.isActive)
+            if (NetworkManager.isServer)
             {
                 udpServer = new UdpClient(port)
                 {
@@ -81,7 +81,7 @@ namespace Astraia.Net
         {
             try
             {
-                if (NetworkManager.Client.isConnected)
+                if (NetworkManager.Client.isActive)
                 {
                     StopDiscovery();
                     return;

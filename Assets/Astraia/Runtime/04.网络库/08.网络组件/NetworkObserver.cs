@@ -55,7 +55,7 @@ namespace Astraia.Net
 
         private void Update()
         {
-            if (NetworkManager.Server.isActive)
+            if (NetworkManager.isServer)
             {
                 grids.Clear();
                 foreach (var client in NetworkManager.Server.clients.Values)

@@ -148,7 +148,7 @@ namespace Astraia.Net
 
         protected void SendServerRpcInternal(string name, int hash, MemoryWriter writer, int channel)
         {
-            if (!NetworkManager.Client.isActive)
+            if (!NetworkManager.isClient)
             {
                 Debug.LogWarning("调用 {0} 但是客户端不是活跃的。对象名称：{1}".Format(name, owner.name), owner);
                 return;
@@ -185,7 +185,7 @@ namespace Astraia.Net
 
         protected void SendClientRpcInternal(string name, int hash, MemoryWriter writer, int channel)
         {
-            if (!NetworkManager.Server.isActive)
+            if (!NetworkManager.isServer)
             {
                 Debug.LogError("调用 {0} 但是服务器不是活跃的。对象名称：{1}".Format(name, owner.name), owner);
                 return;
@@ -227,7 +227,7 @@ namespace Astraia.Net
 
         protected void SendTargetRpcInternal(NetworkClient client, string name, int hash, MemoryWriter writer, int channel)
         {
-            if (!NetworkManager.Server.isActive)
+            if (!NetworkManager.isServer)
             {
                 Debug.LogError("调用 {0} 但是服务器不是活跃的。对象名称：{1}".Format(name, owner.name), owner);
                 return;

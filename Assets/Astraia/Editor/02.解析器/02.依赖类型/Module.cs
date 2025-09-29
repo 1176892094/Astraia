@@ -200,8 +200,8 @@ namespace Astraia.Editor
 
             SyncVarHook = Resolve.GetMethod(Import(typeof(Action<,>)), assembly, log, Const.CTOR, ref failed);
             AddArraySegment = Resolve.GetMethod(Import(typeof(ArraySegment<>)), assembly, log, Const.CTOR, ref failed);
-            GetClientActive = Resolve.GetMethod(Import(typeof(NetworkManager.Client)), assembly, log, "get_isActive", ref failed);
-            GetServerActive = Resolve.GetMethod(Import(typeof(NetworkManager.Server)), assembly, log, "get_isActive", ref failed);
+            GetClientActive = Resolve.GetMethod(Import(typeof(NetworkManager)), assembly, log, "get_isClient", ref failed);
+            GetServerActive = Resolve.GetMethod(Import(typeof(NetworkManager)), assembly, log, "get_isServer", ref failed);
 
             ReadNetworkModule = Resolve.GetMethod(Import(typeof(Net.Extensions)), assembly, log, method => method.Name == nameof(Net.Extensions.ReadNetworkModule) && method.HasGenericParameters, ref failed);
 

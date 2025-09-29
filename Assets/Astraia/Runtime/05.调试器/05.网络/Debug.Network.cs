@@ -77,9 +77,9 @@ namespace Astraia.Common
             GUILayout.EndScrollView();
 
             GUILayout.BeginHorizontal();
-            if (!NetworkManager.Client.isConnected && !NetworkManager.Server.isActive)
+            if (!NetworkManager.Client.isActive && !NetworkManager.isServer)
             {
-                if (!NetworkManager.Client.isActive)
+                if (!NetworkManager.isClient)
                 {
                     if (GUILayout.Button("Host (Server + Client)", GUILayout.Height(30)))
                     {
@@ -105,7 +105,7 @@ namespace Astraia.Common
                 }
             }
 
-            if (NetworkManager.Client.isConnected && !NetworkManager.Client.isReady)
+            if (NetworkManager.Client.isActive && !NetworkManager.Client.isReady)
             {
                 if (GUILayout.Button("Ready", GUILayout.Height(30)))
                 {
@@ -113,21 +113,21 @@ namespace Astraia.Common
                 }
             }
 
-            if (NetworkManager.Server.isActive && NetworkManager.Client.isConnected)
+            if (NetworkManager.isServer && NetworkManager.Client.isActive)
             {
                 if (GUILayout.Button("Stop Host", GUILayout.Height(30)))
                 {
                     NetworkManager.StopHost();
                 }
             }
-            else if (NetworkManager.Client.isConnected)
+            else if (NetworkManager.Client.isActive)
             {
                 if (GUILayout.Button("Stop Client", GUILayout.Height(30)))
                 {
                     NetworkManager.StopClient();
                 }
             }
-            else if (NetworkManager.Server.isActive)
+            else if (NetworkManager.isServer)
             {
                 if (GUILayout.Button("Stop Server", GUILayout.Height(30)))
                 {

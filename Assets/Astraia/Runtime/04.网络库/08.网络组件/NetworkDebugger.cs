@@ -78,12 +78,12 @@ namespace Astraia.Net
         {
             if (waitTime < Time.unscaledTimeAsDouble)
             {
-                if (NetworkManager.Client.isActive)
+                if (NetworkManager.isClient)
                 {
                     UpdateClient();
                 }
 
-                if (NetworkManager.Server.isActive)
+                if (NetworkManager.isServer)
                 {
                     UpdateServer();
                 }

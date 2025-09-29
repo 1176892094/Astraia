@@ -32,7 +32,7 @@ namespace Astraia.Net
 
             internal static readonly Dictionary<NetworkEntity, SpawnMessage> copies = new Dictionary<NetworkEntity, SpawnMessage>();
 
-            private static State state = State.Disconnect;
+            internal static State state = State.Disconnect;
 
             private static double pingTime;
 
@@ -42,31 +42,28 @@ namespace Astraia.Net
 
             private static bool isComplete;
 
-            public static bool isActive => state != State.Disconnect;
-
             public static bool isReady { get; internal set; }
 
             public static bool isLoadScene { get; internal set; }
 
             public static NetworkServer connection { get; private set; }
 
-            public static bool isConnected => state == State.Connected;
+            public static bool isActive => state == State.Connected;
 
-            internal static void Start(bool isClient = true)
+            internal static void Start(bool transport)
             {
-                AddMessage(isClient);
+                AddMessage(transport);
+                state = State.Connect;
                 connection = new NetworkServer();
-                if (isClient)
+                if (transport)
                 {
-                    state = State.Connect;
                     Transport.Instance.StartClient();
+                    return;
                 }
-                else
-                {
-                    state = State.Connected;
-                    Server.Connect(new NetworkClient());
-                    Ready();
-                }
+
+                state = State.Connected;
+                Server.Connect(new NetworkClient());
+                Ready();
             }
 
             internal static void Start(Uri uri)
@@ -77,11 +74,10 @@ namespace Astraia.Net
                 Transport.Instance.StartClient(uri);
             }
 
-
             internal static void Stop()
             {
-                if (!isActive) return;
-                if (!isHost)
+                if (!isClient) return;
+                if (!isServer)
                 {
                     var entities = spawns.Values.Where(entity => entity).ToList();
                     foreach (var entity in entities)
@@ -96,6 +92,7 @@ namespace Astraia.Net
                     Transport.Instance.Disconnect();
                 }
 
+                isReady = false;
                 sendTime = 0;
                 waitTime = 0;
                 pingTime = 0;
@@ -103,8 +100,6 @@ namespace Astraia.Net
                 copies.Clear();
                 scenes.Clear();
                 messages.Clear();
-                connection = null;
-                isReady = false;
                 isLoadScene = false;
                 EventManager.Invoke(new ClientDisconnect());
             }
@@ -152,7 +147,7 @@ namespace Astraia.Net
                 }
 
                 EventManager.Invoke(new ClientChangeScene(sceneName));
-                if (Server.isActive) return;
+                if (isServer) return;
                 isLoadScene = true;
                 Instance.sceneName = sceneName;
 
@@ -162,7 +157,7 @@ namespace Astraia.Net
             internal static void LoadSceneComplete(string sceneName)
             {
                 isLoadScene = false;
-                if (isConnected && !isReady)
+                if (isActive && !isReady)
                 {
                     Ready();
                 }
@@ -173,9 +168,9 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static void AddMessage(bool isClient)
+            private static void AddMessage(bool transport)
             {
-                if (isClient)
+                if (transport)
                 {
                     Transport.Instance.OnClientConnect -= OnClientConnect;
                     Transport.Instance.OnClientDisconnect -= OnClientDisconnect;
@@ -218,7 +213,7 @@ namespace Astraia.Net
 
             private static void PingMessage(PingMessage message)
             {
-                if (Server.isActive)
+                if (isServer)
                 {
                     return;
                 }
@@ -244,7 +239,7 @@ namespace Astraia.Net
 
             private static void EntityMessage(EntityMessage message)
             {
-                if (Server.isActive)
+                if (isServer)
                 {
                     return;
                 }
@@ -276,7 +271,7 @@ namespace Astraia.Net
 
             private static void SceneMessage(SceneMessage message)
             {
-                if (!isConnected)
+                if (!isActive)
                 {
                     Log.Warn("客户端没有通过验证，无法加载场景。");
                     return;
@@ -287,7 +282,7 @@ namespace Astraia.Net
 
             private static void SpawnBeginMessage(SpawnBeginMessage message)
             {
-                if (Server.isActive)
+                if (isServer)
                 {
                     return;
                 }
@@ -315,7 +310,7 @@ namespace Astraia.Net
 
             private static void SpawnEndMessage(SpawnEndMessage message)
             {
-                if (Server.isActive)
+                if (isServer)
                 {
                     return;
                 }
@@ -334,12 +329,12 @@ namespace Astraia.Net
 
             private static void SpawnMessage(SpawnMessage message)
             {
-                if (Server.isActive)
+                if (isServer)
                 {
                     return;
                 }
 
-                if (!FindEntity(message, out var entity))
+                if (!SpawnObject(message, out var entity))
                 {
                     return;
                 }
@@ -408,9 +403,7 @@ namespace Astraia.Net
                         return;
                     }
 
-
                     var message = reader.ReadUShort();
-
                     if (!messages.TryGetValue(message, out var action))
                     {
                         Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
@@ -430,7 +423,7 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static bool FindEntity(SpawnMessage message, out NetworkEntity entity)
+            private static bool SpawnObject(SpawnMessage message, out NetworkEntity entity)
             {
                 if (spawns.TryGetValue(message.objectId, out entity) && entity)
                 {
@@ -511,7 +504,7 @@ namespace Astraia.Net
 
             private static void Despawn<T>(NetworkEntity entity, T message) where T : struct, IMessage
             {
-                if (Server.isActive)
+                if (isServer)
                 {
                     return;
                 }
@@ -554,7 +547,7 @@ namespace Astraia.Net
 
             internal static void AfterUpdate()
             {
-                if (isActive)
+                if (isClient)
                 {
                     if (NetworkSystem.Tick(Instance.sendRate, ref sendTime))
                     {
@@ -570,7 +563,7 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        if (isConnected)
+                        if (isActive)
                         {
                             Pong();
                             connection.Update();
@@ -586,7 +579,7 @@ namespace Astraia.Net
 
             private static void Broadcast()
             {
-                if (Server.isActive)
+                if (isServer)
                 {
                     return;
                 }

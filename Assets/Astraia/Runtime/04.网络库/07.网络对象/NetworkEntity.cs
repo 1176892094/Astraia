@@ -526,7 +526,7 @@ namespace Astraia.Net
 
         public static explicit operator NetworkEntity(uint objectId)
         {
-            if (NetworkManager.Server.isActive)
+            if (NetworkManager.isServer)
             {
                 if (NetworkManager.Server.spawns.TryGetValue(objectId, out var entity))
                 {
@@ -534,7 +534,7 @@ namespace Astraia.Net
                 }
             }
 
-            if (NetworkManager.Client.isActive)
+            if (NetworkManager.isClient)
             {
                 if (NetworkManager.Client.spawns.TryGetValue(objectId, out var entity))
                 {
