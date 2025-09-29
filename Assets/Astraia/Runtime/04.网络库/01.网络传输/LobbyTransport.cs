@@ -53,7 +53,7 @@ namespace Astraia.Net
 
         public override void StartServer()
         {
-            if (!NetworkManager.Lobby.isConnected)
+            if (!NetworkManager.Lobby.isActive)
             {
                 Log.Warn("没有连接到大厅!");
                 return;
@@ -99,7 +99,7 @@ namespace Astraia.Net
 
         public override void StartClient()
         {
-            if (!NetworkManager.Lobby.isConnected)
+            if (!NetworkManager.Lobby.isActive)
             {
                 Log.Warn("没有连接到大厅!");
                 return;
@@ -130,7 +130,7 @@ namespace Astraia.Net
 
         public override void Disconnect()
         {
-            if (NetworkManager.Lobby.isActive)
+            if (NetworkManager.isLobby)
             {
                 NetworkManager.Lobby.isClient = false;
                 using var writer = MemoryWriter.Pop();

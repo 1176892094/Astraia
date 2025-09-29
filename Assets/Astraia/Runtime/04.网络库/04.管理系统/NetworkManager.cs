@@ -31,7 +31,9 @@ namespace Astraia.Net
         private string sceneName;
 
         public static bool isHost => isServer && isClient;
-        
+
+        public static bool isLobby => Lobby.state != State.Disconnect;
+
         public static bool isServer => Server.state != State.Disconnect;
 
         public static bool isClient => Client.state != State.Disconnect;
@@ -40,12 +42,8 @@ namespace Astraia.Net
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Transport.Instance = GetComponent<Transport>();
-        }
-
-        private void Start()
-        {
             Application.runInBackground = true;
+            Transport.Instance = GetComponent<Transport>();
         }
 
         private void OnEnable()
@@ -60,7 +58,7 @@ namespace Astraia.Net
 
         private void OnApplicationQuit()
         {
-            if (Lobby.isActive)
+            if (isLobby)
             {
                 StopLobby();
             }
@@ -144,7 +142,7 @@ namespace Astraia.Net
                 Log.Warn("客户端已经停止!");
                 return;
             }
-            
+
             Client.Stop();
         }
 
@@ -168,7 +166,7 @@ namespace Astraia.Net
 
         public static void StartLobby()
         {
-            if (Lobby.isActive)
+            if (isLobby)
             {
                 Log.Warn("大厅服务器已经连接!");
                 return;
@@ -179,7 +177,7 @@ namespace Astraia.Net
 
         public static void StopLobby()
         {
-            if (!Lobby.isActive)
+            if (!isLobby)
             {
                 Log.Warn("大厅服务器已经停止!");
                 return;

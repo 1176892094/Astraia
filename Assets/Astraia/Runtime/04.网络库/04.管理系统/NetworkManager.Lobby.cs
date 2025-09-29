@@ -23,10 +23,10 @@ namespace Astraia.Net
         public static partial class Lobby
         {
             internal static readonly Dictionary<int, int> clients = new Dictionary<int, int>();
-            
+
             internal static readonly Dictionary<int, int> players = new Dictionary<int, int>();
 
-            private static State state = State.Disconnect;
+            internal static State state = State.Disconnect;
 
             private static int objectId;
 
@@ -36,14 +36,11 @@ namespace Astraia.Net
 
             internal static Transport transport;
 
-            public static bool isActive => state != State.Disconnect;
-
-            public static bool isConnected => state == State.Connected;
-
             private static ushort port => Transport.Instance.port;
 
             private static string address => Transport.Instance.address;
 
+            public static bool isActive => state == State.Connected;
 
             internal static void Start()
             {
@@ -55,7 +52,7 @@ namespace Astraia.Net
 
             internal static void Stop()
             {
-                if (isActive)
+                if (isLobby)
                 {
                     objectId = 0;
                     clients.Clear();
@@ -70,7 +67,7 @@ namespace Astraia.Net
 
             public static async void UpdateLobby()
             {
-                if (!isConnected)
+                if (!isActive)
                 {
                     Log.Warn("您必须连接到大厅以请求房间列表!");
                     return;
