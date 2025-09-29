@@ -30,10 +30,10 @@ namespace Astraia.Net
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
             internal static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
+            
+            private static readonly List<NetworkClient> copies = new List<NetworkClient>();
 
             private static State state = State.Disconnect;
-
-            private static List<int> copies = new List<int>();
 
             private static uint objectId;
 
@@ -66,7 +66,7 @@ namespace Astraia.Net
                 if (!isActive) return;
                 state = State.Disconnect;
                 copies.Clear();
-                copies.AddRange(clients.Keys);
+                copies.AddRange(clients.Values);
                 foreach (NetworkClient client in copies)
                 {
                     client.Disconnect();
@@ -490,8 +490,7 @@ namespace Astraia.Net
                     segment = segment
                 });
             }
-
-
+            
             public static void Despawn(GameObject obj)
             {
                 if (obj.TryGetComponent(out NetworkEntity entity))
@@ -510,11 +509,6 @@ namespace Astraia.Net
 
             private static void DespawnToClient<T>(NetworkEntity entity, T message) where T : struct, IMessage
             {
-                if (!isActive)
-                {
-                    return;
-                }
-
                 spawns.Remove(entity.objectId);
                 foreach (var client in entity.clients)
                 {
@@ -574,8 +568,8 @@ namespace Astraia.Net
             private static void Broadcast()
             {
                 copies.Clear();
-                copies.AddRange(clients.Keys);
-                foreach (NetworkClient client in copies)
+                copies.AddRange(clients.Values);
+                foreach (var client in copies)
                 {
                     if (client.isReady)
                     {

@@ -30,7 +30,7 @@ namespace Astraia.Net
 
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
-            internal static readonly Dictionary<NetworkEntity, SpawnMessage> caches = new Dictionary<NetworkEntity, SpawnMessage>();
+            internal static readonly Dictionary<NetworkEntity, SpawnMessage> copies = new Dictionary<NetworkEntity, SpawnMessage>();
 
             private static State state = State.Disconnect;
 
@@ -94,6 +94,7 @@ namespace Astraia.Net
                     }
                     else
                     {
+                        entity.state |= EntityState.Destroy;
                         Destroy(entity.gameObject);
                     }
                 }
@@ -108,7 +109,7 @@ namespace Astraia.Net
                 waitTime = 0;
                 pingTime = 0;
                 spawns.Clear();
-                caches.Clear();
+                copies.Clear();
                 scenes.Clear();
                 messages.Clear();
                 connection = null;
@@ -317,7 +318,7 @@ namespace Astraia.Net
                     }
                 }
 
-                caches.Clear();
+                copies.Clear();
                 isComplete = false;
             }
 
@@ -330,7 +331,7 @@ namespace Astraia.Net
 
                 foreach (var entity in spawns.Values.Where(entity => entity).OrderBy(entity => entity.objectId))
                 {
-                    if (caches.TryGetValue(entity, out var segment))
+                    if (copies.TryGetValue(entity, out var segment))
                     {
                         Spawn(segment, entity);
                     }
@@ -341,7 +342,7 @@ namespace Astraia.Net
                     entity.OnNotifyAuthority();
                 }
 
-                caches.Clear();
+                copies.Clear();
                 isComplete = true;
             }
 
@@ -379,7 +380,7 @@ namespace Astraia.Net
                     }
 
                     message.segment = new ArraySegment<byte>(segment);
-                    caches[entity] = message;
+                    copies[entity] = message;
                 }
             }
 
