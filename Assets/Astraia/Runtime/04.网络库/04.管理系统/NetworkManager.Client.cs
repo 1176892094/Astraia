@@ -50,6 +50,8 @@ namespace Astraia.Net
 
             public static NetworkServer connection { get; private set; }
 
+            public static NetworkObserving observing { get; internal set; }
+
             public static bool isConnected => state == State.Connected;
 
             internal static void Start(EntryMode mode)
@@ -336,7 +338,7 @@ namespace Astraia.Net
                         Spawn(segment, entity);
                     }
 
-                    entity.mode = segment.isOwner ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                    entity.mode = (segment.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
                     entity.mode |= EntityMode.Client;
                     entity.OnStartClient();
                     entity.OnNotifyAuthority();
@@ -353,7 +355,7 @@ namespace Astraia.Net
                     if (Server.spawns.TryGetValue(message.objectId, out var entity))
                     {
                         spawns[message.objectId] = entity;
-                        entity.mode = message.isOwner ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                        entity.mode = (message.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
                         entity.mode |= EntityMode.Client;
                         entity.OnStartClient();
                         entity.OnNotifyAuthority();
@@ -416,7 +418,8 @@ namespace Astraia.Net
                 switch (message)
                 {
                     case Common.DespawnMessage:
-                        entity.gameObject.SetActive(false);
+                        entity.gameObject.name = GlobalSetting.Prefab.Format(entity.assetId);
+                        PoolManager.Hide(entity.gameObject);
                         entity.Reset();
                         break;
                     case Common.DestroyMessage:
@@ -512,7 +515,9 @@ namespace Astraia.Net
                 }
                 else
                 {
-                    var prefab = AssetManager.Load<GameObject>(GlobalSetting.Prefab.Format(message.assetId));
+                    var name = GlobalSetting.Prefab.Format(message.assetId);
+                    var prefab = (message.opcode & 2) != 0 ? PoolManager.Show(name) : AssetManager.Load<GameObject>(name);
+                    prefab.gameObject.name = name;
                     if (!prefab.TryGetComponent(out entity))
                     {
                         Log.Error("无法注册网络对象 {0} 没有网络对象组件。", prefab.name);
@@ -538,7 +543,7 @@ namespace Astraia.Net
                 entity.transform.localScale = message.localScale;
 
                 entity.objectId = message.objectId;
-                entity.mode = message.isOwner ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                entity.mode = (message.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
                 entity.mode |= EntityMode.Client;
 
                 if (message.segment.Count > 0)

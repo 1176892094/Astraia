@@ -22,6 +22,16 @@ namespace Astraia.Common
             LoadPool(path).Config(capacity, threshold, timestamp);
         }
 
+        public static GameObject Show(string path)
+        {
+            if (!Instance) return null;
+            var item = LoadPool(path).Load();
+            item.transform.SetParent(null);
+            item.SetActive(true);
+            item.name = path;
+            return item;
+        }
+
         public static GameObject Show(string path, string name)
         {
             if (!Instance) return null;

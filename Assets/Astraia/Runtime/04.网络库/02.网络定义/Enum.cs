@@ -39,11 +39,13 @@ namespace Astraia.Net
         ClientRpc,
     }
 
-    internal enum EntityAOI : byte
+    [Flags]
+    internal enum EntityData : byte
     {
-        None,
-        Hide,
-        Show
+        None = 1 << 0,
+        Hide = 1 << 1,
+        Show = 1 << 2,
+        Pool = 1 << 3
     }
 
     [Flags]

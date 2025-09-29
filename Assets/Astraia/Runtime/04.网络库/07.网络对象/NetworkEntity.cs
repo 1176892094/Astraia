@@ -34,7 +34,7 @@ namespace Astraia.Net
         [EnumToggleButtons, HideLabel]
 #endif
         [SerializeField]
-        internal EntityAOI aoi;
+        internal EntityData data;
 
         private int frameCount;
 

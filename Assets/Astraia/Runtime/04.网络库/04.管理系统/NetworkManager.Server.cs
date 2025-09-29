@@ -30,7 +30,7 @@ namespace Astraia.Net
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
             internal static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
-            
+
             private static readonly List<NetworkClient> copies = new List<NetworkClient>();
 
             private static State state = State.Disconnect;
@@ -211,14 +211,14 @@ namespace Astraia.Net
                 {
                     if (entity.gameObject.activeSelf)
                     {
-                        if (entity.aoi == EntityAOI.Show)
+                        if (entity.data == EntityData.Show)
                         {
                             entity.AddObserver(client);
                         }
-                        else if (entity.aoi == EntityAOI.Hide)
+                        else if (entity.data == EntityData.Hide)
                         {
                         }
-                        else if (entity.aoi == EntityAOI.None)
+                        else if (entity.data == EntityData.None)
                         {
                             if (observing)
                             {
@@ -443,7 +443,7 @@ namespace Astraia.Net
 
             internal static void SendToClients(NetworkEntity entity, bool initialize)
             {
-                if (observing && entity.aoi != EntityAOI.Show)
+                if (observing && entity.data != EntityData.Show)
                 {
                     observing.Rebuild(entity, initialize);
                 }
@@ -451,7 +451,7 @@ namespace Astraia.Net
                 {
                     if (initialize)
                     {
-                        if (entity.aoi != EntityAOI.Hide)
+                        if (entity.data != EntityData.Hide)
                         {
                             foreach (var client in clients.Values.Where(client => client.isReady))
                             {
@@ -478,9 +478,20 @@ namespace Astraia.Net
                     segment = isOwner ? owner : other;
                 }
 
+                byte stateId = 0;
+                if (isOwner)
+                {
+                    stateId |= 1;
+                }
+
+                if (entity.data.HasFlag(EntityData.Pool))
+                {
+                    stateId |= 2;
+                }
+
                 client.Send(new SpawnMessage
                 {
-                    isOwner = isOwner,
+                    opcode = stateId,
                     assetId = entity.assetId,
                     sceneId = entity.sceneId,
                     objectId = entity.objectId,
@@ -490,7 +501,7 @@ namespace Astraia.Net
                     segment = segment
                 });
             }
-            
+
             public static void Despawn(GameObject obj)
             {
                 if (obj.TryGetComponent(out NetworkEntity entity))
@@ -527,7 +538,8 @@ namespace Astraia.Net
                 switch (message)
                 {
                     case DespawnMessage:
-                        entity.gameObject.SetActive(false);
+                        entity.gameObject.name = GlobalSetting.Prefab.Format(entity.assetId);
+                        PoolManager.Hide(entity.gameObject);
                         entity.Reset();
                         break;
                     case DestroyMessage:

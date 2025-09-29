@@ -29,6 +29,7 @@ namespace Astraia.Net
         private void Awake()
         {
             NetworkManager.Server.observing = this;
+            NetworkManager.Client.observing = this;
         }
 
         private void OnEnable()
@@ -92,7 +93,7 @@ namespace Astraia.Net
         public void Rebuild(NetworkEntity entity, bool initialize)
         {
             clients.Clear();
-            if (entity.aoi != EntityAOI.Hide)
+            if (entity.data != EntityData.Hide)
             {
                 OnRebuild(entity, clients);
             }
