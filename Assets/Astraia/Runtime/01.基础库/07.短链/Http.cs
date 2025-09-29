@@ -13,9 +13,6 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 
-// ReSharper disable All
-
-#pragma warning disable CS4014 // 由于此调用不会等待，因此在调用完成前将继续执行当前方法
 
 namespace Astraia
 {
@@ -35,7 +32,9 @@ namespace Astraia
                     try
                     {
                         var context = await reason.GetContextAsync(); // 异步等待请求
-                        Task.Run(async () => // 每个请求单独处理
+                        _ = Task.Run(HttpRequest); // 每个请求单独处理
+
+                        async Task HttpRequest()
                         {
                             try
                             {
@@ -57,7 +56,7 @@ namespace Astraia
                                     // ignored
                                 }
                             }
-                        });
+                        }
                     }
                     catch (Exception e)
                     {

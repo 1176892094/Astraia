@@ -18,6 +18,9 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
+#if UNITY_EDITOR && ODIN_INSPECTOR
+using Sirenix.OdinInspector;
+#endif
 
 namespace Astraia.Net
 {
@@ -27,8 +30,11 @@ namespace Astraia.Net
         [HideInInspector] [SerializeField] internal uint assetId;
 
         [HideInInspector] [SerializeField] internal uint sceneId;
-
-        [SerializeField] internal EntitySpawn spawn;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [EnumToggleButtons, HideLabel]
+#endif
+        [SerializeField]
+        internal EntityAOI aoi;
 
         private int frameCount;
 

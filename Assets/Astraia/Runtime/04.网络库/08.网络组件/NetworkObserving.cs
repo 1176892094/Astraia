@@ -92,7 +92,7 @@ namespace Astraia.Net
         public void Rebuild(NetworkEntity entity, bool initialize)
         {
             clients.Clear();
-            if (entity.spawn != EntitySpawn.Hide)
+            if (entity.aoi != EntityAOI.Hide)
             {
                 OnRebuild(entity, clients);
             }

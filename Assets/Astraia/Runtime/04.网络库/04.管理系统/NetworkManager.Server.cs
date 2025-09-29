@@ -211,14 +211,14 @@ namespace Astraia.Net
                 {
                     if (entity.gameObject.activeSelf)
                     {
-                        if (entity.spawn == EntitySpawn.Show)
+                        if (entity.aoi == EntityAOI.Show)
                         {
                             entity.AddObserver(client);
                         }
-                        else if (entity.spawn == EntitySpawn.Hide)
+                        else if (entity.aoi == EntityAOI.Hide)
                         {
                         }
-                        else if (entity.spawn == EntitySpawn.None)
+                        else if (entity.aoi == EntityAOI.None)
                         {
                             if (observing)
                             {
@@ -443,7 +443,7 @@ namespace Astraia.Net
 
             internal static void SendToClients(NetworkEntity entity, bool initialize)
             {
-                if (observing && entity.spawn != EntitySpawn.Show)
+                if (observing && entity.aoi != EntityAOI.Show)
                 {
                     observing.Rebuild(entity, initialize);
                 }
@@ -451,7 +451,7 @@ namespace Astraia.Net
                 {
                     if (initialize)
                     {
-                        if (entity.spawn != EntitySpawn.Hide)
+                        if (entity.aoi != EntityAOI.Hide)
                         {
                             foreach (var client in clients.Values.Where(client => client.isReady))
                             {

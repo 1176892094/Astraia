@@ -13,7 +13,7 @@ using System;
 
 namespace Astraia
 {
-    public static partial class Log
+    public static class Log
     {
         private static Action<string> onInfo = Console.WriteLine;
         private static Action<string> onWarn = Console.WriteLine;
@@ -28,80 +28,77 @@ namespace Astraia
 
         public static void Info(object message)
         {
-            onInfo.Invoke(message.ToString());
+            onInfo(message.ToString());
         }
 
         public static void Warn(object message)
         {
-            onWarn.Invoke(message.ToString());
+            onWarn(message.ToString());
         }
 
         public static void Error(object message)
         {
-            onError.Invoke(message.ToString());
+            onError(message.ToString());
         }
-    }
 
-    public static partial class Log
-    {
         public static void Info<T>(string format, T arg1)
         {
-            Info(format.Format(arg1));
+            onInfo(format.Format(arg1));
         }
 
         public static void Info<T1, T2>(string format, T1 arg1, T2 arg2)
         {
-            Info(format.Format(arg1, arg2));
+            onInfo(format.Format(arg1, arg2));
         }
 
         public static void Info<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
         {
-            Info(format.Format(arg1, arg2, arg3));
+            onInfo(format.Format(arg1, arg2, arg3));
         }
 
         public static void Info<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
-            Info(format.Format(arg1, arg2, arg3, arg4));
+            onInfo(format.Format(arg1, arg2, arg3, arg4));
         }
 
         public static void Warn<T>(string format, T arg1)
         {
-            Warn(format.Format(arg1));
+            onWarn(format.Format(arg1));
         }
 
         public static void Warn<T1, T2>(string format, T1 arg1, T2 arg2)
         {
-            Warn(format.Format(arg1, arg2));
+            onWarn(format.Format(arg1, arg2));
         }
 
         public static void Warn<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
         {
-            Warn(format.Format(arg1, arg2, arg3));
+            onWarn(format.Format(arg1, arg2, arg3));
         }
 
         public static void Warn<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
-            Warn(format.Format(arg1, arg2, arg3, arg4));
+            onWarn(format.Format(arg1, arg2, arg3, arg4));
         }
 
         public static void Error<T>(string format, T arg1)
         {
-            Error(format.Format(arg1));
+            onError(format.Format(arg1));
         }
 
         public static void Error<T1, T2>(string format, T1 arg1, T2 arg2)
         {
-            Error(format.Format(arg1, arg2));
+            onError(format.Format(arg1, arg2));
         }
 
         public static void Error<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
         {
-            Error(format.Format(arg1, arg2, arg3));
+            onError(format.Format(arg1, arg2, arg3));
         }
 
         public static void Error<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
-            Error(format.Format(arg1, arg2, arg3, arg4));
+            onError(format.Format(arg1, arg2, arg3, arg4));
         }
     }
 }
