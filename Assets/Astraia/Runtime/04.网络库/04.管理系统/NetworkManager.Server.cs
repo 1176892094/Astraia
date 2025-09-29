@@ -465,26 +465,18 @@ namespace Astraia.Net
 
             internal static void SpawnToClient(NetworkClient client, NetworkEntity entity)
             {
-                using MemoryWriter owner = MemoryWriter.Pop(), other = MemoryWriter.Pop();
-                var isOwner = entity.client == client;
-                var transform = entity.transform;
+                using var owner = MemoryWriter.Pop();
+                using var other = MemoryWriter.Pop();
                 ArraySegment<byte> segment = default;
                 if (entity.modules.Count != 0)
                 {
                     entity.ServerSerialize(true, owner, other);
-                    segment = isOwner ? owner : other;
+                    segment = entity.client == client ? owner : other;
                 }
 
                 byte opcode = 0;
-                if (isOwner)
-                {
-                    opcode |= 1;
-                }
-
-                if (entity.data == EntityData.Pool)
-                {
-                    opcode |= 2;
-                }
+                opcode = (byte)(entity.client == client ? opcode | 1 : opcode & ~1);
+                opcode = (byte)(entity.data == EntityData.Pool ? opcode | 2 : opcode & ~2);
 
                 client.Send(new SpawnMessage
                 {
@@ -492,9 +484,9 @@ namespace Astraia.Net
                     assetId = entity.assetId,
                     sceneId = entity.sceneId,
                     objectId = entity.objectId,
-                    position = transform.localPosition,
-                    rotation = transform.localRotation,
-                    localScale = transform.localScale,
+                    position = entity.transform.localPosition,
+                    rotation = entity.transform.localRotation,
+                    localScale = entity.transform.localScale,
                     segment = segment
                 });
             }
