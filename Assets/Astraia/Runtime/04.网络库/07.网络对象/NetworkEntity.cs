@@ -129,7 +129,7 @@ namespace Astraia.Net
                 client.entities.Add(this);
                 if (client.isReady)
                 {
-                    NetworkManager.Server.SpawnToClient(client, this);
+                    NetworkManager.Server.SpawnMessage(client, this);
                 }
             }
         }

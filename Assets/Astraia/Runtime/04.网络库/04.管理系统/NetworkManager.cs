@@ -19,7 +19,7 @@ namespace Astraia.Net
     public sealed partial class NetworkManager : MonoBehaviour, IEvent<OnSceneComplete>
     {
         public static NetworkManager Instance;
-        
+
         internal const int Host = 0;
 
         public int sendRate = 30;
@@ -30,23 +30,11 @@ namespace Astraia.Net
 
         private string sceneName;
 
-        public static EntryMode Mode
-        {
-            get
-            {
-                if (!Application.isPlaying)
-                {
-                    return EntryMode.None;
-                }
+        public static bool isHost => Server.isActive && Client.isActive;
+        
+        public static bool isServer => Server.isActive;
 
-                if (Server.isActive)
-                {
-                    return Client.isActive ? EntryMode.Host : EntryMode.Server;
-                }
-
-                return Client.isActive ? EntryMode.Client : EntryMode.None;
-            }
-        }
+        public static bool isClient => Client.isActive;
 
         private void Awake()
         {
@@ -90,18 +78,18 @@ namespace Astraia.Net
 
         public void Execute(OnSceneComplete message)
         {
-            switch (Mode)
+            if (isHost)
             {
-                case EntryMode.Host:
-                    Server.LoadSceneComplete(sceneName);
-                    Client.LoadSceneComplete(sceneName);
-                    break;
-                case EntryMode.Server:
-                    Server.LoadSceneComplete(sceneName);
-                    break;
-                case EntryMode.Client:
-                    Client.LoadSceneComplete(sceneName);
-                    break;
+                Server.LoadSceneComplete(sceneName);
+                Client.LoadSceneComplete(sceneName);
+            }
+            else if (isServer)
+            {
+                Server.LoadSceneComplete(sceneName);
+            }
+            else if (isClient)
+            {
+                Client.LoadSceneComplete(sceneName);
             }
         }
 
@@ -113,7 +101,7 @@ namespace Astraia.Net
                 return;
             }
 
-            Server.Start(EntryMode.Server);
+            Server.Start();
         }
 
         public static void StopServer()
@@ -135,7 +123,7 @@ namespace Astraia.Net
                 return;
             }
 
-            Client.Start(EntryMode.Client);
+            Client.Start();
         }
 
         public static void StartClient(Uri uri)
@@ -156,16 +144,11 @@ namespace Astraia.Net
                 Log.Warn("客户端已经停止!");
                 return;
             }
-
-            if (Mode == EntryMode.Host)
-            {
-                Server.OnServerDisconnect(Host);
-            }
-
+            
             Client.Stop();
         }
 
-        public static void StartHost(EntryMode mode = EntryMode.Host)
+        public static void StartHost(bool isServer = true)
         {
             if (Server.isActive || Client.isActive)
             {
@@ -173,8 +156,8 @@ namespace Astraia.Net
                 return;
             }
 
-            Server.Start(mode);
-            Client.Start(EntryMode.Host);
+            Server.Start(isServer);
+            Client.Start(false);
         }
 
         public static void StopHost()

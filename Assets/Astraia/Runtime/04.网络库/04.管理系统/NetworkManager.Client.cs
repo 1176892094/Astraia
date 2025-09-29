@@ -52,50 +52,41 @@ namespace Astraia.Net
 
             public static bool isConnected => state == State.Connected;
 
-            internal static void Start(EntryMode mode)
+            internal static void Start(bool isClient = true)
             {
-                if (mode == EntryMode.Host)
+                AddMessage(isClient);
+                connection = new NetworkServer();
+                if (isClient)
+                {
+                    state = State.Connect;
+                    Transport.Instance.StartClient();
+                }
+                else
                 {
                     state = State.Connected;
-                    AddMessage(EntryMode.Host);
-                    connection = new NetworkServer();
                     Server.Connect(new NetworkClient());
                     Ready();
-                    return;
                 }
-
-                state = State.Connect;
-                AddMessage(EntryMode.Client);
-                connection = new NetworkServer();
-                Transport.Instance.StartClient();
             }
 
             internal static void Start(Uri uri)
             {
+                AddMessage(true);
                 state = State.Connect;
-                AddMessage(EntryMode.Client);
                 connection = new NetworkServer();
                 Transport.Instance.StartClient(uri);
             }
 
+
             internal static void Stop()
             {
                 if (!isActive) return;
-                var entities = spawns.Values.Where(entity => entity).ToList();
-                foreach (var entity in entities)
+                if (!isHost)
                 {
-                    entity.OnStopClient();
-                    entity.mode &= ~EntityMode.Owner;
-                    entity.OnNotifyAuthority();
-                    if (entity.sceneId != 0)
+                    var entities = spawns.Values.Where(entity => entity).ToList();
+                    foreach (var entity in entities)
                     {
-                        entity.gameObject.SetActive(false);
-                        entity.Reset();
-                    }
-                    else
-                    {
-                        entity.state |= EntityState.Destroy;
-                        Destroy(entity.gameObject);
+                        Despawn(entity, new DestroyMessage(entity.objectId));
                     }
                 }
 
@@ -182,9 +173,9 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static void AddMessage(EntryMode mode)
+            private static void AddMessage(bool isClient)
             {
-                if (mode == EntryMode.Client)
+                if (isClient)
                 {
                     Transport.Instance.OnClientConnect -= OnClientConnect;
                     Transport.Instance.OnClientDisconnect -= OnClientDisconnect;
@@ -329,102 +320,45 @@ namespace Astraia.Net
                     return;
                 }
 
+                isComplete = true;
                 foreach (var entity in spawns.Values.Where(entity => entity).OrderBy(entity => entity.objectId))
                 {
                     if (copies.TryGetValue(entity, out var segment))
                     {
                         Spawn(segment, entity);
                     }
-
-                    entity.mode = (segment.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
-                    entity.mode |= EntityMode.Client;
-                    entity.OnStartClient();
-                    entity.OnNotifyAuthority();
                 }
 
                 copies.Clear();
-                isComplete = true;
             }
 
             private static void SpawnMessage(SpawnMessage message)
             {
                 if (Server.isActive)
                 {
-                    if (Server.spawns.TryGetValue(message.objectId, out var entity))
-                    {
-                        spawns[message.objectId] = entity;
-                        entity.mode = (message.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
-                        entity.mode |= EntityMode.Client;
-                        entity.OnStartClient();
-                        entity.OnNotifyAuthority();
-                    }
+                    return;
                 }
-                else
-                {
-                    if (!FindEntity(message, out var entity))
-                    {
-                        return;
-                    }
 
-                    if (isComplete)
-                    {
-                        Spawn(message, entity);
-                        return;
-                    }
-
-                    spawns[message.objectId] = entity;
-                    var segment = new byte[message.segment.Count];
-                    if (message.segment.Count > 0)
-                    {
-                        Buffer.BlockCopy(message.segment.Array!, message.segment.Offset, segment, 0, message.segment.Count);
-                    }
-
-                    message.segment = new ArraySegment<byte>(segment);
-                    copies[entity] = message;
-                }
-            }
-
-            private static void DespawnMessage(DespawnMessage message)
-            {
-                if (spawns.TryGetValue(message.objectId, out var entity))
-                {
-                    DespawnMessage(entity, message);
-                    spawns.Remove(message.objectId);
-                }
-            }
-
-            private static void DestroyMessage(DestroyMessage message)
-            {
-                if (spawns.TryGetValue(message.objectId, out var entity))
-                {
-                    DespawnMessage(entity, message);
-                    spawns.Remove(message.objectId);
-                }
-            }
-
-            private static void DespawnMessage<T>(NetworkEntity entity, T message) where T : struct, IMessage
-            {
-                if (Server.isActive)
+                if (!FindEntity(message, out var entity))
                 {
                     return;
                 }
 
-                entity.OnStopClient();
-                entity.mode &= ~EntityMode.Owner;
-                entity.OnNotifyAuthority();
-
-                switch (message)
+                if (isComplete)
                 {
-                    case Common.DespawnMessage:
-                        entity.gameObject.name = GlobalSetting.Prefab.Format(entity.assetId);
-                        PoolManager.Hide(entity.gameObject);
-                        entity.Reset();
-                        break;
-                    case Common.DestroyMessage:
-                        entity.state |= EntityState.Destroy;
-                        Destroy(entity.gameObject);
-                        break;
+                    Spawn(message, entity);
+                    return;
                 }
+
+                spawns[message.objectId] = entity;
+                var segment = new byte[message.segment.Count];
+                if (message.segment.Count > 0)
+                {
+                    Buffer.BlockCopy(message.segment.Array!, message.segment.Offset, segment, 0, message.segment.Count);
+                }
+
+                message.segment = new ArraySegment<byte>(segment);
+                copies[entity] = message;
             }
         }
 
@@ -556,6 +490,56 @@ namespace Astraia.Net
                     entity.OnNotifyAuthority();
                 }
             }
+
+            private static void DespawnMessage(DespawnMessage message)
+            {
+                if (spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    Despawn(entity, message);
+                    spawns.Remove(message.objectId);
+                }
+            }
+
+            private static void DestroyMessage(DestroyMessage message)
+            {
+                if (spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    Despawn(entity, message);
+                    spawns.Remove(message.objectId);
+                }
+            }
+
+            private static void Despawn<T>(NetworkEntity entity, T message) where T : struct, IMessage
+            {
+                if (Server.isActive)
+                {
+                    return;
+                }
+
+                entity.OnStopClient();
+                entity.mode &= ~EntityMode.Owner;
+                entity.OnNotifyAuthority();
+                switch (message)
+                {
+                    case Common.DespawnMessage when entity.sceneId != 0:
+                        entity.gameObject.SetActive(false);
+                        entity.Reset();
+                        break;
+                    case Common.DespawnMessage:
+                        entity.gameObject.name = GlobalSetting.Prefab.Format(entity.assetId);
+                        PoolManager.Hide(entity.gameObject);
+                        entity.Reset();
+                        break;
+                    case Common.DestroyMessage when entity.sceneId != 0:
+                        entity.gameObject.SetActive(false);
+                        entity.Reset();
+                        break;
+                    case Common.DestroyMessage:
+                        entity.state |= EntityState.Destroy;
+                        Destroy(entity.gameObject);
+                        break;
+                }
+            }
         }
 
         public static partial class Client
@@ -580,7 +564,7 @@ namespace Astraia.Net
 
                 if (connection != null)
                 {
-                    if (Mode == EntryMode.Host)
+                    if (isHost)
                     {
                         connection.Update();
                     }

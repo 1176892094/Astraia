@@ -44,7 +44,7 @@ namespace Astraia.Common
             }
 
             GUILayout.Label("{0} : {1}".Format(peer, port), "Button", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30));
-            var ping = NetworkManager.Mode is EntryMode.Client ? "Ping: {0} ms".Format(Math.Min((int)(framePing * 1000), 999)) : "Client is not active!";
+            var ping = NetworkManager.isClient ? "Ping: {0} ms".Format(Math.Min((int)(framePing * 1000), 999)) : "Client is not active!";
             GUILayout.Label(ping, "Button", GUILayout.Height(30));
 
             GUILayout.EndHorizontal();

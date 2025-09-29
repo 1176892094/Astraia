@@ -113,7 +113,7 @@ namespace Astraia.Net
                     if (isReady || !entity.clients.Contains(client))
                     {
                         client.entities.Add(entity);
-                        NetworkManager.Server.SpawnToClient(client, entity);
+                        NetworkManager.Server.SpawnMessage(client, entity);
                         changed = true;
                     }
                 }

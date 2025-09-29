@@ -267,7 +267,7 @@ namespace Astraia.Net
                 SetSyncVarGeneral(value, ref field, dirty);
                 if (OnChanged != null)
                 {
-                    if (NetworkManager.Mode == EntryMode.Host && !GetSyncVarHook(dirty))
+                    if (NetworkManager.isHost && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
                         OnChanged(oldValue, value);
@@ -286,7 +286,7 @@ namespace Astraia.Net
                 SetSyncVarGameObject(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
-                    if (NetworkManager.Mode == EntryMode.Host && !GetSyncVarHook(dirty))
+                    if (NetworkManager.isHost && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
                         OnChanged(oldValue, value);
@@ -305,7 +305,7 @@ namespace Astraia.Net
                 SetSyncVarNetworkEntity(value, ref field, dirty, ref objectId);
                 if (OnChanged != null)
                 {
-                    if (NetworkManager.Mode == EntryMode.Host && !GetSyncVarHook(dirty))
+                    if (NetworkManager.isHost && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
                         OnChanged(oldValue, value);
@@ -324,7 +324,7 @@ namespace Astraia.Net
                 SetSyncVarNetworkModule(value, ref field, dirty, ref variable);
                 if (OnChanged != null)
                 {
-                    if (NetworkManager.Mode == EntryMode.Host && !GetSyncVarHook(dirty))
+                    if (NetworkManager.isHost && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
                         OnChanged(oldValue, value);

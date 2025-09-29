@@ -49,9 +49,9 @@ namespace Astraia.Net
 
             public static int connections => clients.Count;
 
-            internal static void Start(EntryMode mode)
+            internal static void Start(bool isServer = true)
             {
-                if (mode is EntryMode.Host or EntryMode.Server)
+                if (isServer)
                 {
                     Transport.Instance.StartServer();
                 }
@@ -64,18 +64,19 @@ namespace Astraia.Net
             internal static void Stop()
             {
                 if (!isActive) return;
-                state = State.Disconnect;
                 copies.Clear();
                 copies.AddRange(clients.Values);
-                foreach (NetworkClient client in copies)
+                foreach (var client in copies)
                 {
-                    client.Disconnect();
                     if (client.clientId != Host)
                     {
-                        OnServerDisconnect(client.clientId);
+                        client.Disconnect();
                     }
+
+                    OnServerDisconnect(client.clientId);
                 }
 
+                state = State.Disconnect;
                 if (Transport.Instance)
                 {
                     Transport.Instance.StopServer();
@@ -317,18 +318,10 @@ namespace Astraia.Net
             {
                 if (clients.TryGetValue(clientId, out var client))
                 {
-                    var entities = new List<NetworkEntity>();
-                    foreach (var entity in spawns.Values)
-                    {
-                        if (entity.client == client)
-                        {
-                            entities.Add(entity);
-                        }
-                    }
-
+                    var entities = spawns.Values.Where(entity => client == Host || entity.client == client).ToList();
                     foreach (var entity in entities)
                     {
-                        Object.Destroy(entity);
+                        Destroy(entity.gameObject);
                     }
 
                     clients.Remove(client.clientId);
@@ -421,7 +414,7 @@ namespace Astraia.Net
 
                 entity.client = client;
 
-                if (client != null && Mode == EntryMode.Host && client.clientId == Host)
+                if (client?.clientId == Host)
                 {
                     entity.mode |= EntityMode.Owner;
                 }
@@ -463,7 +456,7 @@ namespace Astraia.Net
                 }
             }
 
-            internal static void SpawnToClient(NetworkClient client, NetworkEntity entity)
+            internal static void SpawnMessage(NetworkClient client, NetworkEntity entity)
             {
                 using var owner = MemoryWriter.Pop();
                 using var other = MemoryWriter.Pop();
@@ -478,7 +471,7 @@ namespace Astraia.Net
                 opcode = (byte)(entity.client == client ? opcode | 1 : opcode & ~1);
                 opcode = (byte)(entity.data == EntityData.Pool ? opcode | 2 : opcode & ~2);
 
-                client.Send(new SpawnMessage
+                var message = new SpawnMessage
                 {
                     opcode = opcode,
                     assetId = entity.assetId,
@@ -488,14 +481,19 @@ namespace Astraia.Net
                     rotation = entity.transform.localRotation,
                     localScale = entity.transform.localScale,
                     segment = segment
-                });
+                };
+                client.Send(message);
+                Client.spawns[message.objectId] = entity;
+                entity.OnStartClient();
+                entity.OnNotifyAuthority();
             }
 
             public static void Despawn(GameObject obj)
             {
                 if (obj.TryGetComponent(out NetworkEntity entity))
                 {
-                    DespawnToClient(entity, new DespawnMessage(entity.objectId));
+                    spawns.Remove(entity.objectId);
+                    Despawn(entity, new DespawnMessage(entity.objectId));
                 }
             }
 
@@ -503,20 +501,19 @@ namespace Astraia.Net
             {
                 if (obj.TryGetComponent(out NetworkEntity entity))
                 {
-                    DespawnToClient(entity, new DestroyMessage(entity.objectId));
+                    spawns.Remove(entity.objectId);
+                    Despawn(entity, new DestroyMessage(entity.objectId));
                 }
             }
 
-            private static void DespawnToClient<T>(NetworkEntity entity, T message) where T : struct, IMessage
+            private static void Despawn<T>(NetworkEntity entity, T message) where T : struct, IMessage
             {
-                spawns.Remove(entity.objectId);
                 foreach (var client in entity.clients)
                 {
                     client.Send(message);
                 }
 
-                entity.SubObservers();
-                if (Mode == EntryMode.Host)
+                if (entity.client?.clientId == Host)
                 {
                     entity.OnStopClient();
                     entity.mode &= ~EntityMode.Owner;
@@ -524,11 +521,20 @@ namespace Astraia.Net
                 }
 
                 entity.OnStopServer();
+                entity.SubObservers();
                 switch (message)
                 {
+                    case DespawnMessage when entity.sceneId != 0:
+                        entity.gameObject.SetActive(false);
+                        entity.Reset();
+                        break;
                     case DespawnMessage:
                         entity.gameObject.name = GlobalSetting.Prefab.Format(entity.assetId);
                         PoolManager.Hide(entity.gameObject);
+                        entity.Reset();
+                        break;
+                    case DestroyMessage when entity.sceneId != 0:
+                        entity.gameObject.SetActive(false);
                         entity.Reset();
                         break;
                     case DestroyMessage:
@@ -538,7 +544,6 @@ namespace Astraia.Net
                 }
             }
         }
-
 
         public partial class Server
         {

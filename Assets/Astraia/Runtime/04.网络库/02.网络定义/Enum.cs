@@ -13,14 +13,6 @@ using System;
 
 namespace Astraia.Net
 {
-    public enum EntryMode : byte
-    {
-        None = 0,
-        Host = 1,
-        Server = 2,
-        Client = 3,
-    }
-
     public enum RoomMode : byte
     {
         Public,
@@ -38,7 +30,7 @@ namespace Astraia.Net
         ServerRpc,
         ClientRpc,
     }
-    
+
     internal enum EntityData : byte
     {
         Show = 0,
@@ -66,7 +58,7 @@ namespace Astraia.Net
     }
 
     [Flags]
-    internal enum TransformOption
+    internal enum TransformOption : byte
     {
         None,
         Position = 1 << 0,

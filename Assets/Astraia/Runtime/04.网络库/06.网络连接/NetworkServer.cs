@@ -63,7 +63,7 @@ namespace Astraia.Net
 
             batch.AddMessage(writer);
 
-            if (NetworkManager.Mode == EntryMode.Host)
+            if (NetworkManager.isHost)
             {
                 using var target = MemoryWriter.Pop();
                 if (batch.GetBatch(target))

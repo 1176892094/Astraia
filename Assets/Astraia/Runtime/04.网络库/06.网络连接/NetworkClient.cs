@@ -75,7 +75,7 @@ namespace Astraia.Net
 
             batch.AddMessage(writer);
 
-            if (clientId == NetworkManager.Host)
+            if (NetworkManager.isHost && clientId == NetworkManager.Host)
             {
                 using var target = MemoryWriter.Pop();
                 if (batch.GetBatch(target))
