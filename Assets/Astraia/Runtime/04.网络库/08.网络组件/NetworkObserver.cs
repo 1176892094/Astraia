@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkObserving : MonoBehaviour, IEvent<ServerDisconnect>, IEvent<ServerObserver>
+    public class NetworkObserver : MonoBehaviour, IEvent<ServerDisconnect>, IEvent<ServerObserver>
     {
         private readonly Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
         private readonly HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
@@ -28,8 +28,7 @@ namespace Astraia.Net
 
         private void Awake()
         {
-            NetworkManager.Server.observing = this;
-            NetworkManager.Client.observing = this;
+            NetworkManager.Server.observer = this;
         }
 
         private void OnEnable()
@@ -56,22 +55,25 @@ namespace Astraia.Net
 
         private void Update()
         {
-            grids.Clear();
-            foreach (var client in NetworkManager.Server.clients.Values)
+            if (NetworkManager.Server.isActive)
             {
-                if (players.TryGetValue(client, out var player) && player)
+                grids.Clear();
+                foreach (var client in NetworkManager.Server.clients.Values)
                 {
-                    var position = EntityToGrid(player.transform.position);
-                    grids.Add(position, client);
+                    if (players.TryGetValue(client, out var player) && player)
+                    {
+                        var position = EntityToGrid(player.transform.position);
+                        grids.Add(position, client);
+                    }
                 }
-            }
 
-            if (waitTime + interval <= Time.unscaledTimeAsDouble)
-            {
-                waitTime = Time.unscaledTimeAsDouble;
-                foreach (var entity in NetworkManager.Server.spawns.Values)
+                if (waitTime + interval <= Time.unscaledTimeAsDouble)
                 {
-                    NetworkManager.Server.SendToClients(entity, false);
+                    waitTime = Time.unscaledTimeAsDouble;
+                    foreach (var entity in NetworkManager.Server.spawns.Values)
+                    {
+                        NetworkManager.Server.SendToClients(entity, false);
+                    }
                 }
             }
         }

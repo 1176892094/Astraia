@@ -50,8 +50,6 @@ namespace Astraia.Net
 
             public static NetworkServer connection { get; private set; }
 
-            public static NetworkObserving observing { get; internal set; }
-
             public static bool isConnected => state == State.Connected;
 
             internal static void Start(EntryMode mode)
