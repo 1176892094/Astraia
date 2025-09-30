@@ -197,11 +197,6 @@ namespace Astraia.Net
                 return;
             }
 
-            if (owner.clients.Count == 0)
-            {
-                return;
-            }
-
             var message = new ClientRpcMessage
             {
                 objectId = objectId,
@@ -213,7 +208,8 @@ namespace Astraia.Net
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 
-            foreach (var conn in owner.clients)
+            var queries = NetworkListener.Query(owner);
+            foreach (var conn in queries)
             {
                 if (conn.isReady)
                 {

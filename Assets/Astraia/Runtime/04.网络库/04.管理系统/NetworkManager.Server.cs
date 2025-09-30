@@ -83,6 +83,7 @@ namespace Astraia.Net
                 clients.Clear();
                 messages.Clear();
                 isLoadScene = false;
+                NetworkListener.Dispose();
             }
 
             internal static void Connect(NetworkClient client)
@@ -110,12 +111,7 @@ namespace Astraia.Net
                 foreach (var client in clients.Values)
                 {
                     client.isReady = false;
-                    foreach (var entity in client.entities)
-                    {
-                        entity.clients.Remove(client);
-                    }
-
-                    client.entities.Clear();
+                    NetworkListener.Release(client);
                     client.Send(new NotReadyMessage());
                 }
 
@@ -207,24 +203,24 @@ namespace Astraia.Net
                 client.Send(new SpawnBeginMessage());
                 foreach (var entity in spawns.Values)
                 {
-                    if (entity.gameObject.activeSelf)
+                    if (entity.isActiveAndEnabled)
                     {
-                        if (entity.data == EntityData.Show)
+                        if (entity.visible == EntityType.Show)
                         {
-                            entity.AddObserver(client);
+                            NetworkListener.Listen(entity, client);
                         }
-                        else if (entity.data == EntityData.Pool)
+                        else if (entity.visible == EntityType.Pool)
                         {
                             if (observer)
                             {
                                 if (observer.OnExecute(entity, client))
                                 {
-                                    entity.AddObserver(client);
+                                    NetworkListener.Listen(entity, client);
                                 }
                             }
                             else
                             {
-                                entity.AddObserver(client);
+                                NetworkListener.Listen(entity, client);
                             }
                         }
                     }
@@ -402,7 +398,43 @@ namespace Astraia.Net
                     Log.Warn("网络对象 {0} 已经生成。", entity);
                     return;
                 }
-                
+
+                SpawnEntity(client, entity);
+                SpawnObserver(entity, true);
+            }
+
+            internal static void SpawnObserver(NetworkEntity entity, bool reload)
+            {
+                if (observer && entity.visible != EntityType.Show)
+                {
+                    observer.Rebuild(entity, reload);
+                    return;
+                }
+
+                if (reload)
+                {
+                    if (entity.visible == EntityType.Hide)
+                    {
+                        if (entity.client != null)
+                        {
+                            NetworkListener.Listen(entity, entity.client);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var client in clients.Values)
+                        {
+                            if (client.isReady)
+                            {
+                                NetworkListener.Listen(entity, client);
+                            }
+                        }
+                    }
+                }
+            }
+
+            internal static void SpawnEntity(NetworkClient client, NetworkEntity entity)
+            {
                 if (entity.objectId == 0)
                 {
                     entity.client = client;
@@ -412,36 +444,6 @@ namespace Astraia.Net
                     entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
                     entity.mode = client != null && client.clientId == Host ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
                     entity.OnStartServer();
-                }
-
-                SpawnObserver(entity, true);
-            }
-
-            internal static void SpawnObserver(NetworkEntity entity, bool isReady)
-            {
-                if (observer && entity.data != EntityData.Show)
-                {
-                    observer.Rebuild(entity, isReady);
-                }
-                else
-                {
-                    if (isReady)
-                    {
-                        if (entity.data != EntityData.Hide)
-                        {
-                            foreach (var client in clients.Values)
-                            {
-                                if (client.isReady)
-                                {
-                                    entity.AddObserver(client);
-                                }
-                            }
-                        }
-                        else if (entity.client != null)
-                        {
-                            entity.AddObserver(entity.client);
-                        }
-                    }
                 }
             }
 
@@ -458,7 +460,7 @@ namespace Astraia.Net
 
                 byte opcode = 0;
                 opcode = (byte)(entity.client == client ? opcode | 1 : opcode & ~1);
-                opcode = (byte)(entity.data == EntityData.Pool ? opcode | 2 : opcode & ~2);
+                opcode = (byte)(entity.visible == EntityType.Pool ? opcode | 2 : opcode & ~2);
 
                 var message = new SpawnMessage
                 {
@@ -497,7 +499,7 @@ namespace Astraia.Net
 
             private static void Despawn<T>(NetworkEntity entity, T message) where T : struct, IMessage
             {
-                foreach (var client in entity.clients)
+                foreach (var client in NetworkListener.Query(entity))
                 {
                     client.Send(message);
                 }
@@ -560,7 +562,8 @@ namespace Astraia.Net
                 {
                     if (client.isReady)
                     {
-                        foreach (var entity in client.entities)
+                        var queries = NetworkListener.Query(client);
+                        foreach (var entity in queries)
                         {
                             if (!entity)
                             {

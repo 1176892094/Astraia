@@ -34,7 +34,7 @@ namespace Astraia.Net
         [EnumToggleButtons, HideLabel]
 #endif
         [SerializeField]
-        internal EntityData data;
+        internal EntityType visible;
 
         private int frameCount;
 
@@ -51,8 +51,6 @@ namespace Astraia.Net
         internal MemoryWriter other = new MemoryWriter();
 
         internal List<NetworkModule> modules = new List<NetworkModule>();
-
-        internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
 
         public bool isOwner => (mode & EntityMode.Owner) != 0;
 
@@ -95,49 +93,24 @@ namespace Astraia.Net
                 NetworkManager.Client.spawns.Remove(objectId);
             }
 
-            ClearDirty(true);
-
             owner = null;
             other = null;
             client = null;
-            clients = null;
             modules = null;
             base.OnDestroy();
         }
 
         public virtual void Reset()
         {
-            foreach (var conn in clients)
-            {
-                conn.entities.Remove(this);
-            }
-
-            clients.Clear();
             objectId = 0;
             client = null;
             owner.position = 0;
             other.position = 0;
             mode = EntityMode.None;
             state = EntityState.None;
+            NetworkListener.Release(this);
         }
-        internal void AddObserver(NetworkClient client)
-        {
-            if (!clients.Contains(client))
-            {
-                if (clients.Count == 0)
-                {
-                    ClearDirty(true);
-                }
 
-                clients.Add(client);
-                client.entities.Add(this);
-                if (client.isReady)
-                {
-                    NetworkManager.Server.SpawnMessage(client, this);
-                }
-            }
-        }
-        
 #if UNITY_EDITOR
         private static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
         protected virtual void OnValidate()

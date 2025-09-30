@@ -104,6 +104,7 @@ namespace Astraia.Net
                 messages.Clear();
                 isLoadScene = false;
                 EventManager.Invoke(new ClientDisconnect());
+                NetworkListener.Dispose();
             }
 
             private static void Pong()
@@ -333,13 +334,7 @@ namespace Astraia.Net
             {
                 if (isServer)
                 {
-                    if (Server.spawns.TryGetValue(message.objectId, out var entity) && entity)
-                    {
-                        if (observer)
-                        {
-                            observer.SetHost(entity, true);
-                        }
-                    }
+                    return;
                 }
                 else
                 {
@@ -516,11 +511,6 @@ namespace Astraia.Net
             {
                 if (isServer)
                 {
-                    if (observer)
-                    {
-                        observer.SetHost(entity, false);
-                    }
-
                     return;
                 }
 
