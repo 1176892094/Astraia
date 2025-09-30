@@ -488,23 +488,7 @@ namespace Astraia.Net
 
         public static explicit operator NetworkEntity(uint objectId)
         {
-            if (NetworkManager.isServer)
-            {
-                if (NetworkManager.Server.spawns.TryGetValue(objectId, out var entity))
-                {
-                    return entity;
-                }
-            }
-
-            if (NetworkManager.isClient)
-            {
-                if (NetworkManager.Client.spawns.TryGetValue(objectId, out var entity))
-                {
-                    return entity;
-                }
-            }
-
-            return null;
+            return NetworkManager.isServer ? NetworkManager.Server.spawns.GetValueOrDefault(objectId) : NetworkManager.Client.spawns.GetValueOrDefault(objectId);
         }
     }
 }
