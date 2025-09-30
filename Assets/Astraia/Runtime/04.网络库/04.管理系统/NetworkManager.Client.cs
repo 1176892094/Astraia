@@ -178,16 +178,16 @@ namespace Astraia.Net
                     Transport.Instance.OnClientReceive += OnClientReceive;
                 }
 
-                NetworkMessage<PingMessage>.AddMessage(PingMessage);
-                NetworkMessage<NotReadyMessage>.AddMessage(NotReadyMessage);
-                NetworkMessage<EntityMessage>.AddMessage(EntityMessage);
-                NetworkMessage<ClientRpcMessage>.AddMessage(ClientRpcMessage);
-                NetworkMessage<SceneMessage>.AddMessage(SceneMessage);
-                NetworkMessage<SpawnBeginMessage>.AddMessage(SpawnBeginMessage);
-                NetworkMessage<SpawnMessage>.AddMessage(SpawnMessage);
-                NetworkMessage<SpawnEndMessage>.AddMessage(SpawnEndMessage);
-                NetworkMessage<DespawnMessage>.AddMessage(DespawnMessage);
-                NetworkMessage<DestroyMessage>.AddMessage(DestroyMessage);
+                NetworkMessage<PingMessage>.Listen(PingMessage);
+                NetworkMessage<NotReadyMessage>.Listen(NotReadyMessage);
+                NetworkMessage<EntityMessage>.Listen(EntityMessage);
+                NetworkMessage<ClientRpcMessage>.Listen(ClientRpcMessage);
+                NetworkMessage<SceneMessage>.Listen(SceneMessage);
+                NetworkMessage<SpawnBeginMessage>.Listen(SpawnBeginMessage);
+                NetworkMessage<SpawnMessage>.Listen(SpawnMessage);
+                NetworkMessage<SpawnEndMessage>.Listen(SpawnEndMessage);
+                NetworkMessage<DespawnMessage>.Listen(DespawnMessage);
+                NetworkMessage<DestroyMessage>.Listen(DestroyMessage);
             }
 
             private static void PingMessage(PingMessage message)
@@ -383,7 +383,7 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-                    if (!NetworkMessage.ClientMessage(message, out var action))
+                    if (!NetworkMessage.clients.TryGetValue(message, out var action))
                     {
                         Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
                         connection.Disconnect();

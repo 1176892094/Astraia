@@ -143,10 +143,10 @@ namespace Astraia.Net
                 Transport.Instance.OnServerConnect += OnServerConnect;
                 Transport.Instance.OnServerDisconnect += OnServerDisconnect;
                 Transport.Instance.OnServerReceive += OnServerReceive;
-                NetworkMessage<PongMessage>.AddMessage(PongMessage);
-                NetworkMessage<ReadyMessage>.AddMessage(ReadyMessage);
-                NetworkMessage<EntityMessage>.AddMessage(EntityMessage);
-                NetworkMessage<ServerRpcMessage>.AddMessage(ServerRpcMessage);
+                NetworkMessage<PongMessage>.Listen(PongMessage);
+                NetworkMessage<ReadyMessage>.Listen(ReadyMessage);
+                NetworkMessage<EntityMessage>.Listen(EntityMessage);
+                NetworkMessage<ServerRpcMessage>.Listen(ServerRpcMessage);
             }
 
             private static void PongMessage(NetworkClient client, PongMessage message)
@@ -305,7 +305,7 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-                    if (!NetworkMessage.ServerMessage(message, out var action))
+                    if (!NetworkMessage.servers.TryGetValue(message, out var action))
                     {
                         Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", clientId, message);
                         client.Disconnect();

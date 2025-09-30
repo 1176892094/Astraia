@@ -20,18 +20,8 @@ namespace Astraia.Net
 
     public static class NetworkMessage
     {
-        internal static readonly Dictionary<ushort, MessageDelegate> clientMessages = new Dictionary<ushort, MessageDelegate>();
-        internal static readonly Dictionary<ushort, MessageDelegate> serverMessages = new Dictionary<ushort, MessageDelegate>();
-
-        public static bool ServerMessage(ushort message, out MessageDelegate onExecute)
-        {
-            return serverMessages.TryGetValue(message, out onExecute);
-        }
-
-        public static bool ClientMessage(ushort message, out MessageDelegate onExecute)
-        {
-            return clientMessages.TryGetValue(message, out onExecute);
-        }
+        internal static readonly Dictionary<ushort, MessageDelegate> clients = new Dictionary<ushort, MessageDelegate>();
+        internal static readonly Dictionary<ushort, MessageDelegate> servers = new Dictionary<ushort, MessageDelegate>();
 
         public static uint Id(string name)
         {
@@ -48,13 +38,14 @@ namespace Astraia.Net
         }
     }
 
+    
     public static class NetworkMessage<T> where T : struct, IMessage
     {
         public static readonly ushort Id = (ushort)NetworkMessage.Id(typeof(T).FullName);
 
-        public static void AddMessage(Action<T> onReceive)
+        public static void Listen(Action<T> onReceive)
         {
-            NetworkMessage.clientMessages[Id] = (client, reader, channel) =>
+            NetworkMessage.clients[Id] = (client, reader, channel) =>
             {
                 try
                 {
@@ -71,9 +62,9 @@ namespace Astraia.Net
             };
         }
 
-        public static void AddMessage(Action<NetworkClient, T> onReceive)
+        public static void Listen(Action<NetworkClient, T> onReceive)
         {
-            NetworkMessage.serverMessages[Id] = (client, reader, channel) =>
+            NetworkMessage.servers[Id] = (client, reader, channel) =>
             {
                 try
                 {
@@ -90,9 +81,9 @@ namespace Astraia.Net
             };
         }
 
-        public static void AddMessage(Action<NetworkClient, T, int> onReceive)
+        public static void Listen(Action<NetworkClient, T, int> onReceive)
         {
-            NetworkMessage.serverMessages[Id] = (client, reader, channel) =>
+            NetworkMessage.servers[Id] = (client, reader, channel) =>
             {
                 try
                 {
