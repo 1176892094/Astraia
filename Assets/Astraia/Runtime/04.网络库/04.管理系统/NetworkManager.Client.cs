@@ -101,7 +101,7 @@ namespace Astraia.Net
                 scenes.Clear();
                 isLoadScene = false;
                 EventManager.Invoke(new ClientDisconnect());
-                NetworkServerListener.Dispose();
+                NetworkListener.Dispose();
             }
 
             private static void Pong()

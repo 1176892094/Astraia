@@ -108,7 +108,7 @@ namespace Astraia.Net
             other.position = 0;
             mode = EntityMode.None;
             state = EntityState.None;
-            NetworkServerListener.Release(this);
+            NetworkListener.Release(this);
         }
 
 #if UNITY_EDITOR

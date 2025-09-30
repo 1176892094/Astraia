@@ -100,12 +100,12 @@ namespace Astraia.Net
                 clients.Add(entity.client);
             }
 
-            var queries = NetworkServerListener.Query(entity);
+            var queries = NetworkListener.Query(entity);
             foreach (NetworkClient client in clients)
             {
                 if (client.isReady && (reload || !queries.Contains(client)))
                 {
-                    NetworkServerListener.Listen(entity, client);
+                    NetworkListener.Listen(entity, client);
                 }
             }
 
@@ -119,7 +119,7 @@ namespace Astraia.Net
             {
                 if (!clients.Contains(client))
                 {
-                    NetworkServerListener.Remove(entity, client);
+                    NetworkListener.Remove(entity, client);
                 }
             }
         }

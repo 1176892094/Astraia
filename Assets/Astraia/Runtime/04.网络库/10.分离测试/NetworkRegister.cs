@@ -22,14 +22,14 @@ namespace Astraia.Net
         private static readonly Dictionary<ushort, MessageDelegate> clientMessages = new Dictionary<ushort, MessageDelegate>();
         private static readonly Dictionary<ushort, MessageDelegate> serverMessages = new Dictionary<ushort, MessageDelegate>();
 
-        public static bool ServerMessage(ushort message, out MessageDelegate action)
+        public static bool ServerMessage(ushort message, out MessageDelegate onExecute)
         {
-            return serverMessages.TryGetValue(message, out action);
+            return serverMessages.TryGetValue(message, out onExecute);
         }
 
-        public static bool ClientMessage(ushort message, out MessageDelegate action)
+        public static bool ClientMessage(ushort message, out MessageDelegate onExecute)
         {
-            return clientMessages.TryGetValue(message, out action);
+            return clientMessages.TryGetValue(message, out onExecute);
         }
 
         public static void AddMessage<T>(Action<T> onReceive) where T : struct, IMessage

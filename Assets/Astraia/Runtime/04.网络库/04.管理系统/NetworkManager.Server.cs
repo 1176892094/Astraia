@@ -80,7 +80,7 @@ namespace Astraia.Net
                 spawns.Clear();
                 clients.Clear();
                 isLoadScene = false;
-                NetworkServerListener.Dispose();
+                NetworkListener.Dispose();
             }
 
             internal static void Connect(NetworkClient client)
@@ -108,7 +108,7 @@ namespace Astraia.Net
                 foreach (var client in clients.Values)
                 {
                     client.isReady = false;
-                    NetworkServerListener.Release(client);
+                    NetworkListener.Release(client);
                     client.Send(new NotReadyMessage());
                 }
 
@@ -166,7 +166,7 @@ namespace Astraia.Net
                     {
                         if (entity.visible == EntityType.Show)
                         {
-                            NetworkServerListener.Listen(entity, client);
+                            NetworkListener.Listen(entity, client);
                         }
                         else if (entity.visible == EntityType.Pool)
                         {
@@ -174,12 +174,12 @@ namespace Astraia.Net
                             {
                                 if (observer.OnExecute(entity, client))
                                 {
-                                    NetworkServerListener.Listen(entity, client);
+                                    NetworkListener.Listen(entity, client);
                                 }
                             }
                             else
                             {
-                                NetworkServerListener.Listen(entity, client);
+                                NetworkListener.Listen(entity, client);
                             }
                         }
                     }
@@ -376,7 +376,7 @@ namespace Astraia.Net
                     {
                         if (entity.client != null)
                         {
-                            NetworkServerListener.Listen(entity, entity.client);
+                            NetworkListener.Listen(entity, entity.client);
                         }
                     }
                     else
@@ -385,7 +385,7 @@ namespace Astraia.Net
                         {
                             if (client.isReady)
                             {
-                                NetworkServerListener.Listen(entity, client);
+                                NetworkListener.Listen(entity, client);
                             }
                         }
                     }
@@ -458,7 +458,7 @@ namespace Astraia.Net
 
             private static void Despawn<T>(NetworkEntity entity, T message) where T : struct, IMessage
             {
-                foreach (var client in NetworkServerListener.Query(entity))
+                foreach (var client in NetworkListener.Query(entity))
                 {
                     client.Send(message);
                 }
@@ -521,7 +521,7 @@ namespace Astraia.Net
                 {
                     if (client.isReady)
                     {
-                        var queries = NetworkServerListener.Query(client);
+                        var queries = NetworkListener.Query(client);
                         foreach (var entity in queries)
                         {
                             if (!entity)

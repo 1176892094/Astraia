@@ -16,8 +16,7 @@ using Astraia.Common;
 
 namespace Astraia.Net
 {
-
-    internal static class NetworkServerListener
+    internal static class NetworkListener
     {
         private static readonly Dictionary<int, HashSet<NetworkEntity>> entityData = new();
         private static readonly Dictionary<uint, HashSet<NetworkClient>> clientData = new();
