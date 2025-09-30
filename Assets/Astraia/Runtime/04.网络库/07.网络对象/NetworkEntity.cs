@@ -200,7 +200,7 @@ namespace Astraia.Net
 
         internal void InvokeMessage(byte moduleId, ushort function, InvokeMode mode, MemoryReader reader, NetworkClient client = null)
         {
-            if (transform == null)
+            if (!transform)
             {
                 Log.Warn("调用了已经删除的网络对象。{0} [{1}] {2}", mode, function, objectId);
                 return;

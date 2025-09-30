@@ -299,6 +299,7 @@ namespace Astraia.Net
                 {
                     if (Server.spawns.TryGetValue(message.objectId, out var entity))
                     {
+                        entity.gameObject.SetActive(true);
                         spawns[message.objectId] = entity;
                         entity.OnStartClient();
                         entity.OnNotifyAuthority();
@@ -479,6 +480,18 @@ namespace Astraia.Net
             {
                 if (isServer)
                 {
+                    if (message is DespawnMessage)
+                    {
+                        if (entity.sceneId != 0)
+                        {
+                            entity.gameObject.SetActive(false);
+                        }
+                        else
+                        {
+                            PoolManager.Hide(entity.gameObject);
+                        }
+                    }
+
                     entity.OnStopClient();
                     entity.mode &= ~EntityMode.Owner;
                     entity.OnNotifyAuthority();

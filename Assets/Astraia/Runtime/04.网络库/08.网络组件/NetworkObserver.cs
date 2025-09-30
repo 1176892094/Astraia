@@ -121,6 +121,17 @@ namespace Astraia.Net
                     NetworkRegister.Remove(entity, client);
                 }
             }
+
+            if (reload)
+            {
+                if (!clients.Contains(NetworkManager.Host))
+                {
+                    if (entity.sceneId == 0)
+                    {
+                        entity.gameObject.SetActive(false);
+                    }
+                }
+            }
         }
 
         public bool OnExecute(NetworkEntity entity, NetworkClient client)
