@@ -143,6 +143,11 @@ namespace Astraia.Net
                 return;
             }
 
+            if (isServer)
+            {
+                Server.OnServerDisconnect(Host);
+            }
+
             Client.Stop();
         }
 

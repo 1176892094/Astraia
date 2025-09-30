@@ -63,13 +63,13 @@ namespace Astraia.Net
 
             if (entityData.TryGetValue(client, out var entities))
             {
+                if (client.isReady)
+                {
+                    client.Send(new DespawnMessage(entity.objectId));
+                }
+
                 if (entities.Remove(entity) && entities.Count == 0)
                 {
-                    if (client.isReady)
-                    {
-                        client.Send(new DespawnMessage(entity.objectId));
-                    }
-
                     entityData.Remove(client);
                 }
             }

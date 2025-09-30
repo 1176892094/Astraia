@@ -24,7 +24,7 @@ namespace Astraia.Net
         public static partial class Server
         {
             internal static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
-            
+
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
             private static readonly List<int> copies = new List<int>();
@@ -264,7 +264,7 @@ namespace Astraia.Net
             {
                 if (clients.TryGetValue(clientId, out var client))
                 {
-                    var entities = spawns.Values.Where(entity => client == Host || entity.client == client).ToList();
+                    var entities = spawns.Values.Where(entity => entity.client == client).ToList();
                     foreach (var entity in entities)
                     {
                         Destroy(entity.gameObject);
@@ -352,7 +352,17 @@ namespace Astraia.Net
                     return;
                 }
 
-                SpawnEntity(client, entity);
+                if (entity.objectId == 0)
+                {
+                    entity.client = client;
+                    entity.objectId = ++objectId;
+                    spawns[entity.objectId] = entity;
+                    entity.mode = isServer ? entity.mode | EntityMode.Server : entity.mode & ~EntityMode.Server;
+                    entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
+                    entity.mode = client != null && client.clientId == Host ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                    entity.OnStartServer();
+                }
+
                 SpawnObserver(entity, true);
             }
 
@@ -386,20 +396,6 @@ namespace Astraia.Net
                 }
             }
 
-            internal static void SpawnEntity(NetworkClient client, NetworkEntity entity)
-            {
-                if (entity.objectId == 0)
-                {
-                    entity.client = client;
-                    entity.objectId = ++objectId;
-                    spawns[entity.objectId] = entity;
-                    entity.mode = isServer ? entity.mode | EntityMode.Server : entity.mode & ~EntityMode.Server;
-                    entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
-                    entity.mode = client != null && client.clientId == Host ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
-                    entity.OnStartServer();
-                }
-            }
-
             internal static void SpawnMessage(NetworkClient client, NetworkEntity entity)
             {
                 using var owner = MemoryWriter.Pop();
@@ -427,9 +423,6 @@ namespace Astraia.Net
                     segment = segment
                 };
                 client.Send(message);
-                Client.spawns[message.objectId] = entity;
-                entity.OnStartClient();
-                entity.OnNotifyAuthority();
             }
 
             public static void Despawn(GameObject obj)
@@ -456,10 +449,6 @@ namespace Astraia.Net
                 {
                     client.Send(message);
                 }
-
-                entity.OnStopClient();
-                entity.mode &= ~EntityMode.Owner;
-                entity.OnNotifyAuthority();
 
                 entity.OnStopServer();
                 switch (message)
