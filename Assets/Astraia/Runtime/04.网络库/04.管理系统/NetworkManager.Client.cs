@@ -38,13 +38,11 @@ namespace Astraia.Net
 
             private static bool isComplete;
 
-            public static bool isReady { get; internal set; }
+            public static bool isReady => connection.isReady;
 
             public static bool isLoadScene { get; internal set; }
 
             public static NetworkServer connection { get; private set; }
-
-            public static NetworkObserver observer { get; internal set; }
 
             public static bool isActive => state == State.Connected;
 
@@ -85,12 +83,7 @@ namespace Astraia.Net
                 }
 
                 state = State.Disconnect;
-                if (Transport.Instance)
-                {
-                    Transport.Instance.Disconnect();
-                }
-
-                isReady = false;
+                connection.Disconnect();
                 sendTime = 0;
                 waitTime = 0;
                 pingTime = 0;
@@ -125,7 +118,6 @@ namespace Astraia.Net
                     return;
                 }
 
-                isReady = true;
                 connection.isReady = true;
                 connection.Send(new ReadyMessage());
             }
@@ -212,7 +204,7 @@ namespace Astraia.Net
 
             private static void NotReadyMessage(NotReadyMessage message)
             {
-                isReady = false;
+                connection.isReady = false;
                 EventManager.Invoke(new ClientNotReady());
             }
 

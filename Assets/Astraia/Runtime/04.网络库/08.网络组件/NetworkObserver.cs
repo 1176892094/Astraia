@@ -30,7 +30,6 @@ namespace Astraia.Net
         private void Awake()
         {
             NetworkManager.Server.observer = this;
-            NetworkManager.Client.observer = this;
         }
 
         private void OnEnable()

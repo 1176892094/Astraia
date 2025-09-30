@@ -67,11 +67,7 @@ namespace Astraia.Net
                 }
 
                 state = State.Disconnect;
-                if (Transport.Instance)
-                {
-                    Transport.Instance.StopServer();
-                }
-
+                Transport.Instance.StopServer();
                 sendTime = 0;
                 objectId = 0;
                 copies.Clear();

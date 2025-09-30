@@ -76,7 +76,6 @@ namespace Astraia.Net
         public void Disconnect()
         {
             isReady = false;
-            NetworkManager.Client.isReady = false;
             Transport.Instance.Disconnect();
         }
     }
