@@ -305,7 +305,7 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-                    if (!NetworkMessage.servers.TryGetValue(message, out var action))
+                    if (!NetworkMessage.server.TryGetValue(message, out var action))
                     {
                         Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", clientId, message);
                         client.Disconnect();

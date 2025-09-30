@@ -24,7 +24,7 @@ namespace Astraia.Net
 
         public static void Add(Action<T> onReceive)
         {
-            NetworkMessage.clients[Id] = (client, reader, channel) =>
+            NetworkMessage.client[Id] = (client, reader, channel) =>
             {
                 try
                 {
@@ -43,7 +43,7 @@ namespace Astraia.Net
 
         public static void Add(Action<NetworkClient, T> onReceive)
         {
-            NetworkMessage.servers[Id] = (client, reader, channel) =>
+            NetworkMessage.server[Id] = (client, reader, channel) =>
             {
                 try
                 {
@@ -62,7 +62,7 @@ namespace Astraia.Net
 
         public static void Add(Action<NetworkClient, T, int> onReceive)
         {
-            NetworkMessage.servers[Id] = (client, reader, channel) =>
+            NetworkMessage.server[Id] = (client, reader, channel) =>
             {
                 try
                 {
@@ -82,8 +82,8 @@ namespace Astraia.Net
 
     internal static class NetworkMessage
     {
-        public static readonly Dictionary<ushort, MessageDelegate> clients = new Dictionary<ushort, MessageDelegate>();
-        public static readonly Dictionary<ushort, MessageDelegate> servers = new Dictionary<ushort, MessageDelegate>();
+        public static readonly Dictionary<ushort, MessageDelegate> client = new Dictionary<ushort, MessageDelegate>();
+        public static readonly Dictionary<ushort, MessageDelegate> server = new Dictionary<ushort, MessageDelegate>();
 
         public static uint Id(string name)
         {

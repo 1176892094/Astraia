@@ -383,7 +383,7 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-                    if (!NetworkMessage.clients.TryGetValue(message, out var action))
+                    if (!NetworkMessage.client.TryGetValue(message, out var action))
                     {
                         Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
                         connection.Disconnect();

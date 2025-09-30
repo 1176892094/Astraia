@@ -18,7 +18,9 @@ namespace Astraia.Net
 
     public static class NetworkAttribute
     {
-        private static readonly Dictionary<ushort, Function> messages = new Dictionary<ushort, Function>();
+        private record InvokeData(InvokeMode mode, InvokeDelegate func, Type component, int channel);
+        
+        private static readonly Dictionary<ushort, InvokeData> messages = new Dictionary<ushort, InvokeData>();
 
         public static void RegisterServerRpc(Type component, int channel, string name, InvokeDelegate func)
         {
@@ -35,17 +37,11 @@ namespace Astraia.Net
             var id = (ushort)(NetworkMessage.Id(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
             {
-                message = new Function
-                {
-                    channel = channel,
-                    component = component,
-                    mode = mode,
-                    func = func,
-                };
+                message = new InvokeData(mode, func, component, channel);
                 messages[id] = message;
             }
 
-            if (!message.Compare(component, mode, func))
+            if (message.mode != mode || message.component != component || message.func != func)
             {
                 Log.Error("远程调用 [{0} {1}] 与 [{2} {3}] 冲突。", component, func.Method.Name, message.component, message.func.Method.Name);
             }
@@ -81,18 +77,5 @@ namespace Astraia.Net
         }
 
         internal static InvokeDelegate GetInvoke(ushort methodHash) => messages.TryGetValue(methodHash, out var data) ? data.func : null;
-
-        private class Function
-        {
-            public int channel;
-            public Type component;
-            public InvokeDelegate func;
-            public InvokeMode mode;
-
-            public bool Compare(Type component, InvokeMode mode, InvokeDelegate func)
-            {
-                return this.component == component && this.mode == mode && this.func == func;
-            }
-        }
     }
 }
