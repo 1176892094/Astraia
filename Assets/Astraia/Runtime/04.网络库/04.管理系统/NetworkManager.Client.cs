@@ -24,8 +24,6 @@ namespace Astraia.Net
         [Serializable]
         public static partial class Client
         {
-            private static readonly Dictionary<ushort, MessageDelegate> messages = new Dictionary<ushort, MessageDelegate>();
-
             private static readonly Dictionary<ulong, NetworkEntity> scenes = new Dictionary<ulong, NetworkEntity>();
 
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
@@ -101,10 +99,9 @@ namespace Astraia.Net
                 spawns.Clear();
                 copies.Clear();
                 scenes.Clear();
-                messages.Clear();
                 isLoadScene = false;
                 EventManager.Invoke(new ClientDisconnect());
-                NetworkListener.Dispose();
+                NetworkServerListener.Dispose();
             }
 
             private static void Pong()
@@ -183,35 +180,16 @@ namespace Astraia.Net
                     Transport.Instance.OnClientReceive += OnClientReceive;
                 }
 
-                AddMessage<PingMessage>(PingMessage);
-                AddMessage<NotReadyMessage>(NotReadyMessage);
-                AddMessage<EntityMessage>(EntityMessage);
-                AddMessage<ClientRpcMessage>(ClientRpcMessage);
-                AddMessage<SceneMessage>(SceneMessage);
-                AddMessage<SpawnBeginMessage>(SpawnBeginMessage);
-                AddMessage<SpawnMessage>(SpawnMessage);
-                AddMessage<SpawnEndMessage>(SpawnEndMessage);
-                AddMessage<DespawnMessage>(DespawnMessage);
-                AddMessage<DestroyMessage>(DestroyMessage);
-            }
-
-            public static void AddMessage<T>(Action<T> onReceive) where T : struct, IMessage
-            {
-                messages[NetworkMessage<T>.Id] = (client, reader, channel) =>
-                {
-                    try
-                    {
-                        var position = reader.position;
-                        var message = reader.Invoke<T>();
-                        NetworkDebugger.OnReceive(message, reader.position - position);
-                        onReceive.Invoke(message);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
-                        client.Disconnect();
-                    }
-                };
+                NetworkRegister.AddMessage<PingMessage>(PingMessage);
+                NetworkRegister.AddMessage<NotReadyMessage>(NotReadyMessage);
+                NetworkRegister.AddMessage<EntityMessage>(EntityMessage);
+                NetworkRegister.AddMessage<ClientRpcMessage>(ClientRpcMessage);
+                NetworkRegister.AddMessage<SceneMessage>(SceneMessage);
+                NetworkRegister.AddMessage<SpawnBeginMessage>(SpawnBeginMessage);
+                NetworkRegister.AddMessage<SpawnMessage>(SpawnMessage);
+                NetworkRegister.AddMessage<SpawnEndMessage>(SpawnEndMessage);
+                NetworkRegister.AddMessage<DespawnMessage>(DespawnMessage);
+                NetworkRegister.AddMessage<DestroyMessage>(DestroyMessage);
             }
 
             private static void PingMessage(PingMessage message)
@@ -409,7 +387,7 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-                    if (!messages.TryGetValue(message, out var action))
+                    if (!NetworkRegister.ClientMessage(message, out var action))
                     {
                         Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
                         connection.Disconnect();

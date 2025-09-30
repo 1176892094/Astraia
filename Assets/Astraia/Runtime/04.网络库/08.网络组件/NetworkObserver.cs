@@ -19,8 +19,9 @@ namespace Astraia.Net
     public class NetworkObserver : MonoBehaviour, IEvent<ServerDisconnect>, IEvent<ServerObserver>
     {
         private readonly Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
-        private readonly HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
-        private Grid<NetworkClient> grids = new Grid<NetworkClient>(1024);
+        private readonly HashSet<int> clients = new HashSet<int>();
+        private readonly List<int> copies = new List<int>();
+        private Grid<int> grids = new Grid<int>(1024);
         private double waitTime;
 
         [SerializeField] private Vector2Int distance = new Vector2Int(30, 20);
@@ -63,42 +64,35 @@ namespace Astraia.Net
                 {
                     if (players.TryGetValue(client, out var player) && player)
                     {
-                        var position = EntityToGrid(player.transform.position);
-                        grids.Add(position, client);
+                        grids.Add(EntityToGrid(player.transform.position), client);
                     }
                 }
 
                 if (waitTime + interval <= Time.unscaledTimeAsDouble)
                 {
-                    waitTime = Time.unscaledTimeAsDouble;
                     foreach (var entity in NetworkManager.Server.spawns.Values)
                     {
                         NetworkManager.Server.SpawnObserver(entity, false);
                     }
+
+                    waitTime = Time.unscaledTimeAsDouble;
                 }
             }
         }
 
         private Vector2Int EntityToGrid(Vector3 position)
         {
-            var resolution = distance / 2;
-            var x = Mathf.Max(1, resolution.x);
-            var y = Mathf.Max(1, resolution.y);
+            var x = Mathf.Max(1, distance.x / 2);
+            var y = Mathf.Max(1, distance.y / 2);
             return new Vector2Int(Mathf.FloorToInt(position.x / x), Mathf.FloorToInt(position.y / y));
         }
 
-        private void OnRebuild(NetworkEntity entity, HashSet<NetworkClient> clients)
-        {
-            var position = EntityToGrid(entity.transform.position);
-            grids.Set(position, clients);
-        }
-
-        public void Rebuild(NetworkEntity entity, bool isReady)
+        public void Rebuild(NetworkEntity entity, bool reload)
         {
             clients.Clear();
-            if (entity.data != EntityData.Hide)
+            if (entity.visible != EntityType.Hide)
             {
-                OnRebuild(entity, clients);
+                grids.Set(EntityToGrid(entity.transform.position), clients);
             }
 
             if (entity.client != null)
@@ -106,64 +100,26 @@ namespace Astraia.Net
                 clients.Add(entity.client);
             }
 
-            var changed = false;
-            foreach (var client in clients)
+            var queries = NetworkServerListener.Query(entity);
+            foreach (NetworkClient client in clients)
             {
-                if (client.isReady)
+                if (client.isReady && (reload || !queries.Contains(client)))
                 {
-                    if (isReady || !entity.clients.Contains(client))
-                    {
-                        client.entities.Add(entity);
-                        NetworkManager.Server.SpawnMessage(client, entity);
-                        changed = true;
-                    }
+                    NetworkServerListener.Listen(entity, client);
                 }
             }
 
-            foreach (var client in entity.clients)
+            copies.Clear();
+            foreach (var client in queries)
+            {
+                copies.Add(client);
+            }
+
+            foreach (NetworkClient client in copies)
             {
                 if (!clients.Contains(client))
                 {
-                    client.entities.Remove(entity);
-                    var message = new DespawnMessage(entity.objectId);
-                    client.Send(message);
-                    changed = true;
-                }
-            }
-
-            if (changed)
-            {
-                entity.clients.Clear();
-                foreach (var client in clients)
-                {
-                    if (client.isReady)
-                    {
-                        entity.clients.Add(client);
-                    }
-                }
-            }
-
-            if (isReady)
-            {
-                if (clients.Contains(NetworkManager.Host))
-                {
-                    SetHost(entity, false);
-                }
-            }
-        }
-
-        public void SetHost(NetworkEntity entity, bool enabled)
-        {
-            if (entity.data == EntityData.Pool)
-            {
-                if (enabled)
-                {
-                    entity.gameObject.SetActive(true);
-                }
-                else
-                {
-                    PoolManager.Hide(entity.gameObject);
-                    entity.Reset();
+                    NetworkServerListener.Remove(entity, client);
                 }
             }
         }
@@ -173,9 +129,8 @@ namespace Astraia.Net
             var entityGrid = EntityToGrid(entity.transform.position);
             if (players.TryGetValue(client, out var player) && player)
             {
-                var playerGrid = EntityToGrid(player.transform.position);
-                var delta = entityGrid - playerGrid;
-                return Mathf.Abs(delta.x) <= 1 && Mathf.Abs(delta.y) <= 1;
+                var playerGrid = entityGrid - EntityToGrid(player.transform.position);
+                return Mathf.Abs(playerGrid.x) <= 1 && Mathf.Abs(playerGrid.y) <= 1;
             }
 
             return false;
@@ -184,9 +139,8 @@ namespace Astraia.Net
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
-            var resolution = distance / 2;
-            var x = Mathf.Max(1, resolution.x);
-            var y = Mathf.Max(1, resolution.y);
+            var x = Mathf.Max(1, distance.x / 2);
+            var y = Mathf.Max(1, distance.y / 2);
 
             foreach (var player in players.Values)
             {
@@ -218,7 +172,7 @@ namespace Astraia.Net
         [Serializable]
         private struct Grid<T>
         {
-            private Dictionary<Vector2Int, HashSet<T>> grids;
+            private Dictionary<Vector2Int, ICollection<T>> grids;
             private Vector2Int[] direction;
 
             public Grid(int capacity)
@@ -229,7 +183,7 @@ namespace Astraia.Net
                     new Vector2Int(0, -1), new Vector2Int(0, 0), new Vector2Int(0, 1),
                     new Vector2Int(1, -1), new Vector2Int(1, 0), new Vector2Int(1, 1),
                 };
-                grids = new Dictionary<Vector2Int, HashSet<T>>(capacity);
+                grids = new Dictionary<Vector2Int, ICollection<T>>(capacity);
             }
 
             public void Add(Vector2Int position, T value)
@@ -243,7 +197,7 @@ namespace Astraia.Net
                 items.Add(value);
             }
 
-            public void Set(Vector2Int position, HashSet<T> result)
+            public void Set(Vector2Int position, ICollection<T> result)
             {
                 result.Clear();
                 foreach (var offset in direction)
