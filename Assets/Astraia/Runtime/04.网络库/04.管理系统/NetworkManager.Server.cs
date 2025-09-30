@@ -18,8 +18,6 @@ using Object = UnityEngine.Object;
 
 namespace Astraia.Net
 {
-    using MessageDelegate = Action<NetworkClient, MemoryReader, int>;
-
     public partial class NetworkManager
     {
         [Serializable]
@@ -145,10 +143,10 @@ namespace Astraia.Net
                 Transport.Instance.OnServerConnect += OnServerConnect;
                 Transport.Instance.OnServerDisconnect += OnServerDisconnect;
                 Transport.Instance.OnServerReceive += OnServerReceive;
-                NetworkRegister.AddMessage<PongMessage>(PongMessage);
-                NetworkRegister.AddMessage<ReadyMessage>(ReadyMessage);
-                NetworkRegister.AddMessage<EntityMessage>(EntityMessage);
-                NetworkRegister.AddMessage<ServerRpcMessage>(ServerRpcMessage);
+                NetworkMessage<PongMessage>.AddMessage(PongMessage);
+                NetworkMessage<ReadyMessage>.AddMessage(ReadyMessage);
+                NetworkMessage<EntityMessage>.AddMessage(EntityMessage);
+                NetworkMessage<ServerRpcMessage>.AddMessage(ServerRpcMessage);
             }
 
             private static void PongMessage(NetworkClient client, PongMessage message)
@@ -307,7 +305,7 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-                    if (!NetworkRegister.ServerMessage(message, out var action))
+                    if (!NetworkMessage.ServerMessage(message, out var action))
                     {
                         Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", clientId, message);
                         client.Disconnect();

@@ -17,8 +17,6 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    using MessageDelegate = Action<NetworkClient, MemoryReader, int>;
-
     public partial class NetworkManager
     {
         [Serializable]
@@ -180,16 +178,16 @@ namespace Astraia.Net
                     Transport.Instance.OnClientReceive += OnClientReceive;
                 }
 
-                NetworkRegister.AddMessage<PingMessage>(PingMessage);
-                NetworkRegister.AddMessage<NotReadyMessage>(NotReadyMessage);
-                NetworkRegister.AddMessage<EntityMessage>(EntityMessage);
-                NetworkRegister.AddMessage<ClientRpcMessage>(ClientRpcMessage);
-                NetworkRegister.AddMessage<SceneMessage>(SceneMessage);
-                NetworkRegister.AddMessage<SpawnBeginMessage>(SpawnBeginMessage);
-                NetworkRegister.AddMessage<SpawnMessage>(SpawnMessage);
-                NetworkRegister.AddMessage<SpawnEndMessage>(SpawnEndMessage);
-                NetworkRegister.AddMessage<DespawnMessage>(DespawnMessage);
-                NetworkRegister.AddMessage<DestroyMessage>(DestroyMessage);
+                NetworkMessage<PingMessage>.AddMessage(PingMessage);
+                NetworkMessage<NotReadyMessage>.AddMessage(NotReadyMessage);
+                NetworkMessage<EntityMessage>.AddMessage(EntityMessage);
+                NetworkMessage<ClientRpcMessage>.AddMessage(ClientRpcMessage);
+                NetworkMessage<SceneMessage>.AddMessage(SceneMessage);
+                NetworkMessage<SpawnBeginMessage>.AddMessage(SpawnBeginMessage);
+                NetworkMessage<SpawnMessage>.AddMessage(SpawnMessage);
+                NetworkMessage<SpawnEndMessage>.AddMessage(SpawnEndMessage);
+                NetworkMessage<DespawnMessage>.AddMessage(DespawnMessage);
+                NetworkMessage<DestroyMessage>.AddMessage(DestroyMessage);
             }
 
             private static void PingMessage(PingMessage message)
@@ -314,29 +312,27 @@ namespace Astraia.Net
                 {
                     return;
                 }
-                else
+
+                if (!SpawnObject(message, out var entity))
                 {
-                    if (!SpawnObject(message, out var entity))
-                    {
-                        return;
-                    }
-
-                    if (isComplete)
-                    {
-                        Spawn(message, entity);
-                        return;
-                    }
-
-                    spawns[message.objectId] = entity;
-                    var segment = new byte[message.segment.Count];
-                    if (message.segment.Count > 0)
-                    {
-                        Buffer.BlockCopy(message.segment.Array!, message.segment.Offset, segment, 0, message.segment.Count);
-                    }
-
-                    message.segment = new ArraySegment<byte>(segment);
-                    copies[entity] = message;
+                    return;
                 }
+
+                if (isComplete)
+                {
+                    Spawn(message, entity);
+                    return;
+                }
+
+                spawns[message.objectId] = entity;
+                var segment = new byte[message.segment.Count];
+                if (message.segment.Count > 0)
+                {
+                    Buffer.BlockCopy(message.segment.Array!, message.segment.Offset, segment, 0, message.segment.Count);
+                }
+
+                message.segment = new ArraySegment<byte>(segment);
+                copies[entity] = message;
             }
         }
 
@@ -387,7 +383,7 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-                    if (!NetworkRegister.ClientMessage(message, out var action))
+                    if (!NetworkMessage.ClientMessage(message, out var action))
                     {
                         Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
                         connection.Disconnect();

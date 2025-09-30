@@ -10,15 +10,29 @@
 // *********************************************************************************
 
 
+using System;
+using System.Collections.Generic;
+using Astraia.Common;
+
 namespace Astraia.Net
 {
-    public static class NetworkMessage<T>
-    {
-        public static readonly ushort Id = (ushort)NetworkMessage.Id(typeof(T).FullName);
-    }
+    using MessageDelegate = Action<NetworkClient, MemoryReader, int>;
 
     public static class NetworkMessage
     {
+        internal static readonly Dictionary<ushort, MessageDelegate> clientMessages = new Dictionary<ushort, MessageDelegate>();
+        internal static readonly Dictionary<ushort, MessageDelegate> serverMessages = new Dictionary<ushort, MessageDelegate>();
+
+        public static bool ServerMessage(ushort message, out MessageDelegate onExecute)
+        {
+            return serverMessages.TryGetValue(message, out onExecute);
+        }
+
+        public static bool ClientMessage(ushort message, out MessageDelegate onExecute)
+        {
+            return clientMessages.TryGetValue(message, out onExecute);
+        }
+
         public static uint Id(string name)
         {
             var result = 23U;
@@ -31,6 +45,68 @@ namespace Astraia.Net
 
                 return result;
             }
+        }
+    }
+
+    public static class NetworkMessage<T> where T : struct, IMessage
+    {
+        public static readonly ushort Id = (ushort)NetworkMessage.Id(typeof(T).FullName);
+
+        public static void AddMessage(Action<T> onReceive)
+        {
+            NetworkMessage.clientMessages[Id] = (client, reader, channel) =>
+            {
+                try
+                {
+                    var position = reader.position;
+                    var message = reader.Invoke<T>();
+                    NetworkDebugger.OnReceive(message, reader.position - position);
+                    onReceive.Invoke(message);
+                }
+                catch (Exception e)
+                {
+                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
+                    client.Disconnect();
+                }
+            };
+        }
+
+        public static void AddMessage(Action<NetworkClient, T> onReceive)
+        {
+            NetworkMessage.serverMessages[Id] = (client, reader, channel) =>
+            {
+                try
+                {
+                    var position = reader.position;
+                    var message = reader.Invoke<T>();
+                    NetworkDebugger.OnReceive(message, reader.position - position);
+                    onReceive.Invoke(client, message);
+                }
+                catch (Exception e)
+                {
+                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
+                    client.Disconnect();
+                }
+            };
+        }
+
+        public static void AddMessage(Action<NetworkClient, T, int> onReceive)
+        {
+            NetworkMessage.serverMessages[Id] = (client, reader, channel) =>
+            {
+                try
+                {
+                    var position = reader.position;
+                    var message = reader.Invoke<T>();
+                    NetworkDebugger.OnReceive(message, reader.position - position);
+                    onReceive.Invoke(client, message, channel);
+                }
+                catch (Exception e)
+                {
+                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
+                    client.Disconnect();
+                }
+            };
         }
     }
 }
