@@ -18,32 +18,11 @@ namespace Astraia.Net
 {
     using MessageDelegate = Action<NetworkClient, MemoryReader, int>;
 
-    public static class NetworkMessage
-    {
-        internal static readonly Dictionary<ushort, MessageDelegate> clients = new Dictionary<ushort, MessageDelegate>();
-        internal static readonly Dictionary<ushort, MessageDelegate> servers = new Dictionary<ushort, MessageDelegate>();
-
-        public static uint Id(string name)
-        {
-            var result = 23U;
-            unchecked
-            {
-                foreach (var c in name)
-                {
-                    result = result * 31 + c;
-                }
-
-                return result;
-            }
-        }
-    }
-
-    
     public static class NetworkMessage<T> where T : struct, IMessage
     {
         public static readonly ushort Id = (ushort)NetworkMessage.Id(typeof(T).FullName);
 
-        public static void Listen(Action<T> onReceive)
+        public static void Add(Action<T> onReceive)
         {
             NetworkMessage.clients[Id] = (client, reader, channel) =>
             {
@@ -62,7 +41,7 @@ namespace Astraia.Net
             };
         }
 
-        public static void Listen(Action<NetworkClient, T> onReceive)
+        public static void Add(Action<NetworkClient, T> onReceive)
         {
             NetworkMessage.servers[Id] = (client, reader, channel) =>
             {
@@ -81,7 +60,7 @@ namespace Astraia.Net
             };
         }
 
-        public static void Listen(Action<NetworkClient, T, int> onReceive)
+        public static void Add(Action<NetworkClient, T, int> onReceive)
         {
             NetworkMessage.servers[Id] = (client, reader, channel) =>
             {
@@ -98,6 +77,26 @@ namespace Astraia.Net
                     client.Disconnect();
                 }
             };
+        }
+    }
+
+    internal static class NetworkMessage
+    {
+        public static readonly Dictionary<ushort, MessageDelegate> clients = new Dictionary<ushort, MessageDelegate>();
+        public static readonly Dictionary<ushort, MessageDelegate> servers = new Dictionary<ushort, MessageDelegate>();
+
+        public static uint Id(string name)
+        {
+            var result = 23U;
+            unchecked
+            {
+                foreach (var c in name)
+                {
+                    result = result * 31 + c;
+                }
+
+                return result;
+            }
         }
     }
 }

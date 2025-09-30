@@ -23,9 +23,9 @@ namespace Astraia.Net
         [Serializable]
         public static partial class Server
         {
-            internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
-
             internal static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
+            
+            internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
             private static readonly List<NetworkClient> copies = new List<NetworkClient>();
 
@@ -78,7 +78,7 @@ namespace Astraia.Net
                 spawns.Clear();
                 clients.Clear();
                 isLoadScene = false;
-                NetworkListener.Dispose();
+                NetworkRegister.Dispose();
             }
 
             internal static void Connect(NetworkClient client)
@@ -106,7 +106,7 @@ namespace Astraia.Net
                 foreach (var client in clients.Values)
                 {
                     client.isReady = false;
-                    NetworkListener.Release(client);
+                    NetworkRegister.Release(client);
                     client.Send(new NotReadyMessage());
                 }
 
@@ -143,10 +143,10 @@ namespace Astraia.Net
                 Transport.Instance.OnServerConnect += OnServerConnect;
                 Transport.Instance.OnServerDisconnect += OnServerDisconnect;
                 Transport.Instance.OnServerReceive += OnServerReceive;
-                NetworkMessage<PongMessage>.Listen(PongMessage);
-                NetworkMessage<ReadyMessage>.Listen(ReadyMessage);
-                NetworkMessage<EntityMessage>.Listen(EntityMessage);
-                NetworkMessage<ServerRpcMessage>.Listen(ServerRpcMessage);
+                NetworkMessage<PongMessage>.Add(PongMessage);
+                NetworkMessage<ReadyMessage>.Add(ReadyMessage);
+                NetworkMessage<EntityMessage>.Add(EntityMessage);
+                NetworkMessage<ServerRpcMessage>.Add(ServerRpcMessage);
             }
 
             private static void PongMessage(NetworkClient client, PongMessage message)
@@ -164,7 +164,7 @@ namespace Astraia.Net
                     {
                         if (entity.visible == EntityType.Show)
                         {
-                            NetworkListener.Listen(entity, client);
+                            NetworkRegister.Listen(entity, client);
                         }
                         else if (entity.visible == EntityType.Pool)
                         {
@@ -172,12 +172,12 @@ namespace Astraia.Net
                             {
                                 if (observer.OnExecute(entity, client))
                                 {
-                                    NetworkListener.Listen(entity, client);
+                                    NetworkRegister.Listen(entity, client);
                                 }
                             }
                             else
                             {
-                                NetworkListener.Listen(entity, client);
+                                NetworkRegister.Listen(entity, client);
                             }
                         }
                     }
@@ -374,7 +374,7 @@ namespace Astraia.Net
                     {
                         if (entity.client != null)
                         {
-                            NetworkListener.Listen(entity, entity.client);
+                            NetworkRegister.Listen(entity, entity.client);
                         }
                     }
                     else
@@ -383,7 +383,7 @@ namespace Astraia.Net
                         {
                             if (client.isReady)
                             {
-                                NetworkListener.Listen(entity, client);
+                                NetworkRegister.Listen(entity, client);
                             }
                         }
                     }
@@ -456,7 +456,7 @@ namespace Astraia.Net
 
             private static void Despawn<T>(NetworkEntity entity, T message) where T : struct, IMessage
             {
-                foreach (var client in NetworkListener.Query(entity))
+                foreach (var client in NetworkRegister.Query(entity))
                 {
                     client.Send(message);
                 }
@@ -519,7 +519,7 @@ namespace Astraia.Net
                 {
                     if (client.isReady)
                     {
-                        var queries = NetworkListener.Query(client);
+                        var queries = NetworkRegister.Query(client);
                         foreach (var entity in queries)
                         {
                             if (!entity)

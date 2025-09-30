@@ -18,7 +18,7 @@ namespace Astraia.Net
 
     public static class NetworkAttribute
     {
-        private static readonly Dictionary<ushort, InvokeData> messages = new Dictionary<ushort, InvokeData>();
+        private static readonly Dictionary<ushort, Function> messages = new Dictionary<ushort, Function>();
 
         public static void RegisterServerRpc(Type component, int channel, string name, InvokeDelegate func)
         {
@@ -35,7 +35,7 @@ namespace Astraia.Net
             var id = (ushort)(NetworkMessage.Id(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
             {
-                message = new InvokeData
+                message = new Function
                 {
                     channel = channel,
                     component = component,
@@ -82,7 +82,7 @@ namespace Astraia.Net
 
         internal static InvokeDelegate GetInvoke(ushort methodHash) => messages.TryGetValue(methodHash, out var data) ? data.func : null;
 
-        private class InvokeData
+        private class Function
         {
             public int channel;
             public Type component;

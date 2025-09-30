@@ -99,7 +99,7 @@ namespace Astraia.Net
                 scenes.Clear();
                 isLoadScene = false;
                 EventManager.Invoke(new ClientDisconnect());
-                NetworkListener.Dispose();
+                NetworkRegister.Dispose();
             }
 
             private static void Pong()
@@ -178,16 +178,16 @@ namespace Astraia.Net
                     Transport.Instance.OnClientReceive += OnClientReceive;
                 }
 
-                NetworkMessage<PingMessage>.Listen(PingMessage);
-                NetworkMessage<NotReadyMessage>.Listen(NotReadyMessage);
-                NetworkMessage<EntityMessage>.Listen(EntityMessage);
-                NetworkMessage<ClientRpcMessage>.Listen(ClientRpcMessage);
-                NetworkMessage<SceneMessage>.Listen(SceneMessage);
-                NetworkMessage<SpawnBeginMessage>.Listen(SpawnBeginMessage);
-                NetworkMessage<SpawnMessage>.Listen(SpawnMessage);
-                NetworkMessage<SpawnEndMessage>.Listen(SpawnEndMessage);
-                NetworkMessage<DespawnMessage>.Listen(DespawnMessage);
-                NetworkMessage<DestroyMessage>.Listen(DestroyMessage);
+                NetworkMessage<PingMessage>.Add(PingMessage);
+                NetworkMessage<NotReadyMessage>.Add(NotReadyMessage);
+                NetworkMessage<EntityMessage>.Add(EntityMessage);
+                NetworkMessage<ClientRpcMessage>.Add(ClientRpcMessage);
+                NetworkMessage<SceneMessage>.Add(SceneMessage);
+                NetworkMessage<SpawnBeginMessage>.Add(SpawnBeginMessage);
+                NetworkMessage<SpawnMessage>.Add(SpawnMessage);
+                NetworkMessage<SpawnEndMessage>.Add(SpawnEndMessage);
+                NetworkMessage<DespawnMessage>.Add(DespawnMessage);
+                NetworkMessage<DestroyMessage>.Add(DestroyMessage);
             }
 
             private static void PingMessage(PingMessage message)
