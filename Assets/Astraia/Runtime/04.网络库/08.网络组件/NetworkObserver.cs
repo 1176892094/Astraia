@@ -90,7 +90,7 @@ namespace Astraia.Net
         public void Rebuild(NetworkEntity entity, bool reload)
         {
             clients.Clear();
-            if (entity.visible != EntityType.Hide)
+            if (entity.visible != Visible.Hide)
             {
                 grids.Set(EntityToGrid(entity.transform.position), clients);
             }

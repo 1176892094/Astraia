@@ -162,11 +162,11 @@ namespace Astraia.Net
                 {
                     if (entity.isActiveAndEnabled)
                     {
-                        if (entity.visible == EntityType.Show)
+                        if (entity.visible == Visible.Show)
                         {
                             NetworkRegister.Listen(entity, client);
                         }
-                        else if (entity.visible == EntityType.Pool)
+                        else if (entity.visible == Visible.Pool)
                         {
                             if (observer)
                             {
@@ -362,7 +362,7 @@ namespace Astraia.Net
 
             internal static void SpawnObserver(NetworkEntity entity, bool reload)
             {
-                if (observer && entity.visible != EntityType.Show)
+                if (observer && entity.visible != Visible.Show)
                 {
                     observer.Rebuild(entity, reload);
                     return;
@@ -370,7 +370,7 @@ namespace Astraia.Net
 
                 if (reload)
                 {
-                    if (entity.visible == EntityType.Hide)
+                    if (entity.visible == Visible.Hide)
                     {
                         if (entity.client != null)
                         {
@@ -417,7 +417,7 @@ namespace Astraia.Net
 
                 byte opcode = 0;
                 opcode = (byte)(entity.client == client ? opcode | 1 : opcode & ~1);
-                opcode = (byte)(entity.visible == EntityType.Pool ? opcode | 2 : opcode & ~2);
+                opcode = (byte)(entity.visible == Visible.Pool ? opcode | 2 : opcode & ~2);
 
                 var message = new SpawnMessage
                 {
