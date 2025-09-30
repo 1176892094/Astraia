@@ -27,7 +27,7 @@ namespace Astraia.Net
             
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
-            private static readonly List<NetworkClient> copies = new List<NetworkClient>();
+            private static readonly List<int> copies = new List<int>();
 
             internal static State state = State.Disconnect;
 
@@ -59,8 +59,8 @@ namespace Astraia.Net
             {
                 if (!isServer) return;
                 copies.Clear();
-                copies.AddRange(clients.Values);
-                foreach (var client in copies)
+                copies.AddRange(clients.Keys);
+                foreach (NetworkClient client in copies)
                 {
                     client.Disconnect();
                     OnServerDisconnect(client.clientId);
@@ -510,8 +510,8 @@ namespace Astraia.Net
             private static void Broadcast()
             {
                 copies.Clear();
-                copies.AddRange(clients.Values);
-                foreach (var client in copies)
+                copies.AddRange(clients.Keys);
+                foreach (NetworkClient client in copies)
                 {
                     if (client.isReady)
                     {

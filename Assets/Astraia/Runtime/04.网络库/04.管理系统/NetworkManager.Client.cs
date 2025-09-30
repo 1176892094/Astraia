@@ -32,13 +32,11 @@ namespace Astraia.Net
 
             private static double pingTime;
 
-            private static double waitTime;
+            private static double pongTime;
 
             private static double sendTime;
-
-            private static bool isComplete;
-
-            public static bool isReady => connection.isReady;
+            
+            public static bool isReady => connection != null && connection.isReady;
 
             public static bool isLoadScene { get; internal set; }
 
@@ -85,7 +83,7 @@ namespace Astraia.Net
                 state = State.Disconnect;
                 connection.Disconnect();
                 sendTime = 0;
-                waitTime = 0;
+                pongTime = 0;
                 pingTime = 0;
                 spawns.Clear();
                 copies.Clear();
@@ -97,10 +95,10 @@ namespace Astraia.Net
 
             private static void Pong()
             {
-                if (waitTime + 2 <= Time.unscaledTimeAsDouble)
+                if (pongTime + 2 <= Time.unscaledTimeAsDouble)
                 {
-                    waitTime = Time.unscaledTimeAsDouble;
-                    connection.Send(new PongMessage(waitTime), Channel.Unreliable);
+                    pongTime = Time.unscaledTimeAsDouble;
+                    connection.Send(new PongMessage(pongTime), Channel.Unreliable);
                 }
             }
 
@@ -276,7 +274,7 @@ namespace Astraia.Net
                 }
 
                 copies.Clear();
-                isComplete = false;
+                connection.isSpawn = false;
             }
 
             private static void SpawnEndMessage(SpawnEndMessage message)
@@ -286,7 +284,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                isComplete = true;
+                connection.isSpawn = true;
                 foreach (var entity in spawns.Values.Where(entity => entity).OrderBy(entity => entity.objectId))
                 {
                     if (copies.TryGetValue(entity, out var segment))
@@ -310,7 +308,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (isComplete)
+                if (connection.isSpawn)
                 {
                     Spawn(message, entity);
                     return;
@@ -448,7 +446,7 @@ namespace Astraia.Net
                     entity.ClientDeserialize(reader, true);
                 }
 
-                if (isComplete)
+                if (connection.isSpawn)
                 {
                     entity.OnStartClient();
                     entity.OnNotifyAuthority();

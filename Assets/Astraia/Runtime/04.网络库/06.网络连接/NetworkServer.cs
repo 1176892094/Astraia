@@ -21,8 +21,9 @@ namespace Astraia.Net
     {
         private Dictionary<int, WriterBatch> batches = new Dictionary<int, WriterBatch>();
         internal ReaderBatch reader = new ReaderBatch();
+        internal bool isSpawn;
         internal bool isReady;
-
+        
         internal void Update()
         {
             foreach (var batch in batches)
@@ -42,7 +43,7 @@ namespace Astraia.Net
             using var writer = MemoryWriter.Pop();
             writer.WriteUShort(NetworkMessage<T>.Id);
             writer.Invoke(message);
-         
+
             if (writer.position > Transport.Instance.GetLength(channel))
             {
                 Log.Error("发送消息大小过大！消息大小: {0}", writer.position);
