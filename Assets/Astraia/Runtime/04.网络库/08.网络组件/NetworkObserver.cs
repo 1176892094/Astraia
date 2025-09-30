@@ -21,14 +21,17 @@ namespace Astraia.Net
         private readonly Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
         private readonly HashSet<int> clients = new HashSet<int>();
         private readonly List<int> copies = new List<int>();
-        private Grid<int> grids = new Grid<int>(1024);
+        private Grid<int> grids;
         private double waitTime;
 
         [SerializeField] private Vector2Int distance = new Vector2Int(30, 20);
+        [SerializeField] private Vector2Int radius = new Vector2Int(3, 3);
         [SerializeField] private float interval = 1;
+
 
         private void Awake()
         {
+            grids = new Grid<int>(1024, radius);
             NetworkManager.Server.observer = this;
         }
 
@@ -162,11 +165,13 @@ namespace Astraia.Net
                     var center = origin + new Vector3(x / 2f, y / 2f, 0f);
 
                     Gizmos.color = Color.cyan;
-                    for (var dx = -1; dx <= 1; dx++)
+                    for (var dx = 0; dx < radius.x; dx++)
                     {
-                        for (var dy = -1; dy <= 1; dy++)
+                        for (var dy = 0; dy < radius.y; dy++)
                         {
-                            var nb = new Vector2Int(source.x + dx, source.y + dy);
+                            var posX = Mathf.RoundToInt(dx - (radius.x - 1) / 2f);
+                            var posY = Mathf.RoundToInt(dy - (radius.y - 1) / 2f);
+                            var nb = new Vector2Int(source.x + posX, source.y + posY);
                             var nbOrigin = new Vector3(nb.x * x, nb.y * y, target.z);
                             var nbCenter = nbOrigin + new Vector3(x / 2f, y / 2f, 0f);
                             Gizmos.DrawWireCube(nbCenter, new Vector3(x, y, 0));
@@ -182,17 +187,22 @@ namespace Astraia.Net
         [Serializable]
         private struct Grid<T>
         {
-            private Dictionary<Vector2Int, ICollection<T>> grids;
-            private Vector2Int[] direction;
+            private readonly Dictionary<Vector2Int, ICollection<T>> grids;
+            private readonly Vector2Int[] direction;
 
-            public Grid(int capacity)
+            public Grid(int capacity, Vector2Int size)
             {
-                direction = new[]
+                direction = new Vector2Int[size.x * size.y];
+                for (var x = 0; x < size.x; x++)
                 {
-                    new Vector2Int(-1, -1), new Vector2Int(-1, 0), new Vector2Int(-1, 1),
-                    new Vector2Int(0, -1), new Vector2Int(0, 0), new Vector2Int(0, 1),
-                    new Vector2Int(1, -1), new Vector2Int(1, 0), new Vector2Int(1, 1),
-                };
+                    for (var y = 0; y < size.y; y++)
+                    {
+                        var posX = Mathf.RoundToInt(x - (size.x - 1) / 2f);
+                        var posY = Mathf.RoundToInt(y - (size.y - 1) / 2f);
+                        direction[y * size.x + x] = new Vector2Int(posX, posY);
+                    }
+                }
+
                 grids = new Dictionary<Vector2Int, ICollection<T>>(capacity);
             }
 

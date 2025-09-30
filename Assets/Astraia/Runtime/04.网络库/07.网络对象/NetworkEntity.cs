@@ -83,6 +83,7 @@ namespace Astraia.Net
 
         protected override void OnDestroy()
         {
+            NetworkRegister.Release(this);
             if (isServer && (state & EntityState.Destroy) == 0)
             {
                 NetworkManager.Server.Destroy(gameObject);

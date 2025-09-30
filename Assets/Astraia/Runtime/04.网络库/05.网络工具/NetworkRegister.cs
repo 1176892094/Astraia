@@ -18,14 +18,14 @@ namespace Astraia.Net
 {
     internal static class NetworkRegister
     {
-        private static readonly Dictionary<int, HashSet<uint>> entityData = new();
-        private static readonly Dictionary<uint, HashSet<int>> clientData = new();
+        private static readonly Dictionary<int, HashSet<NetworkEntity>> entityData = new();
+        private static readonly Dictionary<uint, HashSet<NetworkClient>> clientData = new();
 
         public static void Listen(NetworkEntity entity, NetworkClient client)
         {
             if (!clientData.TryGetValue(entity, out var clients))
             {
-                clients = new HashSet<int>();
+                clients = new HashSet<NetworkClient>();
                 clientData.Add(entity, clients);
             }
 
@@ -38,7 +38,7 @@ namespace Astraia.Net
             {
                 if (!entityData.TryGetValue(client, out var entities))
                 {
-                    entities = new HashSet<uint>();
+                    entities = new HashSet<NetworkEntity>();
                     entityData.Add(client, entities);
                 }
 
@@ -97,24 +97,24 @@ namespace Astraia.Net
             }
         }
 
-        public static ICollection<uint> Query(NetworkClient client)
+        public static ICollection<NetworkEntity> Query(NetworkClient client)
         {
             if (entityData.TryGetValue(client, out var entities))
             {
                 return entities;
             }
 
-            return Array.Empty<uint>();
+            return Array.Empty<NetworkEntity>();
         }
 
-        public static ICollection<int> Query(NetworkEntity entity)
+        public static ICollection<NetworkClient> Query(NetworkEntity entity)
         {
             if (clientData.TryGetValue(entity, out var clients))
             {
                 return clients;
             }
 
-            return Array.Empty<int>();
+            return Array.Empty<NetworkClient>();
         }
 
         public static void Dispose()

@@ -87,16 +87,6 @@ namespace Astraia.Net
                 scenes.Clear();
                 isLoadScene = false;
                 EventManager.Invoke(new ClientDisconnect());
-                NetworkRegister.Dispose();
-            }
-
-            private static void Pong()
-            {
-                if (pongTime + 2 <= Time.unscaledTimeAsDouble)
-                {
-                    pongTime = Time.unscaledTimeAsDouble;
-                    connection.Send(new PongMessage(pongTime), Channel.Unreliable);
-                }
             }
 
             public static void Ready()
@@ -343,7 +333,6 @@ namespace Astraia.Net
 
                 state = State.Connected;
                 EventManager.Invoke(new ClientConnect());
-                Pong();
                 Ready();
             }
 
@@ -550,7 +539,12 @@ namespace Astraia.Net
                     {
                         if (isActive)
                         {
-                            Pong();
+                            if (pongTime + 2 <= Time.unscaledTimeAsDouble)
+                            {
+                                pongTime = Time.unscaledTimeAsDouble;
+                                connection.Send(new PongMessage(pongTime), Channel.Unreliable);
+                            }
+
                             connection.Update();
                         }
                     }

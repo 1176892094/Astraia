@@ -74,7 +74,6 @@ namespace Astraia.Net
                 spawns.Clear();
                 clients.Clear();
                 isLoadScene = false;
-                NetworkRegister.Dispose();
             }
 
             internal static void Connect(NetworkClient client)
@@ -270,6 +269,7 @@ namespace Astraia.Net
                         Destroy(entity.gameObject);
                     }
 
+                    NetworkRegister.Release(client);
                     clients.Remove(client.clientId);
                     EventManager.Invoke(new ServerDisconnect(client));
                 }
