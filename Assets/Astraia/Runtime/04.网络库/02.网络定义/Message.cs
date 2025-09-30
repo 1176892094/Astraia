@@ -86,12 +86,7 @@ namespace Astraia.Common
         public DespawnMessage(uint objectId) => this.objectId = objectId;
     }
 
-    internal struct DestroyMessage : IMessage
-    {
-        public readonly uint objectId;
-        public DestroyMessage(uint objectId) => this.objectId = objectId;
-    }
-
+  
     internal struct EntityMessage : IMessage
     {
         public readonly uint objectId;

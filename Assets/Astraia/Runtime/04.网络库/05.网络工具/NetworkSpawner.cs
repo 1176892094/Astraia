@@ -16,12 +16,12 @@ using Astraia.Common;
 
 namespace Astraia.Net
 {
-    internal static class NetworkRegister
+    internal static class NetworkSpawner
     {
         private static readonly Dictionary<int, HashSet<NetworkEntity>> entityData = new();
         private static readonly Dictionary<uint, HashSet<NetworkClient>> clientData = new();
 
-        public static void Listen(NetworkEntity entity, NetworkClient client)
+        public static void Spawn(NetworkEntity entity, NetworkClient client)
         {
             if (!clientData.TryGetValue(entity, out var clients))
             {
@@ -50,7 +50,7 @@ namespace Astraia.Net
             }
         }
 
-        public static void Remove(NetworkEntity entity, NetworkClient client)
+        public static void Despawn(NetworkEntity entity, NetworkClient client)
         {
             if (clientData.TryGetValue(entity, out var clients))
             {
@@ -81,7 +81,7 @@ namespace Astraia.Net
             {
                 foreach (NetworkEntity entity in entities.ToArray())
                 {
-                    Remove(entity, client);
+                    Despawn(entity, client);
                 }
             }
         }
@@ -92,7 +92,7 @@ namespace Astraia.Net
             {
                 foreach (var client in clients.ToArray())
                 {
-                    Remove(entity, client);
+                    Despawn(entity, client);
                 }
             }
         }

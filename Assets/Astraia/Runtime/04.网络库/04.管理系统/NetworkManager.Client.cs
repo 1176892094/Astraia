@@ -74,7 +74,7 @@ namespace Astraia.Net
                 var entities = spawns.Values.Where(entity => entity).ToList();
                 foreach (var entity in entities)
                 {
-                    Despawn(entity, new DestroyMessage(entity.objectId));
+                    DespawnMessage(new DespawnMessage(entity.objectId));
                 }
 
                 state = State.Disconnect;
@@ -164,7 +164,6 @@ namespace Astraia.Net
                 NetworkMessage<SpawnMessage>.Add(SpawnMessage);
                 NetworkMessage<SpawnEndMessage>.Add(SpawnEndMessage);
                 NetworkMessage<DespawnMessage>.Add(DespawnMessage);
-                NetworkMessage<DestroyMessage>.Add(DestroyMessage);
             }
 
             private static void PingMessage(PingMessage message)
@@ -451,60 +450,21 @@ namespace Astraia.Net
             {
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Despawn(entity, message);
-                    spawns.Remove(message.objectId);
-                }
-            }
-
-            private static void DestroyMessage(DestroyMessage message)
-            {
-                if (spawns.TryGetValue(message.objectId, out var entity))
-                {
-                    Despawn(entity, message);
-                    spawns.Remove(message.objectId);
-                }
-            }
-
-            private static void Despawn<T>(NetworkEntity entity, T message) where T : struct, IMessage
-            {
-                if (isServer)
-                {
-                    if (message is DespawnMessage)
-                    {
-                        if (entity.sceneId != 0)
-                        {
-                            entity.gameObject.SetActive(false);
-                        }
-                        else
-                        {
-                            PoolManager.Hide(entity.gameObject);
-                        }
-                    }
-
                     entity.OnStopClient();
                     entity.mode &= ~EntityMode.Owner;
                     entity.OnNotifyAuthority();
-                    return;
-                }
-
-                entity.OnStopClient();
-                entity.mode &= ~EntityMode.Owner;
-                entity.OnNotifyAuthority();
-                switch (message)
-                {
-                    case Common.DespawnMessage or Common.DestroyMessage when entity.sceneId != 0:
+                    if (entity.sceneId != 0 || entity.visible == Visible.Pool)
+                    {
                         entity.gameObject.SetActive(false);
-                        entity.Reset();
-                        break;
-                    case Common.DespawnMessage:
-                        entity.gameObject.name = GlobalSetting.Prefab.Format(entity.assetId);
-                        PoolManager.Hide(entity.gameObject);
-                        entity.Reset();
-                        break;
-                    case Common.DestroyMessage:
+                        if (!isServer) entity.Reset();
+                    }
+                    else
+                    {
                         entity.state |= EntityState.Destroy;
                         Destroy(entity.gameObject);
-                        break;
+                    }
+
+                    spawns.Remove(message.objectId);
                 }
             }
         }
