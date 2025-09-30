@@ -452,7 +452,7 @@ namespace Astraia.Net
 
             private static void Despawn<T>(NetworkEntity entity, T message) where T : struct, IMessage
             {
-                foreach (var client in NetworkRegister.Query(entity))
+                foreach (NetworkClient client in NetworkRegister.Query(entity))
                 {
                     client.Send(message);
                 }
@@ -516,7 +516,7 @@ namespace Astraia.Net
                     if (client.isReady)
                     {
                         var queries = NetworkRegister.Query(client);
-                        foreach (var entity in queries)
+                        foreach (NetworkEntity entity in queries)
                         {
                             if (!entity)
                             {

@@ -16,17 +16,16 @@ using Astraia.Common;
 
 namespace Astraia.Net
 {
-
     internal static class NetworkRegister
     {
-        private static readonly Dictionary<int, HashSet<NetworkEntity>> entityData = new();
-        private static readonly Dictionary<uint, HashSet<NetworkClient>> clientData = new();
+        private static readonly Dictionary<int, HashSet<uint>> entityData = new();
+        private static readonly Dictionary<uint, HashSet<int>> clientData = new();
 
         public static void Listen(NetworkEntity entity, NetworkClient client)
         {
             if (!clientData.TryGetValue(entity, out var clients))
             {
-                clients = new HashSet<NetworkClient>();
+                clients = new HashSet<int>();
                 clientData.Add(entity, clients);
             }
 
@@ -39,7 +38,7 @@ namespace Astraia.Net
             {
                 if (!entityData.TryGetValue(client, out var entities))
                 {
-                    entities = new HashSet<NetworkEntity>();
+                    entities = new HashSet<uint>();
                     entityData.Add(client, entities);
                 }
 
@@ -80,7 +79,7 @@ namespace Astraia.Net
         {
             if (entityData.TryGetValue(client, out var entities))
             {
-                foreach (var entity in entities.ToArray())
+                foreach (NetworkEntity entity in entities.ToArray())
                 {
                     Remove(entity, client);
                 }
@@ -98,24 +97,24 @@ namespace Astraia.Net
             }
         }
 
-        public static ICollection<NetworkEntity> Query(NetworkClient client)
+        public static ICollection<uint> Query(NetworkClient client)
         {
             if (entityData.TryGetValue(client, out var entities))
             {
                 return entities;
             }
 
-            return Array.Empty<NetworkEntity>();
+            return Array.Empty<uint>();
         }
 
-        public static ICollection<NetworkClient> Query(NetworkEntity entity)
+        public static ICollection<int> Query(NetworkEntity entity)
         {
             if (clientData.TryGetValue(entity, out var clients))
             {
                 return clients;
             }
 
-            return Array.Empty<NetworkClient>();
+            return Array.Empty<int>();
         }
 
         public static void Dispose()

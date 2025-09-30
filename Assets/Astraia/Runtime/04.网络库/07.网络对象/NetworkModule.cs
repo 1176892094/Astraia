@@ -209,13 +209,13 @@ namespace Astraia.Net
             current.Invoke(message);
 
             var queries = NetworkRegister.Query(owner);
-            foreach (var conn in queries)
+            foreach (NetworkClient result in queries)
             {
-                if (conn.isReady)
+                if (result.isReady)
                 {
-                    if ((channel & Channel.IgnoreOwner) == 0 || conn != client)
+                    if ((channel & Channel.IgnoreOwner) == 0 || result != client)
                     {
-                        conn.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
+                        result.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
                     }
                 }
             }
