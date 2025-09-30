@@ -48,6 +48,8 @@ namespace Astraia.Net
 
             public static NetworkServer connection { get; private set; }
 
+            public static NetworkObserver observer { get; internal set; }
+
             public static bool isActive => state == State.Connected;
 
             internal static void Start(bool transport)
@@ -331,29 +333,37 @@ namespace Astraia.Net
             {
                 if (isServer)
                 {
-                    return;
+                    if (Server.spawns.TryGetValue(message.objectId, out var entity) && entity)
+                    {
+                        if (observer)
+                        {
+                            observer.SetHost(entity, true);
+                        }
+                    }
                 }
-
-                if (!SpawnObject(message, out var entity))
+                else
                 {
-                    return;
-                }
+                    if (!SpawnObject(message, out var entity))
+                    {
+                        return;
+                    }
 
-                if (isComplete)
-                {
-                    Spawn(message, entity);
-                    return;
-                }
+                    if (isComplete)
+                    {
+                        Spawn(message, entity);
+                        return;
+                    }
 
-                spawns[message.objectId] = entity;
-                var segment = new byte[message.segment.Count];
-                if (message.segment.Count > 0)
-                {
-                    Buffer.BlockCopy(message.segment.Array!, message.segment.Offset, segment, 0, message.segment.Count);
-                }
+                    spawns[message.objectId] = entity;
+                    var segment = new byte[message.segment.Count];
+                    if (message.segment.Count > 0)
+                    {
+                        Buffer.BlockCopy(message.segment.Array!, message.segment.Offset, segment, 0, message.segment.Count);
+                    }
 
-                message.segment = new ArraySegment<byte>(segment);
-                copies[entity] = message;
+                    message.segment = new ArraySegment<byte>(segment);
+                    copies[entity] = message;
+                }
             }
         }
 
@@ -506,6 +516,11 @@ namespace Astraia.Net
             {
                 if (isServer)
                 {
+                    if (observer)
+                    {
+                        observer.SetHost(entity, false);
+                    }
+
                     return;
                 }
 
@@ -514,17 +529,13 @@ namespace Astraia.Net
                 entity.OnNotifyAuthority();
                 switch (message)
                 {
-                    case Common.DespawnMessage when entity.sceneId != 0:
+                    case Common.DespawnMessage or Common.DestroyMessage when entity.sceneId != 0:
                         entity.gameObject.SetActive(false);
                         entity.Reset();
                         break;
                     case Common.DespawnMessage:
                         entity.gameObject.name = GlobalSetting.Prefab.Format(entity.assetId);
                         PoolManager.Hide(entity.gameObject);
-                        entity.Reset();
-                        break;
-                    case Common.DestroyMessage when entity.sceneId != 0:
-                        entity.gameObject.SetActive(false);
                         entity.Reset();
                         break;
                     case Common.DestroyMessage:

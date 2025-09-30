@@ -56,7 +56,7 @@ namespace Astraia.Net
 
                 state = State.Connected;
                 AddMessage();
-                SpawnObjects();
+                SpawnEntities();
             }
 
             internal static void Stop()
@@ -66,11 +66,7 @@ namespace Astraia.Net
                 copies.AddRange(clients.Values);
                 foreach (var client in copies)
                 {
-                    if (client.clientId != Host)
-                    {
-                        client.Disconnect();
-                    }
-
+                    client.Disconnect();
                     OnServerDisconnect(client.clientId);
                 }
 
@@ -116,7 +112,7 @@ namespace Astraia.Net
                     client.isReady = false;
                     foreach (var entity in client.entities)
                     {
-                        entity.SubObserver(client);
+                        entity.clients.Remove(client);
                     }
 
                     client.entities.Clear();
@@ -124,22 +120,24 @@ namespace Astraia.Net
                 }
 
                 EventManager.Invoke(new ServerChangeScene(sceneName));
-                if (!isServer) return;
-                isLoadScene = true;
-                Instance.sceneName = sceneName;
-
-                foreach (var client in clients.Values)
+                if (isServer)
                 {
-                    client.Send(new SceneMessage(sceneName));
-                }
+                    isLoadScene = true;
+                    Instance.sceneName = sceneName;
 
-                AssetManager.LoadScene(sceneName);
+                    foreach (var client in clients.Values)
+                    {
+                        client.Send(new SceneMessage(sceneName));
+                    }
+
+                    AssetManager.LoadScene(sceneName);
+                }
             }
 
             internal static void LoadSceneComplete(string sceneName)
             {
                 isLoadScene = false;
-                SpawnObjects();
+                SpawnEntities();
                 EventManager.Invoke(new ServerSceneChanged(sceneName));
             }
         }
@@ -373,19 +371,14 @@ namespace Astraia.Net
 
         public partial class Server
         {
-            internal static void SpawnObjects()
+            internal static void SpawnEntities()
             {
                 var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 foreach (var entity in entities)
                 {
-                    if (entity.sceneId != 0 && entity.objectId == 0)
+                    if (entity.sceneId != 0 && entity.objectId == 0 && entity.isActiveAndEnabled)
                     {
-                        entity.gameObject.SetActive(true);
-                        var parent = entity.transform.parent;
-                        if (parent == null || parent.gameObject.activeInHierarchy)
-                        {
-                            Spawn(entity.gameObject, entity.client);
-                        }
+                        Spawn(entity.gameObject, entity.client);
                     }
                 }
             }
@@ -409,27 +402,22 @@ namespace Astraia.Net
                     Log.Warn("网络对象 {0} 已经生成。", entity);
                     return;
                 }
-
-                entity.client = client;
-
-                if (client?.clientId == Host)
+                
+                if (entity.objectId == 0)
                 {
-                    entity.mode |= EntityMode.Owner;
-                }
-
-                if (!entity.isServer && entity.objectId == 0)
-                {
+                    entity.client = client;
                     entity.objectId = ++objectId;
-                    entity.mode |= EntityMode.Server;
-                    entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Owner;
                     spawns[entity.objectId] = entity;
+                    entity.mode = isServer ? entity.mode | EntityMode.Server : entity.mode & ~EntityMode.Server;
+                    entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
+                    entity.mode = client != null && client.clientId == Host ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
                     entity.OnStartServer();
                 }
 
-                SendToClients(entity, true);
+                SpawnObserver(entity, true);
             }
 
-            internal static void SendToClients(NetworkEntity entity, bool isReady)
+            internal static void SpawnObserver(NetworkEntity entity, bool isReady)
             {
                 if (observer && entity.data != EntityData.Show)
                 {
@@ -441,9 +429,12 @@ namespace Astraia.Net
                     {
                         if (entity.data != EntityData.Hide)
                         {
-                            foreach (var client in clients.Values.Where(client => client.isReady))
+                            foreach (var client in clients.Values)
                             {
-                                entity.AddObserver(client);
+                                if (client.isReady)
+                                {
+                                    entity.AddObserver(client);
+                                }
                             }
                         }
                         else if (entity.client != null)
@@ -511,28 +502,20 @@ namespace Astraia.Net
                     client.Send(message);
                 }
 
-                if (entity.client?.clientId == Host)
-                {
-                    entity.OnStopClient();
-                    entity.mode &= ~EntityMode.Owner;
-                    entity.OnNotifyAuthority();
-                }
+                entity.OnStopClient();
+                entity.mode &= ~EntityMode.Owner;
+                entity.OnNotifyAuthority();
 
                 entity.OnStopServer();
-                entity.SubObservers();
                 switch (message)
                 {
-                    case DespawnMessage when entity.sceneId != 0:
+                    case DespawnMessage or DestroyMessage when entity.sceneId != 0:
                         entity.gameObject.SetActive(false);
                         entity.Reset();
                         break;
                     case DespawnMessage:
                         entity.gameObject.name = GlobalSetting.Prefab.Format(entity.assetId);
                         PoolManager.Hide(entity.gameObject);
-                        entity.Reset();
-                        break;
-                    case DestroyMessage when entity.sceneId != 0:
-                        entity.gameObject.SetActive(false);
                         entity.Reset();
                         break;
                     case DestroyMessage:

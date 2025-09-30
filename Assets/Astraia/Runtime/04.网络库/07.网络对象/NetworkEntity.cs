@@ -107,15 +107,19 @@ namespace Astraia.Net
 
         public virtual void Reset()
         {
+            foreach (var conn in clients)
+            {
+                conn.entities.Remove(this);
+            }
+
+            clients.Clear();
             objectId = 0;
             client = null;
             owner.position = 0;
             other.position = 0;
             mode = EntityMode.None;
             state = EntityState.None;
-            SubObservers();
         }
-
         internal void AddObserver(NetworkClient client)
         {
             if (!clients.Contains(client))
@@ -133,22 +137,7 @@ namespace Astraia.Net
                 }
             }
         }
-
-        internal void SubObserver(NetworkClient client)
-        {
-            clients.Remove(client);
-        }
-
-        internal void SubObservers()
-        {
-            foreach (var conn in clients)
-            {
-                conn.entities.Remove(this);
-            }
-
-            clients.Clear();
-        }
-
+        
 #if UNITY_EDITOR
         private static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
         protected virtual void OnValidate()

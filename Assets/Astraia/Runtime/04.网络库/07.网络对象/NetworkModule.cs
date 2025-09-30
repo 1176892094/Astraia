@@ -89,7 +89,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Log.Error("序列化对象失败。对象名称: {0}[{1}][{2}]\n{3}", owner.name, GetType(), owner.sceneId, e);
+                Debug.LogError("序列化对象失败。对象名称: {0}[{1}][{2}]\n{3}".Format(owner.name, GetType(), owner.sceneId, e), owner);
             }
 
             var endPosition = writer.position;
@@ -111,7 +111,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Log.Error("序列化对象失败。对象名称: {0}[{1}][{2}]\n{3}", owner.name, GetType(), owner.sceneId, e);
+                Debug.LogError("序列化对象失败。对象名称: {0}[{1}][{2}]\n{3}".Format(owner.name, GetType(), owner.sceneId, e), owner);
                 result = false;
             }
 
@@ -119,7 +119,7 @@ namespace Astraia.Net
             var count = (byte)(value & 0xFF);
             if (count != safety)
             {
-                Log.Error("反序列化字节不匹配。读取字节: {0} 哈希对比:{1}/{2}", value, count, safety);
+                Debug.LogError("反序列化字节不匹配。读取字节: {0} 哈希对比:{1}/{2}".Format(value, count, safety), owner);
                 var cleared = (uint)value & 0xFFFFFF00;
                 reader.position = startPosition + (int)(cleared | safety);
                 result = false;
@@ -196,7 +196,7 @@ namespace Astraia.Net
                 Debug.LogWarning("调用 {0} 但是对象未初始化。对象名称：{1}".Format(name, owner.name), owner);
                 return;
             }
-            
+
             if (owner.clients.Count == 0)
             {
                 return;

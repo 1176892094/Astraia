@@ -20,7 +20,7 @@ namespace Astraia.Net
     {
         public static NetworkManager Instance;
 
-        internal const int Host = 0;
+        public const int Host = 0;
 
         public int sendRate = 30;
 

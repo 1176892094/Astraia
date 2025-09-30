@@ -29,6 +29,7 @@ namespace Astraia.Net
         private void Awake()
         {
             NetworkManager.Server.observer = this;
+            NetworkManager.Client.observer = this;
         }
 
         private void OnEnable()
@@ -72,7 +73,7 @@ namespace Astraia.Net
                     waitTime = Time.unscaledTimeAsDouble;
                     foreach (var entity in NetworkManager.Server.spawns.Values)
                     {
-                        NetworkManager.Server.SendToClients(entity, false);
+                        NetworkManager.Server.SpawnObserver(entity, false);
                     }
                 }
             }
@@ -124,7 +125,8 @@ namespace Astraia.Net
                 if (!clients.Contains(client))
                 {
                     client.entities.Remove(entity);
-                    client.Send(new DespawnMessage(entity.objectId));
+                    var message = new DespawnMessage(entity.objectId);
+                    client.Send(message);
                     changed = true;
                 }
             }
@@ -138,6 +140,30 @@ namespace Astraia.Net
                     {
                         entity.clients.Add(client);
                     }
+                }
+            }
+
+            if (isReady)
+            {
+                if (clients.Contains(NetworkManager.Host))
+                {
+                    SetHost(entity, false);
+                }
+            }
+        }
+
+        public void SetHost(NetworkEntity entity, bool enabled)
+        {
+            if (entity.data == EntityData.Pool)
+            {
+                if (enabled)
+                {
+                    entity.gameObject.SetActive(true);
+                }
+                else
+                {
+                    PoolManager.Hide(entity.gameObject);
+                    entity.Reset();
                 }
             }
         }
