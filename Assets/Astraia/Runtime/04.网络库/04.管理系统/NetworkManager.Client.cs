@@ -286,9 +286,13 @@ namespace Astraia.Net
                     entity.OnStopClient();
                     entity.mode &= ~EntityMode.Owner;
                     entity.OnNotifyAuthority();
-                    spawns.Remove(message.objectId);
-                    copies[message.objectId] = entity;
                     entity.gameObject.SetActive(false);
+                    if (!isServer)
+                    {
+                        copies[message.objectId] = entity;
+                    }
+
+                    spawns.Remove(message.objectId);
                 }
             }
 
