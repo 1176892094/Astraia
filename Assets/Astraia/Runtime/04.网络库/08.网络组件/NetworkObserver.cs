@@ -129,6 +129,8 @@ namespace Astraia.Net
                     client.Send(new DespawnMessage(entity.objectId));
                 }
             }
+            
+            entity.gameObject.SetActive(clients.Count > 0);
         }
 
         public bool OnExecute(NetworkEntity entity, NetworkClient client)
