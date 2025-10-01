@@ -28,6 +28,12 @@ namespace Astraia.Net
                 clientData.Add(entity, clients);
             }
 
+            if (!entityData.TryGetValue(client, out var entities))
+            {
+                entities = new HashSet<NetworkEntity>();
+                entityData.Add(client, entities);
+            }
+
             if (clients.Count == 0)
             {
                 entity.ClearDirty(true);
@@ -35,12 +41,6 @@ namespace Astraia.Net
 
             if (clients.Add(client))
             {
-                if (!entityData.TryGetValue(client, out var entities))
-                {
-                    entities = new HashSet<NetworkEntity>();
-                    entityData.Add(client, entities);
-                }
-              
                 entities.Add(entity);
                 if (client.isReady)
                 {

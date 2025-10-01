@@ -25,14 +25,13 @@ namespace Astraia.Net
         private Grid<int> grids;
         private double waitTime;
 
-        [SerializeField] private Vector2Int distance = new Vector2Int(30, 20);
-        [SerializeField] private Vector2Int radius = new Vector2Int(3, 3);
-        [SerializeField] private float interval = 1;
-
+        [SerializeField] private Vector2Int gridCell = new Vector2Int(5, 3);
+        [SerializeField] private Vector2Int gridSize = new Vector2Int(15, 15);
+        [SerializeField] private float interval = 0.5f;
 
         private void Awake()
         {
-            grids = new Grid<int>(1024, radius);
+            grids = new Grid<int>(1024, gridCell);
             NetworkManager.Server.observer = this;
         }
 
@@ -88,8 +87,8 @@ namespace Astraia.Net
 
         private Vector2Int EntityToGrid(Vector3 position)
         {
-            var x = Mathf.Max(1, distance.x / 2);
-            var y = Mathf.Max(1, distance.y / 2);
+            var x = Mathf.Max(1, gridSize.x / 2);
+            var y = Mathf.Max(1, gridSize.y / 2);
             return new Vector2Int(Mathf.FloorToInt(position.x / x), Mathf.FloorToInt(position.y / y));
         }
 
@@ -129,7 +128,7 @@ namespace Astraia.Net
                     client.Send(new DespawnMessage(entity.objectId));
                 }
             }
-            
+
             entity.gameObject.SetActive(clients.Count > 0);
         }
 
@@ -148,8 +147,8 @@ namespace Astraia.Net
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
-            var x = Mathf.Max(1, distance.x / 2);
-            var y = Mathf.Max(1, distance.y / 2);
+            var x = Mathf.Max(1, gridSize.x / 2);
+            var y = Mathf.Max(1, gridSize.y / 2);
 
             foreach (var player in players.Values)
             {
@@ -161,12 +160,12 @@ namespace Astraia.Net
                     var center = origin + new Vector3(x / 2f, y / 2f, 0f);
 
                     Gizmos.color = Color.cyan;
-                    for (var dx = 0; dx < radius.x; dx++)
+                    for (var dx = 0; dx < gridCell.x; dx++)
                     {
-                        for (var dy = 0; dy < radius.y; dy++)
+                        for (var dy = 0; dy < gridCell.y; dy++)
                         {
-                            var posX = Mathf.RoundToInt(dx - (radius.x - 1) / 2f);
-                            var posY = Mathf.RoundToInt(dy - (radius.y - 1) / 2f);
+                            var posX = Mathf.RoundToInt(dx - (gridCell.x - 1) / 2f);
+                            var posY = Mathf.RoundToInt(dy - (gridCell.y - 1) / 2f);
                             var nb = new Vector2Int(source.x + posX, source.y + posY);
                             var nbOrigin = new Vector3(nb.x * x, nb.y * y, target.z);
                             var nbCenter = nbOrigin + new Vector3(x / 2f, y / 2f, 0f);
