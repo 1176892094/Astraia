@@ -79,7 +79,7 @@ namespace Astraia.Net
         {
             if (entityData.TryGetValue(client, out var entities))
             {
-                foreach (NetworkEntity entity in entities.ToArray())
+                foreach (var entity in entities.ToArray())
                 {
                     Despawn(entity, client);
                 }

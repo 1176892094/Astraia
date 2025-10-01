@@ -132,11 +132,7 @@ namespace Astraia.Net
             internal static void LoadSceneComplete(string sceneName)
             {
                 isLoadScene = false;
-                if (isActive && !isReady)
-                {
-                    Ready();
-                }
-
+                if (isActive && !isReady) Ready();
                 EventManager.Invoke(new ClientSceneLoaded(sceneName));
             }
         }
@@ -168,11 +164,6 @@ namespace Astraia.Net
 
             private static void PingMessage(PingMessage message)
             {
-                if (isServer)
-                {
-                    return;
-                }
-
                 if (pingTime <= 0)
                 {
                     pingTime = Time.unscaledTimeAsDouble - message.clientTime;
@@ -286,37 +277,37 @@ namespace Astraia.Net
             {
                 if (isServer)
                 {
-                    if (Server.spawns.TryGetValue(message.objectId, out var entity))
+                    if (Server.spawns.TryGetValue(message.objectId, out var result))
                     {
-                        entity.gameObject.SetActive(true);
-                        spawns[message.objectId] = entity;
-                        entity.OnStartClient();
-                        entity.OnNotifyAuthority();
+                        result.gameObject.SetActive(true);
+                        spawns[message.objectId] = result;
+                        result.OnStartClient();
+                        result.OnNotifyAuthority();
                     }
+
+                    return;
                 }
-                else
+
+                if (!SpawnObject(message, out var entity))
                 {
-                    if (!SpawnObject(message, out var entity))
-                    {
-                        return;
-                    }
-
-                    if (connection.isSpawn)
-                    {
-                        Spawn(message, entity);
-                        return;
-                    }
-
-                    spawns[message.objectId] = entity;
-                    var segment = new byte[message.segment.Count];
-                    if (message.segment.Count > 0)
-                    {
-                        Buffer.BlockCopy(message.segment.Array!, message.segment.Offset, segment, 0, message.segment.Count);
-                    }
-
-                    message.segment = new ArraySegment<byte>(segment);
-                    copies[entity] = message;
+                    return;
                 }
+
+                if (connection.isSpawn)
+                {
+                    Spawn(message, entity);
+                    return;
+                }
+
+                spawns[message.objectId] = entity;
+                var segment = new byte[message.segment.Count];
+                if (message.segment.Count > 0)
+                {
+                    Buffer.BlockCopy(message.segment.Array!, message.segment.Offset, segment, 0, message.segment.Count);
+                }
+
+                message.segment = new ArraySegment<byte>(segment);
+                copies[entity] = message;
             }
         }
 
@@ -453,7 +444,12 @@ namespace Astraia.Net
                     entity.OnStopClient();
                     entity.mode &= ~EntityMode.Owner;
                     entity.OnNotifyAuthority();
-                    if (entity.sceneId != 0 || entity.visible == Visible.Pool)
+                    if (entity.visible == Visible.Pool)
+                    {
+                        PoolManager.Hide(entity.gameObject);
+                        if (!isServer) entity.Reset();
+                    }
+                    else if (entity.sceneId != 0)
                     {
                         entity.gameObject.SetActive(false);
                         if (!isServer) entity.Reset();

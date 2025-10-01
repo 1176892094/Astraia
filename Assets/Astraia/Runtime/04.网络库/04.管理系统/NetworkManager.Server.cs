@@ -51,7 +51,7 @@ namespace Astraia.Net
 
                 state = State.Connected;
                 AddMessage();
-                SpawnEntities();
+                SpawnObjects();
             }
 
             internal static void Stop()
@@ -122,8 +122,20 @@ namespace Astraia.Net
             internal static void LoadSceneComplete(string sceneName)
             {
                 isLoadScene = false;
-                SpawnEntities();
+                SpawnObjects();
                 EventManager.Invoke(new ServerSceneLoaded(sceneName));
+            }
+
+            private static void SpawnObjects()
+            {
+                var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                foreach (var entity in entities)
+                {
+                    if (entity.sceneId != 0 && entity.objectId == 0 && entity.isActiveAndEnabled)
+                    {
+                        Spawn(entity.gameObject, entity.client);
+                    }
+                }
             }
         }
 
@@ -263,6 +275,7 @@ namespace Astraia.Net
                         Despawn(entity.gameObject);
                     }
 
+                    client.isReady = false;
                     NetworkSpawner.Release(client);
                     clients.Remove(client.clientId);
                     EventManager.Invoke(new ServerDisconnect(client));
@@ -314,18 +327,6 @@ namespace Astraia.Net
 
         public partial class Server
         {
-            internal static void SpawnEntities()
-            {
-                var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-                foreach (var entity in entities)
-                {
-                    if (entity.sceneId != 0 && entity.objectId == 0 && entity.isActiveAndEnabled)
-                    {
-                        Spawn(entity.gameObject, entity.client);
-                    }
-                }
-            }
-
             public static void Spawn(GameObject obj, NetworkClient client = null)
             {
                 if (!isServer)
@@ -441,9 +442,14 @@ namespace Astraia.Net
                     }
 
                     entity.OnStopServer();
-                    if (entity.sceneId != 0 || entity.visible == Visible.Pool)
+                    if (entity.visible == Visible.Pool)
                     {
-                        entity.gameObject.SetActive(false);
+                        if (!isClient) PoolManager.Hide(entity.gameObject);
+                        entity.Reset();
+                    }
+                    else if (entity.sceneId != 0)
+                    {
+                        if (!isClient) entity.gameObject.SetActive(false);
                         entity.Reset();
                     }
                     else
@@ -491,8 +497,7 @@ namespace Astraia.Net
                 {
                     if (client.isReady)
                     {
-                        var queries = NetworkSpawner.Query(client);
-                        foreach (NetworkEntity entity in queries)
+                        foreach (var entity in NetworkSpawner.Query(client))
                         {
                             if (!entity)
                             {
