@@ -208,8 +208,7 @@ namespace Astraia.Net
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 
-            var queries = NetworkSpawner.Query(owner);
-            foreach (NetworkClient result in queries)
+            foreach (var result in NetworkSpawner.Query(owner))
             {
                 if (result.isReady)
                 {

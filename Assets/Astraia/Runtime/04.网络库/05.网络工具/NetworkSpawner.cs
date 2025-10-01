@@ -75,7 +75,7 @@ namespace Astraia.Net
             }
         }
 
-        public static void Release(NetworkClient client)
+        public static void Destroy(NetworkClient client)
         {
             if (entityData.TryGetValue(client, out var entities))
             {
@@ -86,7 +86,7 @@ namespace Astraia.Net
             }
         }
 
-        public static void Release(NetworkEntity entity)
+        public static void Destroy(NetworkEntity entity)
         {
             if (clientData.TryGetValue(entity, out var clients))
             {

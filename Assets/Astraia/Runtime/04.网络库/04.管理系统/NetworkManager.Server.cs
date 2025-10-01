@@ -100,7 +100,7 @@ namespace Astraia.Net
                 foreach (var client in clients.Values)
                 {
                     client.isReady = false;
-                    NetworkSpawner.Release(client);
+                    NetworkSpawner.Destroy(client);
                     client.Send(new NotReadyMessage());
                 }
 
@@ -278,7 +278,7 @@ namespace Astraia.Net
                         Despawn(entity.gameObject);
                     }
 
-                    NetworkSpawner.Release(client);
+                    NetworkSpawner.Destroy(client);
                     clients.Remove(client.clientId);
                     EventManager.Invoke(new ServerDisconnect(client));
                 }
