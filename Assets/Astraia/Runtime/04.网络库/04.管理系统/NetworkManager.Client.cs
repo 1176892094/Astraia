@@ -308,7 +308,6 @@ namespace Astraia.Net
                     entity.mode &= ~EntityMode.Owner;
                     entity.OnNotifyAuthority();
                     entity.gameObject.SetActive(false);
-                    spawns.Remove(message.objectId);
                 }
             }
 

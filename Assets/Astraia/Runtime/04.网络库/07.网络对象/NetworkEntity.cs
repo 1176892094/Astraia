@@ -54,9 +54,9 @@ namespace Astraia.Net
 
         public bool isOwner => (mode & EntityMode.Owner) != 0;
 
-        public bool isServer => (mode & EntityMode.Server) != 0;
+        public bool isServer => (mode & EntityMode.Server) != 0 && NetworkManager.isServer;
 
-        public bool isClient => (mode & EntityMode.Client) != 0;
+        public bool isClient => (mode & EntityMode.Client) != 0 && NetworkManager.isClient;
 
 
         protected override void OnEnable()

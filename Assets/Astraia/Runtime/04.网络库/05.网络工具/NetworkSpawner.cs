@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Astraia.Net
 {
@@ -40,7 +41,7 @@ namespace Astraia.Net
                     entities = new HashSet<NetworkEntity>();
                     entityData.Add(client, entities);
                 }
-
+              
                 entities.Add(entity);
                 if (client.isReady)
                 {

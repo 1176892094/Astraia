@@ -343,14 +343,14 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (spawns.ContainsKey(entity.objectId) && entity.visible != Visible.Pool)
+                if (spawns.ContainsKey(entity.objectId))
                 {
                     Log.Warn("网络对象 {0} 已经生成。", entity);
                     return;
                 }
 
                 entity.client = client;
-                entity.mode = client != null && client.clientId == Host ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                entity.mode = client?.clientId == Host ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
                 entity.mode = isServer ? entity.mode | EntityMode.Server : entity.mode & ~EntityMode.Server;
                 entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
                 if (entity.objectId == 0)
