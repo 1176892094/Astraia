@@ -231,95 +231,6 @@ namespace Astraia.Net
 
                 Load(message.sceneName);
             }
-
-            private static void SpawnBeginMessage(SpawnBeginMessage message)
-            {
-                if (isServer) return;
-                scenes.Clear();
-                var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-                foreach (var entity in entities.Where(entity => entity.sceneId != 0 && entity.objectId == 0))
-                {
-                    if (!scenes.TryAdd(entity.sceneId, entity))
-                    {
-                        Debug.LogWarning("客户端场景对象重复。网络对象: {0}".Format(entity.name), entity);
-                    }
-                }
-            }
-
-            private static void SpawnMessage(SpawnMessage message)
-            {
-                if (isServer && Server.spawns.TryGetValue(message.objectId, out var entity))
-                {
-                    spawns[message.objectId] = entity;
-                    entity.gameObject.SetActive(true);
-                    entity.OnStartClient();
-                    entity.OnNotifyAuthority();
-                    return;
-                }
-
-                if (copies.Remove(message.objectId, out entity) || LoadEntity(message, out entity))
-                {
-                    entity.objectId = message.objectId;
-                    entity.transform.localPosition = message.position;
-                    entity.transform.localRotation = message.rotation;
-                    entity.transform.localScale = message.localScale;
-                    entity.mode = (message.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
-                    entity.mode |= EntityMode.Client;
-
-                    if (message.segment.Count > 0)
-                    {
-                        using var reader = MemoryReader.Pop(message.segment);
-                        entity.ClientDeserialize(reader, true);
-                    }
-
-                    spawns[message.objectId] = entity;
-                    entity.gameObject.SetActive(true);
-                    entity.OnStartClient();
-                    entity.OnNotifyAuthority();
-                }
-            }
-
-            private static void DespawnMessage(DespawnMessage message)
-            {
-                if (spawns.TryGetValue(message.objectId, out var entity))
-                {
-                    entity.OnStopClient();
-                    entity.mode &= ~EntityMode.Owner;
-                    entity.OnNotifyAuthority();
-                    entity.gameObject.SetActive(false);
-                    if (!isServer)
-                    {
-                        copies[message.objectId] = entity;
-                    }
-
-                    spawns.Remove(message.objectId);
-                }
-            }
-
-            private static void DestroyMessage(DestroyMessage message)
-            {
-                if (spawns.TryGetValue(message.objectId, out var entity))
-                {
-                    entity.OnStopClient();
-                    entity.mode &= ~EntityMode.Owner;
-                    entity.OnNotifyAuthority();
-                    if (!isServer)
-                    {
-                        if (entity.sceneId != 0)
-                        {
-                            entity.gameObject.SetActive(false);
-                            entity.Reset();
-                        }
-                        else
-                        {
-                            entity.state |= EntityState.Destroy;
-                            Destroy(entity.gameObject);
-                        }
-                    }
-
-                    spawns.Remove(message.objectId);
-                }
-            }
         }
 
         public static partial class Client
@@ -387,7 +298,96 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static bool LoadEntity(SpawnMessage message, out NetworkEntity entity)
+            private static void SpawnBeginMessage(SpawnBeginMessage message)
+            {
+                if (isServer) return;
+                scenes.Clear();
+                var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                foreach (var entity in entities.Where(entity => entity.sceneId != 0 && entity.objectId == 0))
+                {
+                    if (!scenes.TryAdd(entity.sceneId, entity))
+                    {
+                        Debug.LogWarning("客户端场景对象重复。网络对象: {0}".Format(entity.name), entity);
+                    }
+                }
+            }
+
+            private static void SpawnMessage(SpawnMessage message)
+            {
+                if (isServer && Server.spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    spawns[message.objectId] = entity;
+                    entity.gameObject.SetActive(true);
+                    entity.OnStartClient();
+                    entity.OnNotifyAuthority();
+                    return;
+                }
+
+                if (copies.Remove(message.objectId, out entity) || Spawn(message, out entity))
+                {
+                    entity.objectId = message.objectId;
+                    entity.transform.localPosition = message.position;
+                    entity.transform.localRotation = message.rotation;
+                    entity.transform.localScale = message.localScale;
+                    entity.mode = (message.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                    entity.mode |= EntityMode.Client;
+
+                    if (message.segment.Count > 0)
+                    {
+                        using var reader = MemoryReader.Pop(message.segment);
+                        entity.ClientDeserialize(reader, true);
+                    }
+
+                    spawns[message.objectId] = entity;
+                    entity.gameObject.SetActive(true);
+                    entity.OnStartClient();
+                    entity.OnNotifyAuthority();
+                }
+            }
+
+            private static void DespawnMessage(DespawnMessage message)
+            {
+                if (spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    entity.OnStopClient();
+                    entity.mode &= ~EntityMode.Owner;
+                    entity.OnNotifyAuthority();
+                    entity.gameObject.SetActive(false);
+                    if (!isServer)
+                    {
+                        copies[message.objectId] = entity;
+                    }
+
+                    spawns.Remove(message.objectId);
+                }
+            }
+
+            private static void DestroyMessage(DestroyMessage message)
+            {
+                if (spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    entity.OnStopClient();
+                    entity.mode &= ~EntityMode.Owner;
+                    entity.OnNotifyAuthority();
+                    if (!isServer)
+                    {
+                        if (entity.sceneId != 0)
+                        {
+                            entity.gameObject.SetActive(false);
+                            entity.Reset();
+                        }
+                        else
+                        {
+                            entity.state |= EntityState.Destroy;
+                            Destroy(entity.gameObject);
+                        }
+                    }
+
+                    spawns.Remove(message.objectId);
+                }
+            }
+
+            private static bool Spawn(SpawnMessage message, out NetworkEntity entity)
             {
                 if (spawns.TryGetValue(message.objectId, out entity))
                 {
