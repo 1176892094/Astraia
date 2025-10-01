@@ -31,7 +31,7 @@ namespace Astraia.Net
         ClientRpc,
     }
 
-    internal enum Visible : byte
+    public enum Visible : byte
     {
         Show = 0,
         Hide = 1,

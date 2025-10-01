@@ -3,69 +3,119 @@
 // // # Unity: 6000.3.5f1
 // // # Author: 云谷千羽
 // // # Version: 1.0.0
-// // # History: 2025-10-01 19:10:11
-// // # Recently: 2025-10-01 19:10:11
+// // # History: 2025-09-30 14:09:00
+// // # Recently: 2025-09-30 14:09:00
 // // # Copyright: 2024, 云谷千羽
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
-using Astraia.Common;
-using UnityEngine;
-using Object = UnityEngine.Object;
+using System.Linq;
 
 namespace Astraia.Net
 {
-    public static class NetworkSpawner
+    internal static class NetworkSpawner
     {
-        private static readonly Dictionary<uint, Queue<GameObject>> spawns = new Dictionary<uint, Queue<GameObject>>();
-        private static readonly HashSet<GameObject> cached = new HashSet<GameObject>();
+        private static readonly Dictionary<int, HashSet<NetworkEntity>> entityData = new();
+        private static readonly Dictionary<uint, HashSet<NetworkClient>> clientData = new();
 
-        internal static GameObject Spawn(byte opcode, uint assetId)
+        public static void Spawn(NetworkEntity entity, NetworkClient client)
         {
-            if ((opcode & 2) != 0)
+            if (!clientData.TryGetValue(entity, out var clients))
             {
-                if (!spawns.TryGetValue(assetId, out var queue))
-                {
-                    queue = new Queue<GameObject>();
-                    spawns[assetId] = queue;
-                }
-
-                if (queue.Count > 0)
-                {
-                    var item = queue.Dequeue();
-                    cached.Remove(item);
-                    if (item)
-                    {
-                        return item;
-                    }
-                }
+                clients = new HashSet<NetworkClient>();
+                clientData.Add(entity, clients);
             }
 
-            return AssetManager.Load<GameObject>(GlobalSetting.Prefab.Format(assetId));
+            if (clients.Count == 0)
+            {
+                entity.ClearDirty(true);
+            }
+
+            if (clients.Add(client))
+            {
+                if (!entityData.TryGetValue(client, out var entities))
+                {
+                    entities = new HashSet<NetworkEntity>();
+                    entityData.Add(client, entities);
+                }
+
+                entities.Add(entity);
+                if (client.isReady)
+                {
+                    NetworkManager.Server.SpawnMessage(entity, client);
+                }
+            }
         }
 
-        internal static void Despawn(NetworkEntity entity)
+        public static void Despawn(NetworkEntity entity, NetworkClient client)
         {
-            if (entity.visible == Visible.Pool)
+            if (clientData.TryGetValue(entity, out var clients))
             {
-                if (spawns.TryGetValue(entity.assetId, out var queue) && cached.Add(entity.gameObject))
+                if (clients.Remove(client) && clients.Count == 0)
                 {
-                    queue.Enqueue(entity.gameObject);
+                    entity.ClearDirty(true);
+                    clientData.Remove(entity);
                 }
-                
-                entity.gameObject.SetActive(false);
             }
-            else if (entity.sceneId != 0)
+
+            if (entityData.TryGetValue(client, out var entities))
             {
-                entity.gameObject.SetActive(false);
-                entity.Reset();
+                if (entities.Remove(entity) && entities.Count == 0)
+                {
+                    entityData.Remove(client);
+                }
             }
-            else
+        }
+
+        public static void Destroy(NetworkClient client)
+        {
+            if (entityData.TryGetValue(client, out var entities))
             {
-                entity.state |= EntityState.Destroy;
-                Object.Destroy(entity.gameObject);
+                foreach (var entity in entities.ToArray())
+                {
+                    Despawn(entity, client);
+                }
             }
+        }
+
+        public static void Destroy(NetworkEntity entity)
+        {
+            if (clientData.TryGetValue(entity, out var clients))
+            {
+                foreach (var client in clients.ToArray())
+                {
+                    Despawn(entity, client);
+                }
+            }
+        }
+
+        public static ICollection<NetworkEntity> Query(NetworkClient client)
+        {
+            return entityData.TryGetValue(client, out var entities) ? entities : Array.Empty<NetworkEntity>();
+        }
+
+        public static ICollection<NetworkClient> Query(NetworkEntity entity)
+        {
+            return clientData.TryGetValue(entity, out var clients) ? clients : Array.Empty<NetworkClient>();
+        }
+
+        public static void Dispose()
+        {
+            foreach (var clients in clientData.Values)
+            {
+                clients.Clear();
+            }
+
+            clientData.Clear();
+
+            foreach (var entities in entityData.Values)
+            {
+                entities.Clear();
+            }
+
+            entityData.Clear();
         }
     }
 }

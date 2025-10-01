@@ -34,7 +34,7 @@ namespace Astraia.Net
         [EnumToggleButtons, HideLabel]
 #endif
         [SerializeField]
-        internal Visible visible;
+        public Visible visible;
 
         private int frameCount;
 
@@ -83,10 +83,10 @@ namespace Astraia.Net
 
         protected override void OnDestroy()
         {
-            NetworkListener.Destroy(this);
+            NetworkSpawner.Destroy(this);
             if (isServer && (state & EntityState.Destroy) == 0)
             {
-                NetworkManager.Server.Despawn(gameObject);
+                NetworkManager.Server.Destroy(gameObject);
             }
 
             if (isClient)
@@ -109,7 +109,7 @@ namespace Astraia.Net
             other.position = 0;
             mode = EntityMode.None;
             state = EntityState.None;
-            NetworkListener.Destroy(this);
+            NetworkSpawner.Destroy(this);
         }
 
 #if UNITY_EDITOR
