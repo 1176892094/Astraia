@@ -69,17 +69,7 @@ namespace Astraia.Common
             var item = LoadPool(path).Load();
             item.transform.SetParent(parent);
             item.SetActive(true);
-            item.transform.localPosition = Vector3.zero;
-            return item;
-        }
-
-        public static GameObject Show(string path, Transform parent, Vector3 scale)
-        {
-            if (!Instance) return null;
-            var item = LoadPool(path).Load();
-            item.transform.SetParent(parent);
-            item.SetActive(true);
-            item.transform.localScale = scale;
+            item.transform.localScale = Vector3.one;
             item.transform.localPosition = Vector3.zero;
             return item;
         }

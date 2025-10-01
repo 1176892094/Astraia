@@ -16,7 +16,7 @@ namespace Astraia
 {
     public static partial class Service
     {
-        public static partial class Text
+        public static class Text
         {
             [ThreadStatic] private static StringBuilder stringBuilder;
 
@@ -48,6 +48,35 @@ namespace Astraia
                 StringBuilder.Length = 0;
                 StringBuilder.AppendFormat(format, arg1, arg2, arg3, arg4);
                 return StringBuilder.ToString();
+            }
+
+            [ThreadStatic] private static UTF8Encoding stringEncode;
+
+            private static UTF8Encoding StringEncode => stringEncode ??= new UTF8Encoding(false, true);
+
+            public static byte[] GetBytes(string message)
+            {
+                return StringEncode.GetBytes(message);
+            }
+
+            public static int GetBytes(string message, int count, byte[] buffer, int index)
+            {
+                return StringEncode.GetBytes(message, 0, count, buffer, index);
+            }
+
+            public static string GetString(byte[] bytes)
+            {
+                return StringEncode.GetString(bytes);
+            }
+
+            public static string GetString(byte[] bytes, int index, int count)
+            {
+                return StringEncode.GetString(bytes, index, count);
+            }
+
+            public static int GetMaxByteCount(int count)
+            {
+                return StringEncode.GetMaxByteCount(count);
             }
         }
     }

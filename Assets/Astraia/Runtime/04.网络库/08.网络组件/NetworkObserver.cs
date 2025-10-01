@@ -129,7 +129,7 @@ namespace Astraia.Net
             {
                 if (!clients.Contains(NetworkManager.Host))
                 {
-                    if (entity.sceneId == 0)
+                    if (entity.sceneId != 0 || entity.visible == Visible.Pool)
                     {
                         entity.gameObject.SetActive(false);
                     }
