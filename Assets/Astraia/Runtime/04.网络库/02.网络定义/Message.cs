@@ -76,10 +76,6 @@ namespace Astraia.Common
     {
     }
 
-    internal struct SpawnEndMessage : IMessage
-    {
-    }
-
     internal struct DespawnMessage : IMessage
     {
         public readonly uint objectId;

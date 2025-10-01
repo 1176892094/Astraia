@@ -26,7 +26,7 @@ namespace Astraia.Net
 
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
-            internal static readonly Dictionary<NetworkEntity, SpawnMessage> copies = new Dictionary<NetworkEntity, SpawnMessage>();
+            internal static readonly Dictionary<uint, NetworkEntity> copies = new Dictionary<uint, NetworkEntity>();
 
             internal static State state = State.Disconnect;
 
@@ -83,8 +83,8 @@ namespace Astraia.Net
                 sendTime = 0;
                 pongTime = 0;
                 pingTime = 0;
-                spawns.Clear();
                 copies.Clear();
+                spawns.Clear();
                 scenes.Clear();
                 isLoadScene = false;
                 EventManager.Invoke(new ClientDisconnect());
@@ -164,7 +164,6 @@ namespace Astraia.Net
                 NetworkMessage<SceneMessage>.Add(SceneMessage);
                 NetworkMessage<SpawnBeginMessage>.Add(SpawnBeginMessage);
                 NetworkMessage<SpawnMessage>.Add(SpawnMessage);
-                NetworkMessage<SpawnEndMessage>.Add(SpawnEndMessage);
                 NetworkMessage<DespawnMessage>.Add(DespawnMessage);
                 NetworkMessage<DestroyMessage>.Add(DestroyMessage);
             }
@@ -245,26 +244,6 @@ namespace Astraia.Net
                         Debug.LogWarning("客户端场景对象重复。网络对象: {0}".Format(entity.name), entity);
                     }
                 }
-
-                copies.Clear();
-                connection.isSpawn = false;
-            }
-
-            private static void SpawnEndMessage(SpawnEndMessage message)
-            {
-                if (isServer) return;
-                foreach (var entity in spawns.Values.Where(entity => entity).OrderBy(entity => entity.objectId))
-                {
-                    if (copies.TryGetValue(entity, out var segment))
-                    {
-                        Spawn(segment, entity);
-                        entity.OnStartClient();
-                        entity.OnNotifyAuthority();
-                    }
-                }
-
-                copies.Clear();
-                connection.isSpawn = true;
             }
 
             private static void SpawnMessage(SpawnMessage message)
@@ -278,25 +257,25 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (LoadEntity(message, out entity))
+                if (copies.Remove(message.objectId, out entity) || LoadEntity(message, out entity))
                 {
-                    if (connection.isSpawn)
+                    entity.objectId = message.objectId;
+                    entity.transform.localPosition = message.position;
+                    entity.transform.localRotation = message.rotation;
+                    entity.transform.localScale = message.localScale;
+                    entity.mode = (message.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                    entity.mode |= EntityMode.Client;
+
+                    if (message.segment.Count > 0)
                     {
-                        Spawn(message, entity);
-                        entity.OnStartClient();
-                        entity.OnNotifyAuthority();
-                        return;
+                        using var reader = MemoryReader.Pop(message.segment);
+                        entity.ClientDeserialize(reader, true);
                     }
 
                     spawns[message.objectId] = entity;
-                    var segment = new byte[message.segment.Count];
-                    if (message.segment.Count > 0)
-                    {
-                        Buffer.BlockCopy(message.segment.Array!, message.segment.Offset, segment, 0, message.segment.Count);
-                    }
-
-                    message.segment = new ArraySegment<byte>(segment);
-                    copies[entity] = message;
+                    entity.gameObject.SetActive(true);
+                    entity.OnStartClient();
+                    entity.OnNotifyAuthority();
                 }
             }
 
@@ -307,6 +286,8 @@ namespace Astraia.Net
                     entity.OnStopClient();
                     entity.mode &= ~EntityMode.Owner;
                     entity.OnNotifyAuthority();
+                    spawns.Remove(message.objectId);
+                    copies[message.objectId] = entity;
                     entity.gameObject.SetActive(false);
                 }
             }
@@ -404,7 +385,7 @@ namespace Astraia.Net
         {
             private static bool LoadEntity(SpawnMessage message, out NetworkEntity entity)
             {
-                if (spawns.TryGetValue(message.objectId, out entity) && entity)
+                if (spawns.TryGetValue(message.objectId, out entity))
                 {
                     return true;
                 }
@@ -431,24 +412,6 @@ namespace Astraia.Net
                 }
 
                 return entity;
-            }
-
-            private static void Spawn(SpawnMessage message, NetworkEntity entity)
-            {
-                spawns[message.objectId] = entity;
-                entity.gameObject.SetActive(true);
-                entity.objectId = message.objectId;
-                entity.transform.localPosition = message.position;
-                entity.transform.localRotation = message.rotation;
-                entity.transform.localScale = message.localScale;
-                entity.mode = (message.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
-                entity.mode |= EntityMode.Client;
-
-                if (message.segment.Count > 0)
-                {
-                    using var reader = MemoryReader.Pop(message.segment);
-                    entity.ClientDeserialize(reader, true);
-                }
             }
         }
 

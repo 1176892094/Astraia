@@ -182,8 +182,7 @@ namespace Astraia.Net
                             break;
                     }
                 }
-
-                client.Send(new SpawnEndMessage());
+                
                 EventManager.Invoke(new ServerReady(client));
             }
 
