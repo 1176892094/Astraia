@@ -277,7 +277,7 @@ namespace Astraia.Net
                     {
                         Despawn(entity.gameObject);
                     }
-                    
+
                     NetworkSpawner.Release(client);
                     clients.Remove(client.clientId);
                     EventManager.Invoke(new ServerDisconnect(client));
@@ -359,7 +359,7 @@ namespace Astraia.Net
                     entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
                     entity.OnStartServer();
                 }
-                
+
                 SpawnObserver(entity, true);
             }
 
@@ -434,7 +434,7 @@ namespace Astraia.Net
                     entity.OnStopServer();
                     if (entity.visible == Visible.Pool)
                     {
-                        if (!isClient) PoolManager.Hide(entity.gameObject);
+                        if (!isClient) entity.gameObject.SetActive(false);
                         entity.Reset();
                     }
                     else if (entity.sceneId != 0)

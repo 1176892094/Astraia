@@ -21,6 +21,7 @@ namespace Astraia.Net
         private readonly Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
         private readonly HashSet<int> clients = new HashSet<int>();
         private readonly List<int> copies = new List<int>();
+        private GameObject pool;
         private Grid<int> grids;
         private double waitTime;
 
@@ -95,6 +96,11 @@ namespace Astraia.Net
             if (entity.visible != Visible.Hide)
             {
                 grids.Set(EntityToGrid(entity.transform.position), clients);
+                if (reload && entity.visible == Visible.Pool)
+                {
+                    pool ??= new GameObject("Pool - {0}".Format(entity.name));
+                    entity.transform.SetParent(pool.transform);
+                }
             }
 
             if (entity.client != null)
@@ -122,17 +128,6 @@ namespace Astraia.Net
                 if (!clients.Contains(client))
                 {
                     NetworkSpawner.Despawn(entity, client, true);
-                }
-            }
-
-            if (reload)
-            {
-                if (!clients.Contains(NetworkManager.Host))
-                {
-                    if (entity.sceneId != 0 || entity.visible == Visible.Pool)
-                    {
-                        entity.gameObject.SetActive(false);
-                    }
                 }
             }
         }

@@ -452,8 +452,15 @@ namespace Astraia.Net
                     entity.OnNotifyAuthority();
                     if (entity.visible == Visible.Pool)
                     {
-                        PoolManager.Hide(entity.gameObject);
-                        if (!isServer) entity.Reset();
+                        if (isServer)
+                        {
+                            entity.gameObject.SetActive(false);
+                        }
+                        else
+                        {
+                            PoolManager.Hide(entity.gameObject);
+                            entity.Reset();
+                        }
                     }
                     else if (entity.sceneId != 0)
                     {
