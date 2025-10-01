@@ -273,6 +273,8 @@ namespace Astraia.Net
                     if (copies.TryGetValue(entity, out var segment))
                     {
                         Spawn(segment, entity);
+                        entity.OnStartClient();
+                        entity.OnNotifyAuthority();
                     }
                 }
 
@@ -281,20 +283,16 @@ namespace Astraia.Net
 
             private static void SpawnMessage(SpawnMessage message)
             {
-                if (isServer)
+                if (isServer && Server.spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    if (Server.spawns.TryGetValue(message.objectId, out var result))
-                    {
-                        result.gameObject.SetActive(true);
-                        spawns[message.objectId] = result;
-                        result.OnStartClient();
-                        result.OnNotifyAuthority();
-                    }
-
+                    spawns[message.objectId] = entity;
+                    entity.gameObject.SetActive(true);
+                    entity.OnStartClient();
+                    entity.OnNotifyAuthority();
                     return;
                 }
 
-                if (!LoadEntity(message, out var entity))
+                if (!LoadEntity(message, out entity))
                 {
                     return;
                 }
@@ -302,6 +300,8 @@ namespace Astraia.Net
                 if (connection.isSpawn)
                 {
                     Spawn(message, entity);
+                    entity.OnStartClient();
+                    entity.OnNotifyAuthority();
                     return;
                 }
 
@@ -399,9 +399,7 @@ namespace Astraia.Net
                 }
                 else
                 {
-                    var name = GlobalSetting.Prefab.Format(message.assetId);
-                    var prefab = (message.opcode & 2) != 0 ? PoolManager.Show(name) : AssetManager.Load<GameObject>(name);
-                    prefab.gameObject.name = name;
+                    var prefab = NetworkSpawner.Spawn(message.opcode,message.assetId);
                     if (!prefab.TryGetComponent(out entity))
                     {
                         Log.Error("无法注册网络对象 {0} 没有网络对象组件。", prefab.name);
@@ -422,11 +420,10 @@ namespace Astraia.Net
             {
                 spawns[message.objectId] = entity;
                 entity.gameObject.SetActive(true);
+                entity.objectId = message.objectId;
                 entity.transform.localPosition = message.position;
                 entity.transform.localRotation = message.rotation;
                 entity.transform.localScale = message.localScale;
-
-                entity.objectId = message.objectId;
                 entity.mode = (message.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
                 entity.mode |= EntityMode.Client;
 
@@ -434,12 +431,6 @@ namespace Astraia.Net
                 {
                     using var reader = MemoryReader.Pop(message.segment);
                     entity.ClientDeserialize(reader, true);
-                }
-
-                if (connection.isSpawn)
-                {
-                    entity.OnStartClient();
-                    entity.OnNotifyAuthority();
                 }
             }
 
@@ -450,29 +441,7 @@ namespace Astraia.Net
                     entity.OnStopClient();
                     entity.mode &= ~EntityMode.Owner;
                     entity.OnNotifyAuthority();
-                    if (entity.visible == Visible.Pool)
-                    {
-                        if (isServer)
-                        {
-                            entity.gameObject.SetActive(false);
-                        }
-                        else
-                        {
-                            PoolManager.Hide(entity.gameObject);
-                            entity.Reset();
-                        }
-                    }
-                    else if (entity.sceneId != 0)
-                    {
-                        entity.gameObject.SetActive(false);
-                        if (!isServer) entity.Reset();
-                    }
-                    else
-                    {
-                        entity.state |= EntityState.Destroy;
-                        Destroy(entity.gameObject);
-                    }
-
+                    NetworkSpawner.Despawn(entity);
                     spawns.Remove(message.objectId);
                 }
             }

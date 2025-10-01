@@ -68,11 +68,10 @@ namespace Astraia.Net
                 Transport.Instance.StopServer();
                 sendTime = 0;
                 objectId = 0;
-                copies.Clear();
                 spawns.Clear();
                 clients.Clear();
                 isLoadScene = false;
-                NetworkSpawner.Dispose();
+                NetworkListener.Dispose();
             }
 
             internal static void Connect(NetworkClient client)
@@ -100,7 +99,7 @@ namespace Astraia.Net
                 foreach (var client in clients.Values)
                 {
                     client.isReady = false;
-                    NetworkSpawner.Destroy(client);
+                    NetworkListener.Destroy(client);
                     client.Send(new NotReadyMessage());
                 }
 
@@ -168,17 +167,17 @@ namespace Astraia.Net
                     switch (entity.visible)
                     {
                         case Visible.Show:
-                            NetworkSpawner.Spawn(entity, client);
+                            NetworkListener.Listen(entity, client);
                             break;
                         case Visible.Pool when observer:
                             if (observer.OnExecute(entity, client))
                             {
-                                NetworkSpawner.Spawn(entity, client);
+                                NetworkListener.Listen(entity, client);
                             }
 
                             break;
                         case Visible.Pool:
-                            NetworkSpawner.Spawn(entity, client);
+                            NetworkListener.Listen(entity, client);
                             break;
                     }
                 }
@@ -230,7 +229,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (NetworkAttribute.RequireReady(message.methodHash) && entity.client != client)
+                if (NetworkAttribute.HasInvoke(message.methodHash) && entity.client != client)
                 {
                     Log.Warn("无法为客户端 {0} 进行远程调用，未通过验证 {1}。", client.clientId, message.objectId);
                     return;
@@ -278,7 +277,7 @@ namespace Astraia.Net
                         Despawn(entity.gameObject);
                     }
 
-                    NetworkSpawner.Destroy(client);
+                    NetworkListener.Destroy(client);
                     clients.Remove(client.clientId);
                     EventManager.Invoke(new ServerDisconnect(client));
                 }
@@ -351,54 +350,46 @@ namespace Astraia.Net
 
                 entity.client = client;
                 entity.mode = client != null && client.clientId == Host ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
+                entity.mode = isServer ? entity.mode | EntityMode.Server : entity.mode & ~EntityMode.Server;
+                entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
                 if (entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
                     spawns[entity.objectId] = entity;
-                    entity.mode = isServer ? entity.mode | EntityMode.Server : entity.mode & ~EntityMode.Server;
-                    entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
                     entity.OnStartServer();
                 }
 
-                SpawnObserver(entity, true);
-            }
-
-            internal static void SpawnObserver(NetworkEntity entity, bool reload)
-            {
                 if (observer && entity.visible != Visible.Show)
                 {
-                    observer.Rebuild(entity, reload);
+                    observer.Rebuild(entity, true);
                     return;
                 }
 
-                if (reload)
+                if (entity.visible == Visible.Hide)
                 {
-                    if (entity.visible == Visible.Hide)
+                    if (client != null)
                     {
-                        if (entity.client != null)
-                        {
-                            NetworkSpawner.Spawn(entity, entity.client);
-                        }
+                        NetworkListener.Listen(entity, client);
                     }
-                    else
+
+                    return;
+                }
+
+                foreach (var result in clients.Values)
+                {
+                    if (result.isReady)
                     {
-                        foreach (var client in clients.Values)
-                        {
-                            if (client.isReady)
-                            {
-                                NetworkSpawner.Spawn(entity, client);
-                            }
-                        }
+                        NetworkListener.Listen(entity, result);
                     }
                 }
             }
 
-            internal static void SpawnMessage(NetworkClient client, NetworkEntity entity)
+            internal static void SpawnMessage(NetworkEntity entity, NetworkClient client)
             {
                 using var owner = MemoryWriter.Pop();
                 using var other = MemoryWriter.Pop();
                 ArraySegment<byte> segment = default;
-                if (entity.modules.Count != 0)
+                if (entity.modules.Count > 0)
                 {
                     entity.ServerSerialize(true, owner, other);
                     segment = entity.client == client ? owner : other;
@@ -407,7 +398,6 @@ namespace Astraia.Net
                 byte opcode = 0;
                 opcode = (byte)(entity.client == client ? opcode | 1 : opcode & ~1);
                 opcode = (byte)(entity.visible == Visible.Pool ? opcode | 2 : opcode & ~2);
-
                 var message = new SpawnMessage
                 {
                     opcode = opcode,
@@ -426,28 +416,13 @@ namespace Astraia.Net
             {
                 if (obj.TryGetComponent(out NetworkEntity entity))
                 {
-                    foreach (var client in NetworkSpawner.Query(entity))
+                    foreach (var client in NetworkListener.Query(entity))
                     {
                         client.Send(new DespawnMessage(entity.objectId));
                     }
 
                     entity.OnStopServer();
-                    if (entity.visible == Visible.Pool)
-                    {
-                        if (!isClient) entity.gameObject.SetActive(false);
-                        entity.Reset();
-                    }
-                    else if (entity.sceneId != 0)
-                    {
-                        if (!isClient) entity.gameObject.SetActive(false);
-                        entity.Reset();
-                    }
-                    else
-                    {
-                        entity.state |= EntityState.Destroy;
-                        Destroy(entity.gameObject);
-                    }
-
+                    NetworkSpawner.Despawn(entity);
                     spawns.Remove(entity.objectId);
                 }
             }
@@ -487,7 +462,7 @@ namespace Astraia.Net
                 {
                     if (client.isReady)
                     {
-                        foreach (var entity in NetworkSpawner.Query(client))
+                        foreach (var entity in NetworkListener.Query(client))
                         {
                             if (!entity)
                             {

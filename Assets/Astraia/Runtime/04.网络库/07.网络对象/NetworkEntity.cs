@@ -83,7 +83,7 @@ namespace Astraia.Net
 
         protected override void OnDestroy()
         {
-            NetworkSpawner.Destroy(this);
+            NetworkListener.Destroy(this);
             if (isServer && (state & EntityState.Destroy) == 0)
             {
                 NetworkManager.Server.Despawn(gameObject);
@@ -109,7 +109,7 @@ namespace Astraia.Net
             other.position = 0;
             mode = EntityMode.None;
             state = EntityState.None;
-            NetworkSpawner.Destroy(this);
+            NetworkListener.Destroy(this);
         }
 
 #if UNITY_EDITOR
@@ -414,6 +414,8 @@ namespace Astraia.Net
                         result.OnStopClient();
                     }
                 }
+
+                state &= ~EntityState.Spawn;
             }
         }
 

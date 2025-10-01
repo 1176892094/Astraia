@@ -75,7 +75,11 @@ namespace Astraia.Net
                 {
                     foreach (var entity in NetworkManager.Server.spawns.Values)
                     {
-                        NetworkManager.Server.SpawnObserver(entity, false);
+                        if (entity.visible != Visible.Show)
+                        {
+                            Rebuild(entity, false);
+                            return;
+                        }
                     }
 
                     waitTime = Time.unscaledTimeAsDouble;
@@ -100,6 +104,7 @@ namespace Astraia.Net
                 {
                     pool ??= new GameObject("Pool - {0}".Format(entity.name));
                     entity.transform.SetParent(pool.transform);
+                    entity.gameObject.SetActive(false);
                 }
             }
 
@@ -108,12 +113,13 @@ namespace Astraia.Net
                 clients.Add(entity.client);
             }
 
-            var queries = NetworkSpawner.Query(entity);
+            var queries = NetworkListener.Query(entity);
             foreach (NetworkClient client in clients)
             {
                 if (client.isReady && (reload || !queries.Contains(client)))
                 {
-                    NetworkSpawner.Spawn(entity, client);
+                    Debug.LogWarning(entity.objectId, entity);
+                    NetworkListener.Listen(entity, client);
                 }
             }
 
@@ -127,7 +133,8 @@ namespace Astraia.Net
             {
                 if (!clients.Contains(client))
                 {
-                    NetworkSpawner.Despawn(entity, client, true);
+                    NetworkListener.Remove(entity, client);
+                    client.Send(new DespawnMessage(entity.objectId));
                 }
             }
         }

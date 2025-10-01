@@ -3,135 +3,69 @@
 // // # Unity: 6000.3.5f1
 // // # Author: 云谷千羽
 // // # Version: 1.0.0
-// // # History: 2025-09-30 14:09:00
-// // # Recently: 2025-09-30 14:09:00
+// // # History: 2025-10-01 19:10:11
+// // # Recently: 2025-10-01 19:10:11
 // // # Copyright: 2024, 云谷千羽
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Astraia.Common;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Astraia.Net
 {
-    internal static class NetworkSpawner
+    public static class NetworkSpawner
     {
-        private static readonly Dictionary<int, HashSet<NetworkEntity>> entityData = new();
-        private static readonly Dictionary<uint, HashSet<NetworkClient>> clientData = new();
+        private static readonly Dictionary<uint, Queue<GameObject>> spawns = new Dictionary<uint, Queue<GameObject>>();
+        private static readonly HashSet<GameObject> cached = new HashSet<GameObject>();
 
-        public static void Spawn(NetworkEntity entity, NetworkClient client)
+        internal static GameObject Spawn(byte opcode, uint assetId)
         {
-            if (!clientData.TryGetValue(entity, out var clients))
+            if ((opcode & 2) != 0)
             {
-                clients = new HashSet<NetworkClient>();
-                clientData.Add(entity, clients);
-            }
-
-            if (clients.Count == 0)
-            {
-                entity.ClearDirty(true);
-            }
-
-            if (clients.Add(client))
-            {
-                if (!entityData.TryGetValue(client, out var entities))
+                if (!spawns.TryGetValue(assetId, out var queue))
                 {
-                    entities = new HashSet<NetworkEntity>();
-                    entityData.Add(client, entities);
+                    queue = new Queue<GameObject>();
+                    spawns[assetId] = queue;
                 }
 
-                entities.Add(entity);
-                if (client.isReady)
+                if (queue.Count > 0)
                 {
-                    NetworkManager.Server.SpawnMessage(client, entity);
+                    var item = queue.Dequeue();
+                    cached.Remove(item);
+                    if (item)
+                    {
+                        return item;
+                    }
                 }
             }
+
+            return AssetManager.Load<GameObject>(GlobalSetting.Prefab.Format(assetId));
         }
 
-        public static void Despawn(NetworkEntity entity, NetworkClient client, bool request)
+        internal static void Despawn(NetworkEntity entity)
         {
-            if (clientData.TryGetValue(entity, out var clients))
+            if (entity.visible == Visible.Pool)
             {
-                if (clients.Remove(client) && clients.Count == 0)
+                if (spawns.TryGetValue(entity.assetId, out var queue) && cached.Add(entity.gameObject))
                 {
-                    clientData.Remove(entity);
-                    entity.ClearDirty(true);
+                    queue.Enqueue(entity.gameObject);
                 }
+                
+                entity.gameObject.SetActive(false);
             }
-
-            if (entityData.TryGetValue(client, out var entities))
+            else if (entity.sceneId != 0)
             {
-                if (request)
-                {
-                    client.Send(new DespawnMessage(entity.objectId));
-                }
-
-                if (entities.Remove(entity) && entities.Count == 0)
-                {
-                    entityData.Remove(client);
-                }
+                entity.gameObject.SetActive(false);
+                entity.Reset();
             }
-        }
-
-        public static void Destroy(NetworkClient client)
-        {
-            if (entityData.TryGetValue(client, out var entities))
+            else
             {
-                foreach (var entity in entities.ToArray())
-                {
-                    Despawn(entity, client, false);
-                }
+                entity.state |= EntityState.Destroy;
+                Object.Destroy(entity.gameObject);
             }
-        }
-
-        public static void Destroy(NetworkEntity entity)
-        {
-            if (clientData.TryGetValue(entity, out var clients))
-            {
-                foreach (var client in clients.ToArray())
-                {
-                    Despawn(entity, client, false);
-                }
-            }
-        }
-
-        public static ICollection<NetworkEntity> Query(NetworkClient client)
-        {
-            if (entityData.TryGetValue(client, out var entities))
-            {
-                return entities;
-            }
-
-            return Array.Empty<NetworkEntity>();
-        }
-
-        public static ICollection<NetworkClient> Query(NetworkEntity entity)
-        {
-            if (clientData.TryGetValue(entity, out var clients))
-            {
-                return clients;
-            }
-
-            return Array.Empty<NetworkClient>();
-        }
-
-        public static void Dispose()
-        {
-            foreach (var clients in clientData.Values)
-            {
-                clients.Clear();
-            }
-
-            clientData.Clear();
-
-            foreach (var entities in entityData.Values)
-            {
-                entities.Clear();
-            }
-
-            entityData.Clear();
         }
     }
 }
