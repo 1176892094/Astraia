@@ -17,7 +17,7 @@ namespace Astraia
 {
     internal sealed partial class Server
     {
-        private sealed class Client : Module
+        private sealed class Client : Peer
         {
             public readonly EndPoint endPoint;
             private readonly Action onDisconnect;

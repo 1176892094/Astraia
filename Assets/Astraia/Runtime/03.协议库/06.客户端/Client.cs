@@ -16,7 +16,7 @@ using Astraia.Common;
 
 namespace Astraia
 {
-    internal sealed class Client : Module
+    internal sealed class Client : Peer
     {
         private readonly byte[] buffer;
         private readonly Setting setting;

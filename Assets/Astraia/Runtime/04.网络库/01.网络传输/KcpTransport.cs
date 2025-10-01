@@ -76,7 +76,7 @@ namespace Astraia.Net
 
         public override uint GetLength(int channel)
         {
-            return channel == Channel.Reliable ? Module.KcpLength(unitData, receiveWindow) : Module.UdpLength(unitData);
+            return channel == Channel.Reliable ? Peer.KcpLength(unitData, receiveWindow) : Peer.UdpLength(unitData);
         }
 
         public override void StartServer()

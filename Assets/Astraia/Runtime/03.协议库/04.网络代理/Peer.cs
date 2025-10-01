@@ -15,7 +15,7 @@ using System.Net.Sockets;
 
 namespace Astraia.Common
 {
-    internal abstract class Module
+    internal abstract class Peer
     {
         private const int INTERVAL_PING = 1000;
         private const int METADATA_SIZE = sizeof(byte) + sizeof(int);
@@ -33,7 +33,7 @@ namespace Astraia.Common
         protected uint userData;
         private uint keepTime => (uint)watch.ElapsedMilliseconds;
 
-        protected Module(Setting setting, uint userData = 0)
+        protected Peer(Setting setting, uint userData = 0)
         {
             Rebuild(setting);
             this.userData = userData;

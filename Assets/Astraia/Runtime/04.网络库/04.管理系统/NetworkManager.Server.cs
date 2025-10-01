@@ -104,7 +104,7 @@ namespace Astraia.Net
                     client.Send(new NotReadyMessage());
                 }
 
-                EventManager.Invoke(new ServerChangeScene(sceneName));
+                EventManager.Invoke(new ServerLoadScene(sceneName));
                 if (isServer)
                 {
                     isLoadScene = true;
@@ -123,7 +123,7 @@ namespace Astraia.Net
             {
                 isLoadScene = false;
                 SpawnEntities();
-                EventManager.Invoke(new ServerSceneChanged(sceneName));
+                EventManager.Invoke(new ServerSceneLoaded(sceneName));
             }
         }
 

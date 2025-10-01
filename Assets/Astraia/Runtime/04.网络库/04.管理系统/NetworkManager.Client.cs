@@ -121,7 +121,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                EventManager.Invoke(new ClientChangeScene(sceneName));
+                EventManager.Invoke(new ClientLoadScene(sceneName));
                 if (isServer) return;
                 isLoadScene = true;
                 Instance.sceneName = sceneName;
@@ -137,7 +137,7 @@ namespace Astraia.Net
                     Ready();
                 }
 
-                EventManager.Invoke(new ClientSceneChanged(sceneName));
+                EventManager.Invoke(new ClientSceneLoaded(sceneName));
             }
         }
 

@@ -26,13 +26,13 @@ namespace Astraia.Common
 
     public record ClientNotReady : IEvent;
 
-    public record ServerChangeScene(string sceneName) : IEvent;
+    public record ServerLoadScene(string sceneName) : IEvent;
 
-    public record ServerSceneChanged(string sceneName) : IEvent;
+    public record ServerSceneLoaded(string sceneName) : IEvent;
 
-    public record ClientChangeScene(string sceneName) : IEvent;
+    public record ClientLoadScene(string sceneName) : IEvent;
 
-    public record ClientSceneChanged(string sceneName) : IEvent;
+    public record ClientSceneLoaded(string sceneName) : IEvent;
 
     public record ServerResponse(Uri uri) : IEvent;
     
