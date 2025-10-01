@@ -26,7 +26,7 @@ namespace Astraia.Net
 
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
-            private static readonly List<int> copies = new List<int>();
+            private static readonly List<NetworkClient> copies = new List<NetworkClient>();
 
             internal static State state = State.Disconnect;
 
@@ -58,10 +58,9 @@ namespace Astraia.Net
             {
                 if (!isServer) return;
                 copies.Clear();
-                copies.AddRange(clients.Keys);
-                foreach (NetworkClient client in copies)
+                copies.AddRange(clients.Values);
+                foreach (var client in copies)
                 {
-                    client.Disconnect();
                     OnServerDisconnect(client.clientId);
                 }
 
@@ -73,6 +72,7 @@ namespace Astraia.Net
                 spawns.Clear();
                 clients.Clear();
                 isLoadScene = false;
+                NetworkSpawner.Dispose();
             }
 
             internal static void Connect(NetworkClient client)
@@ -109,7 +109,6 @@ namespace Astraia.Net
                 {
                     isLoadScene = true;
                     Instance.sceneName = sceneName;
-
                     foreach (var client in clients.Values)
                     {
                         client.Send(new SceneMessage(sceneName));
@@ -248,7 +247,6 @@ namespace Astraia.Net
             {
                 if (clientId == 0)
                 {
-                    Log.Warn("无法为客户端 {0} 建立连接服务。", clientId);
                     Transport.Instance.Disconnect(clientId);
                 }
                 else if (clients.ContainsKey(clientId))
@@ -269,13 +267,17 @@ namespace Astraia.Net
             {
                 if (clients.TryGetValue(clientId, out var client))
                 {
+                    if (client.clientId != Host)
+                    {
+                        client.Disconnect();
+                    }
+
                     var entities = spawns.Values.Where(entity => entity.client == client).ToList();
                     foreach (var entity in entities)
                     {
                         Despawn(entity.gameObject);
                     }
-
-                    client.isReady = false;
+                    
                     NetworkSpawner.Release(client);
                     clients.Remove(client.clientId);
                     EventManager.Invoke(new ServerDisconnect(client));
@@ -357,19 +359,7 @@ namespace Astraia.Net
                     entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
                     entity.OnStartServer();
                 }
-
-                if (entity.visible == Visible.Pool)
-                {
-                    if (!GlobalManager.poolRoot.TryGetValue(obj.name, out var pool))
-                    {
-                        pool = new GameObject("Pool - {0}".Format(obj.name));
-                        pool.transform.SetParent(Instance.transform);
-                        GlobalManager.poolRoot.Add(obj.name, pool);
-                    }
-
-                    obj.transform.SetParent(pool.transform);
-                }
-
+                
                 SpawnObserver(entity, true);
             }
 
@@ -492,8 +482,8 @@ namespace Astraia.Net
             private static void Broadcast()
             {
                 copies.Clear();
-                copies.AddRange(clients.Keys);
-                foreach (NetworkClient client in copies)
+                copies.AddRange(clients.Values);
+                foreach (var client in copies)
                 {
                     if (client.isReady)
                     {

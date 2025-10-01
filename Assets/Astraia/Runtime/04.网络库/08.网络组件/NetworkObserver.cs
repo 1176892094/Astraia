@@ -121,7 +121,7 @@ namespace Astraia.Net
             {
                 if (!clients.Contains(client))
                 {
-                    NetworkSpawner.Despawn(entity, client);
+                    NetworkSpawner.Despawn(entity, client, true);
                 }
             }
 

@@ -50,7 +50,7 @@ namespace Astraia.Net
             }
         }
 
-        public static void Despawn(NetworkEntity entity, NetworkClient client)
+        public static void Despawn(NetworkEntity entity, NetworkClient client, bool request)
         {
             if (clientData.TryGetValue(entity, out var clients))
             {
@@ -63,7 +63,7 @@ namespace Astraia.Net
 
             if (entityData.TryGetValue(client, out var entities))
             {
-                if (client.isReady)
+                if (request)
                 {
                     client.Send(new DespawnMessage(entity.objectId));
                 }
@@ -81,7 +81,7 @@ namespace Astraia.Net
             {
                 foreach (var entity in entities.ToArray())
                 {
-                    Despawn(entity, client);
+                    Despawn(entity, client, false);
                 }
             }
         }
@@ -92,7 +92,7 @@ namespace Astraia.Net
             {
                 foreach (var client in clients.ToArray())
                 {
-                    Despawn(entity, client);
+                    Despawn(entity, client, false);
                 }
             }
         }

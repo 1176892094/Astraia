@@ -22,7 +22,7 @@ namespace Astraia.Net
         [Serializable]
         public static partial class Client
         {
-            private static readonly Dictionary<ulong, NetworkEntity> scenes = new Dictionary<ulong, NetworkEntity>();
+            internal static readonly Dictionary<uint, NetworkEntity> scenes = new Dictionary<uint, NetworkEntity>();
 
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
@@ -46,18 +46,19 @@ namespace Astraia.Net
 
             internal static void Start(bool transport)
             {
-                AddMessage(transport);
-                state = State.Connect;
-                connection = new NetworkServer();
-                if (transport)
+                if (!transport)
                 {
-                    Transport.Instance.StartClient();
+                    AddMessage(false);
+                    connection = new NetworkServer();
+                    Server.Connect(new NetworkClient());
+                    OnClientConnect();
                     return;
                 }
 
-                state = State.Connected;
-                Server.Connect(new NetworkClient());
-                Ready();
+                AddMessage(true);
+                state = State.Connect;
+                connection = new NetworkServer();
+                Transport.Instance.StartClient();
             }
 
             internal static void Start(Uri uri)
@@ -122,17 +123,22 @@ namespace Astraia.Net
                 }
 
                 EventManager.Invoke(new ClientLoadScene(sceneName));
-                if (isServer) return;
-                isLoadScene = true;
-                Instance.sceneName = sceneName;
-
-                AssetManager.LoadScene(sceneName);
+                if (!isServer)
+                {
+                    isLoadScene = true;
+                    Instance.sceneName = sceneName;
+                    AssetManager.LoadScene(sceneName);
+                }
             }
 
             internal static void LoadSceneComplete(string sceneName)
             {
                 isLoadScene = false;
-                if (isActive && !isReady) Ready();
+                if (isActive && !isReady)
+                {
+                    Ready();
+                }
+
                 EventManager.Invoke(new ClientSceneLoaded(sceneName));
             }
         }
@@ -288,7 +294,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (!SpawnObject(message, out var entity))
+                if (!LoadEntity(message, out var entity))
                 {
                     return;
                 }
@@ -376,7 +382,7 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static bool SpawnObject(SpawnMessage message, out NetworkEntity entity)
+            private static bool LoadEntity(SpawnMessage message, out NetworkEntity entity)
             {
                 if (spawns.TryGetValue(message.objectId, out entity) && entity)
                 {
