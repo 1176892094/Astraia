@@ -16,7 +16,7 @@ using System.Runtime.CompilerServices;
 
 namespace Astraia.Common
 {
-    public static partial class HeapManager
+    public static class HeapManager
     {
         internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
@@ -65,6 +65,102 @@ namespace Astraia.Common
             }
 
             poolData.Clear();
+        }
+
+        private class Pool<T> : IPool
+        {
+            private readonly HashSet<T> cached = new HashSet<T>();
+            private readonly Queue<T> unused = new Queue<T>();
+
+            public Type Type { get; private set; }
+            public string Path { get; private set; }
+            public int Acquire { get; private set; }
+            public int Release { get; private set; }
+            public int Dequeue { get; private set; }
+            public int Enqueue { get; private set; }
+
+            public T Load()
+            {
+                Dequeue++;
+                Acquire++;
+                T item;
+                if (unused.Count > 0)
+                {
+                    item = unused.Dequeue();
+                    cached.Remove(item);
+                    Release--;
+                }
+                else
+                {
+                    item = (T)Activator.CreateInstance(Type);
+                }
+
+                return item;
+            }
+
+            public void Push(T item)
+            {
+                Enqueue++;
+                if (cached.Add(item))
+                {
+                    Acquire--;
+                    Release++;
+                    unused.Enqueue(item);
+                }
+            }
+
+            void IDisposable.Dispose()
+            {
+                cached.Clear();
+                unused.Clear();
+            }
+
+            public static Pool<T> Create(Type type, string path)
+            {
+                var instance = new Pool<T>();
+                instance.Type = type;
+                instance.Path = path;
+                return instance;
+            }
+        }
+    }
+
+    internal interface IPool : IDisposable
+    {
+        public Type Type { get; }
+        public string Path { get; }
+        public int Acquire { get; }
+        public int Release { get; }
+        public int Dequeue { get; }
+        public int Enqueue { get; }
+    }
+
+    internal readonly struct Pool : IPool
+    {
+        public Type Type { get; }
+        public string Path { get; }
+        public int Acquire { get; }
+        public int Release { get; }
+        public int Dequeue { get; }
+        public int Enqueue { get; }
+
+        public Pool(IPool pool)
+        {
+            Type = pool.Type;
+            Path = pool.Path;
+            Acquire = pool.Acquire;
+            Release = pool.Release;
+            Dequeue = pool.Dequeue;
+            Enqueue = pool.Enqueue;
+        }
+
+        public override string ToString()
+        {
+            return "{0}\t\t{1}\t\t{2}\t\t{3}".Format(Release, Acquire, Dequeue, Enqueue);
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

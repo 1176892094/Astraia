@@ -15,7 +15,7 @@ using System.Runtime.CompilerServices;
 
 namespace Astraia.Common
 {
-    public static partial class EventManager
+    public static class EventManager
     {
         internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
@@ -59,5 +59,71 @@ namespace Astraia.Common
 
             poolData.Clear();
         }
+
+        private class Pool<T> : IPool where T : IEvent
+        {
+            private readonly HashSet<IEvent<T>> cached = new HashSet<IEvent<T>>();
+            private event Action<T> OnExecute;
+
+            public Type Type { get; private set; }
+            public string Path { get; private set; }
+            public int Acquire { get; private set; }
+            public int Release { get; private set; }
+            public int Dequeue { get; private set; }
+            public int Enqueue { get; private set; }
+
+            public void Listen(IEvent<T> obj)
+            {
+                if (cached.Add(obj))
+                {
+                    Dequeue++;
+                    Acquire++;
+                    OnExecute += obj.Execute;
+                }
+            }
+
+            public void Remove(IEvent<T> obj)
+            {
+                if (cached.Remove(obj))
+                {
+                    Enqueue++;
+                    Acquire--;
+                    OnExecute -= obj.Execute;
+                }
+            }
+
+            public void Invoke(T message)
+            {
+                Release++;
+                OnExecute?.Invoke(message);
+            }
+
+            void IDisposable.Dispose()
+            {
+                cached.Clear();
+                OnExecute = null;
+            }
+
+            public static Pool<T> Create(Type type, string path)
+            {
+                var instance = new Pool<T>();
+                instance.Type = type;
+                instance.Path = path;
+                return instance;
+            }
+        }
+    }
+
+    public interface IEvent
+    {
+    }
+
+    public interface IEvent<in T> where T : IEvent
+    {
+        void Execute(T message);
+
+        void Listen() => EventManager.Listen(this);
+
+        void Remove() => EventManager.Remove(this);
     }
 }
