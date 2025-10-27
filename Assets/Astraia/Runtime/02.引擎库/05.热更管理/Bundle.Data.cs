@@ -13,37 +13,5 @@ using System;
 
 namespace Astraia
 {
-    [Serializable]
-    internal struct BundleData : IEquatable<BundleData>
-    {
-        public string code;
-        public string name;
-        public int size;
-
-        public BundleData(string code, string name, int size)
-        {
-            this.code = code;
-            this.name = name;
-            this.size = size;
-        }
-
-        public static bool operator ==(BundleData a, BundleData b) => a.code == b.code;
-
-        public static bool operator !=(BundleData a, BundleData b) => a.code != b.code;
-
-        public bool Equals(BundleData other)
-        {
-            return size == other.size && code == other.code && name == other.name;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is BundleData other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(code, name, size);
-        }
-    }
+ 
 }

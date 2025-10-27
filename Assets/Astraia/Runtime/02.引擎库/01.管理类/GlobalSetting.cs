@@ -69,8 +69,8 @@ namespace Astraia
 #endif
         public string[] EncryptGroup;
 
-        private static string EditorPath => Target.Format(Path.GetDirectoryName(Application.dataPath));
-        private static string OptionPath => Instance.AssetMode == AssetMode.Actuator ? Instance.RemotePath : Instance.LocalPath;
+        public static string EditorPath => Target.Format(Path.GetDirectoryName(Application.dataPath));
+        public static string OptionPath => Instance.AssetMode == AssetMode.Actuator ? Instance.RemotePath : Instance.LocalPath;
         public static string BundlePath => Target.Format(Application.persistentDataPath);
         public static string TargetPath => Target.Format(Application.persistentDataPath) + "/{0}";
         public static string ServerPath => Path.Combine(Target.Format(OptionPath), Instance.BuildTarget + "/{0}");

@@ -10,24 +10,20 @@
 // // *********************************************************************************
 
 using System;
-using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Astraia
 {
-    [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Field)]
     public class InjectAttribute : Attribute
     {
     }
-
-    [MeansImplicitUse]
+    
     [AttributeUsage(AttributeTargets.Property)]
     public class PrimaryAttribute : Attribute
     {
     }
     
-    [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class)]
     public class UIMaskAttribute : Attribute
     {
@@ -40,16 +36,14 @@ namespace Astraia
             this.groupMask = groupMask;
         }
     }
-
-    [MeansImplicitUse]
+    
     [AttributeUsage(AttributeTargets.Class)]
     public class UIPathAttribute : Attribute
     {
         public readonly string assetPath;
         public UIPathAttribute(string assetPath) => this.assetPath = assetPath;
     }
-
-    [MeansImplicitUse]
+    
     [AttributeUsage(AttributeTargets.Class)]
     public class UIRectAttribute : Attribute
     {

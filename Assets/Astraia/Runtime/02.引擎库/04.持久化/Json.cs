@@ -9,12 +9,14 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using System.IO;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Astraia.Common
 {
-    public static partial class JsonManager
+    public static class JsonManager
     {
         public static void Save<T>(T data, string name)
         {
@@ -106,6 +108,48 @@ namespace Astraia.Common
             }
 
             return Path.Combine(jsonPath, "{0}.json".Format(fileName));
+        }
+
+        [Serializable]
+        private class JsonMapper<T>
+        {
+            public T value;
+
+            public JsonMapper(T value)
+            {
+                this.value = value;
+            }
+        }
+
+        public static string ToJson<T>(T data)
+        {
+            if (typeof(T).IsSubclassOf(typeof(Object)))
+            {
+                return JsonUtility.ToJson(data);
+            }
+
+            return JsonUtility.ToJson(new JsonMapper<T>(data));
+        }
+
+        public static void FromJson<T>(string json, T data)
+        {
+            if (typeof(T).IsSubclassOf(typeof(Object)))
+            {
+                JsonUtility.FromJsonOverwrite(json, data);
+                return;
+            }
+
+            JsonUtility.FromJsonOverwrite(json, new JsonMapper<T>(data));
+        }
+
+        public static T FromJson<T>(string json)
+        {
+            if (typeof(T).IsSubclassOf(typeof(Object)))
+            {
+                return JsonUtility.FromJson<T>(json);
+            }
+
+            return JsonUtility.FromJson<JsonMapper<T>>(json).value;
         }
     }
 }
