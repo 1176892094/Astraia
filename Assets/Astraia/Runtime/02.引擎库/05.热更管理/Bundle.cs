@@ -52,6 +52,7 @@ namespace Astraia.Common
                 {
                     serverData = streamData;
                     serverResult = streamResult;
+                    isRemote = false;
                 }
             }
             else
