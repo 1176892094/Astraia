@@ -65,7 +65,7 @@ namespace Astraia
                     var component = child.GetComponent(field.FieldType);
                     if (!component)
                     {
-                        Log.Info("没有找到依赖注入的组件: {0} {1} != {2}".Format(field.FieldType, field.FieldType.Name, upper));
+                        Service.Log.Info("没有找到依赖注入的组件: {0} {1} != {2}".Format(field.FieldType, field.FieldType.Name, upper));
                         continue;
                     }
 

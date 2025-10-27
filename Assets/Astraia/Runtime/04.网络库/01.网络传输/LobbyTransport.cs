@@ -55,13 +55,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Lobby.isActive)
             {
-                Log.Warn("没有连接到大厅!");
+                Service.Log.Warn("没有连接到大厅!");
                 return;
             }
 
             if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
             {
-                Log.Warn("客户端或服务器已经连接!");
+                Service.Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 
@@ -101,13 +101,13 @@ namespace Astraia.Net
         {
             if (!NetworkManager.Lobby.isActive)
             {
-                Log.Warn("没有连接到大厅!");
+                Service.Log.Warn("没有连接到大厅!");
                 return;
             }
 
             if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
             {
-                Log.Warn("客户端或服务器已经连接!");
+                Service.Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 

@@ -35,7 +35,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
+                    Service.Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
                     client.Disconnect();
                 }
             };
@@ -54,7 +54,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
+                    Service.Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
                     client.Disconnect();
                 }
             };
@@ -73,7 +73,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
+                    Service.Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
                     client.Disconnect();
                 }
             };

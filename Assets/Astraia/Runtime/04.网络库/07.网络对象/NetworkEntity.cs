@@ -203,19 +203,19 @@ namespace Astraia.Net
         {
             if (!transform)
             {
-                Log.Warn("调用了已经删除的网络对象。{0} [{1}] {2}", mode, function, objectId);
+                Service.Log.Warn("调用了已经删除的网络对象。{0} [{1}] {2}", mode, function, objectId);
                 return;
             }
 
             if (moduleId >= modules.Count)
             {
-                Log.Warn("网络对象 {0} 没有找到网络行为组件 {1}", objectId, moduleId);
+                Service.Log.Warn("网络对象 {0} 没有找到网络行为组件 {1}", objectId, moduleId);
                 return;
             }
 
             if (!NetworkAttribute.Invoke(function, mode, client, reader, modules[moduleId]))
             {
-                Log.Warn("无法调用{0} [{1}] 网络对象: {2} 网络标识: {3}", mode, function, gameObject.name, objectId);
+                Service.Log.Warn("无法调用{0} [{1}] 网络对象: {2} 网络标识: {3}", mode, function, gameObject.name, objectId);
             }
         }
 

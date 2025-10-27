@@ -122,7 +122,7 @@ namespace Astraia.Net
 
             if (value.objectId == 0)
             {
-                Log.Warn("网络对象的网络标识无效。");
+                Service.Log.Warn("网络对象的网络标识无效。");
                 writer.WriteUInt(0);
                 return;
             }

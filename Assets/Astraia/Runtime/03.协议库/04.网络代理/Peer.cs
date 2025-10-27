@@ -118,7 +118,7 @@ namespace Astraia.Common
             {
                 if (kcp.Input(segment.Array, segment.Offset, segment.Count) != 0)
                 {
-                    Log.Warn("{0}: 发送可靠消息失败。消息大小: {1}", GetType(), segment.Count - 1);
+                    Service.Log.Warn("{0}: 发送可靠消息失败。消息大小: {1}", GetType(), segment.Count - 1);
                 }
             }
             else if (channel == Channel.Unreliable && segment.Count >= 1)
@@ -167,7 +167,7 @@ namespace Astraia.Common
         {
             if (segment.Count > udpLength)
             {
-                Log.Error("{0}: 发送不可靠消息失败。消息大小: {1}", GetType(), segment.Count);
+                Service.Log.Error("{0}: 发送不可靠消息失败。消息大小: {1}", GetType(), segment.Count);
                 return;
             }
 

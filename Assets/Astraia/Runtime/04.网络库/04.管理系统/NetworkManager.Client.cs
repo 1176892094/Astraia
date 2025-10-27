@@ -94,13 +94,13 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Log.Error("没有连接到有效的服务器！");
+                    Service.Log.Error("没有连接到有效的服务器！");
                     return;
                 }
 
                 if (isReady)
                 {
-                    Log.Error("客户端已经准备就绪！");
+                    Service.Log.Error("客户端已经准备就绪！");
                     return;
                 }
 
@@ -112,13 +112,13 @@ namespace Astraia.Net
             {
                 if (string.IsNullOrWhiteSpace(sceneName))
                 {
-                    Log.Error("客户端不能加载空场景！");
+                    Service.Log.Error("客户端不能加载空场景！");
                     return;
                 }
 
                 if (isLoadScene && Instance.sceneName == sceneName)
                 {
-                    Log.Error("客户端正在加载 {0} 场景", sceneName);
+                    Service.Log.Error("客户端正在加载 {0} 场景", sceneName);
                     return;
                 }
 
@@ -198,13 +198,13 @@ namespace Astraia.Net
 
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Log.Warn("无法同步网络对象: {0}", message.objectId);
+                    Service.Log.Warn("无法同步网络对象: {0}", message.objectId);
                     return;
                 }
 
                 if (!entity)
                 {
-                    Log.Warn("无法同步网络对象: {0}", message.objectId);
+                    Service.Log.Warn("无法同步网络对象: {0}", message.objectId);
                     return;
                 }
 
@@ -225,7 +225,7 @@ namespace Astraia.Net
             {
                 if (!isActive)
                 {
-                    Log.Warn("客户端没有通过验证，无法加载场景。");
+                    Service.Log.Warn("客户端没有通过验证，无法加载场景。");
                     return;
                 }
 
@@ -239,7 +239,7 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Log.Error("没有连接到有效的服务器！");
+                    Service.Log.Error("没有连接到有效的服务器！");
                     return;
                 }
 
@@ -257,13 +257,13 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Log.Error("没有连接到有效的服务器！");
+                    Service.Log.Error("没有连接到有效的服务器！");
                     return;
                 }
 
                 if (!connection.reader.AddBatch(segment))
                 {
-                    Log.Warn("无法处理来自服务器的消息。");
+                    Service.Log.Warn("无法处理来自服务器的消息。");
                     connection.Disconnect();
                     return;
                 }
@@ -273,7 +273,7 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
                     {
-                        Log.Warn("无法处理来自服务器的消息。没有头部。");
+                        Service.Log.Warn("无法处理来自服务器的消息。没有头部。");
                         connection.Disconnect();
                         return;
                     }
@@ -281,7 +281,7 @@ namespace Astraia.Net
                     var message = reader.ReadUShort();
                     if (!NetworkMessage.client.TryGetValue(message, out var action))
                     {
-                        Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
+                        Service.Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
                         connection.Disconnect();
                         return;
                     }
@@ -291,7 +291,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && connection.reader.Count > 0)
                 {
-                    Log.Warn("无法处理来自服务器的消息。残留消息: {0}", connection.reader.Count);
+                    Service.Log.Warn("无法处理来自服务器的消息。残留消息: {0}", connection.reader.Count);
                 }
             }
         }
@@ -399,19 +399,19 @@ namespace Astraia.Net
                     var prefab = AssetManager.Load<GameObject>(GlobalSetting.Prefab.Format(message.assetId));
                     if (!prefab.TryGetComponent(out entity))
                     {
-                        Log.Error("无法注册网络对象 {0} 没有网络对象组件。", prefab.name);
+                        Service.Log.Error("无法注册网络对象 {0} 没有网络对象组件。", prefab.name);
                         return false;
                     }
 
                     if (entity.sceneId != 0)
                     {
-                        Log.Error("无法注册网络对象 {0}。因为该预置体为场景对象。", entity.name);
+                        Service.Log.Error("无法注册网络对象 {0}。因为该预置体为场景对象。", entity.name);
                         return false;
                     }
                 }
                 else if (!scenes.Remove(message.sceneId, out entity))
                 {
-                    Log.Error("无法注册网络对象 {0}。场景标识无效。", message.sceneId);
+                    Service.Log.Error("无法注册网络对象 {0}。场景标识无效。", message.sceneId);
                     return false;
                 }
 

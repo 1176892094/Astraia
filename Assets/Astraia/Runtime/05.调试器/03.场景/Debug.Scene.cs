@@ -145,7 +145,7 @@ namespace Astraia.Common
                             var component = components[componentIndex];
                             if (component is DebugManager || component is Transform)
                             {
-                                Log.Warn("无法销毁组件: " + component.GetType().Name);
+                                Service.Log.Warn("无法销毁组件: " + component.GetType().Name);
                             }
                             else
                             {

@@ -394,7 +394,7 @@ namespace Astraia.Net
                     newValue = entity.objectId;
                     if (newValue == 0)
                     {
-                        Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.name);
+                        Service.Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.name);
                     }
                 }
             }
@@ -410,7 +410,7 @@ namespace Astraia.Net
                 newValue = value.objectId;
                 if (newValue == 0)
                 {
-                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
+                    Service.Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
                 }
             }
 
@@ -427,7 +427,7 @@ namespace Astraia.Net
                 newIndex = entity.moduleId;
                 if (newValue == 0)
                 {
-                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
+                    Service.Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
                 }
             }
 
@@ -456,7 +456,7 @@ namespace Astraia.Net
                     newValue = entity.objectId;
                     if (newValue == 0)
                     {
-                        Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.name);
+                        Service.Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.name);
                     }
                 }
             }
@@ -479,7 +479,7 @@ namespace Astraia.Net
                 newValue = value.objectId;
                 if (newValue == 0)
                 {
-                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
+                    Service.Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
                 }
             }
 
@@ -503,7 +503,7 @@ namespace Astraia.Net
                 newIndex = value.moduleId;
                 if (newValue == 0)
                 {
-                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
+                    Service.Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
                 }
             }
 

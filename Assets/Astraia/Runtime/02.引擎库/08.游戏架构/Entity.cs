@@ -69,7 +69,7 @@ namespace Astraia
         private IEnumerable<IModule> modules
         {
             get => moduleData.Values.ToList();
-            set => Log.Error(value);
+            set => Service.Log.Error(value);
         }
 
         [HideInPlayMode, ValueDropdown("Modules")]

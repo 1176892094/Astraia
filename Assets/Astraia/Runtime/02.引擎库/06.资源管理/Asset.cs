@@ -34,12 +34,12 @@ namespace Astraia.Common
 
                 if (warning)
                 {
-                    Log.Warn("加载资源 {0} 为空!".Format(reason));
+                    Service.Log.Warn("加载资源 {0} 为空!".Format(reason));
                 }
             }
             catch (Exception e)
             {
-                Log.Warn("加载资源 {0} 失败!\n{1}".Format(reason, e));
+                Service.Log.Warn("加载资源 {0} 失败!\n{1}".Format(reason, e));
             }
 
             return null;
@@ -57,12 +57,12 @@ namespace Astraia.Common
 
                 if (warning)
                 {
-                    Log.Warn("加载资源 {0} 为空!".Format(reason));
+                    Service.Log.Warn("加载资源 {0} 为空!".Format(reason));
                 }
             }
             catch (Exception e)
             {
-                Log.Warn("加载资源 {0} 失败!\n{1}".Format(reason, e));
+                Service.Log.Warn("加载资源 {0} 失败!\n{1}".Format(reason, e));
             }
 
             return null;

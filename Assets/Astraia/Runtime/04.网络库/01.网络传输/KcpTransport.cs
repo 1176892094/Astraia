@@ -46,7 +46,7 @@ namespace Astraia.Net
 
             void ClientError(Error error, string message)
             {
-                Log.Warn("{0}: {1}", error, message);
+                Service.Log.Warn("{0}: {1}", error, message);
             }
 
             void ClientReceive(ArraySegment<byte> message, int channel)

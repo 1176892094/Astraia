@@ -87,13 +87,13 @@ namespace Astraia.Net
             {
                 if (string.IsNullOrWhiteSpace(sceneName))
                 {
-                    Log.Error("服务器不能加载空场景！");
+                    Service.Log.Error("服务器不能加载空场景！");
                     return;
                 }
 
                 if (isLoadScene && Instance.sceneName == sceneName)
                 {
-                    Log.Error("服务器正在加载 {0} 场景", sceneName);
+                    Service.Log.Error("服务器正在加载 {0} 场景", sceneName);
                     return;
                 }
 
@@ -190,26 +190,26 @@ namespace Astraia.Net
             {
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Log.Warn("无法为客户端 {0} 同步网络对象: {1}", client.clientId, message.objectId);
+                    Service.Log.Warn("无法为客户端 {0} 同步网络对象: {1}", client.clientId, message.objectId);
                     return;
                 }
 
                 if (!entity)
                 {
-                    Log.Warn("无法为客户端 {0} 同步网络对象: {1}", client.clientId, message.objectId);
+                    Service.Log.Warn("无法为客户端 {0} 同步网络对象: {1}", client.clientId, message.objectId);
                     return;
                 }
 
                 if (entity.client != client)
                 {
-                    Log.Warn("无法为客户端 {0} 同步网络对象: {1}", client.clientId, message.objectId);
+                    Service.Log.Warn("无法为客户端 {0} 同步网络对象: {1}", client.clientId, message.objectId);
                     return;
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
                 if (!entity.ServerDeserialize(reader))
                 {
-                    Log.Warn("无法为客户端 {0} 反序列化网络对象: {1}", client.clientId, message.objectId);
+                    Service.Log.Warn("无法为客户端 {0} 反序列化网络对象: {1}", client.clientId, message.objectId);
                     client.Disconnect();
                 }
             }
@@ -219,19 +219,19 @@ namespace Astraia.Net
                 if (!client.isReady)
                 {
                     if (channel != Channel.Reliable) return;
-                    Log.Warn("无法为客户端 {0} 进行远程调用，未准备就绪。", client.clientId);
+                    Service.Log.Warn("无法为客户端 {0} 进行远程调用，未准备就绪。", client.clientId);
                     return;
                 }
 
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Log.Warn("无法为客户端 {0} 进行远程调用，未找到对象 {1}。", client.clientId, message.objectId);
+                    Service.Log.Warn("无法为客户端 {0} 进行远程调用，未找到对象 {1}。", client.clientId, message.objectId);
                     return;
                 }
 
                 if (NetworkAttribute.HasInvoke(message.methodHash) && entity.client != client)
                 {
-                    Log.Warn("无法为客户端 {0} 进行远程调用，未通过验证 {1}。", client.clientId, message.objectId);
+                    Service.Log.Warn("无法为客户端 {0} 进行远程调用，未通过验证 {1}。", client.clientId, message.objectId);
                     return;
                 }
 
@@ -287,13 +287,13 @@ namespace Astraia.Net
             {
                 if (!clients.TryGetValue(clientId, out var client))
                 {
-                    Log.Warn("无法为客户端 {0} 进行处理消息。未知客户端。", clientId);
+                    Service.Log.Warn("无法为客户端 {0} 进行处理消息。未知客户端。", clientId);
                     return;
                 }
 
                 if (!client.reader.AddBatch(segment))
                 {
-                    Log.Warn("无法为客户端 {0} 进行处理消息。", clientId);
+                    Service.Log.Warn("无法为客户端 {0} 进行处理消息。", clientId);
                     client.Disconnect();
                     return;
                 }
@@ -303,7 +303,7 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
                     {
-                        Log.Warn("无法为客户端 {0} 进行处理消息。没有头部。", clientId);
+                        Service.Log.Warn("无法为客户端 {0} 进行处理消息。没有头部。", clientId);
                         client.Disconnect();
                         return;
                     }
@@ -311,7 +311,7 @@ namespace Astraia.Net
                     var message = reader.ReadUShort();
                     if (!NetworkMessage.server.TryGetValue(message, out var action))
                     {
-                        Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", clientId, message);
+                        Service.Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", clientId, message);
                         client.Disconnect();
                         return;
                     }
@@ -321,7 +321,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && client.reader.Count > 0)
                 {
-                    Log.Warn("无法为客户端 {0} 进行处理消息。残留消息: {1}。", clientId, client.reader.Count);
+                    Service.Log.Warn("无法为客户端 {0} 进行处理消息。残留消息: {1}。", clientId, client.reader.Count);
                 }
             }
         }
@@ -332,19 +332,19 @@ namespace Astraia.Net
             {
                 if (!isServer)
                 {
-                    Log.Warn("服务器不是活跃的。");
+                    Service.Log.Warn("服务器不是活跃的。");
                     return;
                 }
 
                 if (!obj.TryGetComponent(out NetworkEntity entity))
                 {
-                    Log.Error("网络对象 {0} 没有 NetworkEntity 组件", entity);
+                    Service.Log.Error("网络对象 {0} 没有 NetworkEntity 组件", entity);
                     return;
                 }
 
                 if (spawns.ContainsKey(entity.objectId))
                 {
-                    Log.Warn("网络对象 {0} 已经生成。", entity);
+                    Service.Log.Warn("网络对象 {0} 已经生成。", entity);
                     return;
                 }
 
@@ -476,7 +476,7 @@ namespace Astraia.Net
                         {
                             if (!entity)
                             {
-                                Log.Warn("在客户端 {0} 找到了空的网络对象。", client.clientId);
+                                Service.Log.Warn("在客户端 {0} 找到了空的网络对象。", client.clientId);
                                 continue;
                             }
 

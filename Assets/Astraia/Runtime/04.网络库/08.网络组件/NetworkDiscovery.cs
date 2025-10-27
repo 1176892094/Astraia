@@ -31,7 +31,7 @@ namespace Astraia.Net
         {
             if (Application.platform == RuntimePlatform.WebGLPlayer)
             {
-                Log.Error("网络发现不支持WebGL");
+                Service.Log.Error("网络发现不支持WebGL");
                 return;
             }
 
@@ -101,7 +101,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Log.Error(e);
+                Service.Log.Error(e);
             }
         }
 
@@ -115,7 +115,7 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
                     if (version != reader.ReadInt())
                     {
-                        Log.Error("接收到的消息版本不同!");
+                        Service.Log.Error("接收到的消息版本不同!");
                         return;
                     }
 
@@ -128,7 +128,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e);
+                    Service.Log.Error(e);
                 }
             }
         }
@@ -150,7 +150,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Log.Error(e);
+                Service.Log.Error(e);
             }
         }
 
@@ -164,7 +164,7 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
                     if (version != reader.ReadInt())
                     {
-                        Log.Error("接收到的消息版本不同!");
+                        Service.Log.Error("接收到的消息版本不同!");
                         return;
                     }
 
@@ -178,7 +178,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e);
+                    Service.Log.Error(e);
                 }
             }
         }

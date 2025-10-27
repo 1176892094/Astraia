@@ -95,7 +95,7 @@ namespace Astraia.Net
         {
             if (isServer)
             {
-                Log.Warn("服务器已经连接!");
+                Service.Log.Warn("服务器已经连接!");
                 return;
             }
 
@@ -106,7 +106,7 @@ namespace Astraia.Net
         {
             if (!isServer)
             {
-                Log.Warn("服务器已经停止!");
+                Service.Log.Warn("服务器已经停止!");
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace Astraia.Net
         {
             if (isClient)
             {
-                Log.Warn("客户端已经连接!");
+                Service.Log.Warn("客户端已经连接!");
                 return;
             }
 
@@ -128,7 +128,7 @@ namespace Astraia.Net
         {
             if (isClient)
             {
-                Log.Warn("客户端已经连接!");
+                Service.Log.Warn("客户端已经连接!");
                 return;
             }
 
@@ -139,7 +139,7 @@ namespace Astraia.Net
         {
             if (!isClient)
             {
-                Log.Warn("客户端已经停止!");
+                Service.Log.Warn("客户端已经停止!");
                 return;
             }
 
@@ -155,7 +155,7 @@ namespace Astraia.Net
         {
             if (isServer || isClient)
             {
-                Log.Warn("客户端或服务器已经连接!");
+                Service.Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 
@@ -173,7 +173,7 @@ namespace Astraia.Net
         {
             if (isLobby)
             {
-                Log.Warn("大厅服务器已经连接!");
+                Service.Log.Warn("大厅服务器已经连接!");
                 return;
             }
 
@@ -184,7 +184,7 @@ namespace Astraia.Net
         {
             if (!isLobby)
             {
-                Log.Warn("大厅服务器已经停止!");
+                Service.Log.Warn("大厅服务器已经停止!");
                 return;
             }
 

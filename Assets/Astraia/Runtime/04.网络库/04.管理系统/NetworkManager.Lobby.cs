@@ -69,7 +69,7 @@ namespace Astraia.Net
             {
                 if (!isActive)
                 {
-                    Log.Warn("您必须连接到大厅以请求房间列表!");
+                    Service.Log.Warn("您必须连接到大厅以请求房间列表!");
                     return;
                 }
 
@@ -77,21 +77,21 @@ namespace Astraia.Net
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Log.Warn("无法获取服务器列表: {0}:{1}", address, port);
+                    Service.Log.Warn("无法获取服务器列表: {0}:{1}", address, port);
                     return;
                 }
 
                 var rooms = Service.Zip.Decompress(request.downloadHandler.text);
                 var jsons = JsonManager.FromJson<RoomData[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
-                Log.Info("房间信息: {0}", rooms);
+                Service.Log.Info("房间信息: {0}", rooms);
             }
 
             public static void UpdateRoom(string roomName, string roomData, RoomMode roomMode)
             {
                 if (!isServer)
                 {
-                    Log.Warn("您必须连接到大厅以更新房间信息!");
+                    Service.Log.Warn("您必须连接到大厅以更新房间信息!");
                     return;
                 }
 
@@ -121,7 +121,7 @@ namespace Astraia.Net
             {
                 if (transport == null)
                 {
-                    Log.Error("没有连接到有效的传输！");
+                    Service.Log.Error("没有连接到有效的传输！");
                     return;
                 }
 
@@ -213,7 +213,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Log.Warn(e.Message);
+                    Service.Log.Warn(e.Message);
                 }
             }
         }

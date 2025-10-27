@@ -46,7 +46,7 @@ namespace Astraia
         {
             if (socket != null)
             {
-                Log.Warn("服务器已经连接!");
+                Service.Log.Warn("服务器已经连接!");
                 return;
             }
 
@@ -59,7 +59,7 @@ namespace Astraia
                 }
                 catch (NotSupportedException e)
                 {
-                    Log.Warn("服务器不支持双连接模式!\n{0}", e);
+                    Service.Log.Warn("服务器不支持双连接模式!\n{0}", e);
                 }
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -101,7 +101,7 @@ namespace Astraia
             {
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    Log.Info("服务器发送消息失败!\n{0}", e);
+                    Service.Log.Info("服务器发送消息失败!\n{0}", e);
                 }
 
                 return false;
@@ -131,14 +131,14 @@ namespace Astraia
             void OnConnect(Client client)
             {
                 clients.Add(id, client);
-                Log.Info("客户端 {0} 连接到服务器。", id);
+                Service.Log.Info("客户端 {0} 连接到服务器。", id);
                 onConnect.Invoke(id);
             }
 
             void OnDisconnect()
             {
                 removes.Add(id);
-                Log.Info("客户端 {0} 从服务器断开。", id);
+                Service.Log.Info("客户端 {0} 从服务器断开。", id);
                 onDisconnect.Invoke(id);
             }
 
@@ -168,7 +168,7 @@ namespace Astraia
                 {
                     if (e.SocketErrorCode != SocketError.WouldBlock)
                     {
-                        Log.Error("服务器接收消息失败!\n{0}", e);
+                        Service.Log.Error("服务器接收消息失败!\n{0}", e);
                     }
                 }
             }

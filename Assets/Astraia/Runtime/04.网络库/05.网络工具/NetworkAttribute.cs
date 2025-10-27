@@ -41,7 +41,7 @@ namespace Astraia.Net
 
             if (message.mode != mode || message.component != component || message.func != func)
             {
-                Log.Error("远程调用 [{0} {1}] 与 [{2} {3}] 冲突。", component, func.Method.Name, message.component, message.func.Method.Name);
+                Service.Log.Error("远程调用 [{0} {1}] 与 [{2} {3}] 冲突。", component, func.Method.Name, message.component, message.func.Method.Name);
             }
         }
 
