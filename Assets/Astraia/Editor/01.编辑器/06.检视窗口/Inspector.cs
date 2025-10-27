@@ -9,6 +9,9 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Toolbars;
 using UnityEngine;
@@ -16,15 +19,20 @@ using UnityEngine.UIElements;
 
 namespace Astraia
 {
-    using static Reflection;
-
     internal static partial class Inspector
     {
+        private static IEnumerable<EditorWindow> inspectors;
         private static VisualElement inspector;
 
         public static void SelectionChanged()
         {
-            foreach (var window in AllInspectors)
+            if (inspectors == null)
+            {
+                var windows = Reflection.Inspector.GetValue<IList>("m_AllInspectors");
+                inspectors = windows.Cast<EditorWindow>().Where(r => r.GetType() == Reflection.Inspector);
+            }
+
+            foreach (var window in inspectors)
             {
                 InitWindow(window);
             }

@@ -37,21 +37,13 @@ namespace Astraia
         public static readonly GUIContent packageIcon = EditorGUIUtility.IconContent("Package Manager");
 
         private static readonly GUIContent content = new();
-        private static IEnumerable<EditorWindow> allInspectors;
-        private static IEnumerable<EditorWindow> allEditorWindows;
-        public static IEnumerable<EditorWindow> AllInspectors => allInspectors ??= Inspector.GetValue<IList>("m_AllInspectors").Cast<EditorWindow>().Where(r => r.GetType() == Inspector);
-        private static IEnumerable<EditorWindow> AllEditorWindows => allEditorWindows ??= typeof(EditorWindow).GetValue<List<EditorWindow>>("activeEditorWindows");
-        public static IEnumerable<Object> AllDockAreas => AllEditorWindows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent"));
+
+    
 
         public static float NameLength(string name)
         {
             content.text = name;
             return GUI.skin.label.CalcSize(content).x;
-        }
-
-        public static EditorWindow GetHierarchy()
-        {
-            return Hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
         }
 
         public static void HideIcon(EditorWindow window)
@@ -65,11 +57,6 @@ namespace Astraia
             if (result == null) return;
             result.SetValue<float>("k_IconWidth", 0);
             result.SetValue<float>("k_SpaceBetweenIconAndText", 18);
-        }
-
-        public static void ShowContext(Rect position, Object context)
-        {
-            typeof(EditorUtility).Invoke("DisplayObjectContextMenu", position, context, 0);
         }
 
         public static IEnumerable<TreeViewItem> GetItems()

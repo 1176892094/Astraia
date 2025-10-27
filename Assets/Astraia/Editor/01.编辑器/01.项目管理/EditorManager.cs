@@ -25,8 +25,8 @@ namespace Astraia
     [InitializeOnLoad]
     internal static class EditorManager
     {
-        private static bool isMaximized;
         private static EditorWindow focusedWindow;
+        private static bool isMaximized;
 
         static EditorManager()
         {
@@ -133,30 +133,30 @@ namespace Astraia
             items = JsonManager.FromJson<List<KeyValue>>(data).ToDictionary(p => p.Key, p => p.Value);
         }
 
-        public static Texture2D GetIcon(Type key)
-        {
-            if (!cache.TryGetValue(key, out var icon))
-            {
-                icon = AssetPreview.GetMiniTypeThumbnail(key);
-                cache[key] = icon;
-            }
-
-            return icon;
-        }
-        
         public static Texture2D GetIcon(Object target)
         {
             return target ? GetIcon(target.GetType()) : null;
         }
 
-        public static Texture2D GetIcon(string reason)
+        public static Texture2D GetIcon(Type target)
         {
-            if (icons.TryGetValue(reason, out var icon))
+            if (!cache.TryGetValue(target, out var icon))
+            {
+                icon = AssetPreview.GetMiniTypeThumbnail(target);
+                cache[target] = icon;
+            }
+
+            return icon;
+        }
+
+        public static Texture2D GetIcon(string target)
+        {
+            if (icons.TryGetValue(target, out var icon))
             {
                 return icon;
             }
 
-            if (items.TryGetValue(reason, out var result))
+            if (items.TryGetValue(target, out var result))
             {
                 icon = new Texture2D(4, 4, TextureFormat.DXT5, false)
                 {
@@ -169,7 +169,7 @@ namespace Astraia
 
             if (!icon)
             {
-                icon = typeof(EditorGUIUtility).Invoke<Texture2D>("LoadIcon", reason);
+                icon = typeof(EditorGUIUtility).Invoke<Texture2D>("LoadIcon", target);
             }
 
             if (!icon)
@@ -179,7 +179,7 @@ namespace Astraia
                 icon.Apply();
             }
 
-            return icons[reason] = icon;
+            return icons[target] = icon;
         }
 
         [Serializable]

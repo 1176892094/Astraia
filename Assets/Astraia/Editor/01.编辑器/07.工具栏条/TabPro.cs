@@ -18,15 +18,22 @@ using UnityEngine.UIElements;
 namespace Astraia
 {
     using static EventManager;
-    
+
     internal static class TabPro
     {
         private static readonly Dictionary<Object, TabProPage> DockAreas = new Dictionary<Object, TabProPage>();
         private static readonly List<Object> RemoveAreas = new List<Object>();
+        private static IEnumerable<Object> ActiveEditors;
 
         public static void Update()
         {
-            foreach (var dockArea in Reflection.AllDockAreas)
+            if (ActiveEditors == null)
+            {
+                var windows = typeof(EditorWindow).GetValue<List<EditorWindow>>("activeEditorWindows");
+                ActiveEditors = windows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent"));
+            }
+
+            foreach (var dockArea in ActiveEditors)
             {
                 if (!DockAreas.TryGetValue(dockArea, out var page))
                 {

@@ -50,7 +50,7 @@ namespace Astraia
 
             void DrawWindow()
             {
-                var window = Reflection.GetHierarchy();
+                var window = Reflection.Hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
                 if (window != null)
                 {
                     var instance = window.GetInstanceID();
@@ -296,7 +296,7 @@ namespace Astraia
                     {
                         rect.x += 16;
                         rect.y -= 16;
-                        Reflection.ShowContext(rect, item);
+                        typeof(EditorUtility).Invoke("DisplayObjectContextMenu", rect, item, 0);
                         Use();
                     }
                 }
