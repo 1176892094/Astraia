@@ -20,7 +20,7 @@ using Sirenix.OdinInspector;
 
 namespace Astraia
 {
-    public partial class Entity : MonoBehaviour
+    public class Entity : MonoBehaviour
     {
         private readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
         public event Action OnShow;
@@ -76,10 +76,7 @@ namespace Astraia
 #endif
         [SerializeField]
         private List<string> moduleList = new List<string>();
-    }
 
-    public partial class Entity
-    {
         public T AddComponent<T>(T module) where T : IModule
         {
             return (T)LoadComponent(module.GetType(), module);
@@ -114,10 +111,7 @@ namespace Astraia
         {
             return moduleData.TryGetValue(keyType, out var module) ? module : null;
         }
-    }
 
-    public partial class Entity
-    {
         private IModule LoadComponent(Type keyType, IModule module)
         {
             if (!moduleData.ContainsKey(keyType))

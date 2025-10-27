@@ -27,7 +27,6 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("Astraia.Net")]
 [assembly: InternalsVisibleTo("Astraia.Run")]
 [assembly: InternalsVisibleTo("Astraia.Kcp")]
-[assembly: InternalsVisibleTo("Astraia.Log")]
 [assembly: InternalsVisibleTo("Astraia.Mysql")]
 [assembly: InternalsVisibleTo("Astraia.Lobby")]
 [assembly: InternalsVisibleTo("Astraia.Editor")]

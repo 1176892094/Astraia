@@ -25,7 +25,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("Astraia.Net")]
-[assembly: InternalsVisibleTo("Astraia.Log")]
 [assembly: InternalsVisibleTo("Astraia.Editor")]
 [assembly: InternalsVisibleTo("HotUpdate.Editor")]
 

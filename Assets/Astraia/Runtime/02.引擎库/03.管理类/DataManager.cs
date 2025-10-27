@@ -108,11 +108,11 @@ namespace Astraia.Common
         }
     }
 
-    public static class DataParser
+    public static class DataSetting
     {
         private static readonly Dictionary<Type, Delegate> parsers = new Dictionary<Type, Delegate>();
 
-        static DataParser()
+        static DataSetting()
         {
             parsers[typeof(Vector2)] = new Func<string, Vector2>(InputVector2);
             parsers[typeof(Vector3)] = new Func<string, Vector3>(InputVector3);

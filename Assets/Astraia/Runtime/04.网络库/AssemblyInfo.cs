@@ -25,7 +25,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: InternalsVisibleTo("Astraia.Log")]
 [assembly: InternalsVisibleTo("Unity.Astraia.CodeGen")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
