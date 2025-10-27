@@ -45,7 +45,7 @@ namespace Astraia
             copiedData.Remove(data.component);
             EditorUtility.SetDirty(component);
         }
-        
+
         private static ComponentData GetData(Component component)
         {
             var data = new ComponentData(component);
@@ -62,7 +62,6 @@ namespace Astraia
 
             return data;
         }
-
 
         private static void Apply(ComponentData data, Component component)
         {
@@ -190,7 +189,6 @@ namespace Astraia
 
             return objectValue;
         }
-
 
         private static void SetBoxedValue(SerializedProperty p, object value)
         {

@@ -1385,8 +1385,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   address: localhost
   port: 20974
-  maxUnit: 1200
-  timeout: 10000
+  unitData: 1200
+  overTime: 10000
   interval: 10
   deadLink: 40
   fastResend: 2
@@ -1419,22 +1419,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7ebd91d087ac427bab9f4b472ebde57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Log::Astraia.Common.DebugManager
-  clientIntervalReceivedPackets: 0
-  clientIntervalReceivedBytes: 0
-  clientIntervalSentPackets: 0
-  clientIntervalSentBytes: 0
-  clientReceivedPacketsPerSecond: 0
-  clientReceivedBytesPerSecond: 0
-  clientSentPacketsPerSecond: 0
-  clientSentBytesPerSecond: 0
-  serverIntervalReceivedPackets: 0
-  serverIntervalReceivedBytes: 0
-  serverIntervalSentPackets: 0
-  serverIntervalSentBytes: 0
-  serverReceivedPacketsPerSecond: 0
-  serverReceivedBytesPerSecond: 0
-  serverSentPacketsPerSecond: 0
-  serverSentBytesPerSecond: 0
 --- !u!1 &680418918
 GameObject:
   m_ObjectHideFlags: 0

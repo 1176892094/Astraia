@@ -19,54 +19,53 @@ namespace Astraia
 {
     using static EventManager;
 
-    internal static class TabPro
+    internal static class Menubar
     {
-        private static readonly Dictionary<Object, TabProPage> DockAreas = new Dictionary<Object, TabProPage>();
-        private static readonly List<Object> RemoveAreas = new List<Object>();
-        private static IEnumerable<Object> ActiveEditors;
+        private static readonly Dictionary<Object, Menu> menus = new Dictionary<Object, Menu>();
+        private static readonly List<Object> copies = new List<Object>();
+        private static IEnumerable<Object> pages;
 
         public static void Update()
         {
-            if (ActiveEditors == null)
+            if (pages == null)
             {
                 var windows = typeof(EditorWindow).GetValue<List<EditorWindow>>("activeEditorWindows");
-                ActiveEditors = windows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent"));
+                pages = windows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent"));
             }
 
-            foreach (var dockArea in ActiveEditors)
+            foreach (var page in pages)
             {
-                if (!DockAreas.TryGetValue(dockArea, out var page))
+                if (!menus.TryGetValue(page, out var menu))
                 {
-                    page = new TabProPage(dockArea);
-                    DockAreas[dockArea] = page;
-                    page.Register();
+                    menu = new Menu(page);
+                    menus[page] = menu;
+                    menu.Register();
                 }
             }
 
-            foreach (var dockArea in DockAreas)
+            foreach (var menu in menus)
             {
-                if (!dockArea.Key)
+                if (!menu.Key)
                 {
-                    dockArea.Value.Unregister();
-                    RemoveAreas.Add(dockArea.Key);
+                    menu.Value.Unregister();
+                    copies.Add(menu.Key);
                 }
             }
 
-            foreach (var remove in RemoveAreas)
+            foreach (var menu in copies)
             {
-                DockAreas.Remove(remove);
+                menus.Remove(menu);
             }
 
-            RemoveAreas.Clear();
+            copies.Clear();
         }
 
-        private class TabProPage
+        private class Menu
         {
             private IPanel panel;
             private List<EditorWindow> panes;
 
-
-            public TabProPage(Object dockArea)
+            public Menu(Object dockArea)
             {
                 panes = dockArea.GetValue<List<EditorWindow>>("m_Panes");
                 panel = dockArea.GetValue<EditorWindow>("actualView").rootVisualElement.panel;
@@ -89,9 +88,9 @@ namespace Astraia
                 panel = null;
             }
 
-            private void Event(EventBase evt)
+            private void Event(EventBase item)
             {
-                if (evt is not WheelEvent result)
+                if (item is not WheelEvent result)
                 {
                     return;
                 }
@@ -108,21 +107,21 @@ namespace Astraia
                 }
 
                 result.StopPropagation();
-                var moveTab = panes.FirstOrDefault(r => r.hasFocus);
+                var menu = panes.FirstOrDefault(r => r.hasFocus);
                 if (isCtrl)
                 {
                     var dir = move > 0 ? 1 : -1;
-                    var i0 = panes.IndexOf(moveTab);
-                    var i1 = Mathf.Clamp(i0 + dir, 0, panes.Count - 1);
-                    (panes[i0], panes[i1]) = (panes[i1], panes[i0]);
-                    panes[i1].Focus();
+                    var i = panes.IndexOf(menu);
+                    var j = Mathf.Clamp(i + dir, 0, panes.Count - 1);
+                    (panes[i], panes[j]) = (panes[j], panes[i]);
+                    panes[j].Focus();
                 }
                 else
                 {
                     var dir = move > 0 ? 1 : -1;
-                    var i0 = panes.IndexOf(moveTab);
-                    var i1 = Mathf.Clamp(i0 + dir, 0, panes.Count - 1);
-                    panes[i1].Focus();
+                    var i = panes.IndexOf(menu);
+                    var j = Mathf.Clamp(i + dir, 0, panes.Count - 1);
+                    panes[j].Focus();
                 }
             }
         }

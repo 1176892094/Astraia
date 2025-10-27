@@ -11,7 +11,6 @@
 
 using System.IO;
 
-
 namespace Astraia
 {
     internal static partial class FormManager
@@ -25,7 +24,6 @@ namespace Astraia
             "int", "long", "bool", "float", "double", "string",
             "Vector2", "Vector3", "Vector4", "Vector2Int", "Vector3Int"
         };
-
 
         private static bool IsBasic(string assetType)
         {

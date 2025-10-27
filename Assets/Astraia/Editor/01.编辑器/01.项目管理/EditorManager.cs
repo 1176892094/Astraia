@@ -42,8 +42,8 @@ namespace Astraia
 
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
-            EditorApplication.update -= TabPro.Update;
-            EditorApplication.update += TabPro.Update;
+            EditorApplication.update -= Menubar.Update;
+            EditorApplication.update += Menubar.Update;
             EditorApplication.hierarchyWindowItemOnGUI -= Hierarchy.OnGUI;
             EditorApplication.hierarchyWindowItemOnGUI += Hierarchy.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI -= Folder.OnGUI;

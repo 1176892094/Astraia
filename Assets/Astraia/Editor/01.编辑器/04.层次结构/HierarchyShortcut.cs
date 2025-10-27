@@ -49,8 +49,7 @@ namespace Astraia
                 copiedData.Clear();
             }
         }
-        
-        
+
         private static void ExpandOrCompose(EditorWindow window)
         {
             var scene = window.GetValue("m_SceneHierarchy");
@@ -59,13 +58,13 @@ namespace Astraia
             var state = tree.GetValue<TreeViewState>("state");
 
             var sceneActive = SceneManager.GetActiveScene();
-            int sceneId = sceneActive.handle;
+            var sceneId = sceneActive.handle;
 
-            bool isExpanded = sceneExpandState.ContainsKey(sceneId) && sceneExpandState[sceneId];
+            var isExpanded = sceneExpandState.ContainsKey(sceneId) && sceneExpandState[sceneId];
 
             if (isExpanded)
             {
-                for (int i = state.expandedIDs.Count - 1; i >= 0; i--)
+                for (var i = state.expandedIDs.Count - 1; i >= 0; i--)
                 {
                     var id = state.expandedIDs[i];
                     if (EditorUtility.InstanceIDToObject(id) is GameObject)
@@ -86,13 +85,8 @@ namespace Astraia
 
                 foreach (var root in sceneActive.GetRootGameObjects())
                 {
-                    int rootId = root.GetInstanceID();
+                    var rootId = root.GetInstanceID();
                     data.Invoke("SetExpanded", rootId, true);
-                    // foreach (Transform child in root.transform)
-                    // {
-                    //     int childId = child.gameObject.GetInstanceID();
-                    //     data.Invoke("SetExpanded", childId, true);
-                    // }
                 }
 
                 sceneExpandState[sceneId] = true;
