@@ -57,7 +57,7 @@ namespace Astraia.Net
 
             if (clientId != NetworkManager.Host)
             {
-                NetworkDebugger.OnSend(message, writer.position);
+                DebugManager.OnSend(message, writer.position);
             }
 
             AddMessage(writer, channel);
