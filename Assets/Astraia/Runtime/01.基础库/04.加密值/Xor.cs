@@ -87,6 +87,18 @@ namespace Astraia
             {
                 return Value.GetHashCode();
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetBit(int shift, int mask)
+            {
+                return (Value >> shift) & (1 << mask) - 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Int SetBit(int shift, int mask, int value)
+            {
+                return (Value & ~((1 << mask) - 1 << shift)) | ((value & (1 << mask) - 1) << shift);
+            }
         }
 
         [Serializable]
@@ -155,6 +167,18 @@ namespace Astraia
             public override int GetHashCode()
             {
                 return Value.GetHashCode();
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetBit(int shift, int mask)
+            {
+                return (int)((Value >> shift) & (1L << mask) - 1);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Long SetBit(int shift, int mask, int value)
+            {
+                return (Value & ~((1L << mask) - 1 << shift)) | ((value & (1L << mask) - 1) << shift);
             }
         }
 

@@ -53,7 +53,7 @@ namespace Astraia.Common
                     var properties = assetType.GetProperties(Service.Ref.Instance);
                     foreach (var property in properties)
                     {
-                        if (Attribute<PrimaryAttribute>.GetAttribute(property) != null)
+                        if (Service.Ref<PrimaryAttribute>.GetAttribute(property) != null)
                         {
                             if (property.PropertyType == typeof(int))
                             {

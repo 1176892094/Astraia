@@ -44,7 +44,7 @@ namespace Astraia
         {
             this.owner = owner;
             var current = GetType();
-            var attribute = Attribute<UIMaskAttribute>.GetAttribute(current);
+            var attribute = Service.Ref<UIMaskAttribute>.GetAttribute(current);
             if (attribute != null)
             {
                 layerMask = attribute.layerMask;
@@ -53,7 +53,7 @@ namespace Astraia
             groupMask = 0;
             while (current != null)
             {
-                attribute = Attribute<UIMaskAttribute>.GetAttribute(current, false);
+                attribute = Service.Ref<UIMaskAttribute>.GetAttribute(current, false);
                 if (attribute != null)
                 {
                     groupMask |= attribute.groupMask;

@@ -28,7 +28,7 @@ namespace Astraia.Common
         private static UIPanel Load(string path, Type type)
         {
             var name = path;
-            var item = Attribute<UIPathAttribute>.GetAttribute(type);
+            var item = Service.Ref<UIPathAttribute>.GetAttribute(type);
             if (item != null)
             {
                 path = GlobalSetting.Prefab.Format(item.assetPath);
