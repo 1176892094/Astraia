@@ -119,7 +119,7 @@ namespace Astraia.Common
     }
 
     [Serializable]
-    public abstract class Feature<TEntity> : Module<TEntity> where TEntity : Entity
+    public abstract class Blackboard<TEntity> : Module<TEntity> where TEntity : Entity
     {
         private readonly Dictionary<Enum, Xor.Float> features = new Dictionary<Enum, Xor.Float>();
 

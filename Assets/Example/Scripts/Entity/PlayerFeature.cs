@@ -10,13 +10,12 @@
 // // *********************************************************************************
 
 using System;
-using Astraia;
 using Astraia.Common;
 
 namespace Runtime
 {
     [Serializable]
-    public class PlayerFeature : Feature<Player>
+    public class PlayerFeature : Blackboard<Player>
     {
         public StateType state = StateType.None;
         public float moveX;

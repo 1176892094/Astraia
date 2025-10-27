@@ -14,7 +14,6 @@ using Astraia.Common;
 
 namespace Astraia
 {
- 
     [Serializable]
     public abstract partial class UIPanel : Module<Entity>, IModule, ISystem
     {
