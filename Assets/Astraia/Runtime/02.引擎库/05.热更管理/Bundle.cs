@@ -35,22 +35,23 @@ namespace Astraia.Common
             {
                 Directory.CreateDirectory(GlobalSetting.BundlePath);
             }
-            
+
             var processingData = GlobalSetting.ServerPath.Format(GlobalSetting.Verify);
             var persistentData = GlobalSetting.TargetPath.Format(GlobalSetting.Verify);
             var streamingAsset = GlobalSetting.ClientPath.Format(GlobalSetting.Verify);
-            var streamRequest = await LoadClientRequest(persistentData, streamingAsset, true);
-            var streamVerify = LoadVerifyRequest(streamRequest, out var streamData);
-            var serverRequest = await LoadServerRequest(processingData, GlobalSetting.Verify);
-            var serverVerify = LoadVerifyRequest(serverRequest, out var serverData);
-            var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
-            var clientVerify = LoadVerifyRequest(clientRequest, out var clientData);
-
-            if (!string.IsNullOrEmpty(serverRequest))
+            var streamResult = await LoadClientRequest(persistentData, streamingAsset, true);
+            var streamVerify = LoadVerifyRequest(streamResult, out var streamData);
+            var serverResult = await LoadServerRequest(processingData, GlobalSetting.Verify);
+            var serverVerify = LoadVerifyRequest(serverResult, out var serverData);
+            var clientResult = await LoadClientRequest(persistentData, streamingAsset);
+            var clientVerify = LoadVerifyRequest(clientResult, out var clientData);
+            var isRemote = !string.IsNullOrEmpty(serverResult);
+            if (isRemote)
             {
                 if (streamVerify.version == serverVerify.version)
                 {
                     serverData = streamData;
+                    serverResult = streamResult;
                 }
             }
             else
@@ -58,9 +59,14 @@ namespace Astraia.Common
                 if (streamVerify.version > clientVerify.version)
                 {
                     serverData = streamData;
+                    serverResult = streamResult;
+                    EventManager.Invoke(new OnBundleComplete(-1, "本地资源需要更新!"));
                 }
-
-                EventManager.Invoke(new OnBundleComplete(-1, "没有连接到服务器!"));
+                else
+                {
+                    EventManager.Invoke(new OnBundleComplete(-1, "本地资源无需更新。"));
+                    return;
+                }
             }
 
             var names = new HashSet<string>();
@@ -100,10 +106,10 @@ namespace Astraia.Common
                 }
             }
 
-            var success = await LoadBundleRequest(names);
+            var success = await LoadBundleRequest(names, isRemote);
             if (success)
             {
-                await File.WriteAllTextAsync(persistentData, serverRequest);
+                await File.WriteAllTextAsync(persistentData, serverResult);
             }
 
             EventManager.Invoke(new OnBundleComplete(1, success ? "更新完成!" : "更新失败!"));
@@ -126,15 +132,15 @@ namespace Astraia.Common
             return default;
         }
 
-        private static async Task<bool> LoadBundleRequest(HashSet<string> names)
+        private static async Task<bool> LoadBundleRequest(HashSet<string> names, bool isRemote)
         {
             var copies = new HashSet<string>(names);
             for (var i = 0; i < 5; i++)
             {
                 foreach (var name in names)
                 {
-                    var serverPath = GlobalSetting.ServerPath.Format(name);
-                    var webRequest = await LoadBundleRequest(serverPath, name);
+                    var originPath = isRemote ? GlobalSetting.ServerPath.Format(name) : GlobalSetting.ClientPath.Format(name);
+                    var webRequest = await LoadBundleRequest(originPath, name, isRemote);
                     var targetPath = GlobalSetting.TargetPath.Format(name);
                     await Task.Run(() => File.WriteAllBytes(targetPath, webRequest));
                     if (copies.Contains(name))
@@ -182,8 +188,26 @@ namespace Astraia.Common
             return null;
         }
 
-        private static async Task<byte[]> LoadBundleRequest(string uri, string name)
+        private static async Task<byte[]> LoadBundleRequest(string uri, string name, bool isRemote)
         {
+            if (!isRemote)
+            {
+#if UNITY_ANDROID && !UNITY_EDITOR
+                using (var request = UnityWebRequest.Get(uri))
+                {
+                    await request.SendWebRequest();
+                    if (request.result == UnityWebRequest.Result.Success)
+                    {
+                        return request.downloadHandler.data;
+                    }
+
+                    return Array.Empty<byte>();
+                }
+#else
+                return await File.ReadAllBytesAsync(uri);
+#endif
+            }
+
             using (var request = UnityWebRequest.Head(uri))
             {
                 request.timeout = 1;
@@ -243,11 +267,6 @@ namespace Astraia.Common
                 return (1, persistentData);
             }
 
-            return await LoadRequest(streamingAsset);
-        }
-
-        internal static async Task<(int Key, string Value)> LoadRequest(string streamingAsset)
-        {
 #if UNITY_ANDROID && !UNITY_EDITOR
             if (!streamingAsset.StartsWith("jar:"))
             {
