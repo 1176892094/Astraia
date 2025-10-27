@@ -105,7 +105,7 @@ namespace Astraia
             }
 
             var iconItem = LoadIcon(AssetDatabase.AssetPathToGUID(path));
-            var nameSize = rect.x + Reflection.NameLength(name) + 15;
+            var nameSize = rect.x + EditorRef.CalcSize(name) + 15;
             var itemRect = new Rect(rect);
             itemRect.x += rect.width - 15;
             itemRect.width = 13;
@@ -132,7 +132,7 @@ namespace Astraia
 
             if (!string.IsNullOrEmpty(path))
             {
-                if (!Reflection.GetItems().Where(item => item.id == id).Any(item => item.hasChildren))
+                if (!EditorRef.GetItems().Where(item => item.id == id).Any(item => item.hasChildren))
                 {
                     position.width = 16;
                     position.x = rect.x - 16;

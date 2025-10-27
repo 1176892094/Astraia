@@ -28,8 +28,8 @@ namespace Astraia
         {
             if (inspectors == null)
             {
-                var windows = Reflection.Inspector.GetValue<IList>("m_AllInspectors");
-                inspectors = windows.Cast<EditorWindow>().Where(r => r.GetType() == Reflection.Inspector);
+                var windows = EditorRef.Inspector.GetValue<IList>("m_AllInspectors");
+                inspectors = windows.Cast<EditorWindow>().Where(r => r.GetType() == EditorRef.Inspector);
             }
 
             foreach (var window in inspectors)

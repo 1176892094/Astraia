@@ -17,7 +17,7 @@ using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 
 namespace Astraia
 {
-    using static Reflection;
+    using static EditorRef;
     using static EventManager;
 
     internal static partial class Folder

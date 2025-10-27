@@ -29,7 +29,7 @@ namespace Astraia
 
         public static void SelectionChanged()
         {
-            var objects = Resources.FindObjectsOfTypeAll(Reflection.Toolbar);
+            var objects = Resources.FindObjectsOfTypeAll(EditorRef.Toolbar);
             foreach (var obj in objects)
             {
                 if (obj is ScriptableObject window)
@@ -109,7 +109,7 @@ namespace Astraia
                 {
                     width = 16,
                     height = 16,
-                    backgroundImage = Reflection.windowIcon.image as Texture2D,
+                    backgroundImage = EditorRef.windowIcon.image as Texture2D,
                 },
             };
             dropdown.Insert(0, menuIcon);
@@ -159,9 +159,9 @@ namespace Astraia
                 dropdown.text = Time.timeScale.ToString("F2");
             });
             parent.Add(dropdown);
-            SetButton(parent, Reflection.customIcon.image, EditorSetting.ShowWindow);
-            SetButton(parent, Reflection.settingIcon.image, () => EditorApplication.ExecuteMenuItem("Edit/Project Settings..."));
-            SetButton(parent, Reflection.buildIcon.image, () => EditorApplication.ExecuteMenuItem("File/Build Profiles"));
+            SetButton(parent, EditorRef.customIcon.image, EditorSetting.ShowWindow);
+            SetButton(parent, EditorRef.settingIcon.image, () => EditorApplication.ExecuteMenuItem("Edit/Project Settings..."));
+            SetButton(parent, EditorRef.buildIcon.image, () => EditorApplication.ExecuteMenuItem("File/Build Profiles"));
             return parent;
         }
 
@@ -229,11 +229,11 @@ namespace Astraia
                 {
                     width = 16,
                     height = 16,
-                    backgroundImage = Reflection.sceneIcon.image as Texture2D,
+                    backgroundImage = EditorRef.sceneIcon.image as Texture2D,
                 },
             };
             toolbarMenu.Insert(0, menuIcon);
-            SetButton(parent, Reflection.packageIcon.image, () => EditorApplication.ExecuteMenuItem("Window/Package Management/Package Manager"));
+            SetButton(parent, EditorRef.packageIcon.image, () => EditorApplication.ExecuteMenuItem("Window/Package Management/Package Manager"));
             parent.Add(toolbarMenu);
 
             var assets = EditorPrefs.GetString(nameof(CacheScene));

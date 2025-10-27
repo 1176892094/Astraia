@@ -17,7 +17,7 @@ using UnityEngine;
 
 namespace Astraia
 {
-    using static Reflection;
+    using static EditorRef;
     using static EventManager;
 
     internal static partial class Inspector
@@ -32,7 +32,7 @@ namespace Astraia
                 return;
             }
 
-            if (window.GetType() != Reflection.Inspector && window.GetType() != Property)
+            if (window.GetType() != EditorRef.Inspector && window.GetType() != Property)
             {
                 return;
             }
