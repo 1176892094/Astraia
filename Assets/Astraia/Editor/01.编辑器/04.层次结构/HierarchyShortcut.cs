@@ -39,7 +39,7 @@ namespace Astraia
                 return;
             }
 
-            if (isShiftE)
+            if (isExpand)
             {
                 ExpandOrCompose(window);
             }

@@ -35,7 +35,7 @@ namespace Astraia
                 return;
             }
 
-            if (isShiftE)
+            if (isExpand)
             {
                 ExpandOrCompose(window);
                 window.Repaint();

@@ -9,21 +9,24 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Astraia.Common;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Astraia
 {
+    using EventHandler = EditorApplication.CallbackFunction;
+
     [InitializeOnLoad]
     internal static class EditorManager
     {
-        private static bool wasAlt;
-        private static bool wasShift;
         private static bool isMaximized;
-        private static Event inputEventLast;
         private static EditorWindow focusedWindow;
-        private static EditorWindow mouseOverWindow;
 
         static EditorManager()
         {
@@ -58,11 +61,10 @@ namespace Astraia
             EditorSceneManager.sceneOpened -= Toolbar.OnSceneOpened;
             EditorSceneManager.sceneOpened += Toolbar.OnSceneOpened;
 
-
             focusedWindow = EditorWindow.focusedWindow;
             isMaximized = focusedWindow && focusedWindow.maximized;
 
-            var eventHandler = typeof(EditorApplication).GetValue<EditorApplication.CallbackFunction>("globalEventHandler");
+            var eventHandler = typeof(EditorApplication).GetValue<EventHandler>("globalEventHandler");
             eventHandler = Folder.Shortcuts + (eventHandler - Folder.Shortcuts);
             eventHandler = Hierarchy.Shortcuts + (eventHandler - Hierarchy.Shortcuts);
             eventHandler = Inspector.Shortcuts + (eventHandler - Inspector.Shortcuts);
@@ -94,30 +96,103 @@ namespace Astraia
                     }
                 }
             }
+        }
+    }
 
-            inputEventLast = typeof(Event).GetValue<Event>("s_Current");
-            mouseOverWindow = EditorWindow.mouseOverWindow;
-            if (mouseOverWindow)
+    internal static class EventManager
+    {
+        private static readonly Event current;
+        private static readonly Event Event = current ??= typeof(Event).GetValue<Event>("s_Current");
+        public static int mouseButton => Event.button;
+        public static Vector2 mousePosition => Event.mousePosition;
+        public static bool isLayout => Event.type == EventType.Layout;
+        public static bool isRepaint => Event.type == EventType.Repaint;
+        public static bool isMouseUp => Event.type == EventType.MouseUp;
+        public static bool isMouseDown => Event.type == EventType.MouseDown;
+        public static bool isAlt => Event.alt;
+        public static bool isShift => Event.shift;
+        public static bool isCtrl => Event.control || Event.command;
+        public static bool Q => Event.type == EventType.KeyDown && Event.keyCode == KeyCode.Q && Event.modifiers == EventModifiers.None;
+        public static bool W => Event.type == EventType.KeyDown && Event.keyCode == KeyCode.W && Event.modifiers == EventModifiers.None;
+        public static bool E => Event.type == EventType.KeyDown && Event.keyCode == KeyCode.E && Event.modifiers == EventModifiers.None;
+        public static bool R => Event.type == EventType.KeyDown && Event.keyCode == KeyCode.R && Event.modifiers == EventModifiers.None;
+        public static bool isExpand => Event.type == EventType.KeyDown && Event.keyCode == KeyCode.E && Event.shift;
+        public static bool isEscape => Event.type == EventType.KeyDown && Event.keyCode == KeyCode.Escape && Event.modifiers == EventModifiers.None;
+        public static void Use() => Event?.Use();
+    }
+
+    internal static class EditorIcon
+    {
+        private static readonly Dictionary<Type, Texture2D> cache = new Dictionary<Type, Texture2D>();
+        private static readonly Dictionary<string, Texture2D> icons = new Dictionary<string, Texture2D>();
+        private static readonly Dictionary<string, string> items;
+
+        static EditorIcon()
+        {
+            var data = Service.Zip.Decompress(GlobalSetting.LoadAsset(AssetData.Icons));
+            items = JsonManager.FromJson<List<KeyValue>>(data).ToDictionary(p => p.Key, p => p.Value);
+        }
+
+        public static Texture2D GetIcon(Type key)
+        {
+            if (!cache.TryGetValue(key, out var icon))
             {
-                if (wasAlt && !inputEventLast.alt)
-                {
-                    if (mouseOverWindow.GetType() == Reflection.Browser)
-                    {
-                        mouseOverWindow.Repaint();
-                    }
-                }
-
-                if (wasShift && !inputEventLast.shift)
-                {
-                    if (mouseOverWindow.GetType() == Reflection.Hierarchy)
-                    {
-                        mouseOverWindow.Repaint();
-                    }
-                }
+                icon = AssetPreview.GetMiniTypeThumbnail(key);
+                cache[key] = icon;
             }
 
-            wasAlt = inputEventLast.alt;
-            wasShift = inputEventLast.shift;
+            return icon;
+        }
+        
+        public static Texture2D GetIcon(Object target)
+        {
+            return target ? GetIcon(target.GetType()) : null;
+        }
+
+        public static Texture2D GetIcon(string reason)
+        {
+            if (icons.TryGetValue(reason, out var icon))
+            {
+                return icon;
+            }
+
+            if (items.TryGetValue(reason, out var result))
+            {
+                icon = new Texture2D(4, 4, TextureFormat.DXT5, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp,
+                    filterMode = FilterMode.Bilinear,
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+                icon.LoadImage(Convert.FromBase64String(result));
+            }
+
+            if (!icon)
+            {
+                icon = typeof(EditorGUIUtility).Invoke<Texture2D>("LoadIcon", reason);
+            }
+
+            if (!icon)
+            {
+                icon = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+                icon.SetPixel(0, 0, Color.clear);
+                icon.Apply();
+            }
+
+            return icons[reason] = icon;
+        }
+
+        [Serializable]
+        private struct KeyValue
+        {
+            public string Key;
+            public string Value;
+
+            public KeyValue(string key, string value)
+            {
+                Key = key;
+                Value = value;
+            }
         }
     }
 }
