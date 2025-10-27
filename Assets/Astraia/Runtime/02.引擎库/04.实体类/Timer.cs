@@ -28,6 +28,7 @@ namespace Astraia
         private Action onUpdate;
         private Action onComplete;
         private Action onContinue;
+        private bool isActive => owner && owner.gameObject.activeInHierarchy;
 
         internal static Timer Create(Component owner, float duration)
         {
@@ -56,7 +57,7 @@ namespace Astraia
         {
             try
             {
-                if (!owner.IsActive())
+                if (!isActive)
                 {
                     Break();
                     return;
@@ -140,7 +141,7 @@ namespace Astraia
 
         void INotifyCompletion.OnCompleted(Action continuation)
         {
-            if (!owner.IsActive())
+            if (!isActive)
             {
                 Break();
                 return;
@@ -166,6 +167,7 @@ namespace Astraia
         private Action onComplete;
         private Action onContinue;
         private Action<float> onUpdate;
+        private bool isActive => owner && owner.gameObject.activeInHierarchy;
 
         internal static Tween Create(Component owner, float duration)
         {
@@ -194,7 +196,7 @@ namespace Astraia
         {
             try
             {
-                if (!owner.IsActive())
+                if (!isActive)
                 {
                     Break();
                     return;
@@ -254,7 +256,7 @@ namespace Astraia
 
         void INotifyCompletion.OnCompleted(Action continuation)
         {
-            if (!owner.IsActive())
+            if (!isActive)
             {
                 Break();
                 return;
