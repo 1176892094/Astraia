@@ -186,10 +186,7 @@ namespace Astraia
             result.Add(reason.Substring(index).Trim());
             return result;
         }
-    }
 
-    public static partial class Extensions
-    {
         public static string Color(this string result, string format)
         {
             return format switch
@@ -205,7 +202,10 @@ namespace Astraia
                 _ => "<color=#{0}>{1}</color>".Format(format, result)
             };
         }
+    }
 
+    public static partial class Extensions
+    {
         public static void Inject(this Component inject, object target)
         {
             var fields = target.GetType().GetFields(Service.Ref.Instance);
