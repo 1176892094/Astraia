@@ -11,6 +11,7 @@
 
 using System;
 using Astraia;
+using Astraia.Common;
 
 namespace Runtime
 {
