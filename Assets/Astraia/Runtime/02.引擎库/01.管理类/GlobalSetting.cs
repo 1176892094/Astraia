@@ -26,7 +26,7 @@ using UnityEditor;
 
 namespace Astraia
 {
-    internal partial class GlobalSetting : ScriptableObject
+    internal sealed partial class GlobalSetting : ScriptableObject
     {
         private static GlobalSetting instance;
 
