@@ -19,6 +19,10 @@ namespace Astraia.Common
 {
     using static GlobalManager;
 
+    public interface ITween
+    {
+    }
+
     public static class UIManager
     {
         private static UIPanel Load(string path, Type type)
