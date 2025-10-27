@@ -15,7 +15,7 @@ namespace Astraia.Common
 {
     using static GlobalManager;
 
-    public static class AudioManager
+    public static class SoundManager
     {
         private static AudioState audioState;
 

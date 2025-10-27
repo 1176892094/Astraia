@@ -87,7 +87,7 @@ namespace Astraia.Common
 
         private void Update()
         {
-            AudioManager.Update();
+            SoundManager.Update();
             SystemManager.Update();
         }
 

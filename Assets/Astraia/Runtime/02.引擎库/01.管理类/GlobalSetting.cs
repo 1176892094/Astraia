@@ -43,7 +43,7 @@ namespace Astraia
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [EnumToggleButtons]
 #endif
-        public AssetPlatform BuildTarget = AssetPlatform.StandaloneWindows;
+        public AssetPlatform BuildTarget = (AssetPlatform)5;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [EnumToggleButtons] [OnValueChanged("UpdateSceneSetting")]
 #endif
