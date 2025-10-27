@@ -179,7 +179,7 @@ namespace Astraia.Net
                         throw new Exception("网络对象 {0} 在构建前需要打开并重新保存。因为网络对象 {1} 没有场景Id".Format(gameObject.scene.path, name));
                     }
 
-                    var random = (uint)Service.Rng.Next();
+                    var random = (uint)Service.Seed.Next();
                     duplicate = sceneData.TryGetValue(random, out entity) && entity && entity != gameObject;
                     if (!duplicate)
                     {

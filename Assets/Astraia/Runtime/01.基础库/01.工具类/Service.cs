@@ -21,9 +21,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-#if UNITY_EDITOR
 using System.Reflection.Emit;
-#endif
 
 namespace Astraia
 {
@@ -118,53 +116,6 @@ namespace Astraia
             }
         }
 
-        public static class Rng
-        {
-            private static readonly Random random = new Random(Environment.TickCount);
-
-            public static float value => (float)random.NextDouble();
-
-            public static int Next()
-            {
-                return random.Next();
-            }
-
-            public static int Next(int max)
-            {
-                return random.Next(max);
-            }
-
-            public static int Next(int min, int max)
-            {
-                return random.Next(min, max);
-            }
-
-            public static int Next(Enum max)
-            {
-                return random.Next(Convert.ToInt32(max));
-            }
-
-            public static int Next(Enum min, Enum max)
-            {
-                return random.Next(Convert.ToInt32(min), Convert.ToInt32(max));
-            }
-
-            public static float Next(float max)
-            {
-                return Next(0, max);
-            }
-
-            public static float Next(float min, float max)
-            {
-                return value * (max - min) + min;
-            }
-
-            public static void NextBytes(byte[] bytes)
-            {
-                random.NextBytes(bytes);
-            }
-        }
-
         public static class Zip
         {
             public static string Compress(string data)
@@ -211,7 +162,7 @@ namespace Astraia
             public static unsafe byte[] Encrypt(byte[] data, byte version = 0)
             {
                 var iv = new byte[LENGTH];
-                Rng.NextBytes(iv);
+                Seed.NextBytes(iv);
                 iv[0] = version;
 
                 var key = KeyMap[iv[0]];
@@ -248,6 +199,53 @@ namespace Astraia
                 }
 
                 return buffer;
+            }
+        }
+
+        public static class Seed
+        {
+            private static readonly Random random = new Random(Environment.TickCount);
+
+            public static float value => (float)random.NextDouble();
+
+            public static int Next()
+            {
+                return random.Next();
+            }
+
+            public static int Next(int max)
+            {
+                return random.Next(max);
+            }
+
+            public static int Next(int min, int max)
+            {
+                return random.Next(min, max);
+            }
+
+            public static int Next(Enum max)
+            {
+                return random.Next(Convert.ToInt32(max));
+            }
+
+            public static int Next(Enum min, Enum max)
+            {
+                return random.Next(Convert.ToInt32(min), Convert.ToInt32(max));
+            }
+
+            public static float Next(float max)
+            {
+                return Next(0, max);
+            }
+
+            public static float Next(float min, float max)
+            {
+                return value * (max - min) + min;
+            }
+
+            public static void NextBytes(byte[] bytes)
+            {
+                random.NextBytes(bytes);
             }
         }
 
@@ -1000,6 +998,41 @@ namespace Astraia
 #endif
         }
 
+        internal static class Build
+        {
+            [ThreadStatic] private static StringBuilder stringBuilder;
+
+            private static StringBuilder StringBuilder => stringBuilder ??= new StringBuilder(1024);
+
+            public static string Format<T>(string format, T arg1)
+            {
+                StringBuilder.Length = 0;
+                StringBuilder.AppendFormat(format, arg1);
+                return StringBuilder.ToString();
+            }
+
+            public static string Format<T1, T2>(string format, T1 arg1, T2 arg2)
+            {
+                StringBuilder.Length = 0;
+                StringBuilder.AppendFormat(format, arg1, arg2);
+                return StringBuilder.ToString();
+            }
+
+            public static string Format<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
+            {
+                StringBuilder.Length = 0;
+                StringBuilder.AppendFormat(format, arg1, arg2, arg3);
+                return StringBuilder.ToString();
+            }
+
+            public static string Format<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+            {
+                StringBuilder.Length = 0;
+                StringBuilder.AppendFormat(format, arg1, arg2, arg3, arg4);
+                return StringBuilder.ToString();
+            }
+        }
+
         internal static class Input
         {
             private static readonly Node root = new Node();
@@ -1062,41 +1095,6 @@ namespace Astraia
             {
                 public readonly Dictionary<char, Node> nodes = new Dictionary<char, Node>();
                 public bool finish;
-            }
-        }
-
-        internal static class Build
-        {
-            [ThreadStatic] private static StringBuilder stringBuilder;
-
-            private static StringBuilder StringBuilder => stringBuilder ??= new StringBuilder(1024);
-
-            public static string Format<T>(string format, T arg1)
-            {
-                StringBuilder.Length = 0;
-                StringBuilder.AppendFormat(format, arg1);
-                return StringBuilder.ToString();
-            }
-
-            public static string Format<T1, T2>(string format, T1 arg1, T2 arg2)
-            {
-                StringBuilder.Length = 0;
-                StringBuilder.AppendFormat(format, arg1, arg2);
-                return StringBuilder.ToString();
-            }
-
-            public static string Format<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
-            {
-                StringBuilder.Length = 0;
-                StringBuilder.AppendFormat(format, arg1, arg2, arg3);
-                return StringBuilder.ToString();
-            }
-
-            public static string Format<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-            {
-                StringBuilder.Length = 0;
-                StringBuilder.AppendFormat(format, arg1, arg2, arg3, arg4);
-                return StringBuilder.ToString();
             }
         }
     }

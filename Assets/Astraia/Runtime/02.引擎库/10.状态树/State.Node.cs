@@ -181,7 +181,7 @@ namespace Astraia
         {
             if (index == -1)
             {
-                index = Service.Rng.Next(nodes.Count);
+                index = Service.Seed.Next(nodes.Count);
             }
 
             var result = nodes[index].Tick();
