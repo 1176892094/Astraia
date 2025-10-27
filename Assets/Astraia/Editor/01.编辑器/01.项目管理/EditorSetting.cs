@@ -198,50 +198,48 @@ namespace Astraia
         [MenuItem("Tools/Astraia/热更资源构建", priority = 3)]
         private static async void BuildAsset()
         {
-            var startTime = EditorApplication.timeSinceStartup;
-            var folderPath = Directory.CreateDirectory(GlobalSetting.RemoteAssetPath);
+            var time = EditorApplication.timeSinceStartup;
+            var folder = Directory.CreateDirectory(GlobalSetting.RemoteAssetPath);
             BuildPipeline.BuildAssetBundles(GlobalSetting.RemoteAssetPath, BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.BuildTarget);
 
-            var oldHashes = new Dictionary<string, string>();
+            var items = new Dictionary<string, string>();
             if (File.Exists(GlobalSetting.RemoteAssetData))
             {
                 var readJson = await File.ReadAllTextAsync(GlobalSetting.RemoteAssetData);
-                var oldData = JsonManager.FromJson<List<BundleData>>(readJson);
-                oldHashes = oldData.ToDictionary(d => d.name, d => d.code);
+                items = JsonUtility.FromJson<Verify>(readJson).bundles.ToDictionary(d => d.name, d => d.code);
             }
 
-            var filePacks = new List<BundleData>();
-            var fileInfos = folderPath.GetFiles();
-
-            foreach (var fileInfo in fileInfos)
+            var files = folder.GetFiles();
+            var verify = new Verify(DateTime.Now.Ticks);
+            foreach (var file in files)
             {
-                if (fileInfo.Extension != "")
+                if (file.Extension != "")
                 {
                     continue;
                 }
 
-                var md5Before = ComputeMD5(fileInfo.FullName);
-                if (oldHashes.TryGetValue(fileInfo.Name, out var oldMd5) && md5Before == oldMd5)
+                var value = ComputeMD5(file.FullName);
+                if (items.TryGetValue(file.Name, out var item) && item == value)
                 {
-                    filePacks.Add(new BundleData(md5Before, fileInfo.Name, (int)fileInfo.Length));
-                    Debug.Log("跳过未变更文件: {0}".Format(fileInfo.Name));
+                    verify.bundles.Add(new Bundle(value, file.Name, (int)file.Length));
+                    Debug.Log("跳过未变更文件: {0}".Format(file.Name));
                     continue;
                 }
 
                 await Task.Run(() =>
                 {
-                    var bytes = File.ReadAllBytes(fileInfo.FullName);
+                    var bytes = File.ReadAllBytes(file.FullName);
                     bytes = Service.Xor.Encrypt(bytes);
-                    File.WriteAllBytes(fileInfo.FullName, bytes);
+                    File.WriteAllBytes(file.FullName, bytes);
                 });
 
-                var md5After = ComputeMD5(fileInfo.FullName);
-                filePacks.Add(new BundleData(md5After, fileInfo.Name, (int)fileInfo.Length));
-                Debug.Log("加密并更新文件: {0}".Color("G").Format(fileInfo.Name));
+                value = ComputeMD5(file.FullName);
+                verify.bundles.Add(new Bundle(value, file.Name, (int)file.Length));
+                Debug.Log("加密并更新文件: {0}".Color("G").Format(file.Name));
             }
 
-            await File.WriteAllTextAsync(GlobalSetting.RemoteAssetData, JsonManager.ToJson(filePacks));
-            var elapsed = EditorApplication.timeSinceStartup - startTime;
+            await File.WriteAllTextAsync(GlobalSetting.RemoteAssetData, JsonUtility.ToJson(verify));
+            var elapsed = EditorApplication.timeSinceStartup - time;
             Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(elapsed));
             AssetDatabase.Refresh();
         }

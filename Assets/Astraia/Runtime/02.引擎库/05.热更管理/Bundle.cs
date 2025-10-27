@@ -35,36 +35,32 @@ namespace Astraia.Common
             {
                 Directory.CreateDirectory(GlobalSetting.BundlePath);
             }
-
-            var clientData = new Dictionary<string, BundleData>();
-            var serverData = new Dictionary<string, BundleData>();
+            
             var processingData = GlobalSetting.ServerPath.Format(GlobalSetting.Verify);
             var persistentData = GlobalSetting.TargetPath.Format(GlobalSetting.Verify);
             var streamingAsset = GlobalSetting.ClientPath.Format(GlobalSetting.Verify);
-
+            var streamRequest = await LoadClientRequest(persistentData, streamingAsset, true);
+            var streamVerify = LoadVerifyRequest(streamRequest, out var streamData);
             var serverRequest = await LoadServerRequest(processingData, GlobalSetting.Verify);
+            var serverVerify = LoadVerifyRequest(serverRequest, out var serverData);
+            var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
+            var clientVerify = LoadVerifyRequest(clientRequest, out var clientData);
+
             if (!string.IsNullOrEmpty(serverRequest))
             {
-                var items = JsonManager.FromJson<List<BundleData>>(serverRequest);
-                foreach (var item in items)
+                if (streamVerify.version == serverVerify.version)
                 {
-                    serverData.Add(item.name, item);
+                    serverData = streamData;
                 }
             }
             else
             {
-                EventManager.Invoke(new OnBundleComplete(-1, "没有连接到服务器!"));
-                return;
-            }
-
-            var clientRequest = await LoadClientRequest(persistentData, streamingAsset);
-            if (!string.IsNullOrEmpty(clientRequest))
-            {
-                var items = JsonManager.FromJson<List<BundleData>>(clientRequest);
-                foreach (var item in items)
+                if (streamVerify.version > clientVerify.version)
                 {
-                    clientData.Add(item.name, item);
+                    serverData = streamData;
                 }
+
+                EventManager.Invoke(new OnBundleComplete(-1, "没有连接到服务器!"));
             }
 
             var names = new HashSet<string>();
@@ -111,6 +107,23 @@ namespace Astraia.Common
             }
 
             EventManager.Invoke(new OnBundleComplete(1, success ? "更新完成!" : "更新失败!"));
+        }
+
+        private static Verify LoadVerifyRequest(string request, out Dictionary<string, Bundle> result)
+        {
+            result = new Dictionary<string, Bundle>();
+            if (!string.IsNullOrEmpty(request))
+            {
+                var verify = JsonUtility.FromJson<Verify>(request);
+                foreach (var item in verify.bundles)
+                {
+                    result.Add(item.name, item);
+                }
+
+                return verify;
+            }
+
+            return default;
         }
 
         private static async Task<bool> LoadBundleRequest(HashSet<string> names)
@@ -202,9 +215,9 @@ namespace Astraia.Common
             }
         }
 
-        private static async Task<string> LoadClientRequest(string persistentData, string streamingAsset)
+        private static async Task<string> LoadClientRequest(string persistentData, string streamingAsset, bool skipped = false)
         {
-            var assetData = await LoadRequest(persistentData, streamingAsset);
+            var assetData = await LoadRequest(persistentData, streamingAsset, skipped);
             string result = null;
             if (assetData.Key == 1)
             {
@@ -223,13 +236,18 @@ namespace Astraia.Common
             return result;
         }
 
-
-        internal static async Task<(int Key, string Value)> LoadRequest(string persistentData, string streamingAsset)
+        internal static async Task<(int Key, string Value)> LoadRequest(string persistentData, string streamingAsset, bool skipped = false)
         {
-            if (File.Exists(persistentData))
+            if (!skipped && File.Exists(persistentData))
             {
                 return (1, persistentData);
             }
+
+            return await LoadRequest(streamingAsset);
+        }
+
+        internal static async Task<(int Key, string Value)> LoadRequest(string streamingAsset)
+        {
 #if UNITY_ANDROID && !UNITY_EDITOR
             if (!streamingAsset.StartsWith("jar:"))
             {
@@ -252,31 +270,44 @@ namespace Astraia.Common
     }
 
     [Serializable]
-    internal struct BundleData : IEquatable<BundleData>
+    internal struct Verify
+    {
+        public long version;
+        public List<Bundle> bundles;
+
+        public Verify(long version)
+        {
+            this.version = version;
+            bundles = bundles = new List<Bundle>();
+        }
+    }
+
+    [Serializable]
+    internal struct Bundle : IEquatable<Bundle>
     {
         public string code;
         public string name;
         public int size;
 
-        public BundleData(string code, string name, int size)
+        public Bundle(string code, string name, int size)
         {
             this.code = code;
             this.name = name;
             this.size = size;
         }
 
-        public static bool operator ==(BundleData a, BundleData b) => a.code == b.code;
+        public static bool operator ==(Bundle a, Bundle b) => a.code == b.code;
 
-        public static bool operator !=(BundleData a, BundleData b) => a.code != b.code;
+        public static bool operator !=(Bundle a, Bundle b) => a.code != b.code;
 
-        public bool Equals(BundleData other)
+        public bool Equals(Bundle other)
         {
             return size == other.size && code == other.code && name == other.name;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is BundleData other && Equals(other);
+            return obj is Bundle other && Equals(other);
         }
 
         public override int GetHashCode()

@@ -53,7 +53,7 @@ MonoBehaviour:
   m_Name: GlobalSetting
   m_EditorClassIdentifier: 
   BuildTarget: 9
-  AssetMode: 0
+  AssetMode: 1
   EncryptKey: 1
   LocalPath: http://192.168.1.5:8000/Documents/GitHub/Astraia-Game
   RemotePath: http://192.168.0.3:8000
@@ -61,7 +61,7 @@ MonoBehaviour:
   EncryptGroup:
   - I1J2K3L4M5N6O7P8
   - Q1R2S3T4U5V6W7X8
-  BuildPath: 0
+  BuildPath: 1
   sceneAssets:
   - {fileID: 102900000, guid: d997d30491f12460a83474cffc127ae4, type: 3}
   - {fileID: 102900000, guid: 1c70e7957cf8b4e1b8b945952142a41d, type: 3}
