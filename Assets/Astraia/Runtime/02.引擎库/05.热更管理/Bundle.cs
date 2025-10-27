@@ -48,7 +48,7 @@ namespace Astraia.Common
             var isRemote = !string.IsNullOrEmpty(serverResult);
             if (isRemote)
             {
-                if (streamVerify.version == serverVerify.version)
+                if (streamVerify.version >= serverVerify.version)
                 {
                     serverData = streamData;
                     serverResult = streamResult;
