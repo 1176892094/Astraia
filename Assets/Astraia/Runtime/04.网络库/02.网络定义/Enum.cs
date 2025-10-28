@@ -13,6 +13,13 @@ using System;
 
 namespace Astraia.Net
 {
+    public static class Channel
+    {
+        public const byte Reliable = 1 << 0;
+        public const byte Unreliable = 1 << 1;
+        public const byte IgnoreOwner = 1 << 2;
+    }
+
     public enum RoomMode : byte
     {
         Public,
@@ -35,7 +42,7 @@ namespace Astraia.Net
     {
         Show = 0,
         Hide = 1,
-        Pool = 2,
+        Auto = 2,
     }
 
     [Flags]

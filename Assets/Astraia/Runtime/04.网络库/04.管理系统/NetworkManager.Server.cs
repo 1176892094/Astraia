@@ -170,14 +170,14 @@ namespace Astraia.Net
                         case Visible.Show:
                             NetworkSpawner.Spawn(entity, client);
                             break;
-                        case Visible.Pool when observer:
+                        case Visible.Auto when observer:
                             if (observer.OnExecute(entity, client))
                             {
                                 NetworkSpawner.Spawn(entity, client);
                             }
 
                             break;
-                        case Visible.Pool:
+                        case Visible.Auto:
                             NetworkSpawner.Spawn(entity, client);
                             break;
                     }
@@ -397,7 +397,7 @@ namespace Astraia.Net
 
                 byte opcode = 0;
                 opcode = (byte)(entity.client == client ? opcode | 1 : opcode & ~1);
-                opcode = (byte)(entity.visible == Visible.Pool ? opcode | 2 : opcode & ~2);
+                opcode = (byte)(entity.visible == Visible.Auto ? opcode | 2 : opcode & ~2);
                 var message = new SpawnMessage
                 {
                     opcode = opcode,

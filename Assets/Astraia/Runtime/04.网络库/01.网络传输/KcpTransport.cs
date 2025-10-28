@@ -11,9 +11,41 @@
 
 using System;
 using Astraia.Common;
+using UnityEngine;
 
 namespace Astraia.Net
 {
+    public abstract class Transport : MonoBehaviour
+    {
+        public static Transport Instance;
+
+        public string address = "localhost";
+        public ushort port = 20974;
+
+        public Action OnClientConnect;
+        public Action OnClientDisconnect;
+        public Action<ArraySegment<byte>, int> OnClientSend;
+        public Action<ArraySegment<byte>, int> OnClientReceive;
+        public Action<int> OnServerConnect;
+        public Action<int> OnServerDisconnect;
+        public Action<int, ArraySegment<byte>, int> OnServerSend;
+        public Action<int, ArraySegment<byte>, int> OnServerReceive;
+
+        public abstract uint GetLength(int channel);
+        public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable);
+        public abstract void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable);
+        public abstract void StartServer();
+        public abstract void StopServer();
+        public abstract void Disconnect(int clientId);
+        public abstract void StartClient();
+        public abstract void StartClient(Uri uri);
+        public abstract void Disconnect();
+        public abstract void ClientEarlyUpdate();
+        public abstract void ClientAfterUpdate();
+        public abstract void ServerEarlyUpdate();
+        public abstract void ServerAfterUpdate();
+    }
+
     public sealed class KcpTransport : Transport
     {
         public uint unitData = 1200;
