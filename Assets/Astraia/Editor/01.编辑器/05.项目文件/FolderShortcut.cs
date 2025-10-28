@@ -13,6 +13,8 @@ using UnityEditor;
 using UnityEngine;
 #if UNITY_6000_2_OR_NEWER
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
+#else
+using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState;
 #endif
 
 namespace Astraia

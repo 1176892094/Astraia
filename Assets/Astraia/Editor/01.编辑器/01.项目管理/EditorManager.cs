@@ -19,6 +19,8 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 #if UNITY_6000_2_OR_NEWER
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+#else
+using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem;
 #endif
 
 namespace Astraia
