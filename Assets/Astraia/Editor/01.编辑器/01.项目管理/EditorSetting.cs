@@ -118,9 +118,9 @@ namespace Astraia
                 }
             }
 
-            DataManager.isLoaded = false;
             if (!Application.isPlaying)
             {
+                DataManager.isLoaded = false;
                 EditorApplication.delayCall -= DataManager.LoadDataTable;
                 EditorApplication.delayCall += DataManager.LoadDataTable;
             }

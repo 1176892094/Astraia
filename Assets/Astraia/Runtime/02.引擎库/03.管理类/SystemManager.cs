@@ -45,6 +45,8 @@ namespace Astraia.Common
                     systems[i].Update();
                 }
             }
+
+            SoundManager.Update();
         }
 
         public static void Dispose()

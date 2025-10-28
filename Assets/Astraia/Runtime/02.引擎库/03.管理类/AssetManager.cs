@@ -24,7 +24,7 @@ namespace Astraia.Common
 
     public static class AssetManager
     {
-        public static T Load<T>(string reason, bool warning = true) where T : Object
+        public static T Load<T>(string reason) where T : Object
         {
             try
             {
@@ -34,10 +34,7 @@ namespace Astraia.Common
                     return asset;
                 }
 
-                if (warning)
-                {
-                    Service.Log.Warn("加载资源 {0} 为空!".Format(reason));
-                }
+                Service.Log.Warn("加载资源 {0} 为空!".Format(reason));
             }
             catch (Exception e)
             {
@@ -47,7 +44,7 @@ namespace Astraia.Common
             return null;
         }
 
-        public static T[] LoadAll<T>(string reason, bool warning = true) where T : Object
+        public static T[] LoadAll<T>(string reason) where T : Object
         {
             try
             {
@@ -57,10 +54,7 @@ namespace Astraia.Common
                     return asset;
                 }
 
-                if (warning)
-                {
-                    Service.Log.Warn("加载资源 {0} 为空!".Format(reason));
-                }
+                Service.Log.Warn("加载资源 {0} 为空!".Format(reason));
             }
             catch (Exception e)
             {
