@@ -241,7 +241,6 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            assetPath.Clear();
             assetData.Clear();
             assetTask.Clear();
             assetPack.Clear();

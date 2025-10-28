@@ -41,6 +41,11 @@ namespace Astraia
 
         public static void Enqueue(TaskNode node)
         {
+            if (node == null)
+            {
+                return;
+            }
+
             foreach (var child in node.nodes)
             {
                 Enqueue(child);
