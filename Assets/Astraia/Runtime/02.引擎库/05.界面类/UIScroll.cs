@@ -62,11 +62,11 @@ namespace Astraia.Common
 
         void ISystem.Update()
         {
-            Scroll();
+            Ticked();
             Update();
         }
 
-        private void Scroll()
+        private void Ticked()
         {
             if (!content)
             {

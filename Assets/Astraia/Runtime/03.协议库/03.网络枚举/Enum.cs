@@ -11,6 +11,12 @@
 
 namespace Astraia
 {
+    internal static class Channel
+    {
+        public const byte Reliable = 1 << 0;
+        public const byte Unreliable = 1 << 1;
+    }
+
     internal enum Error : byte
     {
         解析失败 = 1,

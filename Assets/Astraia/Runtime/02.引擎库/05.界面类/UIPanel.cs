@@ -15,9 +15,15 @@ using Astraia.Common;
 namespace Astraia
 {
     [Serializable]
-    public abstract partial class UIPanel : Module<Entity>, IModule, ISystem
+    public abstract class UIPanel : Module<Entity>, IModule, ISystem
     {
         public UIState state = UIState.Common;
+        internal int layerMask;
+        internal int groupMask;
+
+        int ISystem.index => 10;
+
+        void IModule.Acquire(Entity owner) => Acquire(owner);
 
         public virtual void Update()
         {
@@ -30,15 +36,6 @@ namespace Astraia
         public virtual void OnHide()
         {
         }
-    }
-
-    public abstract partial class UIPanel
-    {
-        internal int layerMask;
-        internal int groupMask;
-
-        int ISystem.index => 10;
-        void IModule.Acquire(Entity owner) => Acquire(owner);
 
         internal virtual void Acquire(Entity owner)
         {
