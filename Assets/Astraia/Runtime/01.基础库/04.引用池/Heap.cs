@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-
 namespace Astraia.Common
 {
     public static class HeapManager

@@ -291,7 +291,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (!client.reader.AddBatch(segment))
+                if (!client.reader.AddPacket(segment))
                 {
                     Service.Log.Warn("无法为客户端 {0} 进行处理消息。", clientId);
                     client.Disconnect();

@@ -19,19 +19,19 @@ namespace Astraia.Net
     [Serializable]
     public sealed class NetworkServer
     {
-        private Dictionary<int, WriterBatch> batches = new Dictionary<int, WriterBatch>();
-        internal ReaderBatch reader = new ReaderBatch();
+        private Dictionary<int, PacketWriter> packets = new Dictionary<int, PacketWriter>();
+        internal PacketReader reader = new PacketReader();
         internal bool isSpawn;
         internal bool isReady;
         
         internal void Update()
         {
-            foreach (var batch in batches)
+            foreach (var packet in packets)
             {
                 using var writer = MemoryWriter.Pop();
-                while (batch.Value.GetBatch(writer))
+                while (packet.Value.GetPacket(writer))
                 {
-                    Transport.Instance.SendToServer(writer, batch.Key);
+                    Transport.Instance.SendToServer(writer, packet.Key);
                     writer.Reset();
                 }
             }
@@ -56,10 +56,10 @@ namespace Astraia.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void AddMessage(MemoryWriter writer, int channel)
         {
-            if (!batches.TryGetValue(channel, out var batch))
+            if (!packets.TryGetValue(channel, out var batch))
             {
-                batch = new WriterBatch(Transport.Instance.GetLength(channel));
-                batches[channel] = batch;
+                batch = new PacketWriter(Transport.Instance.GetLength(channel));
+                packets[channel] = batch;
             }
 
             batch.AddMessage(writer);
@@ -67,7 +67,7 @@ namespace Astraia.Net
             if (NetworkManager.isHost)
             {
                 using var target = MemoryWriter.Pop();
-                if (batch.GetBatch(target))
+                if (batch.GetPacket(target))
                 {
                     NetworkManager.Server.OnServerReceive(NetworkManager.Host, target, Channel.Reliable);
                 }

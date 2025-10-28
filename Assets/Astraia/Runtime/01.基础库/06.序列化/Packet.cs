@@ -203,13 +203,13 @@ namespace Astraia
         }
     }
 
-    internal class WriterBatch
+    internal class PacketWriter
     {
         private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
         private readonly uint maxLength;
         private MemoryWriter writer;
 
-        public WriterBatch(uint maxLength)
+        public PacketWriter(uint maxLength)
         {
             this.maxLength = maxLength;
         }
@@ -228,7 +228,7 @@ namespace Astraia
             writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 
-        public bool GetBatch(MemoryWriter target)
+        public bool GetPacket(MemoryWriter target)
         {
             if (writers.Count > 0)
             {
@@ -262,13 +262,13 @@ namespace Astraia
         }
     }
 
-    internal class ReaderBatch
+    internal class PacketReader
     {
         private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
         private readonly MemoryReader reader = new MemoryReader();
         public int Count => writers.Count;
 
-        public bool AddBatch(ArraySegment<byte> segment)
+        public bool AddPacket(ArraySegment<byte> segment)
         {
             if (segment.Count < sizeof(ushort))
             {

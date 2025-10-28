@@ -71,37 +71,37 @@ namespace Astraia
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static object GetValue(this object target, string name)
+        internal static object GetValue(this object target, string name)
         {
             return Service.Emit.GetValue(target, name);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T GetValue<T>(this object target, string name)
+        internal static T GetValue<T>(this object target, string name)
         {
             return (T)Service.Emit.GetValue(target, name);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetValue(this object target, string name, object value)
+        internal static void SetValue(this object target, string name, object value)
         {
             Service.Emit.SetValue(target, name, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetValue<T>(this object target, string name, T value)
+        internal static void SetValue<T>(this object target, string name, T value)
         {
             Service.Emit.SetValue(target, name, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static object Invoke(this object target, string name, params object[] args)
+        internal static object Invoke(this object target, string name, params object[] args)
         {
             return Service.Emit.Invoke(target, name, args);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Invoke<T>(this object target, string name, params object[] args)
+        internal static T Invoke<T>(this object target, string name, params object[] args)
         {
             return (T)Service.Emit.Invoke(target, name, args);
         }
