@@ -17,23 +17,23 @@ namespace Astraia
 {
     public static partial class Extensions
     {
-        public static T GetOrAddComponent<T>(this Transform transform) where T : Component
+        public static T GetOrAddComponent<T>(this Component entity) where T : Component
         {
-            var component = transform.GetComponent<T>();
+            var component = entity.GetComponent<T>();
             if (component == null)
             {
-                component = transform.gameObject.AddComponent<T>();
+                component = entity.gameObject.AddComponent<T>();
             }
 
             return component;
         }
 
-        public static Component GetOrAddComponent(this Transform transform, Type type)
+        public static Component GetOrAddComponent(this Component entity, Type type)
         {
-            var component = transform.GetComponent(type);
+            var component = entity.GetComponent(type);
             if (component == null)
             {
-                component = transform.gameObject.AddComponent(type);
+                component = entity.gameObject.AddComponent(type);
             }
 
             return component;

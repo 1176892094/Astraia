@@ -112,7 +112,7 @@ namespace Astraia.Common
             }
 
             var result = GlobalSetting.Audio.Format(name);
-            var source = PoolManager.Show(result, typeof(AudioSource));
+            var source = PoolManager.Show<AudioSource>(result, typeof(AudioSource));
             source.clip = AssetManager.Load<AudioClip>(result);
             source.loop = mode == AudioMode.Loop;
             source.volume = AudioVolume;
@@ -166,7 +166,7 @@ namespace Astraia.Common
             if (source)
             {
                 source.Stop();
-                PoolManager.Hide(source.gameObject);
+                PoolManager.Hide(source);
             }
 
             audioLoop.Remove(source);

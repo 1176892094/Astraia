@@ -139,7 +139,7 @@ namespace Astraia.Common
                         if (grid)
                         {
                             grid.Dispose();
-                            PoolManager.Hide(grid.gameObject);
+                            PoolManager.Hide(grid);
                         }
 
                         grids.Remove(i);
@@ -153,7 +153,7 @@ namespace Astraia.Common
                         if (grid)
                         {
                             grid.Dispose();
-                            PoolManager.Hide(grid.gameObject);
+                            PoolManager.Hide(grid);
                         }
 
                         grids.Remove(i);
@@ -191,12 +191,12 @@ namespace Astraia.Common
                 }
 
                 grids[i] = null;
-                var grid = PoolManager.Show(assetPath, assetName).GetOrAddComponent<TGrid>();
+                var grid = PoolManager.Show<TGrid>(assetPath, assetName);
                 SetGrid(grid.GetComponent<RectTransform>(), posX, posY);
                 if (!grids.ContainsKey(i))
                 {
                     grid.Dispose();
-                    PoolManager.Hide(grid.gameObject);
+                    PoolManager.Hide(grid);
                     return;
                 }
 
@@ -260,7 +260,7 @@ namespace Astraia.Common
                     if (grid)
                     {
                         grid.Dispose();
-                        PoolManager.Hide(grid.gameObject);
+                        PoolManager.Hide(grid);
                     }
                 }
             }
