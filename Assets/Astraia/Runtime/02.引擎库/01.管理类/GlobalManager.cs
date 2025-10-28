@@ -101,6 +101,7 @@ namespace Astraia.Common
             HeapManager.Dispose();
             AssetManager.Dispose();
             EventManager.Dispose();
+            SoundManager.Dispose();
             SystemManager.Dispose();
             GC.Collect();
         }
