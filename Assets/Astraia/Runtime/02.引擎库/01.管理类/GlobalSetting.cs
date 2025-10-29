@@ -84,13 +84,14 @@ namespace Astraia
             source.canvas.renderMode = RenderMode.ScreenSpaceCamera;
             source.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
 
+            
             source.canvas.gameObject.AddComponent<GraphicRaycaster>();
             var canvas = source.canvas.gameObject.AddComponent<CanvasScaler>();
             canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             canvas.matchWidthOrHeight = 0.5f;
             canvas.referenceResolution = new Vector2(1920, 1080);
-            canvas.referencePixelsPerUnit = 64;
+            canvas.referencePixelsPerUnit = 32;
             DontDestroyOnLoad(source.canvas);
 
             for (byte i = 1; i < Instance.EncryptGroup.Length; i++)

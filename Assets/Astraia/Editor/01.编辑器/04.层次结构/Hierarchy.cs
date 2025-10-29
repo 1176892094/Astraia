@@ -77,8 +77,8 @@ namespace Astraia
             void DrawToggle()
             {
                 var button = new Rect(rect);
-                button.x -= 60;
-                button.width = rect.width + 76;
+                button.x = 32;
+                button.width = rect.x + rect.width - 32;
                 if (button.Contains(mousePosition) && target)
                 {
                     var activeSelf = target.activeSelf;

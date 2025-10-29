@@ -55,7 +55,7 @@ MonoBehaviour:
   BuildTarget: 9
   AssetMode: 0
   EncryptKey: 1
-  LocalPath: http://192.168.1.5:8000/Documents/GitHub/Astraia-Game
+  LocalPath: http://192.168.1.4:8000/Documents/GitHub/Astraia-Game
   RemotePath: http://192.168.0.3:8000
   InputMask: 0
   EncryptGroup:
