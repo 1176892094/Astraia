@@ -83,17 +83,17 @@ namespace Astraia.Net
 
         protected override void OnDestroy()
         {
-            NetworkSpawner.Destroy(this);
-            if (isServer && (state & EntityState.Destroy) == 0)
-            {
-                NetworkManager.Server.Destroy(gameObject);
-            }
-
             if (isClient)
             {
                 NetworkManager.Client.spawns.Remove(objectId);
             }
 
+            if (isServer && (state & EntityState.Destroy) == 0)
+            {
+                NetworkManager.Server.Destroy(gameObject);
+            }
+
+            NetworkSpawner.Destroy(this);
             owner = null;
             other = null;
             client = null;

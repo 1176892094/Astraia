@@ -182,7 +182,7 @@ namespace Astraia.Net
                             break;
                     }
                 }
-                
+
                 EventManager.Invoke(new ServerReady(client));
             }
 
@@ -416,6 +416,7 @@ namespace Astraia.Net
             {
                 if (obj.TryGetComponent(out NetworkEntity entity))
                 {
+                    spawns.Remove(entity.objectId);
                     foreach (var client in NetworkSpawner.Query(entity))
                     {
                         client.Send(new DestroyMessage(entity.objectId));
@@ -432,8 +433,6 @@ namespace Astraia.Net
                         entity.state |= EntityState.Destroy;
                         Object.Destroy(entity.gameObject);
                     }
-
-                    spawns.Remove(entity.objectId);
                 }
             }
         }
