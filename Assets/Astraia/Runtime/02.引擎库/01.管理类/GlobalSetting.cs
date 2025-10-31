@@ -87,7 +87,8 @@ namespace Astraia
             source.canvas.gameObject.AddComponent<GraphicRaycaster>();
             var canvas = source.canvas.gameObject.AddComponent<CanvasScaler>();
             canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.Shrink;
+            canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            canvas.matchWidthOrHeight = 0;
             canvas.referenceResolution = new Vector2(1920, 1080);
             canvas.referencePixelsPerUnit = 32;
             DontDestroyOnLoad(source.canvas);
