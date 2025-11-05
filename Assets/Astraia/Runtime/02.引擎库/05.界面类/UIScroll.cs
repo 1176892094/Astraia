@@ -29,7 +29,7 @@ namespace Astraia.Common
         private bool vertical;
         private bool restarted;
         private bool selection;
-        private Rect assetRect;
+        protected Rect assetRect;
         private string assetPath;
 
         [Inject] public RectTransform content;
@@ -248,7 +248,7 @@ namespace Astraia.Common
         {
             Reload(true);
         }
-
+        
         public void Reload(bool remove)
         {
             minIndex = -1;
