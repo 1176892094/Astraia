@@ -88,10 +88,8 @@ namespace Astraia
             }
 
             var dataTable = new Dictionary<string, string>();
-            foreach (var excelData in excelFile)
+            foreach (var (sheetName, sheetData) in excelFile)
             {
-                var sheetName = excelData.Item1;
-                var sheetData = excelData.Item2;
                 var row = sheetData.GetLength(1);
                 var column = sheetData.GetLength(0);
                 var fields = new Dictionary<string, string>();
