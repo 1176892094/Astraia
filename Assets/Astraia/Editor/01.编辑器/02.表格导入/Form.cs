@@ -37,14 +37,13 @@ namespace Astraia
             {
                 return Form;
             }
-            
+
             fileData = Path.Combine(fileData, "{0}_TMP{1}".Format(fileName, fileType));
             File.Copy(filePath, fileData, true);
             try
             {
                 var progress = 0F;
-                await using var stream = File.OpenRead(fileData);
-                using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+                using var archive = ZipFile.OpenRead(fileData);
                 var sheetName = LoadSheetName(LoadDocument(archive, "xl/workbook.xml"));
                 var sharedString = LoadSharedString(LoadDocument(archive, "xl/sharedStrings.xml"));
                 for (var i = 0; i < sheetName.Count; i++)
