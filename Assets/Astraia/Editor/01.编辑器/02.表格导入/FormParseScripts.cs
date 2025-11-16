@@ -11,84 +11,85 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Astraia.Common;
 using UnityEditor;
-using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Astraia
 {
     internal static partial class FormManager
     {
-        public static async Task<bool> WriteScripts(string filePaths)
+        public static async Task<bool> WriteScripts(string reason)
         {
             try
             {
-                var excelPaths = new List<string>();
-                var excelFiles = Directory.GetFiles(filePaths);
-                foreach (var excelFile in excelFiles)
+                var watch = Stopwatch.StartNew();
+                var formPath = new List<string>();
+                var formData = Directory.GetFiles(reason);
+                foreach (var data in formData)
                 {
-                    if (IsSupport(excelFile))
+                    if (IsSupport(data))
                     {
-                        excelPaths.Add(excelFile);
+                        formPath.Add(data);
                     }
                 }
 
-                var dataTables = new Dictionary<string, string>();
-                foreach (var excelPath in excelPaths)
+                Form.Clear();
+                var formItem = new Dictionary<string, string>();
+                foreach (var path in formPath)
                 {
-                    var scripts = LoadScripts(excelPath);
-                    foreach (var script in scripts)
+                    var items = await LoadScripts(path);
+                    foreach (var item in items)
                     {
-                        if (!dataTables.ContainsKey(script.Key))
+                        if (!formItem.ContainsKey(item.Key))
                         {
-                            dataTables.Add(script.Key, script.Value);
+                            formItem.Add(item.Key, item.Value);
                         }
                     }
                 }
 
-                var writeAssets = false;
-                var assembly = GlobalSetting.LoadAsset(AssetData.Assembly);
-                dataTables.Add(GlobalSetting.Assembly, assembly.Replace("REPLACE", GlobalSetting.Define));
-                var progress = 0f;
-                foreach (var data in dataTables)
+                Loaded = true;
+                var instance = false;
+                formItem.Add(GlobalSetting.Assembly, GlobalSetting.LoadAsset(AssetData.Assembly).Replace("REPLACE", GlobalSetting.Define));
+                foreach (var item in formItem)
                 {
-                    var result = await Task.Run(() => WriteScripts(data.Key, data.Value));
-                    EditorUtility.DisplayProgressBar(data.Key, "", ++progress / dataTables.Count);
-                    if (result)
-                    {
-                        writeAssets = true;
-                    }
+                    instance |= await Task.Run(() => WriteScripts(item.Key, item.Value));
                 }
 
-                if (!writeAssets)
+                watch.Stop();
+                if (instance)
                 {
-                    await WriteAssets(filePaths);
-                    DataManager.isLoaded = false;
-                    DataManager.LoadDataTable();
+                    Debug.Log("自动生成脚本完成。耗时: {0}秒".Format((watch.ElapsedMilliseconds / 1000F).ToString("F").Color("G")));
+                }
+                else
+                {
+                    await WriteAssets(reason);
                 }
 
-                return writeAssets;
+                return instance;
             }
             catch (Exception e)
             {
                 Debug.LogError(e.ToString());
+                EditorUtility.ClearProgressBar();
                 return false;
             }
         }
 
-        private static Dictionary<string, string> LoadScripts(string excelPath)
+        private static async Task<Dictionary<string, string>> LoadScripts(string path)
         {
-            var excelFile = LoadDataTable(excelPath);
-            if (excelFile == null)
+            var sheetList = await LoadDataTable(path);
+            if (sheetList == null)
             {
                 return new Dictionary<string, string>();
             }
 
             var dataTable = new Dictionary<string, string>();
-            foreach (var (sheetName, sheetData) in excelFile)
+            foreach (var (sheetName, sheetData) in sheetList)
             {
                 var row = sheetData.GetLength(1);
                 var column = sheetData.GetLength(0);

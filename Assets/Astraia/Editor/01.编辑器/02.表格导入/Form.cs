@@ -12,35 +12,53 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 using System.Xml;
+using UnityEditor;
 
 namespace Astraia
 {
     internal static partial class FormManager
     {
-        private static List<(string, string[,])> LoadDataTable(string filePath)
+        private static readonly List<(string, string[,])> Form = new List<(string, string[,])>();
+        private static bool Loaded;
+
+        private static async Task<List<(string, string[,])>> LoadDataTable(string filePath)
         {
+            if (Loaded)
+            {
+                return Form;
+            }
+
             var fileType = Path.GetExtension(filePath);
             var fileName = Path.GetFileNameWithoutExtension(filePath);
             var fileData = Path.GetDirectoryName(filePath);
-            if (fileData == null) return null;
+            if (string.IsNullOrEmpty(fileData))
+            {
+                return Form;
+            }
+            
             fileData = Path.Combine(fileData, "{0}_TMP{1}".Format(fileName, fileType));
             File.Copy(filePath, fileData, true);
             try
             {
-                using var stream = File.OpenRead(fileData);
+                var progress = 0F;
+                await using var stream = File.OpenRead(fileData);
                 using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
                 var sheetName = LoadSheetName(LoadDocument(archive, "xl/workbook.xml"));
                 var sharedString = LoadSharedString(LoadDocument(archive, "xl/sharedStrings.xml"));
-                var dataTable = new List<(string, string[,])>();
                 for (var i = 0; i < sheetName.Count; i++)
                 {
-                    var sheet = "xl/worksheets/sheet{0}.xml".Format(i + 1);
-                    var worksheet = GetWorksheet(LoadDocument(archive, sheet), sharedString);
-                    dataTable.Add((sheetName[i], worksheet));
+                    await Task.Run(() =>
+                    {
+                        var sheet = "xl/worksheets/sheet{0}.xml".Format(i + 1);
+                        var worksheet = GetWorksheet(LoadDocument(archive, sheet), sharedString);
+                        Form.Add((sheetName[i], worksheet));
+                    });
+                    EditorUtility.DisplayProgressBar(sheetName[i], "", ++progress / sheetName.Count);
                 }
 
-                return dataTable;
+                return Form;
             }
             finally
             {

@@ -11,11 +11,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Astraia.Common;
 using UnityEditor;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Astraia
 {
@@ -25,55 +27,62 @@ namespace Astraia
         {
             try
             {
-                var excelPaths = new List<string>();
-                var excelFiles = Directory.GetFiles(filePaths);
-                foreach (var excelFile in excelFiles)
+                var watch = Stopwatch.StartNew();
+                var formPath = new List<string>();
+                var formData = Directory.GetFiles(filePaths);
+                foreach (var data in formData)
                 {
-                    if (IsSupport(excelFile))
+                    if (IsSupport(data))
                     {
-                        excelPaths.Add(excelFile);
+                        formPath.Add(data);
                     }
                 }
 
-                var dataTables = new Dictionary<string, List<string[]>>();
-                foreach (var excelPath in excelPaths)
+                var formItem = new Dictionary<string, List<string[]>>();
+                foreach (var excelPath in formPath)
                 {
-                    await Task.Run(() =>
+                    var items = await LoadAssets(excelPath);
+                    foreach (var item in items)
                     {
-                        var assets = LoadAssets(excelPath);
-                        foreach (var asset in assets)
+                        if (!formItem.ContainsKey(item.Key))
                         {
-                            if (!dataTables.ContainsKey(asset.Key))
-                            {
-                                dataTables.Add(asset.Key, asset.Value);
-                            }
+                            formItem.Add(item.Key, item.Value);
                         }
-                    });
+                    }
                 }
 
-                var progress = 0f;
-                foreach (var data in dataTables)
+                var progress = 0F;
+                foreach (var data in formItem)
                 {
                     await WriteAssets(data.Key, data.Value);
-                    EditorUtility.DisplayProgressBar(data.Key, "", ++progress / dataTables.Count);
+                    EditorUtility.DisplayProgressBar(data.Key, "", ++progress / formItem.Count);
                 }
+
+                watch.Stop();
+                Debug.Log("自动生成资源完成。耗时: {0}秒".Format((watch.ElapsedMilliseconds / 1000F).ToString("F").Color("G")));
             }
             catch (Exception e)
             {
                 Debug.LogError(e.ToString());
             }
+            finally
+            {
+                Loaded = false;
+                DataManager.isLoaded = false;
+                DataManager.LoadDataTable();
+            }
         }
 
-        private static Dictionary<string, List<string[]>> LoadAssets(string excelPath)
+        private static async Task<Dictionary<string, List<string[]>>> LoadAssets(string path)
         {
-            var excelFile = LoadDataTable(excelPath);
-            if (excelFile == null)
+            var sheetList = await LoadDataTable(path);
+            if (sheetList == null)
             {
                 return new Dictionary<string, List<string[]>>();
             }
 
             var dataTable = new Dictionary<string, List<string[]>>();
-            foreach (var (sheetName, sheetData) in excelFile)
+            foreach (var (sheetName, sheetData) in sheetList)
             {
                 var row = sheetData.GetLength(1);
                 var column = sheetData.GetLength(0);
@@ -129,9 +138,8 @@ namespace Astraia
             return dataTable;
         }
 
-        private static async Task WriteAssets(string sheetName, List<string[]> scriptTexts)
+        private static async Task WriteAssets(string sheetName, List<string[]> scripts)
         {
-
             var filePath = GlobalSetting.DataPath.Format(sheetName);
             if (!File.Exists(filePath))
             {
@@ -149,18 +157,18 @@ namespace Astraia
             {
                 File.Delete(filePath);
             }
-            
+
             var fileData = (IDataTable)ScriptableObject.CreateInstance(GlobalSetting.SheetName.Format(sheetName));
             if (fileData == null) return;
             var fileType = Service.Ref.GetType(GlobalSetting.SheetData.Format(sheetName));
             await Task.Run(() =>
             {
                 var instance = (IData)Activator.CreateInstance(fileType);
-                foreach (var scriptText in scriptTexts)
+                foreach (var script in scripts)
                 {
-                    if (!string.IsNullOrEmpty(scriptText[0]))
+                    if (!string.IsNullOrEmpty(script[0]))
                     {
-                        instance.Create(scriptText, 0);
+                        instance.Create(script, 0);
                         fileData.AddData(instance);
                     }
                 }

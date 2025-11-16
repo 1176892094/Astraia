@@ -83,11 +83,7 @@ namespace Astraia
                 {
                     AssetLoadKey = false;
                     ExcelPathKey = folderPath;
-                    var sinceTime = EditorApplication.timeSinceStartup;
-                    EditorUtility.DisplayProgressBar("", "", 0);
                     AssetLoadKey = await FormManager.WriteScripts(folderPath);
-                    var elapsedTime = EditorApplication.timeSinceStartup - sinceTime;
-                    Debug.Log("自动生成脚本完成。耗时: {0}秒".Format(elapsedTime.ToString("F").Color("G")));
                 }
                 finally
                 {
@@ -105,24 +101,14 @@ namespace Astraia
                 try
                 {
                     AssetLoadKey = false;
-                    var sinceTime = EditorApplication.timeSinceStartup;
                     EditorUtility.DisplayProgressBar("", "", 0);
                     await FormManager.WriteAssets(ExcelPathKey);
-                    var elapsedTime = EditorApplication.timeSinceStartup - sinceTime;
-                    Debug.Log("自动生成资源完成。耗时: {0}秒".Format(elapsedTime.ToString("F").Color("G")));
                 }
                 finally
                 {
                     AssetDatabase.Refresh();
                     EditorUtility.ClearProgressBar();
                 }
-            }
-
-            if (!Application.isPlaying)
-            {
-                DataManager.isLoaded = false;
-                EditorApplication.delayCall -= DataManager.LoadDataTable;
-                EditorApplication.delayCall += DataManager.LoadDataTable;
             }
         }
 
@@ -201,7 +187,7 @@ namespace Astraia
         [MenuItem("Tools/Astraia/热更资源构建", priority = 3)]
         private static async void BuildAsset()
         {
-            var time = EditorApplication.timeSinceStartup;
+            var watch = Stopwatch.StartNew();
             var folder = Directory.CreateDirectory(GlobalSetting.RemoteAssetPath);
             BuildPipeline.BuildAssetBundles(GlobalSetting.RemoteAssetPath, BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.BuildTarget);
 
@@ -242,8 +228,8 @@ namespace Astraia
             }
 
             await File.WriteAllTextAsync(GlobalSetting.RemoteAssetData, JsonUtility.ToJson(verify));
-            var elapsed = EditorApplication.timeSinceStartup - time;
-            Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(elapsed));
+            watch.Stop();
+            Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(watch.ElapsedMilliseconds / 1000F));
             AssetDatabase.Refresh();
         }
 
