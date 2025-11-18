@@ -51,7 +51,7 @@ namespace Astraia
         public readonly bool selection;
         public readonly Rect assetRect;
 
-        public UIRectAttribute(int x, int y, int w, int h, int assetData = 1)
+        public UIRectAttribute(int x, int y, float w, float h, int assetData = 1)
         {
             vertical = (assetData & 1 << 0) != 0;
             selection = (assetData & 1 << 1) != 0;
