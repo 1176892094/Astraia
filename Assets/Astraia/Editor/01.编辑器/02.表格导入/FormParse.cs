@@ -96,7 +96,7 @@ namespace Astraia
                 return false;
             }
 
-            return Path.GetExtension(assetPath).ToLower() is ".xlsx";
+            return Path.GetExtension(assetPath).ToLower() is ".xlsx" or ".xlsm";
         }
     }
 }
