@@ -263,7 +263,7 @@ namespace Astraia.Common
             var fields = target.GetFields(Service.Ref.Instance);
             for (var i = 0; i < fields.Length; i++)
             {
-                fields[i].SetValue(result, new Xor.Bytes(Service.Text.GetBytes(member[i])));
+                fields[i].SetValue(result, Service.Text.GetBytes(member[i]));
             }
 
             return result;
