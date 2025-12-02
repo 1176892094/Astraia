@@ -111,9 +111,12 @@ namespace Astraia
                 }
             }
 
-            DataManager.isLoaded = false;
-            EditorApplication.delayCall -= DataManager.LoadDataTable;
-            EditorApplication.delayCall += DataManager.LoadDataTable;
+            if (!Application.isPlaying)
+            {
+                DataManager.isLoaded = false;
+                EditorApplication.delayCall -= DataManager.LoadDataTable;
+                EditorApplication.delayCall += DataManager.LoadDataTable;
+            }
         }
 
         [MenuItem("Tools/Astraia/框架配置窗口 _F1", priority = 2)]
