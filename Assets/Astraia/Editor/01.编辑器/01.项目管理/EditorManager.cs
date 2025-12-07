@@ -217,7 +217,7 @@ namespace Astraia
         public static readonly GUIContent customIcon = EditorGUIUtility.IconContent("CustomTool");
         public static readonly GUIContent windowIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow");
         public static readonly GUIContent settingIcon = EditorGUIUtility.IconContent("SettingsIcon");
-        public static readonly GUIContent packageIcon = EditorGUIUtility.IconContent("Package Manager");
+        public static readonly GUIContent projectIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon");
 
         public static float CalcSize(string name)
         {

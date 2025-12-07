@@ -44,8 +44,7 @@ namespace Astraia
         [MainToolbarElement("Astraia/Preference Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
         public static MainToolbarElement PreferenceSettings()
         {
-            var content = new MainToolbarContent(EditorRef.customIcon.image as Texture2D);
-
+            var content = new MainToolbarContent(EditorRef.projectIcon.image as Texture2D);
             return new MainToolbarButton(content, () => SettingsService.OpenUserPreferences());
         }
 
@@ -57,6 +56,12 @@ namespace Astraia
             return new MainToolbarButton(content, () => EditorApplication.ExecuteMenuItem("File/Build Profiles"));
         }
 
+        [MainToolbarElement("Astraia/Framework Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
+        public static MainToolbarElement FrameworkSettings()
+        {
+            var content = new MainToolbarContent(EditorRef.customIcon.image as Texture2D);
+            return new MainToolbarButton(content, EditorSetting.ShowWindow);
+        }
 
         [MainToolbarElement("Astraia/Project Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
         public static MainToolbarElement ProjectSettings()
@@ -96,8 +101,11 @@ namespace Astraia
 
             foreach (var scenePath in scenePaths)
             {
-                var sceneName = Path.GetFileNameWithoutExtension(scenePath);
-                menu.AddItem(new GUIContent(sceneName), false, () => SwitchScene(scenePath));
+                if (!string.IsNullOrEmpty(scenePath))
+                {
+                    var sceneName = Path.GetFileNameWithoutExtension(scenePath);
+                    menu.AddItem(new GUIContent(sceneName), false, () => SwitchScene(scenePath));
+                }
             }
 
             menu.DropDown(dropDownRect);
