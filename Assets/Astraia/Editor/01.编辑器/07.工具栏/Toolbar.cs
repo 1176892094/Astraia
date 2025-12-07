@@ -15,227 +15,22 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.Toolbars;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
 
 namespace Astraia
 {
     internal static class Toolbar
     {
-        private static List<string> scenes;
-        private static ToolbarMenu toolbarMenu;
+        private static List<string> scenePaths;
 
-        public static void SelectionChanged()
+        static Toolbar()
         {
-            var objects = Resources.FindObjectsOfTypeAll(EditorRef.Toolbar);
-            foreach (var obj in objects)
-            {
-                if (obj is ScriptableObject window)
-                {
-                    var parent = FindElement(window.GetValue<VisualElement>("m_Root"), "unity-editor-toolbar-container");
-                    var element = parent.Q<VisualElement>("ToolbarLeftAlign");
-                    if (element == null)
-                    {
-                        parent.Q<VisualElement>("ToolbarZoneLeftAlign").Add(LeftElement("ToolbarLeftAlign"));
-                    }
-
-                    element = parent.Q<VisualElement>("RightLeftAlign");
-                    if (element == null)
-                    {
-                        parent.Q<VisualElement>("ToolbarZoneRightAlign").Add(RightElement("RightLeftAlign"));
-                    }
-                }
-            }
+            OnProjectChanged();
         }
 
-        private static VisualElement FindElement(VisualElement parent, string className)
+        public static void OnProjectChanged()
         {
-            for (var i = 0; i < parent.childCount; i++)
-            {
-                var element = parent[i];
-                if (element.ClassListContains(className))
-                {
-                    return element;
-                }
-
-                element = FindElement(element, className);
-                if (element != null)
-                {
-                    return element;
-                }
-            }
-
-            return null;
-        }
-
-        private static VisualElement LeftElement(string name)
-        {
-            var parent = new VisualElement
-            {
-                name = name,
-                style =
-                {
-                    flexGrow = 1,
-                    flexDirection = FlexDirection.RowReverse,
-                }
-            };
-            var dropdown = new ToolbarMenu
-            {
-                text = Time.timeScale.ToString("F2"),
-                style =
-                {
-                    backgroundColor = Color.white * 0.5f,
-                    unityTextAlign = TextAnchor.MiddleCenter,
-                    borderTopLeftRadius = 4,
-                    borderTopRightRadius = 4,
-                    borderBottomLeftRadius = 4,
-                    borderBottomRightRadius = 4,
-                    marginBottom = 0,
-                    marginLeft = 2,
-                    marginRight = 2,
-                    marginTop = 0,
-                    paddingBottom = 2,
-                    paddingLeft = 4,
-                    paddingRight = 4,
-                    paddingTop = 2,
-                    height = 20,
-                },
-            };
-            var menuIcon = new VisualElement
-            {
-                style =
-                {
-                    width = 16,
-                    height = 16,
-                    backgroundImage = EditorRef.windowIcon.image as Texture2D,
-                },
-            };
-            dropdown.Insert(0, menuIcon);
-            dropdown.menu.AppendAction("0", _ =>
-            {
-                Time.timeScale = 0;
-                dropdown.text = Time.timeScale.ToString("F2");
-            });
-            dropdown.menu.AppendAction("0.25", _ =>
-            {
-                Time.timeScale = 0.25f;
-                dropdown.text = Time.timeScale.ToString("F2");
-            });
-            dropdown.menu.AppendAction("0.5", _ =>
-            {
-                Time.timeScale = 0.5f;
-                dropdown.text = Time.timeScale.ToString("F2");
-            });
-            dropdown.menu.AppendAction("0.75", _ =>
-            {
-                Time.timeScale = 0.75f;
-                dropdown.text = Time.timeScale.ToString("F2");
-            });
-            dropdown.menu.AppendAction("1", _ =>
-            {
-                Time.timeScale = 1;
-                dropdown.text = Time.timeScale.ToString("F2");
-            });
-            dropdown.menu.AppendAction("1.5", _ =>
-            {
-                Time.timeScale = 1.5f;
-                dropdown.text = Time.timeScale.ToString("F2");
-            });
-            dropdown.menu.AppendAction("2", _ =>
-            {
-                Time.timeScale = 2f;
-                dropdown.text = Time.timeScale.ToString("F2");
-            });
-            dropdown.menu.AppendAction("2.5", _ =>
-            {
-                Time.timeScale = 2.5f;
-                dropdown.text = Time.timeScale.ToString("F2");
-            });
-            dropdown.menu.AppendAction("3", _ =>
-            {
-                Time.timeScale = 3;
-                dropdown.text = Time.timeScale.ToString("F2");
-            });
-            parent.Add(dropdown);
-            SetButton(parent, EditorRef.customIcon.image, EditorSetting.ShowWindow);
-            SetButton(parent, EditorRef.settingIcon.image, () => EditorApplication.ExecuteMenuItem("Edit/Project Settings..."));
-            SetButton(parent, EditorRef.buildIcon.image, () => EditorApplication.ExecuteMenuItem("File/Build Profiles"));
-            return parent;
-        }
-
-        private static void SetButton(VisualElement parent, Texture texture, Action assetAction)
-        {
-            var button = new EditorToolbarButton(assetAction)
-            {
-                style =
-                {
-                    width = 30,
-                    backgroundColor = Color.white * 0.5f,
-                    unityTextAlign = TextAnchor.MiddleCenter,
-                    borderBottomWidth = 0,
-                    borderTopWidth = 0,
-                    borderLeftWidth = 0,
-                    borderRightWidth = 0,
-                    marginLeft = 1,
-                    marginRight = 1,
-                },
-                iconImage = texture as Texture2D,
-            };
-            button.RegisterCallback<MouseEnterEvent>(_ => button.style.backgroundColor = Color.white * 0.6f);
-            button.RegisterCallback<MouseLeaveEvent>(_ => button.style.backgroundColor = Color.white * 0.5f);
-            parent.Add(button);
-        }
-
-
-        private static VisualElement RightElement(string name)
-        {
-            var parent = new VisualElement
-            {
-                name = name,
-                style =
-                {
-                    flexGrow = 1,
-                    flexDirection = FlexDirection.Row,
-                }
-            };
-
-            toolbarMenu = new ToolbarMenu
-            {
-                style =
-                {
-                    backgroundColor = Color.white * 0.5f,
-                    unityTextAlign = TextAnchor.MiddleCenter,
-                    borderTopLeftRadius = 4,
-                    borderTopRightRadius = 4,
-                    borderBottomLeftRadius = 4,
-                    borderBottomRightRadius = 4,
-                    marginBottom = 0,
-                    marginLeft = 2,
-                    marginRight = 2,
-                    marginTop = 0,
-                    paddingBottom = 2,
-                    paddingLeft = 4,
-                    paddingRight = 4,
-                    paddingTop = 2,
-                    height = 20,
-                },
-            };
-
-            var menuIcon = new VisualElement
-            {
-                style =
-                {
-                    width = 16,
-                    height = 16,
-                    backgroundImage = EditorRef.sceneIcon.image as Texture2D,
-                },
-            };
-            toolbarMenu.Insert(0, menuIcon);
-            SetButton(parent, EditorRef.packageIcon.image, () => EditorApplication.ExecuteMenuItem("Window/Package Management/Package Manager"));
-            parent.Add(toolbarMenu);
-
             var assets = EditorPrefs.GetString(nameof(CacheScene));
             if (string.IsNullOrEmpty(assets))
             {
@@ -243,65 +38,134 @@ namespace Astraia
                 EditorPrefs.SetString(nameof(CacheScene), assets);
             }
 
-            scenes = JsonUtility.FromJson<CacheScene>(assets).value;
-            SetToolbarMenu(Path.GetFileNameWithoutExtension(scenes[0]));
-            return parent;
+            scenePaths = JsonUtility.FromJson<CacheScene>(assets).value;
+        }
+
+        [MainToolbarElement("Astraia/Preference Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
+        public static MainToolbarElement PreferenceSettings()
+        {
+            var content = new MainToolbarContent(EditorRef.customIcon.image as Texture2D);
+
+            return new MainToolbarButton(content, () => SettingsService.OpenUserPreferences());
+        }
+
+        [MainToolbarElement("Astraia/Build Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
+        public static MainToolbarElement BuildSettings()
+        {
+            var content = new MainToolbarContent(EditorRef.buildIcon.image as Texture2D);
+
+            return new MainToolbarButton(content, () => EditorApplication.ExecuteMenuItem("File/Build Profiles"));
+        }
+
+
+        [MainToolbarElement("Astraia/Project Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
+        public static MainToolbarElement ProjectSettings()
+        {
+            var content = new MainToolbarContent(EditorRef.settingIcon.image as Texture2D);
+            return new MainToolbarButton(content, () => SettingsService.OpenProjectSettings());
+        }
+
+
+        [MainToolbarElement("Astraia/Timescale", defaultDockPosition = MainToolbarDockPosition.Middle)]
+        public static MainToolbarElement Timescale()
+        {
+            var content = new MainToolbarContent(EditorRef.windowIcon.image as Texture2D);
+            return new MainToolbarSlider(content, 1, 0, 1, s => Time.timeScale = s);
+        }
+
+        [MainToolbarElement("Astraia/Scene Selector", defaultDockPosition = MainToolbarDockPosition.Middle)]
+        public static MainToolbarElement SceneSelector()
+        {
+            var sceneName = SceneManager.GetActiveScene().name;
+            if (sceneName.Length == 0)
+            {
+                sceneName = "Untitled";
+            }
+
+            var content = new MainToolbarContent(sceneName, EditorRef.sceneIcon.image as Texture2D, "Select active scene");
+            return new MainToolbarDropdown(content, ShowDropdownMenu);
+        }
+
+        private static void ShowDropdownMenu(Rect dropDownRect)
+        {
+            var menu = new GenericMenu();
+            if (scenePaths.Count == 0)
+            {
+                menu.AddDisabledItem(new GUIContent("No Scenes in Project"));
+            }
+
+            foreach (var scenePath in scenePaths)
+            {
+                var sceneName = Path.GetFileNameWithoutExtension(scenePath);
+                menu.AddItem(new GUIContent(sceneName), false, () => SwitchScene(scenePath));
+            }
+
+            menu.DropDown(dropDownRect);
+        }
+
+        private static void SwitchScene(string scenePath)
+        {
+            if (Application.isPlaying)
+            {
+                var sceneName = Path.GetFileNameWithoutExtension(scenePath);
+                if (Application.CanStreamedLevelBeLoaded(sceneName))
+                {
+                    SceneManager.LoadScene(sceneName);
+                }
+                else
+                {
+                    Debug.LogError($"Scene '{sceneName}' is not in the Build Settings.");
+                }
+            }
+            else
+            {
+                if (File.Exists(scenePath))
+                {
+                    if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                    {
+                        EditorSceneManager.OpenScene(scenePath);
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"Scene at path '{scenePath}' does not exist.");
+                }
+            }
         }
 
         public static void OnSceneOpened(Scene scene, OpenSceneMode mode)
         {
-            if (EditorApplication.isPlaying) return;
-            var assets = EditorPrefs.GetString(nameof(CacheScene));
-            if (string.IsNullOrEmpty(assets))
+            if (!EditorApplication.isPlaying)
             {
-                assets = "{\"value\":[\"\", \"\", \"\", \"\", \"\"]}";
+                var assets = EditorPrefs.GetString(nameof(CacheScene));
+                if (string.IsNullOrEmpty(assets))
+                {
+                    assets = "{\"value\":[\"\", \"\", \"\", \"\", \"\"]}";
+                    EditorPrefs.SetString(nameof(CacheScene), assets);
+                }
+
+                scenePaths = JsonUtility.FromJson<CacheScene>(assets).value;
+
+                if (scenePaths.Contains(scene.path))
+                {
+                    scenePaths.Remove(scene.path);
+                }
+                else
+                {
+                    scenePaths.RemoveAt(scenePaths.Count - 1);
+                }
+
+                scenePaths.Insert(0, scene.path);
+                assets = JsonUtility.ToJson(new CacheScene(scenePaths));
                 EditorPrefs.SetString(nameof(CacheScene), assets);
             }
-
-            scenes = JsonUtility.FromJson<CacheScene>(assets).value;
-
-            if (scenes.Contains(scene.path))
-            {
-                scenes.Remove(scene.path);
-            }
-            else
-            {
-                scenes.RemoveAt(scenes.Count - 1);
-            }
-
-            scenes.Insert(0, scene.path);
-            SetToolbarMenu(Path.GetFileNameWithoutExtension(scenes[0]));
-            assets = JsonUtility.ToJson(new CacheScene(scenes));
-            EditorPrefs.SetString(nameof(CacheScene), assets);
         }
 
-        private static void SetToolbarMenu(string sceneName)
+        public static void ActiveSceneChanged(Scene oldScene, Scene newScene)
         {
-            toolbarMenu.text = string.IsNullOrEmpty(sceneName) ? "Empty Scene" : sceneName;
-            toolbarMenu.menu.ClearItems();
-            for (var i = 0; i < scenes.Count; i++)
-            {
-                var index = i;
-                toolbarMenu.menu.AppendAction(Path.GetFileNameWithoutExtension(scenes[index]), LoadScene);
-                continue;
-
-                void LoadScene(DropdownMenuAction action)
-                {
-                    try
-                    {
-                        if (EditorApplication.isPlaying) return;
-                        if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                        {
-                            EditorSceneManager.OpenScene(scenes[index], OpenSceneMode.Single);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError("打开 " + scenes[index] + " 场景失败!\n" + e);
-                    }
-                }
-            }
+            MainToolbar.Refresh("Astraia/Scene Selector");
         }
+
 
         [Serializable]
         private class CacheScene

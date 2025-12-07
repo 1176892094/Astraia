@@ -16,10 +16,13 @@ using Astraia.Common;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<UnityEngine.EntityId>;
+#elif UNITY_6000_2_OR_NEWER
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
-#else
+else
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem;
 #endif
 
@@ -52,19 +55,20 @@ namespace Astraia
             EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
             EditorApplication.projectChanged -= Folder.OnProjectChanged;
             EditorApplication.projectChanged += Folder.OnProjectChanged;
-
-            Selection.selectionChanged -= Toolbar.SelectionChanged;
-            Selection.selectionChanged += Toolbar.SelectionChanged;
+            
             Selection.selectionChanged -= Inspector.SelectionChanged;
             Selection.selectionChanged += Inspector.SelectionChanged;
-
-            EditorApplication.delayCall -= Toolbar.SelectionChanged;
-            EditorApplication.delayCall += Toolbar.SelectionChanged;
             EditorApplication.delayCall -= Inspector.SelectionChanged;
             EditorApplication.delayCall += Inspector.SelectionChanged;
 
+            SceneManager.activeSceneChanged -= Toolbar.ActiveSceneChanged;
+            SceneManager.activeSceneChanged += Toolbar.ActiveSceneChanged;
             EditorSceneManager.sceneOpened -= Toolbar.OnSceneOpened;
             EditorSceneManager.sceneOpened += Toolbar.OnSceneOpened;
+            EditorSceneManager.activeSceneChangedInEditMode -= Toolbar.ActiveSceneChanged;
+            EditorSceneManager.activeSceneChangedInEditMode += Toolbar.ActiveSceneChanged;
+            EditorApplication.projectChanged -= Toolbar.OnProjectChanged;
+            EditorApplication.projectChanged += Toolbar.OnProjectChanged;
 
             focusedWindow = EditorWindow.focusedWindow;
             isMaximized = focusedWindow && focusedWindow.maximized;

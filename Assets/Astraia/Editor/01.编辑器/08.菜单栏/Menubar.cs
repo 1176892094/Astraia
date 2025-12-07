@@ -30,7 +30,7 @@ namespace Astraia
             if (pages == null)
             {
                 var windows = typeof(EditorWindow).GetValue<List<EditorWindow>>("activeEditorWindows");
-                pages = windows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent"));
+                pages = windows.Where(w => w.hasFocus && w.docked && !w.maximized).Select(w => w.GetValue<Object>("m_Parent")).Where(p => p.GetType() != EditorRef.Toolbar);
             }
 
             foreach (var page in pages)
