@@ -13,7 +13,9 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<UnityEngine.EntityId>;
+#elif UNITY_6000_2_OR_NEWER
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 #else
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState;
@@ -60,7 +62,7 @@ namespace Astraia
             var state = tree.GetValue<TreeViewState>("state");
 
             var sceneActive = SceneManager.GetActiveScene();
-            var sceneId = sceneActive.handle;
+            var sceneId = (EntityId)(int)sceneActive.handle;
 
             var isExpanded = sceneExpandState.ContainsKey(sceneId) && sceneExpandState[sceneId];
 
@@ -87,7 +89,7 @@ namespace Astraia
 
                 foreach (var root in sceneActive.GetRootGameObjects())
                 {
-                    var rootId = root.GetInstanceID();
+                    var rootId = root.GetEntityId();
                     data.Invoke("SetExpanded", rootId, true);
                 }
 

@@ -11,7 +11,9 @@
 
 using UnityEditor;
 using UnityEngine;
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<UnityEngine.EntityId>;
+#elif UNITY_6000_2_OR_NEWER
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 #else
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState;
@@ -88,7 +90,7 @@ namespace Astraia
                         var subObj = AssetDatabase.LoadAssetAtPath<Object>(subDir);
                         if (subObj != null)
                         {
-                            data.Invoke("SetExpanded", subObj.GetInstanceID(), true);
+                            data.Invoke("SetExpanded", subObj.GetEntityId(), true);
                         }
                     }
                 }
@@ -110,7 +112,7 @@ namespace Astraia
             var subObj = AssetDatabase.LoadAssetAtPath<Object>(folder);
             if (subObj != null)
             {
-                data.Invoke("SetExpanded", subObj.GetInstanceID(), false);
+                data.Invoke("SetExpanded", subObj.GetEntityId(), false);
                 var subDirs = AssetDatabase.GetSubFolders(folder);
                 foreach (var subDir in subDirs)
                 {
