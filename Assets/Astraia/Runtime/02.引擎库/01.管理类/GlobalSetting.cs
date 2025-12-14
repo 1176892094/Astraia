@@ -89,8 +89,8 @@ namespace Astraia
             canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             canvas.matchWidthOrHeight = 0;
-            canvas.referenceResolution = new Vector2(1920, 1080);
-            canvas.referencePixelsPerUnit = 32;
+            canvas.referenceResolution = new Vector2(960, 540);
+            canvas.referencePixelsPerUnit = 16;
             DontDestroyOnLoad(source.canvas);
 
             for (byte i = 1; i < Instance.EncryptGroup.Length; i++)
