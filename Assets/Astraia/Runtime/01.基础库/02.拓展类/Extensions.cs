@@ -54,22 +54,38 @@ namespace Astraia
         {
             var value = string.Empty;
             var input = 0;
+
             foreach (var c in result)
             {
-                var charWeight = c >= 0x4E00 && c <= 0x9FFF ? 2 : 1;
-
-                if (input + charWeight > count)
+                var width = c > 255 ? 2 : 1;
+                if (input + width > count)
                 {
                     break;
                 }
 
-                input += charWeight;
+                input += width;
                 value += c;
             }
 
             return value;
         }
-        
+
+        public static string Align(this string result, int count)
+        {
+            var width = 0;
+            foreach (var c in result)
+            {
+                width += c > 255 ? 2 : 1;
+            }
+
+            while (width++ < count)
+            {
+                result += ' ';
+            }
+
+            return result;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static object GetValue(this object target, string name)
         {
