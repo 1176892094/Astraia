@@ -1,9 +1,7 @@
 fileFormatVersion: 2
-guid: 2ad0a53eacb91bd4fbe0dc668bf25e6f
-ShaderImporter:
+guid: d92d0eb8b980c6d44b5f0e64a620355b
+DefaultImporter:
   externalObjects: {}
-  defaultTextures: []
-  nonModifiableTextures: []
   userData: 
   assetBundleName: 
   assetBundleVariant: 
@@ -12,5 +10,5 @@ AssetOrigin:
   productId: 89041
   packageName: Odin Inspector and Serializer
   packageVersion: 4.0.1.2
-  assetPath: Assets/Plugins/Sirenix/Odin Inspector/Assets/Editor/Hidden/LazyEditorIconShader.shader
+  assetPath: Assets/Plugins/Sirenix/Odin Inspector/Modules/Unity.Addressables.data
   uploadId: 835510

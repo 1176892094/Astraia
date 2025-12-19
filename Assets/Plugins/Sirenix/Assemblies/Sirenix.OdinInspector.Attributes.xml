@@ -703,7 +703,7 @@
         </member>
         <member name="F:Sirenix.OdinInspector.CustomContextMenuAttribute.MenuItem">
             <summary>
-            The name of the menu item.
+            A resolved string defining the name of the menu item.
             </summary>
         </member>
         <member name="P:Sirenix.OdinInspector.CustomContextMenuAttribute.MethodName">
@@ -720,7 +720,7 @@
             <summary>
             Adds a custom option to the context menu of the property.
             </summary>
-            <param name="menuItem">The name of the menu item.</param>
+            <param name="menuItem">A resolved string defining the name of the menu item.</param>
             <param name="action">A resolved string defining the action to take when the context menu is clicked.</param>
         </member>
         <member name="T:Sirenix.OdinInspector.CustomValueDrawerAttribute">
