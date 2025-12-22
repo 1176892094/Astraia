@@ -271,10 +271,17 @@ namespace Astraia.Net
                         client.Disconnect();
                     }
 
-                    var entities = spawns.Values.Where(entity => entity.client == client).ToList();
+                    var entities = spawns.Values.ToList();
                     foreach (var entity in entities)
                     {
-                        Destroy(entity.gameObject);
+                        if (clientId == Host && entity.client == null)
+                        {
+                            Destroy(entity.gameObject);
+                        }
+                        else if (entity.client == client)
+                        {
+                            Destroy(entity.gameObject);
+                        }
                     }
 
                     NetworkSpawner.Destroy(client);
