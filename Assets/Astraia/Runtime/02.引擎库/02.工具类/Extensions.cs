@@ -60,7 +60,7 @@ namespace Astraia
 
             return component;
         }
-        
+
         public static string Color(this string result, string format)
         {
             return format switch
@@ -127,8 +127,7 @@ namespace Astraia
                     var cacheType = Service.Ref.GetType("UnityEngine.UI.Button,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var button))
                     {
-                        var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
-                        if (panel != null)
+                        if (target is UIPanel panel)
                         {
                             button.GetValue<UnityEvent>("onClick").AddListener(() =>
                             {
@@ -137,18 +136,17 @@ namespace Astraia
                                     target.Invoke(upper);
                                 }
                             });
-                            return;
                         }
-
-                        button.GetValue<UnityEvent>("onClick").AddListener(() => target.Invoke(upper));
-                        continue;
+                        else
+                        {
+                            button.GetValue<UnityEvent>("onClick").AddListener(() => target.Invoke(upper));
+                        }
                     }
 
                     cacheType = Service.Ref.GetType("UnityEngine.UI.Toggle,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var toggle))
                     {
-                        var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
-                        if (panel != null)
+                        if (target is UIPanel panel)
                         {
                             toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value =>
                             {
@@ -157,18 +155,17 @@ namespace Astraia
                                     target.Invoke(upper, value);
                                 }
                             });
-                            return;
                         }
-
-                        toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value => target.Invoke(upper, value));
-                        continue;
+                        else
+                        {
+                            toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value => target.Invoke(upper, value));
+                        }
                     }
 
                     cacheType = Service.Ref.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
                     if (component.TryGetComponent(cacheType, out var inputField))
                     {
-                        var panel = inject.GetComponent<Entity>()?.FindComponent<UIPanel>();
-                        if (panel != null)
+                        if (target is UIPanel panel)
                         {
                             inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                             {
@@ -177,10 +174,11 @@ namespace Astraia
                                     target.Invoke(upper, value);
                                 }
                             });
-                            return;
                         }
-
-                        inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => target.Invoke(upper, value));
+                        else
+                        {
+                            inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => target.Invoke(upper, value));
+                        }
                     }
                 }
             }
