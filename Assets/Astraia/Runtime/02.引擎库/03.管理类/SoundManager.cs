@@ -92,7 +92,7 @@ namespace Astraia.Common
                     var source = Instance.source;
                     source.clip = AssetManager.Load<AudioClip>(result);
                     source.loop = true;
-                    source.volume = MusicVolume;
+                    source.volume = musicVolume;
                     source.Play();
                     break;
                 case AudioState.Pause:
@@ -115,7 +115,7 @@ namespace Astraia.Common
             var source = PoolManager.Show<AudioSource>(result, typeof(AudioSource));
             source.clip = AssetManager.Load<AudioClip>(result);
             source.loop = mode == AudioMode.Loop;
-            source.volume = AudioVolume;
+            source.volume = audioVolume;
             source.Play();
             audioLoop.Add(source);
             return source;

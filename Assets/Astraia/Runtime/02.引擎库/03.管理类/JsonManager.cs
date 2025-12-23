@@ -10,9 +10,9 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Astraia.Common
 {
@@ -91,23 +91,18 @@ namespace Astraia.Common
 
         private static string LoadPath(string fileName)
         {
-            var jsonPath = Path.Combine(Application.streamingAssetsPath, nameof(JsonManager));
-            if (Directory.Exists(jsonPath))
+            var streamingRoot = Path.Combine(Application.streamingAssetsPath, nameof(JsonManager));
+            var streamingName = Path.Combine(streamingRoot, fileName + ".json");
+            if (File.Exists(streamingName))
             {
-                var filePath = Path.Combine(jsonPath, "{0}.json".Format(fileName));
-                if (File.Exists(filePath))
-                {
-                    return filePath;
-                }
+                return streamingName;
             }
-
-            jsonPath = Path.Combine(Application.persistentDataPath, nameof(JsonManager));
-            if (!Directory.Exists(jsonPath))
-            {
-                Directory.CreateDirectory(jsonPath);
-            }
-
-            return Path.Combine(jsonPath, "{0}.json".Format(fileName));
+            
+            var persistentRoot = Path.Combine(Application.persistentDataPath, nameof(JsonManager));
+            var persistentName = Path.GetDirectoryName(fileName);
+            var persistentPath = string.IsNullOrEmpty(persistentName) ? persistentRoot : Path.Combine(persistentRoot, persistentName);
+            Directory.CreateDirectory(persistentPath);
+            return Path.Combine(persistentPath, Path.GetFileName(fileName) + ".json");
         }
 
         [Serializable]
@@ -119,37 +114,54 @@ namespace Astraia.Common
             {
                 this.value = value;
             }
+
+            public static bool IsArray
+            {
+                get
+                {
+                    if (typeof(T).IsArray)
+                    {
+                        return true;
+                    }
+
+                    if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(List<>))
+                    {
+                        return true;
+                    }
+
+                    return typeof(T).IsPrimitive;
+                }
+            }
         }
 
         public static string ToJson<T>(T data)
         {
-            if (typeof(T).IsSubclassOf(typeof(Object)))
+            if (JsonMapper<T>.IsArray)
             {
-                return JsonUtility.ToJson(data);
+                return JsonUtility.ToJson(new JsonMapper<T>(data));
             }
 
-            return JsonUtility.ToJson(new JsonMapper<T>(data));
+            return JsonUtility.ToJson(data);
         }
 
         public static void FromJson<T>(string json, T data)
         {
-            if (typeof(T).IsSubclassOf(typeof(Object)))
+            if (JsonMapper<T>.IsArray)
             {
-                JsonUtility.FromJsonOverwrite(json, data);
-                return;
+                JsonUtility.FromJsonOverwrite(json, new JsonMapper<T>(data));
             }
 
-            JsonUtility.FromJsonOverwrite(json, new JsonMapper<T>(data));
+            JsonUtility.FromJsonOverwrite(json, data);
         }
 
         public static T FromJson<T>(string json)
         {
-            if (typeof(T).IsSubclassOf(typeof(Object)))
+            if (JsonMapper<T>.IsArray)
             {
-                return JsonUtility.FromJson<T>(json);
+                return JsonUtility.FromJson<JsonMapper<T>>(json).value;
             }
 
-            return JsonUtility.FromJson<JsonMapper<T>>(json).value;
+            return JsonUtility.FromJson<T>(json);
         }
     }
 }

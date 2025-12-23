@@ -97,7 +97,7 @@ namespace Astraia.Common
 
         public static void Hide(Component item)
         {
-            if (!Instance) return;
+            if (!Instance || !item) return;
             if (!poolRoot.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(item.name));
@@ -112,7 +112,7 @@ namespace Astraia.Common
 
         public static void Hide(GameObject item)
         {
-            if (!Instance) return;
+            if (!Instance || !item) return;
             if (!poolRoot.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(item.name));
