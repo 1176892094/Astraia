@@ -25,6 +25,7 @@ namespace Astraia
     internal static class Toolbar
     {
         private static List<string> scenePaths;
+        private static ToolbarMenu sceneBar;
 
         static Toolbar()
         {
@@ -145,27 +146,8 @@ namespace Astraia
         {
             if (!EditorApplication.isPlaying)
             {
-                var assets = EditorPrefs.GetString(nameof(CacheScene));
-                if (string.IsNullOrEmpty(assets))
-                {
-                    assets = "{\"value\":[\"\", \"\", \"\", \"\", \"\"]}";
-                    EditorPrefs.SetString(nameof(CacheScene), assets);
-                }
-
-                scenePaths = JsonUtility.FromJson<CacheScene>(assets).value;
-
-                if (scenePaths.Contains(scene.path))
-                {
-                    scenePaths.Remove(scene.path);
-                }
-                else
-                {
-                    scenePaths.RemoveAt(scenePaths.Count - 1);
-                }
-
-                scenePaths.Insert(0, scene.path);
-                assets = JsonUtility.ToJson(new CacheScene(scenePaths));
-                EditorPrefs.SetString(nameof(CacheScene), assets);
+                SetToolbarMenu(scene.path);
+                EditorPrefs.SetString(nameof(CacheScene), JsonUtility.ToJson(new CacheScene(scenePaths)));
             }
         }
 
@@ -213,7 +195,7 @@ namespace Astraia
 
         private static ToolbarMenu SetDropDown()
         {
-            var dropdown = new ToolbarMenu()
+            sceneBar = new ToolbarMenu()
             {
                 style =
                 {
@@ -244,22 +226,32 @@ namespace Astraia
                     backgroundImage = EditorRef.sceneIcon.image as Texture2D,
                 },
             };
-            dropdown.Insert(0, menuIcon);
-            SetToolbarMenu(dropdown);
-            dropdown.RegisterCallback<MouseEnterEvent>(_ => dropdown.style.backgroundColor = Color.white * 0.6f);
-            dropdown.RegisterCallback<MouseLeaveEvent>(_ => dropdown.style.backgroundColor = Color.white * 0.5f);
-            return dropdown;
+            sceneBar.Insert(0, menuIcon);
+            SetToolbarMenu(scenePaths[0]);
+            sceneBar.RegisterCallback<MouseEnterEvent>(_ => sceneBar.style.backgroundColor = Color.white * 0.6f);
+            sceneBar.RegisterCallback<MouseLeaveEvent>(_ => sceneBar.style.backgroundColor = Color.white * 0.5f);
+            return sceneBar;
         }
 
-        private static void SetToolbarMenu(ToolbarMenu toolbarMenu)
+        private static void SetToolbarMenu(string scenePath)
         {
-            var sceneName = Path.GetFileNameWithoutExtension(scenePaths[0]);
-            toolbarMenu.text = string.IsNullOrEmpty(sceneName) ? "Empty Scene" : sceneName;
-            toolbarMenu.menu.ClearItems();
-            for (var i = 0; i < scenePaths.Count; i++)
+            if (scenePaths.Contains(scenePath))
+            {
+                scenePaths.Remove(scenePath);
+            }
+            else
+            {
+                scenePaths.RemoveAt(scenePaths.Count - 1);
+            }
+
+            scenePaths.Insert(0, scenePath);
+            var sceneName = Path.GetFileNameWithoutExtension(scenePath);
+            sceneBar.text = string.IsNullOrEmpty(sceneName) ? "Empty Scene" : sceneName;
+            sceneBar.menu.ClearItems();
+            for (var i = 1; i < scenePaths.Count; i++)
             {
                 var index = i;
-                toolbarMenu.menu.AppendAction(Path.GetFileNameWithoutExtension(scenePaths[index]), LoadScene);
+                sceneBar.menu.AppendAction(Path.GetFileNameWithoutExtension(scenePaths[index]), LoadScene);
                 continue;
 
                 void LoadScene(DropdownMenuAction action)
