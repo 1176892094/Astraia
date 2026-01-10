@@ -196,7 +196,21 @@ namespace Astraia
         {
             var watch = Stopwatch.StartNew();
             var folder = Directory.CreateDirectory(GlobalSetting.RemoteAssetPath);
-            BuildPipeline.BuildAssetBundles(GlobalSetting.RemoteAssetPath, BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.BuildTarget);
+            var buildMap = new List<AssetBundleBuild>();
+            var allAssetBundles = AssetDatabase.GetAllAssetBundleNames();
+            foreach (var assetBundleName in allAssetBundles)
+            {
+                if (assetBundleName != "unifiedraytracing")
+                {
+                    buildMap.Add(new AssetBundleBuild
+                    {
+                        assetBundleName = assetBundleName,
+                        assetNames = AssetDatabase.GetAssetPathsFromAssetBundle(assetBundleName)
+                    });
+                }
+            }
+
+            BuildPipeline.BuildAssetBundles(GlobalSetting.RemoteAssetPath, buildMap.ToArray(), BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.BuildTarget);
 
             var items = new Dictionary<string, string>();
             if (File.Exists(GlobalSetting.RemoteAssetData))
