@@ -11,6 +11,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 240468018, guid: a4865f1ab4504ed8a368670db22f409c, type: 3}
   m_Name: OdinVisualDesignerConfig
-  m_EditorClassIdentifier: Sirenix.OdinInspector.Editor.dll::Sirenix.OdinInspector.Editor.OdinVisualDesignerConfig
+  m_EditorClassIdentifier: 
   SerializedFavoriteAttributes: []
   savePath: Assets/Plugins/Sirenix/Odin Inspector/Visual Designer/Saved

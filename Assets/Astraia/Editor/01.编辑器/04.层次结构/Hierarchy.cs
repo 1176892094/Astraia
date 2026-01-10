@@ -28,7 +28,7 @@ namespace Astraia
 
         public static void OnGUI(int id, Rect rect)
         {
-            var target = (GameObject)EditorUtility.EntityIdToObject(id);
+            var target = (GameObject)EditorUtility.InstanceIDToObject(id);
 
             if (isLayout)
             {

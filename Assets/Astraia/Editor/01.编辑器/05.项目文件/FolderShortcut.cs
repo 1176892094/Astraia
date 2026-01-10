@@ -90,7 +90,7 @@ namespace Astraia
                         var subObj = AssetDatabase.LoadAssetAtPath<Object>(subDir);
                         if (subObj != null)
                         {
-                            data.Invoke("SetExpanded", subObj.GetEntityId(), true);
+                            data.Invoke("SetExpanded", subObj.GetInstanceID(), true);
                         }
                     }
                 }
@@ -112,7 +112,7 @@ namespace Astraia
             var subObj = AssetDatabase.LoadAssetAtPath<Object>(folder);
             if (subObj != null)
             {
-                data.Invoke("SetExpanded", subObj.GetEntityId(), false);
+                data.Invoke("SetExpanded", subObj.GetInstanceID(), false);
                 var subDirs = AssetDatabase.GetSubFolders(folder);
                 foreach (var subDir in subDirs)
                 {

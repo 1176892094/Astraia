@@ -86,7 +86,7 @@ namespace Astraia
                 return;
             }
 
-            var data = EditorUtility.EntityIdToObject(id);
+            var data = EditorUtility.InstanceIDToObject(id);
             var path = AssetDatabase.GetAssetPath(data);
             DrawTexCoords(id, rect, path);
 

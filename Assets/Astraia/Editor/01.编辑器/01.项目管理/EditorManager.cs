@@ -22,7 +22,7 @@ using Object = UnityEngine.Object;
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<UnityEngine.EntityId>;
 #elif UNITY_6000_2_OR_NEWER
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
-else
+#else
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem;
 #endif
 
@@ -69,6 +69,8 @@ namespace Astraia
             EditorSceneManager.activeSceneChangedInEditMode += Toolbar.ActiveSceneChanged;
             EditorApplication.projectChanged -= Toolbar.OnProjectChanged;
             EditorApplication.projectChanged += Toolbar.OnProjectChanged;
+            EditorApplication.delayCall -= Toolbar.SelectionChanged;
+            EditorApplication.delayCall += Toolbar.SelectionChanged;
 
             focusedWindow = EditorWindow.focusedWindow;
             isMaximized = focusedWindow && focusedWindow.maximized;
@@ -217,7 +219,6 @@ namespace Astraia
         public static readonly GUIContent customIcon = EditorGUIUtility.IconContent("CustomTool");
         public static readonly GUIContent windowIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow");
         public static readonly GUIContent settingIcon = EditorGUIUtility.IconContent("SettingsIcon");
-        public static readonly GUIContent projectIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon");
 
         public static float CalcSize(string name)
         {

@@ -62,7 +62,7 @@ namespace Astraia
             var state = tree.GetValue<TreeViewState>("state");
 
             var sceneActive = SceneManager.GetActiveScene();
-            var sceneId = (EntityId)(int)sceneActive.handle;
+            var sceneId = sceneActive.handle;
 
             var isExpanded = sceneExpandState.ContainsKey(sceneId) && sceneExpandState[sceneId];
 
@@ -71,7 +71,7 @@ namespace Astraia
                 for (var i = state.expandedIDs.Count - 1; i >= 0; i--)
                 {
                     var id = state.expandedIDs[i];
-                    if (EditorUtility.EntityIdToObject(id) is GameObject)
+                    if (EditorUtility.InstanceIDToObject(id) is GameObject)
                     {
                         data.Invoke("SetExpanded", id, false);
                     }
@@ -89,7 +89,7 @@ namespace Astraia
 
                 foreach (var root in sceneActive.GetRootGameObjects())
                 {
-                    var rootId = root.GetEntityId();
+                    var rootId = root.GetInstanceID();
                     data.Invoke("SetExpanded", rootId, true);
                 }
 

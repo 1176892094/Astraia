@@ -70,7 +70,7 @@ namespace Astraia
             {
                 if (data.properties[key] is Object o && !o)
                 {
-                    data.properties[key] = EditorUtility.EntityIdToObject(o.GetInstanceID());
+                    data.properties[key] = EditorUtility.InstanceIDToObject(o.GetInstanceID());
                 }
             }
 
