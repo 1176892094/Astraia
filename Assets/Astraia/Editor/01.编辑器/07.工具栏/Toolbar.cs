@@ -43,13 +43,6 @@ namespace Astraia
             scenePaths = JsonUtility.FromJson<CacheScene>(assets).value;
         }
 #if UNITY_6000_3_OR_NEWER
-        [MainToolbarElement("Astraia/Preference Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
-        public static MainToolbarElement PreferenceSettings()
-        {
-            var content = new MainToolbarContent(EditorRef.projectIcon.image as Texture2D);
-            return new MainToolbarButton(content, () => SettingsService.OpenUserPreferences());
-        }
-
         [MainToolbarElement("Astraia/Build Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
         public static MainToolbarElement BuildSettings()
         {
