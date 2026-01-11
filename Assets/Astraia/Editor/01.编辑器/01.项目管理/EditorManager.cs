@@ -60,15 +60,9 @@ namespace Astraia
             Selection.selectionChanged += Inspector.SelectionChanged;
             EditorApplication.delayCall -= Inspector.SelectionChanged;
             EditorApplication.delayCall += Inspector.SelectionChanged;
-
-            SceneManager.activeSceneChanged -= Toolbar.ActiveSceneChanged;
-            SceneManager.activeSceneChanged += Toolbar.ActiveSceneChanged;
+            
             EditorSceneManager.sceneOpened -= Toolbar.OnSceneOpened;
             EditorSceneManager.sceneOpened += Toolbar.OnSceneOpened;
-            EditorSceneManager.activeSceneChangedInEditMode -= Toolbar.ActiveSceneChanged;
-            EditorSceneManager.activeSceneChangedInEditMode += Toolbar.ActiveSceneChanged;
-            EditorApplication.projectChanged -= Toolbar.OnProjectChanged;
-            EditorApplication.projectChanged += Toolbar.OnProjectChanged;
             EditorApplication.delayCall -= Toolbar.SelectionChanged;
             EditorApplication.delayCall += Toolbar.SelectionChanged;
 

@@ -19,135 +19,20 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace Astraia
 {
     internal static class Toolbar
     {
-        private static List<string> scenePaths;
+        private static List<Object> scenePaths => GlobalSetting.Instance.sceneCaches;
         private static ToolbarMenu sceneBar;
-
-        static Toolbar()
-        {
-            OnProjectChanged();
-        }
-
-        public static void OnProjectChanged()
-        {
-            var assets = EditorPrefs.GetString(nameof(CacheScene));
-            if (string.IsNullOrEmpty(assets))
-            {
-                assets = "{\"value\":[\"\", \"\", \"\", \"\", \"\"]}";
-                EditorPrefs.SetString(nameof(CacheScene), assets);
-            }
-
-            scenePaths = JsonUtility.FromJson<CacheScene>(assets).value;
-        }
-#if UNITY_6000_3_OR_NEWER
-        [MainToolbarElement("Astraia/Build Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
-        public static MainToolbarElement BuildSettings()
-        {
-            var content = new MainToolbarContent(EditorRef.buildIcon.image as Texture2D);
-
-            return new MainToolbarButton(content, () => EditorApplication.ExecuteMenuItem("File/Build Profiles"));
-        }
-
-        [MainToolbarElement("Astraia/Framework Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
-        public static MainToolbarElement FrameworkSettings()
-        {
-            var content = new MainToolbarContent(EditorRef.customIcon.image as Texture2D);
-            return new MainToolbarButton(content, EditorSetting.ShowWindow);
-        }
-
-        [MainToolbarElement("Astraia/Project Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
-        public static MainToolbarElement ProjectSettings()
-        {
-            var content = new MainToolbarContent(EditorRef.settingIcon.image as Texture2D);
-            return new MainToolbarButton(content, () => SettingsService.OpenProjectSettings());
-        }
-
-
-        [MainToolbarElement("Astraia/Timescale", defaultDockPosition = MainToolbarDockPosition.Middle)]
-        public static MainToolbarElement Timescale()
-        {
-            var content = new MainToolbarContent(EditorRef.windowIcon.image as Texture2D);
-            return new MainToolbarSlider(content, 1, 0, 1, s => Time.timeScale = s);
-        }
-
-        [MainToolbarElement("Astraia/Scene Selector", defaultDockPosition = MainToolbarDockPosition.Middle)]
-        public static MainToolbarElement SceneSelector()
-        {
-            var sceneName = SceneManager.GetActiveScene().name;
-            if (sceneName.Length == 0)
-            {
-                sceneName = "Untitled";
-            }
-
-            var content = new MainToolbarContent(sceneName, EditorRef.sceneIcon.image as Texture2D, "Select active scene");
-            return new MainToolbarDropdown(content, ShowDropdownMenu);
-        }
-
-        private static void ShowDropdownMenu(Rect dropDownRect)
-        {
-            var menu = new GenericMenu();
-            if (scenePaths.Count == 0)
-            {
-                menu.AddDisabledItem(new GUIContent("No Scenes in Project"));
-            }
-
-            foreach (var scenePath in scenePaths)
-            {
-                if (!string.IsNullOrEmpty(scenePath))
-                {
-                    var sceneName = Path.GetFileNameWithoutExtension(scenePath);
-                    menu.AddItem(new GUIContent(sceneName), false, () => SwitchScene(scenePath));
-                }
-            }
-
-            menu.DropDown(dropDownRect);
-        }
-
-        private static void SwitchScene(string scenePath)
-        {
-            if (Application.isPlaying)
-            {
-                var sceneName = Path.GetFileNameWithoutExtension(scenePath);
-                if (Application.CanStreamedLevelBeLoaded(sceneName))
-                {
-                    SceneManager.LoadScene(sceneName);
-                }
-                else
-                {
-                    Debug.LogError($"Scene '{sceneName}' is not in the Build Settings.");
-                }
-            }
-            else
-            {
-                if (File.Exists(scenePath))
-                {
-                    if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                    {
-                        EditorSceneManager.OpenScene(scenePath);
-                    }
-                }
-                else
-                {
-                    Debug.LogError($"Scene at path '{scenePath}' does not exist.");
-                }
-            }
-        }
-#endif
-        public static void ActiveSceneChanged(Scene oldScene, Scene newScene)
-        {
-            //  MainToolbar.Refresh("Astraia/Scene Selector");
-        }
 
         public static void OnSceneOpened(Scene scene, OpenSceneMode mode)
         {
             if (!EditorApplication.isPlaying)
             {
-                SetToolbarMenu(scene.path);
-                EditorPrefs.SetString(nameof(CacheScene), JsonUtility.ToJson(new CacheScene(scenePaths)));
+                SetToolbarMenu(AssetDatabase.LoadAssetAtPath<Object>(scene.path));
             }
         }
 
@@ -215,6 +100,7 @@ namespace Astraia
                     paddingTop = 2,
                     height = 20,
                 },
+                text = "Empty Scene"
             };
 
             var menuIcon = new VisualElement
@@ -227,48 +113,49 @@ namespace Astraia
                 },
             };
             sceneBar.Insert(0, menuIcon);
-            SetToolbarMenu(scenePaths[0]);
+            foreach (var scenePath in scenePaths)
+            {
+                SetToolbarMenu(scenePath);
+                break;
+            }
+
             sceneBar.RegisterCallback<MouseEnterEvent>(_ => sceneBar.style.backgroundColor = Color.white * 0.6f);
             sceneBar.RegisterCallback<MouseLeaveEvent>(_ => sceneBar.style.backgroundColor = Color.white * 0.5f);
             return sceneBar;
         }
 
-        private static void SetToolbarMenu(string scenePath)
+        private static void SetToolbarMenu(Object sceneData)
         {
-            if (scenePaths.Contains(scenePath))
+            if (scenePaths.Contains(sceneData))
             {
-                scenePaths.Remove(scenePath);
+                scenePaths.Remove(sceneData);
             }
-            else
+
+            scenePaths.Insert(0, sceneData);
+            if (scenePaths.Count > 5)
             {
                 scenePaths.RemoveAt(scenePaths.Count - 1);
             }
 
-            scenePaths.Insert(0, scenePath);
-            var sceneName = Path.GetFileNameWithoutExtension(scenePath);
-            sceneBar.text = string.IsNullOrEmpty(sceneName) ? "Empty Scene" : sceneName;
             sceneBar.menu.ClearItems();
+            sceneBar.text = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(sceneData));
             for (var i = 1; i < scenePaths.Count; i++)
             {
                 var index = i;
-                sceneBar.menu.AppendAction(Path.GetFileNameWithoutExtension(scenePaths[index]), LoadScene);
-                continue;
-
-                void LoadScene(DropdownMenuAction action)
+                sceneBar.menu.AppendAction(Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(scenePaths[index])), _ =>
                 {
                     try
                     {
-                        if (EditorApplication.isPlaying) return;
-                        if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                        if (!EditorApplication.isPlaying && EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                         {
-                            EditorSceneManager.OpenScene(scenePaths[index], OpenSceneMode.Single);
+                            EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(scenePaths[index]), OpenSceneMode.Single);
                         }
                     }
                     catch (Exception e)
                     {
                         Debug.LogError("打开 " + scenePaths[index] + " 场景失败!\n" + e);
                     }
-                }
+                });
             }
         }
 
@@ -354,17 +241,6 @@ namespace Astraia
             dropdown.RegisterCallback<MouseEnterEvent>(_ => dropdown.style.backgroundColor = Color.white * 0.6f);
             dropdown.RegisterCallback<MouseLeaveEvent>(_ => dropdown.style.backgroundColor = Color.white * 0.5f);
             return dropdown;
-        }
-
-        [Serializable]
-        private class CacheScene
-        {
-            public List<string> value;
-
-            public CacheScene(List<string> value)
-            {
-                this.value = value;
-            }
         }
     }
 }
