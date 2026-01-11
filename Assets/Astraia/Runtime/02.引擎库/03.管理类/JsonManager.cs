@@ -124,6 +124,11 @@ namespace Astraia.Common
                         return true;
                     }
 
+                    if (typeof(T) == typeof(string))
+                    {
+                        return true;
+                    }
+
                     if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(List<>))
                     {
                         return true;
