@@ -148,9 +148,9 @@ namespace Astraia
 #endif
         public List<Object> ignoreAssets = new List<Object>();
 #if UNITY_EDITOR
-        [HideInInspector]
+        [PropertyOrder(1)]
 #endif
-        public List<Object> sceneCaches = new List<Object>();
+        public List<Object> cacheAssets = new List<Object>();
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
