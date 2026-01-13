@@ -22,7 +22,7 @@ namespace Astraia
 {
     internal static class Toolbar
     {
-        private static List<Object> scenePaths => GlobalSetting.Instance.sceneCaches;
+        private static List<Object> scenePaths => GlobalSetting.Instance.cacheAssets;
 
         [MainToolbarElement("Astraia/Preference Setting", defaultDockPosition = MainToolbarDockPosition.Left)]
         public static MainToolbarElement PreferenceSettings()
