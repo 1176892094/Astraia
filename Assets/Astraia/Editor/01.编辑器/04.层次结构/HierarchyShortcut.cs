@@ -71,7 +71,7 @@ namespace Astraia
                 for (var i = state.expandedIDs.Count - 1; i >= 0; i--)
                 {
                     var id = state.expandedIDs[i];
-                    if (EditorUtility.InstanceIDToObject(id) is GameObject)
+                    if (EditorUtility.EntityIdToObject(id) is GameObject)
                     {
                         data.Invoke("SetExpanded", id, false);
                     }

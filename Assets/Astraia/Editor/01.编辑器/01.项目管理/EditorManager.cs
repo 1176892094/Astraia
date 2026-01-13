@@ -61,10 +61,12 @@ namespace Astraia
             EditorApplication.delayCall -= Inspector.SelectionChanged;
             EditorApplication.delayCall += Inspector.SelectionChanged;
             
+            SceneManager.activeSceneChanged -= Toolbar.ActiveSceneChanged;
+            SceneManager.activeSceneChanged += Toolbar.ActiveSceneChanged;
             EditorSceneManager.sceneOpened -= Toolbar.OnSceneOpened;
             EditorSceneManager.sceneOpened += Toolbar.OnSceneOpened;
-            EditorApplication.delayCall -= Toolbar.SelectionChanged;
-            EditorApplication.delayCall += Toolbar.SelectionChanged;
+            EditorSceneManager.activeSceneChangedInEditMode -= Toolbar.ActiveSceneChanged;
+            EditorSceneManager.activeSceneChangedInEditMode += Toolbar.ActiveSceneChanged;
 
             focusedWindow = EditorWindow.focusedWindow;
             isMaximized = focusedWindow && focusedWindow.maximized;
@@ -213,6 +215,7 @@ namespace Astraia
         public static readonly GUIContent customIcon = EditorGUIUtility.IconContent("CustomTool");
         public static readonly GUIContent windowIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow");
         public static readonly GUIContent settingIcon = EditorGUIUtility.IconContent("SettingsIcon");
+        public static readonly GUIContent projectIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon");
 
         public static float CalcSize(string name)
         {
