@@ -9,12 +9,11 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Threading.Tasks;
 using System.Xml;
-using UnityEditor;
 
 namespace Astraia
 {
@@ -23,187 +22,168 @@ namespace Astraia
         private static readonly List<(string, string[,])> Form = new List<(string, string[,])>();
         private static bool Loaded;
 
-        private static async Task<List<(string, string[,])>> LoadDataTable(string filePath)
+        private static IReadOnlyList<(string, string[,])> LoadDataTable(string filePath)
         {
             if (Loaded)
             {
                 return Form;
             }
-
-            var fileType = Path.GetExtension(filePath);
+            
             var fileName = Path.GetFileNameWithoutExtension(filePath);
-            var fileData = Path.GetDirectoryName(filePath);
-            if (string.IsNullOrEmpty(fileData))
-            {
-                return Form;
-            }
-
-            fileData = Path.Combine(fileData, "{0}_TMP{1}".Format(fileName, fileType));
+            var fileData = Path.Combine(Path.GetTempPath(), "{0}_{1}".Format(fileName, Guid.NewGuid()));
             File.Copy(filePath, fileData, true);
             try
             {
-                var progress = 0F;
                 using var archive = ZipFile.OpenRead(fileData);
-                var sheetName = LoadSheetName(LoadDocument(archive, "xl/workbook.xml"));
-                var sharedString = LoadSharedString(LoadDocument(archive, "xl/sharedStrings.xml"));
-                for (var i = 0; i < sheetName.Count; i++)
-                {
-                    await Task.Run(() =>
-                    {
-                        var sheet = "xl/worksheets/sheet{0}.xml".Format(i + 1);
-                        var worksheet = GetWorksheet(LoadDocument(archive, sheet), sharedString);
-                        Form.Add((sheetName[i], worksheet));
-                    });
-                    EditorUtility.DisplayProgressBar(sheetName[i], "", ++progress / sheetName.Count);
-                }
+                var sheetNames = ReadSheetNames(archive);
+                var sharedStrings = ReadSharedStrings(archive);
 
-                return Form;
+                for (var i = 0; i < sheetNames.Count; i++)
+                {
+                    var entry = archive.GetEntry("xl/worksheets/sheet{0}.xml".Format(i + 1));
+                    if (entry != null)
+                    {
+                        using var stream = entry.Open();
+                        Form.Add(ReadSheet(stream, sheetNames[i], sharedStrings));
+                    }
+                }
             }
             finally
             {
-                File.Delete(fileData);
-            }
-        }
-
-        private static XmlDocument LoadDocument(ZipArchive archive, string name)
-        {
-            var zipEntry = archive.GetEntry(name);
-            var document = new XmlDocument();
-            if (zipEntry != null)
-            {
-                using var stream = zipEntry.Open();
-                document.Load(stream);
-            }
-
-            return document;
-        }
-
-        private static List<string> LoadSheetName(XmlDocument document)
-        {
-            var manager = new XmlNamespaceManager(document.NameTable);
-            manager.AddNamespace("x", "http://schemas.openxmlformats.org/spreadsheetml/2006/main");
-            var childNodes = document.SelectNodes("//x:sheet", manager);
-            var sheetName = new List<string>();
-            if (childNodes != null)
-            {
-                foreach (XmlNode childNode in childNodes)
+                if (File.Exists(fileData))
                 {
-                    if (childNode.Attributes != null)
-                    {
-                        sheetName.Add(childNode.Attributes["name"].Value);
-                    }
+                    File.Delete(fileData);
                 }
             }
 
-            return sheetName;
+            return Form;
         }
 
-        private static List<string> LoadSharedString(XmlDocument document)
+        private static List<string> ReadSheetNames(ZipArchive archive)
         {
-            var sharedString = new List<string>();
-            if (document.DocumentElement != null)
+            var result = new List<string>();
+            using var stream = archive.GetEntry("xl/workbook.xml")!.Open();
+            using var reader = XmlReader.Create(stream);
+            while (reader.Read())
             {
-                foreach (XmlNode childNode in document.DocumentElement.ChildNodes)
+                if (reader.NodeType == XmlNodeType.Element && reader.Name == "sheet")
                 {
-                    var shared = string.Empty;
-                    foreach (XmlNode node in childNode.ChildNodes)
+                    result.Add(reader.GetAttribute("name"));
+                }
+            }
+
+            return result;
+        }
+
+        private static List<string> ReadSharedStrings(ZipArchive archive)
+        {
+            var result = new List<string>(1024);
+            using var stream = archive.GetEntry("xl/sharedStrings.xml")!.Open();
+            using var reader = XmlReader.Create(stream);
+            while (reader.Read())
+            {
+                if (reader.NodeType == XmlNodeType.Element && reader.Name == "t")
+                {
+                    result.Add(reader.ReadElementContentAsString());
+                }
+            }
+
+            return result;
+        }
+
+        private static (string, string[,]) ReadSheet(Stream stream, string sheetName, List<string> sharedStrings)
+        {
+            var maxY = 0;
+            var maxX = 0;
+            string[,] sheetData = null;
+
+            using (var reader = XmlReader.Create(stream))
+            {
+                while (reader.Read())
+                {
+                    if (reader.NodeType == XmlNodeType.Element)
                     {
-                        if (node.Name == "t")
+                        if (reader.Name == "dimension" && sheetData == null)
                         {
-                            shared += node.InnerText;
+                            var dimension = reader.GetAttribute("ref");
+                            if (!string.IsNullOrEmpty(dimension))
+                            {
+                                var index = dimension.IndexOf(':');
+                                if (index != -1)
+                                {
+                                    maxX = GetXIndex(dimension.Substring(index + 1)) + 1;
+                                    maxY = GetYIndex(dimension.Substring(index + 1));
+                                }
+                            }
+
+                            sheetData = new string[maxX, maxY];
+                        }
+
+                        if (reader.Name == "c")
+                        {
+                            var r = reader.GetAttribute("r");
+                            var t = reader.GetAttribute("t");
+                            var x = GetXIndex(r);
+                            var y = GetYIndex(r) - 1;
+
+                            var value = string.Empty;
+                            if (!reader.IsEmptyElement)
+                            {
+                                var depth = reader.Depth;
+                                while (reader.Read() && reader.Depth > depth)
+                                {
+                                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "v")
+                                    {
+                                        value = reader.ReadElementContentAsString();
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (t == "s" && int.TryParse(value, out int index))
+                            {
+                                value = sharedStrings[index];
+                            }
+
+                            if (sheetData != null)
+                            {
+                                sheetData[x, y] = value;
+                            }
                         }
                     }
-
-                    if (!string.IsNullOrEmpty(shared))
-                    {
-                        sharedString.Add(shared);
-                    }
                 }
             }
 
-            return sharedString;
+
+            return (sheetName, sheetData);
         }
 
-        private static string[,] GetWorksheet(XmlDocument document, List<string> sharedStrings)
+        private static int GetYIndex(string reason)
         {
-            var rowNodes = document.GetElementsByTagName("sheetData")[0].ChildNodes;
-            if (rowNodes.Count == 0)
+            var y = string.Empty;
+            foreach (var c in reason)
             {
-                return null;
+                if (char.IsDigit(c))
+                {
+                    y += c;
+                }
             }
 
-            var columnCount = GetDimensions(rowNodes[0]);
-            if (columnCount == 0)
-            {
-                return null;
-            }
-
-            var dataTable = new string[columnCount, rowNodes.Count];
-            SetWorksheet(dataTable, rowNodes, sharedStrings);
-            return dataTable;
+            return int.Parse(y);
         }
 
-        private static int GetDimensions(XmlNode node)
+        private static int GetXIndex(string reason)
         {
-            var column = 0;
-            var childNode = node.Attributes?["spans"].Value.Split(':')[1];
-            if (childNode != null)
-            {
-                column = int.Parse(childNode);
-            }
-
-            return column;
-        }
-
-
-        private static int GetDimensions(string node)
-        {
-            var column = 0;
-            foreach (var c in node)
+            var x = 0;
+            foreach (var c in reason)
             {
                 if (char.IsLetter(c))
                 {
-                    column = column * 26 + (c - 'A') + 1;
+                    x = x * 26 + (c - 'A') + 1;
                 }
             }
 
-            return column - 1;
-        }
-
-        private static void SetWorksheet(string[,] dataTable, XmlNodeList childNodes, IReadOnlyList<string> sharedStrings)
-        {
-            var rowCount = dataTable.GetLength(1);
-            var columnCount = dataTable.GetLength(0);
-            foreach (XmlNode rowNode in childNodes)
-            {
-                var rowAttribute = rowNode.Attributes?["r"].Value;
-                if (string.IsNullOrEmpty(rowAttribute))
-                {
-                    continue;
-                }
-
-                var rowIndex = int.Parse(rowAttribute) - 1;
-                foreach (XmlNode cellNode in rowNode.ChildNodes)
-                {
-                    var cellReference = cellNode.Attributes?["r"]?.Value;
-                    var cellValue = cellNode["v"]?.InnerText;
-
-                    if (cellReference != null && cellValue != null)
-                    {
-                        var column = GetDimensions(cellReference);
-
-                        if (column >= 0 && column < columnCount && rowIndex >= 0 && rowIndex < rowCount)
-                        {
-                            if (cellNode.Attributes?["t"]?.Value == "s" && int.TryParse(cellValue, out var index))
-                            {
-                                cellValue = sharedStrings[index];
-                            }
-
-                            dataTable[column, rowIndex] = cellValue;
-                        }
-                    }
-                }
-            }
+            return x - 1;
         }
     }
 }

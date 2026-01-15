@@ -42,7 +42,7 @@ namespace Astraia
                 var formItem = new Dictionary<string, string>();
                 foreach (var path in formPath)
                 {
-                    var items = await LoadScripts(path);
+                    var items = LoadScripts(path);
                     foreach (var item in items)
                     {
                         if (!formItem.ContainsKey(item.Key))
@@ -80,9 +80,9 @@ namespace Astraia
             }
         }
 
-        private static async Task<Dictionary<string, string>> LoadScripts(string path)
+        private static Dictionary<string, string> LoadScripts(string path)
         {
-            var sheetList = await LoadDataTable(path);
+            var sheetList = LoadDataTable(path);
             if (sheetList == null)
             {
                 return new Dictionary<string, string>();

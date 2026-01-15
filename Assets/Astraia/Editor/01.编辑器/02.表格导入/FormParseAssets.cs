@@ -41,7 +41,7 @@ namespace Astraia
                 var formItem = new Dictionary<string, List<string[]>>();
                 foreach (var excelPath in formPath)
                 {
-                    var items = await LoadAssets(excelPath);
+                    var items = LoadAssets(excelPath);
                     foreach (var item in items)
                     {
                         if (!formItem.ContainsKey(item.Key))
@@ -73,9 +73,9 @@ namespace Astraia
             }
         }
 
-        private static async Task<Dictionary<string, List<string[]>>> LoadAssets(string path)
+        private static Dictionary<string, List<string[]>> LoadAssets(string path)
         {
-            var sheetList = await LoadDataTable(path);
+            var sheetList = LoadDataTable(path);
             if (sheetList == null)
             {
                 return new Dictionary<string, List<string[]>>();
