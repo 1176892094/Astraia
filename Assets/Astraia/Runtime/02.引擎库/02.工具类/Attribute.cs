@@ -18,12 +18,12 @@ namespace Astraia
     public class InjectAttribute : Attribute
     {
     }
-    
+
     [AttributeUsage(AttributeTargets.Property)]
     public class PrimaryAttribute : Attribute
     {
     }
-    
+
     [AttributeUsage(AttributeTargets.Class)]
     public class UIMaskAttribute : Attribute
     {
@@ -36,25 +36,25 @@ namespace Astraia
             this.groupMask = groupMask;
         }
     }
-    
+
     [AttributeUsage(AttributeTargets.Class)]
     public class UIPathAttribute : Attribute
     {
         public readonly string assetPath;
         public UIPathAttribute(string assetPath) => this.assetPath = assetPath;
     }
-    
+
     [AttributeUsage(AttributeTargets.Class)]
     public class UIRectAttribute : Attribute
     {
-        public readonly bool vertical;
+        public readonly bool direction;
         public readonly bool selection;
         public readonly Rect assetRect;
 
-        public UIRectAttribute(int x, int y, float w, float h, int assetData = 1)
+        public UIRectAttribute(int x, int y, float w, float h, bool direction = true, bool selection = false)
         {
-            vertical = (assetData & 1 << 0) != 0;
-            selection = (assetData & 1 << 1) != 0;
+            this.direction = direction;
+            this.selection = selection;
             assetRect = new Rect(x, y, w, h);
         }
     }
