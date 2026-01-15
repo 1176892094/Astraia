@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Astraia.Common;
 using UnityEditor;
@@ -163,13 +164,12 @@ namespace Astraia
             var fileType = Service.Ref.GetType(GlobalSetting.SheetData.Format(sheetName));
             await Task.Run(() =>
             {
-                var instance = (IData)Activator.CreateInstance(fileType);
-                foreach (var script in scripts)
+                foreach (var column in scripts)
                 {
-                    if (!string.IsNullOrEmpty(script[0]))
+                    if (!string.IsNullOrEmpty(column[0]))
                     {
-                        instance.Create(script, 0);
-                        fileData.AddData(instance);
+                        var bytes = column.Select(c => new Xor.Bytes(Service.Text.GetBytes(c))).ToArray();
+                        fileData.AddData((IData)Activator.CreateInstance(fileType, bytes));
                     }
                 }
             });

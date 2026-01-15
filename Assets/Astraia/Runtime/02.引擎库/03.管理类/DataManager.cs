@@ -135,7 +135,7 @@ namespace Astraia.Common
                 return ((Func<string, T>)func).Invoke(value);
             }
 
-            return value.InputGeneric(typeof(T)) is T result ? result : default;
+            return value.InputString(typeof(T)) is T result ? result : default;
         }
 
         private static Vector2 InputVector2(this string reason)
@@ -223,7 +223,7 @@ namespace Astraia.Common
             return result;
         }
 
-        private static object InputGeneric(this string reason, Type target)
+        private static object InputString(this string reason, Type target)
         {
             if (string.IsNullOrEmpty(reason) || target == typeof(string))
             {
@@ -242,31 +242,28 @@ namespace Astraia.Common
 
             if (target.IsArray)
             {
-                if (reason.EndsWith(";"))
+                var parts = reason.Split(';');
+                var member = target.GetElementType()!;
+                var result = Array.CreateInstance(member, parts.Length);
+                for (var i = 0; i < parts.Length; i++)
                 {
-                    reason = reason.Substring(0, reason.Length - 1);
+                    result.SetValue(InputString(parts[i], member), i);
                 }
 
-                var element = target.GetElementType();
-                var members = reason.Split(';');
-                var instance = Array.CreateInstance(element!, members.Length);
-                for (var i = 0; i < members.Length; ++i)
-                {
-                    instance.SetValue(InputGeneric(members[i], element), i);
-                }
-
-                return instance;
+                return result;
             }
-
-            var member = reason.Split(',');
-            var result = Activator.CreateInstance(target);
-            var fields = target.GetFields(Service.Ref.Instance);
-            for (var i = 0; i < fields.Length; i++)
+            else
             {
-                fields[i].SetValue(result, Service.Text.GetBytes(member[i]));
-            }
+                var parts = reason.Split(',');
+                var member = target.GetFields(Service.Ref.Instance);
+                var result = Activator.CreateInstance(target);
+                for (var i = 0; i < parts.Length; i++)
+                {
+                    member[i].SetValue(result, InputString(parts[i], member[i].FieldType));
+                }
 
-            return result;
+                return result;
+            }
         }
     }
 
@@ -327,7 +324,6 @@ namespace Astraia.Common
 
     public interface IData
     {
-        void Create(string[] sheet, int column);
     }
 
     internal interface IDataTable

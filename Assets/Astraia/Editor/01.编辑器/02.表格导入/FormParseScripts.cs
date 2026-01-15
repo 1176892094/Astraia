@@ -143,7 +143,7 @@ namespace Astraia
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
             var scriptText = GlobalSetting.LoadAsset(AssetData.DataTable).Replace("Template", className);
-
+            var count = 0;
             foreach (var field in fields)
             {
                 if (field.Key.EndsWith(":key"))
@@ -171,35 +171,14 @@ namespace Astraia
                     }
                 }
 
-                var fieldData = char.ToLower(fieldName[0]) + fieldName.Substring(1);
-#if ODIN_INSPECTOR
                 builder.AppendFormat("#if ODIN_INSPECTOR && UNITY_EDITOR\n");
                 builder.AppendFormat("\t\t[Sirenix.OdinInspector.ShowInInspector]\n");
                 builder.AppendFormat("#endif\n");
-                builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private byte[] {0};\n", fieldData);
-#else
-                builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[SerializeField] private Xor.Bytes {0};\n", fieldData);
-#endif
+                builder.AppendFormat("\t\tpublic {0} {1} => Bytes[{2}].Value.Parse<{0}>();\n", fieldType, fieldName, count++);
             }
 
             scriptText = scriptText.Replace("//TODO:1", builder.ToString());
-            builder.Length = 0;
 
-            var count = 0;
-            foreach (var field in fields)
-            {
-                count++;
-                var index = field.Key.LastIndexOf(':');
-                var column = count < fields.Count ? "column++" : "column";
-                var fieldName = index < 0 ? field.Key : field.Key.Substring(0, index);
-                var fieldData = char.ToLower(fieldName[0]) + fieldName.Substring(1);
-                builder.AppendFormat("\t\t\t{0} = Service.Text.GetBytes(sheet[{1}]);\n", fieldData, column);
-            }
-
-            builder.Length -= 1;
-            scriptText = scriptText.Replace("//TODO:2", builder.ToString());
             builder.Length = 0;
             HeapManager.Enqueue(builder);
             return (GlobalSetting.DataPath.Format(className), scriptText);
@@ -216,17 +195,7 @@ namespace Astraia
                 var index = member.LastIndexOf(' ');
                 var fieldName = member.Substring(index + 1);
                 var fieldType = member.Substring(0, index);
-                var fieldData = char.ToLower(fieldName[0]) + fieldName.Substring(1);
-#if ODIN_INSPECTOR
-                builder.AppendFormat("#if ODIN_INSPECTOR && UNITY_EDITOR\n");
-                builder.AppendFormat("\t\t[Sirenix.OdinInspector.ShowInInspector]\n");
-                builder.AppendFormat("#endif\n");
-                builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[HideInInspector, SerializeField] private byte[] {0};\n", fieldData);
-#else
-                builder.AppendFormat("\t\tpublic {0} {1} => {2}.Parse<{0}>();\n", fieldType, fieldName, fieldData);
-                builder.AppendFormat("\t\t[SerializeField] private Xor.Bytes {0};\n", fieldData);
-#endif
+                builder.AppendFormat("\t\tpublic {0} {1};\n", fieldType, fieldName);
             }
 
             builder.Length -= 1;
