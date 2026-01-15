@@ -28,7 +28,7 @@ namespace Astraia
             {
                 return Form;
             }
-            
+
             var fileName = Path.GetFileNameWithoutExtension(filePath);
             var fileData = Path.Combine(Path.GetTempPath(), "{0}_{1}".Format(fileName, Guid.NewGuid()));
             File.Copy(filePath, fileData, true);
@@ -40,20 +40,13 @@ namespace Astraia
 
                 for (var i = 0; i < sheetNames.Count; i++)
                 {
-                    var entry = archive.GetEntry("xl/worksheets/sheet{0}.xml".Format(i + 1));
-                    if (entry != null)
-                    {
-                        using var stream = entry.Open();
-                        Form.Add(ReadSheet(stream, sheetNames[i], sharedStrings));
-                    }
+                    using var stream = archive.GetEntry("xl/worksheets/sheet{0}.xml".Format(i + 1))!.Open();
+                    Form.Add(ReadSheet(stream, sheetNames[i], sharedStrings));
                 }
             }
             finally
             {
-                if (File.Exists(fileData))
-                {
-                    File.Delete(fileData);
-                }
+                File.Delete(fileData);
             }
 
             return Form;
@@ -96,7 +89,6 @@ namespace Astraia
             var maxY = 0;
             var maxX = 0;
             string[,] sheetData = null;
-
             using (var reader = XmlReader.Create(stream))
             {
                 while (reader.Read())
@@ -140,7 +132,7 @@ namespace Astraia
                                 }
                             }
 
-                            if (t == "s" && int.TryParse(value, out int index))
+                            if (t == "s" && int.TryParse(value, out var index))
                             {
                                 value = sharedStrings[index];
                             }
