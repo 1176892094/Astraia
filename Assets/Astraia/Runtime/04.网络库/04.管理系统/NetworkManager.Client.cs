@@ -30,7 +30,7 @@ namespace Astraia.Net
 
             internal static State state = State.Disconnect;
 
-            private static double pingTime;
+            internal static double pingTime;
 
             private static double pongTime;
 

@@ -18,173 +18,98 @@ using UnityEngine.Profiling;
 
 namespace Astraia.Common
 {
-    public abstract class DebugManager : MonoBehaviour, IEvent<PingUpdate>
+    public abstract class DebugManager : MonoBehaviour
     {
-        private static bool isRunning;
-        protected string address;
-        protected double framePing;
+        protected readonly Messages client = new Messages("服务器");
+        protected readonly Messages server = new Messages("客户端");
+        protected static Items itemSend;
+        protected static Items itemReceive;
         private double waitTime;
-
-        private int clientIntervalReceivedPackets;
-        private long clientIntervalReceivedBytes;
-        private int clientIntervalSentPackets;
-        private long clientIntervalSentBytes;
-
-        private int clientReceivedPacketsPerSecond;
-        private long clientReceivedBytesPerSecond;
-        private int clientSentPacketsPerSecond;
-        private long clientSentBytesPerSecond;
-
-        private int serverIntervalReceivedPackets;
-        private long serverIntervalReceivedBytes;
-        private int serverIntervalSentPackets;
-        private long serverIntervalSentBytes;
-
-        private int serverReceivedPacketsPerSecond;
-        private long serverReceivedBytesPerSecond;
-        private int serverSentPacketsPerSecond;
-        private long serverSentBytesPerSecond;
-
-        private static readonly Items sendItems = new Items();
-        private static readonly Items receiveItems = new Items();
 
         protected virtual void Awake()
         {
-            isRunning = true;
-            address = Service.Host.Ip();
+            itemSend = new Items();
+            itemReceive = new Items();
         }
 
-        protected virtual void Start()
+        protected virtual void Reset()
         {
-            if (Transport.Instance)
-            {
-                Transport.Instance.OnClientSend += OnClientSend;
-                Transport.Instance.OnServerSend += OnServerSend;
-                Transport.Instance.OnClientReceive += OnClientReceive;
-                Transport.Instance.OnServerReceive += OnServerReceive;
-            }
-        }
-
-        protected virtual void OnEnable()
-        {
-            EventManager.Listen(this);
-        }
-
-        protected virtual void OnDisable()
-        {
-            EventManager.Remove(this);
-        }
-
-        protected virtual void Update()
-        {
-            if (waitTime < Time.unscaledTimeAsDouble)
-            {
-                if (NetworkManager.isClient)
-                {
-                    UpdateClient();
-                }
-
-                if (NetworkManager.isServer)
-                {
-                    UpdateServer();
-                }
-
-                waitTime = Time.unscaledTimeAsDouble + 1;
-            }
+            itemSend.Reset();
+            itemReceive.Reset();
         }
 
         private void OnDestroy()
         {
-            if (Transport.Instance)
+            itemSend.Clear();
+            itemReceive.Clear();
+        }
+
+        protected virtual void Start()
+        {
+            if (!Transport.Instance) return;
+            Transport.Instance.OnClientSend -= OnClientSend;
+            Transport.Instance.OnServerSend -= OnServerSend;
+            Transport.Instance.OnClientReceive -= OnClientReceive;
+            Transport.Instance.OnServerReceive -= OnServerReceive;
+            Transport.Instance.OnClientSend += OnClientSend;
+            Transport.Instance.OnServerSend += OnServerSend;
+            Transport.Instance.OnClientReceive += OnClientReceive;
+            Transport.Instance.OnServerReceive += OnServerReceive;
+        }
+
+        protected virtual void Update()
+        {
+            if (waitTime < Time.realtimeSinceStartup)
             {
-                Transport.Instance.OnClientSend -= OnClientSend;
-                Transport.Instance.OnServerSend -= OnServerSend;
-                Transport.Instance.OnClientReceive -= OnClientReceive;
-                Transport.Instance.OnServerReceive -= OnServerReceive;
+                if (NetworkManager.isClient)
+                {
+                    client.Update();
+                }
+
+                if (NetworkManager.isServer)
+                {
+                    server.Update();
+                }
+
+                waitTime = Time.realtimeSinceStartup + 1;
             }
-
-            sendItems.Clear();
-            receiveItems.Clear();
         }
 
-        public void Execute(PingUpdate message)
+        private void OnClientSend(ArraySegment<byte> segment, int channel)
         {
-            framePing = message.pingTime;
+            client.Send.count++;
+            client.Send.bytes += segment.Count;
         }
 
-        private void OnClientReceive(ArraySegment<byte> data, int channel)
+        private void OnClientReceive(ArraySegment<byte> segment, int channel)
         {
-            clientIntervalReceivedPackets++;
-            clientIntervalReceivedBytes += data.Count;
+            client.Receive.count++;
+            client.Receive.bytes += segment.Count;
         }
 
-        private void OnClientSend(ArraySegment<byte> data, int channel)
+        private void OnServerSend(int clientId, ArraySegment<byte> segment, int channel)
         {
-            clientIntervalSentPackets++;
-            clientIntervalSentBytes += data.Count;
+            server.Send.count++;
+            server.Send.bytes += segment.Count;
         }
 
-        private void OnServerReceive(int connectionId, ArraySegment<byte> data, int channel)
+        private void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
         {
-            serverIntervalReceivedPackets++;
-            serverIntervalReceivedBytes += data.Count;
+            server.Receive.count++;
+            server.Receive.bytes += segment.Count;
         }
 
-        private void OnServerSend(int connectionId, ArraySegment<byte> data, int channel)
+        internal static void OnSend<T>(T message, int bytes) where T : struct, IMessage
         {
-            serverIntervalSentPackets++;
-            serverIntervalSentBytes += data.Count;
+            itemSend?.Record(message, Service.Bit.Invoke((uint)bytes) + bytes);
         }
 
-        private void UpdateClient()
+        internal static void OnReceive<T>(T message, int bytes) where T : struct, IMessage
         {
-            clientReceivedPacketsPerSecond = clientIntervalReceivedPackets;
-            clientReceivedBytesPerSecond = clientIntervalReceivedBytes;
-            clientSentPacketsPerSecond = clientIntervalSentPackets;
-            clientSentBytesPerSecond = clientIntervalSentBytes;
-
-            clientIntervalReceivedPackets = 0;
-            clientIntervalReceivedBytes = 0;
-            clientIntervalSentPackets = 0;
-            clientIntervalSentBytes = 0;
+            itemReceive?.Record(message, Service.Bit.Invoke((uint)bytes + 2) + bytes + 2);
         }
 
-        private void UpdateServer()
-        {
-            serverReceivedPacketsPerSecond = serverIntervalReceivedPackets;
-            serverReceivedBytesPerSecond = serverIntervalReceivedBytes;
-            serverSentPacketsPerSecond = serverIntervalSentPackets;
-            serverSentBytesPerSecond = serverIntervalSentBytes;
-
-            serverIntervalReceivedPackets = 0;
-            serverIntervalReceivedBytes = 0;
-            serverIntervalSentPackets = 0;
-            serverIntervalSentBytes = 0;
-        }
-
-        protected void OnGUIServer()
-        {
-            GUILayout.Label("向服务器发送数量:\t\t{0}".Format(clientSentPacketsPerSecond));
-            GUILayout.Label("向服务器发送大小:\t\t{0}/s".Format(PrettyBytes(clientSentBytesPerSecond)));
-            GUILayout.Label("从服务器接收数量:\t\t{0}".Format(clientReceivedPacketsPerSecond));
-            GUILayout.Label("从服务器接收大小:\t\t{0}/s".Format(PrettyBytes(clientReceivedBytesPerSecond)));
-        }
-
-        protected void OnGUIClient()
-        {
-            GUILayout.Label("向客户端发送数量:\t\t{0}".Format(serverSentPacketsPerSecond));
-            GUILayout.Label("向客户端发送大小:\t\t{0}/s".Format(PrettyBytes(serverSentBytesPerSecond)));
-            GUILayout.Label("从客户端接收数量:\t\t{0}".Format(serverReceivedPacketsPerSecond));
-            GUILayout.Label("从客户端接收大小:\t\t{0}/s".Format(PrettyBytes(serverReceivedBytesPerSecond)));
-        }
-
-        protected static void ItemReset()
-        {
-            sendItems.Reset();
-            receiveItems.Reset();
-        }
-
-        protected static string PrettyBytes(long bytes)
+        internal static string PrettyBytes(long bytes)
         {
             if (bytes < 1024)
             {
@@ -204,36 +129,57 @@ namespace Astraia.Common
             return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
         }
 
-        internal static IList<Pool> SendReference()
+
+        protected class Messages
         {
-            var pools = sendItems.messages.Values.Select(item => new Pool(item)).ToList();
-            pools.AddRange(sendItems.function.Values.Select(item => new Pool(item)));
-            return pools;
+            private readonly string Name;
+            public readonly Message Send = new Message();
+            public readonly Message Receive = new Message();
+
+            public Messages(string name)
+            {
+                Name = name;
+            }
+
+            public void Update()
+            {
+                Send.Update();
+                Receive.Update();
+            }
+
+            public void OnGUI()
+            {
+                Send.OnGUI(Name + "发送");
+                Receive.OnGUI(Name + "接收");
+            }
+
+            public class Message
+            {
+                private int Count;
+                private int Bytes;
+                public int count;
+                public int bytes;
+
+                public void Update()
+                {
+                    Count = count;
+                    Bytes = bytes;
+                    count = 0;
+                    bytes = 0;
+                }
+
+                public void OnGUI(string value)
+                {
+                    GUILayout.Label("{0}数量:\t\t{1}/s".Format(value, Count));
+                    GUILayout.Label("{0}大小:\t\t{1}/s".Format(value, PrettyBytes(Bytes)));
+                }
+            }
         }
 
-        internal static IList<Pool> ReceiveReference()
+        protected class Items
         {
-            var pools = receiveItems.messages.Values.Select(item => new Pool(item)).ToList();
-            pools.AddRange(receiveItems.function.Values.Select(item => new Pool(item)));
-            return pools;
-        }
-
-        internal static void OnSend<T>(T message, int bytes) where T : struct, IMessage
-        {
-            if (!isRunning) return;
-            sendItems.Record(message, Service.Bit.Invoke((uint)bytes) + bytes);
-        }
-
-        internal static void OnReceive<T>(T message, int bytes) where T : struct, IMessage
-        {
-            if (!isRunning) return;
-            receiveItems.Record(message, Service.Bit.Invoke((uint)bytes + 2) + bytes + 2);
-        }
-
-        private class Items
-        {
-            public readonly Dictionary<Type, Item> messages = new Dictionary<Type, Item>();
-            public readonly Dictionary<ushort, Item> function = new Dictionary<ushort, Item>();
+            private readonly Dictionary<Type, Item> messages = new Dictionary<Type, Item>();
+            private readonly Dictionary<ushort, Item> function = new Dictionary<ushort, Item>();
 
             public void Record<T>(T message, int bytes) where T : struct, IMessage
             {
@@ -270,8 +216,8 @@ namespace Astraia.Common
                         {
                             name = name.Substring(0, name.Length - 2);
                         }
-
-                        item.Path = "{0}.{1}".Format(data.Method.DeclaringType, name);
+                      
+                        item.Path = "{0}.{1}".Format(data.Method.DeclaringType!.Name, name);
                     }
 
                     item.Type = type;
@@ -313,6 +259,13 @@ namespace Astraia.Common
                 function.Clear();
             }
 
+            internal IList<Pool> Reference()
+            {
+                var pools = messages.Values.Select(item => new Pool(item)).ToList();
+                pools.AddRange(function.Values.Select(item => new Pool(item)));
+                return pools;
+            }
+
             [Serializable]
             public class Item : IPool
             {
@@ -347,6 +300,7 @@ namespace Astraia.Common
         private bool maximized;
         private float frameData;
         private double frameTime;
+        private string address;
 
         private Window window;
         private Rect windowRect;
@@ -363,6 +317,7 @@ namespace Astraia.Common
         protected override void Awake()
         {
             base.Awake();
+            address = Service.Host.Ip();
             screenColor = Color.white;
             screenRate = new Vector2(2560, 1440);
             screenRect = new Rect(10, 20, 100, 60);
@@ -397,15 +352,13 @@ namespace Astraia.Common
             }
         }
 
-        protected override void OnEnable()
+        private void OnEnable()
         {
-            base.OnEnable();
             Application.logMessageReceived += LogMessageReceived;
         }
 
-        protected override void OnDisable()
+        private void OnDisable()
         {
-            base.OnDisable();
             Application.logMessageReceived -= LogMessageReceived;
         }
 
@@ -507,7 +460,7 @@ namespace Astraia.Common
             {
                 window = Window.System;
             }
-                
+
             GUI.contentColor = window == Window.Project ? Color.white : Color.gray;
             if (GUILayout.Button(Window.Project.ToString(), GUILayout.Height(30)))
             {
@@ -947,13 +900,13 @@ namespace Astraia.Common
             switch (windowOption)
             {
                 case PoolMode.Heap:
-                    Draw(HeapManager.poolData.Values, "引用池", "未使用\t\t使用中\t\t使用次数\t\t释放次数");
+                    Draw(HeapManager.poolData.Values, "引用池", "未使用\t使用中\t使用次数\t释放次数");
                     break;
                 case PoolMode.Event:
-                    Draw(EventManager.poolData.Values, "事件池", "触发数\t\t事件数\t\t添加次数\t\t移除次数");
+                    Draw(EventManager.poolData.Values, "事件池", "触发数\t事件数\t添加次数\t移除次数");
                     break;
                 case PoolMode.Pool:
-                    Draw(GlobalManager.poolData.Values, "对象池", "未激活\t\t激活中\t\t出队次数\t\t入队次数");
+                    Draw(GlobalManager.poolData.Values, "对象池", "未激活\t激活中\t出队次数\t入队次数");
                     break;
             }
         }
@@ -1068,7 +1021,7 @@ namespace Astraia.Common
             }
 
             GUILayout.Label("{0} : {1}".Format(peer, port), "Button", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30));
-            var ping = NetworkManager.isClient ? "Ping: {0} ms".Format(Math.Min((int)(framePing * 1000), 999)) : "Client is not active!";
+            var ping = NetworkManager.isClient ? "Ping: {0} ms".Format(Math.Min((int)(NetworkManager.Client.pingTime * 1000), 999)) : "Client is not active!";
             GUILayout.Label(ping, "Button", GUILayout.Height(30));
 
             GUILayout.EndHorizontal();
@@ -1077,11 +1030,11 @@ namespace Astraia.Common
             GUILayout.BeginHorizontal();
 
             GUILayout.BeginVertical("Box", GUILayout.Width((screenWidth - 28) / 2));
-            OnGUIServer();
+            server.OnGUI();
             GUILayout.EndVertical();
 
             GUILayout.BeginVertical("Box");
-            OnGUIClient();
+            client.OnGUI();
             GUILayout.EndVertical();
 
             GUILayout.EndHorizontal();
@@ -1089,13 +1042,13 @@ namespace Astraia.Common
             if (duration < Time.unscaledTime)
             {
                 duration = Time.unscaledTime + 1;
-                sendList = SendReference();
-                receiveList = ReceiveReference();
-                ItemReset();
+                sendList = itemSend.Reference();
+                receiveList = itemReceive.Reference();
+                Reset();
             }
 
-            NetworkMessage(sendList, "发送队列", "每秒发送\t\t每秒发送\t\t全局发送\t\t全局发送");
-            NetworkMessage(receiveList, "接收队列", "每秒接收\t\t每秒接收\t\t全局接收\t\t全局接收");
+            NetworkMessage(sendList, "发送队列", "每秒发送\t每秒发送\t全局发送\t全局发送");
+            NetworkMessage(receiveList, "接收队列", "每秒接收\t每秒接收\t全局接收\t全局接收");
 
 
             GUILayout.EndScrollView();
@@ -1202,7 +1155,10 @@ namespace Astraia.Common
                 GUILayout.Label(module, GUILayout.Height(20));
                 foreach (var data in poolPair.Value)
                 {
-                    var result = "{0}\t\t{1}\t\t{2}\t\t{3}".Format(data.Release, PrettyBytes(data.Acquire), data.Dequeue, PrettyBytes(data.Enqueue));
+                    var result = data.Release.ToString().Align(10);
+                    result += PrettyBytes(data.Acquire).Align(10);
+                    result += data.Dequeue.ToString().Align(10);
+                    result += PrettyBytes(data.Enqueue).Align(10);
                     GUILayout.Label(result, GUILayout.Height(20));
                 }
 
@@ -1362,8 +1318,8 @@ namespace Astraia.Common
             GUILayout.EndHorizontal();
 
             screenView = GUILayout.BeginScrollView(screenView, "Box");
-            GUILayout.Label("操作系统: ".Align(20) + SystemInfo.operatingSystem);
             GUILayout.Label("设备标识: ".Align(20) + SystemInfo.deviceUniqueIdentifier);
+            GUILayout.Label("操作系统: ".Align(20) + SystemInfo.operatingSystem);
             GUILayout.Label("设备模式: ".Align(20) + SystemInfo.deviceModel);
             GUILayout.Label("设备名称: ".Align(20) + SystemInfo.deviceName);
             GUILayout.Label("设备类型: ".Align(20) + SystemInfo.deviceType);
@@ -1379,15 +1335,30 @@ namespace Astraia.Common
             GUILayout.EndScrollView();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("退出游戏", GUILayout.Height(30)))
+            if (GUILayout.Button("0.5x", GUILayout.Height(30)))
             {
-                Application.Quit();
+                screenRate = new Vector2(3200, 1800);
+            }
+
+            if (GUILayout.Button("1.0x", GUILayout.Height(30)))
+            {
+                screenRate = new Vector2(2560, 1440);
+            }
+
+            if (GUILayout.Button("1.5x", GUILayout.Height(30)))
+            {
+                screenRate = new Vector2(1920, 1080);
+            }
+
+            if (GUILayout.Button("2.0x", GUILayout.Height(30)))
+            {
+                screenRate = new Vector2(1280, 720);
             }
 
             GUILayout.EndHorizontal();
         }
     }
-    
+
     public partial class NetworkDebugger
     {
         private void ProjectWindow()
@@ -1420,24 +1391,9 @@ namespace Astraia.Common
             GUILayout.EndScrollView();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("0.5x", GUILayout.Height(30)))
+            if (GUILayout.Button("退出游戏", GUILayout.Height(30)))
             {
-                screenRate = new Vector2(3200, 1800);
-            }
-
-            if (GUILayout.Button("1.0x", GUILayout.Height(30)))
-            {
-                screenRate = new Vector2(2560, 1440);
-            }
-
-            if (GUILayout.Button("1.5x", GUILayout.Height(30)))
-            {
-                screenRate = new Vector2(1920, 1080);
-            }
-
-            if (GUILayout.Button("2.0x", GUILayout.Height(30)))
-            {
-                screenRate = new Vector2(1280, 720);
+                Application.Quit();
             }
 
             GUILayout.EndHorizontal();

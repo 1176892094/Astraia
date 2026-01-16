@@ -20,15 +20,15 @@ namespace Astraia.Common
         internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Dequeue<T>()
+        public static T Dequeue<T>(params object[] args)
         {
-            return LoadPool<T>(typeof(T)).Load();
+            return LoadPool<T>(typeof(T)).Load(args);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Dequeue<T>(Type type)
+        public static T Dequeue<T>(Type type, params object[] args)
         {
-            return LoadPool<T>(type).Load();
+            return LoadPool<T>(type).Load(args);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -78,7 +78,7 @@ namespace Astraia.Common
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
 
-            public T Load()
+            public T Load(params object[] args)
             {
                 Dequeue++;
                 Acquire++;
@@ -91,7 +91,7 @@ namespace Astraia.Common
                 }
                 else
                 {
-                    item = (T)Activator.CreateInstance(Type);
+                    item = (T)Activator.CreateInstance(Type, args);
                 }
 
                 return item;
@@ -155,7 +155,11 @@ namespace Astraia.Common
 
         public override string ToString()
         {
-            return "{0}\t\t{1}\t\t{2}\t\t{3}".Format(Release, Acquire, Dequeue, Enqueue);
+            var result = Release.ToString().Align(10);
+            result += Acquire.ToString().Align(10);
+            result += Dequeue.ToString().Align(10);
+            result += Enqueue.ToString().Align(10);
+            return result;
         }
 
         public void Dispose()
