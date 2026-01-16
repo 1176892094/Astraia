@@ -625,46 +625,6 @@ namespace Astraia.Common
             }
         }
 
-        // private void ConsoleButton()
-        // {
-        //     GUILayout.BeginHorizontal();
-        //
-        //     if (GUILayout.Button("Clear", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30)))
-        //     {
-        //         selectMessage = -1;
-        //         foreach (var data in logData.Values)
-        //         {
-        //             data.count = 0;
-        //         }
-        //
-        //         messages.Clear();
-        //         screenColor = Color.white;
-        //     }
-        //
-        //     if (GUILayout.Button("Report", GUILayout.Height(30)))
-        //     {
-        //         var mailBody = new StringBuilder(1024);
-        //         foreach (var message in messages)
-        //         {
-        //             mailBody.Append(message + "\n\n" + message.stackTrace + "\n\n");
-        //         }
-        //         
-        //         Service.Mail.Send(new MailData
-        //         {
-        //             smtpServer = GlobalSetting.Instance.smtpServer,
-        //             smtpPort = GlobalSetting.Instance.smtpPort,
-        //             senderName = "Astraia",
-        //             senderAddress = GlobalSetting.Instance.smtpUsername,
-        //             senderPassword = GlobalSetting.Instance.smtpPassword,
-        //             targetAddress = GlobalSetting.Instance.smtpUsername,
-        //             mailName = "来自《Astraia》的调试日志:",
-        //             mailBody = mailBody.ToString()
-        //         });
-        //     }
-        //
-        //     GUILayout.EndHorizontal();
-        // }
-
         private void ConsoleOption()
         {
             GUILayout.BeginHorizontal();
