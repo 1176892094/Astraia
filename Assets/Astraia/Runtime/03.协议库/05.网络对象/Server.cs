@@ -18,7 +18,7 @@ using Astraia.Common;
 
 namespace Astraia
 {
-    internal partial class Server
+    internal sealed class Server
     {
         private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
         private readonly HashSet<int> removes = new HashSet<int>();
