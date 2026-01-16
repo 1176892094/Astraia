@@ -47,8 +47,8 @@ namespace Astraia.Common
                 assetRect = panel.assetRect;
             }
 
-            assetPath = assetName;
             assetName = GlobalSetting.Prefab.Format(typeof(TGrid).Name);
+            assetPath = assetName;
             var asset = Service.Ref<UIPathAttribute>.GetAttribute(typeof(TGrid));
             if (asset != null)
             {

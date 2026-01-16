@@ -170,11 +170,12 @@ namespace Astraia
                         fieldType = field.Value.Substring(0, index);
                     }
                 }
-
+#if ODIN_INSPECTOR
                 builder.AppendFormat("#if ODIN_INSPECTOR && UNITY_EDITOR\n");
                 builder.AppendFormat("\t\t[Sirenix.OdinInspector.ShowInInspector]\n");
                 builder.AppendFormat("#endif\n");
-                builder.AppendFormat("\t\tpublic {0} {1} => Bytes[{2}].Value.Parse<{0}>();\n", fieldType, fieldName, count++);
+#endif
+                builder.AppendFormat("\t\tpublic {0} {1} => Bytes.Parse<{0}>({2});\n", fieldType, fieldName, count++);
             }
 
             scriptText = scriptText.Replace("//TODO:1", builder.ToString());
