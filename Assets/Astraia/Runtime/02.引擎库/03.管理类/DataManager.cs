@@ -126,10 +126,10 @@ namespace Astraia.Common
             parsers[typeof(Vector3Int[])] = new Func<string, Vector3Int[]>(InputVector3IntArray);
         }
 
-        public static T Parse<T>(this byte[] reason)
+        public static T Parse<T>(this Xor.Bytes[] reason, int index)
         {
             if (reason == null) return default;
-            var value = Service.Text.GetString(reason);
+            var value = Service.Text.GetString(reason[index]);
             if (parsers.TryGetValue(typeof(T), out var func))
             {
                 return ((Func<string, T>)func).Invoke(value);
