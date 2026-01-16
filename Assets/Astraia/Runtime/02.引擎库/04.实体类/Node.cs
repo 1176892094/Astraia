@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using Astraia.Common;
 using UnityEngine;
 
-
 namespace Astraia
 {
     public abstract class CompositeNode : INode

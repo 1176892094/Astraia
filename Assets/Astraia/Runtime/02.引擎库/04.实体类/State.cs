@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Astraia.Common
 {
@@ -27,94 +26,89 @@ namespace Astraia.Common
         void OnUpdate();
         void OnExit();
     }
-    
+
     [Serializable]
     public abstract class StateMachine<TEntity> : Module<TEntity> where TEntity : Entity
     {
-        private Dictionary<int, IState> states = new Dictionary<int, IState>();
-        [SerializeReference] private IState state;
+        private Dictionary<int, State> states = new Dictionary<int, State>();
+        private State state;
 
         public void Create(int key, Type value)
         {
-            if (!states.TryGetValue(key, out var item))
-            {
-                item = HeapManager.Dequeue<IState>(value);
-                states.Add(key, item);
-                item.Acquire(owner);
-            }
+            var item = HeapManager.Dequeue<IState>(value);
+            states[key] = new State(item, new Node(item.OnUpdate));
+            item.Acquire(owner);
         }
 
-        public void Update()
+        public void Create(int key, Type value, INode node)
         {
-            state?.OnUpdate();
+            var item = HeapManager.Dequeue<IState>(value);
+            states[key] = new State(item, node);
+            item.Acquire(owner);
         }
 
         public void Switch(int key)
         {
-            state?.OnExit();
+            state?.state.OnExit();
             states.TryGetValue(key, out state);
-            state?.OnEnter();
+            state?.state.OnEnter();
+        }
+
+        public void Update()
+        {
+            state?.node.Tick();
         }
 
         public override void Enqueue()
         {
-            foreach (var value in states.Values)
+            foreach (var item in states.Values)
             {
-                HeapManager.Enqueue(value, value.GetType());
+                HeapManager.Enqueue(item.state, item.state.GetType());
             }
 
             state = null;
             states.Clear();
         }
-    }
-
-    [Serializable]
-    public abstract class State<T> : IState where T : Entity
-    {
-        public T owner { get; protected set; }
-        public INode node;
-
-        void IState.Acquire(Entity owner)
-        {
-            this.owner = (T)owner;
-            node = Acquire();
-        }
-
-        void IState.OnEnter() => OnEnter();
-        void IState.OnUpdate() => node.Tick();
-        void IState.OnExit() => OnExit();
-
-        protected virtual INode Acquire()
-        {
-            return Node.Create(OnUpdate);
-        }
-
-        protected virtual void OnEnter()
-        {
-        }
-
-        protected virtual void OnUpdate()
-        {
-        }
-
-        protected virtual void OnExit()
-        {
-        }
 
         private class Node : INode
         {
-            private Action OnUpdate;
+            private readonly Action OnUpdate;
+
+            public Node(Action onUpdate)
+            {
+                OnUpdate = onUpdate;
+            }
 
             public NodeState Tick()
             {
                 OnUpdate.Invoke();
                 return NodeState.Success;
             }
+        }
 
-            public static Node Create(Action OnUpdate)
-            {
-                return new Node { OnUpdate = OnUpdate };
-            }
+        public record State(IState state, INode node);
+    }
+
+    [Serializable]
+    public abstract class State<T> : IState where T : Entity
+    {
+        public T owner { get; protected set; }
+
+        void IState.Acquire(Entity owner)
+        {
+            this.owner = (T)owner;
+        }
+
+        public virtual void OnEnter()
+        {
+        }
+
+        public virtual void OnUpdate()
+        {
+        }
+
+        public virtual void OnExit()
+        {
         }
     }
 
