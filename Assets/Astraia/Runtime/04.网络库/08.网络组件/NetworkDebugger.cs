@@ -216,7 +216,7 @@ namespace Astraia.Common
                         {
                             name = name.Substring(0, name.Length - 2);
                         }
-                      
+
                         item.Path = "{0}.{1}".Format(data.Method.DeclaringType!.Name, name);
                     }
 
@@ -414,57 +414,70 @@ namespace Astraia.Common
                 maximized = false;
             }
 
-            GUI.contentColor = window == Window.Console ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Console.ToString(), GUILayout.Height(30)))
+            GUI.contentColor = window == Window.控制台 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.控制台.ToString(), GUILayout.Height(30)))
             {
-                window = Window.Console;
+                window = Window.控制台;
             }
 
-            GUI.contentColor = window == Window.Scene ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Scene.ToString(), GUILayout.Height(30)))
+            GUI.contentColor = window == Window.引用池 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.引用池.ToString(), GUILayout.Height(30)))
             {
-                UpdateGameObject();
-                UpdateComponent();
-                window = Window.Scene;
+                window = Window.引用池;
             }
 
-            GUI.contentColor = window == Window.Reference ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Reference.ToString(), GUILayout.Height(30)))
+            GUI.contentColor = window == Window.对象池 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.对象池.ToString(), GUILayout.Height(30)))
             {
-                window = Window.Reference;
+                window = Window.对象池;
             }
 
-            GUI.contentColor = window == Window.Network ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Network.ToString(), GUILayout.Height(30)))
+            GUI.contentColor = window == Window.事件 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.事件.ToString(), GUILayout.Height(30)))
             {
-                window = Window.Network;
+                window = Window.事件;
+            }
+
+            GUI.contentColor = window == Window.网络 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.网络.ToString(), GUILayout.Height(30)))
+            {
+                window = Window.网络;
             }
 
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUI.contentColor = window == Window.Memory ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Memory.ToString(), GUILayout.Height(30)))
+
+            GUI.contentColor = window == Window.场景 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.场景.ToString(), GUILayout.Height(30)))
             {
-                window = Window.Memory;
+                UpdateGameObject();
+                UpdateComponent();
+                window = Window.场景;
             }
 
-            GUI.contentColor = window == Window.Time ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Time.ToString(), GUILayout.Height(30)))
+            GUI.contentColor = window == Window.内存 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.内存.ToString(), GUILayout.Height(30)))
             {
-                window = Window.Time;
+                window = Window.内存;
             }
 
-            GUI.contentColor = window == Window.System ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.System.ToString(), GUILayout.Height(30)))
+            GUI.contentColor = window == Window.时间 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.时间.ToString(), GUILayout.Height(30)))
             {
-                window = Window.System;
+                window = Window.时间;
             }
 
-            GUI.contentColor = window == Window.Project ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.Project.ToString(), GUILayout.Height(30)))
+            GUI.contentColor = window == Window.系统 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.系统.ToString(), GUILayout.Height(30)))
             {
-                window = Window.Project;
+                window = Window.系统;
+            }
+
+            GUI.contentColor = window == Window.程序 ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.程序.ToString(), GUILayout.Height(30)))
+            {
+                window = Window.程序;
             }
 
             GUILayout.EndHorizontal();
@@ -472,28 +485,34 @@ namespace Astraia.Common
             GUI.contentColor = Color.white;
             switch (window)
             {
-                case Window.Console:
+                case Window.控制台:
                     ConsoleWindow();
                     break;
-                case Window.Scene:
-                    SceneWindow();
+                case Window.引用池:
+                    HeapWindow();
                     break;
-                case Window.Reference:
-                    ReferenceWindow();
+                case Window.对象池:
+                    PoolWindow();
                     break;
-                case Window.Network:
+                case Window.事件:
+                    EventWindow();
+                    break;
+                case Window.网络:
                     NetworkWindow();
                     break;
-                case Window.System:
+                case Window.场景:
+                    SceneWindow();
+                    break;
+                case Window.系统:
                     SystemWindow();
                     break;
-                case Window.Project:
+                case Window.程序:
                     ProjectWindow();
                     break;
-                case Window.Memory:
+                case Window.内存:
                     MemoryWindow();
                     break;
-                case Window.Time:
+                case Window.时间:
                     TimeWindow();
                     break;
             }
@@ -516,14 +535,16 @@ namespace Astraia.Common
 
         private enum Window
         {
-            Console,
-            Scene,
-            Reference,
-            Network,
-            System,
-            Project,
-            Memory,
-            Time,
+            控制台,
+            引用池,
+            对象池,
+            事件,
+            网络,
+            场景,
+            内存,
+            时间,
+            系统,
+            程序,
         }
     }
 
@@ -680,8 +701,8 @@ namespace Astraia.Common
         private void SceneWindow()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label("GameObject [{0}]".Format(gameObjects.Count), "Button", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30));
-            if (GUILayout.Button("Refresh", GUILayout.Height(30)))
+            GUILayout.Label("场景对象 [{0}]".Format(gameObjects.Count), "Button", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30));
+            if (GUILayout.Button("刷新", GUILayout.Height(30)))
             {
                 UpdateGameObject();
                 UpdateComponent();
@@ -872,43 +893,20 @@ namespace Astraia.Common
     public partial class NetworkDebugger
     {
         private readonly Dictionary<string, List<Pool>> poolData = new Dictionary<string, List<Pool>>();
-        private PoolMode windowOption = PoolMode.Heap;
 
-        private void ReferenceWindow()
+        private void HeapWindow()
         {
-            GUILayout.BeginHorizontal();
-            GUI.contentColor = windowOption == PoolMode.Heap ? Color.white : Color.gray;
-            if (GUILayout.Button("Heap", GUILayout.Height(30)))
-            {
-                windowOption = PoolMode.Heap;
-            }
+            Draw(HeapManager.poolData.Values, "引用池", "未使用\t使用中\t使用次数\t释放次数");
+        }
 
-            GUI.contentColor = windowOption == PoolMode.Event ? Color.white : Color.gray;
-            if (GUILayout.Button("Event", GUILayout.Height(30)))
-            {
-                windowOption = PoolMode.Event;
-            }
+        private void PoolWindow()
+        {
+            Draw(GlobalManager.poolData.Values, "对象池", "未激活\t激活中\t出队次数\t入队次数");
+        }
 
-            GUI.contentColor = windowOption == PoolMode.Pool ? Color.white : Color.gray;
-            if (GUILayout.Button("Pool", GUILayout.Height(30)))
-            {
-                windowOption = PoolMode.Pool;
-            }
-
-            GUI.contentColor = Color.white;
-            GUILayout.EndHorizontal();
-            switch (windowOption)
-            {
-                case PoolMode.Heap:
-                    Draw(HeapManager.poolData.Values, "引用池", "未使用\t使用中\t使用次数\t释放次数");
-                    break;
-                case PoolMode.Event:
-                    Draw(EventManager.poolData.Values, "事件池", "触发数\t事件数\t添加次数\t移除次数");
-                    break;
-                case PoolMode.Pool:
-                    Draw(GlobalManager.poolData.Values, "对象池", "未激活\t激活中\t出队次数\t入队次数");
-                    break;
-            }
+        private void EventWindow()
+        {
+            Draw(EventManager.poolData.Values, "事件池", "触发数\t事件数\t添加次数\t移除次数");
         }
 
         private void Draw(IEnumerable<IPool> items, string message, string module)
@@ -983,13 +981,6 @@ namespace Astraia.Common
 
             var args = string.Join(", ", Array.ConvertAll(type.GetGenericArguments(), GetFriendlyName));
             return "{0}<{1}>".Format(name, args);
-        }
-
-        private enum PoolMode
-        {
-            Heap,
-            Event,
-            Pool,
         }
     }
 
@@ -1173,10 +1164,6 @@ namespace Astraia.Common
     {
         private void TimeWindow()
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(" 时间信息", GUILayout.Height(25));
-            GUILayout.EndHorizontal();
-
             screenView = GUILayout.BeginScrollView(screenView, "Box");
             GUILayout.BeginVertical();
 
@@ -1249,10 +1236,6 @@ namespace Astraia.Common
 
         private void MemoryWindow()
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(" 内存信息", GUILayout.Height(25));
-            GUILayout.EndHorizontal();
-
             screenView = GUILayout.BeginScrollView(screenView, "Box");
 
             GUILayout.BeginVertical();
@@ -1313,10 +1296,6 @@ namespace Astraia.Common
     {
         private void SystemWindow()
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(" 系统信息", GUILayout.Height(25));
-            GUILayout.EndHorizontal();
-
             screenView = GUILayout.BeginScrollView(screenView, "Box");
             GUILayout.Label("设备标识: ".Align(20) + SystemInfo.deviceUniqueIdentifier);
             GUILayout.Label("操作系统: ".Align(20) + SystemInfo.operatingSystem);
@@ -1363,9 +1342,6 @@ namespace Astraia.Common
     {
         private void ProjectWindow()
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(" 环境配置", GUILayout.Height(25));
-            GUILayout.EndHorizontal();
             screenView = GUILayout.BeginScrollView(screenView, "Box");
             GUILayout.Label("设备分辨率: ".Align(20) + Screen.currentResolution);
             GUILayout.Label("程序分辨率: ".Align(20) + "{0} x {1}".Format(Screen.width, Screen.height));
