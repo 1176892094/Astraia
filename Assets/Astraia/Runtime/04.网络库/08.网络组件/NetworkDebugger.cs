@@ -489,41 +489,32 @@ namespace Astraia.Common
 
             GUILayout.EndHorizontal();
 
-            if (window != Window.Console)
+            GUILayout.BeginHorizontal();
+            GUI.contentColor = window == Window.Memory ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.Memory.ToString(), GUILayout.Height(30)))
             {
-                GUILayout.BeginHorizontal();
-                GUI.contentColor = window == Window.Memory ? Color.white : Color.gray;
-                if (GUILayout.Button(Window.Memory.ToString(), GUILayout.Height(30)))
-                {
-                    window = Window.Memory;
-                }
-
-                GUI.contentColor = window == Window.Time ? Color.white : Color.gray;
-                if (GUILayout.Button(Window.Time.ToString(), GUILayout.Height(30)))
-                {
-                    window = Window.Time;
-                }
-
-                GUI.contentColor = window == Window.System ? Color.white : Color.gray;
-                if (GUILayout.Button(Window.System.ToString(), GUILayout.Height(30)))
-                {
-                    window = Window.System;
-                }
-
-                GUI.contentColor = window == Window.Screen ? Color.white : Color.gray;
-                if (GUILayout.Button(Window.Screen.ToString(), GUILayout.Height(30)))
-                {
-                    window = Window.Screen;
-                }
-
-                GUI.contentColor = window == Window.Project ? Color.white : Color.gray;
-                if (GUILayout.Button(Window.Project.ToString(), GUILayout.Height(30)))
-                {
-                    window = Window.Project;
-                }
-
-                GUILayout.EndHorizontal();
+                window = Window.Memory;
             }
+
+            GUI.contentColor = window == Window.Time ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.Time.ToString(), GUILayout.Height(30)))
+            {
+                window = Window.Time;
+            }
+
+            GUI.contentColor = window == Window.System ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.System.ToString(), GUILayout.Height(30)))
+            {
+                window = Window.System;
+            }
+                
+            GUI.contentColor = window == Window.Project ? Color.white : Color.gray;
+            if (GUILayout.Button(Window.Project.ToString(), GUILayout.Height(30)))
+            {
+                window = Window.Project;
+            }
+
+            GUILayout.EndHorizontal();
 
             GUI.contentColor = Color.white;
             switch (window)
@@ -548,9 +539,6 @@ namespace Astraia.Common
                     break;
                 case Window.Memory:
                     MemoryWindow();
-                    break;
-                case Window.Screen:
-                    ScreenWindow();
                     break;
                 case Window.Time:
                     TimeWindow();
@@ -582,7 +570,6 @@ namespace Astraia.Common
             System,
             Project,
             Memory,
-            Screen,
             Time,
         }
     }
@@ -604,7 +591,6 @@ namespace Astraia.Common
         private void ConsoleWindow()
         {
             ConsoleOption();
-            ConsoleButton();
             ConsoleScroll();
         }
 
@@ -639,45 +625,45 @@ namespace Astraia.Common
             }
         }
 
-        private void ConsoleButton()
-        {
-            GUILayout.BeginHorizontal();
-
-            if (GUILayout.Button("Clear", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30)))
-            {
-                selectMessage = -1;
-                foreach (var data in logData.Values)
-                {
-                    data.count = 0;
-                }
-
-                messages.Clear();
-                screenColor = Color.white;
-            }
-
-            if (GUILayout.Button("Report", GUILayout.Height(30)))
-            {
-                // var mailBody = new StringBuilder(1024);
-                // foreach (var message in messages)
-                // {
-                //     mailBody.Append(message + "\n\n" + message.stackTrace + "\n\n");
-                // }
-                //
-                // Service.Mail.Send(new MailData
-                // {
-                //     smtpServer = GlobalSetting.Instance.smtpServer,
-                //     smtpPort = GlobalSetting.Instance.smtpPort,
-                //     senderName = "Astraia",
-                //     senderAddress = GlobalSetting.Instance.smtpUsername,
-                //     senderPassword = GlobalSetting.Instance.smtpPassword,
-                //     targetAddress = GlobalSetting.Instance.smtpUsername,
-                //     mailName = "来自《Astraia》的调试日志:",
-                //     mailBody = mailBody.ToString()
-                // });
-            }
-
-            GUILayout.EndHorizontal();
-        }
+        // private void ConsoleButton()
+        // {
+        //     GUILayout.BeginHorizontal();
+        //
+        //     if (GUILayout.Button("Clear", GUILayout.Width((screenWidth - 20) / 2), GUILayout.Height(30)))
+        //     {
+        //         selectMessage = -1;
+        //         foreach (var data in logData.Values)
+        //         {
+        //             data.count = 0;
+        //         }
+        //
+        //         messages.Clear();
+        //         screenColor = Color.white;
+        //     }
+        //
+        //     if (GUILayout.Button("Report", GUILayout.Height(30)))
+        //     {
+        //         var mailBody = new StringBuilder(1024);
+        //         foreach (var message in messages)
+        //         {
+        //             mailBody.Append(message + "\n\n" + message.stackTrace + "\n\n");
+        //         }
+        //         
+        //         Service.Mail.Send(new MailData
+        //         {
+        //             smtpServer = GlobalSetting.Instance.smtpServer,
+        //             smtpPort = GlobalSetting.Instance.smtpPort,
+        //             senderName = "Astraia",
+        //             senderAddress = GlobalSetting.Instance.smtpUsername,
+        //             senderPassword = GlobalSetting.Instance.smtpPassword,
+        //             targetAddress = GlobalSetting.Instance.smtpUsername,
+        //             mailName = "来自《Astraia》的调试日志:",
+        //             mailBody = mailBody.ToString()
+        //         });
+        //     }
+        //
+        //     GUILayout.EndHorizontal();
+        // }
 
         private void ConsoleOption()
         {
@@ -1276,40 +1262,22 @@ namespace Astraia.Common
             GUILayout.EndHorizontal();
 
             screenView = GUILayout.BeginScrollView(screenView, "Box");
-            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical();
 
-            GUILayout.BeginVertical("Box", GUILayout.Width(300));
-            GUILayout.Label("DataTime:");
-            GUILayout.Label("Time.frameCount:");
-            GUILayout.Label("Time.realtimeSinceStartup:");
-            GUILayout.Label("Time.timeScale:");
-            GUILayout.Label("Time.time:");
-            GUILayout.Label("Time.deltaTime:");
-            GUILayout.Label("Time.unscaledTime:");
-            GUILayout.Label("Time.unscaledDeltaTime:");
-            GUILayout.Label("Time.fixedTime:");
-            GUILayout.Label("Time.fixedDeltaTime:");
-            GUILayout.Label("Time.fixedUnscaledTime:");
-            GUILayout.Label("Time.fixedUnscaledDeltaTime:");
+            GUILayout.Label("当前日期:".Align(20) + DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"));
+            GUILayout.Label("游戏总帧:".Align(20) + Time.frameCount);
+            GUILayout.Label("时间总长:".Align(20) + Time.realtimeSinceStartup.ToString("F"));
+            GUILayout.Label("时间流速:".Align(20) + Time.timeScale.ToString("F"));
+            GUILayout.Label("游戏时间:".Align(20) + Time.time.ToString("F"));
+            GUILayout.Label("游戏间隔:".Align(20) + Time.deltaTime.ToString("F"));
+            GUILayout.Label("游戏时间(U):".Align(20) + Time.unscaledTime.ToString("F"));
+            GUILayout.Label("游戏间隔(U):".Align(20) + Time.unscaledDeltaTime.ToString("F"));
+            GUILayout.Label("物理时间:".Align(20) + Time.fixedTime.ToString("F"));
+            GUILayout.Label("物理间隔:".Align(20) + Time.fixedDeltaTime.ToString("F"));
+            GUILayout.Label("物理时间(U):".Align(20) + Time.fixedUnscaledTime.ToString("F"));
+            GUILayout.Label("物理间隔(U):".Align(20) + Time.fixedUnscaledDeltaTime.ToString("F"));
 
             GUILayout.EndVertical();
-
-            GUILayout.BeginVertical("Box");
-            GUILayout.Label(DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"));
-            GUILayout.Label(Time.frameCount.ToString());
-            GUILayout.Label(Time.realtimeSinceStartup.ToString("F"));
-            GUILayout.Label(Time.timeScale.ToString("F"));
-            GUILayout.Label(Time.time.ToString("F"));
-            GUILayout.Label(Time.deltaTime.ToString("F"));
-            GUILayout.Label(Time.unscaledTime.ToString("F"));
-            GUILayout.Label(Time.unscaledDeltaTime.ToString("F"));
-            GUILayout.Label(Time.fixedTime.ToString("F"));
-            GUILayout.Label(Time.fixedDeltaTime.ToString("F"));
-            GUILayout.Label(Time.fixedUnscaledTime.ToString("F"));
-            GUILayout.Label(Time.fixedUnscaledDeltaTime.ToString("F"));
-            GUILayout.EndVertical();
-
-            GUILayout.EndHorizontal();
 
             GUILayout.EndScrollView();
 
@@ -1369,34 +1337,22 @@ namespace Astraia.Common
             GUILayout.Label(" 内存信息", GUILayout.Height(25));
             GUILayout.EndHorizontal();
 
+            screenView = GUILayout.BeginScrollView(screenView, "Box");
+
+            GUILayout.BeginVertical();
             var pair1 = Calculate(1, Profiler.GetTotalReservedMemoryLong());
             var pair2 = Calculate(2, Profiler.GetTotalAllocatedMemoryLong());
             var pair3 = Calculate(3, Profiler.GetTotalUnusedReservedMemoryLong());
             var pair4 = Calculate(4, Profiler.GetAllocatedMemoryForGraphicsDriver());
             var pair5 = Calculate(5, Profiler.GetMonoHeapSizeLong());
             var pair6 = Calculate(6, Profiler.GetMonoUsedSizeLong());
-
-            screenView = GUILayout.BeginScrollView(screenView, "Box");
-
-            GUILayout.BeginHorizontal();
-            GUILayout.BeginVertical("Box", GUILayout.Width(300));
-            GUILayout.Label("已保留的内存总量: " + pair1.Item1);
-            GUILayout.Label("已分配的内存总量: " + pair2.Item1);
-            GUILayout.Label("未使用的内存总量: " + pair3.Item1);
-            GUILayout.Label("图形资源使用内存: " + pair4.Item1);
-            GUILayout.Label("Mono分配的托管堆: " + pair5.Item1);
-            GUILayout.Label("Mono使用的托管堆: " + pair6.Item1);
+            GUILayout.Label("已保留内存: {0}".Format(pair1.A).Align(26) + pair1.B);
+            GUILayout.Label("已分配内存: {0}".Format(pair2.A).Align(26) + pair2.B);
+            GUILayout.Label("未使用内存: {0}".Format(pair3.A).Align(26) + pair3.B);
+            GUILayout.Label("图形驱动器: {0}".Format(pair4.A).Align(26) + pair4.B);
+            GUILayout.Label("分配托管堆: {0}".Format(pair5.A).Align(26) + pair5.B);
+            GUILayout.Label("使用托管堆: {0}".Format(pair6.A).Align(26) + pair6.B);
             GUILayout.EndVertical();
-
-            GUILayout.BeginVertical("Box");
-            GUILayout.Label(pair1.Item2);
-            GUILayout.Label(pair2.Item2);
-            GUILayout.Label(pair3.Item2);
-            GUILayout.Label(pair4.Item2);
-            GUILayout.Label(pair5.Item2);
-            GUILayout.Label(pair6.Item2);
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
 
             GUILayout.EndScrollView();
 
@@ -1409,7 +1365,7 @@ namespace Astraia.Common
             GUILayout.EndHorizontal();
         }
 
-        private (string, string) Calculate(int key, long memory)
+        private (string A, string B) Calculate(int key, long memory)
         {
             var value = memory / 1024F / 1024F;
             if (!minMemory.TryGetValue(key, out var minValue))
@@ -1433,9 +1389,7 @@ namespace Astraia.Common
                 minMemory[key] = value;
             }
 
-            var item1 = "{0:F2} MB".Format(value);
-            var item2 = "[ 最小值: {0:F2} MB  \t最大值: {1:F2} MB]".Format(minMemory[key], maxMemory[key]);
-            return (item1, item2);
+            return ("{0:F2} MB".Format(value), "[ 最小值: {0:F2} MB".Format(minMemory[key]).Align(24) + "最大值: {0:F2} MB ]".Format(maxMemory[key]));
         }
     }
 
@@ -1448,20 +1402,20 @@ namespace Astraia.Common
             GUILayout.EndHorizontal();
 
             screenView = GUILayout.BeginScrollView(screenView, "Box");
-            GUILayout.Label("操作系统: " + SystemInfo.operatingSystem);
-            GUILayout.Label("系统内存: " + SystemInfo.systemMemorySize + "MB");
-            GUILayout.Label("处理器: " + SystemInfo.processorType);
-            GUILayout.Label("处理器数量: " + SystemInfo.processorCount);
-            GUILayout.Label("显卡名称: " + SystemInfo.graphicsDeviceName);
-            GUILayout.Label("显卡类型: " + SystemInfo.graphicsDeviceType);
-            GUILayout.Label("显卡内存: " + SystemInfo.graphicsMemorySize + "MB");
-            GUILayout.Label("显卡标识: " + SystemInfo.graphicsDeviceID);
-            GUILayout.Label("显卡供应商: " + SystemInfo.graphicsDeviceVendor);
-            GUILayout.Label("显卡供应商标识: " + SystemInfo.graphicsDeviceVendorID);
-            GUILayout.Label("设备模式: " + SystemInfo.deviceModel);
-            GUILayout.Label("设备名称: " + SystemInfo.deviceName);
-            GUILayout.Label("设备类型: " + SystemInfo.deviceType);
-            GUILayout.Label("设备唯一标识符: " + SystemInfo.deviceUniqueIdentifier);
+            GUILayout.Label("操作系统: ".Align(20) + SystemInfo.operatingSystem);
+            GUILayout.Label("设备标识: ".Align(20) + SystemInfo.deviceUniqueIdentifier);
+            GUILayout.Label("设备模式: ".Align(20) + SystemInfo.deviceModel);
+            GUILayout.Label("设备名称: ".Align(20) + SystemInfo.deviceName);
+            GUILayout.Label("设备类型: ".Align(20) + SystemInfo.deviceType);
+            GUILayout.Label("设备内存: ".Align(20) + SystemInfo.systemMemorySize + "MB");
+            GUILayout.Label("显卡标识: ".Align(20) + SystemInfo.graphicsDeviceID);
+            GUILayout.Label("显卡名称: ".Align(20) + SystemInfo.graphicsDeviceName);
+            GUILayout.Label("显卡类型: ".Align(20) + SystemInfo.graphicsDeviceType);
+            GUILayout.Label("显卡内存: ".Align(20) + SystemInfo.graphicsMemorySize + "MB");
+            GUILayout.Label("处理器: ".Align(20) + SystemInfo.processorType);
+            GUILayout.Label("处理器数量: ".Align(20) + SystemInfo.processorCount);
+            GUILayout.Label("供应商: ".Align(20) + SystemInfo.graphicsDeviceVendor);
+            GUILayout.Label("供应商标识: ".Align(20) + SystemInfo.graphicsDeviceVendorID);
             GUILayout.EndScrollView();
 
             GUILayout.BeginHorizontal();
@@ -1473,39 +1427,7 @@ namespace Astraia.Common
             GUILayout.EndHorizontal();
         }
     }
-
-    public partial class NetworkDebugger
-    {
-        private void ScreenWindow()
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(" 屏幕信息", GUILayout.Height(25));
-            GUILayout.EndHorizontal();
-
-            screenView = GUILayout.BeginScrollView(screenView, "Box");
-            GUILayout.Label("像素密度: " + Screen.dpi);
-            GUILayout.Label("启用全屏: " + Screen.fullScreen);
-            GUILayout.Label("屏幕模式: " + Screen.fullScreenMode);
-            GUILayout.Label("程序分辨率: " + "{0} x {1}".Format(Screen.width, Screen.height));
-            GUILayout.Label("设备分辨率: " + Screen.currentResolution);
-            GUILayout.Label("显示区域: " + Screen.safeArea);
-            GUILayout.Label("质量等级: " + QualitySettings.names[QualitySettings.GetQualityLevel()]);
-            GUILayout.EndScrollView();
-
-            GUILayout.BeginHorizontal();
-            for (var i = 0; i < QualitySettings.names.Length; i++)
-            {
-                var label = QualitySettings.names[i];
-                if (GUILayout.Button(label, GUILayout.Height(30)))
-                {
-                    QualitySettings.SetQualityLevel(i);
-                }
-            }
-
-            GUILayout.EndHorizontal();
-        }
-    }
-
+    
     public partial class NetworkDebugger
     {
         private void ProjectWindow()
@@ -1513,34 +1435,27 @@ namespace Astraia.Common
             GUILayout.BeginHorizontal();
             GUILayout.Label(" 环境配置", GUILayout.Height(25));
             GUILayout.EndHorizontal();
-
             screenView = GUILayout.BeginScrollView(screenView, "Box");
-            GUILayout.Label("项目名称: " + Application.productName);
-            GUILayout.Label("项目版本: " + Application.version);
-            GUILayout.Label("运行平台: " + Application.platform);
-            GUILayout.Label("项目标识: " + Application.identifier);
-            GUILayout.Label("公司名称: " + Application.companyName);
-            GUILayout.Label("Unity版本: " + Application.unityVersion);
-            GUILayout.Label("Unity专业版: " + Application.HasProLicense());
-            var message = "";
-            switch (Application.internetReachability)
+            GUILayout.Label("设备分辨率: ".Align(20) + Screen.currentResolution);
+            GUILayout.Label("程序分辨率: ".Align(20) + "{0} x {1}".Format(Screen.width, Screen.height));
+            GUILayout.Label("屏幕模式: ".Align(20) + Screen.fullScreenMode);
+            GUILayout.Label("图形质量: ".Align(20) + QualitySettings.names[QualitySettings.GetQualityLevel()]);
+            GUILayout.Label("研发版本: ".Align(20) + Application.unityVersion);
+            GUILayout.Label("项目名称: ".Align(20) + Application.productName);
+            GUILayout.Label("项目版本: ".Align(20) + Application.version);
+            GUILayout.Label("运行平台: ".Align(20) + Application.platform);
+            GUILayout.Label("公司名称: ".Align(20) + Application.companyName);
+            GUILayout.Label("项目标识: ".Align(20) + Application.identifier);
+            GUILayout.Label("网络状态: ".Align(20) + (int)Application.internetReachability switch
             {
-                case NetworkReachability.NotReachable:
-                    message = "当前设备无法访问互联网";
-                    break;
-                case NetworkReachability.ReachableViaCarrierDataNetwork:
-                    message = "当前设备通过 蜂窝移动网络 连接到互联网";
-                    break;
-                case NetworkReachability.ReachableViaLocalAreaNetwork:
-                    message = "当前设备通过 WiFi 或有线网络连接到互联网";
-                    break;
-            }
-
-            GUILayout.Label("网络状态: " + message);
-            GUILayout.Label("项目路径: " + Application.dataPath);
-            GUILayout.Label("存储路径: " + Application.persistentDataPath);
-            GUILayout.Label("流动资源路径: " + Application.streamingAssetsPath);
-            GUILayout.Label("临时缓存路径: " + Application.temporaryCachePath);
+                1 => "当前设备通过 蜂窝移动网络 连接到互联网",
+                2 => "当前设备通过 WiFi 或有线网络连接到互联网",
+                _ => "当前设备无法访问互联网",
+            });
+            GUILayout.Label("项目路径: ".Align(20) + Application.dataPath);
+            GUILayout.Label("存储路径: ".Align(20) + Application.persistentDataPath);
+            GUILayout.Label("流动资源路径: ".Align(20) + Application.streamingAssetsPath);
+            GUILayout.Label("临时缓存路径: ".Align(20) + Application.temporaryCachePath);
 
             GUILayout.EndScrollView();
 
