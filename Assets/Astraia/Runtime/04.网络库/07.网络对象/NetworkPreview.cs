@@ -235,6 +235,8 @@ namespace Astraia.Net
                     copies.Add(new EntityData("Client :", entity.client.ToString()));
                     copies.Add(new EntityData("Client ID :", entity.client.clientId.ToString()));
                 }
+
+                copies.Add(new EntityData("Client Count :", entity.clients.Count.ToString()));
             }
 
             return copies;

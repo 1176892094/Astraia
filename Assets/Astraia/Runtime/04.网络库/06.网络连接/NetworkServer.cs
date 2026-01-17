@@ -21,9 +21,8 @@ namespace Astraia.Net
     {
         private Dictionary<int, PacketWriter> packets = new Dictionary<int, PacketWriter>();
         internal PacketReader reader = new PacketReader();
-        internal bool isSpawn;
         internal bool isReady;
-        
+
         internal void Update()
         {
             foreach (var packet in packets)

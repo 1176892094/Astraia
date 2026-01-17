@@ -378,6 +378,44 @@ namespace Astraia.Net
             }
         }
 
+        internal void AddObserver(NetworkClient client)
+        {
+            if (clients.Add(client))
+            {
+                if (clients.Count == 1)
+                {
+                    ClearDirty(true);
+                }
+
+                client.entities.Add(this);
+                NetworkManager.Server.SpawnMessage(this, client);
+            }
+        }
+
+        internal void SubObserver(NetworkClient client)
+        {
+            if (clients.Remove(client))
+            {
+                if (clients.Count == 0)
+                {
+                    ClearDirty(true);
+                }
+
+                client.entities.Remove(this);
+                client.Send(new DespawnMessage(objectId));
+            }
+        }
+
+        private void ClearObserver()
+        {
+            foreach (var item in clients.ToList())
+            {
+                item.entities.Remove(this);
+            }
+
+            clients.Clear();
+        }
+
         internal void OnStartClient()
         {
             if ((state & EntityState.Spawn) == 0)
@@ -473,44 +511,6 @@ namespace Astraia.Net
             {
                 state &= ~EntityState.Owner;
             }
-        }
-
-        public void AddObserver(NetworkClient client)
-        {
-            if (clients.Add(client))
-            {
-                if (clients.Count == 1)
-                {
-                    ClearDirty(true);
-                }
-
-                client.entities.Add(this);
-                NetworkManager.Server.SpawnMessage(this, client);
-            }
-        }
-
-        public void SubObserver(NetworkClient client)
-        {
-            if (clients.Remove(client))
-            {
-                if (clients.Count == 0)
-                {
-                    ClearDirty(true);
-                }
-
-                client.entities.Remove(this);
-                client.Send(new DespawnMessage(objectId));
-            }
-        }
-
-        private void ClearObserver()
-        {
-            foreach (var item in clients.ToList())
-            {
-                item.entities.Remove(this);
-            }
-
-            clients.Clear();
         }
 
         public static implicit operator uint(NetworkEntity entity)

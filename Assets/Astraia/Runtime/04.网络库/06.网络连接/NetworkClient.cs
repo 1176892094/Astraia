@@ -26,7 +26,6 @@ namespace Astraia.Net
         internal bool isReady;
         internal HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
 
-
         public NetworkClient(int clientId = 0)
         {
             this.clientId = clientId;
@@ -60,7 +59,7 @@ namespace Astraia.Net
 
             if (clientId != NetworkManager.Host)
             {
-                DebugManager.OnSend(message, writer.position);
+                Debugger.OnSend(message, writer.position);
             }
 
             AddMessage(writer, channel);
@@ -117,7 +116,7 @@ namespace Astraia.Net
 
         public static implicit operator NetworkClient(int id)
         {
-            return NetworkManager.Server.clients.TryGetValue(id, out var client) ? client : null;
+            return NetworkManager.Server.clients.GetValueOrDefault(id);
         }
     }
 }

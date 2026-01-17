@@ -18,283 +18,8 @@ using UnityEngine.Profiling;
 
 namespace Astraia.Common
 {
-    public abstract class DebugManager : MonoBehaviour
-    {
-        protected readonly Messages client = new Messages("服务器");
-        protected readonly Messages server = new Messages("客户端");
-        protected static Items itemSend;
-        protected static Items itemReceive;
-        private double waitTime;
-
-        protected virtual void Awake()
-        {
-            itemSend = new Items();
-            itemReceive = new Items();
-        }
-
-        protected virtual void Reset()
-        {
-            itemSend.Reset();
-            itemReceive.Reset();
-        }
-
-        private void OnDestroy()
-        {
-            itemSend.Clear();
-            itemReceive.Clear();
-        }
-
-        protected virtual void Start()
-        {
-            if (!Transport.Instance) return;
-            Transport.Instance.OnClientSend -= OnClientSend;
-            Transport.Instance.OnServerSend -= OnServerSend;
-            Transport.Instance.OnClientReceive -= OnClientReceive;
-            Transport.Instance.OnServerReceive -= OnServerReceive;
-            Transport.Instance.OnClientSend += OnClientSend;
-            Transport.Instance.OnServerSend += OnServerSend;
-            Transport.Instance.OnClientReceive += OnClientReceive;
-            Transport.Instance.OnServerReceive += OnServerReceive;
-        }
-
-        protected virtual void Update()
-        {
-            if (waitTime < Time.realtimeSinceStartup)
-            {
-                if (NetworkManager.isClient)
-                {
-                    client.Update();
-                }
-
-                if (NetworkManager.isServer)
-                {
-                    server.Update();
-                }
-
-                waitTime = Time.realtimeSinceStartup + 1;
-            }
-        }
-
-        private void OnClientSend(ArraySegment<byte> segment, int channel)
-        {
-            client.Send.count++;
-            client.Send.bytes += segment.Count;
-        }
-
-        private void OnClientReceive(ArraySegment<byte> segment, int channel)
-        {
-            client.Receive.count++;
-            client.Receive.bytes += segment.Count;
-        }
-
-        private void OnServerSend(int clientId, ArraySegment<byte> segment, int channel)
-        {
-            server.Send.count++;
-            server.Send.bytes += segment.Count;
-        }
-
-        private void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
-        {
-            server.Receive.count++;
-            server.Receive.bytes += segment.Count;
-        }
-
-        internal static void OnSend<T>(T message, int bytes) where T : struct, IMessage
-        {
-            itemSend?.Record(message, Service.Bit.Invoke((uint)bytes) + bytes);
-        }
-
-        internal static void OnReceive<T>(T message, int bytes) where T : struct, IMessage
-        {
-            itemReceive?.Record(message, Service.Bit.Invoke((uint)bytes + 2) + bytes + 2);
-        }
-
-        internal static string PrettyBytes(long bytes)
-        {
-            if (bytes < 1024)
-            {
-                return "{0} B".Format(bytes);
-            }
-
-            if (bytes < 1024 * 1024)
-            {
-                return "{0:F2} KB".Format(bytes / 1024F);
-            }
-
-            if (bytes < 1024 * 1024 * 1024)
-            {
-                return "{0:F2} MB".Format(bytes / 1024F / 1024F);
-            }
-
-            return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
-        }
-
-
-        protected class Messages
-        {
-            private readonly string Name;
-            public readonly Message Send = new Message();
-            public readonly Message Receive = new Message();
-
-            public Messages(string name)
-            {
-                Name = name;
-            }
-
-            public void Update()
-            {
-                Send.Update();
-                Receive.Update();
-            }
-
-            public void OnGUI()
-            {
-                Send.OnGUI(Name + "发送");
-                Receive.OnGUI(Name + "接收");
-            }
-
-            public class Message
-            {
-                private int Count;
-                private int Bytes;
-                public int count;
-                public int bytes;
-
-                public void Update()
-                {
-                    Count = count;
-                    Bytes = bytes;
-                    count = 0;
-                    bytes = 0;
-                }
-
-                public void OnGUI(string value)
-                {
-                    GUILayout.Label("{0}数量:\t\t{1}/s".Format(value, Count));
-                    GUILayout.Label("{0}大小:\t\t{1}/s".Format(value, PrettyBytes(Bytes)));
-                }
-            }
-        }
-
-        protected class Items
-        {
-            private readonly Dictionary<Type, Item> messages = new Dictionary<Type, Item>();
-            private readonly Dictionary<ushort, Item> function = new Dictionary<ushort, Item>();
-
-            public void Record<T>(T message, int bytes) where T : struct, IMessage
-            {
-                if (!messages.TryGetValue(typeof(T), out var item))
-                {
-                    item = HeapManager.Dequeue<Item>();
-                    item.Type = typeof(T);
-                    messages[typeof(T)] = item;
-                }
-
-                switch (message)
-                {
-                    case ServerRpcMessage server:
-                        Record(server.methodHash, bytes, typeof(T));
-                        break;
-                    case ClientRpcMessage client:
-                        Record(client.methodHash, bytes, typeof(T));
-                        break;
-                }
-
-                item.Add(bytes);
-            }
-
-            private void Record(ushort method, int bytes, Type type)
-            {
-                if (!function.TryGetValue(method, out var item))
-                {
-                    item = HeapManager.Dequeue<Item>();
-                    var data = NetworkAttribute.GetInvoke(method);
-                    if (data != null)
-                    {
-                        var name = data.Method.Name;
-                        if (name.EndsWith("_0"))
-                        {
-                            name = name.Substring(0, name.Length - 2);
-                        }
-
-                        item.Path = "{0}.{1}".Format(data.Method.DeclaringType!.Name, name);
-                    }
-
-                    item.Type = type;
-                    function[method] = item;
-                }
-
-                item.Add(bytes);
-            }
-
-            public void Reset()
-            {
-                foreach (var item in function.Values)
-                {
-                    item.Dispose();
-                }
-
-                foreach (var item in messages.Values)
-                {
-                    item.Dispose();
-                }
-            }
-
-            public void Clear()
-            {
-                foreach (var item in messages.Values)
-                {
-                    item.Dispose();
-                    HeapManager.Enqueue(item);
-                }
-
-                messages.Clear();
-
-                foreach (var item in function.Values)
-                {
-                    item.Dispose();
-                    HeapManager.Enqueue(item);
-                }
-
-                function.Clear();
-            }
-
-            internal IList<Pool> Reference()
-            {
-                var pools = messages.Values.Select(item => new Pool(item)).ToList();
-                pools.AddRange(function.Values.Select(item => new Pool(item)));
-                return pools;
-            }
-
-            [Serializable]
-            public class Item : IPool
-            {
-                public Type Type { get; set; }
-                public string Path { get; set; }
-                public int Acquire { get; set; }
-                public int Release { get; set; }
-                public int Dequeue { get; set; }
-                public int Enqueue { get; set; }
-
-                public void Add(int bytes)
-                {
-                    Release++;
-                    Acquire += bytes;
-                    Dequeue++;
-                    Enqueue += bytes;
-                }
-
-                public void Dispose()
-                {
-                    Acquire = 0;
-                    Release = 0;
-                }
-            }
-        }
-    }
-
     [DefaultExecutionOrder(-100)]
-    public partial class NetworkDebugger : DebugManager
+    public sealed class NetworkDebugger : Debugger
     {
         private Font font;
         private bool maximized;
@@ -546,10 +271,7 @@ namespace Astraia.Common
             系统,
             程序,
         }
-    }
 
-    public partial class NetworkDebugger
-    {
         private readonly Dictionary<LogType, LogData> logData = new Dictionary<LogType, LogData>
         {
             { LogType.Log, new LogData(Color.white) },
@@ -683,10 +405,7 @@ namespace Astraia.Common
                 return "[{0}] [{1}] {2}".Format(dateTime.ToString("HH:mm:ss"), logType, message);
             }
         }
-    }
 
-    public partial class NetworkDebugger
-    {
         private readonly List<Type> cachedTypes = new List<Type>();
         private bool cachedComponent;
 
@@ -888,10 +607,7 @@ namespace Astraia.Common
 
             GUILayout.EndScrollView();
         }
-    }
 
-    public partial class NetworkDebugger
-    {
         private readonly Dictionary<string, List<Pool>> poolData = new Dictionary<string, List<Pool>>();
 
         private void HeapWindow()
@@ -982,10 +698,7 @@ namespace Astraia.Common
             var args = string.Join(", ", Array.ConvertAll(type.GetGenericArguments(), GetFriendlyName));
             return "{0}<{1}>".Format(name, args);
         }
-    }
 
-    public partial class NetworkDebugger
-    {
         private IList<Pool> sendList = new List<Pool>();
         private IList<Pool> receiveList = new List<Pool>();
         private float duration;
@@ -1158,10 +871,7 @@ namespace Astraia.Common
                 GUILayout.EndHorizontal();
             }
         }
-    }
 
-    public partial class NetworkDebugger
-    {
         private void TimeWindow()
         {
             screenView = GUILayout.BeginScrollView(screenView, "Box");
@@ -1227,10 +937,7 @@ namespace Astraia.Common
 
             GUILayout.EndHorizontal();
         }
-    }
 
-    public partial class NetworkDebugger
-    {
         private readonly Dictionary<int, float> minMemory = new Dictionary<int, float>();
         private readonly Dictionary<int, float> maxMemory = new Dictionary<int, float>();
 
@@ -1290,10 +997,7 @@ namespace Astraia.Common
 
             return ("{0:F2} MB".Format(value), "[ 最小值: {0:F2} MB".Format(minMemory[key]).Align(24) + "最大值: {0:F2} MB ]".Format(maxMemory[key]));
         }
-    }
 
-    public partial class NetworkDebugger
-    {
         private void SystemWindow()
         {
             screenView = GUILayout.BeginScrollView(screenView, "Box");
@@ -1336,10 +1040,7 @@ namespace Astraia.Common
 
             GUILayout.EndHorizontal();
         }
-    }
 
-    public partial class NetworkDebugger
-    {
         private void ProjectWindow()
         {
             screenView = GUILayout.BeginScrollView(screenView, "Box");
@@ -1373,6 +1074,283 @@ namespace Astraia.Common
             }
 
             GUILayout.EndHorizontal();
+        }
+    }
+
+    public abstract class Debugger : MonoBehaviour
+    {
+        protected readonly Messages client = new Messages("服务器");
+        protected readonly Messages server = new Messages("客户端");
+        protected static Items itemSend;
+        protected static Items itemReceive;
+        private double waitTime;
+
+        protected virtual void Awake()
+        {
+            itemSend = new Items();
+            itemReceive = new Items();
+        }
+
+        protected virtual void Reset()
+        {
+            itemSend?.Reset();
+            itemReceive?.Reset();
+        }
+
+        private void OnDestroy()
+        {
+            itemSend.Clear();
+            itemReceive.Clear();
+            itemSend = null;
+            itemReceive = null;
+        }
+
+        protected virtual void Start()
+        {
+            if (!Transport.Instance) return;
+            Transport.Instance.OnClientSend -= OnClientSend;
+            Transport.Instance.OnServerSend -= OnServerSend;
+            Transport.Instance.OnClientReceive -= OnClientReceive;
+            Transport.Instance.OnServerReceive -= OnServerReceive;
+            Transport.Instance.OnClientSend += OnClientSend;
+            Transport.Instance.OnServerSend += OnServerSend;
+            Transport.Instance.OnClientReceive += OnClientReceive;
+            Transport.Instance.OnServerReceive += OnServerReceive;
+        }
+
+        protected virtual void Update()
+        {
+            if (waitTime < Time.realtimeSinceStartup)
+            {
+                if (NetworkManager.isClient)
+                {
+                    client.Update();
+                }
+
+                if (NetworkManager.isServer)
+                {
+                    server.Update();
+                }
+
+                waitTime = Time.realtimeSinceStartup + 1;
+            }
+        }
+
+        private void OnClientSend(ArraySegment<byte> segment, int channel)
+        {
+            client.Send.count++;
+            client.Send.bytes += segment.Count;
+        }
+
+        private void OnClientReceive(ArraySegment<byte> segment, int channel)
+        {
+            client.Receive.count++;
+            client.Receive.bytes += segment.Count;
+        }
+
+        private void OnServerSend(int clientId, ArraySegment<byte> segment, int channel)
+        {
+            server.Send.count++;
+            server.Send.bytes += segment.Count;
+        }
+
+        private void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
+        {
+            server.Receive.count++;
+            server.Receive.bytes += segment.Count;
+        }
+
+        internal static void OnSend<T>(T message, int bytes) where T : struct, IMessage
+        {
+            itemSend?.Record(message, Service.Bit.Invoke((uint)bytes) + bytes);
+        }
+
+        internal static void OnReceive<T>(T message, int bytes) where T : struct, IMessage
+        {
+            itemReceive?.Record(message, Service.Bit.Invoke((uint)bytes + 2) + bytes + 2);
+        }
+
+        internal static string PrettyBytes(long bytes)
+        {
+            if (bytes < 1024)
+            {
+                return "{0} B".Format(bytes);
+            }
+
+            if (bytes < 1024 * 1024)
+            {
+                return "{0:F2} KB".Format(bytes / 1024F);
+            }
+
+            if (bytes < 1024 * 1024 * 1024)
+            {
+                return "{0:F2} MB".Format(bytes / 1024F / 1024F);
+            }
+
+            return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
+        }
+
+
+        protected class Messages
+        {
+            private readonly string Name;
+            public readonly Message Send = new Message();
+            public readonly Message Receive = new Message();
+
+            public Messages(string name)
+            {
+                Name = name;
+            }
+
+            public void Update()
+            {
+                Send.Update();
+                Receive.Update();
+            }
+
+            public void OnGUI()
+            {
+                Send.OnGUI(Name + "发送");
+                Receive.OnGUI(Name + "接收");
+            }
+
+            public class Message
+            {
+                private int Count;
+                private int Bytes;
+                public int count;
+                public int bytes;
+
+                public void Update()
+                {
+                    Count = count;
+                    Bytes = bytes;
+                    count = 0;
+                    bytes = 0;
+                }
+
+                public void OnGUI(string value)
+                {
+                    GUILayout.Label("{0}数量:\t\t{1}/s".Format(value, Count));
+                    GUILayout.Label("{0}大小:\t\t{1}/s".Format(value, PrettyBytes(Bytes)));
+                }
+            }
+        }
+
+        protected class Items
+        {
+            private readonly Dictionary<Type, Item> messages = new Dictionary<Type, Item>();
+            private readonly Dictionary<ushort, Item> function = new Dictionary<ushort, Item>();
+
+            public void Record<T>(T message, int bytes) where T : struct, IMessage
+            {
+                if (!messages.TryGetValue(typeof(T), out var item))
+                {
+                    item = HeapManager.Dequeue<Item>();
+                    item.Type = typeof(T);
+                    messages[typeof(T)] = item;
+                }
+
+                switch (message)
+                {
+                    case ServerRpcMessage server:
+                        Record(server.methodHash, bytes, typeof(T));
+                        break;
+                    case ClientRpcMessage client:
+                        Record(client.methodHash, bytes, typeof(T));
+                        break;
+                }
+
+                item.Add(bytes);
+            }
+
+            private void Record(ushort method, int bytes, Type type)
+            {
+                if (!function.TryGetValue(method, out var item))
+                {
+                    item = HeapManager.Dequeue<Item>();
+                    var data = NetworkAttribute.GetInvoke(method);
+                    if (data != null)
+                    {
+                        var name = data.Method.Name;
+                        if (name.EndsWith("_0"))
+                        {
+                            name = name.Substring(0, name.Length - 2);
+                        }
+
+                        item.Path = "{0}.{1}".Format(data.Method.DeclaringType!.Name, name);
+                    }
+
+                    item.Type = type;
+                    function[method] = item;
+                }
+
+                item.Add(bytes);
+            }
+
+            public void Reset()
+            {
+                foreach (var item in function.Values)
+                {
+                    item.Dispose();
+                }
+
+                foreach (var item in messages.Values)
+                {
+                    item.Dispose();
+                }
+            }
+
+            public void Clear()
+            {
+                foreach (var item in messages.Values)
+                {
+                    item.Dispose();
+                    HeapManager.Enqueue(item);
+                }
+
+                messages.Clear();
+
+                foreach (var item in function.Values)
+                {
+                    item.Dispose();
+                    HeapManager.Enqueue(item);
+                }
+
+                function.Clear();
+            }
+
+            internal IList<Pool> Reference()
+            {
+                var pools = messages.Values.Select(item => new Pool(item)).ToList();
+                pools.AddRange(function.Values.Select(item => new Pool(item)));
+                return pools;
+            }
+
+            [Serializable]
+            public class Item : IPool
+            {
+                public Type Type { get; set; }
+                public string Path { get; set; }
+                public int Acquire { get; set; }
+                public int Release { get; set; }
+                public int Dequeue { get; set; }
+                public int Enqueue { get; set; }
+
+                public void Add(int bytes)
+                {
+                    Release++;
+                    Acquire += bytes;
+                    Dequeue++;
+                    Enqueue += bytes;
+                }
+
+                public void Dispose()
+                {
+                    Acquire = 0;
+                    Release = 0;
+                }
+            }
         }
     }
 }
