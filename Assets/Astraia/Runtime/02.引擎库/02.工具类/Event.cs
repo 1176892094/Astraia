@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+
 namespace System.Runtime.CompilerServices
 {
     public static class IsExternalInit
@@ -37,4 +38,6 @@ namespace Astraia.Common
     public record OnSceneComplete : IEvent;
 
     public record OnDataComplete : IEvent;
+
+    public record OnVisibleUpdate(int x, int y, int scale) : IEvent;
 }
