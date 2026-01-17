@@ -24,27 +24,33 @@ namespace Astraia.Common
     {
         private static readonly HashSet<IVisible> items = new HashSet<IVisible>();
         private static readonly HashSet<IVisible> nodes = new HashSet<IVisible>();
-        private static Vector2Int skipped = Vector2Int.one * int.MinValue;
-        private static Vector3Int setting = Vector3Int.one;
+        private static Vector2Int point = Vector2Int.zero;
+        private static Vector3Int range = Vector3Int.one;
         private static Visible<IVisible> grids;
 
         public static void Rebuild(int rangeX, int rangeY, int scale)
         {
-            grids = new Visible<IVisible>(scale);
-            setting = new Vector3Int(rangeX, rangeY, scale);
+            range = new Vector3Int(rangeX, rangeY, scale);
+            grids = new Visible<IVisible>(rangeX, rangeY, scale);
             EventManager.Invoke(new OnVisibleUpdate(rangeX, rangeY, scale));
         }
 
         public static void Register(IVisible item)
         {
             grids.Add(item, item.transform.position);
-            item.gameObject.SetActive(false);
+            item.gameObject.SetActive(IsVisible(item));
         }
 
         public static void UnRegister(IVisible item)
         {
             grids.Remove(item);
             nodes.Remove(item);
+        }
+
+        private static bool IsVisible(IVisible item)
+        {
+            var p = grids.Position(item.transform.position) - point;
+            return Mathf.Abs(p.x) <= range.x && Mathf.Abs(p.y) <= range.y;
         }
 
         public static void Tick(Vector2 position)
@@ -54,14 +60,14 @@ namespace Astraia.Common
                 grids.Update(item, item.transform.position);
             }
 
-            var node = grids.WorldToNode(position);
-            if (node == skipped)
+            var node = grids.Position(position);
+            if (node == point)
             {
                 return;
             }
 
-            skipped = node;
-            grids.Find(node, items, setting.x, setting.y);
+            point = node;
+            grids.Find(node, items);
 
             foreach (var item in items)
             {
@@ -91,7 +97,7 @@ namespace Astraia.Common
             grids.Clear();
             items.Clear();
             nodes.Clear();
-            skipped = Vector2Int.one * int.MinValue;
+            point = Vector2Int.zero;
         }
 
         internal static void OnGizmos()
@@ -99,17 +105,17 @@ namespace Astraia.Common
             if (grids != null)
             {
                 Gizmos.color = Color.cyan;
-                for (var x = -setting.x; x <= setting.x; x++)
+                for (var x = -range.x; x <= range.x; x++)
                 {
-                    for (var y = -setting.y; y <= setting.y; y++)
+                    for (var y = -range.y; y <= range.y; y++)
                     {
-                        var node = skipped + new Vector2Int(x, y);
-                        Gizmos.DrawWireCube(new Vector2(node.x + 0.5f, node.y + 0.5f) * setting.z, Vector2.one * setting.z);
+                        var node = point + new Vector2Int(x, y);
+                        Gizmos.DrawWireCube(new Vector2(node.x + 0.5f, node.y + 0.5f) * range.z, Vector2.one * range.z);
                     }
                 }
 
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawWireCube(new Vector2(skipped.x + 0.5f, skipped.y + 0.5f) * setting.z, Vector2.one * setting.z);
+                Gizmos.DrawWireCube(new Vector2(point.x + 0.5f, point.y + 0.5f) * range.z, Vector2.one * range.z);
             }
         }
     }
@@ -118,16 +124,16 @@ namespace Astraia.Common
     {
         private readonly Dictionary<Vector2Int, HashSet<T>> grids = new Dictionary<Vector2Int, HashSet<T>>();
         private readonly Dictionary<T, Vector2Int> nodes = new Dictionary<T, Vector2Int>();
-        private readonly int scale;
+        private readonly Vector3Int range;
 
-        public Visible(int scale)
+        public Visible(int rangeX, int rangeY, int scale)
         {
-            this.scale = scale;
+            range = new Vector3Int(rangeX, rangeY, scale);
         }
 
         public void Add(T item, Vector2 position)
         {
-            var node = WorldToNode(position);
+            var node = Position(position);
 
             if (!grids.TryGetValue(node, out var items))
             {
@@ -156,7 +162,7 @@ namespace Astraia.Common
         {
             if (nodes.TryGetValue(item, out var oldNode))
             {
-                var newNode = WorldToNode(position);
+                var newNode = Position(position);
                 if (oldNode != newNode)
                 {
                     grids[oldNode].Remove(item);
@@ -172,12 +178,12 @@ namespace Astraia.Common
             }
         }
 
-        public void Find(Vector2Int center, HashSet<T> items, int rangeX, int rangeY)
+        public void Find(Vector2Int center, HashSet<T> items)
         {
             items.Clear();
-            for (var x = -rangeX; x <= rangeX; x++)
+            for (var x = -range.x; x <= range.x; x++)
             {
-                for (var y = -rangeY; y <= rangeY; y++)
+                for (var y = -range.y; y <= range.y; y++)
                 {
                     var node = center + new Vector2Int(x, y);
                     if (grids.TryGetValue(node, out var copies))
@@ -191,9 +197,9 @@ namespace Astraia.Common
             }
         }
 
-        public Vector2Int WorldToNode(Vector2 position)
+        public Vector2Int Position(Vector2 position)
         {
-            return new Vector2Int(Mathf.FloorToInt(position.x / scale), Mathf.FloorToInt(position.y / scale));
+            return new Vector2Int(Mathf.FloorToInt(position.x / range.z), Mathf.FloorToInt(position.y / range.z));
         }
 
         public void Clear()

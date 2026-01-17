@@ -52,6 +52,16 @@ namespace Astraia
             set => EditorPrefs.SetString(nameof(ExcelPathKey), value);
         }
 
+        [InitializeOnLoadMethod]
+        private static void LoadAssembly()
+        {
+            Service.Ref.LoadData(new HashSet<string>
+            {
+                "Astraia.Run",
+                "Astraia.Net"
+            });
+        }
+
         public static void LoadWindows(Type result)
         {
             if (!result.IsAbstract && !result.IsGenericType)

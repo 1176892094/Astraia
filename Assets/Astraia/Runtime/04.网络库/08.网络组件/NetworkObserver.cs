@@ -9,42 +9,25 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
 using System.Collections.Generic;
 using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkObserver : MonoBehaviour, IEvent<ServerDisconnect>, IEvent<ServerObserver>
+    public class NetworkObserver : Singleton<NetworkObserver, Entity>, ISystem, IEvent<ServerDisconnect>, IEvent<ServerObserver>, IEvent<OnVisibleUpdate>
     {
         private readonly Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
-        private readonly HashSet<int> clients = new HashSet<int>();
-        private readonly List<int> copies = new List<int>();
-        private GameObject pool;
-        private Grid<int> grids;
+        private readonly HashSet<NetworkClient> items = new HashSet<NetworkClient>();
+        private readonly List<NetworkClient> nodes = new List<NetworkClient>();
+        private Vector3Int range = Vector3Int.one;
+        private Visible<NetworkClient> grids;
         private double waitTime;
 
-        [SerializeField] private Vector2Int gridCell = new Vector2Int(5, 3);
-        [SerializeField] private Vector2Int gridSize = new Vector2Int(15, 15);
-        [SerializeField] private float interval = 0.5f;
-
-        private void Awake()
+        public void Execute(OnVisibleUpdate message)
         {
-            grids = new Grid<int>(1024, gridCell);
-            NetworkManager.Server.observer = this;
-        }
-
-        private void OnEnable()
-        {
-            EventManager.Listen<ServerObserver>(this);
-            EventManager.Listen<ServerDisconnect>(this);
-        }
-
-        private void OnDisable()
-        {
-            EventManager.Remove<ServerObserver>(this);
-            EventManager.Remove<ServerDisconnect>(this);
+            range = new Vector3Int(message.x, message.y, message.scale);
+            grids = new Visible<NetworkClient>(message.x, message.y, message.scale);
         }
 
         public void Execute(ServerDisconnect message)
@@ -55,183 +38,80 @@ namespace Astraia.Net
         public void Execute(ServerObserver message)
         {
             players[message.entity.client] = message.entity;
+            grids.Add(message.entity.client, message.entity.transform.position);
         }
 
-        private void Update()
+        public void Update()
         {
-            if (NetworkManager.isServer)
+            if (NetworkManager.isServer && grids != null)
             {
-                grids.Clear();
-                foreach (var client in NetworkManager.Server.clients.Values)
+                foreach (var player in players.Values)
                 {
-                    if (players.TryGetValue(client, out var player) && player)
-                    {
-                        grids.Add(EntityToGrid(player.transform.position), client);
-                    }
+                    grids.Update(player.client, player.transform.position);
                 }
 
-                if (waitTime + interval <= Time.unscaledTimeAsDouble)
+                if (waitTime < Time.unscaledTimeAsDouble)
                 {
+                    waitTime = Time.unscaledTimeAsDouble + 0.5;
                     foreach (var entity in NetworkManager.Server.spawns.Values)
                     {
                         if (entity.visible != Visible.Show)
                         {
-                            Rebuild(entity, false);
+                            Tick(entity);
                         }
                     }
-
-                    waitTime = Time.unscaledTimeAsDouble;
                 }
             }
         }
 
-        private Vector2Int EntityToGrid(Vector3 position)
+        public void Tick(NetworkEntity entity, NetworkClient client)
         {
-            var x = Mathf.Max(1, gridSize.x / 2);
-            var y = Mathf.Max(1, gridSize.y / 2);
-            return new Vector2Int(Mathf.FloorToInt(position.x / x), Mathf.FloorToInt(position.y / y));
+            if (players.TryGetValue(client, out var player))
+            {
+                var p = grids.Position(entity.transform.position) - grids.Position(player.transform.position);
+                if (Mathf.Abs(p.x) <= range.x && Mathf.Abs(p.y) <= range.y)
+                {
+                    entity.AddObserver(client);
+                }
+            }
         }
 
-        public void Rebuild(NetworkEntity entity, bool reload)
+        public void Tick(NetworkEntity entity)
         {
-            clients.Clear();
+            items.Clear();
             if (entity.visible != Visible.Hide)
             {
-                grids.Set(EntityToGrid(entity.transform.position), clients);
+                grids.Find(grids.Position(entity.transform.position), items);
             }
 
             if (entity.client != null)
             {
-                clients.Add(entity.client);
+                items.Add(entity.client);
             }
 
-            foreach (NetworkClient client in clients)
+            foreach (var client in items)
             {
-                if (client.isReady && (reload || !entity.clients.Contains(client)))
+                if (client.isReady && !entity.clients.Contains(client))
                 {
                     entity.AddObserver(client);
                 }
             }
 
-            copies.Clear();
+            nodes.Clear();
             foreach (var client in entity.clients)
             {
-                copies.Add(client);
+                nodes.Add(client);
             }
 
-            foreach (NetworkClient client in copies)
+            foreach (var client in nodes)
             {
-                if (!clients.Contains(client))
+                if (!items.Contains(client))
                 {
                     entity.SubObserver(client);
                 }
             }
 
-            entity.gameObject.SetActive(clients.Count > 0);
-        }
-
-        public bool OnExecute(NetworkEntity entity, NetworkClient client)
-        {
-            var entityGrid = EntityToGrid(entity.transform.position);
-            if (players.TryGetValue(client, out var player) && player)
-            {
-                var playerGrid = entityGrid - EntityToGrid(player.transform.position);
-                return Mathf.Abs(playerGrid.x) <= 1 && Mathf.Abs(playerGrid.y) <= 1;
-            }
-
-            return false;
-        }
-
-#if UNITY_EDITOR
-        private void OnDrawGizmos()
-        {
-            var x = Mathf.Max(1, gridSize.x / 2);
-            var y = Mathf.Max(1, gridSize.y / 2);
-
-            foreach (var player in players.Values)
-            {
-                if (player)
-                {
-                    var target = player.transform.position;
-                    var source = EntityToGrid(target);
-                    var origin = new Vector3(source.x * x, source.y * y, target.z);
-                    var center = origin + new Vector3(x / 2f, y / 2f, 0f);
-
-                    Gizmos.color = Color.cyan;
-                    for (var dx = 0; dx < gridCell.x; dx++)
-                    {
-                        for (var dy = 0; dy < gridCell.y; dy++)
-                        {
-                            var posX = Mathf.RoundToInt(dx - (gridCell.x - 1) / 2f);
-                            var posY = Mathf.RoundToInt(dy - (gridCell.y - 1) / 2f);
-                            var nb = new Vector2Int(source.x + posX, source.y + posY);
-                            var nbOrigin = new Vector3(nb.x * x, nb.y * y, target.z);
-                            var nbCenter = nbOrigin + new Vector3(x / 2f, y / 2f, 0f);
-                            Gizmos.DrawWireCube(nbCenter, new Vector3(x, y, 0));
-                        }
-                    }
-
-                    Gizmos.color = Color.green;
-                    Gizmos.DrawWireCube(center, new Vector3(x, y, 0));
-                }
-            }
-        }
-#endif
-        [Serializable]
-        private struct Grid<T>
-        {
-            private readonly Dictionary<Vector2Int, ICollection<T>> grids;
-            private readonly Vector2Int[] direction;
-
-            public Grid(int capacity, Vector2Int size)
-            {
-                direction = new Vector2Int[size.x * size.y];
-                for (var x = 0; x < size.x; x++)
-                {
-                    for (var y = 0; y < size.y; y++)
-                    {
-                        var posX = Mathf.RoundToInt(x - (size.x - 1) / 2f);
-                        var posY = Mathf.RoundToInt(y - (size.y - 1) / 2f);
-                        direction[y * size.x + x] = new Vector2Int(posX, posY);
-                    }
-                }
-
-                grids = new Dictionary<Vector2Int, ICollection<T>>(capacity);
-            }
-
-            public void Add(Vector2Int position, T value)
-            {
-                if (!grids.TryGetValue(position, out var items))
-                {
-                    items = new HashSet<T>(128);
-                    grids[position] = items;
-                }
-
-                items.Add(value);
-            }
-
-            public void Set(Vector2Int position, ICollection<T> result)
-            {
-                result.Clear();
-                foreach (var offset in direction)
-                {
-                    if (grids.TryGetValue(position + offset, out var items))
-                    {
-                        foreach (var item in items)
-                        {
-                            result.Add(item);
-                        }
-                    }
-                }
-            }
-
-            public void Clear()
-            {
-                foreach (var items in grids.Values)
-                {
-                    items.Clear();
-                }
-            }
+            entity.gameObject.SetActive(items.Count > 0);
         }
     }
 }

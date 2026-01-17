@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public sealed partial class NetworkManager : MonoBehaviour, IEvent<OnSceneComplete>
+    public sealed partial class NetworkManager : Entity, IEvent<OnSceneComplete>
     {
         public static NetworkManager Instance;
 
@@ -38,21 +38,24 @@ namespace Astraia.Net
 
         public static bool isClient => Client.state != State.Disconnect;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
             Transport.Instance = GetComponent<Transport>();
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             EventManager.Listen(this);
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             EventManager.Remove(this);
         }
 

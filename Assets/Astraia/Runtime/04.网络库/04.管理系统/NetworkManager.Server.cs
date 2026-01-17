@@ -39,8 +39,6 @@ namespace Astraia.Net
 
             public static bool isLoadScene { get; internal set; }
 
-            public static NetworkObserver observer { get; internal set; }
-
             public static int connections => clients.Count;
 
             internal static void Start(bool isHost)
@@ -163,12 +161,8 @@ namespace Astraia.Net
                         case Visible.Show:
                             entity.AddObserver(client);
                             break;
-                        case Visible.Auto when observer:
-                            if (observer.OnExecute(entity, client))
-                            {
-                                entity.AddObserver(client);
-                            }
-
+                        case Visible.Auto when NetworkObserver.Instance:
+                            NetworkObserver.Instance.Tick(entity, client);
                             break;
                         case Visible.Auto:
                             entity.AddObserver(client);
@@ -359,9 +353,9 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (observer && entity.visible != Visible.Show)
+                if (NetworkObserver.Instance && entity.visible != Visible.Show)
                 {
-                    observer.Rebuild(entity, true);
+                    NetworkObserver.Instance.Tick(entity);
                     return;
                 }
 

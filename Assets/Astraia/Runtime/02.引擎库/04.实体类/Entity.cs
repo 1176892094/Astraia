@@ -72,7 +72,7 @@ namespace Astraia
             set => Service.Log.Error(value);
         }
 
-        [HideInPlayMode, ValueDropdown("Modules")]
+        [HideInPlayMode, PropertyOrder(1), ValueDropdown("Modules")]
 #endif
         [SerializeField]
         private List<string> moduleList = new List<string>();

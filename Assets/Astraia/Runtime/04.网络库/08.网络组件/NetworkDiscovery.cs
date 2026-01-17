@@ -2,43 +2,25 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using Astraia.Common;
-using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkDiscovery : MonoBehaviour
+    public class NetworkDiscovery : Singleton<NetworkDiscovery, Entity>
     {
-        public static NetworkDiscovery Instance;
-
-        [SerializeField] private string address = IPAddress.Broadcast.ToString();
-
-        [SerializeField] private ushort port = 47777;
-
-        [SerializeField] private int version;
-
-        [SerializeField] private int duration = 1;
-
         private UdpClient udpClient;
-
         private UdpClient udpServer;
 
-        private void Awake()
+        public override void Enqueue()
         {
-            Instance = this;
+            StopDiscovery();
         }
 
         public void StartDiscovery()
         {
-            if (Application.platform == RuntimePlatform.WebGLPlayer)
-            {
-                Service.Log.Error("网络发现不支持WebGL");
-                return;
-            }
-
             StopDiscovery();
             if (NetworkManager.isServer)
             {
-                udpServer = new UdpClient(port)
+                udpServer = new UdpClient(47777)
                 {
                     EnableBroadcast = true,
                     MulticastLoopback = false
@@ -56,7 +38,7 @@ namespace Astraia.Net
                     MulticastLoopback = false
                 };
                 ClientReceive();
-                InvokeRepeating(nameof(ClientSend), 0, duration);
+                owner.InvokeRepeating(nameof(ClientSend), 0, 1);
             }
         }
 
@@ -69,12 +51,7 @@ namespace Astraia.Net
             udpClient?.Close();
             udpServer = null;
             udpClient = null;
-            CancelInvoke();
-        }
-
-        private void OnDestroy()
-        {
-            StopDiscovery();
+            owner.CancelInvoke();
         }
 
         private void ClientSend()
@@ -87,14 +64,15 @@ namespace Astraia.Net
                     return;
                 }
 
-                var endPoint = new IPEndPoint(IPAddress.Broadcast, port);
+                var address = IPAddress.Broadcast.ToString();
+                var endPoint = new IPEndPoint(IPAddress.Broadcast, 47777);
                 if (!string.IsNullOrWhiteSpace(address))
                 {
-                    endPoint = new IPEndPoint(IPAddress.Parse(address), port);
+                    endPoint = new IPEndPoint(IPAddress.Parse(address), 47777);
                 }
 
                 using var writer = MemoryWriter.Pop();
-                writer.WriteInt(version);
+
                 writer.Invoke(new RequestMessage());
                 ArraySegment<byte> segment = writer;
                 udpClient.Send(segment.Array!, segment.Count, endPoint);
@@ -113,11 +91,6 @@ namespace Astraia.Net
                 {
                     var result = await udpServer.ReceiveAsync();
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
-                    if (version != reader.ReadInt())
-                    {
-                        Service.Log.Error("接收到的消息版本不同!");
-                        return;
-                    }
 
                     reader.Invoke<RequestMessage>();
                     ServerSend(result.RemoteEndPoint);
@@ -138,7 +111,7 @@ namespace Astraia.Net
             try
             {
                 using var writer = MemoryWriter.Pop();
-                writer.WriteInt(version);
+
                 writer.Invoke(new ResponseMessage(new UriBuilder
                 {
                     Scheme = "https",
@@ -162,11 +135,6 @@ namespace Astraia.Net
                 {
                     var result = await udpClient.ReceiveAsync();
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
-                    if (version != reader.ReadInt())
-                    {
-                        Service.Log.Error("接收到的消息版本不同!");
-                        return;
-                    }
 
                     var endPoint = result.RemoteEndPoint;
                     var response = reader.Invoke<ResponseMessage>();
