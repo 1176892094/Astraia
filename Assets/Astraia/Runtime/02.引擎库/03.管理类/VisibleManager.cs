@@ -98,33 +98,19 @@ namespace Astraia.Common
         {
             if (grids != null)
             {
-                Gizmos.color = Color.white * 0.5f;
+                Gizmos.color = Color.cyan;
                 for (var x = -setting.x; x <= setting.x; x++)
                 {
                     for (var y = -setting.y; y <= setting.y; y++)
                     {
-                        DrawGrid(skipped + new Vector2Int(x, y), setting.z);
+                        var node = skipped + new Vector2Int(x, y);
+                        Gizmos.DrawWireCube(new Vector2(node.x + 0.5f, node.y + 0.5f) * setting.z, Vector2.one * setting.z);
                     }
                 }
 
                 Gizmos.color = Color.yellow;
-                DrawGrid(skipped, setting.z);
-
-                Gizmos.color = Color.cyan;
-                foreach (var item in nodes)
-                {
-                    if (item != null)
-                    {
-                        var node = grids.WorldToNode(item.transform.position);
-                        DrawGrid(node, setting.z);
-                    }
-                }
+                Gizmos.DrawWireCube(new Vector2(skipped.x + 0.5f, skipped.y + 0.5f) * setting.z, Vector2.one * setting.z);
             }
-        }
-
-        private static void DrawGrid(Vector2Int node, int scale)
-        {
-            Gizmos.DrawWireCube(new Vector2(node.x + 0.5f, node.y + 0.5f) * scale, Vector2.one * scale);
         }
     }
 
