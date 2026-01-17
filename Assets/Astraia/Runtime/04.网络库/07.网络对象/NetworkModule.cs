@@ -208,14 +208,11 @@ namespace Astraia.Net
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 
-            foreach (var result in NetworkSpawner.Query(owner))
+            foreach (var result in owner.clients)
             {
-                if (result.isReady)
+                if (result.isReady && ((channel & Channel.IgnoreOwner) == 0 || result != client))
                 {
-                    if ((channel & Channel.IgnoreOwner) == 0 || result != client)
-                    {
-                        result.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
-                    }
+                    result.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
                 }
             }
         }

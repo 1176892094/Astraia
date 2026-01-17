@@ -72,7 +72,6 @@ namespace Astraia.Net
                 spawns.Clear();
                 clients.Clear();
                 isLoadScene = false;
-                NetworkSpawner.Dispose();
             }
 
             internal static void Connect(NetworkClient client)
@@ -100,7 +99,7 @@ namespace Astraia.Net
                 foreach (var client in clients.Values)
                 {
                     client.isReady = false;
-                    NetworkSpawner.Destroy(client);
+                    client.ClearObserver();
                     client.Send(new NotReadyMessage());
                 }
 
@@ -168,17 +167,17 @@ namespace Astraia.Net
                     switch (entity.visible)
                     {
                         case Visible.Show:
-                            NetworkSpawner.Spawn(entity, client);
+                            entity.AddObserver(client);
                             break;
                         case Visible.Auto when observer:
                             if (observer.OnExecute(entity, client))
                             {
-                                NetworkSpawner.Spawn(entity, client);
+                                entity.AddObserver(client);
                             }
 
                             break;
                         case Visible.Auto:
-                            NetworkSpawner.Spawn(entity, client);
+                            entity.AddObserver(client);
                             break;
                     }
                 }
@@ -284,7 +283,7 @@ namespace Astraia.Net
                         }
                     }
 
-                    NetworkSpawner.Destroy(client);
+                    client.ClearObserver();
                     clients.Remove(client.clientId);
                     EventManager.Invoke(new ServerDisconnect(client));
                 }
@@ -376,7 +375,7 @@ namespace Astraia.Net
                 {
                     if (client != null)
                     {
-                        NetworkSpawner.Spawn(entity, client);
+                        entity.AddObserver(client);
                     }
 
                     return;
@@ -386,7 +385,7 @@ namespace Astraia.Net
                 {
                     if (result.isReady)
                     {
-                        NetworkSpawner.Spawn(entity, result);
+                        entity.AddObserver(result);
                     }
                 }
             }
@@ -424,7 +423,7 @@ namespace Astraia.Net
                 if (obj.TryGetComponent(out NetworkEntity entity))
                 {
                     spawns.Remove(entity.objectId);
-                    foreach (var client in NetworkSpawner.Query(entity))
+                    foreach (var client in entity.clients)
                     {
                         client.Send(new DestroyMessage(entity.objectId));
                     }
@@ -448,10 +447,7 @@ namespace Astraia.Net
         {
             internal static void EarlyUpdate()
             {
-                if (Transport.Instance)
-                {
-                    Transport.Instance.ServerEarlyUpdate();
-                }
+                Transport.Instance?.ServerEarlyUpdate();
             }
 
             internal static void AfterUpdate()
@@ -464,10 +460,7 @@ namespace Astraia.Net
                     }
                 }
 
-                if (Transport.Instance)
-                {
-                    Transport.Instance.ServerAfterUpdate();
-                }
+                Transport.Instance?.ServerAfterUpdate();
             }
 
             private static void Broadcast()
@@ -478,27 +471,32 @@ namespace Astraia.Net
                 {
                     if (client.isReady)
                     {
-                        foreach (var entity in NetworkSpawner.Query(client))
+                        foreach (var entity in client.entities)
                         {
-                            if (!entity)
+                            if (entity)
                             {
-                                Service.Log.Warn("在客户端 {0} 找到了空的网络对象。", client.clientId);
-                                continue;
-                            }
-
-                            entity.Synchronization(Time.frameCount);
-                            if (entity.client == client)
-                            {
-                                if (entity.owner.position > 0)
+                                if (entity.frameCount != Time.frameCount)
                                 {
-                                    client.Send(new EntityMessage(entity.objectId, entity.owner));
+                                    entity.frameCount = Time.frameCount;
+                                    entity.owner.position = 0;
+                                    entity.other.position = 0;
+                                    entity.ServerSerialize(false, entity.owner, entity.other);
+                                    entity.ClearDirty(true);
                                 }
-                            }
-                            else
-                            {
-                                if (entity.other.position > 0)
+
+                                if (entity.client == client)
                                 {
-                                    client.Send(new EntityMessage(entity.objectId, entity.other));
+                                    if (entity.owner.position > 0)
+                                    {
+                                        client.Send(new EntityMessage(entity.objectId, entity.owner));
+                                    }
+                                }
+                                else
+                                {
+                                    if (entity.other.position > 0)
+                                    {
+                                        client.Send(new EntityMessage(entity.objectId, entity.other));
+                                    }
                                 }
                             }
                         }

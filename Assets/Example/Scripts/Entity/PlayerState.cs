@@ -24,13 +24,13 @@ namespace Runtime
 
     public class PlayerIdle : PlayerState
     {
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             Machine.velocityX = 0;
             owner.Sender.SyncColorServerRpc(Color.white);
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (Feature.state.HasFlag(StateType.Wall) && Feature.state.HasFlag(StateType.Climb))
             {
@@ -44,26 +44,26 @@ namespace Runtime
             }
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
         }
     }
 
     public class PlayerWalk : PlayerState
     {
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             owner.Sender.SyncColorServerRpc(Color.green);
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (Feature.state.HasFlag(StateType.Wall) && Feature.state.HasFlag(StateType.Climb))
             {
                 Machine.Switch(StateConst.Grab);
                 return;
             }
-
+            
             if (!Feature.isWalk)
             {
                 Machine.Switch(StateConst.Idle);
@@ -73,7 +73,7 @@ namespace Runtime
             Machine.velocityX = Feature.moveX * Feature.moveSpeed;
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
         }
     }
@@ -82,7 +82,7 @@ namespace Runtime
     {
         private int frameCount;
 
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             frameCount = Time.frameCount + 10;
             owner.Sender.SyncColorServerRpc(Color.red);
@@ -105,7 +105,7 @@ namespace Runtime
             }
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (frameCount < Time.frameCount)
             {
@@ -128,7 +128,7 @@ namespace Runtime
             }
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             Feature.state &= ~StateType.Jump;
             Feature.state &= ~StateType.Jumped;
@@ -139,7 +139,7 @@ namespace Runtime
     {
         private int frameCount;
 
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             frameCount = Time.frameCount + 5;
             owner.Sender.SyncColorServerRpc(Color.cyan);
@@ -147,7 +147,7 @@ namespace Runtime
             Machine.velocityY = 0;
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (owner.RDHit && !owner.RUHit)
             {
@@ -171,7 +171,7 @@ namespace Runtime
             Machine.velocityY = Feature.moveY * Feature.moveSpeed / 2;
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             Feature.state &= ~StateType.Grab;
         }
@@ -183,7 +183,7 @@ namespace Runtime
         private Vector3 point;
 
 
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             frameCount = Time.frameCount + 10;
             owner.Sender.SyncColorServerRpc(Color.red);
@@ -191,7 +191,7 @@ namespace Runtime
             point = transform.position;
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (frameCount < Time.frameCount)
             {
@@ -213,7 +213,7 @@ namespace Runtime
             Machine.rigidbody.MovePosition(position);
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             Feature.state &= ~StateType.Grab;
         }
@@ -223,7 +223,7 @@ namespace Runtime
     {
         private Vector3 direction;
 
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             SoundManager.Play("30001");
             Feature.SetInt(Attribute.DashFrame, Time.frameCount + 10);
@@ -234,7 +234,7 @@ namespace Runtime
             Feature.SetInt(Attribute.WaitFrame, 0);
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (Feature.dashFrame < Time.frameCount)
             {
@@ -265,7 +265,7 @@ namespace Runtime
             Machine.rigidbody.MovePosition(position);
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             Machine.velocityY = 0;
             Feature.state &= ~StateType.Dash;
@@ -274,13 +274,13 @@ namespace Runtime
 
     public class PlayerCrash : PlayerState
     {
-        protected override void OnEnter()
+        public override void OnEnter()
         {
             Feature.state |= StateType.Crash;
             owner.Sender.SyncColorServerRpc(Color.magenta);
         }
 
-        protected override void OnUpdate()
+        public override void OnUpdate()
         {
             if (Feature.state.HasFlag(StateType.Wall) || Feature.state.HasFlag(StateType.Ground))
             {
@@ -297,7 +297,7 @@ namespace Runtime
             Machine.velocityX = transform.localScale.x * Feature.moveSpeed * 2;
         }
 
-        protected override void OnExit()
+        public override void OnExit()
         {
             Machine.velocityX = 0;
             Feature.state &= ~StateType.Crash;

@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Astraia.Common;
 
@@ -23,6 +24,8 @@ namespace Astraia.Net
         internal PacketReader reader = new PacketReader();
         internal int clientId;
         internal bool isReady;
+        internal HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
+
 
         public NetworkClient(int clientId = 0)
         {
@@ -88,6 +91,23 @@ namespace Astraia.Net
         {
             isReady = false;
             Transport.Instance.Disconnect(clientId);
+        }
+
+        public void ClearObserver()
+        {
+            var copies = entities.ToList();
+            foreach (var entity in copies)
+            {
+                if (entity.clients.Remove(this))
+                {
+                    if (entity.clients.Count == 0)
+                    {
+                        entity.ClearDirty(true);
+                    }
+
+                    entities.Remove(entity);
+                }
+            }
         }
 
         public static implicit operator int(NetworkClient client)

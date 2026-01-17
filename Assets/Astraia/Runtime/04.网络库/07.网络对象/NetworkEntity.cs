@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Astraia.Common;
 using UnityEngine;
@@ -51,6 +52,8 @@ namespace Astraia.Net
         internal MemoryWriter other = new MemoryWriter();
 
         internal List<NetworkModule> modules = new List<NetworkModule>();
+
+        internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
 
         public bool isOwner => (mode & EntityMode.Owner) != 0;
 
@@ -93,11 +96,11 @@ namespace Astraia.Net
                 NetworkManager.Server.Destroy(gameObject);
             }
 
-            NetworkSpawner.Destroy(this);
             owner = null;
             other = null;
             client = null;
             modules = null;
+            ClearObserver();
             base.OnDestroy();
         }
 
@@ -109,7 +112,7 @@ namespace Astraia.Net
             other.position = 0;
             mode = EntityMode.None;
             state = EntityState.None;
-            NetworkSpawner.Destroy(this);
+            ClearObserver();
         }
 
 #if UNITY_EDITOR
@@ -216,18 +219,6 @@ namespace Astraia.Net
             if (!NetworkAttribute.Invoke(function, mode, client, reader, modules[moduleId]))
             {
                 Service.Log.Warn("无法调用{0} [{1}] 网络对象: {2} 网络标识: {3}", mode, function, gameObject.name, objectId);
-            }
-        }
-
-        internal void Synchronization(int frame)
-        {
-            if (frameCount != frame)
-            {
-                frameCount = frame;
-                owner.position = 0;
-                other.position = 0;
-                ServerSerialize(false, owner, other);
-                ClearDirty(true);
             }
         }
 
@@ -482,6 +473,44 @@ namespace Astraia.Net
             {
                 state &= ~EntityState.Owner;
             }
+        }
+
+        public void AddObserver(NetworkClient client)
+        {
+            if (clients.Add(client))
+            {
+                if (clients.Count == 1)
+                {
+                    ClearDirty(true);
+                }
+
+                client.entities.Add(this);
+                NetworkManager.Server.SpawnMessage(this, client);
+            }
+        }
+
+        public void SubObserver(NetworkClient client)
+        {
+            if (clients.Remove(client))
+            {
+                if (clients.Count == 0)
+                {
+                    ClearDirty(true);
+                }
+
+                client.entities.Remove(this);
+                client.Send(new DespawnMessage(objectId));
+            }
+        }
+
+        private void ClearObserver()
+        {
+            foreach (var item in clients.ToList())
+            {
+                item.entities.Remove(this);
+            }
+
+            clients.Clear();
         }
 
         public static implicit operator uint(NetworkEntity entity)

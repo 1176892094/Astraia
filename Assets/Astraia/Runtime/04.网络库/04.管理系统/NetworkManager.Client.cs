@@ -423,10 +423,7 @@ namespace Astraia.Net
         {
             internal static void EarlyUpdate()
             {
-                if (Transport.Instance)
-                {
-                    Transport.Instance.ClientEarlyUpdate();
-                }
+                Transport.Instance?.ClientEarlyUpdate();
             }
 
             internal static void AfterUpdate()
@@ -449,7 +446,7 @@ namespace Astraia.Net
                     {
                         if (isActive)
                         {
-                            if (pongTime + 2 <= Time.unscaledTimeAsDouble)
+                            if (pongTime < Time.unscaledTimeAsDouble - 2)
                             {
                                 pongTime = Time.unscaledTimeAsDouble;
                                 connection.Send(new PongMessage(pongTime), Channel.Unreliable);
@@ -460,10 +457,7 @@ namespace Astraia.Net
                     }
                 }
 
-                if (Transport.Instance)
-                {
-                    Transport.Instance.ClientAfterUpdate();
-                }
+                Transport.Instance?.ClientAfterUpdate();
             }
 
             private static void Broadcast()
