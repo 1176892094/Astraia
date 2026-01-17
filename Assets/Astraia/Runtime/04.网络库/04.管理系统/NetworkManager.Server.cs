@@ -43,9 +43,9 @@ namespace Astraia.Net
 
             public static int connections => clients.Count;
 
-            internal static void Start(bool transport)
+            internal static void Start(bool isHost)
             {
-                if (transport)
+                if (isHost)
                 {
                     Transport.Instance.StartServer();
                 }
@@ -84,12 +84,6 @@ namespace Astraia.Net
 
             public static void Load(string sceneName)
             {
-                if (string.IsNullOrWhiteSpace(sceneName))
-                {
-                    Service.Log.Error("服务器不能加载空场景！");
-                    return;
-                }
-
                 if (isLoadScene && Instance.sceneName == sceneName)
                 {
                     Service.Log.Error("服务器正在加载 {0} 场景", sceneName);

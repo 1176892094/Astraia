@@ -44,18 +44,18 @@ namespace Astraia.Net
 
             public static bool isActive => state == State.Connected;
 
-            internal static void Start(bool transport)
+            internal static void Start(bool isHost)
             {
-                if (!transport)
+                if (isHost)
                 {
-                    AddMessage(false);
+                    AddMessage(true);
                     connection = new NetworkServer();
                     Server.Connect(new NetworkClient());
                     OnClientConnect();
                     return;
                 }
 
-                AddMessage(true);
+                AddMessage(false);
                 state = State.Connect;
                 connection = new NetworkServer();
                 Transport.Instance.StartClient();
@@ -63,7 +63,7 @@ namespace Astraia.Net
 
             internal static void Start(Uri uri)
             {
-                AddMessage(true);
+                AddMessage(false);
                 state = State.Connect;
                 connection = new NetworkServer();
                 Transport.Instance.StartClient(uri);
@@ -110,12 +110,6 @@ namespace Astraia.Net
 
             private static void Load(string sceneName)
             {
-                if (string.IsNullOrWhiteSpace(sceneName))
-                {
-                    Service.Log.Error("客户端不能加载空场景！");
-                    return;
-                }
-
                 if (isLoadScene && Instance.sceneName == sceneName)
                 {
                     Service.Log.Error("客户端正在加载 {0} 场景", sceneName);
@@ -145,9 +139,9 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static void AddMessage(bool transport)
+            private static void AddMessage(bool isHost)
             {
-                if (transport)
+                if (!isHost)
                 {
                     Transport.Instance.OnClientConnect -= OnClientConnect;
                     Transport.Instance.OnClientDisconnect -= OnClientDisconnect;

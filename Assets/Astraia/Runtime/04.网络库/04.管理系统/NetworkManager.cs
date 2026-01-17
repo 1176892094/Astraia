@@ -121,7 +121,7 @@ namespace Astraia.Net
                 return;
             }
 
-            Client.Start(true);
+            Client.Start(false);
         }
 
         public static void StartClient(Uri uri)
@@ -151,7 +151,7 @@ namespace Astraia.Net
             Client.Stop();
         }
 
-        public static void StartHost(bool transport = true)
+        public static void StartHost(bool isHost = true)
         {
             if (isServer || isClient)
             {
@@ -159,8 +159,8 @@ namespace Astraia.Net
                 return;
             }
 
-            Server.Start(transport);
-            Client.Start(false);
+            Server.Start(isHost);
+            Client.Start(true);
         }
 
         public static void StopHost()
