@@ -102,7 +102,13 @@ namespace Astraia.Common
             EventManager.Dispose();
             SoundManager.Dispose();
             SystemManager.Dispose();
+            VisibleManager.Dispose();
             GC.Collect();
+        }
+
+        private void OnDrawGizmos()
+        {
+            VisibleManager.OnGizmos();
         }
     }
 }
