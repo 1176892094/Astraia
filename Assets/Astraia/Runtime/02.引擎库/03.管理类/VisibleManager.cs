@@ -32,6 +32,7 @@ namespace Astraia.Common
         {
             grids = new Visible<IVisible>(scale);
             setting = new Vector3Int(rangeX, rangeY, scale);
+            EventManager.Invoke(new OnVisibleUpdate(rangeX, rangeY, scale));
         }
 
         public static void Register(IVisible item)
