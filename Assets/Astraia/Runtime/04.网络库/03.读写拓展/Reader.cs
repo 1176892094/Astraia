@@ -110,29 +110,29 @@ namespace Astraia.Net
             return reader.Read<Matrix4x4>();
         }
 
-        public static NetworkEntity ReadNetworkEntity(this MemoryReader reader)
-        {
-            var objectId = reader.ReadUInt();
-            return objectId != 0 ? (NetworkEntity)objectId : null;
-        }
-
-        public static NetworkModule ReadNetworkModule(this MemoryReader reader)
-        {
-            var entity = reader.ReadNetworkEntity();
-            return entity ? entity.modules[reader.ReadByte()] : null;
-        }
-
-        public static Transform ReadTransform(this MemoryReader reader)
-        {
-            var entity = reader.ReadNetworkEntity();
-            return entity ? entity.transform : null;
-        }
-
-        public static GameObject ReadGameObject(this MemoryReader reader)
-        {
-            var entity = reader.ReadNetworkEntity();
-            return entity ? entity.gameObject : null;
-        }
+        // public static NetworkEntity ReadNetworkEntity(this MemoryReader reader)
+        // {
+        //     var objectId = reader.ReadUInt();
+        //     return objectId != 0 ? (NetworkEntity)objectId : null;
+        // }
+        //
+        // public static NetworkModule ReadNetworkModule(this MemoryReader reader)
+        // {
+        //     var entity = reader.ReadNetworkEntity();
+        //     return entity ? entity.modules[reader.ReadByte()] : null;
+        // }
+        //
+        // public static Transform ReadTransform(this MemoryReader reader)
+        // {
+        //     var entity = reader.ReadNetworkEntity();
+        //     return entity ? entity.transform : null;
+        // }
+        //
+        // public static GameObject ReadGameObject(this MemoryReader reader)
+        // {
+        //     var entity = reader.ReadNetworkEntity();
+        //     return entity ? entity.gameObject : null;
+        // }
 
         public static Texture2D ReadTexture2D(this MemoryReader reader)
         {
@@ -156,22 +156,22 @@ namespace Astraia.Net
             return texture == null ? null : Sprite.Create(texture, reader.ReadRect(), reader.ReadVector2());
         }
 
-        public static T ReadNetworkModule<T>(this MemoryReader reader) where T : NetworkModule
-        {
-            return reader.ReadNetworkModule() as T;
-        }
-
-        public static NetworkVariable ReadNetworkVariable(this MemoryReader reader)
-        {
-            var objectId = reader.ReadUInt();
-            byte moduleId = 0;
-
-            if (objectId != 0)
-            {
-                moduleId = reader.ReadByte();
-            }
-
-            return new NetworkVariable(objectId, moduleId);
-        }
+        // public static T ReadNetworkModule<T>(this MemoryReader reader) where T : NetworkModule
+        // {
+        //     return reader.ReadNetworkModule() as T;
+        // }
+        //
+        // public static NetworkVariable ReadNetworkVariable(this MemoryReader reader)
+        // {
+        //     var objectId = reader.ReadUInt();
+        //     byte moduleId = 0;
+        //
+        //     if (objectId != 0)
+        //     {
+        //         moduleId = reader.ReadByte();
+        //     }
+        //
+        //     return new NetworkVariable(objectId, moduleId);
+        // }
     }
 }
