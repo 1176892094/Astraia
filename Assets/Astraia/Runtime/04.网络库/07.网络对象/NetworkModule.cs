@@ -21,11 +21,11 @@ namespace Astraia.Net
     [Serializable]
     public abstract class NetworkModule : Module<NetworkEntity>
     {
+        [HideInInspector] public SyncMode syncDirection;
+
+        [HideInInspector] public float syncInterval;
+
         internal byte moduleId;
-
-        public SyncMode syncDirection;
-
-        public float syncInterval;
 
         private ulong syncVarHook;
 

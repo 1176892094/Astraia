@@ -35,8 +35,6 @@ namespace Astraia.Net
 
         internal int count;
 
-        internal Label label;
-
         internal State state;
 
         internal NetworkClient client;
@@ -49,11 +47,11 @@ namespace Astraia.Net
 
         internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
 
-        public bool isOwner => (label & Label.Owner) != 0;
+        public bool isOwner => (state & State.Owner) != 0;
 
-        public bool isServer => (label & Label.Server) != 0 && NetworkManager.isServer;
+        public bool isServer => (state & State.Server) != 0 && NetworkManager.isServer;
 
-        public bool isClient => (label & Label.Client) != 0 && NetworkManager.isClient;
+        public bool isClient => (state & State.Client) != 0 && NetworkManager.isClient;
 
 
         protected override void OnEnable()
@@ -106,7 +104,7 @@ namespace Astraia.Net
             client = null;
             owner.position = 0;
             agent.position = 0;
-            label = Label.None;
+            state = State.None;
             state = State.None;
             ClearObserver();
         }
@@ -324,7 +322,7 @@ namespace Astraia.Net
 
         internal void OnNotifyAuthority()
         {
-            if ((state & State.Owner) == 0 && isOwner)
+            if ((state & State.Authority) == 0 && isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -334,7 +332,7 @@ namespace Astraia.Net
                     }
                 }
             }
-            else if ((state & State.Owner) != 0 && !isOwner)
+            else if ((state & State.Authority) != 0 && !isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -345,7 +343,7 @@ namespace Astraia.Net
                 }
             }
 
-            state = isOwner ? state | State.Owner : state & ~State.Owner;
+            state = isOwner ? state | State.Authority : state & ~State.Authority;
         }
 
         public static implicit operator uint(NetworkEntity entity)
@@ -370,22 +368,16 @@ namespace Astraia.Net
         }
 
         [Flags]
-        internal enum Label : byte
-        {
-            None = 0,
-            Owner = 1 << 0,
-            Client = 1 << 1,
-            Server = 1 << 2,
-        }
-
-        [Flags]
         internal enum State : byte
         {
             None = 0,
             Awake = 1 << 0,
             Start = 1 << 1,
             Owner = 1 << 2,
-            Destroy = 1 << 3
+            Client = 1 << 3,
+            Server = 1 << 4,
+            Destroy = 1 << 5,
+            Authority = 1 << 6,
         }
     }
 }

@@ -317,9 +317,9 @@ namespace Astraia.Net
                 }
 
                 entity.client = client;
-                entity.label = client?.clientId == 0 ? entity.label | NetworkEntity.Label.Owner : entity.label & ~NetworkEntity.Label.Owner;
-                entity.label = isServer ? entity.label | NetworkEntity.Label.Server : entity.label & ~NetworkEntity.Label.Server;
-                entity.label = isClient ? entity.label | NetworkEntity.Label.Client : entity.label & ~NetworkEntity.Label.Client;
+                entity.state = client?.clientId == 0 ? entity.state | NetworkEntity.State.Owner : entity.state & ~NetworkEntity.State.Owner;
+                entity.state = isServer ? entity.state | NetworkEntity.State.Server : entity.state & ~NetworkEntity.State.Server;
+                entity.state = isClient ? entity.state | NetworkEntity.State.Client : entity.state & ~NetworkEntity.State.Client;
                 if (entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;

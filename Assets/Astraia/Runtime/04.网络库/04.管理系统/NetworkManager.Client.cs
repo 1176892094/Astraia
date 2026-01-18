@@ -291,8 +291,8 @@ namespace Astraia.Net
                     entity.transform.localPosition = message.position;
                     entity.transform.localRotation = message.rotation;
                     entity.transform.localScale = message.localScale;
-                    entity.label = message.isOwner ? entity.label | NetworkEntity.Label.Owner : entity.label & ~NetworkEntity.Label.Owner;
-                    entity.label |= NetworkEntity.Label.Client;
+                    entity.state = message.isOwner ? entity.state | NetworkEntity.State.Owner : entity.state & ~NetworkEntity.State.Owner;
+                    entity.state |= NetworkEntity.State.Client;
 
                     if (message.segment.Count > 0)
                     {
@@ -312,7 +312,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.label &= ~NetworkEntity.Label.Owner;
+                    entity.state &= ~NetworkEntity.State.Owner;
                     entity.OnNotifyAuthority();
                     entity.gameObject.SetActive(false);
                     if (!isServer)
@@ -329,7 +329,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.label &= ~NetworkEntity.Label.Owner;
+                    entity.state &= ~NetworkEntity.State.Owner;
                     entity.OnNotifyAuthority();
                     if (!isServer)
                     {
