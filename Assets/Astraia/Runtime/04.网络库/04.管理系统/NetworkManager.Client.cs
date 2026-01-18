@@ -44,12 +44,22 @@ namespace Astraia.Net
 
             public static bool isActive => state == State.Connected;
 
-            internal static void Start()
+            internal static void Start(int id)
             {
-                AddMessage(false);
-                state = State.Connect;
-                connection = new NetworkServer();
-                Transport.Instance.StartClient();
+                if (id == 0)
+                {
+                    AddMessage(true);
+                    connection = new NetworkServer();
+                    Server.Connect(id);
+                    Connect();
+                }
+                else
+                {
+                    AddMessage(false);
+                    state = State.Connect;
+                    connection = new NetworkServer();
+                    Transport.Instance.StartClient();
+                }
             }
 
             internal static void Start(Uri uri)
@@ -58,14 +68,6 @@ namespace Astraia.Net
                 state = State.Connect;
                 connection = new NetworkServer();
                 Transport.Instance.StartClient(uri);
-            }
-
-            internal static void StartHost()
-            {
-                AddMessage(true);
-                connection = new NetworkServer();
-                Server.Connect(new NetworkClient());
-                OnClientConnect();
             }
 
             internal static void Stop()
@@ -89,24 +91,6 @@ namespace Astraia.Net
                 isLoadScene = false;
             }
 
-            public static void Ready()
-            {
-                if (connection == null)
-                {
-                    Service.Log.Error("没有连接到有效的服务器！");
-                    return;
-                }
-
-                if (isReady)
-                {
-                    Service.Log.Error("客户端已经准备就绪！");
-                    return;
-                }
-
-                connection.isReady = true;
-                connection.Send(new ReadyMessage());
-            }
-
             private static void Load(string sceneName)
             {
                 if (isLoadScene)
@@ -128,7 +112,8 @@ namespace Astraia.Net
                 isLoadScene = false;
                 if (isActive && !isReady)
                 {
-                    Ready();
+                    connection.isReady = true;
+                    connection.Send(new ReadyMessage());
                 }
 
                 EventManager.Invoke(new ClientSceneLoaded(sceneName));
@@ -141,12 +126,12 @@ namespace Astraia.Net
             {
                 if (!isHost)
                 {
-                    Transport.Instance.OnClientConnect -= OnClientConnect;
-                    Transport.Instance.OnClientDisconnect -= OnClientDisconnect;
-                    Transport.Instance.OnClientReceive -= OnClientReceive;
-                    Transport.Instance.OnClientConnect += OnClientConnect;
-                    Transport.Instance.OnClientDisconnect += OnClientDisconnect;
-                    Transport.Instance.OnClientReceive += OnClientReceive;
+                    Transport.Instance.OnClientConnect -= Connect;
+                    Transport.Instance.OnClientDisconnect -= Disconnect;
+                    Transport.Instance.OnClientReceive -= Receive;
+                    Transport.Instance.OnClientConnect += Connect;
+                    Transport.Instance.OnClientDisconnect += Disconnect;
+                    Transport.Instance.OnClientReceive += Receive;
                 }
 
                 NetworkMessage<PingMessage>.Add(PingMessage);
@@ -227,7 +212,7 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static void OnClientConnect()
+            private static void Connect()
             {
                 if (connection == null)
                 {
@@ -236,16 +221,17 @@ namespace Astraia.Net
                 }
 
                 state = State.Connected;
+                connection.isReady = true;
+                connection.Send(new ReadyMessage());
                 EventManager.Invoke(new ClientConnect());
-                Ready();
             }
 
-            private static void OnClientDisconnect()
+            private static void Disconnect()
             {
                 Stop();
             }
 
-            internal static void OnClientReceive(ArraySegment<byte> segment, int channel)
+            internal static void Receive(ArraySegment<byte> segment, int channel)
             {
                 if (connection == null)
                 {
@@ -271,14 +257,14 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUShort();
-                    if (!NetworkMessage.client.TryGetValue(message, out var action))
+                    if (!NetworkMessage.client.TryGetValue(message, out var onMessage))
                     {
                         Service.Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
                         connection.Disconnect();
                         return;
                     }
 
-                    action.Invoke(null, reader, channel);
+                    onMessage.Invoke(null, reader, channel);
                 }
 
                 if (!isLoadScene && connection.reader.Count > 0)

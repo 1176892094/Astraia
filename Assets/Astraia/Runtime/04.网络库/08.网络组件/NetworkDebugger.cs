@@ -786,14 +786,6 @@ namespace Astraia.Common
                 }
             }
 
-            if (NetworkManager.Client.isActive && !NetworkManager.Client.isReady)
-            {
-                if (GUILayout.Button("Ready", GUILayout.Height(30)))
-                {
-                    NetworkManager.Client.Ready();
-                }
-            }
-
             if (NetworkManager.isServer && NetworkManager.Client.isActive)
             {
                 if (GUILayout.Button("Stop Host", GUILayout.Height(30)))

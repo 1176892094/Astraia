@@ -14,11 +14,11 @@ using Astraia.Net;
 
 namespace Astraia.Common
 {
-    public record ServerConnect(NetworkClient client) : IEvent;
+    public record ServerConnect(int client) : IEvent;
 
-    public record ServerDisconnect(NetworkClient client) : IEvent;
+    public record ServerDisconnect(int client) : IEvent;
 
-    public record ServerReady(NetworkClient client) : IEvent;
+    public record ServerReady(int client) : IEvent;
 
     public record ClientConnect : IEvent;
 

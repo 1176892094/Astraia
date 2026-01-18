@@ -60,7 +60,7 @@ namespace Astraia.Net
                 copies.AddRange(clients.Values);
                 foreach (var client in copies)
                 {
-                    OnServerDisconnect(client.clientId);
+                    Disconnect(client.clientId);
                 }
 
                 state = State.Disconnect;
@@ -70,14 +70,6 @@ namespace Astraia.Net
                 spawns.Clear();
                 clients.Clear();
                 isLoadScene = false;
-            }
-
-            internal static void Connect(NetworkClient client)
-            {
-                if (clients.TryAdd(client.clientId, client))
-                {
-                    EventManager.Invoke(new ServerConnect(client));
-                }
             }
 
             public static void Load(string sceneName)
@@ -117,10 +109,10 @@ namespace Astraia.Net
 
             private static void SpawnObjects()
             {
-                var entities = Object.FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                var entities = Object.FindObjectsByType<NetworkEntity>(FindObjectsSortMode.None);
                 foreach (var entity in entities)
                 {
-                    if (entity.sceneId != 0 && entity.objectId == 0 && entity.isActiveAndEnabled)
+                    if (entity.sceneId != 0 && entity.objectId == 0)
                     {
                         Spawn(entity.gameObject, entity.client);
                     }
@@ -132,12 +124,12 @@ namespace Astraia.Net
         {
             private static void AddMessage()
             {
-                Transport.Instance.OnServerConnect -= OnServerConnect;
-                Transport.Instance.OnServerDisconnect -= OnServerDisconnect;
-                Transport.Instance.OnServerReceive -= OnServerReceive;
-                Transport.Instance.OnServerConnect += OnServerConnect;
-                Transport.Instance.OnServerDisconnect += OnServerDisconnect;
-                Transport.Instance.OnServerReceive += OnServerReceive;
+                Transport.Instance.OnServerConnect -= Connect;
+                Transport.Instance.OnServerDisconnect -= Disconnect;
+                Transport.Instance.OnServerReceive -= Receive;
+                Transport.Instance.OnServerConnect += Connect;
+                Transport.Instance.OnServerDisconnect += Disconnect;
+                Transport.Instance.OnServerReceive += Receive;
                 NetworkMessage<PongMessage>.Add(PongMessage);
                 NetworkMessage<ReadyMessage>.Add(ReadyMessage);
                 NetworkMessage<EntityMessage>.Add(EntityMessage);
@@ -153,19 +145,22 @@ namespace Astraia.Net
             {
                 client.isReady = true;
                 client.Send(new SpawnBeginMessage());
-                foreach (var entity in spawns.Values.Where(entity => entity.isActiveAndEnabled))
+                foreach (var entity in spawns.Values)
                 {
-                    switch (entity.visible)
+                    if (entity.isActiveAndEnabled)
                     {
-                        case Visible.Show:
-                            entity.AddObserver(client);
-                            break;
-                        case Visible.Auto when NetworkObserver.Instance:
-                            NetworkObserver.Instance.Tick(entity, client);
-                            break;
-                        case Visible.Auto:
-                            entity.AddObserver(client);
-                            break;
+                        switch (entity.visible)
+                        {
+                            case Visible.Show:
+                                entity.AddObserver(client);
+                                break;
+                            case Visible.Auto when NetworkObserver.Instance:
+                                NetworkObserver.Instance.Tick(entity, client);
+                                break;
+                            case Visible.Auto:
+                                entity.AddObserver(client);
+                                break;
+                        }
                     }
                 }
 
@@ -228,31 +223,28 @@ namespace Astraia.Net
 
         public partial class Server
         {
-            private static void OnServerConnect(int clientId)
+            internal static void Connect(int id)
             {
-                if (clientId == 0)
+                if (clients.Count >= connection)
                 {
-                    Transport.Instance.Disconnect(clientId);
+                    Transport.Instance.Disconnect(id);
                 }
-                else if (clients.ContainsKey(clientId))
+                else if (clients.ContainsKey(id))
                 {
-                    Transport.Instance.Disconnect(clientId);
-                }
-                else if (clients.Count >= connection)
-                {
-                    Transport.Instance.Disconnect(clientId);
+                    Transport.Instance.Disconnect(id);
                 }
                 else
                 {
-                    Connect(new NetworkClient(clientId));
+                    clients.Add(id, new NetworkClient(id));
+                    EventManager.Invoke(new ServerConnect(id));
                 }
             }
 
-            internal static void OnServerDisconnect(int clientId)
+            internal static void Disconnect(int id)
             {
-                if (clients.TryGetValue(clientId, out var client))
+                if (clients.Remove(id, out var client))
                 {
-                    if (!client.isHost)
+                    if (id != 0)
                     {
                         client.Disconnect();
                     }
@@ -260,7 +252,7 @@ namespace Astraia.Net
                     var entities = spawns.Values.Where(entity => entity).ToList();
                     foreach (var entity in entities)
                     {
-                        if (client.isHost)
+                        if (client.clientId == 0)
                         {
                             Destroy(entity.gameObject);
                         }
@@ -271,22 +263,21 @@ namespace Astraia.Net
                     }
 
                     client.ClearObserver();
-                    clients.Remove(client.clientId);
-                    EventManager.Invoke(new ServerDisconnect(client));
+                    EventManager.Invoke(new ServerDisconnect(id));
                 }
             }
 
-            internal static void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
+            internal static void Receive(int id, ArraySegment<byte> segment, int channel)
             {
-                if (!clients.TryGetValue(clientId, out var client))
+                if (!clients.TryGetValue(id, out var client))
                 {
-                    Service.Log.Warn("无法为客户端 {0} 进行处理消息。未知客户端。", clientId);
+                    Service.Log.Warn("无法为客户端 {0} 进行处理消息。未知客户端。", id);
                     return;
                 }
 
                 if (!client.reader.AddPacket(segment))
                 {
-                    Service.Log.Warn("无法为客户端 {0} 进行处理消息。", clientId);
+                    Service.Log.Warn("无法为客户端 {0} 进行处理消息。", id);
                     client.Disconnect();
                     return;
                 }
@@ -296,25 +287,25 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
                     {
-                        Service.Log.Warn("无法为客户端 {0} 进行处理消息。没有头部。", clientId);
+                        Service.Log.Warn("无法为客户端 {0} 进行处理消息。没有头部。", id);
                         client.Disconnect();
                         return;
                     }
 
                     var message = reader.ReadUShort();
-                    if (!NetworkMessage.server.TryGetValue(message, out var action))
+                    if (!NetworkMessage.server.TryGetValue(message, out var onMessage))
                     {
-                        Service.Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", clientId, message);
+                        Service.Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", id, message);
                         client.Disconnect();
                         return;
                     }
 
-                    action.Invoke(client, reader, channel);
+                    onMessage.Invoke(client, reader, channel);
                 }
 
                 if (!isLoadScene && client.reader.Count > 0)
                 {
-                    Service.Log.Warn("无法为客户端 {0} 进行处理消息。残留消息: {1}。", clientId, client.reader.Count);
+                    Service.Log.Warn("无法为客户端 {0} 进行处理消息。残留消息: {1}。", id, client.reader.Count);
                 }
             }
         }
@@ -342,7 +333,7 @@ namespace Astraia.Net
                 }
 
                 entity.client = client;
-                entity.mode = client != null && client.isHost ? entity.mode | NetworkEntity.Mode.Owner : entity.mode & ~NetworkEntity.Mode.Owner;
+                entity.mode = client?.clientId == 0 ? entity.mode | NetworkEntity.Mode.Owner : entity.mode & ~NetworkEntity.Mode.Owner;
                 entity.mode = isServer ? entity.mode | NetworkEntity.Mode.Server : entity.mode & ~NetworkEntity.Mode.Server;
                 entity.mode = isClient ? entity.mode | NetworkEntity.Mode.Client : entity.mode & ~NetworkEntity.Mode.Client;
                 if (entity.objectId == 0)

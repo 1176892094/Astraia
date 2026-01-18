@@ -96,7 +96,7 @@ namespace Astraia.Net
                 return;
             }
 
-            Client.Start();
+            Client.Start(1);
         }
 
         public static void StartClient(Uri uri)
@@ -120,7 +120,7 @@ namespace Astraia.Net
 
             if (isServer)
             {
-                Server.OnServerDisconnect(0);
+                Server.Disconnect(0);
             }
 
             Client.Stop();
@@ -135,7 +135,7 @@ namespace Astraia.Net
             }
 
             Server.Start(isHost);
-            Client.StartHost();
+            Client.Start(0);
         }
 
         public static void StopHost()
