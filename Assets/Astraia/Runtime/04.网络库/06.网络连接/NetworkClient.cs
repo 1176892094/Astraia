@@ -38,7 +38,7 @@ namespace Astraia.Net
                 using var writer = MemoryWriter.Pop();
                 while (packet.Value.GetPacket(writer))
                 {
-                    Transport.Instance.SendToClient(clientId, writer, packet.Key);
+                    NetworkManager.Instance.SendToClient(clientId, writer, packet.Key);
                     writer.Reset();
                 }
             }
@@ -51,7 +51,7 @@ namespace Astraia.Net
             writer.WriteUShort(NetworkMessage<T>.Id);
             writer.Invoke(message);
 
-            if (writer.position > Transport.Instance.GetLength(channel))
+            if (writer.position > NetworkManager.Instance.GetLength(channel))
             {
                 Service.Log.Error("发送消息大小过大！消息大小: {0}", writer.position);
                 return;
@@ -70,7 +70,7 @@ namespace Astraia.Net
         {
             if (!packets.TryGetValue(channel, out var batch))
             {
-                batch = new PacketWriter(Transport.Instance.GetLength(channel));
+                batch = new PacketWriter(NetworkManager.Instance.GetLength(channel));
                 packets[channel] = batch;
             }
 
@@ -89,7 +89,7 @@ namespace Astraia.Net
         public void Disconnect()
         {
             isReady = false;
-            Transport.Instance.Disconnect(clientId);
+            NetworkManager.Instance.Disconnect(clientId);
         }
 
         public void ClearObserver()

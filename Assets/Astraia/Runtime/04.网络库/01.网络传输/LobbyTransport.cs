@@ -16,14 +16,14 @@ namespace Astraia.Net
     public sealed class LobbyTransport : Transport
     {
         public Transport transport;
-        public string authority;
+        public string roomGuid;
         public string roomName;
         public string roomData;
         public RoomMode roomMode;
 
         private void Awake()
         {
-            NetworkManager.Lobby.authority = authority;
+            NetworkManager.Lobby.authority = roomGuid;
             NetworkManager.Lobby.transport = transport;
         }
 

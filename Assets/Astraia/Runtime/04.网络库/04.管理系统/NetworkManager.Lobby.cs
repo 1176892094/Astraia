@@ -38,9 +38,9 @@ namespace Astraia.Net
 
             internal static Transport transport;
 
-            private static ushort port => Transport.Instance.port;
+            private static ushort port => Instance.port;
 
-            private static string address => Transport.Instance.address;
+            private static string address => Instance.address;
 
             public static bool isActive => state == State.Connected;
 
@@ -166,12 +166,12 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt();
                             clients.Add(clientId, objectId);
                             players.Add(objectId, clientId);
-                            Transport.Instance.OnServerConnect.Invoke(objectId);
+                            Instance.OnServerConnect.Invoke(objectId);
                         }
 
                         if (isClient)
                         {
-                            Transport.Instance.OnClientConnect.Invoke();
+                            Instance.OnClientConnect.Invoke();
                         }
                     }
                     else if (opcode == Astraia.Lobby.离开房间成功)
@@ -179,7 +179,7 @@ namespace Astraia.Net
                         if (isClient)
                         {
                             isClient = false;
-                            Transport.Instance.OnClientDisconnect.Invoke();
+                            Instance.OnClientDisconnect.Invoke();
                         }
                     }
                     else if (opcode == Astraia.Lobby.同步网络数据)
@@ -190,13 +190,13 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
-                                Transport.Instance.OnServerReceive.Invoke(playerId, message, channel);
+                                Instance.OnServerReceive.Invoke(playerId, message, channel);
                             }
                         }
 
                         if (isClient)
                         {
-                            Transport.Instance.OnClientReceive.Invoke(message, channel);
+                            Instance.OnClientReceive.Invoke(message, channel);
                         }
                     }
                     else if (opcode == Astraia.Lobby.断开玩家连接)
@@ -206,7 +206,7 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
-                                Transport.Instance.OnServerDisconnect.Invoke(playerId);
+                                Instance.OnServerDisconnect.Invoke(playerId);
                                 clients.Remove(clientId);
                                 players.Remove(playerId);
                             }

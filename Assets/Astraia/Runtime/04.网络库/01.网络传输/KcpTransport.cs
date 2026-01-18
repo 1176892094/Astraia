@@ -17,8 +17,7 @@ namespace Astraia.Net
 {
     public abstract class Transport : MonoBehaviour
     {
-        public static Transport Instance;
-
+       
         public string address = "localhost";
         public ushort port = 20974;
 
@@ -48,20 +47,20 @@ namespace Astraia.Net
 
     public sealed class KcpTransport : Transport
     {
-        public uint unitData = 1200;
-        public uint overTime = 10000;
-        public uint interval = 10;
-        public uint deadLink = 40;
-        public uint fastResend = 2;
-        public uint sendWindow = 1024 * 4;
-        public uint receiveWindow = 1024 * 4;
+        private const uint MAX_MTU = 1200;
+        private const uint OVER_TIME = 10000;
+        private const uint INTERVAL = 10;
+        private const uint DEAD_LINK = 40;
+        private const uint FAST_RESEND = 2;
+        private const uint SEND_WIN = 1024 * 4;
+        private const uint RECEIVE_WIN = 1024 * 4;
 
         private Client client;
         private Server server;
 
         private void Awake()
         {
-            var setting = new Setting(unitData, overTime, interval, deadLink, fastResend, sendWindow, receiveWindow);
+            var setting = new Setting(MAX_MTU, OVER_TIME, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
             client = new Client(setting, ClientConnect, ClientDisconnect, ClientError, ClientReceive);
             server = new Server(setting, ServerConnect, ServerDisconnect, ServerError, ServerReceive);
             return;
@@ -108,7 +107,7 @@ namespace Astraia.Net
 
         public override uint GetLength(int channel)
         {
-            return channel == Channel.Reliable ? Peer.KcpLength(unitData, receiveWindow) : Peer.UdpLength(unitData);
+            return channel == Channel.Reliable ? Peer.KcpLength(MAX_MTU, RECEIVE_WIN) : Peer.UdpLength(MAX_MTU);
         }
 
         public override void StartServer()

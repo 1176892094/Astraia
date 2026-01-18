@@ -42,7 +42,7 @@ namespace Astraia.Net
             {
                 if (isHost)
                 {
-                    Transport.Instance.StartServer();
+                    Instance.StartServer();
                 }
 
                 state = State.Connected;
@@ -60,7 +60,7 @@ namespace Astraia.Net
                 }
 
                 state = State.Disconnect;
-                Transport.Instance.StopServer();
+                Instance.StopServer();
                 sendTime = 0;
                 objectId = 0;
                 spawns.Clear();
@@ -112,12 +112,12 @@ namespace Astraia.Net
         {
             private static void AddMessage()
             {
-                Transport.Instance.OnServerConnect -= Connect;
-                Transport.Instance.OnServerDisconnect -= Disconnect;
-                Transport.Instance.OnServerReceive -= Receive;
-                Transport.Instance.OnServerConnect += Connect;
-                Transport.Instance.OnServerDisconnect += Disconnect;
-                Transport.Instance.OnServerReceive += Receive;
+                Instance.OnServerConnect -= Connect;
+                Instance.OnServerDisconnect -= Disconnect;
+                Instance.OnServerReceive -= Receive;
+                Instance.OnServerConnect += Connect;
+                Instance.OnServerDisconnect += Disconnect;
+                Instance.OnServerReceive += Receive;
                 NetworkMessage<PongMessage>.Add(PongMessage);
                 NetworkMessage<ReadyMessage>.Add(ReadyMessage);
                 NetworkMessage<EntityMessage>.Add(EntityMessage);
@@ -215,11 +215,11 @@ namespace Astraia.Net
             {
                 if (clients.Count >= connection)
                 {
-                    Transport.Instance.Disconnect(id);
+                    Instance.Disconnect(id);
                 }
                 else if (clients.ContainsKey(id))
                 {
-                    Transport.Instance.Disconnect(id);
+                    Instance.Disconnect(id);
                 }
                 else
                 {
@@ -397,7 +397,7 @@ namespace Astraia.Net
 
             internal static void EarlyUpdate()
             {
-                Transport.Instance?.ServerEarlyUpdate();
+            Instance?.ServerEarlyUpdate();
             }
 
             internal static void AfterUpdate()
@@ -445,7 +445,7 @@ namespace Astraia.Net
                     }
                 }
 
-                Transport.Instance?.ServerAfterUpdate();
+                Instance?.ServerAfterUpdate();
             }
         }
     }

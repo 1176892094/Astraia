@@ -58,7 +58,7 @@ namespace Astraia.Net
                     AddMessage(false);
                     state = State.Connect;
                     connection = new NetworkServer();
-                    Transport.Instance.StartClient();
+                    Instance.StartClient();
                 }
             }
 
@@ -67,7 +67,7 @@ namespace Astraia.Net
                 AddMessage(false);
                 state = State.Connect;
                 connection = new NetworkServer();
-                Transport.Instance.StartClient(uri);
+                Instance.StartClient(uri);
             }
 
             internal static void Stop()
@@ -123,12 +123,12 @@ namespace Astraia.Net
             {
                 if (!isHost)
                 {
-                    Transport.Instance.OnClientConnect -= Connect;
-                    Transport.Instance.OnClientDisconnect -= Disconnect;
-                    Transport.Instance.OnClientReceive -= Receive;
-                    Transport.Instance.OnClientConnect += Connect;
-                    Transport.Instance.OnClientDisconnect += Disconnect;
-                    Transport.Instance.OnClientReceive += Receive;
+                    Instance.OnClientConnect -= Connect;
+                    Instance.OnClientDisconnect -= Disconnect;
+                    Instance.OnClientReceive -= Receive;
+                    Instance.OnClientConnect += Connect;
+                    Instance.OnClientDisconnect += Disconnect;
+                    Instance.OnClientReceive += Receive;
                 }
 
                 NetworkMessage<PingMessage>.Add(PingMessage);
@@ -379,7 +379,7 @@ namespace Astraia.Net
 
             internal static void EarlyUpdate()
             {
-                Transport.Instance?.ClientEarlyUpdate();
+                Instance?.ClientEarlyUpdate();
             }
 
             internal static void AfterUpdate()
@@ -422,7 +422,7 @@ namespace Astraia.Net
                     }
                 }
 
-                Transport.Instance?.ClientAfterUpdate();
+                Instance?.ClientAfterUpdate();
             }
         }
     }

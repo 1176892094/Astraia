@@ -708,15 +708,15 @@ namespace Astraia.Common
             GUILayout.BeginHorizontal();
             string peer;
             ushort port;
-            if (Transport.Instance)
+            if (NetworkManager.Instance)
             {
-                peer = Transport.Instance.address;
+                peer = NetworkManager.Instance.address;
                 if (peer == "localhost")
                 {
                     peer = address;
                 }
 
-                port = Transport.Instance.port;
+                port = NetworkManager.Instance.port;
             }
             else
             {
@@ -1099,15 +1099,17 @@ namespace Astraia.Common
 
         protected virtual void Start()
         {
-            if (!Transport.Instance) return;
-            Transport.Instance.OnClientSend -= OnClientSend;
-            Transport.Instance.OnServerSend -= OnServerSend;
-            Transport.Instance.OnClientReceive -= OnClientReceive;
-            Transport.Instance.OnServerReceive -= OnServerReceive;
-            Transport.Instance.OnClientSend += OnClientSend;
-            Transport.Instance.OnServerSend += OnServerSend;
-            Transport.Instance.OnClientReceive += OnClientReceive;
-            Transport.Instance.OnServerReceive += OnServerReceive;
+            if (NetworkManager.Instance)
+            {
+                NetworkManager.Instance.OnClientSend -= OnClientSend;
+                NetworkManager.Instance.OnServerSend -= OnServerSend;
+                NetworkManager.Instance.OnClientReceive -= OnClientReceive;
+                NetworkManager.Instance.OnServerReceive -= OnServerReceive;
+                NetworkManager.Instance.OnClientSend += OnClientSend;
+                NetworkManager.Instance.OnServerSend += OnServerSend;
+                NetworkManager.Instance.OnClientReceive += OnClientReceive;
+                NetworkManager.Instance.OnServerReceive += OnServerReceive;
+            }
         }
 
         protected virtual void Update()

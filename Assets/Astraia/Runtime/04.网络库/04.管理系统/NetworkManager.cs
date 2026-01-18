@@ -17,8 +17,9 @@ using Object = UnityEngine.Object;
 namespace Astraia.Net
 {
     [Serializable]
-    public sealed partial class NetworkManager : Singleton<NetworkManager, Entity>, IEvent<OnSceneComplete>
+    public sealed partial class NetworkManager : Module<Entity>, IEvent<OnSceneComplete>
     {
+        public static Transport Instance;
         public static bool isHost => isServer && isClient;
         public static bool isLobby => Lobby.state != State.Disconnect;
         public static bool isServer => Server.state != State.Disconnect;
@@ -28,7 +29,7 @@ namespace Astraia.Net
         {
             Application.runInBackground = true;
             Object.DontDestroyOnLoad(gameObject);
-            Transport.Instance = owner.GetComponent<Transport>();
+            Instance = owner.GetOrAddComponent<KcpTransport>();
         }
 
         public override void Enqueue()

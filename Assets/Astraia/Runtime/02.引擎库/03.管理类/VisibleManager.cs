@@ -94,7 +94,7 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            grids.Clear();
+            grids?.Clear();
             items.Clear();
             nodes.Clear();
             point = Vector2Int.zero;
