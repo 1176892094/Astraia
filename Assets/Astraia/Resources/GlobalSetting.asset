@@ -1,19 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!49 &-6540329136794763290
-TextAsset:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: TextAsset3
-  m_Script: "// *********************************************************************************\n//
-    # Project: Astraia\n// # Unity: 6000.3.5f1\n// # Author: \u4E91\u8C37\u5343\u7FBD\n//
-    # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
-    20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
-    is an automatically generated comment.\n// *********************************************************************************\n\nusing
-    System;\nusing UnityEngine;\nusing Astraia.Common;\n\nnamespace Astraia.Table\n{\n   
-    [Serializable]\n    public struct Template\n    {\n//TODO:1\n    }\n}"
 --- !u!49 &-2960232863454612892
 TextAsset:
   m_ObjectHideFlags: 0
@@ -27,7 +13,7 @@ TextAsset:
     false,\n  \"overrideReferences\": false,\n  \"precompiledReferences\": [],\n 
     \"autoReferenced\": true,\n  \"defineConstraints\": [],\n  \"versionDefines\":
     [],\n  \"noEngineReferences\": false\n}"
---- !u!49 &-1445054732543145985
+--- !u!49 &-2960232863454612891
 TextAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,6 +26,37 @@ TextAsset:
     20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
     is an automatically generated comment.\n// *********************************************************************************\n\nnamespace
     Astraia.Table\n{\n    public enum Template\n    {\n//TODO:1\n    }\n}"
+--- !u!49 &-2960232863454612890
+TextAsset:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TextAsset3
+  m_Script: "// *********************************************************************************\n//
+    # Project: Astraia\n// # Unity: 6000.3.5f1\n// # Author: \u4E91\u8C37\u5343\u7FBD\n//
+    # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
+    20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
+    is an automatically generated comment.\n// *********************************************************************************\n\nusing
+    System;\nusing UnityEngine;\nusing Astraia.Common;\n\nnamespace Astraia.Table\n{\n   
+    [Serializable]\n    public struct Template\n     {\n //TODO:1\n    }\n}"
+--- !u!49 &-2960232863454612889
+TextAsset:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TextAsset4
+  m_Script: "// *********************************************************************************\n//
+    # Project: Astraia\n// # Unity: 6000.3.5f1\n// # Author: \u4E91\u8C37\u5343\u7FBD\n//
+    # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
+    20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
+    is an automatically generated comment.\n// *********************************************************************************\n\nusing
+    System;\nusing UnityEngine;\nusing Astraia.Common;\n\nnamespace Astraia.Table\n{\n   
+    internal class TemplateDataTable : DataTable<TemplateData> { }\n\n     [Serializable]\n   
+    public struct TemplateData : IData\n    {\n //TODO:1\n        [HideInInspector,
+    SerializeField] private Xor.Bytes[] Bytes;\n        public TemplateData(Xor.Bytes[]
+    bytes) => Bytes = bytes;\n    }\n}"
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55,7 +72,7 @@ MonoBehaviour:
   BuildTarget: 9
   AssetMode: 0
   EncryptKey: 1
-  LocalPath: http://192.168.1.5:8000/Documents/GitHub/Astraia-Game
+  LocalPath: http://192.168.1.4:8000/Documents/GitHub/Astraia-Game
   RemotePath: http://192.168.0.3:8000
   InputMask: 0
   EncryptGroup:
@@ -68,24 +85,12 @@ MonoBehaviour:
   - {fileID: 102900000, guid: 7ee700e87bf3541bdadae33287525107, type: 3}
   - {fileID: 102900000, guid: cda651f55b80348f89126e7222155906, type: 3}
   ignoreAssets:
-  - {fileID: 102900000, guid: 6433644f9a565454095902a6b0f4dd0e, type: 3}
---- !u!49 &3450331790412130364
-TextAsset:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: TextAsset4
-  m_Script: "// *********************************************************************************\n//
-    # Project: Astraia\n// # Unity: 6000.3.5f1\n// # Author: \u4E91\u8C37\u5343\u7FBD\n//
-    # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
-    20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
-    is an automatically generated comment.\n// *********************************************************************************\n\nusing
-    System;\nusing UnityEngine;\nusing Astraia.Common;\n\nnamespace Astraia.Table\n{\n   
-    internal class TemplateDataTable : DataTable<TemplateData> { }\n    \n    [Serializable]\n   
-    public struct TemplateData : IData\n    {\n//TODO:1\n        public void Create(string[]
-    sheet, int column)\n        {\n#if UNITY_EDITOR\n//TODO:2\n#endif\n        }\n   
-    }\n}"
+  - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
+  cacheAssets:
+  - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
+  - {fileID: 102900000, guid: 7ee700e87bf3541bdadae33287525107, type: 3}
+  - {fileID: 102900000, guid: d997d30491f12460a83474cffc127ae4, type: 3}
+  - {fileID: 102900000, guid: 40d95e4e2b8594e018558d8d142f3b06, type: 3}
 --- !u!49 &8449695024802945918
 TextAsset:
   m_ObjectHideFlags: 0
