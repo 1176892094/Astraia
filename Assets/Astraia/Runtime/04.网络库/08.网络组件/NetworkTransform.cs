@@ -8,7 +8,7 @@ namespace Astraia.Net
     {
         [SerializeField] private Transform target;
 
-        [SerializeField] private TransformOption option = TransformOption.Position;
+        [SerializeField] private Option option = Option.Position;
 
         [SerializeField, Range(0f, 1)] private float positionPerceive = 0.01f;
 
@@ -71,9 +71,9 @@ namespace Astraia.Net
                     mutation = target.localScale;
                 }
 
-                positionCache = (option & TransformOption.Position) != 0 && positionChanged ? target.position : null;
-                rotationCache = (option & TransformOption.Rotation) != 0 && rotationChanged ? target.rotation : null;
-                mutationCache = (option & TransformOption.Mutation) != 0 && mutationChanged ? target.localScale : null;
+                positionCache = (option & Option.Position) != 0 && positionChanged ? target.position : null;
+                rotationCache = (option & Option.Rotation) != 0 && rotationChanged ? target.rotation : null;
+                mutationCache = (option & Option.Mutation) != 0 && mutationChanged ? target.localScale : null;
                 return true;
             }
         }
@@ -117,19 +117,19 @@ namespace Astraia.Net
 
         private void SyncPosition()
         {
-            if ((option & TransformOption.Position) != 0)
+            if ((option & Option.Position) != 0)
             {
                 var isLerp = Vector3.Distance(target.position, position) < 0.5f;
                 target.position = isLerp ? Vector3.Lerp(target.position, position, positionSmooth) : position;
             }
 
-            if ((option & TransformOption.Rotation) != 0)
+            if ((option & Option.Rotation) != 0)
             {
                 var isLerp = Quaternion.Angle(target.rotation, rotation) < 0.5f;
                 target.rotation = isLerp ? Quaternion.Lerp(target.rotation, rotation, rotationSmooth) : rotation;
             }
 
-            if ((option & TransformOption.Mutation) != 0)
+            if ((option & Option.Mutation) != 0)
             {
                 var isLerp = Vector3.Distance(target.localScale, mutation) < 0.5f;
                 target.localScale = isLerp ? Vector3.Lerp(target.localScale, mutation, mutationSmooth) : mutation;
@@ -146,17 +146,17 @@ namespace Astraia.Net
         protected override void OnSerialize(MemoryWriter writer, bool initialize)
         {
             if (!initialize) return;
-            if ((option & TransformOption.Position) != 0) writer.WriteVector3(target.localPosition);
-            if ((option & TransformOption.Rotation) != 0) writer.WriteQuaternion(target.localRotation);
-            if ((option & TransformOption.Mutation) != 0) writer.WriteVector3(target.localScale);
+            if ((option & Option.Position) != 0) writer.WriteVector3(target.localPosition);
+            if ((option & Option.Rotation) != 0) writer.WriteQuaternion(target.localRotation);
+            if ((option & Option.Mutation) != 0) writer.WriteVector3(target.localScale);
         }
 
         protected override void OnDeserialize(MemoryReader reader, bool initialize)
         {
             if (!initialize) return;
-            if ((option & TransformOption.Position) != 0) position = reader.ReadVector3();
-            if ((option & TransformOption.Rotation) != 0) rotation = reader.ReadQuaternion();
-            if ((option & TransformOption.Mutation) != 0) mutation = reader.ReadVector3();
+            if ((option & Option.Position) != 0) position = reader.ReadVector3();
+            if ((option & Option.Rotation) != 0) rotation = reader.ReadQuaternion();
+            if ((option & Option.Mutation) != 0) mutation = reader.ReadVector3();
         }
 
         [ServerRpc(Channel.Unreliable)]
@@ -184,7 +184,7 @@ namespace Astraia.Net
         }
 
         [Flags]
-        internal enum TransformOption : byte
+        public enum Option : byte
         {
             None,
             Position = 1 << 0,
