@@ -85,7 +85,7 @@ namespace Astraia.Net
                 Service.Log.Info("房间信息: {0}", rooms);
             }
 
-            public static void UpdateRoom(string roomName, string roomData, RoomMode roomMode)
+            public static void UpdateRoom()
             {
                 if (!isServer)
                 {
@@ -95,9 +95,9 @@ namespace Astraia.Net
 
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Astraia.Lobby.更新房间数据);
-                writer.WriteString(roomName);
-                writer.WriteString(roomData);
-                writer.WriteByte((byte)roomMode);
+                writer.WriteString(Instance.roomName);
+                writer.WriteString(Instance.roomData);
+                writer.WriteByte((byte)Instance.roomMode);
                 writer.WriteInt(Instance.roomCount);
                 LobbyTransport.Instance.SendToServer(writer);
             }

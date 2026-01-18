@@ -21,23 +21,18 @@ namespace Astraia.Net
         public static NetworkManager Instance;
         private static Transport connection;
         private static Transport collection;
+        public bool isRemote;
         public int roomCount = 100;
         public string roomGuid;
         public string roomData;
         public string roomName;
         public RoomMode roomMode;
-
+     
         public static bool isHost => isServer && isClient;
         public static bool isLobby => Lobby.state != State.Disconnect;
         public static bool isServer => Server.state != State.Disconnect;
         public static bool isClient => Client.state != State.Disconnect;
-        public static Transport Transport => isRemote ? collection : connection;
-
-        private static bool isRemote
-        {
-            get => LobbyTransport.Instance.enabled;
-            set => LobbyTransport.Instance.enabled = value;
-        }
+        public static Transport Transport => Instance.isRemote ? collection : connection;
 
         protected override void Awake()
         {

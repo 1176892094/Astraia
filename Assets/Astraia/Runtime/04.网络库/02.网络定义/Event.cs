@@ -19,8 +19,6 @@ namespace Astraia.Common
     public record ServerDisconnect(int client) : IEvent;
 
     public record ServerReady(int client) : IEvent;
-    
-    public record ServerComplete : IEvent;
 
     public record ClientConnect : IEvent;
 

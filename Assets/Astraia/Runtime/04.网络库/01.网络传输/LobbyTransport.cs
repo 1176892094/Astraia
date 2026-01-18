@@ -15,7 +15,7 @@ namespace Astraia.Net
 {
     public sealed class LobbyTransport : Transport
     {
-        internal static Transport Instance;
+        public static Transport Instance;
 
         private void Awake()
         {

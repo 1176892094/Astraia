@@ -78,7 +78,6 @@ namespace Astraia.Net
                     DestroyMessage(new DestroyMessage(entity.objectId));
                 }
 
-                EventManager.Invoke(new ClientDisconnect());
                 state = State.Disconnect;
                 connection.Disconnect();
                 sendTime = 0;
@@ -88,6 +87,7 @@ namespace Astraia.Net
                 spawns.Clear();
                 scenes.Clear();
                 isLoadScene = false;
+                EventManager.Invoke(new ClientDisconnect());
             }
 
             private static void Load(string sceneName)

@@ -35,6 +35,8 @@ namespace Astraia.Net
             private static uint objectId;
 
             private static double sendTime;
+            public static bool isReady => clients.Values.All(connection => connection.isReady);
+            public static int connections => clients.Count;
 
             internal static void Start(bool isHost)
             {
@@ -147,10 +149,6 @@ namespace Astraia.Net
                 }
 
                 EventManager.Invoke(new ServerReady(client.clientId));
-                if (clients.Values.All(connection => connection.isReady))
-                {
-                    EventManager.Invoke(new ServerComplete());
-                }
             }
 
             private static void EntityMessage(NetworkClient client, EntityMessage message)
