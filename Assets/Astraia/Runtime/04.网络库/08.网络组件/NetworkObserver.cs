@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkObserver : Singleton<NetworkObserver, Entity>, ISystem, IEvent<ServerDisconnect>, IEvent<ServerObserver>, IEvent<OnVisibleUpdate>
+    public class NetworkObserver : Singleton<NetworkObserver, Entity>, ISystem, IEvent<OnVisibleUpdate>, IEvent<ServerDisconnect>, IEvent<ServerObserver>
     {
         private readonly Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
         private readonly HashSet<NetworkClient> items = new HashSet<NetworkClient>();
@@ -55,7 +55,7 @@ namespace Astraia.Net
                     waitTime = Time.unscaledTimeAsDouble + 0.5;
                     foreach (var entity in NetworkManager.Server.spawns.Values)
                     {
-                        if (entity.visible != Visible.Show)
+                        if (entity.visible != Visible.Spreader)
                         {
                             Tick(entity);
                         }
@@ -68,8 +68,8 @@ namespace Astraia.Net
         {
             if (players.TryGetValue(client, out var player))
             {
-                var p = grids.Position(entity.transform.position) - grids.Position(player.transform.position);
-                if (Mathf.Abs(p.x) <= range.x && Mathf.Abs(p.y) <= range.y)
+                var node = grids.Position(entity.transform.position) - grids.Position(player.transform.position);
+                if (Mathf.Abs(node.x) <= range.x && Mathf.Abs(node.y) <= range.y)
                 {
                     entity.AddObserver(client);
                 }
@@ -78,11 +78,7 @@ namespace Astraia.Net
 
         public void Tick(NetworkEntity entity)
         {
-            items.Clear();
-            if (entity.visible != Visible.Hide)
-            {
-                grids.Find(grids.Position(entity.transform.position), items);
-            }
+            grids.Find(grids.Position(entity.transform.position), items);
 
             if (entity.client != null)
             {

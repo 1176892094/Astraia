@@ -19,12 +19,12 @@ namespace Astraia.Common
     public record ServerDisconnect(int client) : IEvent;
 
     public record ServerReady(int client) : IEvent;
+    
+    public record ServerComplete : IEvent;
 
     public record ClientConnect : IEvent;
 
     public record ClientDisconnect : IEvent;
-
-    public record ClientNotReady : IEvent;
 
     public record ServerLoadScene(string sceneName) : IEvent;
 
@@ -44,5 +44,5 @@ namespace Astraia.Common
 
     public record LobbyCreateRoom(string room) : IEvent;
 
-    public record PingUpdate : IEvent;
+    public record PingUpdate(double pingTime) : IEvent;
 }

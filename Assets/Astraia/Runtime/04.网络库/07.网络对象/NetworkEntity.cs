@@ -35,7 +35,7 @@ namespace Astraia.Net
 
         internal int count;
 
-        internal Mode mode;
+        internal Label label;
 
         internal State state;
 
@@ -49,11 +49,11 @@ namespace Astraia.Net
 
         internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
 
-        public bool isOwner => (mode & Mode.Owner) != 0;
+        public bool isOwner => (label & Label.Owner) != 0;
 
-        public bool isServer => (mode & Mode.Server) != 0 && NetworkManager.isServer;
+        public bool isServer => (label & Label.Server) != 0 && NetworkManager.isServer;
 
-        public bool isClient => (mode & Mode.Client) != 0 && NetworkManager.isClient;
+        public bool isClient => (label & Label.Client) != 0 && NetworkManager.isClient;
 
 
         protected override void OnEnable()
@@ -106,7 +106,7 @@ namespace Astraia.Net
             client = null;
             owner.position = 0;
             agent.position = 0;
-            mode = Mode.None;
+            label = Label.None;
             state = State.None;
             ClearObserver();
         }
@@ -364,7 +364,7 @@ namespace Astraia.Net
         }
 
         [Flags]
-        internal enum Mode : byte
+        internal enum Label : byte
         {
             None = 0,
             Owner = 1 << 0,

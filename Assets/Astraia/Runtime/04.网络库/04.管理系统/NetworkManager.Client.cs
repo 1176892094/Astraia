@@ -22,17 +22,17 @@ namespace Astraia.Net
     {
         public static partial class Client
         {
-            internal static readonly Dictionary<uint, NetworkEntity> scenes = new Dictionary<uint, NetworkEntity>();
+            private static readonly Dictionary<uint, NetworkEntity> scenes = new Dictionary<uint, NetworkEntity>();
 
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 
-            internal static readonly Dictionary<uint, NetworkEntity> copies = new Dictionary<uint, NetworkEntity>();
+            private static readonly Dictionary<uint, NetworkEntity> copies = new Dictionary<uint, NetworkEntity>();
 
             internal static State state = State.Disconnect;
 
             private static bool isLoadScene;
 
-            public static double pingTime;
+            internal static double pingTime;
 
             private static double pongTime;
 
@@ -93,17 +93,14 @@ namespace Astraia.Net
 
             private static void Load(string sceneName)
             {
-                if (isLoadScene)
+                if (!isLoadScene)
                 {
-                    Service.Log.Error("客户端正在加载 {0} 场景", sceneName);
-                    return;
-                }
-
-                EventManager.Invoke(new ClientLoadScene(sceneName));
-                if (!isServer)
-                {
-                    isLoadScene = true;
-                    AssetManager.LoadScene(sceneName);
+                    EventManager.Invoke(new ClientLoadScene(sceneName));
+                    if (!isServer)
+                    {
+                        isLoadScene = true;
+                        AssetManager.LoadScene(sceneName);
+                    }
                 }
             }
 
@@ -135,7 +132,6 @@ namespace Astraia.Net
                 }
 
                 NetworkMessage<PingMessage>.Add(PingMessage);
-                NetworkMessage<NotReadyMessage>.Add(NotReadyMessage);
                 NetworkMessage<EntityMessage>.Add(EntityMessage);
                 NetworkMessage<ClientRpcMessage>.Add(ClientRpcMessage);
                 NetworkMessage<SceneMessage>.Add(SceneMessage);
@@ -153,17 +149,10 @@ namespace Astraia.Net
                 }
                 else
                 {
-                    var delta = Time.unscaledTimeAsDouble - message.clientTime - pingTime;
-                    pingTime += 2.0 / (6 + 1) * delta;
+                    pingTime += 2.0 / (6 + 1) * (Time.unscaledTimeAsDouble - message.clientTime - pingTime);
                 }
 
-                EventManager.Invoke(new PingUpdate());
-            }
-
-            private static void NotReadyMessage(NotReadyMessage message)
-            {
-                connection.isReady = false;
-                EventManager.Invoke(new ClientNotReady());
+                EventManager.Invoke(new PingUpdate(pingTime));
             }
 
             private static void EntityMessage(EntityMessage message)
@@ -200,13 +189,11 @@ namespace Astraia.Net
 
             private static void SceneMessage(SceneMessage message)
             {
-                if (!isActive)
+                if (isActive)
                 {
-                    Service.Log.Warn("客户端没有通过验证，无法加载场景。");
-                    return;
+                    connection.isReady = false;
+                    Load(message.sceneName);
                 }
-
-                Load(message.sceneName);
             }
         }
 
@@ -214,12 +201,6 @@ namespace Astraia.Net
         {
             private static void Connect()
             {
-                if (connection == null)
-                {
-                    Service.Log.Error("没有连接到有效的服务器！");
-                    return;
-                }
-
                 state = State.Connected;
                 connection.isReady = true;
                 connection.Send(new ReadyMessage());
@@ -307,8 +288,8 @@ namespace Astraia.Net
                     entity.transform.localPosition = message.position;
                     entity.transform.localRotation = message.rotation;
                     entity.transform.localScale = message.localScale;
-                    entity.mode = (message.opcode & 1) != 0 ? entity.mode | NetworkEntity.Mode.Owner : entity.mode & ~NetworkEntity.Mode.Owner;
-                    entity.mode |= NetworkEntity.Mode.Client;
+                    entity.label = message.isOwner ? entity.label | NetworkEntity.Label.Owner : entity.label & ~NetworkEntity.Label.Owner;
+                    entity.label |= NetworkEntity.Label.Client;
 
                     if (message.segment.Count > 0)
                     {
@@ -328,7 +309,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.mode &= ~NetworkEntity.Mode.Owner;
+                    entity.label &= ~NetworkEntity.Label.Owner;
                     entity.OnNotifyAuthority();
                     entity.gameObject.SetActive(false);
                     if (!isServer)
@@ -345,7 +326,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.mode &= ~NetworkEntity.Mode.Owner;
+                    entity.label &= ~NetworkEntity.Label.Owner;
                     entity.OnNotifyAuthority();
                     if (!isServer)
                     {
@@ -395,10 +376,7 @@ namespace Astraia.Net
 
                 return entity;
             }
-        }
 
-        public static partial class Client
-        {
             internal static void EarlyUpdate()
             {
                 Transport.Instance?.ClientEarlyUpdate();
@@ -406,11 +384,20 @@ namespace Astraia.Net
 
             internal static void AfterUpdate()
             {
-                if (isClient)
+                if (isClient && NetworkSystem.Tick(ref sendTime))
                 {
-                    if (NetworkSystem.Tick(ref sendTime))
+                    if (!isServer && connection.isReady)
                     {
-                        Broadcast();
+                        foreach (var entity in spawns.Values)
+                        {
+                            using var writer = MemoryWriter.Pop();
+                            NetworkSerialize.ClientSerialize(entity.modules, writer, entity.isOwner);
+                            if (writer.position > 0)
+                            {
+                                connection.Send(new EntityMessage(entity.objectId, writer));
+                                entity.ClearDirty(false);
+                            }
+                        }
                     }
                 }
 
@@ -436,30 +423,6 @@ namespace Astraia.Net
                 }
 
                 Transport.Instance?.ClientAfterUpdate();
-            }
-
-            private static void Broadcast()
-            {
-                if (isServer)
-                {
-                    return;
-                }
-
-                if (!connection.isReady)
-                {
-                    return;
-                }
-
-                foreach (var entity in spawns.Values)
-                {
-                    using var writer = MemoryWriter.Pop();
-                    NetworkSerialize.ClientSerialize(entity.modules, writer, entity.isOwner);
-                    if (writer.position > 0)
-                    {
-                        connection.Send(new EntityMessage(entity.objectId, writer));
-                        entity.ClearDirty(false);
-                    }
-                }
             }
         }
     }

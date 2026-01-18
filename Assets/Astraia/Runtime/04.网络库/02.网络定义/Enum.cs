@@ -40,9 +40,8 @@ namespace Astraia.Net
 
     public enum Visible : byte
     {
-        Show = 0,
-        Hide = 1,
-        Auto = 2,
+        Spreader = 0,
+        Observer = 1,
     }
 
     [Flags]

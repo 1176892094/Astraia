@@ -21,11 +21,7 @@ namespace Astraia.Common
     internal struct ReadyMessage : IMessage
     {
     }
-
-    internal struct NotReadyMessage : IMessage
-    {
-    }
-
+    
     internal struct SceneMessage : IMessage
     {
         public readonly string sceneName;
@@ -62,7 +58,7 @@ namespace Astraia.Common
 
     internal struct SpawnMessage : IMessage
     {
-        public byte opcode;
+        public bool isOwner;
         public uint assetId;
         public uint sceneId;
         public uint objectId;

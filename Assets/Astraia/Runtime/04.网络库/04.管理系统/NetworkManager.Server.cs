@@ -30,17 +30,13 @@ namespace Astraia.Net
 
             internal static State state = State.Disconnect;
 
-            public static bool isLoadScene;
+            private static bool isLoadScene;
 
             private static uint objectId;
 
             private static double sendTime;
 
-            public static int connection = byte.MaxValue;
-
-            public static bool isReady => clients.Values.All(client => client.isReady);
-
-            public static int connections => clients.Count;
+            internal static int connection = byte.MaxValue;
 
             internal static void Start(bool isHost)
             {
@@ -74,29 +70,21 @@ namespace Astraia.Net
 
             public static void Load(string sceneName)
             {
-                if (isLoadScene)
+                if (!isLoadScene)
                 {
-                    Service.Log.Error("服务器正在加载 {0} 场景", sceneName);
-                    return;
-                }
-
-                foreach (var client in clients.Values)
-                {
-                    client.isReady = false;
-                    client.ClearObserver();
-                    client.Send(new NotReadyMessage());
-                }
-
-                EventManager.Invoke(new ServerLoadScene(sceneName));
-                if (isServer)
-                {
-                    isLoadScene = true;
-                    foreach (var client in clients.Values)
+                    EventManager.Invoke(new ServerLoadScene(sceneName));
+                    if (isServer)
                     {
-                        client.Send(new SceneMessage(sceneName));
-                    }
+                        isLoadScene = true;
+                        foreach (var client in clients.Values)
+                        {
+                            client.isReady = false;
+                            client.ClearObserver();
+                            client.Send(new SceneMessage(sceneName));
+                        }
 
-                    AssetManager.LoadScene(sceneName);
+                        AssetManager.LoadScene(sceneName);
+                    }
                 }
             }
 
@@ -149,22 +137,22 @@ namespace Astraia.Net
                 {
                     if (entity.isActiveAndEnabled)
                     {
-                        switch (entity.visible)
+                        if (entity.visible == Visible.Observer)
                         {
-                            case Visible.Show:
-                                entity.AddObserver(client);
-                                break;
-                            case Visible.Auto when NetworkObserver.Instance:
-                                NetworkObserver.Instance.Tick(entity, client);
-                                break;
-                            case Visible.Auto:
-                                entity.AddObserver(client);
-                                break;
+                            NetworkObserver.Instance.Tick(entity, client);
+                        }
+                        else
+                        {
+                            entity.AddObserver(client);
                         }
                     }
                 }
 
                 EventManager.Invoke(new ServerReady(client));
+                if (clients.Values.All(connection => connection.isReady))
+                {
+                    EventManager.Invoke(new ServerComplete());
+                }
             }
 
             private static void EntityMessage(NetworkClient client, EntityMessage message)
@@ -333,9 +321,9 @@ namespace Astraia.Net
                 }
 
                 entity.client = client;
-                entity.mode = client?.clientId == 0 ? entity.mode | NetworkEntity.Mode.Owner : entity.mode & ~NetworkEntity.Mode.Owner;
-                entity.mode = isServer ? entity.mode | NetworkEntity.Mode.Server : entity.mode & ~NetworkEntity.Mode.Server;
-                entity.mode = isClient ? entity.mode | NetworkEntity.Mode.Client : entity.mode & ~NetworkEntity.Mode.Client;
+                entity.label = client?.clientId == 0 ? entity.label | NetworkEntity.Label.Owner : entity.label & ~NetworkEntity.Label.Owner;
+                entity.label = isServer ? entity.label | NetworkEntity.Label.Server : entity.label & ~NetworkEntity.Label.Server;
+                entity.label = isClient ? entity.label | NetworkEntity.Label.Client : entity.label & ~NetworkEntity.Label.Client;
                 if (entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
@@ -343,27 +331,18 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (NetworkObserver.Instance && entity.visible != Visible.Show)
+                if (entity.visible == Visible.Observer)
                 {
                     NetworkObserver.Instance.Tick(entity);
-                    return;
                 }
-
-                if (entity.visible == Visible.Hide)
+                else
                 {
-                    if (client != null)
+                    foreach (var result in clients.Values)
                     {
-                        entity.AddObserver(client);
-                    }
-
-                    return;
-                }
-
-                foreach (var result in clients.Values)
-                {
-                    if (result.isReady)
-                    {
-                        entity.AddObserver(result);
+                        if (result.isReady)
+                        {
+                            entity.AddObserver(result);
+                        }
                     }
                 }
             }
@@ -378,12 +357,9 @@ namespace Astraia.Net
                     NetworkSerialize.ServerSerialize(entity.modules, owner, agent, true);
                 }
 
-                byte opcode = 0;
-                opcode = (byte)(entity.client == client ? opcode | 1 : opcode & ~1);
-                opcode = (byte)(entity.visible == Visible.Auto ? opcode | 2 : opcode & ~2);
                 var message = new SpawnMessage
                 {
-                    opcode = opcode,
+                    isOwner = entity.client == client,
                     assetId = entity.assetId,
                     sceneId = entity.sceneId,
                     objectId = entity.objectId,
@@ -418,10 +394,7 @@ namespace Astraia.Net
                     }
                 }
             }
-        }
 
-        public partial class Server
-        {
             internal static void EarlyUpdate()
             {
                 Transport.Instance?.ServerEarlyUpdate();
@@ -429,58 +402,50 @@ namespace Astraia.Net
 
             internal static void AfterUpdate()
             {
-                if (isServer)
+                if (isServer && NetworkSystem.Tick(ref sendTime))
                 {
-                    if (NetworkSystem.Tick(ref sendTime))
+                    copies.Clear();
+                    copies.AddRange(clients.Values);
+                    foreach (var client in copies)
                     {
-                        Broadcast();
-                    }
-                }
-
-                Transport.Instance?.ServerAfterUpdate();
-            }
-
-            private static void Broadcast()
-            {
-                copies.Clear();
-                copies.AddRange(clients.Values);
-                foreach (var client in copies)
-                {
-                    if (client.isReady)
-                    {
-                        foreach (var entity in client.entities)
+                        if (client.isReady)
                         {
-                            if (entity)
+                            foreach (var entity in client.entities)
                             {
-                                if (entity.count != Time.frameCount)
+                                if (entity)
                                 {
-                                    entity.count = Time.frameCount;
-                                    entity.owner.position = 0;
-                                    entity.agent.position = 0;
-                                    NetworkSerialize.ServerSerialize(entity.modules, entity.owner, entity.agent);
-                                    entity.ClearDirty(true);
-                                }
-
-                                if (entity.client == client)
-                                {
-                                    if (entity.owner.position > 0)
+                                    if (entity.count != Time.frameCount)
                                     {
-                                        client.Send(new EntityMessage(entity.objectId, entity.owner));
+                                        entity.count = Time.frameCount;
+                                        entity.owner.position = 0;
+                                        entity.agent.position = 0;
+                                        NetworkSerialize.ServerSerialize(entity.modules, entity.owner, entity.agent);
+                                        entity.ClearDirty(true);
                                     }
-                                }
-                                else
-                                {
-                                    if (entity.agent.position > 0)
+
+                                    if (entity.client == client)
                                     {
-                                        client.Send(new EntityMessage(entity.objectId, entity.agent));
+                                        if (entity.owner.position > 0)
+                                        {
+                                            client.Send(new EntityMessage(entity.objectId, entity.owner));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (entity.agent.position > 0)
+                                        {
+                                            client.Send(new EntityMessage(entity.objectId, entity.agent));
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    client.Update();
+                        client.Update();
+                    }
                 }
+
+                Transport.Instance?.ServerAfterUpdate();
             }
         }
     }
