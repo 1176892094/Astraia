@@ -175,7 +175,7 @@ namespace Astraia.Net
             var message = new ServerRpcMessage
             {
                 objectId = objectId,
-                sourceId = moduleId,
+                moduleId = moduleId,
                 methodHash = (ushort)hash,
                 segment = writer,
             };
@@ -200,7 +200,7 @@ namespace Astraia.Net
             var message = new ClientRpcMessage
             {
                 objectId = objectId,
-                sourceId = moduleId,
+                moduleId = moduleId,
                 methodHash = (ushort)hash,
                 segment = writer
             };
@@ -242,7 +242,7 @@ namespace Astraia.Net
             var message = new ClientRpcMessage
             {
                 objectId = objectId,
-                sourceId = moduleId,
+                moduleId = moduleId,
                 methodHash = (ushort)hash,
                 segment = writer
             };
@@ -251,18 +251,18 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterGeneral<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged)
+        public void SyncVarSetterGeneral<T>(T value, ref T field, ulong dirty, Action<T, T> onUpdate)
         {
             if (!SyncVarEqualGeneral(value, ref field))
             {
                 var oldValue = field;
                 SetSyncVarGeneral(value, ref field, dirty);
-                if (OnChanged != null)
+                if (onUpdate != null)
                 {
                     if (NetworkManager.isHost && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
-                        OnChanged(oldValue, value);
+                        onUpdate(oldValue, value);
                         SetSyncVarHook(dirty, false);
                     }
                 }
@@ -270,18 +270,18 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterGameObject(GameObject value, ref GameObject field, ulong dirty, Action<GameObject, GameObject> OnChanged, ref uint objectId)
+        public void SyncVarSetterGameObject(GameObject value, ref GameObject field, ulong dirty, Action<GameObject, GameObject> onUpdate, ref uint objectId)
         {
             if (!SyncVarEqualGameObject(value, objectId))
             {
                 var oldValue = field;
                 SetSyncVarGameObject(value, ref field, dirty, ref objectId);
-                if (OnChanged != null)
+                if (onUpdate != null)
                 {
                     if (NetworkManager.isHost && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
-                        OnChanged(oldValue, value);
+                        onUpdate(oldValue, value);
                         SetSyncVarHook(dirty, false);
                     }
                 }
@@ -289,18 +289,18 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterNetworkEntity(NetworkEntity value, ref NetworkEntity field, ulong dirty, Action<NetworkEntity, NetworkEntity> OnChanged, ref uint objectId)
+        public void SyncVarSetterNetworkEntity(NetworkEntity value, ref NetworkEntity field, ulong dirty, Action<NetworkEntity, NetworkEntity> onUpdate, ref uint objectId)
         {
             if (!SyncVarEqualNetworkEntity(value, objectId))
             {
                 var oldValue = field;
                 SetSyncVarNetworkEntity(value, ref field, dirty, ref objectId);
-                if (OnChanged != null)
+                if (onUpdate != null)
                 {
                     if (NetworkManager.isHost && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
-                        OnChanged(oldValue, value);
+                        onUpdate(oldValue, value);
                         SetSyncVarHook(dirty, false);
                     }
                 }
@@ -308,18 +308,18 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarSetterNetworkModule<T>(T value, ref T field, ulong dirty, Action<T, T> OnChanged, ref NetworkVariable variable) where T : NetworkModule
+        public void SyncVarSetterNetworkModule<T>(T value, ref T field, ulong dirty, Action<T, T> onUpdate, ref NetworkVariable variable) where T : NetworkModule
         {
             if (!SyncVarEqualNetworkModule(value, variable))
             {
                 var oldValue = field;
                 SetSyncVarNetworkModule(value, ref field, dirty, ref variable);
-                if (OnChanged != null)
+                if (onUpdate != null)
                 {
                     if (NetworkManager.isHost && !GetSyncVarHook(dirty))
                     {
                         SetSyncVarHook(dirty, true);
-                        OnChanged(oldValue, value);
+                        onUpdate(oldValue, value);
                         SetSyncVarHook(dirty, false);
                     }
                 }
@@ -327,52 +327,52 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterGeneral<T>(ref T field, Action<T, T> OnChanged, T value)
+        public void SyncVarGetterGeneral<T>(ref T field, Action<T, T> onUpdate, T value)
         {
             var oldValue = field;
             field = value;
-            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref field))
+            if (onUpdate != null && !SyncVarEqualGeneral(oldValue, ref field))
             {
-                OnChanged(oldValue, field);
+                onUpdate(oldValue, field);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterGameObject(ref GameObject field, Action<GameObject, GameObject> OnChanged, MemoryReader reader, ref uint objectId)
+        public void SyncVarGetterGameObject(ref GameObject field, Action<GameObject, GameObject> onUpdate, MemoryReader reader, ref uint objectId)
         {
             var oldValue = objectId;
             var value = field;
             objectId = reader.ReadUInt();
             field = GetSyncVarGameObject(objectId, ref field);
-            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref objectId))
+            if (onUpdate != null && !SyncVarEqualGeneral(oldValue, ref objectId))
             {
-                OnChanged(value, field);
+                onUpdate(value, field);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterNetworkEntity(ref NetworkEntity field, Action<NetworkEntity, NetworkEntity> OnChanged, MemoryReader reader, ref uint objectId)
+        public void SyncVarGetterNetworkEntity(ref NetworkEntity field, Action<NetworkEntity, NetworkEntity> onUpdate, MemoryReader reader, ref uint objectId)
         {
             var oldValue = objectId;
             var value = field;
             objectId = reader.ReadUInt();
             field = GetSyncVarNetworkEntity(objectId, ref field);
-            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref objectId))
+            if (onUpdate != null && !SyncVarEqualGeneral(oldValue, ref objectId))
             {
-                OnChanged(value, field);
+                onUpdate(value, field);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SyncVarGetterNetworkModule<T>(ref T field, Action<T, T> OnChanged, MemoryReader reader, ref NetworkVariable variable) where T : NetworkModule
+        public void SyncVarGetterNetworkModule<T>(ref T field, Action<T, T> onUpdate, MemoryReader reader, ref NetworkVariable variable) where T : NetworkModule
         {
             var oldValue = variable;
             var value = field;
             variable = reader.ReadNetworkVariable();
             field = GetSyncVarNetworkModule(variable, ref field);
-            if (OnChanged != null && !SyncVarEqualGeneral(oldValue, ref variable))
+            if (onUpdate != null && !SyncVarEqualGeneral(oldValue, ref variable))
             {
-                OnChanged(value, field);
+                onUpdate(value, field);
             }
         }
 

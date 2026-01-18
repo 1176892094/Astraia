@@ -46,16 +46,16 @@ namespace Astraia.Common
 
     internal struct ServerRpcMessage : IMessage
     {
-        public byte sourceId;
         public uint objectId;
+        public byte moduleId;
         public ushort methodHash;
         public ArraySegment<byte> segment;
     }
 
     internal struct ClientRpcMessage : IMessage
     {
-        public byte sourceId;
         public uint objectId;
+        public byte moduleId;
         public ushort methodHash;
         public ArraySegment<byte> segment;
     }

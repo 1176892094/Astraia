@@ -18,6 +18,26 @@ namespace Astraia.Net
 {
     using MessageDelegate = Action<NetworkClient, MemoryReader, int>;
 
+    internal static class NetworkMessage
+    {
+        public static readonly Dictionary<ushort, MessageDelegate> client = new Dictionary<ushort, MessageDelegate>();
+        public static readonly Dictionary<ushort, MessageDelegate> server = new Dictionary<ushort, MessageDelegate>();
+
+        public static uint Id(string name)
+        {
+            var result = 23U;
+            unchecked
+            {
+                foreach (var c in name)
+                {
+                    result = result * 31 + c;
+                }
+
+                return result;
+            }
+        }
+    }
+
     public static class NetworkMessage<T> where T : struct, IMessage
     {
         public static readonly ushort Id = (ushort)NetworkMessage.Id(typeof(T).FullName);
@@ -77,26 +97,6 @@ namespace Astraia.Net
                     client.Disconnect();
                 }
             };
-        }
-    }
-
-    internal static class NetworkMessage
-    {
-        public static readonly Dictionary<ushort, MessageDelegate> client = new Dictionary<ushort, MessageDelegate>();
-        public static readonly Dictionary<ushort, MessageDelegate> server = new Dictionary<ushort, MessageDelegate>();
-
-        public static uint Id(string name)
-        {
-            var result = 23U;
-            unchecked
-            {
-                foreach (var c in name)
-                {
-                    result = result * 31 + c;
-                }
-
-                return result;
-            }
         }
     }
 }

@@ -203,7 +203,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                entity.ClientDeserialize(reader, false);
+                NetworkSerialize.ClientDeserialize(entity.modules, reader);
             }
 
             private static void ClientRpcMessage(ClientRpcMessage message)
@@ -211,7 +211,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     using var reader = MemoryReader.Pop(message.segment);
-                    entity.InvokeMessage(message.sourceId, message.methodHash, InvokeMode.ClientRpc, reader);
+                    entity.InvokeMessage(message.moduleId, message.methodHash, InvokeMode.ClientRpc, reader);
                 }
             }
 
@@ -323,13 +323,13 @@ namespace Astraia.Net
                     entity.transform.localPosition = message.position;
                     entity.transform.localRotation = message.rotation;
                     entity.transform.localScale = message.localScale;
-                    entity.mode = (message.opcode & 1) != 0 ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
-                    entity.mode |= EntityMode.Client;
+                    entity.mode = (message.opcode & 1) != 0 ? entity.mode | NetworkEntity.Mode.Owner : entity.mode & ~NetworkEntity.Mode.Owner;
+                    entity.mode |= NetworkEntity.Mode.Client;
 
                     if (message.segment.Count > 0)
                     {
                         using var reader = MemoryReader.Pop(message.segment);
-                        entity.ClientDeserialize(reader, true);
+                        NetworkSerialize.ClientDeserialize(entity.modules, reader, true);
                     }
 
                     spawns[message.objectId] = entity;
@@ -344,7 +344,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.mode &= ~EntityMode.Owner;
+                    entity.mode &= ~NetworkEntity.Mode.Owner;
                     entity.OnNotifyAuthority();
                     entity.gameObject.SetActive(false);
                     if (!isServer)
@@ -361,7 +361,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.mode &= ~EntityMode.Owner;
+                    entity.mode &= ~NetworkEntity.Mode.Owner;
                     entity.OnNotifyAuthority();
                     if (!isServer)
                     {
@@ -372,7 +372,7 @@ namespace Astraia.Net
                         }
                         else
                         {
-                            entity.state |= EntityState.Destroy;
+                            entity.state |= NetworkEntity.State.Release;
                             Destroy(entity.gameObject);
                         }
                     }
@@ -469,7 +469,7 @@ namespace Astraia.Net
                 foreach (var entity in spawns.Values)
                 {
                     using var writer = MemoryWriter.Pop();
-                    entity.ClientSerialize(writer);
+                    NetworkSerialize.ClientSerialize(entity.modules, writer, entity.isOwner);
                     if (writer.position > 0)
                     {
                         connection.Send(new EntityMessage(entity.objectId, writer));

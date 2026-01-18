@@ -194,7 +194,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                if (!entity.ServerDeserialize(reader))
+                if (!NetworkSerialize.ServerDeserialize(entity.modules, reader))
                 {
                     Service.Log.Warn("无法为客户端 {0} 反序列化网络对象: {1}", client.clientId, message.objectId);
                     client.Disconnect();
@@ -223,7 +223,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                entity.InvokeMessage(message.sourceId, message.methodHash, InvokeMode.ServerRpc, reader, client);
+                entity.InvokeMessage(message.moduleId, message.methodHash, InvokeMode.ServerRpc, reader, client);
             }
         }
 
@@ -343,9 +343,9 @@ namespace Astraia.Net
                 }
 
                 entity.client = client;
-                entity.mode = client?.clientId == Host ? entity.mode | EntityMode.Owner : entity.mode & ~EntityMode.Owner;
-                entity.mode = isServer ? entity.mode | EntityMode.Server : entity.mode & ~EntityMode.Server;
-                entity.mode = isClient ? entity.mode | EntityMode.Client : entity.mode & ~EntityMode.Client;
+                entity.mode = client?.clientId == Host ? entity.mode | NetworkEntity.Mode.Owner : entity.mode & ~NetworkEntity.Mode.Owner;
+                entity.mode = isServer ? entity.mode | NetworkEntity.Mode.Server : entity.mode & ~NetworkEntity.Mode.Server;
+                entity.mode = isClient ? entity.mode | NetworkEntity.Mode.Client : entity.mode & ~NetworkEntity.Mode.Client;
                 if (entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
@@ -381,12 +381,11 @@ namespace Astraia.Net
             internal static void SpawnMessage(NetworkEntity entity, NetworkClient client)
             {
                 using var owner = MemoryWriter.Pop();
-                using var other = MemoryWriter.Pop();
-                ArraySegment<byte> segment = default;
-                if (entity.modules.Count > 0)
+                using var agent = MemoryWriter.Pop();
+            
+                if (entity.modules.Length > 0)
                 {
-                    entity.ServerSerialize(true, owner, other);
-                    segment = entity.client == client ? owner : other;
+                    NetworkSerialize.ServerSerialize(entity.modules, owner, agent, true);
                 }
 
                 byte opcode = 0;
@@ -401,7 +400,7 @@ namespace Astraia.Net
                     position = entity.transform.localPosition,
                     rotation = entity.transform.localRotation,
                     localScale = entity.transform.localScale,
-                    segment = segment
+                    segment = entity.modules.Length > 0 ? entity.client == client ? owner : agent : null,
                 };
                 client.Send(message);
             }
@@ -424,7 +423,7 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        entity.state |= EntityState.Destroy;
+                        entity.state |= NetworkEntity.State.Release;
                         Object.Destroy(entity.gameObject);
                     }
                 }
@@ -463,12 +462,12 @@ namespace Astraia.Net
                         {
                             if (entity)
                             {
-                                if (entity.frameCount != Time.frameCount)
+                                if (entity.count != Time.frameCount)
                                 {
-                                    entity.frameCount = Time.frameCount;
+                                    entity.count = Time.frameCount;
                                     entity.owner.position = 0;
-                                    entity.other.position = 0;
-                                    entity.ServerSerialize(false, entity.owner, entity.other);
+                                    entity.agent.position = 0;
+                                    NetworkSerialize.ServerSerialize(entity.modules, entity.owner, entity.agent);
                                     entity.ClearDirty(true);
                                 }
 
@@ -481,9 +480,9 @@ namespace Astraia.Net
                                 }
                                 else
                                 {
-                                    if (entity.other.position > 0)
+                                    if (entity.agent.position > 0)
                                     {
-                                        client.Send(new EntityMessage(entity.objectId, entity.other));
+                                        client.Send(new EntityMessage(entity.objectId, entity.agent));
                                     }
                                 }
                             }

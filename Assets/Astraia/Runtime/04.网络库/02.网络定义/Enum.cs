@@ -46,25 +46,6 @@ namespace Astraia.Net
     }
 
     [Flags]
-    internal enum EntityMode : byte
-    {
-        None = 0,
-        Owner = 1 << 0,
-        Client = 1 << 1,
-        Server = 1 << 2,
-    }
-
-    [Flags]
-    internal enum EntityState : byte
-    {
-        None = 0,
-        Awake = 1 << 0,
-        Spawn = 1 << 1,
-        Owner = 1 << 2,
-        Destroy = 1 << 3,
-    }
-
-    [Flags]
     internal enum TransformOption : byte
     {
         None,

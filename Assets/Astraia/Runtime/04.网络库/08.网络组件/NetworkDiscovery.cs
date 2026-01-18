@@ -38,7 +38,7 @@ namespace Astraia.Net
                     MulticastLoopback = false
                 };
                 ClientReceive();
-                owner.InvokeRepeating(nameof(ClientSend), 0, 1);
+                ClientSend();
             }
         }
 
@@ -51,7 +51,6 @@ namespace Astraia.Net
             udpClient?.Close();
             udpServer = null;
             udpClient = null;
-            owner.CancelInvoke();
         }
 
         private void ClientSend()
@@ -138,7 +137,10 @@ namespace Astraia.Net
 
                     var endPoint = result.RemoteEndPoint;
                     var response = reader.Invoke<ResponseMessage>();
-                    EventManager.Invoke(new ServerResponse(new UriBuilder(response.uri) { Host = endPoint.Address.ToString() }.Uri));
+                    EventManager.Invoke(new ServerResponse(new UriBuilder(response.uri)
+                    {
+                        Host = endPoint.Address.ToString()
+                    }.Uri));
                 }
                 catch (ObjectDisposedException)
                 {

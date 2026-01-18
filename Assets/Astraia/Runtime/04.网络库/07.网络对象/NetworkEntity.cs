@@ -19,68 +19,64 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
-#if UNITY_EDITOR && ODIN_INSPECTOR
-using Sirenix.OdinInspector;
-#endif
 
 namespace Astraia.Net
 {
     [Serializable]
     public class NetworkEntity : Entity
     {
-        [HideInInspector] [SerializeField] internal uint assetId;
+        [SerializeField] [HideInInspector] internal uint assetId;
 
-        [HideInInspector] [SerializeField] internal uint sceneId;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [EnumToggleButtons, HideLabel]
-#endif
-        [SerializeField]
-        internal Visible visible;
+        [SerializeField] [HideInInspector] internal uint sceneId;
 
-        internal int frameCount;
+        [SerializeField] [HideInInspector] internal uint objectId;
 
-        internal uint objectId;
+        [SerializeField] internal Visible visible;
 
-        internal EntityMode mode;
+        internal int count;
 
-        internal EntityState state;
+        internal Mode mode;
+
+        internal State state;
 
         internal NetworkClient client;
 
+        internal NetworkModule[] modules;
+
         internal MemoryWriter owner = new MemoryWriter();
 
-        internal MemoryWriter other = new MemoryWriter();
-
-        internal List<NetworkModule> modules = new List<NetworkModule>();
+        internal MemoryWriter agent = new MemoryWriter();
 
         internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
 
-        public bool isOwner => (mode & EntityMode.Owner) != 0;
+        public bool isOwner => (mode & Mode.Owner) != 0;
 
-        public bool isServer => (mode & EntityMode.Server) != 0 && NetworkManager.isServer;
+        public bool isServer => (mode & Mode.Server) != 0 && NetworkManager.isServer;
 
-        public bool isClient => (mode & EntityMode.Client) != 0 && NetworkManager.isClient;
+        public bool isClient => (mode & Mode.Client) != 0 && NetworkManager.isClient;
 
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            if ((state & EntityState.Awake) == 0)
+            if ((state & State.Awake) == 0)
             {
+                var copies = new List<NetworkModule>();
                 foreach (var module in Values)
                 {
-                    if (module is NetworkModule entity)
+                    if (module is NetworkModule result)
                     {
-                        modules.Add(entity);
+                        copies.Add(result);
                     }
                 }
 
-                for (byte i = 0; i < modules.Count; ++i)
+                modules = copies.ToArray();
+                for (byte i = 0; i < modules.Length; ++i)
                 {
                     modules[i].moduleId = i;
                 }
 
-                state |= EntityState.Awake;
+                state |= State.Awake;
             }
         }
 
@@ -91,13 +87,13 @@ namespace Astraia.Net
                 NetworkManager.Client.spawns.Remove(objectId);
             }
 
-            if (isServer && (state & EntityState.Destroy) == 0)
+            if (isServer && (state & State.Release) == 0)
             {
                 NetworkManager.Server.Destroy(gameObject);
             }
 
             owner = null;
-            other = null;
+            agent = null;
             client = null;
             modules = null;
             ClearObserver();
@@ -109,9 +105,9 @@ namespace Astraia.Net
             objectId = 0;
             client = null;
             owner.position = 0;
-            other.position = 0;
-            mode = EntityMode.None;
-            state = EntityState.None;
+            agent.position = 0;
+            mode = Mode.None;
+            state = State.None;
             ClearObserver();
         }
 
@@ -210,7 +206,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if (moduleId >= modules.Count)
+            if (moduleId >= modules.Length)
             {
                 Service.Log.Warn("网络对象 {0} 没有找到网络行为组件 {1}", objectId, moduleId);
                 return;
@@ -222,150 +218,6 @@ namespace Astraia.Net
             }
         }
 
-        internal void ServerSerialize(bool initialize, MemoryWriter owner, MemoryWriter other)
-        {
-            var components = modules;
-            var (ownerMask, otherMask) = ServerDirtyMasks(initialize);
-
-            if (ownerMask != 0)
-            {
-                Service.Bit.EncodeULong(owner, ownerMask);
-            }
-
-            if (otherMask != 0)
-            {
-                Service.Bit.EncodeULong(other, otherMask);
-            }
-
-            if ((ownerMask | otherMask) != 0)
-            {
-                for (var i = 0; i < components.Count; ++i)
-                {
-                    var component = components[i];
-                    var ownerDirty = IsDirty(ownerMask, i);
-                    var otherDirty = IsDirty(otherMask, i);
-                    if (ownerDirty || otherDirty)
-                    {
-                        using var writer = MemoryWriter.Pop();
-                        component.Serialize(writer, initialize);
-                        ArraySegment<byte> segment = writer;
-                        if (ownerDirty)
-                        {
-                            owner.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                        }
-
-                        if (otherDirty)
-                        {
-                            other.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                        }
-                    }
-                }
-            }
-        }
-
-        internal void ClientSerialize(MemoryWriter writer)
-        {
-            var components = modules;
-            var dirtyMask = ClientDirtyMask();
-            if (dirtyMask != 0)
-            {
-                Service.Bit.EncodeULong(writer, dirtyMask);
-                for (var i = 0; i < components.Count; ++i)
-                {
-                    var component = components[i];
-
-                    if (IsDirty(dirtyMask, i))
-                    {
-                        component.Serialize(writer, false);
-                    }
-                }
-            }
-        }
-
-        internal bool ServerDeserialize(MemoryReader reader)
-        {
-            var components = modules;
-            var mask = Service.Bit.DecodeULong(reader);
-
-            for (var i = 0; i < components.Count; ++i)
-            {
-                if (IsDirty(mask, i))
-                {
-                    var component = components[i];
-
-                    if (component.syncDirection == SyncMode.Client)
-                    {
-                        if (!component.Deserialize(reader, false))
-                        {
-                            return false;
-                        }
-
-                        component.SetSyncVarDirty(ulong.MaxValue);
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        internal void ClientDeserialize(MemoryReader reader, bool initialize)
-        {
-            var components = modules;
-            var mask = Service.Bit.DecodeULong(reader);
-
-            for (var i = 0; i < components.Count; ++i)
-            {
-                if (IsDirty(mask, i))
-                {
-                    var component = components[i];
-                    component.Deserialize(reader, initialize);
-                }
-            }
-        }
-
-        private (ulong, ulong) ServerDirtyMasks(bool initialize)
-        {
-            ulong ownerMask = 0;
-            ulong otherMask = 0;
-
-            var components = modules;
-            for (var i = 0; i < components.Count; ++i)
-            {
-                var component = components[i];
-                var dirty = component.IsDirty();
-                ulong mask = 1U << i;
-                if (initialize || (component.syncDirection == SyncMode.Server && dirty))
-                {
-                    ownerMask |= mask;
-                }
-
-                if (initialize || dirty)
-                {
-                    otherMask |= mask;
-                }
-            }
-
-            return (ownerMask, otherMask);
-        }
-
-        private ulong ClientDirtyMask()
-        {
-            ulong mask = 0;
-            var components = modules;
-            for (var i = 0; i < components.Count; ++i)
-            {
-                var component = components[i];
-                if (isOwner && component.syncDirection == SyncMode.Client)
-                {
-                    if (component.IsDirty())
-                    {
-                        mask |= 1U << i;
-                    }
-                }
-            }
-
-            return mask;
-        }
 
         internal void ClearDirty(bool total)
         {
@@ -418,7 +270,7 @@ namespace Astraia.Net
 
         internal void OnStartClient()
         {
-            if ((state & EntityState.Spawn) == 0)
+            if ((state & State.Start) == 0)
             {
                 foreach (var module in modules)
                 {
@@ -428,13 +280,13 @@ namespace Astraia.Net
                     }
                 }
 
-                state |= EntityState.Spawn;
+                state |= State.Start;
             }
         }
 
         internal void OnStopClient()
         {
-            if ((state & EntityState.Spawn) != 0)
+            if ((state & State.Start) != 0)
             {
                 foreach (var module in modules)
                 {
@@ -444,7 +296,7 @@ namespace Astraia.Net
                     }
                 }
 
-                state &= ~EntityState.Spawn;
+                state &= ~State.Start;
             }
         }
 
@@ -470,47 +322,30 @@ namespace Astraia.Net
             }
         }
 
-        private void OnStartAuthority()
-        {
-            foreach (var module in modules)
-            {
-                if (module is IStartAuthority result)
-                {
-                    result.OnStartAuthority();
-                }
-            }
-        }
-
-        private void OnStopAuthority()
-        {
-            foreach (var module in modules)
-            {
-                if (module is IStopAuthority result)
-                {
-                    result.OnStopAuthority();
-                }
-            }
-        }
-
         internal void OnNotifyAuthority()
         {
-            if ((state & EntityState.Owner) == 0 && isOwner)
+            if ((state & State.Owner) == 0 && isOwner)
             {
-                OnStartAuthority();
+                foreach (var module in modules)
+                {
+                    if (module is IStartAuthority result)
+                    {
+                        result.OnStartAuthority();
+                    }
+                }
             }
-            else if ((state & EntityState.Owner) != 0 && !isOwner)
+            else if ((state & State.Owner) != 0 && !isOwner)
             {
-                OnStopAuthority();
+                foreach (var module in modules)
+                {
+                    if (module is IStopAuthority result)
+                    {
+                        result.OnStopAuthority();
+                    }
+                }
             }
 
-            if (isOwner)
-            {
-                state |= EntityState.Owner;
-            }
-            else
-            {
-                state &= ~EntityState.Owner;
-            }
+            state = isOwner ? state | State.Owner : state & ~State.Owner;
         }
 
         public static implicit operator uint(NetworkEntity entity)
@@ -520,7 +355,31 @@ namespace Astraia.Net
 
         public static explicit operator NetworkEntity(uint objectId)
         {
-            return NetworkManager.isServer ? NetworkManager.Server.spawns.GetValueOrDefault(objectId) : NetworkManager.Client.spawns.GetValueOrDefault(objectId);
+            if (NetworkManager.isServer)
+            {
+                return NetworkManager.Server.spawns.GetValueOrDefault(objectId);
+            }
+
+            return NetworkManager.Client.spawns.GetValueOrDefault(objectId);
+        }
+
+        [Flags]
+        internal enum Mode : byte
+        {
+            None = 0,
+            Owner = 1 << 0,
+            Client = 1 << 1,
+            Server = 1 << 2,
+        }
+
+        [Flags]
+        internal enum State : byte
+        {
+            None = 0,
+            Awake = 1 << 0,
+            Start = 1 << 1,
+            Owner = 1 << 2,
+            Release = 1 << 3
         }
     }
 }
