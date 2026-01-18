@@ -12,27 +12,50 @@
 using System;
 using Astraia.Common;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Astraia.Net
 {
     [Serializable]
-    public sealed partial class NetworkManager : Module<Entity>, IEvent<OnSceneComplete>
+    public sealed partial class NetworkManager : Entity, IEvent<OnSceneComplete>
     {
-        public static Transport Instance;
+        public static NetworkManager Instance;
+        private static Transport connection;
+        private static Transport collection;
+        
+        public int roomCount = 100;
+        public string roomGuid;
+        public string roomData;
+        public string roomName;
+        public RoomMode roomMode;
         public static bool isHost => isServer && isClient;
         public static bool isLobby => Lobby.state != State.Disconnect;
         public static bool isServer => Server.state != State.Disconnect;
         public static bool isClient => Client.state != State.Disconnect;
+        public static Transport Transport => Server.isLobby ? collection : connection;
 
-        public override void Dequeue()
+        protected override void Awake()
         {
+            base.Awake();
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
-            Object.DontDestroyOnLoad(gameObject);
-            Instance = owner.GetOrAddComponent<KcpTransport>();
+            connection = transform.GetOrAddComponent<KcpTransport>();
+            collection = transform.GetOrAddComponent<LobbyTransport>();
         }
 
-        public override void Enqueue()
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            EventManager.Listen(this);
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            EventManager.Remove(this);
+        }
+
+        private void OnApplicationQuit()
         {
             if (isLobby)
             {

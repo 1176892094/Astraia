@@ -58,7 +58,7 @@ namespace Astraia.Net
                     AddMessage(false);
                     state = State.Connect;
                     connection = new NetworkServer();
-                    Instance.StartClient();
+                    Transport.StartClient();
                 }
             }
 
@@ -67,7 +67,7 @@ namespace Astraia.Net
                 AddMessage(false);
                 state = State.Connect;
                 connection = new NetworkServer();
-                Instance.StartClient(uri);
+                Transport.StartClient(uri);
             }
 
             internal static void Stop()
@@ -123,12 +123,12 @@ namespace Astraia.Net
             {
                 if (!isHost)
                 {
-                    Instance.OnClientConnect -= Connect;
-                    Instance.OnClientDisconnect -= Disconnect;
-                    Instance.OnClientReceive -= Receive;
-                    Instance.OnClientConnect += Connect;
-                    Instance.OnClientDisconnect += Disconnect;
-                    Instance.OnClientReceive += Receive;
+                    Transport.OnClientConnect -= Connect;
+                    Transport.OnClientDisconnect -= Disconnect;
+                    Transport.OnClientReceive -= Receive;
+                    Transport.OnClientConnect += Connect;
+                    Transport.OnClientDisconnect += Disconnect;
+                    Transport.OnClientReceive += Receive;
                 }
 
                 NetworkMessage<PingMessage>.Add(PingMessage);
@@ -379,7 +379,7 @@ namespace Astraia.Net
 
             internal static void EarlyUpdate()
             {
-                Instance?.ClientEarlyUpdate();
+                Transport?.ClientEarlyUpdate();
             }
 
             internal static void AfterUpdate()
@@ -422,7 +422,7 @@ namespace Astraia.Net
                     }
                 }
 
-                Instance?.ClientAfterUpdate();
+                Transport?.ClientAfterUpdate();
             }
         }
     }

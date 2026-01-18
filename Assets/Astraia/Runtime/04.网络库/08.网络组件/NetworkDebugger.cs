@@ -708,15 +708,15 @@ namespace Astraia.Common
             GUILayout.BeginHorizontal();
             string peer;
             ushort port;
-            if (NetworkManager.Instance)
+            if (NetworkManager.Transport)
             {
-                peer = NetworkManager.Instance.address;
+                peer = NetworkManager.Transport.address;
                 if (peer == "localhost")
                 {
                     peer = address;
                 }
 
-                port = NetworkManager.Instance.port;
+                port = NetworkManager.Transport.port;
             }
             else
             {
@@ -1099,16 +1099,16 @@ namespace Astraia.Common
 
         protected virtual void Start()
         {
-            if (NetworkManager.Instance)
+            if (NetworkManager.Transport)
             {
-                NetworkManager.Instance.OnClientSend -= OnClientSend;
-                NetworkManager.Instance.OnServerSend -= OnServerSend;
-                NetworkManager.Instance.OnClientReceive -= OnClientReceive;
-                NetworkManager.Instance.OnServerReceive -= OnServerReceive;
-                NetworkManager.Instance.OnClientSend += OnClientSend;
-                NetworkManager.Instance.OnServerSend += OnServerSend;
-                NetworkManager.Instance.OnClientReceive += OnClientReceive;
-                NetworkManager.Instance.OnServerReceive += OnServerReceive;
+                NetworkManager.Transport.OnClientSend -= OnClientSend;
+                NetworkManager.Transport.OnServerSend -= OnServerSend;
+                NetworkManager.Transport.OnClientReceive -= OnClientReceive;
+                NetworkManager.Transport.OnServerReceive -= OnServerReceive;
+                NetworkManager.Transport.OnClientSend += OnClientSend;
+                NetworkManager.Transport.OnServerSend += OnServerSend;
+                NetworkManager.Transport.OnClientReceive += OnClientReceive;
+                NetworkManager.Transport.OnServerReceive += OnServerReceive;
             }
         }
 

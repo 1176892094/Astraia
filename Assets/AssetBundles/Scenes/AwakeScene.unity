@@ -269,7 +269,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2110330527}
-  - component: {fileID: 2110330528}
+  - component: {fileID: 2110330530}
   - component: {fileID: 2110330529}
   m_Layer: 0
   m_Name: NetworkManager
@@ -293,22 +293,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2110330528
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2110330526}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e6fc4ddccc2b4d45821658f66d8f36e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.Entity
-  moduleList:
-  - Astraia.Net.NetworkManager, Astraia.Net
-  - Astraia.Net.NetworkObserver, Astraia.Net
-  - Astraia.Net.NetworkDiscovery, Astraia.Net
 --- !u!114 &2110330529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -318,11 +302,31 @@ MonoBehaviour:
   m_GameObject: {fileID: 2110330526}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c95bc88ec67894a7c8916147452835fd, type: 3}
+  m_Script: {fileID: 11500000, guid: 07853f1acb04e4e77ae52ab4d20ca620, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.KcpTransport
+  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.LobbyTransport
   address: localhost
   port: 20974
+--- !u!114 &2110330530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2110330526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55c3b094877074c03a956c8a536c6a66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkManager
+  moduleList:
+  - Astraia.Net.NetworkObserver, Astraia.Net
+  - Astraia.Net.NetworkDiscovery, Astraia.Net
+  connections: 255
+  roomGuid: 
+  roomName: 
+  roomData: 
+  roomMode: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -15,21 +15,16 @@ namespace Astraia.Net
 {
     public sealed class LobbyTransport : Transport
     {
-        public Transport transport;
-        public string roomGuid;
-        public string roomName;
-        public string roomData;
-        public RoomMode roomMode;
+        internal static Transport Instance;
 
         private void Awake()
         {
-            NetworkManager.Lobby.authority = roomGuid;
-            NetworkManager.Lobby.transport = transport;
+            Instance = transform.GetOrAddComponent<KcpTransport>();
         }
 
         public override uint GetLength(int channel)
         {
-            return transport.GetLength(channel);
+            return Instance.GetLength(channel);
         }
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
@@ -40,7 +35,7 @@ namespace Astraia.Net
                 writer.WriteByte((byte)Lobby.同步网络数据);
                 writer.WriteArraySegment(segment);
                 writer.WriteInt(playerId);
-                transport.SendToServer(writer);
+                Instance.SendToServer(writer);
             }
         }
 
@@ -50,7 +45,7 @@ namespace Astraia.Net
             writer.WriteByte((byte)Lobby.同步网络数据);
             writer.WriteArraySegment(segment);
             writer.WriteInt(0);
-            transport.SendToServer(writer);
+            Instance.SendToServer(writer);
         }
 
         public override void StartServer()
@@ -70,11 +65,11 @@ namespace Astraia.Net
             NetworkManager.Lobby.isServer = true;
             using var writer = MemoryWriter.Pop();
             writer.WriteByte((byte)Lobby.请求创建房间);
-            writer.WriteString(roomName);
-            writer.WriteString(roomData);
-            writer.WriteInt(NetworkManager.Server.connection);
-            writer.WriteByte((byte)roomMode);
-            transport.SendToServer(writer);
+            writer.WriteString(NetworkManager.Instance.roomName);
+            writer.WriteString(NetworkManager.Instance.roomData);
+            writer.WriteInt(NetworkManager.Instance.roomCount);
+            writer.WriteByte((byte)NetworkManager.Instance.roomMode);
+            Instance.SendToServer(writer);
         }
 
         public override void StopServer()
@@ -84,7 +79,7 @@ namespace Astraia.Net
                 NetworkManager.Lobby.isServer = false;
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求离开房间);
-                transport.SendToServer(writer);
+                Instance.SendToServer(writer);
             }
         }
 
@@ -95,7 +90,7 @@ namespace Astraia.Net
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求移除玩家);
                 writer.WriteInt(playerId);
-                transport.SendToServer(writer);
+                Instance.SendToServer(writer);
             }
         }
 
@@ -116,15 +111,15 @@ namespace Astraia.Net
             NetworkManager.Lobby.isClient = true;
             using var writer = MemoryWriter.Pop();
             writer.WriteByte((byte)Lobby.请求加入房间);
-            writer.WriteString(transport.address);
-            transport.SendToServer(writer);
+            writer.WriteString(Instance.address);
+            Instance.SendToServer(writer);
         }
 
         public override void StartClient(Uri uri)
         {
             if (uri != null)
             {
-                transport.address = uri.Host;
+                Instance.address = uri.Host;
             }
 
             StartClient();
@@ -137,18 +132,18 @@ namespace Astraia.Net
                 NetworkManager.Lobby.isClient = false;
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求离开房间);
-                transport.SendToServer(writer);
+                Instance.SendToServer(writer);
             }
         }
 
         public override void ClientEarlyUpdate()
         {
-            transport.ClientEarlyUpdate();
+            Instance.ClientEarlyUpdate();
         }
 
         public override void ClientAfterUpdate()
         {
-            transport.ClientAfterUpdate();
+            Instance.ClientAfterUpdate();
         }
 
         public override void ServerEarlyUpdate()

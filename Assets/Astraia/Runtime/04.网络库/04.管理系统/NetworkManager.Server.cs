@@ -31,18 +31,18 @@ namespace Astraia.Net
             internal static State state = State.Disconnect;
 
             private static bool isLoadScene;
+            
+            public static bool isLobby;
 
             private static uint objectId;
 
             private static double sendTime;
 
-            internal static int connection = byte.MaxValue;
-
             internal static void Start(bool isHost)
             {
                 if (isHost)
                 {
-                    Instance.StartServer();
+                    Transport.StartServer();
                 }
 
                 state = State.Connected;
@@ -60,7 +60,7 @@ namespace Astraia.Net
                 }
 
                 state = State.Disconnect;
-                Instance.StopServer();
+                Transport.StopServer();
                 sendTime = 0;
                 objectId = 0;
                 spawns.Clear();
@@ -112,12 +112,12 @@ namespace Astraia.Net
         {
             private static void AddMessage()
             {
-                Instance.OnServerConnect -= Connect;
-                Instance.OnServerDisconnect -= Disconnect;
-                Instance.OnServerReceive -= Receive;
-                Instance.OnServerConnect += Connect;
-                Instance.OnServerDisconnect += Disconnect;
-                Instance.OnServerReceive += Receive;
+                Transport.OnServerConnect -= Connect;
+                Transport.OnServerDisconnect -= Disconnect;
+                Transport.OnServerReceive -= Receive;
+                Transport.OnServerConnect += Connect;
+                Transport.OnServerDisconnect += Disconnect;
+                Transport.OnServerReceive += Receive;
                 NetworkMessage<PongMessage>.Add(PongMessage);
                 NetworkMessage<ReadyMessage>.Add(ReadyMessage);
                 NetworkMessage<EntityMessage>.Add(EntityMessage);
@@ -213,13 +213,13 @@ namespace Astraia.Net
         {
             internal static void Connect(int id)
             {
-                if (clients.Count >= connection)
+                if (clients.Count >= Instance.roomCount)
                 {
-                    Instance.Disconnect(id);
+                    Transport.Disconnect(id);
                 }
                 else if (clients.ContainsKey(id))
                 {
-                    Instance.Disconnect(id);
+                    Transport.Disconnect(id);
                 }
                 else
                 {
@@ -397,7 +397,7 @@ namespace Astraia.Net
 
             internal static void EarlyUpdate()
             {
-            Instance?.ServerEarlyUpdate();
+                Transport?.ServerEarlyUpdate();
             }
 
             internal static void AfterUpdate()
@@ -445,7 +445,7 @@ namespace Astraia.Net
                     }
                 }
 
-                Instance?.ServerAfterUpdate();
+                Transport?.ServerAfterUpdate();
             }
         }
     }

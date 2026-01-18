@@ -115,7 +115,7 @@ namespace Astraia.Net
                 {
                     Scheme = "https",
                     Host = Dns.GetHostName(),
-                    Port = NetworkManager.Instance.port
+                    Port = NetworkManager.Transport.port
                 }.Uri));
                 ArraySegment<byte> segment = writer;
                 udpServer.Send(segment.Array!, segment.Count, endPoint);
