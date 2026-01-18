@@ -182,6 +182,15 @@ namespace Astraia.Net
                 if (mutation != null) this.mutation = mutation.Value;
             }
         }
+
+        [Flags]
+        internal enum TransformOption : byte
+        {
+            None,
+            Position = 1 << 0,
+            Rotation = 1 << 1,
+            Mutation = 1 << 2,
+        }
         // NetworkTransform
         // 总长：1B   ulong(压缩)
         // 类型：2B   ushort

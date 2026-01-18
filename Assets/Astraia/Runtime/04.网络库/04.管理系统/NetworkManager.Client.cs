@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Astraia.Common;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Astraia.Net
 {
@@ -175,7 +174,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                NetworkSerialize.ClientDeserialize(entity.modules, reader);
+                NetworkSyncVar.ClientDeserialize(entity.modules, reader);
             }
 
             private static void ClientRpcMessage(ClientRpcMessage message)
@@ -259,14 +258,18 @@ namespace Astraia.Net
         {
             private static void SpawnBeginMessage(SpawnBeginMessage message)
             {
-                if (isServer) return;
-                scenes.Clear();
-                var entities = Object.FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-                foreach (var entity in entities.Where(entity => entity.sceneId != 0 && entity.objectId == 0))
+                if (isServer)
                 {
-                    if (!scenes.TryAdd(entity.sceneId, entity))
+                    return;
+                }
+
+                scenes.Clear();
+                var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                foreach (var entity in entities)
+                {
+                    if (entity.sceneId != 0 && entity.objectId == 0)
                     {
-                        Debug.LogWarning("客户端场景对象重复。网络对象: {0}".Format(entity.name), entity);
+                        scenes[entity.sceneId] = entity;
                     }
                 }
             }
@@ -294,7 +297,7 @@ namespace Astraia.Net
                     if (message.segment.Count > 0)
                     {
                         using var reader = MemoryReader.Pop(message.segment);
-                        NetworkSerialize.ClientDeserialize(entity.modules, reader, true);
+                        NetworkSyncVar.ClientDeserialize(entity.modules, reader, true);
                     }
 
                     spawns[message.objectId] = entity;
@@ -338,7 +341,7 @@ namespace Astraia.Net
                         else
                         {
                             entity.state |= NetworkEntity.State.Destroy;
-                            Object.Destroy(entity.gameObject);
+                            Destroy(entity.gameObject);
                         }
                     }
 
@@ -391,7 +394,7 @@ namespace Astraia.Net
                         foreach (var entity in spawns.Values)
                         {
                             using var writer = MemoryWriter.Pop();
-                            NetworkSerialize.ClientSerialize(entity.modules, writer, entity.isOwner);
+                            NetworkSyncVar.ClientSerialize(entity.modules, writer, entity.isOwner);
                             if (writer.position > 0)
                             {
                                 connection.Send(new EntityMessage(entity.objectId, writer));

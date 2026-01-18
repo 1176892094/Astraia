@@ -9,8 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
-
 namespace Astraia.Net
 {
     public static class Channel
@@ -36,20 +34,5 @@ namespace Astraia.Net
     {
         ServerRpc,
         ClientRpc,
-    }
-
-    public enum Visible : byte
-    {
-        Spreader = 0,
-        Observer = 1,
-    }
-
-    [Flags]
-    internal enum TransformOption : byte
-    {
-        None,
-        Position = 1 << 0,
-        Rotation = 1 << 1,
-        Mutation = 1 << 2,
     }
 }

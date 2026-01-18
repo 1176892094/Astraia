@@ -38,7 +38,7 @@ namespace Astraia.Common
     
     public record ServerObserver(NetworkEntity entity) : IEvent;
 
-    public record LobbyUpdate(RoomData[] rooms) : IEvent;
+    public record LobbyUpdate(LobbyData[] rooms) : IEvent;
 
     public record LobbyDisconnect : IEvent;
 

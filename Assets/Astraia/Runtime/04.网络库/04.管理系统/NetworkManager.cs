@@ -21,17 +21,23 @@ namespace Astraia.Net
         public static NetworkManager Instance;
         private static Transport connection;
         private static Transport collection;
-        
         public int roomCount = 100;
         public string roomGuid;
         public string roomData;
         public string roomName;
         public RoomMode roomMode;
+
         public static bool isHost => isServer && isClient;
         public static bool isLobby => Lobby.state != State.Disconnect;
         public static bool isServer => Server.state != State.Disconnect;
         public static bool isClient => Client.state != State.Disconnect;
-        public static Transport Transport => Server.isLobby ? collection : connection;
+        public static Transport Transport => isRemote ? collection : connection;
+
+        private static bool isRemote
+        {
+            get => LobbyTransport.Instance.enabled;
+            set => LobbyTransport.Instance.enabled = value;
+        }
 
         protected override void Awake()
         {
@@ -39,7 +45,7 @@ namespace Astraia.Net
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
-            connection = transform.GetOrAddComponent<KcpTransport>();
+            connection = transform.GetOrAddComponent<NetworkTransport>();
             collection = transform.GetOrAddComponent<LobbyTransport>();
         }
 

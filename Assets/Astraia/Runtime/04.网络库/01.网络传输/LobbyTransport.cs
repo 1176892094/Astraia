@@ -19,7 +19,7 @@ namespace Astraia.Net
 
         private void Awake()
         {
-            Instance = transform.GetOrAddComponent<KcpTransport>();
+            Instance = gameObject.AddComponent<NetworkTransport>();
         }
 
         public override uint GetLength(int channel)
@@ -156,7 +156,7 @@ namespace Astraia.Net
     }
 
     [Serializable]
-    public struct RoomData
+    public struct LobbyData
     {
         /// <summary>
         /// 房间拥有者

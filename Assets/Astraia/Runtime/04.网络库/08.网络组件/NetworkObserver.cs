@@ -26,6 +26,7 @@ namespace Astraia.Net
 
         public void Execute(OnVisibleUpdate message)
         {
+            waitTime = 0;
             range = new Vector3Int(message.x, message.y, message.scale);
             grids = new Visible<NetworkClient>(message.x, message.y, message.scale);
         }
@@ -37,7 +38,7 @@ namespace Astraia.Net
 
         public void Execute(ServerObserver message)
         {
-            players[message.entity.client] = message.entity;
+            players[message.entity.client.clientId] = message.entity;
             grids.Add(message.entity.client, message.entity.transform.position);
         }
 
@@ -55,7 +56,7 @@ namespace Astraia.Net
                     waitTime = Time.unscaledTimeAsDouble + 0.5;
                     foreach (var entity in NetworkManager.Server.spawns.Values)
                     {
-                        if (entity.visible != Visible.Spreader)
+                        if (entity.visible != NetworkEntity.Visible.Spreader)
                         {
                             Tick(entity);
                         }
@@ -66,7 +67,7 @@ namespace Astraia.Net
 
         public void Tick(NetworkEntity entity, NetworkClient client)
         {
-            if (players.TryGetValue(client, out var player))
+            if (players.TryGetValue(client.clientId, out var player))
             {
                 var node = grids.Position(entity.transform.position) - grids.Position(player.transform.position);
                 if (Mathf.Abs(node.x) <= range.x && Mathf.Abs(node.y) <= range.y)

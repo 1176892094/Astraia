@@ -17,7 +17,6 @@ namespace Astraia.Net
 {
     public abstract class Transport : MonoBehaviour
     {
-       
         public string address = "localhost";
         public ushort port = 20974;
 
@@ -45,7 +44,7 @@ namespace Astraia.Net
         public abstract void ServerAfterUpdate();
     }
 
-    public sealed class KcpTransport : Transport
+    public sealed class NetworkTransport : Transport
     {
         private const uint MAX_MTU = 1200;
         private const uint OVER_TIME = 10000;

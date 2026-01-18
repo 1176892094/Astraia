@@ -13,7 +13,7 @@ using System.Runtime.CompilerServices;
 
 namespace Astraia.Net
 {
-    public static class NetworkSerialize
+    public static class NetworkSyncVar
     {
         internal static void ServerSerialize(NetworkModule[] modules, MemoryWriter owner, MemoryWriter agent, bool isInit = false)
         {

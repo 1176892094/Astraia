@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Astraia.Common;
 using UnityEngine;
-using Object = UnityEngine.Object;
+
 
 namespace Astraia.Net
 {
@@ -31,8 +31,6 @@ namespace Astraia.Net
             internal static State state = State.Disconnect;
 
             private static bool isLoadScene;
-            
-            public static bool isLobby;
 
             private static uint objectId;
 
@@ -97,7 +95,7 @@ namespace Astraia.Net
 
             private static void SpawnObjects()
             {
-                var entities = Object.FindObjectsByType<NetworkEntity>(FindObjectsSortMode.None);
+                var entities = FindObjectsByType<NetworkEntity>(FindObjectsSortMode.None);
                 foreach (var entity in entities)
                 {
                     if (entity.sceneId != 0 && entity.objectId == 0)
@@ -137,7 +135,7 @@ namespace Astraia.Net
                 {
                     if (entity.isActiveAndEnabled)
                     {
-                        if (entity.visible == Visible.Observer)
+                        if (NetworkObserver.Instance && entity.visible == NetworkEntity.Visible.Observer)
                         {
                             NetworkObserver.Instance.Tick(entity, client);
                         }
@@ -148,7 +146,7 @@ namespace Astraia.Net
                     }
                 }
 
-                EventManager.Invoke(new ServerReady(client));
+                EventManager.Invoke(new ServerReady(client.clientId));
                 if (clients.Values.All(connection => connection.isReady))
                 {
                     EventManager.Invoke(new ServerComplete());
@@ -176,7 +174,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                if (!NetworkSerialize.ServerDeserialize(entity.modules, reader))
+                if (!NetworkSyncVar.ServerDeserialize(entity.modules, reader))
                 {
                     Service.Log.Warn("无法为客户端 {0} 反序列化网络对象: {1}", client.clientId, message.objectId);
                     client.Disconnect();
@@ -331,7 +329,7 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (entity.visible == Visible.Observer)
+                if (NetworkObserver.Instance && entity.visible == NetworkEntity.Visible.Observer)
                 {
                     NetworkObserver.Instance.Tick(entity);
                 }
@@ -354,7 +352,7 @@ namespace Astraia.Net
 
                 if (entity.modules.Length > 0)
                 {
-                    NetworkSerialize.ServerSerialize(entity.modules, owner, agent, true);
+                    NetworkSyncVar.ServerSerialize(entity.modules, owner, agent, true);
                 }
 
                 var message = new SpawnMessage
@@ -390,7 +388,7 @@ namespace Astraia.Net
                     else
                     {
                         entity.state |= NetworkEntity.State.Destroy;
-                        Object.Destroy(entity.gameObject);
+                        UnityEngine.Object.Destroy(entity.gameObject);
                     }
                 }
             }
@@ -419,7 +417,7 @@ namespace Astraia.Net
                                         entity.count = Time.frameCount;
                                         entity.owner.position = 0;
                                         entity.agent.position = 0;
-                                        NetworkSerialize.ServerSerialize(entity.modules, entity.owner, entity.agent);
+                                        NetworkSyncVar.ServerSerialize(entity.modules, entity.owner, entity.agent);
                                         entity.ClearDirty(true);
                                     }
 
