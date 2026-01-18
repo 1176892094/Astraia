@@ -14,11 +14,11 @@ using Astraia.Net;
 
 namespace Astraia.Common
 {
-    // public record ServerConnect(NetworkClient client) : IEvent;
-    //
-    // public record ServerDisconnect(NetworkClient client) : IEvent;
-    //
-    // public record ServerReady(NetworkClient client) : IEvent;
+    public record ServerConnect(NetworkClient client) : IEvent;
+
+    public record ServerDisconnect(NetworkClient client) : IEvent;
+
+    public record ServerReady(NetworkClient client) : IEvent;
 
     public record ClientConnect : IEvent;
 
@@ -36,9 +36,9 @@ namespace Astraia.Common
 
     public record ServerResponse(Uri uri) : IEvent;
     
-    // public record ServerObserver(NetworkEntity entity) : IEvent;
-    //
-    // public record LobbyUpdate(RoomData[] rooms) : IEvent;
+    public record ServerObserver(NetworkEntity entity) : IEvent;
+
+    public record LobbyUpdate(RoomData[] rooms) : IEvent;
 
     public record LobbyDisconnect : IEvent;
 

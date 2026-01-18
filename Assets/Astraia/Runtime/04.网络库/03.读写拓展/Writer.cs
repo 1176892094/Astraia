@@ -112,57 +112,57 @@ namespace Astraia.Net
             writer.Write(value);
         }
 
-        // public static void WriteNetworkEntity(this MemoryWriter writer, NetworkEntity value)
-        // {
-        //     if (value == null)
-        //     {
-        //         writer.WriteUInt(0);
-        //         return;
-        //     }
-        //
-        //     if (value.objectId == 0)
-        //     {
-        //         Service.Log.Warn("网络对象的网络标识无效。");
-        //         writer.WriteUInt(0);
-        //         return;
-        //     }
-        //
-        //     writer.WriteUInt(value.objectId);
-        // }
-        //
-        // public static void WriteNetworkModule(this MemoryWriter writer, NetworkModule value)
-        // {
-        //     if (value == null)
-        //     {
-        //         writer.WriteUInt(0);
-        //         return;
-        //     }
-        //
-        //     writer.WriteNetworkEntity(value.owner);
-        //     writer.WriteByte(value.moduleId);
-        // }
-        //
-        // public static void WriteTransform(this MemoryWriter writer, Transform value)
-        // {
-        //     if (value == null)
-        //     {
-        //         writer.WriteUInt(0);
-        //         return;
-        //     }
-        //
-        //     writer.WriteNetworkEntity(value.GetComponent<NetworkEntity>());
-        // }
-        //
-        // public static void WriteGameObject(this MemoryWriter writer, GameObject value)
-        // {
-        //     if (value == null)
-        //     {
-        //         writer.WriteUInt(0);
-        //         return;
-        //     }
-        //
-        //     writer.WriteNetworkEntity(value.GetComponent<NetworkEntity>());
-        // }
+        public static void WriteNetworkEntity(this MemoryWriter writer, NetworkEntity value)
+        {
+            if (value == null)
+            {
+                writer.WriteUInt(0);
+                return;
+            }
+
+            if (value.objectId == 0)
+            {
+                Service.Log.Warn("网络对象的网络标识无效。");
+                writer.WriteUInt(0);
+                return;
+            }
+
+            writer.WriteUInt(value.objectId);
+        }
+
+        public static void WriteNetworkModule(this MemoryWriter writer, NetworkModule value)
+        {
+            if (value == null)
+            {
+                writer.WriteUInt(0);
+                return;
+            }
+
+            writer.WriteNetworkEntity(value.owner);
+            writer.WriteByte(value.moduleId);
+        }
+
+        public static void WriteTransform(this MemoryWriter writer, Transform value)
+        {
+            if (value == null)
+            {
+                writer.WriteUInt(0);
+                return;
+            }
+
+            writer.WriteNetworkEntity(value.GetComponent<NetworkEntity>());
+        }
+
+        public static void WriteGameObject(this MemoryWriter writer, GameObject value)
+        {
+            if (value == null)
+            {
+                writer.WriteUInt(0);
+                return;
+            }
+
+            writer.WriteNetworkEntity(value.GetComponent<NetworkEntity>());
+        }
 
         public static void WriteTexture2D(this MemoryWriter writer, Texture2D value)
         {
