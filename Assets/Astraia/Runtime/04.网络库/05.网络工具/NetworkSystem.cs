@@ -74,14 +74,15 @@ namespace Astraia.Net
 
             return false;
         }
-        
+
+        private const double SEND_RATE = 1.0 / 30;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool Tick(float sendRate, ref double sendTime)
+        internal static bool Tick(ref double sendTime)
         {
-            var duration = 1.0 / sendRate;
-            if (sendTime + duration <= Time.unscaledTimeAsDouble)
+            if (sendTime < Time.unscaledTimeAsDouble - SEND_RATE)
             {
-                sendTime = (long)(Time.unscaledTimeAsDouble / duration) * duration;
+                sendTime = (long)(Time.unscaledTimeAsDouble / SEND_RATE) * SEND_RATE;
                 return true;
             }
 

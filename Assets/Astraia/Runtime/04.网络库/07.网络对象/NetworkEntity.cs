@@ -25,11 +25,11 @@ namespace Astraia.Net
     [Serializable]
     public class NetworkEntity : Entity
     {
+        [SerializeField] [HideInInspector] internal uint objectId;
+
         [SerializeField] [HideInInspector] internal uint assetId;
 
         [SerializeField] [HideInInspector] internal uint sceneId;
-
-        [SerializeField] [HideInInspector] internal uint objectId;
 
         [SerializeField] internal Visible visible;
 
@@ -87,7 +87,7 @@ namespace Astraia.Net
                 NetworkManager.Client.spawns.Remove(objectId);
             }
 
-            if (isServer && (state & State.Release) == 0)
+            if (isServer && (state & State.Destroy) == 0)
             {
                 NetworkManager.Server.Destroy(gameObject);
             }
@@ -379,7 +379,7 @@ namespace Astraia.Net
             Awake = 1 << 0,
             Start = 1 << 1,
             Owner = 1 << 2,
-            Release = 1 << 3
+            Destroy = 1 << 3
         }
     }
 }

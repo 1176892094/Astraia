@@ -35,7 +35,7 @@ namespace Astraia.Common
 
     public record OnSceneUpdate(float progress) : IEvent;
 
-    public record OnSceneComplete : IEvent;
+    public record OnSceneComplete(string sceneName) : IEvent;
 
     public record OnDataComplete : IEvent;
 

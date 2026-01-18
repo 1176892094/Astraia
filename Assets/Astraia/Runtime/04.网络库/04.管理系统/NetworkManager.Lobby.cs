@@ -26,6 +26,8 @@ namespace Astraia.Net
 
             internal static readonly Dictionary<int, int> players = new Dictionary<int, int>();
 
+            internal static string authority;
+
             internal static State state = State.Disconnect;
 
             private static int objectId;
@@ -100,7 +102,7 @@ namespace Astraia.Net
                 writer.WriteString(roomName);
                 writer.WriteString(roomData);
                 writer.WriteByte((byte)roomMode);
-                writer.WriteInt(Instance.connection);
+                writer.WriteInt(Server.connection);
                 transport.SendToServer(writer);
             }
         }
@@ -143,7 +145,7 @@ namespace Astraia.Net
                     {
                         using var writer = MemoryWriter.Pop();
                         writer.WriteByte((byte)Astraia.Lobby.请求进入大厅);
-                        writer.WriteString(Instance.authorization);
+                        writer.WriteString(authority);
                         transport.SendToServer(writer);
                     }
                     else if (opcode == Astraia.Lobby.进入大厅成功)

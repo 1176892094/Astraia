@@ -14,12 +14,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Astraia.Common;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Astraia.Net
 {
     public partial class NetworkManager
     {
-        [Serializable]
         public static partial class Client
         {
             internal static readonly Dictionary<uint, NetworkEntity> scenes = new Dictionary<uint, NetworkEntity>();
@@ -30,31 +30,22 @@ namespace Astraia.Net
 
             internal static State state = State.Disconnect;
 
-            internal static double pingTime;
+            private static bool isLoadScene;
+
+            public static double pingTime;
 
             private static double pongTime;
 
             private static double sendTime;
 
-            public static bool isReady => connection != null && connection.isReady;
+            public static NetworkServer connection;
 
-            public static bool isLoadScene { get; internal set; }
-
-            public static NetworkServer connection { get; private set; }
+            public static bool isReady => connection.isReady;
 
             public static bool isActive => state == State.Connected;
 
-            internal static void Start(bool isHost)
+            internal static void Start()
             {
-                if (isHost)
-                {
-                    AddMessage(true);
-                    connection = new NetworkServer();
-                    Server.Connect(new NetworkClient());
-                    OnClientConnect();
-                    return;
-                }
-
                 AddMessage(false);
                 state = State.Connect;
                 connection = new NetworkServer();
@@ -69,6 +60,14 @@ namespace Astraia.Net
                 Transport.Instance.StartClient(uri);
             }
 
+            internal static void StartHost()
+            {
+                AddMessage(true);
+                connection = new NetworkServer();
+                Server.Connect(new NetworkClient());
+                OnClientConnect();
+            }
+
             internal static void Stop()
             {
                 if (!isClient) return;
@@ -78,6 +77,7 @@ namespace Astraia.Net
                     DestroyMessage(new DestroyMessage(entity.objectId));
                 }
 
+                EventManager.Invoke(new ClientDisconnect());
                 state = State.Disconnect;
                 connection.Disconnect();
                 sendTime = 0;
@@ -87,7 +87,6 @@ namespace Astraia.Net
                 spawns.Clear();
                 scenes.Clear();
                 isLoadScene = false;
-                EventManager.Invoke(new ClientDisconnect());
             }
 
             public static void Ready()
@@ -110,7 +109,7 @@ namespace Astraia.Net
 
             private static void Load(string sceneName)
             {
-                if (isLoadScene && Instance.sceneName == sceneName)
+                if (isLoadScene)
                 {
                     Service.Log.Error("客户端正在加载 {0} 场景", sceneName);
                     return;
@@ -120,7 +119,6 @@ namespace Astraia.Net
                 if (!isServer)
                 {
                     isLoadScene = true;
-                    Instance.sceneName = sceneName;
                     AssetManager.LoadScene(sceneName);
                 }
             }
@@ -174,7 +172,7 @@ namespace Astraia.Net
                     pingTime += 2.0 / (6 + 1) * delta;
                 }
 
-                EventManager.Invoke(new PingUpdate(pingTime));
+                EventManager.Invoke(new PingUpdate());
             }
 
             private static void NotReadyMessage(NotReadyMessage message)
@@ -296,7 +294,7 @@ namespace Astraia.Net
             {
                 if (isServer) return;
                 scenes.Clear();
-                var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                var entities = Object.FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 foreach (var entity in entities.Where(entity => entity.sceneId != 0 && entity.objectId == 0))
                 {
                     if (!scenes.TryAdd(entity.sceneId, entity))
@@ -372,8 +370,8 @@ namespace Astraia.Net
                         }
                         else
                         {
-                            entity.state |= NetworkEntity.State.Release;
-                            Destroy(entity.gameObject);
+                            entity.state |= NetworkEntity.State.Destroy;
+                            Object.Destroy(entity.gameObject);
                         }
                     }
 
@@ -424,7 +422,7 @@ namespace Astraia.Net
             {
                 if (isClient)
                 {
-                    if (NetworkSystem.Tick(Instance.sendRate, ref sendTime))
+                    if (NetworkSystem.Tick(ref sendTime))
                     {
                         Broadcast();
                     }

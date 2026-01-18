@@ -44,5 +44,5 @@ namespace Astraia.Common
 
     public record LobbyCreateRoom(string room) : IEvent;
 
-    public record PingUpdate(double pingTime) : IEvent;
+    public record PingUpdate : IEvent;
 }

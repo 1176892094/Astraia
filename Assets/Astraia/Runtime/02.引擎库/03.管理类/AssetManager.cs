@@ -206,7 +206,7 @@ namespace Astraia.Common
                         }
                     }
 
-                    EventManager.Invoke(new OnSceneComplete());
+                    EventManager.Invoke(new OnSceneComplete(reason));
                     return;
                 }
 

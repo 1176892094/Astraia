@@ -48,7 +48,7 @@ namespace Astraia.Net
         {
             get
             {
-                if (!NetworkSystem.Tick(NetworkManager.Instance.sendRate, ref sendTime))
+                if (!NetworkSystem.Tick(ref sendTime))
                 {
                     return false;
                 }

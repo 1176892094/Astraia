@@ -12,54 +12,26 @@
 using System;
 using Astraia.Common;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Astraia.Net
 {
     [Serializable]
-    public sealed partial class NetworkManager : Entity, IEvent<OnSceneComplete>
+    public sealed partial class NetworkManager : Singleton<NetworkManager, Entity>, IEvent<OnSceneComplete>
     {
-        public static NetworkManager Instance;
-
-        public const int Host = 0;
-
-        public int sendRate = 30;
-
-        public int connection = 100;
-
-        public string authorization;
-
-        private string sceneName;
-
         public static bool isHost => isServer && isClient;
-
         public static bool isLobby => Lobby.state != State.Disconnect;
-
         public static bool isServer => Server.state != State.Disconnect;
-
         public static bool isClient => Client.state != State.Disconnect;
 
-        protected override void Awake()
+        public override void Dequeue()
         {
-            base.Awake();
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
-            Transport.Instance = GetComponent<Transport>();
+            Object.DontDestroyOnLoad(gameObject);
+            Transport.Instance = owner.GetComponent<Transport>();
         }
 
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-            EventManager.Listen(this);
-        }
-
-        protected override void OnDisable()
-        {
-            base.OnDisable();
-            EventManager.Remove(this);
-        }
-
-        private void OnApplicationQuit()
+        public override void Enqueue()
         {
             if (isLobby)
             {
@@ -81,16 +53,16 @@ namespace Astraia.Net
         {
             if (isHost)
             {
-                Server.LoadSceneComplete(sceneName);
-                Client.LoadSceneComplete(sceneName);
+                Server.LoadSceneComplete(message.sceneName);
+                Client.LoadSceneComplete(message.sceneName);
             }
             else if (isServer)
             {
-                Server.LoadSceneComplete(sceneName);
+                Server.LoadSceneComplete(message.sceneName);
             }
             else if (isClient)
             {
-                Client.LoadSceneComplete(sceneName);
+                Client.LoadSceneComplete(message.sceneName);
             }
         }
 
@@ -124,7 +96,7 @@ namespace Astraia.Net
                 return;
             }
 
-            Client.Start(false);
+            Client.Start();
         }
 
         public static void StartClient(Uri uri)
@@ -148,7 +120,7 @@ namespace Astraia.Net
 
             if (isServer)
             {
-                Server.OnServerDisconnect(Host);
+                Server.OnServerDisconnect(0);
             }
 
             Client.Stop();
@@ -163,7 +135,7 @@ namespace Astraia.Net
             }
 
             Server.Start(isHost);
-            Client.Start(true);
+            Client.StartHost();
         }
 
         public static void StopHost()

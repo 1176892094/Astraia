@@ -23,12 +23,15 @@ namespace Astraia.Net
         private Dictionary<int, PacketWriter> packets = new Dictionary<int, PacketWriter>();
         internal PacketReader reader = new PacketReader();
         internal int clientId;
+        internal bool isHost;
         internal bool isReady;
         internal HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
+
 
         public NetworkClient(int clientId = 0)
         {
             this.clientId = clientId;
+            isHost = clientId == 0;
         }
 
         internal void Update()
@@ -57,7 +60,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if (clientId != NetworkManager.Host)
+            if (!isHost)
             {
                 Debugger.OnSend(message, writer.position);
             }
@@ -76,7 +79,7 @@ namespace Astraia.Net
 
             batch.AddMessage(writer);
 
-            if (NetworkManager.isHost && clientId == NetworkManager.Host)
+            if (NetworkManager.isHost && isHost)
             {
                 using var target = MemoryWriter.Pop();
                 if (batch.GetPacket(target))
@@ -94,7 +97,7 @@ namespace Astraia.Net
 
         public void ClearObserver()
         {
-            var copies = entities.ToList();
+            var copies = entities.Where(entity => entity).ToList();
             foreach (var entity in copies)
             {
                 if (entity.clients.Remove(this))

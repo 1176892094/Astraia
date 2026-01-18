@@ -16,12 +16,14 @@ namespace Astraia.Net
     public sealed class LobbyTransport : Transport
     {
         public Transport transport;
+        public string authority;
         public string roomName;
         public string roomData;
         public RoomMode roomMode;
 
         private void Awake()
         {
+            NetworkManager.Lobby.authority = authority;
             NetworkManager.Lobby.transport = transport;
         }
 
@@ -70,7 +72,7 @@ namespace Astraia.Net
             writer.WriteByte((byte)Lobby.请求创建房间);
             writer.WriteString(roomName);
             writer.WriteString(roomData);
-            writer.WriteInt(NetworkManager.Instance.connection);
+            writer.WriteInt(NetworkManager.Server.connection);
             writer.WriteByte((byte)roomMode);
             transport.SendToServer(writer);
         }
