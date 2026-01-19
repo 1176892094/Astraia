@@ -71,7 +71,7 @@ namespace Astraia.Common
 
         public void Handshake()
         {
-            SendReliable(Opcode.Connect, BitConverter.GetBytes(userData));
+            SendReliable(Opcode.Connect, new ArraySegment<byte>(BitConverter.GetBytes(userData)));
         }
 
         private bool TryReceive(out Opcode message, out ArraySegment<byte> segment)
