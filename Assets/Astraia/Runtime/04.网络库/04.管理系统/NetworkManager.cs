@@ -11,7 +11,6 @@
 
 using System;
 using Astraia.Common;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Astraia.Net
@@ -28,7 +27,7 @@ namespace Astraia.Net
         public string roomData;
         public string roomName;
         public RoomMode roomMode;
-        [ShowInInspector] public static bool isRemote;
+        public static bool isRemote;
         public static bool isHost => isServer && isClient;
         public static bool isLobby => Lobby.state != State.Disconnect;
         public static bool isServer => Server.state != State.Disconnect;
@@ -42,7 +41,7 @@ namespace Astraia.Net
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
-            collection = gameObject.GetComponent<AccountTransport>();
+            collection = gameObject.GetComponent<LobbyTransport>();
             connection = gameObject.AddComponent<NetworkTransport>();
         }
 
@@ -93,8 +92,10 @@ namespace Astraia.Net
             }
         }
 
-        public static void SetTransport(string address, int port)
+        public static void SetTransport(string address, ushort port)
         {
+            Transport.address = address;
+            Transport.port = port;
         }
 
         public static void StartServer()
@@ -260,7 +261,7 @@ namespace Astraia.Net
                 return;
             }
 
-            AccountTransport.Transport.address = address;
+            LobbyTransport.Transport.address = address;
             Client.Start(1);
         }
     }

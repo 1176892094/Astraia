@@ -20,25 +20,27 @@ namespace Astraia
 {
     internal sealed class Server
     {
+        public class Delegate
+        {
+            public Action<int> Connect;
+            public Action<int> Disconnect;
+            public Action<int, Error, string> Error;
+            public Action<int, ArraySegment<byte>, int> Send;
+            public Action<int, ArraySegment<byte>, int> Receive;
+        }
+
         private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
         private readonly HashSet<int> removes = new HashSet<int>();
         private readonly byte[] buffer;
         private readonly Setting setting;
-        private readonly Action<int> onConnect;
-        private readonly Action<int> onDisconnect;
-        private readonly Action<int, Error, string> onError;
-        private readonly Action<int, ArraySegment<byte>, int> onReceive;
-
+        private readonly Delegate onEvent;
         private Socket socket;
         private EndPoint endPoint;
 
-        public Server(Setting setting, Action<int> onConnect, Action<int> onDisconnect, Action<int, Error, string> onError, Action<int, ArraySegment<byte>, int> onReceive)
+        public Server(Setting setting, Delegate onEvent)
         {
             this.setting = setting;
-            this.onError = onError;
-            this.onConnect = onConnect;
-            this.onReceive = onReceive;
-            this.onDisconnect = onDisconnect;
+            this.onEvent = onEvent;
             buffer = new byte[setting.UnitData];
             endPoint = setting.DualMode ? new IPEndPoint(IPAddress.IPv6Any, 0) : new IPEndPoint(IPAddress.Any, 0);
         }
@@ -133,24 +135,24 @@ namespace Astraia
             {
                 clients.Add(id, client);
                 Service.Log.Info("客户端 {0} 连接到服务器。", id);
-                onConnect.Invoke(id);
+                onEvent.Connect.Invoke(id);
             }
 
             void OnDisconnect()
             {
                 removes.Add(id);
                 Service.Log.Info("客户端 {0} 从服务器断开。", id);
-                onDisconnect.Invoke(id);
+                onEvent.Disconnect.Invoke(id);
             }
 
             void OnError(Error error, string message)
             {
-                onError.Invoke(id, error, message);
+                onEvent.Error.Invoke(id, error, message);
             }
 
             void OnReceive(ArraySegment<byte> message, int channel)
             {
-                onReceive.Invoke(id, message, channel);
+                onEvent.Receive.Invoke(id, message, channel);
             }
 
             void OnSend(ArraySegment<byte> segment)
@@ -239,7 +241,6 @@ namespace Astraia
                 this.endPoint = endPoint;
                 state = State.Connect;
             }
-
 
             protected override void OnConnected()
             {

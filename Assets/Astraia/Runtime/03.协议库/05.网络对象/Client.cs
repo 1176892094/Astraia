@@ -18,22 +18,25 @@ namespace Astraia
 {
     internal sealed class Client : Peer
     {
+        public class Delegate
+        {
+            public Action onConnect;
+            public Action onDisconnect;
+            public Action<Error, string> onError;
+            public Action<ArraySegment<byte>, int> onSend;
+            public Action<ArraySegment<byte>, int> onReceive;
+        }
+
         private readonly byte[] buffer;
         private readonly Setting setting;
-        private readonly Action onConnect;
-        private readonly Action onDisconnect;
-        private readonly Action<Error, string> onError;
-        private readonly Action<ArraySegment<byte>, int> onReceive;
+        private readonly Delegate onEvent;
         private Socket socket;
         private EndPoint endPoint;
 
-        public Client(Setting setting, Action onConnect, Action onDisconnect, Action<Error, string> onError, Action<ArraySegment<byte>, int> onReceive) : base(setting)
+        public Client(Setting setting, Delegate onEvent) : base(setting)
         {
             this.setting = setting;
-            this.onError = onError;
-            this.onConnect = onConnect;
-            this.onReceive = onReceive;
-            this.onDisconnect = onDisconnect;
+            this.onEvent = onEvent;
             buffer = new byte[setting.UnitData];
         }
 
@@ -63,7 +66,7 @@ namespace Astraia
             catch (SocketException e)
             {
                 OnError(Error.解析失败, "无法解析主机地址: {0}\n{1}".Format(address, e));
-                onDisconnect.Invoke();
+                onEvent.onDisconnect.Invoke();
             }
         }
 
@@ -134,7 +137,7 @@ namespace Astraia
         protected override void OnConnected()
         {
             Service.Log.Info("客户端连接成功。");
-            onConnect.Invoke();
+            onEvent.onConnect.Invoke();
         }
 
         protected override void Send(ArraySegment<byte> segment)
@@ -161,18 +164,18 @@ namespace Astraia
 
         protected override void Data(ArraySegment<byte> segment, int channel)
         {
-            onReceive.Invoke(segment, channel);
+            onEvent.onReceive.Invoke(segment, channel);
         }
 
         protected override void OnError(Error error, string message)
         {
-            onError.Invoke(error, message);
+            onEvent.onError.Invoke(error, message);
         }
 
         protected override void OnDisconnect()
         {
-            onDisconnect.Invoke();
             Service.Log.Info("客户端断开连接。");
+            onEvent.onDisconnect.Invoke();
             endPoint = null;
             socket?.Close();
             socket = null;

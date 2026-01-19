@@ -112,12 +112,12 @@ namespace Astraia.Net
         {
             private static void AddMessage()
             {
-                Transport.OnServerConnect -= Connect;
-                Transport.OnServerDisconnect -= Disconnect;
-                Transport.OnServerReceive -= Receive;
-                Transport.OnServerConnect += Connect;
-                Transport.OnServerDisconnect += Disconnect;
-                Transport.OnServerReceive += Receive;
+                Transport.server.Connect -= Connect;
+                Transport.server.Disconnect -= Disconnect;
+                Transport.server.Receive -= Receive;
+                Transport.server.Connect += Connect;
+                Transport.server.Disconnect += Disconnect;
+                Transport.server.Receive += Receive;
                 NetworkMessage<PongMessage>.Add(PongMessage);
                 NetworkMessage<ReadyMessage>.Add(ReadyMessage);
                 NetworkMessage<EntityMessage>.Add(EntityMessage);

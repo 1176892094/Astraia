@@ -1101,14 +1101,14 @@ namespace Astraia.Common
         {
             if (NetworkManager.Transport)
             {
-                NetworkManager.Transport.OnClientSend -= OnClientSend;
-                NetworkManager.Transport.OnServerSend -= OnServerSend;
-                NetworkManager.Transport.OnClientReceive -= OnClientReceive;
-                NetworkManager.Transport.OnServerReceive -= OnServerReceive;
-                NetworkManager.Transport.OnClientSend += OnClientSend;
-                NetworkManager.Transport.OnServerSend += OnServerSend;
-                NetworkManager.Transport.OnClientReceive += OnClientReceive;
-                NetworkManager.Transport.OnServerReceive += OnServerReceive;
+                NetworkManager.Transport.client.onSend -= OnClientSend;
+                NetworkManager.Transport.server.Send -= OnServerSend;
+                NetworkManager.Transport.client.onReceive -= OnClientReceive;
+                NetworkManager.Transport.server.Receive -= OnServerReceive;
+                NetworkManager.Transport.client.onSend += OnClientSend;
+                NetworkManager.Transport.server.Send += OnServerSend;
+                NetworkManager.Transport.client.onReceive += OnClientReceive;
+                NetworkManager.Transport.server.Receive += OnServerReceive;
             }
         }
 

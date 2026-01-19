@@ -13,7 +13,7 @@ using System;
 
 namespace Astraia.Net
 {
-    internal sealed class AccountTransport : Transport
+    internal sealed class LobbyTransport : Transport
     {
         public static Transport Transport;
 

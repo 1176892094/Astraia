@@ -101,12 +101,12 @@ namespace Astraia.Net
             {
                 if (!isHost)
                 {
-                    Transport.OnClientConnect -= Connect;
-                    Transport.OnClientDisconnect -= Disconnect;
-                    Transport.OnClientReceive -= Receive;
-                    Transport.OnClientConnect += Connect;
-                    Transport.OnClientDisconnect += Disconnect;
-                    Transport.OnClientReceive += Receive;
+                    Transport.client.onConnect -= Connect;
+                    Transport.client.onDisconnect -= Disconnect;
+                    Transport.client.onReceive -= Receive;
+                    Transport.client.onConnect += Connect;
+                    Transport.client.onDisconnect += Disconnect;
+                    Transport.client.onReceive += Receive;
                 }
 
                 NetworkMessage<PingMessage>.Add(PingMessage);
