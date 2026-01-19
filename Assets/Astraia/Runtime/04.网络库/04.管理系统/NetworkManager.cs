@@ -21,13 +21,13 @@ namespace Astraia.Net
         public static NetworkManager Instance;
         private static Transport connection;
         private static Transport collection;
-
+        private static bool isRemote;
+        
         public int maxPlayer = 100;
         public string roomGuid;
         public string roomData;
         public string roomName;
         public RoomMode roomMode;
-        public static bool isRemote;
         public static bool isHost => isServer && isClient;
         public static bool isLobby => Lobby.state != State.Disconnect;
         public static bool isServer => Server.state != State.Disconnect;
