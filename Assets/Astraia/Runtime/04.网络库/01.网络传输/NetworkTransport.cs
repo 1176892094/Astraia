@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public abstract class Transport : MonoBehaviour
+    internal abstract class Transport : MonoBehaviour
     {
         public string address = "localhost";
         public ushort port = 20974;
@@ -44,7 +44,7 @@ namespace Astraia.Net
         public abstract void ServerAfterUpdate();
     }
 
-    public sealed class NetworkTransport : Transport
+    internal sealed class NetworkTransport : Transport
     {
         private const uint MAX_MTU = 1200;
         private const uint OVER_TIME = 10000;
@@ -109,6 +109,18 @@ namespace Astraia.Net
             return channel == Channel.Reliable ? Peer.KcpLength(MAX_MTU, RECEIVE_WIN) : Peer.UdpLength(MAX_MTU);
         }
 
+        public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
+        {
+            server.Send(clientId, segment, channel);
+            OnServerSend?.Invoke(clientId, segment, channel);
+        }
+
+        public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable)
+        {
+            client.Send(segment, channel);
+            OnClientSend?.Invoke(segment, channel);
+        }
+
         public override void StartServer()
         {
             server.Connect(port);
@@ -124,12 +136,6 @@ namespace Astraia.Net
             server.Disconnect(clientId);
         }
 
-        public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
-        {
-            server.Send(clientId, segment, channel);
-            OnServerSend?.Invoke(clientId, segment, channel);
-        }
-
         public override void StartClient()
         {
             client.Connect(address, port);
@@ -143,12 +149,6 @@ namespace Astraia.Net
         public override void Disconnect()
         {
             client.Disconnect();
-        }
-
-        public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable)
-        {
-            client.Send(segment, channel);
-            OnClientSend?.Invoke(segment, channel);
         }
 
         public override void ClientEarlyUpdate()

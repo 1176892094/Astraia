@@ -11,6 +11,7 @@
 
 using System;
 using Astraia.Common;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Astraia.Net
@@ -21,18 +22,19 @@ namespace Astraia.Net
         public static NetworkManager Instance;
         private static Transport connection;
         private static Transport collection;
-        public bool isRemote;
-        public int roomCount = 100;
+
+        public int maxPlayer = 100;
         public string roomGuid;
         public string roomData;
         public string roomName;
         public RoomMode roomMode;
-     
+        [ShowInInspector] public static bool isRemote;
         public static bool isHost => isServer && isClient;
         public static bool isLobby => Lobby.state != State.Disconnect;
         public static bool isServer => Server.state != State.Disconnect;
         public static bool isClient => Client.state != State.Disconnect;
-        public static Transport Transport => Instance.isRemote ? collection : connection;
+        internal static Transport Transport => isRemote ? collection : connection;
+
 
         protected override void Awake()
         {
@@ -89,6 +91,10 @@ namespace Astraia.Net
             {
                 Client.LoadSceneComplete(message.sceneName);
             }
+        }
+
+        public static void SetTransport(string address, int port)
+        {
         }
 
         public static void StartServer()
@@ -171,6 +177,11 @@ namespace Astraia.Net
 
         public static void StartLobby()
         {
+            if (isRemote)
+            {
+                return;
+            }
+
             if (isLobby)
             {
                 Service.Log.Warn("大厅服务器已经连接!");
@@ -182,6 +193,11 @@ namespace Astraia.Net
 
         public static void StopLobby()
         {
+            if (!isRemote)
+            {
+                return;
+            }
+
             if (!isLobby)
             {
                 Service.Log.Warn("大厅服务器已经停止!");
@@ -189,6 +205,63 @@ namespace Astraia.Net
             }
 
             Lobby.Stop();
+        }
+
+        public static void UpdateLobby()
+        {
+            if (!isRemote || !Lobby.isActive)
+            {
+                Service.Log.Warn("您必须连接到大厅以请求房间列表!");
+                return;
+            }
+
+            Lobby.Update();
+        }
+
+        public static void UpdateRoom(RoomMode roomMode)
+        {
+            if (!isRemote || !Lobby.isServer)
+            {
+                Service.Log.Warn("您必须连接到大厅以更新房间信息!");
+                return;
+            }
+
+            Lobby.Submit(roomMode);
+        }
+
+        public static void CreateRoom(int maxPlayer)
+        {
+            if (!isRemote || !Lobby.isActive)
+            {
+                Service.Log.Warn("没有连接到大厅!");
+            }
+
+            if (isServer || isClient || Lobby.isServer || Lobby.isClient)
+            {
+                Service.Log.Warn("客户端或服务器已经连接!");
+                return;
+            }
+
+            Instance.maxPlayer = maxPlayer;
+            Server.Start(true);
+            Client.Start(0);
+        }
+
+        public static void JoinRoom(string address)
+        {
+            if (!isRemote || !Lobby.isActive)
+            {
+                Service.Log.Warn("没有连接到大厅!");
+            }
+
+            if (isServer || isClient || Lobby.isServer || Lobby.isClient)
+            {
+                Service.Log.Warn("客户端或服务器已经连接!");
+                return;
+            }
+
+            AccountTransport.Transport.address = address;
+            Client.Start(1);
         }
     }
 }

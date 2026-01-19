@@ -10,21 +10,22 @@
 // *********************************************************************************
 
 using System;
+using UnityEngine;
 
 namespace Astraia.Net
 {
-    public sealed class AccountTransport : Transport
+    internal sealed class AccountTransport : Transport
     {
-        public static Transport Instance;
+        public static Transport Transport;
 
         private void Awake()
         {
-            Instance = gameObject.AddComponent<NetworkTransport>();
+            Transport = gameObject.AddComponent<NetworkTransport>();
         }
 
         public override uint GetLength(int channel)
         {
-            return Instance.GetLength(channel);
+            return Transport.GetLength(channel);
         }
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
@@ -35,7 +36,7 @@ namespace Astraia.Net
                 writer.WriteByte((byte)Lobby.同步网络数据);
                 writer.WriteArraySegment(segment);
                 writer.WriteInt(playerId);
-                Instance.SendToServer(writer);
+                Transport.SendToServer(writer);
             }
         }
 
@@ -45,31 +46,19 @@ namespace Astraia.Net
             writer.WriteByte((byte)Lobby.同步网络数据);
             writer.WriteArraySegment(segment);
             writer.WriteInt(0);
-            Instance.SendToServer(writer);
+            Transport.SendToServer(writer);
         }
 
         public override void StartServer()
         {
-            if (!NetworkManager.Lobby.isActive)
-            {
-                Service.Log.Warn("没有连接到大厅!");
-                return;
-            }
-
-            if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
-            {
-                Service.Log.Warn("客户端或服务器已经连接!");
-                return;
-            }
-
             NetworkManager.Lobby.isServer = true;
             using var writer = MemoryWriter.Pop();
             writer.WriteByte((byte)Lobby.请求创建房间);
             writer.WriteString(NetworkManager.Instance.roomName);
             writer.WriteString(NetworkManager.Instance.roomData);
-            writer.WriteInt(NetworkManager.Instance.roomCount);
+            writer.WriteInt(NetworkManager.Instance.maxPlayer);
             writer.WriteByte((byte)NetworkManager.Instance.roomMode);
-            Instance.SendToServer(writer);
+            Transport.SendToServer(writer);
         }
 
         public override void StopServer()
@@ -79,7 +68,7 @@ namespace Astraia.Net
                 NetworkManager.Lobby.isServer = false;
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求离开房间);
-                Instance.SendToServer(writer);
+                Transport.SendToServer(writer);
             }
         }
 
@@ -90,39 +79,26 @@ namespace Astraia.Net
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求移除玩家);
                 writer.WriteInt(playerId);
-                Instance.SendToServer(writer);
+                Transport.SendToServer(writer);
             }
         }
 
         public override void StartClient()
         {
-            if (!NetworkManager.Lobby.isActive)
-            {
-                Service.Log.Warn("没有连接到大厅!");
-                return;
-            }
-
-            if (NetworkManager.Lobby.isClient || NetworkManager.Lobby.isServer)
-            {
-                Service.Log.Warn("客户端或服务器已经连接!");
-                return;
-            }
-
             NetworkManager.Lobby.isClient = true;
             using var writer = MemoryWriter.Pop();
             writer.WriteByte((byte)Lobby.请求加入房间);
-            writer.WriteString(Instance.address);
-            Instance.SendToServer(writer);
+            writer.WriteString(Transport.address);
+            Transport.SendToServer(writer);
         }
 
         public override void StartClient(Uri uri)
         {
-            if (uri != null)
-            {
-                Instance.address = uri.Host;
-            }
-
-            StartClient();
+            NetworkManager.Lobby.isClient = true;
+            using var writer = MemoryWriter.Pop();
+            writer.WriteByte((byte)Lobby.请求加入房间);
+            writer.WriteString(uri != null ? uri.Host : Transport.address);
+            Transport.SendToServer(writer);
         }
 
         public override void Disconnect()
@@ -132,18 +108,18 @@ namespace Astraia.Net
                 NetworkManager.Lobby.isClient = false;
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求离开房间);
-                Instance.SendToServer(writer);
+                Transport.SendToServer(writer);
             }
         }
 
         public override void ClientEarlyUpdate()
         {
-            Instance.ClientEarlyUpdate();
+            Transport.ClientEarlyUpdate();
         }
 
         public override void ClientAfterUpdate()
         {
-            Instance.ClientAfterUpdate();
+            Transport.ClientAfterUpdate();
         }
 
         public override void ServerEarlyUpdate()
@@ -158,39 +134,12 @@ namespace Astraia.Net
     [Serializable]
     public struct LobbyData
     {
-        /// <summary>
-        /// 房间拥有者
-        /// </summary>
         public int clientId;
-
-        /// <summary>
-        /// 是否显示
-        /// </summary>
         public RoomMode roomMode;
-
-        /// <summary>
-        /// 房间最大人数
-        /// </summary>
         public int maxCount;
-
-        /// <summary>
-        /// 额外房间数据
-        /// </summary>
         public string roomData;
-
-        /// <summary>
-        /// 房间Id
-        /// </summary>
         public string roomId;
-
-        /// <summary>
-        /// 房间名称
-        /// </summary>
         public string roomName;
-
-        /// <summary>
-        /// 客户端数量
-        /// </summary>
         public int[] clients;
     }
 }

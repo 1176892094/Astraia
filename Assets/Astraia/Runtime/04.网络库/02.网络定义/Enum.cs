@@ -21,7 +21,8 @@ namespace Astraia.Net
     public enum RoomMode : byte
     {
         Public,
-        Private
+        Private,
+        Locked,
     }
 
     public enum SyncMode : byte

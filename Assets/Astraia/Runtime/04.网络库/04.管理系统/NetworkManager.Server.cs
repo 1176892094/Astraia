@@ -209,7 +209,7 @@ namespace Astraia.Net
         {
             internal static void Connect(int id)
             {
-                if (clients.Count >= Instance.roomCount)
+                if (clients.Count >= Instance.maxPlayer)
                 {
                     Transport.Disconnect(id);
                 }

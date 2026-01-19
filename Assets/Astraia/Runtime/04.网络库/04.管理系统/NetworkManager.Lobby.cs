@@ -20,7 +20,7 @@ namespace Astraia.Net
     public partial class NetworkManager
     {
         [Serializable]
-        internal static partial class Lobby
+        internal static class Lobby
         {
             internal static readonly Dictionary<int, int> clients = new Dictionary<int, int>();
 
@@ -33,24 +33,21 @@ namespace Astraia.Net
             internal static bool isClient;
 
             internal static bool isServer;
-
-            private static ushort port => Transport.port;
-
-            private static string address => Transport.address;
-
-            public static bool isActive => state == State.Connected;
+            internal static bool isActive => state == State.Connected;
+            internal static Transport Account => AccountTransport.Transport;
 
             internal static void Start()
             {
-                AccountTransport.Instance.OnClientConnect -= OnClientConnect;
-                AccountTransport.Instance.OnClientDisconnect -= OnClientDisconnect;
-                AccountTransport.Instance.OnClientReceive -= OnClientReceive;
-                AccountTransport.Instance.OnClientConnect += OnClientConnect;
-                AccountTransport.Instance.OnClientDisconnect += OnClientDisconnect;
-                AccountTransport.Instance.OnClientReceive += OnClientReceive;
-                AccountTransport.Instance.port = port;
-                AccountTransport.Instance.address = address;
-                AccountTransport.Instance.StartClient();
+                isRemote = true;
+                Account.OnClientConnect -= OnClientConnect;
+                Account.OnClientDisconnect -= OnClientDisconnect;
+                Account.OnClientReceive -= OnClientReceive;
+                Account.OnClientConnect += OnClientConnect;
+                Account.OnClientDisconnect += OnClientDisconnect;
+                Account.OnClientReceive += OnClientReceive;
+                Account.port = Transport.port;
+                Account.address = Transport.address;
+                Account.StartClient();
             }
 
             internal static void Stop()
@@ -63,24 +60,20 @@ namespace Astraia.Net
                     isServer = false;
                     isClient = false;
                     state = State.Disconnect;
+                    Account.Disconnect();
                     EventManager.Invoke(new LobbyDisconnect());
-                    AccountTransport.Instance.Disconnect();
                 }
+
+                isRemote = false;
             }
 
-            public static async void UpdateLobby()
+            internal static async void Update()
             {
-                if (!isActive)
-                {
-                    Service.Log.Warn("您必须连接到大厅以请求房间列表!");
-                    return;
-                }
-
-                using var request = UnityWebRequest.Get("http://{0}:{1}/api/compressed/servers".Format(address, port));
+                using var request = UnityWebRequest.Get("http://{0}:{1}/api/compressed/servers".Format(Transport.address, Transport.port));
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Service.Log.Warn("无法获取服务器列表: {0}:{1}", address, port);
+                    Service.Log.Warn("无法获取服务器列表: {0}:{1}", Transport.address, Transport.port);
                     return;
                 }
 
@@ -90,34 +83,19 @@ namespace Astraia.Net
                 Service.Log.Info("房间信息: {0}", rooms);
             }
 
-            public static void UpdateRoom()
+            internal static void Submit(RoomMode roomMode)
             {
-                if (!isServer)
-                {
-                    Service.Log.Warn("您必须连接到大厅以更新房间信息!");
-                    return;
-                }
-
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Astraia.Lobby.更新房间数据);
                 writer.WriteString(Instance.roomName);
                 writer.WriteString(Instance.roomData);
-                writer.WriteByte((byte)Instance.roomMode);
-                writer.WriteInt(Instance.roomCount);
-                AccountTransport.Instance.SendToServer(writer);
+                writer.WriteByte((byte)roomMode);
+                writer.WriteInt(Instance.maxPlayer);
+                Account.SendToServer(writer);
             }
-        }
 
-        internal static partial class Lobby
-        {
             private static void OnClientConnect()
             {
-                if (!AccountTransport.Instance)
-                {
-                    Service.Log.Error("没有连接到有效的传输！");
-                    return;
-                }
-
                 state = State.Connect;
             }
 
@@ -137,17 +115,17 @@ namespace Astraia.Net
                         using var writer = MemoryWriter.Pop();
                         writer.WriteByte((byte)Astraia.Lobby.请求进入大厅);
                         writer.WriteString(Instance.roomGuid);
-                        AccountTransport.Instance.SendToServer(writer);
+                        Account.SendToServer(writer);
                     }
                     else if (opcode == Astraia.Lobby.进入大厅成功)
                     {
                         state = State.Connected;
-                        UpdateLobby();
+                        Update();
                     }
                     else if (opcode == Astraia.Lobby.创建房间成功)
                     {
-                        AccountTransport.Instance.address = reader.ReadString();
-                        EventManager.Invoke(new LobbyCreateRoom(AccountTransport.Instance.address));
+                        Account.address = reader.ReadString();
+                        EventManager.Invoke(new LobbyCreateRoom(Account.address));
                     }
                     else if (opcode == Astraia.Lobby.加入房间成功)
                     {
