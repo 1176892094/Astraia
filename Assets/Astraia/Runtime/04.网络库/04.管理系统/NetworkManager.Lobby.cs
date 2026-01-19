@@ -39,32 +39,15 @@ namespace Astraia.Net
             internal static void Start()
             {
                 isRemote = true;
-                Account.OnClientConnect -= OnClientConnect;
-                Account.OnClientDisconnect -= OnClientDisconnect;
-                Account.OnClientReceive -= OnClientReceive;
-                Account.OnClientConnect += OnClientConnect;
-                Account.OnClientDisconnect += OnClientDisconnect;
-                Account.OnClientReceive += OnClientReceive;
+                Account.OnClientConnect -= Connect;
+                Account.OnClientDisconnect -= Disconnect;
+                Account.OnClientReceive -= Receive;
+                Account.OnClientConnect += Connect;
+                Account.OnClientDisconnect += Disconnect;
+                Account.OnClientReceive += Receive;
                 Account.port = Transport.port;
                 Account.address = Transport.address;
                 Account.StartClient();
-            }
-
-            internal static void Stop()
-            {
-                if (isLobby)
-                {
-                    objectId = 0;
-                    clients.Clear();
-                    players.Clear();
-                    isServer = false;
-                    isClient = false;
-                    state = State.Disconnect;
-                    Account.Disconnect();
-                    EventManager.Invoke(new LobbyDisconnect());
-                }
-
-                isRemote = false;
             }
 
             internal static async void Update()
@@ -94,17 +77,29 @@ namespace Astraia.Net
                 Account.SendToServer(writer);
             }
 
-            private static void OnClientConnect()
+            private static void Connect()
             {
                 state = State.Connect;
             }
 
-            private static void OnClientDisconnect()
+            internal static void Disconnect()
             {
-                Stop();
+                if (isLobby)
+                {
+                    objectId = 0;
+                    clients.Clear();
+                    players.Clear();
+                    isServer = false;
+                    isClient = false;
+                    state = State.Disconnect;
+                    Account.Disconnect();
+                    EventManager.Invoke(new LobbyDisconnect());
+                }
+
+                isRemote = false;
             }
 
-            private static void OnClientReceive(ArraySegment<byte> segment, int channel)
+            private static void Receive(ArraySegment<byte> segment, int channel)
             {
                 try
                 {

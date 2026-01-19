@@ -154,7 +154,7 @@ namespace Astraia.Net
                 Server.Disconnect(0);
             }
 
-            Client.Stop();
+            Client.Disconnect();
         }
 
         public static void StartHost(bool isHost = true)
@@ -204,7 +204,7 @@ namespace Astraia.Net
                 return;
             }
 
-            Lobby.Stop();
+            Lobby.Disconnect();
         }
 
         public static void UpdateLobby()

@@ -69,27 +69,6 @@ namespace Astraia.Net
                 Transport.StartClient(uri);
             }
 
-            internal static void Stop()
-            {
-                if (!isClient) return;
-                var entities = spawns.Values.Where(entity => entity).ToList();
-                foreach (var entity in entities)
-                {
-                    DestroyMessage(new DestroyMessage(entity.objectId));
-                }
-
-                state = State.Disconnect;
-                connection.Disconnect();
-                sendTime = 0;
-                pongTime = 0;
-                pingTime = 0;
-                copies.Clear();
-                spawns.Clear();
-                scenes.Clear();
-                isLoadScene = false;
-                EventManager.Invoke(new ClientDisconnect());
-            }
-
             private static void Load(string sceneName)
             {
                 if (!isLoadScene)
@@ -206,9 +185,25 @@ namespace Astraia.Net
                 EventManager.Invoke(new ClientConnect());
             }
 
-            private static void Disconnect()
+            internal static void Disconnect()
             {
-                Stop();
+                if (!isClient) return;
+                var entities = spawns.Values.Where(entity => entity).ToList();
+                foreach (var entity in entities)
+                {
+                    DestroyMessage(new DestroyMessage(entity.objectId));
+                }
+
+                state = State.Disconnect;
+                connection.Disconnect();
+                sendTime = 0;
+                pongTime = 0;
+                pingTime = 0;
+                copies.Clear();
+                spawns.Clear();
+                scenes.Clear();
+                isLoadScene = false;
+                EventManager.Invoke(new ClientDisconnect());
             }
 
             internal static void Receive(ArraySegment<byte> segment, int channel)
