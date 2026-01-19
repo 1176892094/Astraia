@@ -52,16 +52,11 @@ namespace Astraia
         Disconnect = 2
     }
 
-    internal enum Reliable : byte
+    internal enum Opcode : byte
     {
         Connect = 1,
         Ping = 2,
         Data = 3,
-    }
-
-    internal enum Unreliable : byte
-    {
-        Data = 4,
-        Disconnect = 5,
+        Disconnect = 4
     }
 }

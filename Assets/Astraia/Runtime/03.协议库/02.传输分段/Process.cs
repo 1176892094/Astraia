@@ -9,7 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
 using System.Net.Sockets;
 
 namespace Astraia
@@ -32,30 +31,6 @@ namespace Astraia
             result |= (uint)(p[2 + offset] << 16);
             result |= (uint)(p[3 + offset] << 24);
             return result;
-        }
-
-        public static bool IsReliable(byte value, out Reliable header)
-        {
-            if (Enum.IsDefined(typeof(Reliable), value))
-            {
-                header = (Reliable)value;
-                return true;
-            }
-
-            header = Reliable.Ping;
-            return false;
-        }
-
-        public static bool IsUnreliable(byte value, out Unreliable header)
-        {
-            if (Enum.IsDefined(typeof(Unreliable), value))
-            {
-                header = (Unreliable)value;
-                return true;
-            }
-
-            header = Unreliable.Disconnect;
-            return false;
         }
 
         public static void Buffer(this Socket socket, int buffer = 1024 * 1024 * 7)

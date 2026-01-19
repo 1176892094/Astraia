@@ -1,14 +1,3 @@
-// *********************************************************************************
-// # Project: Astraia
-// # Unity: 6000.3.5f1
-// # Author: 云谷千羽
-// # Version: 1.0.0
-// # History: 2025-01-08 19:01:30
-// # Recently: 2025-01-08 20:01:58
-// # Copyright: 2024, 云谷千羽
-// # Description: This is an automatically generated comment.
-// *********************************************************************************
-
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -29,11 +18,11 @@ namespace Astraia
             public Action<int, ArraySegment<byte>, int> Receive;
         }
 
-        private readonly Dictionary<int, Proxy> clients = new Dictionary<int, Proxy>();
+        private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
         private readonly HashSet<int> removes = new HashSet<int>();
+        private readonly Setting setting;
         private readonly byte[] buffer;
         private readonly Event onEvent;
-        private readonly Setting setting;
         private Socket socket;
         private EndPoint endPoint;
 
@@ -84,6 +73,14 @@ namespace Astraia
             socket.Buffer();
         }
 
+        public void Send(int id, ArraySegment<byte> segment, int channel)
+        {
+            if (clients.TryGetValue(id, out var client))
+            {
+                client.peer.SendData(segment, channel);
+            }
+        }
+
         private bool TryReceive(out int id, out ArraySegment<byte> segment)
         {
             id = 0;
@@ -111,50 +108,43 @@ namespace Astraia
             }
         }
 
-        public void Send(int id, ArraySegment<byte> segment, int channel)
-        {
-            if (clients.TryGetValue(id, out var client))
-            {
-                client.SendData(segment, channel);
-            }
-        }
-
         public void Disconnect(int id)
         {
             if (clients.TryGetValue(id, out var client))
             {
-                client.Disconnect();
+                client.peer.Disconnect();
             }
         }
 
-        private Proxy Register(int id)
+        private Client Register(int id)
         {
-            var newEvent = new Client.Event();
-            var newProxy = new Proxy(newEvent, setting, (uint)Service.Seed.Next(), endPoint);
+            var newEvent = new Astraia.Client.Event();
+            var client = new Client(new Peer(newEvent, setting, "服务器"), endPoint);
             newEvent.Connect = OnConnect;
             newEvent.Disconnect = OnDisconnect;
             newEvent.Error = OnError;
             newEvent.Receive = OnReceive;
             newEvent.Send = OnSend;
-            return newProxy;
+            return client;
 
             void OnConnect()
             {
-                clients.Add(id, newProxy);
                 Service.Log.Info("客户端 {0} 连接到服务器。", id);
+                clients.Add(id, client);
+                client.peer.Handshake();
                 onEvent.Connect.Invoke(id);
             }
 
             void OnDisconnect()
             {
-                removes.Add(id);
                 Service.Log.Info("客户端 {0} 从服务器断开。", id);
+                removes.Add(id);
                 onEvent.Disconnect.Invoke(id);
             }
 
-            void OnError(Error error, string message)
+            void OnError(Error error, string reason)
             {
-                onEvent.Error.Invoke(id, error, message);
+                onEvent.Error?.Invoke(id, error, reason);
             }
 
             void OnReceive(ArraySegment<byte> message, int channel)
@@ -166,11 +156,11 @@ namespace Astraia
             {
                 try
                 {
-                    if (clients.TryGetValue(id, out var client))
+                    if (clients.TryGetValue(id, out var result))
                     {
                         if (socket.Poll(0, SelectMode.SelectWrite))
                         {
-                            socket.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, client.endPoint);
+                            socket.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, result.endPoint);
                         }
                     }
                 }
@@ -191,18 +181,18 @@ namespace Astraia
                 if (!clients.TryGetValue(id, out var client))
                 {
                     client = Register(id);
-                    client.Input(segment);
-                    client.EarlyUpdate();
+                    client.peer.Input(segment);
+                    client.peer.EarlyUpdate();
                 }
                 else
                 {
-                    client.Input(segment);
+                    client.peer.Input(segment);
                 }
             }
 
             foreach (var client in clients.Values)
             {
-                client.EarlyUpdate();
+                client.peer.EarlyUpdate();
             }
 
             foreach (var client in removes)
@@ -217,7 +207,7 @@ namespace Astraia
         {
             foreach (var client in clients.Values)
             {
-                client.AfterUpdate();
+                client.peer.AfterUpdate();
             }
         }
 
@@ -228,52 +218,15 @@ namespace Astraia
             socket = null;
         }
 
-        private sealed class Proxy : Peer
+        private class Client
         {
+            public readonly Peer peer;
             public readonly EndPoint endPoint;
-            private readonly Client.Event onEvent;
 
-            public Proxy(Client.Event onEvent, Setting setting, uint userData, EndPoint endPoint) : base(setting, userData)
+            public Client(Peer peer, EndPoint endPoint)
             {
-                this.onEvent = onEvent;
+                this.peer = peer;
                 this.endPoint = endPoint;
-                state = State.Connect;
-            }
-
-            protected override void OnConnected()
-            {
-                SendReliable(Reliable.Connect);
-                onEvent.Connect.Invoke();
-            }
-
-            protected override void OnDisconnect() => onEvent.Disconnect.Invoke();
-
-            protected override void Send(ArraySegment<byte> segment) => onEvent.Send.Invoke(segment);
-
-            protected override void Data(ArraySegment<byte> segment, int channel) => onEvent.Receive.Invoke(segment, channel);
-
-            protected override void OnError(Error error, string message) => onEvent.Error.Invoke(error, message);
-
-            public void Input(ArraySegment<byte> segment)
-            {
-                if (segment.Count <= 1 + 4)
-                {
-                    return;
-                }
-
-                var channel = segment.Array![segment.Offset];
-                var result = Process.Decode(segment.Array, segment.Offset + 1);
-
-                if (state == State.Connected)
-                {
-                    if (result != userData)
-                    {
-                        Service.Log.Info("客户端 {0} 移除验证: {1} 预期: {2}", endPoint, result, userData);
-                        return;
-                    }
-                }
-
-                Input(new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4), channel);
             }
         }
     }

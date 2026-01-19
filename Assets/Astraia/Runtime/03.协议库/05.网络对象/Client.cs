@@ -1,14 +1,3 @@
-// *********************************************************************************
-// # Project: Astraia
-// # Unity: 6000.3.5f1
-// # Author: 云谷千羽
-// # Version: 1.0.0
-// # History: 2025-01-08 19:01:30
-// # Recently: 2025-01-08 20:01:57
-// # Copyright: 2024, 云谷千羽
-// # Description: This is an automatically generated comment.
-// *********************************************************************************
-
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -16,7 +5,7 @@ using Astraia.Common;
 
 namespace Astraia
 {
-    internal sealed class Client : Peer
+    internal sealed class Client
     {
         public class Event
         {
@@ -27,17 +16,20 @@ namespace Astraia
             public Action<ArraySegment<byte>, int> Receive;
         }
 
+        private readonly Setting setting;
         private readonly byte[] buffer;
         private readonly Event onEvent;
-        private readonly Setting setting;
+        private Peer peer;
+        private State state;
         private Socket socket;
         private EndPoint endPoint;
 
-        public Client(Setting setting, Event onEvent) : base(setting)
+        public Client(Setting setting, Event onEvent)
         {
             this.setting = setting;
             this.onEvent = onEvent;
             buffer = new byte[setting.UnitData];
+            state = State.Disconnect;
         }
 
         public void Connect(string address, ushort port)
@@ -53,20 +45,28 @@ namespace Astraia
                 var addresses = Dns.GetHostAddresses(address);
                 if (addresses.Length >= 1)
                 {
-                    Rebuild(setting);
+                    Register(setting);
                     state = State.Connect;
                     endPoint = new IPEndPoint(addresses[0], port);
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     socket.Buffer();
                     socket.Connect(endPoint);
                     Service.Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
-                    SendReliable(Reliable.Connect);
+                    peer.Handshake();
                 }
             }
             catch (SocketException e)
             {
-                OnError(Error.解析失败, "无法解析主机地址: {0}\n{1}".Format(address, e));
-                onEvent.Disconnect.Invoke();
+                onEvent.Error(Error.解析失败, "无法解析主机地址: {0}\n{1}".Format(address, e));
+                onEvent.Disconnect();
+            }
+        }
+
+        public void Send(ArraySegment<byte> segment, int channel)
+        {
+            if (state != State.Disconnect)
+            {
+                peer.SendData(segment, channel);
             }
         }
 
@@ -89,58 +89,67 @@ namespace Astraia
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
                     Service.Log.Info("客户端接收消息失败!\n{0}", e);
-                    Disconnect();
+                    peer.Disconnect();
                 }
 
                 return false;
             }
         }
 
-        public void Send(ArraySegment<byte> segment, int channel)
+        public void Disconnect()
         {
-            if (state == State.Disconnect)
+            if (state != State.Disconnect)
             {
-                Service.Log.Warn("客户端没有连接，发送消息失败！");
-                return;
+                peer.Disconnect();
             }
-
-            SendData(segment, channel);
         }
 
-        private void Input(ArraySegment<byte> segment)
+        private void Register(Setting setting)
         {
-            if (segment.Count <= 1 + 4)
+            if (peer == null)
             {
-                return;
+                var newEvent = new Event();
+                peer = new Peer(newEvent, setting, "客户端");
+                newEvent.Connect = OnConnect;
+                newEvent.Disconnect = OnDisconnect;
+                newEvent.Error = OnError;
+                newEvent.Receive = OnReceive;
+                newEvent.Send = OnSend;
             }
-
-            var channel = segment.Array![segment.Offset];
-            var result = Process.Decode(segment.Array, segment.Offset + 1);
-            if (result == 0)
+            else
             {
-                Service.Log.Error("客户端 {0} 重新验证。旧: {1} 新: {2}", endPoint, userData, result);
+                peer.Rebuild(setting);
             }
-
-            if (userData == 0)
-            {
-                userData = result;
-            }
-            else if (userData != result)
-            {
-                Service.Log.Error("客户端 {0} 移除验证: {1} 预期: {2}", endPoint, userData, result);
-                return;
-            }
-
-            Input(new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4), channel);
         }
 
-        protected override void OnConnected()
+        private void OnConnect()
         {
             Service.Log.Info("客户端连接成功。");
+            state = State.Connected;
             onEvent.Connect.Invoke();
         }
 
-        protected override void Send(ArraySegment<byte> segment)
+        private void OnDisconnect()
+        {
+            Service.Log.Info("客户端断开连接。");
+            state = State.Disconnect;
+            socket.Close();
+            socket = null;
+            endPoint = null;
+            onEvent.Disconnect.Invoke();
+        }
+
+        private void OnError(Error error, string message)
+        {
+            onEvent.Error?.Invoke(error, message);
+        }
+
+        private void OnReceive(ArraySegment<byte> segment, int channel)
+        {
+            onEvent.Receive.Invoke(segment, channel);
+        }
+
+        private void OnSend(ArraySegment<byte> segment)
         {
             if (socket == null) return;
             try
@@ -157,48 +166,28 @@ namespace Astraia
                     return;
                 }
 
-
                 Service.Log.Info("客户端发送消息失败!\n{0}", e);
             }
         }
 
-        protected override void Data(ArraySegment<byte> segment, int channel)
-        {
-            onEvent.Receive.Invoke(segment, channel);
-        }
-
-        protected override void OnError(Error error, string message)
-        {
-            onEvent.Error.Invoke(error, message);
-        }
-
-        protected override void OnDisconnect()
-        {
-            Service.Log.Info("客户端断开连接。");
-            onEvent.Disconnect.Invoke();
-            endPoint = null;
-            socket?.Close();
-            socket = null;
-        }
-
-        public override void EarlyUpdate()
+        public void EarlyUpdate()
         {
             if (state != State.Disconnect)
             {
                 while (TryReceive(out var segment))
                 {
-                    Input(segment);
+                    peer.Input(segment);
                 }
 
-                base.EarlyUpdate();
+                peer.EarlyUpdate();
             }
         }
 
-        public override void AfterUpdate()
+        public void AfterUpdate()
         {
             if (state != State.Disconnect)
             {
-                base.AfterUpdate();
+                peer.AfterUpdate();
             }
         }
     }

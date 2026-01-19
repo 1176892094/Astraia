@@ -53,6 +53,14 @@ namespace Astraia.Common
             }
         }
 
+        public void Flush()
+        {
+            fixed (byte* ptr = buffer)
+            {
+                Kcp.ikcp_flush(kcp, ptr, buffer, output);
+            }
+        }
+
         public void Update(uint current)
         {
             fixed (byte* ptr = buffer)
