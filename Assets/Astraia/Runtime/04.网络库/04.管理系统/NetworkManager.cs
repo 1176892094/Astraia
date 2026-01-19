@@ -40,8 +40,8 @@ namespace Astraia.Net
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
-            connection = transform.GetOrAddComponent<NetworkTransport>();
-            collection = transform.GetOrAddComponent<LobbyTransport>();
+            collection = gameObject.GetComponent<AccountTransport>();
+            connection = gameObject.AddComponent<NetworkTransport>();
         }
 
         protected override void OnEnable()

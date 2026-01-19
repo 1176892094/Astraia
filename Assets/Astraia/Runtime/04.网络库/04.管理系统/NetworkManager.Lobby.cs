@@ -20,7 +20,7 @@ namespace Astraia.Net
     public partial class NetworkManager
     {
         [Serializable]
-        public static partial class Lobby
+        internal static partial class Lobby
         {
             internal static readonly Dictionary<int, int> clients = new Dictionary<int, int>();
 
@@ -42,10 +42,15 @@ namespace Astraia.Net
 
             internal static void Start()
             {
-                AddMessage();
-                LobbyTransport.Instance.port = port;
-                LobbyTransport.Instance.address = address;
-                LobbyTransport.Instance.StartClient();
+                AccountTransport.Instance.OnClientConnect -= OnClientConnect;
+                AccountTransport.Instance.OnClientDisconnect -= OnClientDisconnect;
+                AccountTransport.Instance.OnClientReceive -= OnClientReceive;
+                AccountTransport.Instance.OnClientConnect += OnClientConnect;
+                AccountTransport.Instance.OnClientDisconnect += OnClientDisconnect;
+                AccountTransport.Instance.OnClientReceive += OnClientReceive;
+                AccountTransport.Instance.port = port;
+                AccountTransport.Instance.address = address;
+                AccountTransport.Instance.StartClient();
             }
 
             internal static void Stop()
@@ -59,7 +64,7 @@ namespace Astraia.Net
                     isClient = false;
                     state = State.Disconnect;
                     EventManager.Invoke(new LobbyDisconnect());
-                    LobbyTransport.Instance.Disconnect();
+                    AccountTransport.Instance.Disconnect();
                 }
             }
 
@@ -99,25 +104,15 @@ namespace Astraia.Net
                 writer.WriteString(Instance.roomData);
                 writer.WriteByte((byte)Instance.roomMode);
                 writer.WriteInt(Instance.roomCount);
-                LobbyTransport.Instance.SendToServer(writer);
+                AccountTransport.Instance.SendToServer(writer);
             }
         }
 
-        public static partial class Lobby
+        internal static partial class Lobby
         {
-            private static void AddMessage()
-            {
-                LobbyTransport.Instance.OnClientConnect -= OnClientConnect;
-                LobbyTransport.Instance.OnClientDisconnect -= OnClientDisconnect;
-                LobbyTransport.Instance.OnClientReceive -= OnClientReceive;
-                LobbyTransport.Instance.OnClientConnect += OnClientConnect;
-                LobbyTransport.Instance.OnClientDisconnect += OnClientDisconnect;
-                LobbyTransport.Instance.OnClientReceive += OnClientReceive;
-            }
-
             private static void OnClientConnect()
             {
-                if (!LobbyTransport.Instance)
+                if (!AccountTransport.Instance)
                 {
                     Service.Log.Error("没有连接到有效的传输！");
                     return;
@@ -142,7 +137,7 @@ namespace Astraia.Net
                         using var writer = MemoryWriter.Pop();
                         writer.WriteByte((byte)Astraia.Lobby.请求进入大厅);
                         writer.WriteString(Instance.roomGuid);
-                        LobbyTransport.Instance.SendToServer(writer);
+                        AccountTransport.Instance.SendToServer(writer);
                     }
                     else if (opcode == Astraia.Lobby.进入大厅成功)
                     {
@@ -151,8 +146,8 @@ namespace Astraia.Net
                     }
                     else if (opcode == Astraia.Lobby.创建房间成功)
                     {
-                        LobbyTransport.Instance.address = reader.ReadString();
-                        EventManager.Invoke(new LobbyCreateRoom(LobbyTransport.Instance.address));
+                        AccountTransport.Instance.address = reader.ReadString();
+                        EventManager.Invoke(new LobbyCreateRoom(AccountTransport.Instance.address));
                     }
                     else if (opcode == Astraia.Lobby.加入房间成功)
                     {
