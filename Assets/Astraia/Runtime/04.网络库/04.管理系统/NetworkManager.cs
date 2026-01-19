@@ -22,7 +22,7 @@ namespace Astraia.Net
         private static Transport connection;
         private static Transport collection;
         private static bool isRemote;
-        
+
         public int maxPlayer = 100;
         public string roomGuid;
         public string roomData;
@@ -221,7 +221,12 @@ namespace Astraia.Net
 
         public static void UpdateRoom(RoomMode roomMode)
         {
-            if (!isRemote || !Lobby.isServer)
+            if (!isRemote)
+            {
+                return;
+            }
+
+            if (!Lobby.isServer)
             {
                 Service.Log.Warn("您必须连接到大厅以更新房间信息!");
                 return;
