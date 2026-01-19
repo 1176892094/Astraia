@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using Astraia.Common;
 using UnityEngine;
 
 namespace Astraia.Net
@@ -20,8 +19,8 @@ namespace Astraia.Net
         public string address = "localhost";
         public ushort port = 20974;
 
-        public readonly Client.Event client = new Client.Event();
-        public readonly Server.Event server = new Server.Event();
+        public readonly Event client = new Event();
+        public readonly Event<int> server = new Event<int>();
 
         public abstract uint GetLength(int channel);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable);
@@ -61,7 +60,7 @@ namespace Astraia.Net
 
         public override uint GetLength(int channel)
         {
-            return channel == Channel.Reliable ? Peer.KcpLength(MAX_MTU, RECEIVE_WIN) : Peer.UdpLength(MAX_MTU);
+            return channel == Channel.Reliable ? Agent.KcpLength(MAX_MTU, RECEIVE_WIN) : Agent.UdpLength(MAX_MTU);
         }
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)

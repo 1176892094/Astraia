@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace Astraia
 {
-    internal sealed class Peer
+    internal sealed class Agent
     {
         private const int PING_INTERVAL = 1000;
         private const int METADATA_SIZE = sizeof(byte) + sizeof(int);
@@ -14,8 +14,8 @@ namespace Astraia
         private readonly uint kcpLength;
         private readonly uint udpLength;
         private readonly string userName;
-        private readonly Client.Event onEvent;
         private readonly Stopwatch watch = new Stopwatch();
+        private readonly Event onEvent;
         private uint pingTime;
         private uint prevTime;
         private uint overTime;
@@ -24,7 +24,7 @@ namespace Astraia
         private State state;
         private uint Time => (uint)watch.ElapsedMilliseconds;
 
-        public Peer(Client.Event onEvent, Setting setting, string userName, uint userData = 0)
+        public Agent(Setting setting, Event onEvent, string userName, uint userData = 0)
         {
             Rebuild(setting);
             this.onEvent = onEvent;

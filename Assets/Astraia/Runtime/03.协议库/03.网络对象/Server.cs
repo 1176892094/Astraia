@@ -8,24 +8,15 @@ namespace Astraia
 {
     internal sealed class Server
     {
-        public class Event
-        {
-            public Action<int> Connect;
-            public Action<int> Disconnect;
-            public Action<int, Error, string> Error;
-            public Action<int, ArraySegment<byte>> Send;
-            public Action<int, ArraySegment<byte>, int> Receive;
-        }
-
         private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
         private readonly HashSet<int> removes = new HashSet<int>();
         private readonly Setting setting;
         private readonly byte[] buffer;
-        private readonly Event onEvent;
+        private readonly Event<int> onEvent;
         private Socket socket;
         private EndPoint endPoint;
 
-        public Server(Setting setting, Event onEvent)
+        public Server(Setting setting, Event<int> onEvent)
         {
             this.setting = setting;
             this.onEvent = onEvent;
@@ -76,7 +67,7 @@ namespace Astraia
         {
             if (clients.TryGetValue(id, out var client))
             {
-                client.peer.SendData(segment, channel);
+                client.agent.SendData(segment, channel);
             }
         }
 
@@ -111,14 +102,14 @@ namespace Astraia
         {
             if (clients.TryGetValue(id, out var client))
             {
-                client.peer.Disconnect();
+                client.agent.Disconnect();
             }
         }
 
         private Client Register(int id)
         {
-            var newEvent = new Astraia.Client.Event();
-            var client = new Client(new Peer(newEvent, setting, "服务器"), endPoint);
+            var newEvent = new Event();
+            var client = new Client(new Agent(setting, newEvent, "服务器"), endPoint);
             newEvent.Connect = OnConnect;
             newEvent.Disconnect = OnDisconnect;
             newEvent.Error = OnError;
@@ -130,7 +121,7 @@ namespace Astraia
             {
                 Service.Log.Info("客户端 {0} 连接到服务器。", id);
                 clients.Add(id, client);
-                client.peer.Handshake();
+                client.agent.Handshake();
                 onEvent.Connect.Invoke(id);
             }
 
@@ -180,18 +171,18 @@ namespace Astraia
                 if (!clients.TryGetValue(id, out var client))
                 {
                     client = Register(id);
-                    client.peer.Input(segment);
-                    client.peer.EarlyUpdate();
+                    client.agent.Input(segment);
+                    client.agent.EarlyUpdate();
                 }
                 else
                 {
-                    client.peer.Input(segment);
+                    client.agent.Input(segment);
                 }
             }
 
             foreach (var client in clients.Values)
             {
-                client.peer.EarlyUpdate();
+                client.agent.EarlyUpdate();
             }
 
             foreach (var client in removes)
@@ -206,7 +197,7 @@ namespace Astraia
         {
             foreach (var client in clients.Values)
             {
-                client.peer.AfterUpdate();
+                client.agent.AfterUpdate();
             }
         }
 
@@ -219,12 +210,12 @@ namespace Astraia
 
         private class Client
         {
-            public readonly Peer peer;
+            public readonly Agent agent;
             public readonly EndPoint endPoint;
 
-            public Client(Peer peer, EndPoint endPoint)
+            public Client(Agent agent, EndPoint endPoint)
             {
-                this.peer = peer;
+                this.agent = agent;
                 this.endPoint = endPoint;
             }
         }

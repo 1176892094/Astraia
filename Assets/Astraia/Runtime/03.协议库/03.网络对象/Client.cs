@@ -6,19 +6,10 @@ namespace Astraia
 {
     internal sealed class Client
     {
-        public class Event
-        {
-            public Action Connect;
-            public Action Disconnect;
-            public Action<Error, string> Error;
-            public Action<ArraySegment<byte>> Send;
-            public Action<ArraySegment<byte>, int> Receive;
-        }
-
         private readonly Setting setting;
         private readonly byte[] buffer;
         private readonly Event onEvent;
-        private Peer peer;
+        private Agent agent;
         private State state;
         private Socket socket;
         private EndPoint endPoint;
@@ -51,7 +42,7 @@ namespace Astraia
                     Common.Blocked(socket);
                     socket.Connect(endPoint);
                     Service.Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
-                    peer.Handshake();
+                    agent.Handshake();
                 }
             }
             catch (SocketException e)
@@ -65,7 +56,7 @@ namespace Astraia
         {
             if (state != State.Disconnect)
             {
-                peer.SendData(segment, channel);
+                agent.SendData(segment, channel);
             }
         }
 
@@ -88,7 +79,7 @@ namespace Astraia
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
                     Service.Log.Info("客户端接收消息失败!\n{0}", e);
-                    peer.Disconnect();
+                    agent.Disconnect();
                 }
 
                 return false;
@@ -99,16 +90,16 @@ namespace Astraia
         {
             if (state != State.Disconnect)
             {
-                peer.Disconnect();
+                agent.Disconnect();
             }
         }
 
         private void Register(Setting setting)
         {
-            if (peer == null)
+            if (agent == null)
             {
                 var newEvent = new Event();
-                peer = new Peer(newEvent, setting, "客户端");
+                agent = new Agent(setting, newEvent, "客户端");
                 newEvent.Connect = OnConnect;
                 newEvent.Disconnect = OnDisconnect;
                 newEvent.Error = OnError;
@@ -117,7 +108,7 @@ namespace Astraia
             }
             else
             {
-                peer.Rebuild(setting);
+                agent.Rebuild(setting);
             }
         }
 
@@ -175,10 +166,10 @@ namespace Astraia
             {
                 while (TryReceive(out var segment))
                 {
-                    peer.Input(segment);
+                    agent.Input(segment);
                 }
 
-                peer.EarlyUpdate();
+                agent.EarlyUpdate();
             }
         }
 
@@ -186,7 +177,7 @@ namespace Astraia
         {
             if (state != State.Disconnect)
             {
-                peer.AfterUpdate();
+                agent.AfterUpdate();
             }
         }
     }
