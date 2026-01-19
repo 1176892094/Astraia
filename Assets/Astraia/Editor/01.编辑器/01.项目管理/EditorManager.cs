@@ -20,6 +20,7 @@ using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 #if UNITY_6000_3_OR_NEWER
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<UnityEngine.EntityId>;
+
 #elif UNITY_6000_2_OR_NEWER
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
 #else
@@ -47,20 +48,18 @@ namespace Astraia
 
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
-            EditorApplication.update -= Menubar.Update;
-            EditorApplication.update += Menubar.Update;
             EditorApplication.hierarchyWindowItemOnGUI -= Hierarchy.OnGUI;
             EditorApplication.hierarchyWindowItemOnGUI += Hierarchy.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI -= Folder.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
             EditorApplication.projectChanged -= Folder.OnProjectChanged;
             EditorApplication.projectChanged += Folder.OnProjectChanged;
-            
+
             Selection.selectionChanged -= Inspector.SelectionChanged;
             Selection.selectionChanged += Inspector.SelectionChanged;
             EditorApplication.delayCall -= Inspector.SelectionChanged;
             EditorApplication.delayCall += Inspector.SelectionChanged;
-            
+
             SceneManager.activeSceneChanged -= Toolbar.ActiveSceneChanged;
             SceneManager.activeSceneChanged += Toolbar.ActiveSceneChanged;
             EditorSceneManager.sceneOpened -= Toolbar.OnSceneOpened;
