@@ -171,8 +171,8 @@ namespace Astraia
 
         protected override void OnDisconnect()
         {
-            Service.Log.Info("客户端断开连接。");
             onDisconnect.Invoke();
+            Service.Log.Info("客户端断开连接。");
             endPoint = null;
             socket?.Close();
             socket = null;
