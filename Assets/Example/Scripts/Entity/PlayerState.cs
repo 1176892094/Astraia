@@ -9,8 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using Astraia;
-using Astraia.Common;
+using Astraia.Core;
 using UnityEngine;
 
 namespace Runtime
@@ -63,7 +62,7 @@ namespace Runtime
                 Machine.Switch(StateConst.Grab);
                 return;
             }
-            
+
             if (!Feature.isWalk)
             {
                 Machine.Switch(StateConst.Idle);

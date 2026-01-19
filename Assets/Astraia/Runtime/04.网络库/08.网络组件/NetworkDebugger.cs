@@ -16,7 +16,7 @@ using Astraia.Net;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     [DefaultExecutionOrder(-100)]
     public sealed class NetworkDebugger : Debugger

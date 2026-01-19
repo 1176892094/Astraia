@@ -9,7 +9,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     public interface IStartClient
     {

@@ -17,7 +17,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     public record OnLoadBundle(int count, long amount) : IEvent;
 

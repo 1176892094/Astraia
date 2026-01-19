@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     public static class EventManager
     {

@@ -1472,7 +1472,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b7ebd91d087ac427bab9f4b472ebde57, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Astraia.Log::Astraia.Common.DebugManager
+  m_EditorClassIdentifier: Astraia.Log::Astraia.Core.DebugManager
 --- !u!114 &584064308
 MonoBehaviour:
   m_ObjectHideFlags: 0

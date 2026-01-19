@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     using static GlobalManager;
 

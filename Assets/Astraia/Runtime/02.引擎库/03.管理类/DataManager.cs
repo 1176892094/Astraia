@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     public static class DataManager
     {

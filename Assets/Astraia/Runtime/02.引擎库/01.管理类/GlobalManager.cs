@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     public sealed class GlobalManager : MonoBehaviour
     {

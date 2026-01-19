@@ -12,7 +12,7 @@
 using System;
 using UnityEngine;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     public interface IMessage
     {

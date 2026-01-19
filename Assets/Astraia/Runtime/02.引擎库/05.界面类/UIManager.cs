@@ -15,7 +15,7 @@ using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     using static GlobalManager;
 

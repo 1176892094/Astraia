@@ -38,7 +38,7 @@ TextAsset:
     # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
     20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
     is an automatically generated comment.\n// *********************************************************************************\n\nusing
-    System;\nusing UnityEngine;\nusing Astraia.Common;\n\nnamespace Astraia.Table\n{\n   
+    System;\nusing UnityEngine;\nusing Astraia.Core;\n\nnamespace Astraia.Table\n{\n   
     [Serializable]\n    public struct Template\n     {\n //TODO:1\n    }\n}"
 --- !u!49 &-2960232863454612889
 TextAsset:
@@ -52,7 +52,7 @@ TextAsset:
     # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
     20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
     is an automatically generated comment.\n// *********************************************************************************\n\nusing
-    System;\nusing UnityEngine;\nusing Astraia.Common;\n\nnamespace Astraia.Table\n{\n   
+    System;\nusing UnityEngine;\nusing Astraia.Core;\n\nnamespace Astraia.Table\n{\n   
     internal class TemplateDataTable : DataTable<TemplateData> { }\n\n     [Serializable]\n   
     public struct TemplateData : IData\n    {\n //TODO:1\n        [HideInInspector,
     SerializeField] private Xor.Bytes[] Bytes;\n        public TemplateData(Xor.Bytes[]

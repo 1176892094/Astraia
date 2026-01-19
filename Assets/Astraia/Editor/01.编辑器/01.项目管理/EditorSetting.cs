@@ -16,7 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Astraia.Common;
+using Astraia.Core;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;

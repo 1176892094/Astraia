@@ -214,13 +214,13 @@ namespace Astraia
         {
             if (sinceTime >= prevTime + overTime)
             {
-                onEvent.Error(Error.连接超时, "{0}在 {1}ms 内没有收到任何消息后的连接超时！".Format(userName, overTime));
+                onEvent.Error(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, overTime / 1000));
                 Disconnect();
             }
 
             if (kcp.State == unchecked((uint)-1))
             {
-                onEvent.Error(Error.连接超时, "{0}网络消息被重传了 {1} 次而没有得到确认！".Format(userName, kcp.Death));
+                onEvent.Error(Error.连接超时, "{0}网络消息被重传了{1}次而没有得到确认！".Format(userName, kcp.Death));
                 Disconnect();
             }
 

@@ -12,7 +12,7 @@
 using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using Astraia.Common;
+using Astraia.Core;
 
 namespace Astraia
 {

@@ -10,7 +10,7 @@
 // // *********************************************************************************
 
 using Astraia;
-using Astraia.Common;
+using Astraia.Core;
 using UnityEngine;
 
 namespace Runtime

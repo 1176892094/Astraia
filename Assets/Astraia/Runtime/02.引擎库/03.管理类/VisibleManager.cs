@@ -12,7 +12,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     public interface IVisible
     {

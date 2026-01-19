@@ -1,7 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using Astraia.Common;
+using Astraia.Core;
 
 namespace Astraia.Net
 {

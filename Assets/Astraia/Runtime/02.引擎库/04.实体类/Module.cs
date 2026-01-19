@@ -12,7 +12,7 @@
 using System;
 using UnityEngine;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     [Serializable]
     public abstract class Module<T> : IModule where T : Entity

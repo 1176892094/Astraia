@@ -12,7 +12,7 @@
 using System;
 using System.Collections.Generic;
 using Astraia;
-using Astraia.Common;
+using Astraia.Core;
 using Astraia.Net;
 using UnityEngine;
 using Object = UnityEngine.Object;

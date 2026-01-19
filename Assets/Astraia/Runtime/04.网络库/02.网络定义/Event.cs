@@ -12,7 +12,7 @@
 using System;
 using Astraia.Net;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     public record ServerConnect(int client) : IEvent;
 

@@ -14,7 +14,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     [Serializable]
     public abstract class UIPanel<T, TGrid> : UIPanel, IMove, ISystem, IEnumerable<KeyValuePair<int, TGrid>> where TGrid : Component, IGrid<T>

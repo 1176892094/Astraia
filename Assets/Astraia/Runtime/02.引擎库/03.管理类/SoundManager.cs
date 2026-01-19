@@ -11,7 +11,7 @@
 
 using UnityEngine;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     using static GlobalManager;
 

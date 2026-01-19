@@ -9,7 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using Astraia.Common;
+using Astraia.Core;
 using Astraia.Net;
 using UnityEngine;
 

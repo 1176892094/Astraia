@@ -11,7 +11,7 @@
 
 using System.Collections.Generic;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     using static GlobalManager;
 

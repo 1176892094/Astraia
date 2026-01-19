@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Astraia.Common;
+using Astraia.Core;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;

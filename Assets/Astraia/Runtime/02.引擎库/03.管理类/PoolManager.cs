@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     using static GlobalManager;
 

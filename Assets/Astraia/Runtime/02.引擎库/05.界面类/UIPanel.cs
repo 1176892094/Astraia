@@ -10,7 +10,7 @@
 // *********************************************************************************
 
 using System;
-using Astraia.Common;
+using Astraia.Core;
 
 namespace Astraia
 {

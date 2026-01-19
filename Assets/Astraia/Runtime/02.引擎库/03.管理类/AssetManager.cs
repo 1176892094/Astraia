@@ -18,7 +18,7 @@ using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Astraia.Common
+namespace Astraia.Core
 {
     using static GlobalManager;
 

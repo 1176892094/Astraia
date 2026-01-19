@@ -15,7 +15,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Astraia.Common;
+using Astraia.Core;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;

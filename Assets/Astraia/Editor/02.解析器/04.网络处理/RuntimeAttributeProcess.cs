@@ -11,7 +11,7 @@
 
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Astraia.Common;
+using Astraia.Core;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;

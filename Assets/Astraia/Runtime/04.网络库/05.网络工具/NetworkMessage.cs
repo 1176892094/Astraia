@@ -12,7 +12,7 @@
 
 using System;
 using System.Collections.Generic;
-using Astraia.Common;
+using Astraia.Core;
 
 namespace Astraia.Net
 {
