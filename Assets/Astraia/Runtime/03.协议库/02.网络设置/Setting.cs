@@ -18,7 +18,7 @@ namespace Astraia
     internal struct Setting
     {
         public uint UnitData;
-        public uint OverTime;
+        public uint Timeout;
         public uint Interval;
         public uint DeadLink;
         public uint FastResend;
@@ -30,7 +30,7 @@ namespace Astraia
 
         public Setting(
             uint UnitData = Kcp.IKCP_MTU_DEF,
-            uint OverTime = 10000,
+            uint Timeout = 10000,
             uint Interval = 10,
             uint DeadLink = Kcp.IKCP_DEADLINK,
             uint FastResend = 0,
@@ -41,7 +41,7 @@ namespace Astraia
             bool Congestion = false)
         {
             this.UnitData = UnitData;
-            this.OverTime = OverTime;
+            this.Timeout = Timeout;
             this.Interval = Interval;
             this.DeadLink = DeadLink;
             this.FastResend = FastResend;

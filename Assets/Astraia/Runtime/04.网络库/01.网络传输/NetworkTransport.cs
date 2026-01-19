@@ -40,7 +40,7 @@ namespace Astraia.Net
     internal sealed class NetworkTransport : Transport
     {
         private const uint MAX_MTU = 1200;
-        private const uint OVER_TIME = 10000;
+        private const uint TIME_OUT = 10000;
         private const uint INTERVAL = 10;
         private const uint DEAD_LINK = 40;
         private const uint FAST_RESEND = 2;
@@ -52,10 +52,15 @@ namespace Astraia.Net
 
         private void Awake()
         {
-            var setting = new Setting(MAX_MTU, OVER_TIME, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
+            var setting = new Setting(MAX_MTU, TIME_OUT, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
             clientAgent = new Client(setting, client);
             serverAgent = new Server(setting, server);
-            client.Error = (error, message) => Service.Log.Warn("{0}: {1}", error, message);
+            client.Error = OnError;
+        }
+
+        private static void OnError(Error error, string message)
+        {
+            Service.Log.Warn("{0}: {1}", error, message);
         }
 
         public override uint GetLength(int channel)

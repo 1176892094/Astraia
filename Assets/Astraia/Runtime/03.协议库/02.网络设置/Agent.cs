@@ -16,9 +16,9 @@ namespace Astraia
         private readonly string userName;
         private readonly Stopwatch watch = new Stopwatch();
         private readonly Event onEvent;
+        private uint overTime;
         private uint pingTime;
         private uint prevTime;
-        private uint overTime;
         private uint userData;
         private Protocol kcp;
         private State state;
@@ -42,7 +42,7 @@ namespace Astraia
             userData = 0;
             pingTime = 0;
             prevTime = 0;
-            overTime = setting.OverTime;
+            overTime = setting.Timeout;
             kcp = new Protocol(0, SendReliable);
             kcp.SetData(setting.UnitData - METADATA_SIZE, setting.DeadLink);
             kcp.SetDelay(setting.NoDelay, setting.Interval, setting.FastResend, !setting.Congestion);
