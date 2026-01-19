@@ -39,12 +39,12 @@ namespace Astraia.Net
             internal static void Start()
             {
                 isRemote = true;
-                Account.client.onConnect -= Connect;
-                Account.client.onDisconnect -= Disconnect;
-                Account.client.onReceive -= Receive;
-                Account.client.onConnect += Connect;
-                Account.client.onDisconnect += Disconnect;
-                Account.client.onReceive += Receive;
+                Account.client.Connect -= Connect;
+                Account.client.Disconnect -= Disconnect;
+                Account.client.Receive -= Receive;
+                Account.client.Connect += Connect;
+                Account.client.Disconnect += Disconnect;
+                Account.client.Receive += Receive;
                 Account.port = Transport.port;
                 Account.address = Transport.address;
                 Account.StartClient();
@@ -135,7 +135,7 @@ namespace Astraia.Net
 
                         if (isClient)
                         {
-                            Transport.client.onConnect.Invoke();
+                            Transport.client.Connect.Invoke();
                         }
                     }
                     else if (opcode == Astraia.Lobby.离开房间成功)
@@ -143,7 +143,7 @@ namespace Astraia.Net
                         if (isClient)
                         {
                             isClient = false;
-                            Transport.client.onDisconnect.Invoke();
+                            Transport.client.Disconnect.Invoke();
                         }
                     }
                     else if (opcode == Astraia.Lobby.同步网络数据)
@@ -160,7 +160,7 @@ namespace Astraia.Net
 
                         if (isClient)
                         {
-                            Transport.client.onReceive.Invoke(message, channel);
+                            Transport.client.Receive.Invoke(message, channel);
                         }
                     }
                     else if (opcode == Astraia.Lobby.断开玩家连接)

@@ -20,24 +20,24 @@ namespace Astraia
 {
     internal sealed class Server
     {
-        public class Delegate
+        public class Event
         {
             public Action<int> Connect;
             public Action<int> Disconnect;
             public Action<int, Error, string> Error;
-            public Action<int, ArraySegment<byte>, int> Send;
+            public Action<int, ArraySegment<byte>> Send;
             public Action<int, ArraySegment<byte>, int> Receive;
         }
 
-        private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
+        private readonly Dictionary<int, Proxy> clients = new Dictionary<int, Proxy>();
         private readonly HashSet<int> removes = new HashSet<int>();
         private readonly byte[] buffer;
+        private readonly Event onEvent;
         private readonly Setting setting;
-        private readonly Delegate onEvent;
         private Socket socket;
         private EndPoint endPoint;
 
-        public Server(Setting setting, Delegate onEvent)
+        public Server(Setting setting, Event onEvent)
         {
             this.setting = setting;
             this.onEvent = onEvent;
@@ -127,13 +127,20 @@ namespace Astraia
             }
         }
 
-        private Client Register(int id)
+        private Proxy Register(int id)
         {
-            return new Client(OnConnect, OnDisconnect, OnError, OnReceive, OnSend, setting, (uint)Service.Seed.Next(), endPoint);
+            var newEvent = new Client.Event();
+            var newProxy = new Proxy(newEvent, setting, (uint)Service.Seed.Next(), endPoint);
+            newEvent.Connect = OnConnect;
+            newEvent.Disconnect = OnDisconnect;
+            newEvent.Error = OnError;
+            newEvent.Receive = OnReceive;
+            newEvent.Send = OnSend;
+            return newProxy;
 
-            void OnConnect(Client client)
+            void OnConnect()
             {
-                clients.Add(id, client);
+                clients.Add(id, newProxy);
                 Service.Log.Info("客户端 {0} 连接到服务器。", id);
                 onEvent.Connect.Invoke(id);
             }
@@ -221,23 +228,14 @@ namespace Astraia
             socket = null;
         }
 
-        private sealed class Client : Peer
+        private sealed class Proxy : Peer
         {
             public readonly EndPoint endPoint;
-            private readonly Action onDisconnect;
-            private readonly Action<Client> onConnect;
-            private readonly Action<Error, string> onError;
-            private readonly Action<ArraySegment<byte>> onSend;
-            private readonly Action<ArraySegment<byte>, int> onReceive;
+            private readonly Client.Event onEvent;
 
-            public Client(Action<Client> onConnect, Action onDisconnect, Action<Error, string> onError, Action<ArraySegment<byte>, int> onReceive,
-                Action<ArraySegment<byte>> onSend, Setting setting, uint userData, EndPoint endPoint) : base(setting, userData)
+            public Proxy(Client.Event onEvent, Setting setting, uint userData, EndPoint endPoint) : base(setting, userData)
             {
-                this.onSend = onSend;
-                this.onError = onError;
-                this.onConnect = onConnect;
-                this.onReceive = onReceive;
-                this.onDisconnect = onDisconnect;
+                this.onEvent = onEvent;
                 this.endPoint = endPoint;
                 state = State.Connect;
             }
@@ -245,16 +243,16 @@ namespace Astraia
             protected override void OnConnected()
             {
                 SendReliable(Reliable.Connect);
-                onConnect.Invoke(this);
+                onEvent.Connect.Invoke();
             }
 
-            protected override void OnDisconnect() => onDisconnect.Invoke();
+            protected override void OnDisconnect() => onEvent.Disconnect.Invoke();
 
-            protected override void Send(ArraySegment<byte> segment) => onSend.Invoke(segment);
+            protected override void Send(ArraySegment<byte> segment) => onEvent.Send.Invoke(segment);
 
-            protected override void Data(ArraySegment<byte> segment, int channel) => onReceive.Invoke(segment, channel);
+            protected override void Data(ArraySegment<byte> segment, int channel) => onEvent.Receive.Invoke(segment, channel);
 
-            protected override void OnError(Error error, string message) => onError.Invoke(error, message);
+            protected override void OnError(Error error, string message) => onEvent.Error.Invoke(error, message);
 
             public void Input(ArraySegment<byte> segment)
             {

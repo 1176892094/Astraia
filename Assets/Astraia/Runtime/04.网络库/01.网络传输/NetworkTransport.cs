@@ -20,8 +20,8 @@ namespace Astraia.Net
         public string address = "localhost";
         public ushort port = 20974;
 
-        public readonly Client.Delegate client = new Client.Delegate();
-        public readonly Server.Delegate server = new Server.Delegate();
+        public readonly Client.Event client = new Client.Event();
+        public readonly Server.Event server = new Server.Event();
 
         public abstract uint GetLength(int channel);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable);
@@ -56,7 +56,7 @@ namespace Astraia.Net
             var setting = new Setting(MAX_MTU, OVER_TIME, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
             clientAgent = new Client(setting, client);
             serverAgent = new Server(setting, server);
-            client.onError = (error, message) => Service.Log.Warn("{0}: {1}", error, message);
+            client.Error = (error, message) => Service.Log.Warn("{0}: {1}", error, message);
         }
 
         public override uint GetLength(int channel)
@@ -67,13 +67,13 @@ namespace Astraia.Net
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
             serverAgent.Send(clientId, segment, channel);
-            server.Send?.Invoke(clientId, segment, channel);
+            server.Send?.Invoke(clientId, segment);
         }
 
         public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
             clientAgent.Send(segment, channel);
-            client.onSend?.Invoke(segment, channel);
+            client.Send?.Invoke(segment);
         }
 
         public override void StartServer()

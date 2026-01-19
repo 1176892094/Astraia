@@ -27,7 +27,7 @@ namespace Astraia.Common
         private readonly Stopwatch watch = new Stopwatch();
         private uint overTime;
         private uint pingTime;
-        private uint lastTime;
+        private uint prevTime;
         private Protocol kcp;
         protected State state;
         protected uint userData;
@@ -48,7 +48,7 @@ namespace Astraia.Common
         {
             userData = 0;
             pingTime = 0;
-            lastTime = 0;
+            prevTime = 0;
             overTime = setting.OverTime;
             kcp = new Protocol(0, SendReliable);
             kcp.SetData(setting.UnitData - METADATA_SIZE, setting.DeadLink);
@@ -108,7 +108,7 @@ namespace Astraia.Common
             }
 
             segment = new ArraySegment<byte>(kcpDataBuffer, 1, count - 1);
-            lastTime = keepTime;
+            prevTime = keepTime;
             return true;
         }
 
@@ -134,7 +134,7 @@ namespace Astraia.Common
                 {
                     segment = new ArraySegment<byte>(segment.Array, segment.Offset + 1, segment.Count - 1);
                     Data(segment, Channel.Unreliable);
-                    lastTime = keepTime;
+                    prevTime = keepTime;
                 }
                 else if (message == Unreliable.Disconnect)
                 {
@@ -143,7 +143,7 @@ namespace Astraia.Common
             }
         }
 
-        public void SendReliable(Reliable message, ArraySegment<byte> segment = default)
+        protected void SendReliable(Reliable message, ArraySegment<byte> segment = default)
         {
             if (segment.Count + 1 > kcpSendBuffer.Length)
             {
@@ -220,7 +220,7 @@ namespace Astraia.Common
 
         private void BeforeReceive()
         {
-            if (keepTime >= lastTime + overTime)
+            if (keepTime >= prevTime + overTime)
             {
                 OnError(Error.连接超时, "{0}: 在 {1}ms 内没有收到任何消息后的连接超时！".Format(GetType(), overTime));
                 Disconnect();

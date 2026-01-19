@@ -18,22 +18,22 @@ namespace Astraia
 {
     internal sealed class Client : Peer
     {
-        public class Delegate
+        public class Event
         {
-            public Action onConnect;
-            public Action onDisconnect;
-            public Action<Error, string> onError;
-            public Action<ArraySegment<byte>, int> onSend;
-            public Action<ArraySegment<byte>, int> onReceive;
+            public Action Connect;
+            public Action Disconnect;
+            public Action<Error, string> Error;
+            public Action<ArraySegment<byte>> Send;
+            public Action<ArraySegment<byte>, int> Receive;
         }
 
         private readonly byte[] buffer;
+        private readonly Event onEvent;
         private readonly Setting setting;
-        private readonly Delegate onEvent;
         private Socket socket;
         private EndPoint endPoint;
 
-        public Client(Setting setting, Delegate onEvent) : base(setting)
+        public Client(Setting setting, Event onEvent) : base(setting)
         {
             this.setting = setting;
             this.onEvent = onEvent;
@@ -66,7 +66,7 @@ namespace Astraia
             catch (SocketException e)
             {
                 OnError(Error.解析失败, "无法解析主机地址: {0}\n{1}".Format(address, e));
-                onEvent.onDisconnect.Invoke();
+                onEvent.Disconnect.Invoke();
             }
         }
 
@@ -137,7 +137,7 @@ namespace Astraia
         protected override void OnConnected()
         {
             Service.Log.Info("客户端连接成功。");
-            onEvent.onConnect.Invoke();
+            onEvent.Connect.Invoke();
         }
 
         protected override void Send(ArraySegment<byte> segment)
@@ -164,18 +164,18 @@ namespace Astraia
 
         protected override void Data(ArraySegment<byte> segment, int channel)
         {
-            onEvent.onReceive.Invoke(segment, channel);
+            onEvent.Receive.Invoke(segment, channel);
         }
 
         protected override void OnError(Error error, string message)
         {
-            onEvent.onError.Invoke(error, message);
+            onEvent.Error.Invoke(error, message);
         }
 
         protected override void OnDisconnect()
         {
             Service.Log.Info("客户端断开连接。");
-            onEvent.onDisconnect.Invoke();
+            onEvent.Disconnect.Invoke();
             endPoint = null;
             socket?.Close();
             socket = null;

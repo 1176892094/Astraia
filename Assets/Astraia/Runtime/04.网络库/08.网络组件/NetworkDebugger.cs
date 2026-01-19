@@ -1101,13 +1101,13 @@ namespace Astraia.Common
         {
             if (NetworkManager.Transport)
             {
-                NetworkManager.Transport.client.onSend -= OnClientSend;
+                NetworkManager.Transport.client.Send -= OnClientSend;
                 NetworkManager.Transport.server.Send -= OnServerSend;
-                NetworkManager.Transport.client.onReceive -= OnClientReceive;
+                NetworkManager.Transport.client.Receive -= OnClientReceive;
                 NetworkManager.Transport.server.Receive -= OnServerReceive;
-                NetworkManager.Transport.client.onSend += OnClientSend;
+                NetworkManager.Transport.client.Send += OnClientSend;
                 NetworkManager.Transport.server.Send += OnServerSend;
-                NetworkManager.Transport.client.onReceive += OnClientReceive;
+                NetworkManager.Transport.client.Receive += OnClientReceive;
                 NetworkManager.Transport.server.Receive += OnServerReceive;
             }
         }
@@ -1130,7 +1130,7 @@ namespace Astraia.Common
             }
         }
 
-        private void OnClientSend(ArraySegment<byte> segment, int channel)
+        private void OnClientSend(ArraySegment<byte> segment)
         {
             client.Send.count++;
             client.Send.bytes += segment.Count;
@@ -1142,7 +1142,7 @@ namespace Astraia.Common
             client.Receive.bytes += segment.Count;
         }
 
-        private void OnServerSend(int clientId, ArraySegment<byte> segment, int channel)
+        private void OnServerSend(int clientId, ArraySegment<byte> segment)
         {
             server.Send.count++;
             server.Send.bytes += segment.Count;
