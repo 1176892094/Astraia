@@ -12,7 +12,7 @@
 using System;
 using System.Threading;
 
-namespace Astraia.Common
+namespace Astraia
 {
     internal sealed unsafe class Protocol : IDisposable
     {

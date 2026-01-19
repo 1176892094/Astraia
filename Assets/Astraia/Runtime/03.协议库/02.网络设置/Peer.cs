@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 
-namespace Astraia.Common
+namespace Astraia
 {
     internal sealed class Peer
     {
@@ -54,7 +54,7 @@ namespace Astraia.Common
         private void SendReliable(byte[] bytes, int count)
         {
             rawSendBuffer[0] = Channel.Reliable;
-            Process.Encode(rawSendBuffer, 1, userData);
+            Common.Encode(rawSendBuffer, 1, userData);
             Buffer.BlockCopy(bytes, 0, rawSendBuffer, 1 + 4, count);
             onEvent.Send(new ArraySegment<byte>(rawSendBuffer, 0, count + 1 + 4));
         }
@@ -112,7 +112,7 @@ namespace Astraia.Common
             }
 
             var channel = segment.Array![segment.Offset];
-            var newData = Process.Decode(segment.Array, segment.Offset + 1);
+            var newData = Common.Decode(segment.Array, segment.Offset + 1);
             if (state == State.Connected && newData != userData)
             {
                 Service.Log.Warn("{0}数据校验失败。旧: {1} 新: {2}", userName, userData, newData);
@@ -166,7 +166,7 @@ namespace Astraia.Common
             }
 
             rawSendBuffer[0] = Channel.Unreliable;
-            Process.Encode(rawSendBuffer, 1, userData);
+            Common.Encode(rawSendBuffer, 1, userData);
             if (segment.Count > 0)
             {
                 Buffer.BlockCopy(segment.Array!, segment.Offset, rawSendBuffer, 1 + 4, segment.Count);
@@ -255,7 +255,7 @@ namespace Astraia.Common
                         return;
                     case Opcode.Connect:
                         state = State.Connected;
-                        userData = Process.Decode(segment.Array, segment.Offset);
+                        userData = Common.Decode(segment.Array, segment.Offset);
                         onEvent.Connect();
                         break;
                 }

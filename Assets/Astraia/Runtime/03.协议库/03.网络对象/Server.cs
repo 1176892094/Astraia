@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using Astraia.Common;
 
 namespace Astraia
 {
@@ -70,7 +69,7 @@ namespace Astraia
                 socket.Bind(new IPEndPoint(IPAddress.Any, port));
             }
 
-            socket.Buffer();
+            Common.Blocked(socket);
         }
 
         public void Send(int id, ArraySegment<byte> segment, int channel)

@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using Astraia.Common;
 
 namespace Astraia
 {
@@ -49,7 +48,7 @@ namespace Astraia
                     state = State.Connect;
                     endPoint = new IPEndPoint(addresses[0], port);
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-                    socket.Buffer();
+                    Common.Blocked(socket);
                     socket.Connect(endPoint);
                     Service.Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
                     peer.Handshake();
