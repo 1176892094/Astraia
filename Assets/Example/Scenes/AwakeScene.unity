@@ -1438,9 +1438,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55c3b094877074c03a956c8a536c6a66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moduleList: []
-  isRemote: 0
-  roomCount: 100
+  moduleList:
+  - Astraia.Net.NetworkObserver, Astraia.Net
+  - Astraia.Net.NetworkDiscovery, Astraia.Net
+  maxPlayer: 100
   roomGuid: 
   roomData: 
   roomName: 
