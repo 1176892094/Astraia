@@ -27,8 +27,8 @@ namespace Astraia.Net
         public void Execute(OnVisibleUpdate message)
         {
             waitTime = 0;
-            range = new Vector3Int(message.x, message.y, message.scale);
-            grids = new Visible<NetworkClient>(message.x, message.y, message.scale);
+            range = new Vector3Int(message.x, message.y, message.z);
+            grids = new Visible<NetworkClient>(message.x, message.y, message.z);
         }
 
         public void Execute(ServerDisconnect message)

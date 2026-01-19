@@ -28,11 +28,11 @@ namespace Astraia.Common
         private static Vector3Int range = Vector3Int.one;
         private static Visible<IVisible> grids;
 
-        public static void Rebuild(int rangeX, int rangeY, int scale)
+        public static void Rebuild(int x, int y, int z)
         {
-            range = new Vector3Int(rangeX, rangeY, scale);
-            grids = new Visible<IVisible>(rangeX, rangeY, scale);
-            EventManager.Invoke(new OnVisibleUpdate(rangeX, rangeY, scale));
+            range = new Vector3Int(x, y, z);
+            grids = new Visible<IVisible>(x, y, z);
+            EventManager.Invoke(new OnVisibleUpdate(x, y, z));
         }
 
         public static void Register(IVisible item)
@@ -94,7 +94,6 @@ namespace Astraia.Common
 
         internal static void Dispose()
         {
-            grids?.Clear();
             items.Clear();
             nodes.Clear();
             point = Vector2Int.zero;

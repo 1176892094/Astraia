@@ -60,7 +60,7 @@ namespace Astraia.Net
             if ((state & State.Awake) == 0)
             {
                 var copies = new List<NetworkModule>();
-                foreach (var module in Values)
+                foreach (var module in Modules)
                 {
                     if (module is NetworkModule result)
                     {

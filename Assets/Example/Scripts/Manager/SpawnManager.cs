@@ -31,7 +31,7 @@ namespace Runtime
             var sprite = PoolManager.Show("Prefabs/Effect", position).GetComponent<SpriteRenderer>();
             sprite.color = new Color(0, 0, 0, 1);
             await sprite.DOFade(0, 0.5f);
-            PoolManager.Hide(sprite.gameObject);
+            PoolManager.Hide(sprite);
         }
     }
 }

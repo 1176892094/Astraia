@@ -39,5 +39,5 @@ namespace Astraia.Common
 
     public record OnDataComplete : IEvent;
 
-    public record OnVisibleUpdate(int x, int y, int scale) : IEvent;
+    public record OnVisibleUpdate(int x, int y, int z) : IEvent;
 }

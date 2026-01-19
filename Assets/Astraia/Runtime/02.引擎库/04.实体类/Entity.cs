@@ -20,15 +20,15 @@ using Sirenix.OdinInspector;
 
 namespace Astraia
 {
+
+    
     public class Entity : MonoBehaviour
     {
         private readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
-
-        public ICollection<Type> Keys => moduleData.Keys;
-        public ICollection<IModule> Values => moduleData.Values;
+        public ICollection<IModule> Modules => moduleData.Values;
 
         protected virtual void Awake()
         {
@@ -63,16 +63,16 @@ namespace Astraia
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        private static List<string> Modules = GlobalSetting.modules;
+        private static List<string> Windows = GlobalSetting.windows;
 
         [HideInEditorMode, ShowInInspector]
-        private IEnumerable<IModule> modules
+        private IEnumerable<IModule> windows
         {
             get => moduleData.Values.ToList();
             set => Service.Log.Error(value);
         }
 
-        [HideInPlayMode, PropertyOrder(1), ValueDropdown("Modules")]
+        [HideInPlayMode, PropertyOrder(1), ValueDropdown("Windows")]
 #endif
         [SerializeField]
         private List<string> moduleList = new List<string>();
@@ -116,19 +116,17 @@ namespace Astraia
         {
             if (!moduleData.ContainsKey(keyType))
             {
-                AddEvent(module);
-                OnFade += Enqueue;
+                AddModule(module);
+                OnFade += () =>
+                {
+                    module.Enqueue();
+                    moduleData.Remove(keyType);
+                    HeapManager.Enqueue(module, keyType);
+                };
                 moduleData.Add(keyType, module);
             }
 
             return module;
-
-            void Enqueue()
-            {
-                module.Enqueue();
-                moduleData.Remove(keyType);
-                HeapManager.Enqueue(module, keyType);
-            }
         }
 
         private IModule LoadComponent(Type keyType, Type realType)
@@ -136,22 +134,20 @@ namespace Astraia
             if (!moduleData.TryGetValue(keyType, out var module))
             {
                 module = HeapManager.Dequeue<IModule>(realType);
-                AddEvent(module);
-                OnFade += Enqueue;
+                AddModule(module);
+                OnFade += () =>
+                {
+                    module.Enqueue();
+                    moduleData.Remove(keyType);
+                    HeapManager.Enqueue(module, realType);
+                };
                 moduleData.Add(keyType, module);
             }
 
             return module;
-
-            void Enqueue()
-            {
-                module.Enqueue();
-                moduleData.Remove(keyType);
-                HeapManager.Enqueue(module, realType);
-            }
         }
 
-        private void AddEvent(IModule module)
+        private void AddModule(IModule module)
         {
             this.Inject(module);
             module.Acquire(this);

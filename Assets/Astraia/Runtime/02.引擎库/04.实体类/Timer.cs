@@ -25,9 +25,10 @@ namespace Astraia
         private float waitTime;
         private float nextTime;
         private float duration;
+        private Action onNext;
         private Action onUpdate;
         private Action onComplete;
-        private Action onContinue;
+     
         private bool isActive => owner && owner.gameObject.activeInHierarchy;
 
         internal static Timer Create(Component owner, float duration)
@@ -46,8 +47,8 @@ namespace Astraia
             {
                 item.owner = null;
                 item.complete = 1;
+                item.onNext = null;
                 item.onUpdate = null;
-                item.onContinue = null;
                 SystemManager.SubSystem(100, item);
                 HeapManager.Enqueue(item);
             }
@@ -84,7 +85,7 @@ namespace Astraia
                 if (progress == 0)
                 {
                     complete = 2;
-                    onComplete += onContinue;
+                    onComplete += onNext;
                     onComplete.Invoke();
                 }
             }
@@ -147,7 +148,7 @@ namespace Astraia
                 return;
             }
 
-            onContinue = continuation;
+            onNext = continuation;
         }
 
         public bool GetResult()
@@ -164,8 +165,8 @@ namespace Astraia
         private float progress;
         private float nextTime;
         private float duration;
+        private Action onNext;
         private Action onComplete;
-        private Action onContinue;
         private Action<float> onUpdate;
         private bool isActive => owner && owner.gameObject.activeInHierarchy;
 
@@ -185,8 +186,8 @@ namespace Astraia
             {
                 item.owner = null;
                 item.complete = 1;
+                item.onNext = null;
                 item.onUpdate = null;
-                item.onContinue = null;
                 SystemManager.SubSystem(100, item);
                 HeapManager.Enqueue(item);
             }
@@ -218,7 +219,7 @@ namespace Astraia
                 if (progress >= 1)
                 {
                     complete = 2;
-                    onComplete += onContinue;
+                    onComplete += onNext;
                     onComplete.Invoke();
                 }
             }
@@ -262,7 +263,7 @@ namespace Astraia
                 return;
             }
 
-            onContinue = continuation;
+            onNext = continuation;
         }
 
         public bool GetResult()

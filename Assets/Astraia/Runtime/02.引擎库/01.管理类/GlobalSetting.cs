@@ -194,7 +194,7 @@ namespace Astraia
             }
         }
 
-        public static readonly List<string> modules = new List<string>();
+        public static readonly List<string> windows = new List<string>();
 
         public static void LoadSetting(Type result)
         {
@@ -202,14 +202,14 @@ namespace Astraia
             {
                 if (typeof(IModule).IsAssignableFrom(result))
                 {
-                    modules.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
+                    windows.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
                 }
             }
         }
 
         public static void LoadComplete()
         {
-            modules.Sort(StringComparer.Ordinal);
+            windows.Sort(StringComparer.Ordinal);
         }
     }
 #endif
