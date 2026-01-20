@@ -96,6 +96,7 @@ namespace Astraia.Core
         {
             items.Clear();
             nodes.Clear();
+            grids?.Clear();
             point = Vector2Int.zero;
         }
 

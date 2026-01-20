@@ -56,7 +56,7 @@ namespace Astraia.Net
                     waitTime = Time.unscaledTimeAsDouble + 0.5;
                     foreach (var entity in NetworkManager.Server.spawns.Values)
                     {
-                        if (entity.visible != NetworkEntity.Visible.Spreader)
+                        if (entity.visible != Visible.Owner)
                         {
                             Tick(entity);
                         }

@@ -322,11 +322,6 @@ namespace Astraia.Net
             return NetworkManager.Client.spawns.GetValueOrDefault(objectId);
         }
 
-        public enum Visible : byte
-        {
-            Spreader = 0,
-            Observer = 1,
-        }
 
         [Flags]
         internal enum State : byte

@@ -74,4 +74,10 @@ namespace Astraia
         Once,
         Loop
     }
+
+    public enum Visible : byte
+    {
+        Owner,
+        Observer = 1,
+    }
 }

@@ -137,7 +137,7 @@ namespace Astraia.Net
                 {
                     if (entity.isActiveAndEnabled)
                     {
-                        if (NetworkObserver.Instance && entity.visible == NetworkEntity.Visible.Observer)
+                        if (NetworkObserver.Instance && entity.visible == Visible.Observer)
                         {
                             NetworkObserver.Instance.Tick(entity, client);
                         }
@@ -327,7 +327,7 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (NetworkObserver.Instance && entity.visible == NetworkEntity.Visible.Observer)
+                if (NetworkObserver.Instance && entity.visible == Visible.Observer)
                 {
                     NetworkObserver.Instance.Tick(entity);
                 }
