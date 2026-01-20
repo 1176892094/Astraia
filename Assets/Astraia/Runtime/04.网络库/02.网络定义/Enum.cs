@@ -36,4 +36,10 @@ namespace Astraia.Net
         ServerRpc,
         ClientRpc,
     }
+
+    public enum Visible : byte
+    {
+        Owner,
+        Observer = 1,
+    }
 }

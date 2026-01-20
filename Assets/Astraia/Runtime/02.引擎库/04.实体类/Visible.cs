@@ -3,8 +3,8 @@
 // // # Unity: 6000.3.5f1
 // // # Author: 云谷千羽
 // // # Version: 1.0.0
-// // # History: 2026-01-17 20:01:51
-// // # Recently: 2026-01-17 20:01:51
+// // # History: 2026-01-20 14:01:05
+// // # Recently: 2026-01-20 14:01:05
 // // # Copyright: 2024, 云谷千羽
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
@@ -18,106 +18,6 @@ namespace Astraia.Core
     {
         Transform transform { get; }
         GameObject gameObject { get; }
-    }
-
-    public static class VisibleManager
-    {
-        private static readonly HashSet<IVisible> items = new HashSet<IVisible>();
-        private static readonly HashSet<IVisible> nodes = new HashSet<IVisible>();
-        private static Vector2Int point = Vector2Int.zero;
-        private static Vector3Int range = Vector3Int.one;
-        private static Visible<IVisible> grids;
-
-        public static void Rebuild(int x, int y, int z)
-        {
-            range = new Vector3Int(x, y, z);
-            grids = new Visible<IVisible>(x, y, z);
-            EventManager.Invoke(new OnVisibleUpdate(x, y, z));
-        }
-
-        public static void Register(IVisible item)
-        {
-            grids.Add(item, item.transform.position);
-            item.gameObject.SetActive(IsVisible(item));
-        }
-
-        public static void UnRegister(IVisible item)
-        {
-            grids.Remove(item);
-            nodes.Remove(item);
-        }
-
-        private static bool IsVisible(IVisible item)
-        {
-            var p = grids.Position(item.transform.position) - point;
-            return Mathf.Abs(p.x) <= range.x && Mathf.Abs(p.y) <= range.y;
-        }
-
-        public static void Tick(Vector2 position)
-        {
-            foreach (var item in nodes)
-            {
-                grids.Update(item, item.transform.position);
-            }
-
-            var node = grids.Position(position);
-            if (node == point)
-            {
-                return;
-            }
-
-            point = node;
-            grids.Find(node, items);
-
-            foreach (var item in items)
-            {
-                if (!nodes.Contains(item))
-                {
-                    item.gameObject.SetActive(true);
-                }
-            }
-
-            foreach (var item in nodes)
-            {
-                if (!items.Contains(item))
-                {
-                    item.gameObject.SetActive(false);
-                }
-            }
-
-            nodes.Clear();
-            foreach (var item in items)
-            {
-                nodes.Add(item);
-            }
-        }
-
-        internal static void Dispose()
-        {
-            items.Clear();
-            nodes.Clear();
-            grids?.Clear();
-            point = Vector2Int.zero;
-        }
-
-        internal static void OnGizmos()
-        {
-            if (grids != null)
-            {
-                Gizmos.color = Color.cyan;
-                for (var x = -range.x; x <= range.x; x++)
-                {
-                    for (var y = -range.y; y <= range.y; y++)
-                    {
-                        var node = point + new Vector2Int(x, y);
-                        Gizmos.DrawWireCube(new Vector2(node.x + 0.5f, node.y + 0.5f) * range.z, Vector2.one * range.z);
-                    }
-                }
-
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawWireCube(new Vector2(point.x + 0.5f, point.y + 0.5f) * range.z, Vector2.one * range.z);
-            }
-        }
     }
 
     public sealed class Visible<T>
