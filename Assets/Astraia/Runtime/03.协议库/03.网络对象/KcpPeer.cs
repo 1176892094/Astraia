@@ -1,10 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using Event = Astraia.KcpClient.Event;
 
 namespace Astraia
 {
-    internal sealed class Agent
+    internal sealed class KcpPeer
     {
         private const int PING_INTERVAL = 1000;
         private const int METADATA_SIZE = sizeof(byte) + sizeof(int);
@@ -24,7 +25,7 @@ namespace Astraia
         private State state;
         private uint Time => (uint)watch.ElapsedMilliseconds;
 
-        public Agent(Setting setting, Event onEvent, string userName, uint userData = 0)
+        public KcpPeer(Setting setting, Event onEvent, string userName, uint userData = 0)
         {
             Rebuild(setting);
             this.onEvent = onEvent;

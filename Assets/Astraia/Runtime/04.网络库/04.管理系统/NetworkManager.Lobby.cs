@@ -92,7 +92,7 @@ namespace Astraia.Net
                     isServer = false;
                     isClient = false;
                     state = State.Disconnect;
-                    Account.Disconnect();
+                    Account.StopClient();
                     EventManager.Invoke(new LobbyDisconnect());
                 }
 

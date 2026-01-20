@@ -100,7 +100,7 @@ namespace Astraia.Net
             Transport.SendToServer(writer);
         }
 
-        public override void Disconnect()
+        public override void StopClient()
         {
             if (NetworkManager.isLobby)
             {

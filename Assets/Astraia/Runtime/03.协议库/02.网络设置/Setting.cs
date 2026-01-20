@@ -53,24 +53,6 @@ namespace Astraia
         }
     }
 
-    internal class Event
-    {
-        public Action Connect;
-        public Action Disconnect;
-        public Action<Error, string> Error;
-        public Action<ArraySegment<byte>> Send;
-        public Action<ArraySegment<byte>, int> Receive;
-    }
-
-    internal class Event<T>
-    {
-        public Action<T> Connect;
-        public Action<T> Disconnect;
-        public Action<T, Error, string> Error;
-        public Action<T, ArraySegment<byte>> Send;
-        public Action<T, ArraySegment<byte>, int> Receive;
-    }
-
     internal static class Channel
     {
         public const byte Reliable = 1 << 0;

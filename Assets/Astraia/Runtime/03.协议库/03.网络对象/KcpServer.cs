@@ -8,15 +8,24 @@ namespace Astraia
 {
     internal sealed class KcpServer
     {
+        internal class Event
+        {
+            public Action<int> Connect;
+            public Action<int> Disconnect;
+            public Action<int, Error, string> Error;
+            public Action<int, ArraySegment<byte>> Send;
+            public Action<int, ArraySegment<byte>, int> Receive;
+        }
+
         private readonly Dictionary<int, KcpClient> clients = new Dictionary<int, KcpClient>();
         private readonly HashSet<int> removes = new HashSet<int>();
-        private readonly Setting setting;
         private readonly byte[] buffer;
-        private readonly Event<int> onEvent;
+        private readonly Event onEvent;
+        private readonly Setting setting;
         private Socket socket;
         private EndPoint endPoint;
 
-        public KcpServer(Setting setting, Event<int> onEvent)
+        public KcpServer(Setting setting, Event onEvent)
         {
             this.setting = setting;
             this.onEvent = onEvent;
@@ -67,7 +76,7 @@ namespace Astraia
         {
             if (clients.TryGetValue(id, out var client))
             {
-                client.agent.SendData(segment, channel);
+                client.kcpPeer.SendData(segment, channel);
             }
         }
 
@@ -102,26 +111,26 @@ namespace Astraia
         {
             if (clients.TryGetValue(id, out var client))
             {
-                client.agent.Disconnect();
+                client.kcpPeer.Disconnect();
             }
         }
 
         private KcpClient Register(int id)
         {
-            var newEvent = new Event();
-            var client = new KcpClient(new Agent(setting, newEvent, "服务器"), endPoint);
+            var newEvent = new Astraia.KcpClient.Event();
+            var connection = new KcpClient(new KcpPeer(setting, newEvent, "服务器"), endPoint);
             newEvent.Connect = OnConnect;
             newEvent.Disconnect = OnDisconnect;
             newEvent.Error = OnError;
             newEvent.Receive = OnReceive;
             newEvent.Send = OnSend;
-            return client;
+            return connection;
 
             void OnConnect()
             {
                 Service.Log.Info("客户端 {0} 连接到服务器。", id);
-                clients.Add(id, client);
-                client.agent.Handshake();
+                clients.Add(id, connection);
+                connection.kcpPeer.Handshake();
                 onEvent.Connect.Invoke(id);
             }
 
@@ -146,11 +155,11 @@ namespace Astraia
             {
                 try
                 {
-                    if (clients.TryGetValue(id, out var result))
+                    if (clients.TryGetValue(id, out var client))
                     {
                         if (socket.Poll(0, SelectMode.SelectWrite))
                         {
-                            socket.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, result.endPoint);
+                            socket.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, client.endPoint);
                         }
                     }
                 }
@@ -171,18 +180,18 @@ namespace Astraia
                 if (!clients.TryGetValue(id, out var client))
                 {
                     client = Register(id);
-                    client.agent.Input(segment);
-                    client.agent.EarlyUpdate();
+                    client.kcpPeer.Input(segment);
+                    client.kcpPeer.EarlyUpdate();
                 }
                 else
                 {
-                    client.agent.Input(segment);
+                    client.kcpPeer.Input(segment);
                 }
             }
 
             foreach (var client in clients.Values)
             {
-                client.agent.EarlyUpdate();
+                client.kcpPeer.EarlyUpdate();
             }
 
             foreach (var client in removes)
@@ -197,7 +206,7 @@ namespace Astraia
         {
             foreach (var client in clients.Values)
             {
-                client.agent.AfterUpdate();
+                client.kcpPeer.AfterUpdate();
             }
         }
 
@@ -210,12 +219,12 @@ namespace Astraia
 
         private class KcpClient
         {
-            public readonly Agent agent;
+            public readonly KcpPeer kcpPeer;
             public readonly EndPoint endPoint;
 
-            public KcpClient(Agent agent, EndPoint endPoint)
+            public KcpClient(KcpPeer kcpPeer, EndPoint endPoint)
             {
-                this.agent = agent;
+                this.kcpPeer = kcpPeer;
                 this.endPoint = endPoint;
             }
         }

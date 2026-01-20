@@ -19,8 +19,8 @@ namespace Astraia.Net
         public string address = "localhost";
         public ushort port = 20974;
 
-        public readonly Event client = new Event();
-        public readonly Event<int> server = new Event<int>();
+        public readonly KcpClient.Event client = new KcpClient.Event();
+        public readonly KcpServer.Event server = new KcpServer.Event();
 
         public abstract uint GetLength(int channel);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable);
@@ -30,7 +30,7 @@ namespace Astraia.Net
         public abstract void Disconnect(int clientId);
         public abstract void StartClient();
         public abstract void StartClient(Uri uri);
-        public abstract void Disconnect();
+        public abstract void StopClient();
         public abstract void ClientEarlyUpdate();
         public abstract void ClientAfterUpdate();
         public abstract void ServerEarlyUpdate();
@@ -65,7 +65,7 @@ namespace Astraia.Net
 
         public override uint GetLength(int channel)
         {
-            return channel == Channel.Reliable ? Agent.KcpLength(MAX_MTU, RECEIVE_WIN) : Agent.UdpLength(MAX_MTU);
+            return channel == Channel.Reliable ? KcpPeer.KcpLength(MAX_MTU, RECEIVE_WIN) : KcpPeer.UdpLength(MAX_MTU);
         }
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
@@ -105,7 +105,7 @@ namespace Astraia.Net
             kcpClient.Connect(uri.Host, (ushort)(uri.IsDefaultPort ? port : uri.Port));
         }
 
-        public override void Disconnect()
+        public override void StopClient()
         {
             kcpClient.Disconnect();
         }

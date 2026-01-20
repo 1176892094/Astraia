@@ -75,6 +75,9 @@ namespace Astraia.Net
                 ArraySegment<byte> segment = writer;
                 udpClient.Send(segment.Array!, segment.Count, endPoint);
             }
+            catch (SocketException)
+            {
+            }
             catch (Exception e)
             {
                 Service.Log.Error(e);

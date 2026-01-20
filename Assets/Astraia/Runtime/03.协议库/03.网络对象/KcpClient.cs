@@ -6,12 +6,21 @@ namespace Astraia
 {
     internal sealed class KcpClient
     {
-        private readonly Setting setting;
+        public class Event
+        {
+            public Action Connect;
+            public Action Disconnect;
+            public Action<Error, string> Error;
+            public Action<ArraySegment<byte>> Send;
+            public Action<ArraySegment<byte>, int> Receive;
+        }
+
         private readonly byte[] buffer;
         private readonly Event onEvent;
-        private Agent agent;
+        private readonly Setting setting;
         private State state;
         private Socket socket;
+        private KcpPeer kcpPeer;
         private EndPoint endPoint;
 
         public KcpClient(Setting setting, Event onEvent)
@@ -42,7 +51,7 @@ namespace Astraia
                     Common.Blocked(socket);
                     socket.Connect(endPoint);
                     Service.Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
-                    agent.Handshake();
+                    kcpPeer.Handshake();
                 }
             }
             catch (SocketException e)
@@ -56,7 +65,7 @@ namespace Astraia
         {
             if (state != State.Disconnect)
             {
-                agent.SendData(segment, channel);
+                kcpPeer.SendData(segment, channel);
             }
         }
 
@@ -79,7 +88,7 @@ namespace Astraia
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
                     Service.Log.Info("客户端接收消息失败!\n{0}", e);
-                    agent.Disconnect();
+                    kcpPeer.Disconnect();
                 }
 
                 return false;
@@ -90,16 +99,16 @@ namespace Astraia
         {
             if (state != State.Disconnect)
             {
-                agent.Disconnect();
+                kcpPeer.Disconnect();
             }
         }
 
         private void Register(Setting setting)
         {
-            if (agent == null)
+            if (kcpPeer == null)
             {
                 var newEvent = new Event();
-                agent = new Agent(setting, newEvent, "客户端");
+                kcpPeer = new KcpPeer(setting, newEvent, "客户端");
                 newEvent.Connect = OnConnect;
                 newEvent.Disconnect = OnDisconnect;
                 newEvent.Error = OnError;
@@ -108,7 +117,7 @@ namespace Astraia
             }
             else
             {
-                agent.Rebuild(setting);
+                kcpPeer.Rebuild(setting);
             }
         }
 
@@ -166,10 +175,10 @@ namespace Astraia
             {
                 while (TryReceive(out var segment))
                 {
-                    agent.Input(segment);
+                    kcpPeer.Input(segment);
                 }
 
-                agent.EarlyUpdate();
+                kcpPeer.EarlyUpdate();
             }
         }
 
@@ -177,7 +186,7 @@ namespace Astraia
         {
             if (state != State.Disconnect)
             {
-                agent.AfterUpdate();
+                kcpPeer.AfterUpdate();
             }
         }
     }
