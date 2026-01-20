@@ -47,14 +47,14 @@ namespace Astraia.Net
         private const uint SEND_WIN = 1024 * 4;
         private const uint RECEIVE_WIN = 1024 * 4;
 
-        private Client clientAgent;
-        private Server serverAgent;
+        private KcpClient kcpClient;
+        private KcpServer kcpServer;
 
         private void Awake()
         {
             var setting = new Setting(MAX_MTU, TIME_OUT, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
-            clientAgent = new Client(setting, client);
-            serverAgent = new Server(setting, server);
+            kcpClient = new KcpClient(setting, client);
+            kcpServer = new KcpServer(setting, server);
             client.Error = OnError;
         }
 
@@ -70,64 +70,64 @@ namespace Astraia.Net
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
-            serverAgent.Send(clientId, segment, channel);
+            kcpServer.Send(clientId, segment, channel);
             server.Send?.Invoke(clientId, segment);
         }
 
         public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable)
         {
-            clientAgent.Send(segment, channel);
+            kcpClient.Send(segment, channel);
             client.Send?.Invoke(segment);
         }
 
         public override void StartServer()
         {
-            serverAgent.Connect(port);
+            kcpServer.Connect(port);
         }
 
         public override void StopServer()
         {
-            serverAgent.StopServer();
+            kcpServer.StopServer();
         }
 
         public override void Disconnect(int clientId)
         {
-            serverAgent.Disconnect(clientId);
+            kcpServer.Disconnect(clientId);
         }
 
         public override void StartClient()
         {
-            clientAgent.Connect(address, port);
+            kcpClient.Connect(address, port);
         }
 
         public override void StartClient(Uri uri)
         {
-            clientAgent.Connect(uri.Host, (ushort)(uri.IsDefaultPort ? port : uri.Port));
+            kcpClient.Connect(uri.Host, (ushort)(uri.IsDefaultPort ? port : uri.Port));
         }
 
         public override void Disconnect()
         {
-            clientAgent.Disconnect();
+            kcpClient.Disconnect();
         }
 
         public override void ClientEarlyUpdate()
         {
-            clientAgent.EarlyUpdate();
+            kcpClient.EarlyUpdate();
         }
 
         public override void ClientAfterUpdate()
         {
-            clientAgent.AfterUpdate();
+            kcpClient.AfterUpdate();
         }
 
         public override void ServerEarlyUpdate()
         {
-            serverAgent.EarlyUpdate();
+            kcpServer.EarlyUpdate();
         }
 
         public override void ServerAfterUpdate()
         {
-            serverAgent.AfterUpdate();
+            kcpServer.AfterUpdate();
         }
     }
 }

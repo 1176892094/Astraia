@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 
 namespace Astraia
 {
-    internal sealed class Server
+    internal sealed class KcpServer
     {
-        private readonly Dictionary<int, Client> clients = new Dictionary<int, Client>();
+        private readonly Dictionary<int, KcpClient> clients = new Dictionary<int, KcpClient>();
         private readonly HashSet<int> removes = new HashSet<int>();
         private readonly Setting setting;
         private readonly byte[] buffer;
@@ -16,7 +16,7 @@ namespace Astraia
         private Socket socket;
         private EndPoint endPoint;
 
-        public Server(Setting setting, Event<int> onEvent)
+        public KcpServer(Setting setting, Event<int> onEvent)
         {
             this.setting = setting;
             this.onEvent = onEvent;
@@ -106,10 +106,10 @@ namespace Astraia
             }
         }
 
-        private Client Register(int id)
+        private KcpClient Register(int id)
         {
             var newEvent = new Event();
-            var client = new Client(new Agent(setting, newEvent, "服务器"), endPoint);
+            var client = new KcpClient(new Agent(setting, newEvent, "服务器"), endPoint);
             newEvent.Connect = OnConnect;
             newEvent.Disconnect = OnDisconnect;
             newEvent.Error = OnError;
@@ -208,12 +208,12 @@ namespace Astraia
             socket = null;
         }
 
-        private class Client
+        private class KcpClient
         {
             public readonly Agent agent;
             public readonly EndPoint endPoint;
 
-            public Client(Agent agent, EndPoint endPoint)
+            public KcpClient(Agent agent, EndPoint endPoint)
             {
                 this.agent = agent;
                 this.endPoint = endPoint;

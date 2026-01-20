@@ -71,7 +71,6 @@ namespace Astraia.Net
                 }
 
                 using var writer = MemoryWriter.Pop();
-
                 writer.Invoke(new RequestMessage());
                 ArraySegment<byte> segment = writer;
                 udpClient.Send(segment.Array!, segment.Count, endPoint);
@@ -90,7 +89,6 @@ namespace Astraia.Net
                 {
                     var result = await udpServer.ReceiveAsync();
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
-
                     reader.Invoke<RequestMessage>();
                     ServerSend(result.RemoteEndPoint);
                 }

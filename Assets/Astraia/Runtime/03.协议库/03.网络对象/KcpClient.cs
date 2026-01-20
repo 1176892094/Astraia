@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace Astraia
 {
-    internal sealed class Client
+    internal sealed class KcpClient
     {
         private readonly Setting setting;
         private readonly byte[] buffer;
@@ -14,7 +14,7 @@ namespace Astraia
         private Socket socket;
         private EndPoint endPoint;
 
-        public Client(Setting setting, Event onEvent)
+        public KcpClient(Setting setting, Event onEvent)
         {
             this.setting = setting;
             this.onEvent = onEvent;
