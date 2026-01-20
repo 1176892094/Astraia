@@ -141,22 +141,22 @@ namespace Astraia
 
         private void OnSend(ArraySegment<byte> segment)
         {
-            if (socket == null) return;
             try
             {
-                if (socket.Poll(0, SelectMode.SelectWrite))
+                if (socket != null)
                 {
-                    socket.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
+                    if (socket.Poll(0, SelectMode.SelectWrite))
+                    {
+                        socket.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
+                    }
                 }
             }
             catch (SocketException e)
             {
-                if (e.SocketErrorCode == SocketError.WouldBlock)
+                if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    return;
+                    Service.Log.Info("客户端发送消息失败!\n{0}", e);
                 }
-
-                Service.Log.Info("客户端发送消息失败!\n{0}", e);
             }
         }
 
