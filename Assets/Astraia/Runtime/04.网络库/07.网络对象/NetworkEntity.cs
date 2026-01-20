@@ -111,29 +111,26 @@ namespace Astraia.Net
 
 #if UNITY_EDITOR
         private static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
+
         protected virtual void OnValidate()
         {
+            uint.TryParse(name, out assetId);
             if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
             {
                 sceneId = 0;
-                AssignAssetId(AssetDatabase.GetAssetPath(gameObject));
             }
             else if (PrefabStageUtility.GetCurrentPrefabStage())
             {
-                var prefab = PrefabStageUtility.GetPrefabStage(gameObject);
-                if (prefab)
+                if (PrefabStageUtility.GetPrefabStage(gameObject))
                 {
                     sceneId = 0;
-                    AssignAssetId(prefab.assetPath);
                 }
             }
             else if (PrefabUtility.IsPartOfPrefabInstance(gameObject))
             {
-                var prefab = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
-                if (prefab)
+                if (PrefabUtility.GetCorrespondingObjectFromSource(gameObject))
                 {
                     AssignSceneId();
-                    AssignAssetId(AssetDatabase.GetAssetPath(prefab));
                 }
             }
             else
@@ -141,54 +138,19 @@ namespace Astraia.Net
                 AssignSceneId();
             }
 
-            return;
+            assetId = sceneId != 0 ? 0 : assetId;
+        }
 
-            void AssignAssetId(string assetPath)
+        private void AssignSceneId()
+        {
+            if (sceneId == 0 || sceneData.TryGetValue(sceneId, out var entity) && entity && entity != gameObject)
             {
-                if (!string.IsNullOrWhiteSpace(assetPath))
-                {
-                    if (sceneId == 0)
-                    {
-                        if (!uint.TryParse(name, out var id))
-                        {
-                            Debug.LogWarning("请将 {0} 名称修改为数字格式!".Format(gameObject), gameObject);
-                            return;
-                        }
-
-                        assetId = id;
-                    }
-                    else
-                    {
-                        assetId = 0;
-                    }
-                }
+                sceneId = (uint)Service.Seed.Next();
             }
 
-            void AssignSceneId()
-            {
-                if (Application.isPlaying) return;
-                var duplicate = sceneData.TryGetValue(sceneId, out var entity) && entity && entity != gameObject;
-                if (sceneId == 0 || duplicate)
-                {
-                    sceneId = 0;
-                    if (BuildPipeline.isBuildingPlayer)
-                    {
-                        throw new Exception("网络对象 {0} 在构建前需要打开并重新保存。因为网络对象 {1} 没有场景Id".Format(gameObject.scene.path, name));
-                    }
-
-                    var random = (uint)Service.Seed.Next();
-                    duplicate = sceneData.TryGetValue(random, out entity) && entity && entity != gameObject;
-                    if (!duplicate)
-                    {
-                        sceneId = random;
-                    }
-                }
-
-                sceneData[sceneId] = gameObject;
-            }
+            sceneData[sceneId] = gameObject;
         }
 #endif
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsDirty(ulong mask, int index)
@@ -215,7 +177,6 @@ namespace Astraia.Net
                 Service.Log.Warn("无法调用{0} [{1}] 网络对象: {2} 网络标识: {3}", mode, function, gameObject.name, objectId);
             }
         }
-
 
         internal void ClearDirty(bool total)
         {
