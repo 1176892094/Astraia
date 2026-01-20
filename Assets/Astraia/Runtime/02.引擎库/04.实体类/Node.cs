@@ -11,21 +11,25 @@
 
 using System;
 using System.Collections.Generic;
-using Astraia.Core;
 using UnityEngine;
 
 namespace Astraia
 {
+    public interface INode
+    {
+        Node OnTick();
+    }
+
     public abstract class CompositeNode : INode
     {
         protected IList<INode> nodes;
-        public abstract NodeState Tick();
+        public abstract Node OnTick();
     }
 
     public abstract class DecoratorNode : INode
     {
         protected INode node;
-        public abstract NodeState Tick();
+        public abstract Node OnTick();
     }
 
     [Serializable]
@@ -33,27 +37,27 @@ namespace Astraia
     {
         private int index;
 
-        public override NodeState Tick()
+        public override Node OnTick()
         {
             while (index < nodes.Count)
             {
-                var result = nodes[index].Tick();
-                if (result == NodeState.Running)
+                var result = nodes[index].OnTick();
+                if (result == Node.Running)
                 {
-                    return NodeState.Running;
+                    return Node.Running;
                 }
 
-                if (result == NodeState.Failure)
+                if (result == Node.Failure)
                 {
                     index = 0;
-                    return NodeState.Failure;
+                    return Node.Failure;
                 }
 
                 index++;
             }
 
             index = 0;
-            return NodeState.Success;
+            return Node.Success;
         }
 
         public static Sequence Create(params INode[] nodes)
@@ -67,27 +71,27 @@ namespace Astraia
     {
         private int index;
 
-        public override NodeState Tick()
+        public override Node OnTick()
         {
             while (index < nodes.Count)
             {
-                var result = nodes[index].Tick();
-                if (result == NodeState.Running)
+                var result = nodes[index].OnTick();
+                if (result == Node.Running)
                 {
-                    return NodeState.Running;
+                    return Node.Running;
                 }
 
-                if (result == NodeState.Success)
+                if (result == Node.Success)
                 {
                     index = 0;
-                    return NodeState.Success;
+                    return Node.Success;
                 }
 
                 index++;
             }
 
             index = 0;
-            return NodeState.Failure;
+            return Node.Failure;
         }
 
         public static Selector Create(params INode[] nodes)
@@ -101,41 +105,41 @@ namespace Astraia
     {
         private Mode mode;
 
-        public override NodeState Tick()
+        public override Node OnTick()
         {
             var isAll = true;
             var isAny = false;
 
             foreach (var child in nodes)
             {
-                var result = child.Tick();
+                var result = child.OnTick();
                 switch (mode)
                 {
                     case Mode.Any:
-                        if (result == NodeState.Success)
+                        if (result == Node.Success)
                         {
-                            return NodeState.Success;
+                            return Node.Success;
                         }
 
-                        if (result == NodeState.Failure)
+                        if (result == Node.Failure)
                         {
-                            return NodeState.Failure;
+                            return Node.Failure;
                         }
 
                         break;
 
                     case Mode.All:
-                        if (result == NodeState.Failure)
+                        if (result == Node.Failure)
                         {
-                            return NodeState.Failure;
+                            return Node.Failure;
                         }
 
-                        if (result != NodeState.Success)
+                        if (result != Node.Success)
                         {
                             isAll = false;
                         }
 
-                        if (result == NodeState.Success)
+                        if (result == Node.Success)
                         {
                             isAny = true;
                         }
@@ -146,10 +150,10 @@ namespace Astraia
 
             if (mode == Mode.All)
             {
-                return isAll ? NodeState.Success : NodeState.Running;
+                return isAll ? Node.Success : Node.Running;
             }
 
-            return isAny ? NodeState.Success : NodeState.Running;
+            return isAny ? Node.Success : Node.Running;
         }
 
         public static Parallel Create(params INode[] nodes)
@@ -169,17 +173,17 @@ namespace Astraia
     {
         private int index = -1;
 
-        public override NodeState Tick()
+        public override Node OnTick()
         {
             if (index == -1)
             {
                 index = Service.Seed.Next(nodes.Count);
             }
 
-            var result = nodes[index].Tick();
-            if (result == NodeState.Running)
+            var result = nodes[index].OnTick();
+            if (result == Node.Running)
             {
-                return NodeState.Running;
+                return Node.Running;
             }
 
             index = -1;
@@ -198,22 +202,22 @@ namespace Astraia
         private int count = -1;
         private int index;
 
-        public override NodeState Tick()
+        public override Node OnTick()
         {
-            var result = node.Tick();
-            if (result == NodeState.Running)
+            var result = node.OnTick();
+            if (result == Node.Running)
             {
-                return NodeState.Running;
+                return Node.Running;
             }
 
             index++;
             if (count < 0 || index < count)
             {
-                return NodeState.Running;
+                return Node.Running;
             }
 
             index = 0;
-            return NodeState.Success;
+            return Node.Success;
         }
 
         public static Repeater Create(params INode[] nodes)
@@ -225,20 +229,20 @@ namespace Astraia
     [Serializable]
     public sealed class Inverter : DecoratorNode
     {
-        public override NodeState Tick()
+        public override Node OnTick()
         {
-            var result = node.Tick();
-            if (result == NodeState.Success)
+            var result = node.OnTick();
+            if (result == Node.Success)
             {
-                return NodeState.Failure;
+                return Node.Failure;
             }
 
-            if (result == NodeState.Failure)
+            if (result == Node.Failure)
             {
-                return NodeState.Success;
+                return Node.Success;
             }
 
-            return NodeState.Running;
+            return Node.Running;
         }
 
         public static Inverter Create(params INode[] nodes)
@@ -250,9 +254,9 @@ namespace Astraia
     [Serializable]
     public sealed class Success : DecoratorNode
     {
-        public override NodeState Tick()
+        public override Node OnTick()
         {
-            return node.Tick() == NodeState.Running ? NodeState.Running : NodeState.Success;
+            return node.OnTick() == Node.Running ? Node.Running : Node.Success;
         }
 
         public static Success Create(params INode[] nodes)
@@ -264,9 +268,9 @@ namespace Astraia
     [Serializable]
     public sealed class Failure : DecoratorNode
     {
-        public override NodeState Tick()
+        public override Node OnTick()
         {
-            return node.Tick() == NodeState.Running ? NodeState.Running : NodeState.Failure;
+            return node.OnTick() == Node.Running ? Node.Running : Node.Failure;
         }
 
         public static Failure Create(params INode[] nodes)
@@ -281,7 +285,7 @@ namespace Astraia
         private float duration;
         private float waitTime = -1;
 
-        public NodeState Tick()
+        public Node OnTick()
         {
             if (waitTime < 0)
             {
@@ -290,11 +294,11 @@ namespace Astraia
 
             if (waitTime + duration > Time.realtimeSinceStartup)
             {
-                return NodeState.Running;
+                return Node.Running;
             }
 
             waitTime = -1;
-            return NodeState.Success;
+            return Node.Success;
         }
 
         public static WaitTime Create(float duration)

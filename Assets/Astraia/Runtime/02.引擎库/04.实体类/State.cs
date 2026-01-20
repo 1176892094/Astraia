@@ -14,11 +14,6 @@ using System.Collections.Generic;
 
 namespace Astraia.Core
 {
-    public interface INode
-    {
-        NodeState Tick();
-    }
-
     public interface IState
     {
         void Acquire(Entity owner);
@@ -30,69 +25,44 @@ namespace Astraia.Core
     [Serializable]
     public abstract class StateMachine<TEntity> : Module<TEntity> where TEntity : Entity
     {
-        private Dictionary<int, State> states = new Dictionary<int, State>();
-        private State state;
+        private Dictionary<int, IState> states = new Dictionary<int, IState>();
+        private IState state;
 
         public void Create(int key, Type value)
         {
             var item = HeapManager.Dequeue<IState>(value);
-            states[key] = new State(item, new Node(item.OnUpdate));
             item.Acquire(owner);
-        }
-
-        public void Create(int key, Type value, INode node)
-        {
-            var item = HeapManager.Dequeue<IState>(value);
-            states[key] = new State(item, node);
-            item.Acquire(owner);
+            states[key] = item;
         }
 
         public void Switch(int key)
         {
-            state?.state.OnExit();
+            state?.OnExit();
             states.TryGetValue(key, out state);
-            state?.state.OnEnter();
+            state?.OnEnter();
         }
 
         public void Update()
         {
-            state?.node.Tick();
+            state?.OnUpdate();
         }
 
         public override void Enqueue()
         {
             foreach (var item in states.Values)
             {
-                HeapManager.Enqueue(item.state, item.state.GetType());
+                HeapManager.Enqueue(item, item.GetType());
             }
 
             state = null;
             states.Clear();
         }
-
-        private class Node : INode
-        {
-            private readonly Action OnUpdate;
-
-            public Node(Action onUpdate)
-            {
-                OnUpdate = onUpdate;
-            }
-
-            public NodeState Tick()
-            {
-                OnUpdate.Invoke();
-                return NodeState.Success;
-            }
-        }
-
-        public record State(IState state, INode node);
     }
 
     [Serializable]
     public abstract class State<T> : IState where T : Entity
     {
-        public T owner { get; protected set; }
+        public T owner;
 
         void IState.Acquire(Entity owner)
         {

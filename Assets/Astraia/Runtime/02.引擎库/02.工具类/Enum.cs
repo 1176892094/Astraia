@@ -55,7 +55,7 @@ namespace Astraia
         Stable,
     }
 
-    public enum NodeState : byte
+    public enum Node : byte
     {
         Running,
         Success,
