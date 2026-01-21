@@ -27,7 +27,7 @@ namespace Astraia
         {
             this.setting = setting;
             this.onEvent = onEvent;
-            buffer = new byte[setting.UnitData];
+            buffer = new byte[setting.MaxUnit];
             state = State.Disconnect;
         }
 

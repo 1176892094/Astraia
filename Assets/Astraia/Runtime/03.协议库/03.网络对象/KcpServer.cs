@@ -29,7 +29,7 @@ namespace Astraia
         {
             this.setting = setting;
             this.onEvent = onEvent;
-            buffer = new byte[setting.UnitData];
+            buffer = new byte[setting.MaxUnit];
             endPoint = setting.DualMode ? new IPEndPoint(IPAddress.IPv6Any, 0) : new IPEndPoint(IPAddress.Any, 0);
         }
 
