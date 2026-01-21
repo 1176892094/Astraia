@@ -48,7 +48,10 @@ namespace Astraia.Net
             {
                 foreach (var player in players.Values)
                 {
-                    grids.Update(player.client, player.transform.position);
+                    if (player)
+                    {
+                        grids.Update(player.client, player.transform.position);
+                    }
                 }
 
                 if (waitTime < Time.unscaledTimeAsDouble)

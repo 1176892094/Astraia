@@ -24,6 +24,8 @@ namespace Astraia.Core
 
         public AudioSource source;
 
+        public static long version;
+
         internal static float musicVolume;
 
         internal static float audioVolume;

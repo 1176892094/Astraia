@@ -41,27 +41,31 @@ namespace Astraia.Core
             var streamingAsset = GlobalSetting.ClientPath.Format(GlobalSetting.Verify);
             var streamResult = await LoadClientRequest(persistentData, streamingAsset, true);
             var streamVerify = LoadVerifyRequest(streamResult, out var streamData);
-            var serverResult = await LoadServerRequest(processingData, GlobalSetting.Verify);
-            var serverVerify = LoadVerifyRequest(serverResult, out var serverData);
             var clientResult = await LoadClientRequest(persistentData, streamingAsset);
             var clientVerify = LoadVerifyRequest(clientResult, out var clientData);
+            var serverResult = await LoadServerRequest(processingData, GlobalSetting.Verify);
+            var serverVerify = LoadVerifyRequest(serverResult, out var serverData);
             var isRemote = !string.IsNullOrEmpty(serverResult);
             if (isRemote)
             {
+                version = serverVerify.version;
                 if (streamVerify.version >= serverVerify.version)
                 {
                     serverData = streamData;
                     serverResult = streamResult;
                     isRemote = false;
+                    version = streamVerify.version;
                 }
             }
             else
             {
+                version = clientVerify.version;
                 if (streamVerify.version > clientVerify.version)
                 {
                     serverData = streamData;
                     serverResult = streamResult;
                     EventManager.Invoke(new OnBundleComplete(-1, "本地资源需要更新!"));
+                    version = streamVerify.version;
                 }
                 else
                 {

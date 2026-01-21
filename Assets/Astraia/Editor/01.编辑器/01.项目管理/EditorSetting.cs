@@ -230,7 +230,7 @@ namespace Astraia
             }
 
             var files = folder.GetFiles();
-            var verify = new Verify(DateTime.Now.Ticks);
+            var verify = new Verify(DateTime.Now.Ticks / TimeSpan.TicksPerSecond);
             foreach (var file in files)
             {
                 if (file.Extension != "")
