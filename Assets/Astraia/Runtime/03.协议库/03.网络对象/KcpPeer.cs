@@ -246,10 +246,6 @@ namespace Astraia
             {
                 switch (message)
                 {
-                    case Opcode.Data:
-                        onEvent.Error(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));
-                        Disconnect();
-                        break;
                     case Opcode.Connect when segment.Count != 4:
                         onEvent.Error(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));
                         Disconnect();
@@ -258,6 +254,13 @@ namespace Astraia
                         state = State.Connected;
                         userData = Common.Decode(segment.Array, segment.Offset);
                         onEvent.Connect();
+                        break;
+                    case Opcode.Data:
+                        onEvent.Error(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));
+                        Disconnect();
+                        break;
+                    case Opcode.Disconnect:
+                        Disconnect();
                         break;
                 }
             }

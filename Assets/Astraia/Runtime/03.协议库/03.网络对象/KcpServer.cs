@@ -8,7 +8,7 @@ namespace Astraia
 {
     internal sealed class KcpServer
     {
-        internal class Event
+        public class Event
         {
             public Action<int> Connect;
             public Action<int> Disconnect;
@@ -118,19 +118,19 @@ namespace Astraia
         private KcpClient Register(int id)
         {
             var newEvent = new Astraia.KcpClient.Event();
-            var connection = new KcpClient(new KcpPeer(setting, newEvent, "服务器"), endPoint);
+            var client = new KcpClient(new KcpPeer(setting, newEvent, "服务器"), endPoint);
             newEvent.Connect = OnConnect;
             newEvent.Disconnect = OnDisconnect;
             newEvent.Error = OnError;
             newEvent.Receive = OnReceive;
             newEvent.Send = OnSend;
-            return connection;
+            return client;
 
             void OnConnect()
             {
                 Service.Log.Info("客户端 {0} 连接到服务器。", id);
-                clients.Add(id, connection);
-                connection.kcpPeer.Handshake();
+                clients.Add(id, client);
+                client.kcpPeer.Handshake();
                 onEvent.Connect.Invoke(id);
             }
 
@@ -155,11 +155,11 @@ namespace Astraia
             {
                 try
                 {
-                    if (clients.TryGetValue(id, out var client))
+                    if (clients.TryGetValue(id, out var result))
                     {
                         if (socket.Poll(0, SelectMode.SelectWrite))
                         {
-                            socket.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, client.endPoint);
+                            socket.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, result.endPoint);
                         }
                     }
                 }
