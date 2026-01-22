@@ -231,7 +231,6 @@ namespace Astraia.Core
 
             Reload(false);
             selected = selection;
-            content.anchoredPosition = Vector2.zero;
         }
 
         public void Reload()
