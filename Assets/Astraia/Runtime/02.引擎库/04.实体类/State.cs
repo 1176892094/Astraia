@@ -91,24 +91,24 @@ namespace Astraia.Core
         public int GetInt(Enum key)
         {
             features.TryAdd(key, 0);
-            return features[key];
+            return features[key] / SCALE;
         }
 
         public void SetInt(Enum key, int value)
         {
-            features[key] = value;
+            features[key] = value * SCALE;
         }
 
         public void AddInt(Enum key, int value)
         {
             features.TryAdd(key, 0);
-            features[key] += value;
+            features[key] += value * SCALE;
         }
 
         public void SubInt(Enum key, int value)
         {
             features.TryAdd(key, 0);
-            features[key] -= value;
+            features[key] -= value * SCALE;
         }
 
         public float GetFloat(Enum key)
