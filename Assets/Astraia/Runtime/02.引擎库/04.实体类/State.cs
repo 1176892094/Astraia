@@ -85,54 +85,53 @@ namespace Astraia.Core
     [Serializable]
     public abstract class Blackboard<TEntity> : Module<TEntity> where TEntity : Entity
     {
-        private readonly Dictionary<Enum, Xor.Float> features = new Dictionary<Enum, Xor.Float>();
+        private Dictionary<Enum, int> features = new Dictionary<Enum, int>();
+        private const int SCALE = 100;
 
-        public float GetFloat(Enum key, float value = 0)
+        public int GetInt(Enum key)
         {
-            features.TryAdd(key, value);
+            features.TryAdd(key, 0);
             return features[key];
         }
 
-        public void SetFloat(Enum key, float value)
+        public void SetInt(Enum key, int value)
         {
-            features.TryAdd(key, 0);
             features[key] = value;
         }
 
-        public void AddFloat(Enum key, float value)
+        public void AddInt(Enum key, int value)
         {
             features.TryAdd(key, 0);
             features[key] += value;
         }
 
-        public void SubFloat(Enum key, float value)
+        public void SubInt(Enum key, int value)
         {
             features.TryAdd(key, 0);
             features[key] -= value;
         }
 
-        public int GetInt(Enum key, float value = 0)
-        {
-            features.TryAdd(key, value);
-            return (int)features[key];
-        }
-
-        public void SetInt(Enum key, float value)
+        public float GetFloat(Enum key)
         {
             features.TryAdd(key, 0);
-            features[key] = (int)value;
+            return features[key] / (float)SCALE;
         }
 
-        public void AddInt(Enum key, float value)
+        public void SetFloat(Enum key, float value)
         {
-            features.TryAdd(key, 0);
-            features[key] += (int)value;
+            features[key] = (int)Math.Round(value * SCALE);
         }
 
-        public void SubInt(Enum key, float value)
+        public void AddFloat(Enum key, float value)
         {
             features.TryAdd(key, 0);
-            features[key] -= (int)value;
+            features[key] += (int)Math.Round(value * SCALE);
+        }
+
+        public void SubFloat(Enum key, float value)
+        {
+            features.TryAdd(key, 0);
+            features[key] -= (int)Math.Round(value * SCALE);
         }
 
         public override void Enqueue()

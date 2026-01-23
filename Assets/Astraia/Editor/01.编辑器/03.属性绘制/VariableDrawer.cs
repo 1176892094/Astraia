@@ -9,7 +9,6 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -57,30 +56,6 @@ namespace Astraia
 
             GUI.enabled = false;
             EditorGUI.LongField(content, source);
-            GUI.enabled = true;
-
-            EditorGUI.EndProperty();
-        }
-    }
-
-    [CustomPropertyDrawer(typeof(Xor.Float))]
-    internal class XorFloatDrawer : PropertyDrawer
-    {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            EditorGUI.BeginProperty(position, label, property);
-
-            var color = GUI.color;
-            GUI.color = Color.green;
-            var content = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
-            GUI.color = color;
-
-            var origin = property.FindPropertyRelative("origin");
-            var offset = property.FindPropertyRelative("offset");
-            var source = BitConverter.Int32BitsToSingle(origin.intValue ^ offset.intValue);
-
-            GUI.enabled = false;
-            EditorGUI.FloatField(content, source);
             GUI.enabled = true;
 
             EditorGUI.EndProperty();
