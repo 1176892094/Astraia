@@ -123,7 +123,7 @@ namespace Astraia
                                 }
                             }
 
-                            var pair = WriteEnum(name, members, type.EndsWith("flag"));
+                            var pair = WriteEnum(name, members, type.EndsWith("flags"));
                             dataTable[pair.Item1] = pair.Item2;
                         }
                     }

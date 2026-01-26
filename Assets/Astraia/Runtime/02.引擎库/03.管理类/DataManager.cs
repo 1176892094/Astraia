@@ -232,7 +232,7 @@ namespace Astraia.Core
 
             if (target.IsEnum)
             {
-                return Enum.Parse(target, reason);
+                return Enum.Parse(target, reason.ToLower());
             }
 
             if (target.IsPrimitive)
