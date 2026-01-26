@@ -83,52 +83,52 @@ namespace Astraia.Core
     }
 
     [Serializable]
-    public abstract class Blackboard<TEntity> : Module<TEntity> where TEntity : Entity
+    public abstract class Blackboard<TEnum, TEntity> : Module<TEntity> where TEnum : Enum where TEntity : Entity
     {
-        private Dictionary<Enum, int> features = new Dictionary<Enum, int>();
+        private Dictionary<TEnum, int> features = new Dictionary<TEnum, int>();
         private const int SCALE = 100;
 
-        public int GetInt(Enum key)
+        public int GetInt(TEnum key)
         {
             features.TryAdd(key, 0);
             return features[key] / SCALE;
         }
 
-        public void SetInt(Enum key, int value)
+        public void SetInt(TEnum key, int value)
         {
             features[key] = value * SCALE;
         }
 
-        public void AddInt(Enum key, int value)
+        public void AddInt(TEnum key, int value)
         {
             features.TryAdd(key, 0);
             features[key] += value * SCALE;
         }
 
-        public void SubInt(Enum key, int value)
+        public void SubInt(TEnum key, int value)
         {
             features.TryAdd(key, 0);
             features[key] -= value * SCALE;
         }
 
-        public float GetFloat(Enum key)
+        public float GetFloat(TEnum key)
         {
             features.TryAdd(key, 0);
             return features[key] / (float)SCALE;
         }
 
-        public void SetFloat(Enum key, float value)
+        public void SetFloat(TEnum key, float value)
         {
             features[key] = (int)Math.Round(value * SCALE);
         }
 
-        public void AddFloat(Enum key, float value)
+        public void AddFloat(TEnum key, float value)
         {
             features.TryAdd(key, 0);
             features[key] += (int)Math.Round(value * SCALE);
         }
 
-        public void SubFloat(Enum key, float value)
+        public void SubFloat(TEnum key, float value)
         {
             features.TryAdd(key, 0);
             features[key] -= (int)Math.Round(value * SCALE);

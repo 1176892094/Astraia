@@ -111,7 +111,7 @@ namespace Astraia
                         {
                             fields.Add(name, type);
                         }
-                        else if (type == "enum")
+                        else if (type.StartsWith("enum"))
                         {
                             var members = new List<string>();
                             for (var y = DATA_LINE; y < row; y++)
@@ -123,7 +123,7 @@ namespace Astraia
                                 }
                             }
 
-                            var pair = WriteEnum(name, members);
+                            var pair = WriteEnum(name, members, type.EndsWith("flag"));
                             dataTable[pair.Item1] = pair.Item2;
                         }
                     }
@@ -206,27 +206,22 @@ namespace Astraia
             return (GlobalSetting.ItemPath.Format(className), scriptText);
         }
 
-        private static (string, string) WriteEnum(string className, IEnumerable<string> members)
+        private static (string, string) WriteEnum(string className, IEnumerable<string> members, bool isFlags)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
             var scriptText = GlobalSetting.LoadAsset(AssetData.Enum).Replace("Template", className);
 
             foreach (var member in members)
             {
-                if (member == null) continue;
-                var index = member.LastIndexOf(' ');
-                if (index < 0)
+                if (member != null)
                 {
                     builder.AppendFormat("\t\t{0},\n", member);
-                }
-                else
-                {
-                    builder.AppendFormat("\t\t{0} = {1},\n", member.Substring(0, index), member.Substring(index + 1));
                 }
             }
 
             builder.Length -= 1;
-            scriptText = scriptText.Replace("//TODO:1", builder.ToString());
+            scriptText = scriptText.Replace("//TODO:1", isFlags ? "\t[Flags]" : "\t[Serializable]");
+            scriptText = scriptText.Replace("//TODO:2", builder.ToString());
             builder.Length = 0;
             HeapManager.Enqueue(builder);
             return (GlobalSetting.EnumPath.Format(className), scriptText);
