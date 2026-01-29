@@ -24,8 +24,9 @@ TextAsset:
     # Project: Astraia\n// # Unity: 6000.3.5f1\n// # Author: \u4E91\u8C37\u5343\u7FBD\n//
     # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
     20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
-    is an automatically generated comment.\n// *********************************************************************************\n\nnamespace
-    Astraia.Table\n{\n    public enum Template\n    {\n//TODO:1\n    }\n}"
+    is an automatically generated comment.\n// *********************************************************************************\n
+    \nusing System;\n\nnamespace
+    Astraia.Table\n{\n//TODO:1\n    public enum Template\n    {\n//TODO:2\n    }\n}"
 --- !u!49 &-2960232863454612890
 TextAsset:
   m_ObjectHideFlags: 0
@@ -87,10 +88,10 @@ MonoBehaviour:
   ignoreAssets:
   - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
   cacheAssets:
-  - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
   - {fileID: 102900000, guid: d997d30491f12460a83474cffc127ae4, type: 3}
   - {fileID: 102900000, guid: 7ee700e87bf3541bdadae33287525107, type: 3}
   - {fileID: 102900000, guid: 40d95e4e2b8594e018558d8d142f3b06, type: 3}
+  - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
 --- !u!49 &8449695024802945918
 TextAsset:
   m_ObjectHideFlags: 0
