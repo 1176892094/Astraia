@@ -26,9 +26,9 @@ namespace Astraia.Core
 
         public static long version;
 
-        internal static float musicVolume;
+        internal static int musicVolume;
 
-        internal static float audioVolume;
+        internal static int audioVolume;
 
         internal static AssetBundleManifest manifest;
 #if UNITY_EDITOR && ODIN_INSPECTOR

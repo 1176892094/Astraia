@@ -19,18 +19,18 @@ namespace Astraia.Core
     {
         private static AudioState audioState;
 
-        public static float MusicVolume
+        public static int MusicVolume
         {
             get
             {
-                musicVolume = JsonManager.Load(nameof(MusicVolume), 1F);
+                musicVolume = JsonManager.Load(nameof(MusicVolume), 100);
                 return musicVolume;
             }
             set
             {
                 if (Instance && Instance.source)
                 {
-                    Instance.source.volume = value;
+                    Instance.source.volume = value * 0.01F;
                 }
 
                 musicVolume = value;
@@ -38,18 +38,18 @@ namespace Astraia.Core
             }
         }
 
-        public static float AudioVolume
+        public static int AudioVolume
         {
             get
             {
-                audioVolume = JsonManager.Load(nameof(AudioVolume), 1F);
+                audioVolume = JsonManager.Load(nameof(AudioVolume), 100);
                 return audioVolume;
             }
             set
             {
                 foreach (var audio in audioLoop)
                 {
-                    audio.volume = value;
+                    audio.volume = value * 0.01F;
                 }
 
                 audioVolume = value;
@@ -92,7 +92,7 @@ namespace Astraia.Core
                     var source = Instance.source;
                     source.clip = AssetManager.Load<AudioClip>(result);
                     source.loop = true;
-                    source.volume = musicVolume;
+                    source.volume = musicVolume * 0.01F;
                     source.Play();
                     break;
                 case AudioState.Pause:
@@ -115,7 +115,7 @@ namespace Astraia.Core
             var source = PoolManager.Show<AudioSource>(result, typeof(AudioSource));
             source.clip = AssetManager.Load<AudioClip>(result);
             source.loop = mode == AudioMode.Loop;
-            source.volume = audioVolume;
+            source.volume = audioVolume * 0.01F;
             source.Play();
             audioLoop.Add(source);
             return source;
