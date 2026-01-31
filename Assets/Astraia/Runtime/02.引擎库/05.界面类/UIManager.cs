@@ -27,20 +27,16 @@ namespace Astraia.Core
     {
         private static UIPanel Load(string path, Type type)
         {
-            var name = path;
             var item = Service.Ref<UIPathAttribute>.GetAttribute(type);
             if (item != null)
             {
                 path = GlobalSetting.Prefab.Format(item.assetPath);
             }
 
-            var data = AssetManager.Load<GameObject>(path);
-            data.SetActive(false);
-            data.name = name;
-
-            var panel = (UIPanel)HeapManager.Dequeue<IModule>(type);
-            var owner = data.GetOrAddComponent<Entity>();
-            owner.AddComponent(panel);
+            var asset = AssetManager.Load<GameObject>(path);
+            asset.SetActive(false);
+            var owner = asset.GetOrAddComponent<Entity>();
+            var panel = (UIPanel)owner.LoadComponent(type, type);
             SetLayer(panel.transform, panel.layerMask);
             panelData.Add(type, panel);
             return panel;
