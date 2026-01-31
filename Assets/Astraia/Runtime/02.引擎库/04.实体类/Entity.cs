@@ -74,12 +74,7 @@ namespace Astraia
 #endif
         [SerializeField]
         private List<string> moduleList = new List<string>();
-
-        public T AddComponent<T>(T module) where T : IModule
-        {
-            return (T)LoadComponent(module.GetType(), module);
-        }
-
+        
         public T AddComponent<T>() where T : IModule
         {
             return (T)LoadComponent(typeof(T), typeof(T));
@@ -95,24 +90,7 @@ namespace Astraia
             return moduleData.TryGetValue(typeof(T), out var module) ? (T)module : default;
         }
 
-        private IModule LoadComponent(Type keyType, IModule module)
-        {
-            if (!moduleData.ContainsKey(keyType))
-            {
-                AddModule(module);
-                OnFade += () =>
-                {
-                    module.Enqueue();
-                    moduleData.Remove(keyType);
-                    HeapManager.Enqueue(module, keyType);
-                };
-                moduleData.Add(keyType, module);
-            }
-
-            return module;
-        }
-
-        private IModule LoadComponent(Type keyType, Type realType)
+        internal IModule LoadComponent(Type keyType, Type realType)
         {
             if (!moduleData.TryGetValue(keyType, out var module))
             {
