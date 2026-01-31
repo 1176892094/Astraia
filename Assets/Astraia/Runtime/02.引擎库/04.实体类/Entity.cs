@@ -20,8 +20,6 @@ using Sirenix.OdinInspector;
 
 namespace Astraia
 {
-
-    
     public class Entity : MonoBehaviour
     {
         private readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
@@ -37,7 +35,7 @@ namespace Astraia
                 var result = Service.Ref.GetType(module);
                 if (result != null)
                 {
-                    AddComponent(result);
+                    LoadComponent(result, result);
                 }
             }
         }
@@ -87,29 +85,14 @@ namespace Astraia
             return (T)LoadComponent(typeof(T), typeof(T));
         }
 
-        public T AddComponent<T>(Type realType) where T : IModule
+        public T AddComponent<T, V>() where T : IModule where V : IModule
         {
-            return (T)LoadComponent(typeof(T), realType);
+            return (T)LoadComponent(typeof(T), typeof(V));
         }
 
         public T FindComponent<T>() where T : IModule
         {
             return moduleData.TryGetValue(typeof(T), out var module) ? (T)module : default;
-        }
-
-        public IModule AddComponent(Type keyType)
-        {
-            return LoadComponent(keyType, keyType);
-        }
-
-        public IModule AddComponent(Type keyType, Type realType)
-        {
-            return LoadComponent(keyType, realType);
-        }
-
-        public IModule FindComponent(Type keyType)
-        {
-            return moduleData.TryGetValue(keyType, out var module) ? module : null;
         }
 
         private IModule LoadComponent(Type keyType, IModule module)

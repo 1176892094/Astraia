@@ -28,9 +28,9 @@ namespace Astraia.Core
         private Dictionary<int, IState> states = new Dictionary<int, IState>();
         private IState state;
 
-        public void Create(int key, Type value)
+        public void Create<T>(int key) where T : IState
         {
-            var item = HeapManager.Dequeue<IState>(value);
+            var item = HeapManager.Dequeue<IState>(typeof(T));
             item.Acquire(owner);
             states[key] = item;
         }

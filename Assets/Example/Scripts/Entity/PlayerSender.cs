@@ -42,13 +42,13 @@ namespace Runtime
 
         public void OnStartAuthority()
         {
-            owner.Machine.Create(StateConst.Hop, typeof(PlayerHop));
-            owner.Machine.Create(StateConst.Idle, typeof(PlayerIdle));
-            owner.Machine.Create(StateConst.Walk, typeof(PlayerWalk));
-            owner.Machine.Create(StateConst.Jump, typeof(PlayerJump));
-            owner.Machine.Create(StateConst.Grab, typeof(PlayerGrab));
-            owner.Machine.Create(StateConst.Dash, typeof(PlayerDash));
-            owner.Machine.Create(StateConst.Crash, typeof(PlayerCrash));
+            owner.Machine.Create<PlayerHop>(StateConst.Hop);
+            owner.Machine.Create<PlayerIdle>(StateConst.Idle);
+            owner.Machine.Create<PlayerWalk>(StateConst.Walk);
+            owner.Machine.Create<PlayerJump>(StateConst.Jump);
+            owner.Machine.Create<PlayerGrab>(StateConst.Grab);
+            owner.Machine.Create<PlayerDash>(StateConst.Dash);
+            owner.Machine.Create<PlayerCrash>(StateConst.Crash);
             owner.Machine.Switch(StateConst.Idle);
             GameManager.Instance.SetCamera(owner, new Vector3(0, 3, 0), new Vector2(30, 8));
         }

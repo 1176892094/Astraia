@@ -33,9 +33,9 @@ namespace Runtime
         protected override void Awake()
         {
             base.Awake();
-            AddComponent(typeof(PlayerFeature));
-            AddComponent(typeof(PlayerMachine));
-            AddComponent(typeof(PlayerInput));
+            AddComponent<PlayerFeature>();
+            AddComponent<PlayerMachine>();
+            AddComponent<PlayerInput>();
             Transform.syncDirection = SyncMode.Client;
         }
 
