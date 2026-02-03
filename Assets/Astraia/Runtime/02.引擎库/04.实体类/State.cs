@@ -83,60 +83,81 @@ namespace Astraia.Core
     }
 
     [Serializable]
+    public sealed class Blackboard<TEnum> where TEnum : Enum
+    {
+        private Dictionary<TEnum, object> properties = new Dictionary<TEnum, object>();
+
+        public void Set<T>(TEnum key, T value)
+        {
+            properties[key] = value;
+        }
+
+        public T Get<T>(TEnum key)
+        {
+            if (properties.TryGetValue(key, out var value))
+            {
+                return (T)value;
+            }
+
+            return default;
+        }
+    }
+
+    [Serializable]
     public abstract class Blackboard<TEnum, TEntity> : Module<TEntity> where TEnum : Enum where TEntity : Entity
     {
-        private Dictionary<TEnum, int> features = new Dictionary<TEnum, int>();
+        private Dictionary<TEnum, int> properties = new Dictionary<TEnum, int>();
         private const int SCALE = 100;
 
         public int GetInt(TEnum key)
         {
-            features.TryAdd(key, 0);
-            return features[key] / SCALE;
+            properties.TryAdd(key, 0);
+            return properties[key] / SCALE;
         }
 
         public void SetInt(TEnum key, int value)
         {
-            features[key] = value * SCALE;
+            properties[key] = value * SCALE;
         }
 
         public void AddInt(TEnum key, int value)
         {
-            features.TryAdd(key, 0);
-            features[key] += value * SCALE;
+            properties.TryAdd(key, 0);
+            properties[key] += value * SCALE;
         }
 
         public void SubInt(TEnum key, int value)
         {
-            features.TryAdd(key, 0);
-            features[key] -= value * SCALE;
+            properties.TryAdd(key, 0);
+            properties[key] -= value * SCALE;
         }
 
         public float GetFloat(TEnum key)
         {
-            features.TryAdd(key, 0);
-            return features[key] / (float)SCALE;
+            properties.TryAdd(key, 0);
+            return properties[key] / (float)SCALE;
         }
 
         public void SetFloat(TEnum key, float value)
         {
-            features[key] = (int)Math.Round(value * SCALE);
+            properties[key] = (int)Math.Round(value * SCALE);
         }
 
         public void AddFloat(TEnum key, float value)
         {
-            features.TryAdd(key, 0);
-            features[key] += (int)Math.Round(value * SCALE);
+            properties.TryAdd(key, 0);
+            properties[key] += (int)Math.Round(value * SCALE);
         }
 
         public void SubFloat(TEnum key, float value)
         {
-            features.TryAdd(key, 0);
-            features[key] -= (int)Math.Round(value * SCALE);
+            properties.TryAdd(key, 0);
+            properties[key] -= (int)Math.Round(value * SCALE);
         }
 
         public override void Enqueue()
         {
-            features.Clear();
+            properties.Clear();
         }
     }
 }
