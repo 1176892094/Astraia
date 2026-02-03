@@ -34,9 +34,9 @@ namespace Astraia.Core
             return Show(path, parent).GetOrAddComponent<T>();
         }
 
-        public static T Show<T>(string path, string name) where T : Component
+        public static T Show<T>(string path, Transform parent, string name) where T : Component
         {
-            return Show(path, name).GetOrAddComponent<T>();
+            return Show(path, parent, name).GetOrAddComponent<T>();
         }
 
         public static T Show<T>(string path, params Type[] args) where T : Component
@@ -76,12 +76,14 @@ namespace Astraia.Core
             return item;
         }
 
-        public static GameObject Show(string path, string name)
+        public static GameObject Show(string path, Transform parent, string name)
         {
             if (!Instance) return null;
             var item = LoadPool(path, name).Load();
-            item.transform.SetParent(null);
+            item.transform.SetParent(parent);
             item.SetActive(true);
+            item.transform.localScale = Vector3.one;
+            item.transform.localPosition = Vector3.zero;
             item.name = name;
             return item;
         }

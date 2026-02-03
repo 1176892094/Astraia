@@ -52,13 +52,14 @@ namespace Astraia
         public readonly float width;
         public readonly float height;
         public readonly bool vertical;
+        public readonly bool selected;
 
-
-        public UIRectAttribute(int col, int row, float width, float height, bool vertical = true)
+        public UIRectAttribute(int col, int row, float width, float height, bool vertical = true, bool selected = true)
         {
             this.width = width;
             this.height = height;
             this.vertical = vertical;
+            this.selected = selected;
             this.col = col + (vertical ? 0 : 1);
             this.row = row + (vertical ? 1 : 0);
         }

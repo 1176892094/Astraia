@@ -20,21 +20,20 @@ namespace Astraia.Core
     public abstract class UIPanel<T, TGrid> : UIPanel, IMove, ISystem, IEnumerable<KeyValuePair<int, TGrid>> where TGrid : Component, IGrid<T>
     {
         private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
-        private string assetName;
         private IList<T> items;
+        private int col;
+        private int row;
         private int minIndex;
         private int maxIndex;
-        private int numIndex;
+        private bool selector;
         private bool selected;
-        private bool direction;
-        private bool restarted;
-        private bool selection;
-        protected Rect assetRect;
+        private bool vertical;
+        private string assetName;
         private string assetPath;
+        protected float width;
+        protected float height;
 
         [Inject] public RectTransform content;
-        private int numX => (int)assetRect.x + (direction ? 0 : 1);
-        private int numY => (int)assetRect.y + (direction ? 1 : 0);
 
         internal override void Acquire(Entity owner)
         {
@@ -42,9 +41,12 @@ namespace Astraia.Core
             var panel = Service.Ref<UIRectAttribute>.GetAttribute(GetType());
             if (panel != null)
             {
-                direction = panel.direction;
-                selection = panel.selection;
-                assetRect = panel.assetRect;
+                col = panel.col;
+                row = panel.row;
+                width = panel.width;
+                height = panel.height;
+                vertical = panel.vertical;
+                selected = panel.selected;
             }
 
             assetName = GlobalSetting.Prefab.Format(typeof(TGrid).Name);
@@ -55,68 +57,62 @@ namespace Astraia.Core
                 assetPath = GlobalSetting.Prefab.Format(asset.assetPath);
             }
 
-            restarted = false;
-            owner.OnHide += Reload;
+            owner.OnHide += Unload;
+            content.pivot = Vector2.up;
+            content.anchorMin = Vector2.up;
+            content.anchorMax = Vector2.one;
         }
 
         void ISystem.Update()
         {
-            Ticked();
+            Update(false);
             Update();
         }
 
-        private void Ticked()
+        private void Update(bool unload)
         {
-            if (!content)
+            if (unload)
             {
-                return;
+                Unload();
             }
 
-            if (!restarted)
+            if (content && items != null)
             {
-                restarted = true;
-                if (direction)
+                Reload();
+            }
+        }
+
+        private void Unload()
+        {
+            minIndex = -1;
+            maxIndex = -1;
+            selector = selected;
+            foreach (var i in grids.Keys)
+            {
+                if (grids.TryGetValue(i, out var grid) && grid)
                 {
-                    content.anchorMin = Vector2.up;
-                    content.anchorMax = Vector2.one;
+                    grid.Dispose();
+                    PoolManager.Hide(grid);
                 }
-                else
-                {
-                    content.anchorMin = Vector2.zero;
-                    content.anchorMax = Vector2.up;
-                }
-
-                content.pivot = Vector2.up;
             }
 
-            if (items == null)
-            {
-                return;
-            }
+            grids.Clear();
+        }
 
-            if (numIndex != items.Count)
+        private void Reload()
+        {
+            int min, max, idx;
+            if (vertical)
             {
-                Reload(false);
-                numIndex = items.Count;
-            }
-
-            int min;
-            int max;
-            int idx;
-            float pos;
-            if (direction)
-            {
-                pos = content.anchoredPosition.y;
-                idx = (int)(pos / assetRect.height);
-                min = idx * numX;
-                max = (idx + numY) * numX - 1;
+                idx = (int)(content.anchoredPosition.y / height);
+                min = idx * col;
+                max = (idx + row) * col - 1;
             }
             else
             {
-                pos = -content.anchoredPosition.x;
-                idx = (int)(pos / assetRect.width);
-                min = idx * numY;
-                max = (idx + numX) * numY - 1;
+                idx = (int)(-content.anchoredPosition.x / width);
+                min = idx * row;
+                max = (idx + col) * row - 1;
             }
 
             if (min < 0)
@@ -133,29 +129,19 @@ namespace Astraia.Core
             {
                 for (var i = minIndex; i < min; ++i)
                 {
-                    if (grids.TryGetValue(i, out var grid))
+                    if (grids.Remove(i, out var grid) && grid)
                     {
-                        if (grid)
-                        {
-                            grid.Dispose();
-                            PoolManager.Hide(grid);
-                        }
-
-                        grids.Remove(i);
+                        grid.Dispose();
+                        PoolManager.Hide(grid);
                     }
                 }
 
                 for (var i = max + 1; i <= maxIndex; ++i)
                 {
-                    if (grids.TryGetValue(i, out var grid))
+                    if (grids.Remove(i, out var grid) && grid)
                     {
-                        if (grid)
-                        {
-                            grid.Dispose();
-                            PoolManager.Hide(grid);
-                        }
-
-                        grids.Remove(i);
+                        grid.Dispose();
+                        PoolManager.Hide(grid);
                     }
                 }
             }
@@ -169,42 +155,34 @@ namespace Astraia.Core
                     continue;
                 }
 
-                float posX;
-                float posY;
-                if (direction)
+                var position = Vector2.zero;
+                if (vertical)
                 {
-                    idx = i / numX;
-                    posX = i % numX * assetRect.width + assetRect.width / 2;
-                    posY = -idx * assetRect.height - assetRect.height / 2;
+                    idx = i / col;
+                    position.x = i % col * width;
+                    position.y = -idx * height;
                 }
                 else
                 {
-                    idx = i / numY;
-                    posX = idx * assetRect.width + assetRect.width / 2;
-                    posY = -(i % numY) * assetRect.height - assetRect.height / 2;
+                    idx = i / row;
+                    position.x = idx * width;
+                    position.y = -(i % row) * height;
                 }
 
-                grids[i] = null;
-                var grid = PoolManager.Show<TGrid>(assetPath, assetName);
-                var rect = grid.GetComponent<RectTransform>();
-                rect.transform.SetParent(content);
-                rect.localScale = Vector3.one;
-                rect.localPosition = new Vector3(posX, posY, 0);
-                rect.sizeDelta = new Vector2(assetRect.width, assetRect.height);
-                if (!grids.ContainsKey(i))
+                var grid = PoolManager.Show<TGrid>(assetPath, content, assetName);
+                var rect = (RectTransform)grid.transform;
+                rect.pivot = Vector2.up;
+                rect.anchorMin = Vector2.up;
+                rect.anchorMax = Vector2.up;
+                rect.sizeDelta = new Vector2(width, height);
+                rect.anchoredPosition = position;
+                if (selector && i == min)
                 {
-                    grid.Dispose();
-                    PoolManager.Hide(grid);
-                    return;
+                    selector = false;
+                    grid.Select();
                 }
 
                 grids[i] = grid;
-                if (selected && i == max)
-                {
-                    selected = false;
-                    grids[min].Select();
-                }
-
                 grid.SetItem(items[i]);
             }
         }
@@ -215,96 +193,64 @@ namespace Astraia.Core
             if (items != null)
             {
                 float value = items.Count;
-                if (direction)
+                if (vertical)
                 {
-                    value = Mathf.Ceil(value / numX);
-                    content.sizeDelta = new Vector2(0, value * assetRect.height);
+                    value = Mathf.Ceil(value / col);
+                    content.sizeDelta = new Vector2(0, value * height);
                 }
                 else
                 {
-                    value = Mathf.Ceil(value / numY);
-                    content.sizeDelta = new Vector2(value * assetRect.width, 0);
-                }
-
-                numIndex = items.Count;
-            }
-
-            Reload(false);
-            selected = selection;
-        }
-
-        public void Reload()
-        {
-            Reload(true);
-        }
-
-        public void Reload(bool remove)
-        {
-            minIndex = -1;
-            maxIndex = -1;
-            foreach (var i in grids.Keys)
-            {
-                if (grids.TryGetValue(i, out var grid))
-                {
-                    if (grid)
-                    {
-                        grid.Dispose();
-                        PoolManager.Hide(grid);
-                    }
+                    value = Mathf.Ceil(value / row);
+                    content.sizeDelta = new Vector2(value * width, 0);
                 }
             }
 
-            if (remove)
-            {
-                items = null;
-            }
-
-            grids.Clear();
+            Update(true);
         }
 
         public void Move(IGrid grid, int move)
         {
             switch (move)
             {
-                case 0 when !direction:
-                    for (int i = 0; i < numY; i++)
+                case 0 when !vertical:
+                    for (int i = 0; i < row; i++)
                     {
-                        if (grids.TryGetValue(minIndex + i + numY, out var current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(minIndex + i + row, out var current) && current == (TGrid)grid)
                         {
-                            content.anchoredPosition += Vector2.right * assetRect.width;
+                            content.anchoredPosition += Vector2.right * width;
                             return;
                         }
                     }
 
                     return;
-                case 1 when direction:
-                    for (int i = 0; i < numX; i++)
+                case 1 when vertical:
+                    for (int i = 0; i < col; i++)
                     {
-                        if (grids.TryGetValue(minIndex + i + numX, out var current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(minIndex + i + col, out var current) && current == (TGrid)grid)
                         {
-                            content.anchoredPosition += Vector2.down * assetRect.height;
+                            content.anchoredPosition += Vector2.down * height;
                             return;
                         }
                     }
 
                     return;
-                case 2 when !direction:
-                    for (int i = 0; i < numY; i++)
+                case 2 when !vertical:
+                    for (int i = 0; i < row; i++)
                     {
-                        if (grids.TryGetValue(maxIndex - i - numY, out var current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(maxIndex - i - row, out var current) && current == (TGrid)grid)
                         {
-                            content.anchoredPosition += Vector2.left * assetRect.width;
+                            content.anchoredPosition += Vector2.left * width;
                             return;
                         }
                     }
 
                     return;
-                case 3 when direction:
-                    for (int i = 0; i < numX; i++)
+                case 3 when vertical:
+                    for (int i = 0; i < col; i++)
                     {
-                        if (grids.TryGetValue(maxIndex - i - numX, out var current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(maxIndex - i - col, out var current) && current == (TGrid)grid)
                         {
-                            content.anchoredPosition += Vector2.up * assetRect.height;
+                            content.anchoredPosition += Vector2.up * height;
                             return;
                         }
                     }

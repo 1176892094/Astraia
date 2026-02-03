@@ -101,6 +101,11 @@ namespace Astraia.Core
 
             return default;
         }
+
+        public void Clear()
+        {
+            properties.Clear();
+        }
     }
 
     [Serializable]

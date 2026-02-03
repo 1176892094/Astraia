@@ -34,6 +34,7 @@ namespace Astraia.Core
             }
 
             var asset = AssetManager.Load<GameObject>(path);
+            asset.gameObject.name = type.Name;
             asset.SetActive(false);
             var owner = asset.GetOrAddComponent<Entity>();
             var panel = (UIPanel)owner.LoadComponent(type, type);
