@@ -47,15 +47,20 @@ namespace Astraia
     [AttributeUsage(AttributeTargets.Class)]
     public class UIRectAttribute : Attribute
     {
-        public readonly bool direction;
-        public readonly bool selection;
-        public readonly Rect assetRect;
+        public readonly int col;
+        public readonly int row;
+        public readonly float width;
+        public readonly float height;
+        public readonly bool vertical;
 
-        public UIRectAttribute(int x, int y, float w, float h, bool direction = true, bool selection = false)
+
+        public UIRectAttribute(int col, int row, float width, float height, bool vertical = true)
         {
-            this.direction = direction;
-            this.selection = selection;
-            assetRect = new Rect(x, y, w, h);
+            this.width = width;
+            this.height = height;
+            this.vertical = vertical;
+            this.col = col + (vertical ? 0 : 1);
+            this.row = row + (vertical ? 1 : 0);
         }
     }
 }
