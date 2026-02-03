@@ -28,7 +28,7 @@ namespace Astraia
         private Action onNext;
         private Action onUpdate;
         private Action onComplete;
-     
+
         private bool isActive => owner && owner.gameObject.activeInHierarchy;
 
         internal static Timer Create(Component owner, float duration)
