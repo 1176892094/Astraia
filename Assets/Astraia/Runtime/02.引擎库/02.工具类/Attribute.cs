@@ -27,41 +27,41 @@ namespace Astraia
     [AttributeUsage(AttributeTargets.Class)]
     public class UIMaskAttribute : Attribute
     {
-        public readonly int layerMask;
-        public readonly int groupMask;
+        public readonly int layer;
+        public readonly int group;
 
-        public UIMaskAttribute(int layerMask, int groupMask = 0)
+        public UIMaskAttribute(int layer, int group = 0)
         {
-            this.layerMask = layerMask;
-            this.groupMask = groupMask;
+            this.layer = layer;
+            this.group = group;
         }
     }
 
     [AttributeUsage(AttributeTargets.Class)]
     public class UIPathAttribute : Attribute
     {
-        public readonly string assetPath;
-        public UIPathAttribute(string assetPath) => this.assetPath = assetPath;
+        public readonly string asset;
+        public UIPathAttribute(string asset) => this.asset = asset;
     }
 
     [AttributeUsage(AttributeTargets.Class)]
     public class UIRectAttribute : Attribute
     {
-        public readonly int col;
+        public readonly int column;
         public readonly int row;
         public readonly float width;
         public readonly float height;
         public readonly bool vertical;
         public readonly bool selected;
 
-        public UIRectAttribute(int col, int row, float width, float height, bool vertical = true, bool selected = true)
+        public UIRectAttribute(int x, int y, float width, float height, bool vertical = true, bool selected = true)
         {
             this.width = width;
             this.height = height;
             this.vertical = vertical;
             this.selected = selected;
-            this.col = col + (vertical ? 0 : 1);
-            this.row = row + (vertical ? 1 : 0);
+            this.column = x + (vertical ? 0 : 1);
+            this.row = y + (vertical ? 1 : 0);
         }
     }
 }

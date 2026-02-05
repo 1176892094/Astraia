@@ -70,11 +70,11 @@ namespace Astraia.Core
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
+        internal static readonly Dictionary<int, UIStack> stackData = new Dictionary<int, UIStack>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<int, HashSet<UIPanel>> groupData = new Dictionary<int, HashSet<UIPanel>>();
+        internal static readonly Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
 
         private void Awake()
         {

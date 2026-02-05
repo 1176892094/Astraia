@@ -25,20 +25,24 @@ namespace Astraia.Core
 
     public static class UIManager
     {
+        private static Entity Load(string path, string name)
+        {
+            var asset = AssetManager.Load<GameObject>(path);
+            asset.SetActive(false);
+            asset.gameObject.name = name;
+            return asset.GetOrAddComponent<Entity>();
+        }
+
         private static UIPanel Load(string path, Type type)
         {
             var item = Service.Ref<UIPathAttribute>.GetAttribute(type);
             if (item != null)
             {
-                path = GlobalSetting.Prefab.Format(item.assetPath);
+                path = GlobalSetting.Prefab.Format(item.asset);
             }
 
-            var asset = AssetManager.Load<GameObject>(path);
-            asset.gameObject.name = type.Name;
-            asset.SetActive(false);
-            var owner = asset.GetOrAddComponent<Entity>();
-            var panel = (UIPanel)owner.LoadComponent(type, type);
-            SetLayer(panel.transform, panel.layerMask);
+            var panel = (UIPanel)Load(path, type.Name).LoadComponent(type, type);
+            SetLayer(panel.transform, panel.layer);
             panelData.Add(type, panel);
             return panel;
         }
@@ -60,7 +64,7 @@ namespace Astraia.Core
             if (!Instance) return;
             if (panelData.TryGetValue(typeof(T), out var panel))
             {
-                UIGroup.SetActive(panel, false);
+                UIGroup.Hide(panel);
             }
         }
 
@@ -74,9 +78,7 @@ namespace Astraia.Core
             if (!Instance) return;
             if (panelData.TryGetValue(typeof(T), out var panel))
             {
-                UIGroup.SetActive(panel, false);
-                Object.Destroy(panel.gameObject);
-                panelData.Remove(typeof(T));
+                UIGroup.Destroy(panel, typeof(T));
             }
         }
 
@@ -97,7 +99,7 @@ namespace Astraia.Core
             if (!Instance) return;
             if (panelData.TryGetValue(type, out var panel))
             {
-                UIGroup.SetActive(panel, false);
+                UIGroup.Hide(panel);
             }
         }
 
@@ -111,23 +113,21 @@ namespace Astraia.Core
             if (!Instance) return;
             if (panelData.TryGetValue(type, out var panel))
             {
-                UIGroup.SetActive(panel, false);
-                Object.Destroy(panel.gameObject);
-                panelData.Remove(type);
+                UIGroup.Destroy(panel, type);
             }
         }
 
         public static void Destroy()
         {
             var copies = new List<Type>(panelData.Keys);
-            foreach (var panel in copies)
+            foreach (var result in copies)
             {
-                var result = panelData[panel];
-                if (result.state != UIState.Stable)
+                if (panelData.TryGetValue(result, out var panel))
                 {
-                    result.gameObject.SetActive(false);
-                    Object.Destroy(result.gameObject);
-                    panelData.Remove(panel);
+                    if (panel.state != UIState.Stable)
+                    {
+                        UIGroup.Destroy(panel, result);
+                    }
                 }
             }
         }
@@ -148,25 +148,25 @@ namespace Astraia.Core
             SetTransform(panel.GetComponent<RectTransform>(), parent);
         }
 
-        private static void SetTransform(RectTransform transform, Transform parent)
+        private static void SetTransform(RectTransform rect, Transform parent)
         {
-            transform.SetParent(parent);
-            transform.anchorMin = Vector2.zero;
-            transform.anchorMax = Vector2.one;
-            transform.offsetMin = Vector2.zero;
-            transform.offsetMax = Vector2.zero;
-            transform.localScale = Vector3.one;
-            transform.localPosition = Vector3.zero;
+            rect.SetParent(parent);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            rect.localScale = Vector3.one;
+            rect.localPosition = Vector3.zero;
         }
 
         internal static void Dispose()
         {
-            foreach (var group in groupData.Values)
+            foreach (var stack in stackData.Values)
             {
-                group.Clear();
+                stack.Clear();
             }
 
-            groupData.Clear();
+            stackData.Clear();
             layerData.Clear();
             panelData.Clear();
         }
@@ -174,72 +174,62 @@ namespace Astraia.Core
 
     public static class UIGroup
     {
-        internal static void Listen(int group, UIPanel panel)
+        public static void Hide(int value)
         {
-            if (!Instance) return;
-            if (!groupData.TryGetValue(group, out var panels))
+            if (stackData.TryGetValue(value, out var stack))
             {
-                panels = new HashSet<UIPanel>();
-                groupData.Add(group, panels);
-            }
-
-            panels.Add(panel);
-        }
-
-        internal static void Remove(int group, UIPanel panel)
-        {
-            if (!Instance) return;
-            if (groupData.TryGetValue(group, out var panels))
-            {
-                panels.Remove(panel);
-                if (panels.Count == 0)
-                {
-                    groupData.Remove(group);
-                }
-            }
-        }
-
-        public static void Show(int group)
-        {
-            if (!Instance) return;
-            if (groupData.TryGetValue(group, out var panels))
-            {
-                foreach (var panel in panels)
-                {
-                    SetActive(panel, true);
-                }
-            }
-        }
-
-        public static void Hide(int group)
-        {
-            if (!Instance) return;
-            if (groupData.TryGetValue(group, out var panels))
-            {
-                foreach (var panel in panels)
-                {
-                    SetActive(panel, false);
-                }
+                stack.Clear();
             }
         }
 
         internal static void Show(UIPanel panel)
         {
-            foreach (var pair in groupData)
+            if (panel.group == 0)
             {
-                if ((panel.groupMask & pair.Key) != 0)
-                {
-                    foreach (var other in pair.Value)
-                    {
-                        if (other != panel)
-                        {
-                            SetActive(other, false);
-                        }
-                    }
-                }
+                SetActive(panel, true);
+                return;
             }
 
-            SetActive(panel, true);
+            if (!stackData.TryGetValue(panel.group, out var stack))
+            {
+                stack = new UIStack();
+                stackData.Add(panel.group, stack);
+            }
+
+            stack.Push(panel);
+        }
+
+        internal static void Hide(UIPanel panel)
+        {
+            if (panel.group == 0)
+            {
+                SetActive(panel, false);
+                return;
+            }
+
+            if (stackData.TryGetValue(panel.group, out var stack))
+            {
+                stack.Pop();
+            }
+        }
+
+        internal static void Destroy(UIPanel panel, Type type)
+        {
+            if (panel.group == 0)
+            {
+                panel.gameObject.SetActive(false);
+                Object.Destroy(panel.gameObject);
+                panelData.Remove(type);
+                return;
+            }
+
+            if (stackData.TryGetValue(panel.group, out var stack))
+            {
+                stack.Remove(panel);
+                panel.gameObject.SetActive(false);
+                Object.Destroy(panel.gameObject);
+                panelData.Remove(type);
+            }
         }
 
         internal static void SetActive(UIPanel panel, bool state)

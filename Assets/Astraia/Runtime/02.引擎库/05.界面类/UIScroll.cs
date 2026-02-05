@@ -10,19 +10,16 @@
 // *********************************************************************************
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Astraia.Core
 {
     [Serializable]
-    public abstract class UIPanel<T, TGrid> : UIPanel, IMove, ISystem, IEnumerable<KeyValuePair<int, TGrid>> where TGrid : Component, IGrid<T>
+    public abstract class UIPanel<T, TGrid> : UIPanel, IModule, ISystem, IMove where TGrid : Component, IGrid<T>
     {
-        private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
+        protected readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
         private IList<T> items;
-        private int col;
-        private int row;
         private int minIndex;
         private int maxIndex;
         private bool selector;
@@ -30,23 +27,33 @@ namespace Astraia.Core
         private bool vertical;
         private string assetName;
         private string assetPath;
+
+        private int row;
+        private int column;
         protected float width;
         protected float height;
 
         [Inject] public RectTransform content;
 
-        internal override void Acquire(Entity owner)
+        void IModule.Acquire(Entity owner)
         {
-            base.Acquire(owner);
-            var panel = Service.Ref<UIRectAttribute>.GetAttribute(GetType());
+            this.owner = owner;
+            var panel = Service.Ref<UIMaskAttribute>.GetAttribute(GetType());
             if (panel != null)
             {
-                col = panel.col;
-                row = panel.row;
-                width = panel.width;
-                height = panel.height;
-                vertical = panel.vertical;
-                selected = panel.selected;
+                layer = panel.layer;
+                group = panel.group;
+            }
+
+            var value = Service.Ref<UIRectAttribute>.GetAttribute(GetType());
+            if (value != null)
+            {
+                row = value.row;
+                width = value.width;
+                column = value.column;
+                height = value.height;
+                vertical = value.vertical;
+                selected = value.selected;
             }
 
             assetName = GlobalSetting.Prefab.Format(typeof(TGrid).Name);
@@ -54,7 +61,7 @@ namespace Astraia.Core
             var asset = Service.Ref<UIPathAttribute>.GetAttribute(typeof(TGrid));
             if (asset != null)
             {
-                assetPath = GlobalSetting.Prefab.Format(asset.assetPath);
+                assetPath = GlobalSetting.Prefab.Format(asset.asset);
             }
 
             owner.OnHide += Unload;
@@ -105,14 +112,14 @@ namespace Astraia.Core
             if (vertical)
             {
                 idx = (int)(content.anchoredPosition.y / height);
-                min = idx * col;
-                max = (idx + row) * col - 1;
+                min = idx * column;
+                max = (idx + row) * column - 1;
             }
             else
             {
                 idx = (int)(-content.anchoredPosition.x / width);
                 min = idx * row;
-                max = (idx + col) * row - 1;
+                max = (idx + column) * row - 1;
             }
 
             if (min < 0)
@@ -158,8 +165,8 @@ namespace Astraia.Core
                 var position = Vector2.zero;
                 if (vertical)
                 {
-                    idx = i / col;
-                    position.x = i % col * width;
+                    idx = i / column;
+                    position.x = i % column * width;
                     position.y = -idx * height;
                 }
                 else
@@ -195,7 +202,7 @@ namespace Astraia.Core
                 float value = items.Count;
                 if (vertical)
                 {
-                    value = Mathf.Ceil(value / col);
+                    value = Mathf.Ceil(value / column);
                     content.sizeDelta = new Vector2(0, value * height);
                 }
                 else
@@ -224,9 +231,9 @@ namespace Astraia.Core
 
                     return;
                 case 1 when vertical:
-                    for (int i = 0; i < col; i++)
+                    for (int i = 0; i < column; i++)
                     {
-                        if (grids.TryGetValue(minIndex + i + col, out var current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(minIndex + i + column, out var current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.down * height;
                             return;
@@ -246,9 +253,9 @@ namespace Astraia.Core
 
                     return;
                 case 3 when vertical:
-                    for (int i = 0; i < col; i++)
+                    for (int i = 0; i < column; i++)
                     {
-                        if (grids.TryGetValue(maxIndex - i - col, out var current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(maxIndex - i - column, out var current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.up * height;
                             return;
@@ -257,16 +264,6 @@ namespace Astraia.Core
 
                     return;
             }
-        }
-
-        public IEnumerator<KeyValuePair<int, TGrid>> GetEnumerator()
-        {
-            return grids.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 

@@ -10,7 +10,9 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using Astraia.Core;
+using Sirenix.OdinInspector;
 
 namespace Astraia
 {
@@ -18,12 +20,21 @@ namespace Astraia
     public abstract class UIPanel : Module<Entity>, IModule, ISystem
     {
         public UIState state = UIState.Common;
-        internal int layerMask;
-        internal int groupMask;
+        internal int layer;
+        internal int group;
 
         int ISystem.index => 10;
 
-        void IModule.Acquire(Entity owner) => Acquire(owner);
+        void IModule.Acquire(Entity owner)
+        {
+            this.owner = owner;
+            var panel = Service.Ref<UIMaskAttribute>.GetAttribute(GetType());
+            if (panel != null)
+            {
+                layer = panel.layer;
+                group = panel.group;
+            }
+        }
 
         public virtual void Update()
         {
@@ -36,56 +47,94 @@ namespace Astraia
         public virtual void OnHide()
         {
         }
+    }
 
-        internal virtual void Acquire(Entity owner)
+    [Serializable]
+    internal sealed class UIStack
+    {
+        [ShowInInspector, HideLabel] private Stack<UIPanel> Stack = new Stack<UIPanel>();
+        private UIPanel Current => Stack.Count > 0 ? Stack.Peek() : null;
+
+        public void Push(UIPanel panel)
         {
-            this.owner = owner;
-            var current = GetType();
-            var attribute = Service.Ref<UIMaskAttribute>.GetAttribute(current);
-            if (attribute != null)
+            if (Current == panel)
             {
-                layerMask = attribute.layerMask;
+                return;
             }
 
-            groupMask = 0;
-            while (current != null)
+            if (Stack.Contains(panel))
             {
-                attribute = Service.Ref<UIMaskAttribute>.GetAttribute(current, false);
-                if (attribute != null)
+                while (Stack.Count > 0)
                 {
-                    groupMask |= attribute.groupMask;
+                    var other = Stack.Peek();
+                    if (other == panel)
+                    {
+                        break;
+                    }
+
+                    Stack.Pop();
+                    UIGroup.SetActive(other, false);
                 }
 
-                current = current.BaseType;
+                UIGroup.SetActive(Current, true);
+                return;
             }
 
-            if (groupMask != 0)
+            if (Current != null)
             {
-                Register();
-                owner.OnFade += UnRegister;
+                UIGroup.SetActive(Current, false);
+            }
+
+            Stack.Push(panel);
+            UIGroup.SetActive(panel, true);
+        }
+
+        public void Pop()
+        {
+            if (Stack.Count == 0)
+            {
+                return;
+            }
+
+            var panel = Stack.Pop();
+            UIGroup.SetActive(panel, false);
+
+            if (Current != null)
+            {
+                UIGroup.SetActive(Current, true);
             }
         }
 
-        private void Register()
+        public void Remove(UIPanel panel)
         {
-            for (var i = 0; i < 32; i++)
+            var copies = new Stack<UIPanel>();
+
+            while (Stack.Count > 0)
             {
-                var bit = 1 << i;
-                if ((groupMask & bit) != 0)
+                var other = Stack.Pop();
+                if (other == panel)
                 {
-                    UIGroup.Listen(bit, this);
+                    break;
                 }
+
+                copies.Push(other);
+            }
+
+            while (copies.Count > 0)
+            {
+                var other = copies.Pop();
+                Stack.Push(other);
             }
         }
 
-        private void UnRegister()
+        public void Clear()
         {
-            for (var i = 0; i < 32; i++)
+            while (Stack.Count > 0)
             {
-                var bit = 1 << i;
-                if ((groupMask & bit) != 0)
+                var panel = Stack.Pop();
+                if (panel)
                 {
-                    UIGroup.Remove(bit, this);
+                    UIGroup.SetActive(panel, false);
                 }
             }
         }
