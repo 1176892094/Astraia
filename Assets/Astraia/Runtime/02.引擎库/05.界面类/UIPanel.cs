@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 using Astraia.Core;
 using Sirenix.OdinInspector;
 
@@ -20,10 +19,8 @@ namespace Astraia
     public abstract class UIPanel : Module<Entity>, IModule, ISystem
     {
         public UIState state = UIState.Common;
-        internal int layer;
         internal int group;
-
-        int ISystem.index => 10;
+        internal int layer;
 
         void IModule.Acquire(Entity owner)
         {
@@ -35,6 +32,8 @@ namespace Astraia
                 group = panel.group;
             }
         }
+
+        int ISystem.index => 10;
 
         public virtual void Update()
         {
@@ -49,94 +48,60 @@ namespace Astraia
         }
     }
 
-    [Serializable]
     internal sealed class UIStack
     {
-        [ShowInInspector, HideLabel] private Stack<UIPanel> Stack = new Stack<UIPanel>();
-        private UIPanel Current => Stack.Count > 0 ? Stack.Peek() : null;
+        [ShowInInspector] private UIPanel current;
+        [ShowInInspector] private UIPanel reverse;
 
         public void Push(UIPanel panel)
         {
-            if (Current == panel)
+            if (current == panel)
             {
                 return;
             }
 
-            if (Stack.Contains(panel))
+            if (current)
             {
-                while (Stack.Count > 0)
-                {
-                    var other = Stack.Peek();
-                    if (other == panel)
-                    {
-                        break;
-                    }
-
-                    Stack.Pop();
-                    UIGroup.SetActive(other, false);
-                }
-
-                UIGroup.SetActive(Current, true);
-                return;
+                UIGroup.SetActive(current, false);
+                reverse = current;
             }
 
-            if (Current != null)
-            {
-                UIGroup.SetActive(Current, false);
-            }
-
-            Stack.Push(panel);
-            UIGroup.SetActive(panel, true);
+            current = panel;
+            UIGroup.SetActive(current, true);
         }
 
-        public void Pop()
+        public void Back(UIPanel panel)
         {
-            if (Stack.Count == 0)
+            if (reverse == null)
             {
                 return;
             }
 
-            var panel = Stack.Pop();
-            UIGroup.SetActive(panel, false);
-
-            if (Current != null)
+            if (current != panel)
             {
-                UIGroup.SetActive(Current, true);
-            }
-        }
-
-        public void Remove(UIPanel panel)
-        {
-            var copies = new Stack<UIPanel>();
-
-            while (Stack.Count > 0)
-            {
-                var other = Stack.Pop();
-                if (other == panel)
-                {
-                    break;
-                }
-
-                copies.Push(other);
+                return;
             }
 
-            while (copies.Count > 0)
+            var forward = current;
+            if (current)
             {
-                var other = copies.Pop();
-                Stack.Push(other);
+                UIGroup.SetActive(current, false);
             }
+
+            current = reverse;
+            reverse = forward;
+            UIGroup.SetActive(current, true);
         }
 
         public void Clear()
         {
-            while (Stack.Count > 0)
+            if (current)
             {
-                var panel = Stack.Pop();
-                if (panel)
-                {
-                    UIGroup.SetActive(panel, false);
-                }
+                UIGroup.SetActive(current, false);
             }
+
+            reverse = null;
+            current = null;
         }
     }
 }

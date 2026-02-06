@@ -32,7 +32,8 @@ namespace Astraia.Core
         private int column;
         protected float width;
         protected float height;
-
+        protected Action OnMove;
+       
         [Inject] public RectTransform content;
 
         void IModule.Acquire(Entity owner)
@@ -72,42 +73,17 @@ namespace Astraia.Core
 
         void ISystem.Update()
         {
-            Update(false);
+            Reload();
             Update();
-        }
-
-        private void Update(bool unload)
-        {
-            if (unload)
-            {
-                Unload();
-            }
-
-            if (content && items != null)
-            {
-                Reload();
-            }
-        }
-
-        private void Unload()
-        {
-            minIndex = -1;
-            maxIndex = -1;
-            selector = selected;
-            foreach (var i in grids.Keys)
-            {
-                if (grids.TryGetValue(i, out var grid) && grid)
-                {
-                    grid.Dispose();
-                    PoolManager.Hide(grid);
-                }
-            }
-
-            grids.Clear();
         }
 
         private void Reload()
         {
+            if (!content || items == null)
+            {
+                return;
+            }
+
             int min, max, idx;
             if (vertical)
             {
@@ -151,6 +127,8 @@ namespace Astraia.Core
                         PoolManager.Hide(grid);
                     }
                 }
+
+                OnMove?.Invoke();
             }
 
             minIndex = min;
@@ -194,9 +172,26 @@ namespace Astraia.Core
             }
         }
 
+        private void Unload()
+        {
+            minIndex = -1;
+            maxIndex = -1;
+            selector = selected;
+            foreach (var i in grids.Keys)
+            {
+                if (grids.TryGetValue(i, out var grid) && grid)
+                {
+                    grid.Dispose();
+                    PoolManager.Hide(grid);
+                }
+            }
+
+            items = null;
+            grids.Clear();
+        }
+
         public void SetItem(IList<T> items)
         {
-            this.items = items;
             if (items != null)
             {
                 float value = items.Count;
@@ -212,7 +207,9 @@ namespace Astraia.Core
                 }
             }
 
-            Update(true);
+            Unload();
+            this.items = items;
+            Reload();
         }
 
         public void Move(IGrid grid, int move)

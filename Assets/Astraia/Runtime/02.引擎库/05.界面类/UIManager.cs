@@ -209,27 +209,15 @@ namespace Astraia.Core
 
             if (stackData.TryGetValue(panel.group, out var stack))
             {
-                stack.Pop();
+                stack.Back(panel);
             }
         }
 
         internal static void Destroy(UIPanel panel, Type type)
         {
-            if (panel.group == 0)
-            {
-                panel.gameObject.SetActive(false);
-                Object.Destroy(panel.gameObject);
-                panelData.Remove(type);
-                return;
-            }
-
-            if (stackData.TryGetValue(panel.group, out var stack))
-            {
-                stack.Remove(panel);
-                panel.gameObject.SetActive(false);
-                Object.Destroy(panel.gameObject);
-                panelData.Remove(type);
-            }
+            panel.gameObject.SetActive(false);
+            Object.Destroy(panel.gameObject);
+            panelData.Remove(type);
         }
 
         internal static void SetActive(UIPanel panel, bool state)
