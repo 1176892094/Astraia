@@ -11,7 +11,6 @@
 
 using System;
 using Astraia.Core;
-using Sirenix.OdinInspector;
 
 namespace Astraia
 {
@@ -50,8 +49,14 @@ namespace Astraia
 
     internal sealed class UIStack
     {
-        [ShowInInspector] private UIPanel current;
-        [ShowInInspector] private UIPanel reverse;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        private UIPanel current;
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        private UIPanel reverse;
 
         public void Push(UIPanel panel)
         {

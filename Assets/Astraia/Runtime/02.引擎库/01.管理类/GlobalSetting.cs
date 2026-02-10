@@ -147,7 +147,7 @@ namespace Astraia
         [PropertyOrder(1)]
 #endif
         public List<Object> ignoreAssets = new List<Object>();
-#if UNITY_EDITOR
+#if ODIN_INSPECTOR
         [PropertyOrder(1)]
 #endif
         public List<Object> cacheAssets = new List<Object>();

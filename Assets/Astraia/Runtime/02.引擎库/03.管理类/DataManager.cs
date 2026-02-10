@@ -96,7 +96,7 @@ namespace Astraia.Core
             return DataTable<T>.By<string>.Get(key);
         }
 
-        public static IReadOnlyList<T> GetTable<T>() where T : IData
+        public static IList<T> GetTable<T>() where T : IData
         {
             if (DataTable<T>.Instance)
             {
@@ -232,7 +232,7 @@ namespace Astraia.Core
 
             if (target.IsEnum)
             {
-                return Enum.Parse(target, reason.ToLower());
+                return Enum.Parse(target, reason);
             }
 
             if (target.IsPrimitive)
