@@ -105,7 +105,7 @@ namespace Astraia.Core
 
         public static UIPanel Find(Type type)
         {
-            return panelData.TryGetValue(type, out var panel) ? panel : null;
+            return type != null ? panelData.TryGetValue(type, out var panel) ? panel : null : null;
         }
 
         public static void Destroy(Type type)
