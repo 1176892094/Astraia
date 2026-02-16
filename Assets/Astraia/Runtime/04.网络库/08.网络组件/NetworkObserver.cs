@@ -70,7 +70,7 @@ namespace Astraia.Net
 
         public void Tick(NetworkEntity entity, NetworkClient client)
         {
-            if (players.TryGetValue(client.clientId, out var player))
+            if (players.TryGetValue(client.clientId, out var player) && player)
             {
                 var node = grids.Position(entity.transform.position) - grids.Position(player.transform.position);
                 if (Mathf.Abs(node.x) <= range.x && Mathf.Abs(node.y) <= range.y)
