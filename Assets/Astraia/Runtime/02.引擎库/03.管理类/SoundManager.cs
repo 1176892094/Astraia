@@ -80,7 +80,7 @@ namespace Astraia.Core
 
         public static void Play(string name, AudioState state)
         {
-            if (!Instance)
+            if (!Instance || !Instance.source)
             {
                 return;
             }
