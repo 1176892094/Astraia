@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.unity.ide.rider": "3.0.38",
+    "com.unity.ide.rider": "3.0.39",
     "com.unity.multiplayer.playmode": "2.0.1",
     "com.unity.nuget.mono-cecil": "1.11.6",
     "com.unity.postprocessing": "3.5.1",

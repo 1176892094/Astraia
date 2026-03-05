@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace Astraia.Core
@@ -25,8 +26,37 @@ namespace Astraia.Core
 
     public static class UIManager
     {
+        private static bool initialized;
+
+        private static void Initialized()
+        {
+            if (initialized) return;
+            initialized = true;
+            Instance.canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
+            Instance.canvas.sortingOrder = 20;
+            Instance.canvas.planeDistance = 10;
+            Instance.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
+            Instance.canvas.gameObject.AddComponent<GraphicRaycaster>();
+            var canvas = Instance.canvas.gameObject.AddComponent<CanvasScaler>();
+            canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            canvas.matchWidthOrHeight = 0;
+            canvas.referenceResolution = new Vector2(960, 540);
+            canvas.referencePixelsPerUnit = 16;
+            Object.DontDestroyOnLoad(Instance.canvas);
+        }
+
+        public static void SetCamera(Camera camera, int sortingOrder = 20)
+        {
+            Initialized();
+            Instance.canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            Instance.canvas.worldCamera = camera;
+            Instance.canvas.sortingOrder = sortingOrder;
+        }
+
         private static Entity Load(string path, string name)
         {
+            Initialized();
             var asset = AssetManager.Load<GameObject>(path);
             asset.SetActive(false);
             asset.gameObject.name = name;
@@ -169,6 +199,7 @@ namespace Astraia.Core
             stackData.Clear();
             layerData.Clear();
             panelData.Clear();
+            initialized = false;
         }
     }
 

@@ -30,9 +30,8 @@ namespace Runtime
         public override void Dequeue()
         {
             mainCamera = Object.FindFirstObjectByType<Camera>();
-            GlobalManager.Instance.canvas.worldCamera = mainCamera;
-            GlobalManager.Instance.canvas.sortingOrder = 10;
             Application.targetFrameRate = 60;
+            UIManager.SetCamera(mainCamera);
             UIManager.Show<LabelPanel>();
             UIManager.Show<LoadPanel>();
         }

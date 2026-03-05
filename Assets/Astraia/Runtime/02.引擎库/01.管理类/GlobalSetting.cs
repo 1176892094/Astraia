@@ -15,7 +15,6 @@ using System.IO;
 using System.Linq;
 using Astraia.Core;
 using UnityEngine;
-using UnityEngine.UI;
 using Object = UnityEngine.Object;
 #if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
@@ -79,20 +78,6 @@ namespace Astraia
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            var source = new GameObject(nameof(PoolManager)).AddComponent<GlobalManager>();
-            source.canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
-            source.canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            source.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
-
-            source.canvas.gameObject.AddComponent<GraphicRaycaster>();
-            var canvas = source.canvas.gameObject.AddComponent<CanvasScaler>();
-            canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            canvas.matchWidthOrHeight = 0;
-            canvas.referenceResolution = new Vector2(960, 540);
-            canvas.referencePixelsPerUnit = 16;
-            DontDestroyOnLoad(source.canvas);
-
             for (byte i = 1; i < Instance.EncryptGroup.Length; i++)
             {
                 Service.Xor.LoadData(i, Instance.EncryptGroup[i]);

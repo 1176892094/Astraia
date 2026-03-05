@@ -112,7 +112,7 @@ namespace Astraia.Net
 #if UNITY_EDITOR
         private static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
 
-        protected virtual void OnValidate()
+        protected virtual uint OnValidate()
         {
             uint.TryParse(name, out assetId);
             if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
@@ -139,6 +139,7 @@ namespace Astraia.Net
             }
 
             assetId = sceneId != 0 ? 0 : assetId;
+            return assetId;
         }
 
         private void AssignSceneId()
