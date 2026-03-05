@@ -267,6 +267,7 @@ GameObject:
   m_Component:
   - component: {fileID: 75954605}
   - component: {fileID: 75954606}
+  - component: {fileID: 75954607}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -305,6 +306,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Astraia.Run::Astraia.Entity
   moduleList:
   - Runtime.GameManager, Assembly-CSharp
+--- !u!114 &75954607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 75954604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e30cec0d1daa406e817e38155ebe06a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Run::Astraia.Core.GlobalManager
+  canvas: {fileID: 0}
+  source: {fileID: 0}
 --- !u!1 &83117112
 GameObject:
   m_ObjectHideFlags: 0

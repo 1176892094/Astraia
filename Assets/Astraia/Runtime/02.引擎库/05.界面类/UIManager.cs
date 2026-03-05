@@ -34,7 +34,7 @@ namespace Astraia.Core
             initialized = true;
             Instance.canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
             Instance.canvas.sortingOrder = 20;
-            Instance.canvas.planeDistance = 10;
+            Instance.canvas.planeDistance = 20;
             Instance.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
             Instance.canvas.gameObject.AddComponent<GraphicRaycaster>();
             var canvas = Instance.canvas.gameObject.AddComponent<CanvasScaler>();

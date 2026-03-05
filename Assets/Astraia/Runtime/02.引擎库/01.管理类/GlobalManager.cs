@@ -16,6 +16,7 @@ using UnityEngine;
 
 namespace Astraia.Core
 {
+    [DefaultExecutionOrder(-100)]
     public sealed class GlobalManager : MonoBehaviour
     {
         public static GlobalManager Instance;
