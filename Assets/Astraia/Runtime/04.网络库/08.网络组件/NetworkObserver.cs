@@ -20,15 +20,15 @@ namespace Astraia.Net
         private readonly Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
         private readonly HashSet<NetworkClient> items = new HashSet<NetworkClient>();
         private readonly List<NetworkClient> nodes = new List<NetworkClient>();
-        private Vector3Int range = Vector3Int.one;
+        private Vector2Int range = Vector2Int.one;
         private Visible<NetworkClient> grids;
         private double waitTime;
 
         public void Execute(OnVisibleUpdate message)
         {
             waitTime = 0;
-            range = new Vector3Int(message.x, message.y, message.z);
-            grids = new Visible<NetworkClient>(message.x, message.y, message.z);
+            range = new Vector2Int(message.x, message.y);
+            grids = new Visible<NetworkClient>(message.x, message.y, message.w, message.h);
         }
 
         public void Execute(ServerDisconnect message)

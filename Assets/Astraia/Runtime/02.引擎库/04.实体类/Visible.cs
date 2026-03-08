@@ -24,11 +24,17 @@ namespace Astraia.Core
     {
         private readonly Dictionary<Vector2Int, HashSet<T>> grids = new Dictionary<Vector2Int, HashSet<T>>();
         private readonly Dictionary<T, Vector2Int> nodes = new Dictionary<T, Vector2Int>();
-        private readonly Vector3Int range;
+        private readonly int rangeX;
+        private readonly int rangeY;
+        private readonly int scaleX;
+        private readonly int scaleY;
 
-        public Visible(int rangeX, int rangeY, int scale)
+        public Visible(int rangeX, int rangeY, int scaleX, int scaleY)
         {
-            range = new Vector3Int(rangeX, rangeY, scale);
+            this.rangeX = rangeX;
+            this.rangeY = rangeY;
+            this.scaleX = scaleX;
+            this.scaleY = scaleY;
         }
 
         public void Add(T item, Vector2 position)
@@ -81,9 +87,9 @@ namespace Astraia.Core
         public void Find(Vector2Int center, HashSet<T> items)
         {
             items.Clear();
-            for (var x = -range.x; x <= range.x; x++)
+            for (var x = -rangeX; x <= rangeX; x++)
             {
-                for (var y = -range.y; y <= range.y; y++)
+                for (var y = -rangeY; y <= rangeY; y++)
                 {
                     var node = center + new Vector2Int(x, y);
                     if (grids.TryGetValue(node, out var copies))
@@ -99,7 +105,10 @@ namespace Astraia.Core
 
         public Vector2Int Position(Vector2 position)
         {
-            return new Vector2Int(Mathf.FloorToInt(position.x / range.z), Mathf.FloorToInt(position.y / range.z));
+            return new Vector2Int(
+                Mathf.FloorToInt(position.x / scaleX),
+                Mathf.FloorToInt(position.y / scaleY)
+            );
         }
 
         public void Clear()

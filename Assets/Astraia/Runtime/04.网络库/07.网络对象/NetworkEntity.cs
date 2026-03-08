@@ -25,13 +25,13 @@ namespace Astraia.Net
     [Serializable]
     public class NetworkEntity : Entity
     {
-        [SerializeField] [HideInInspector] internal uint objectId;
+        [HideInInspector] public uint objectId;
 
-        [SerializeField] [HideInInspector] internal uint assetId;
+        [HideInInspector] public uint assetId;
 
-        [SerializeField] [HideInInspector] internal uint sceneId;
+        [HideInInspector] public uint sceneId;
 
-        [SerializeField] internal Visible visible;
+        public Visible visible;
 
         internal int count;
 
@@ -112,7 +112,7 @@ namespace Astraia.Net
 #if UNITY_EDITOR
         private static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
 
-        protected virtual uint OnValidate()
+        protected virtual void OnValidate()
         {
             uint.TryParse(name, out assetId);
             if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
@@ -139,7 +139,6 @@ namespace Astraia.Net
             }
 
             assetId = sceneId != 0 ? 0 : assetId;
-            return assetId;
         }
 
         private void AssignSceneId()
