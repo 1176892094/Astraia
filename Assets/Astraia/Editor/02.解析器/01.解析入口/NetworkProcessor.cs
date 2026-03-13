@@ -36,17 +36,16 @@ namespace Astraia.Editor
             var log = new Log();
             using var ar = new AssemblyResolver(assembly, log);
             using var ss = new MemoryStream(assembly.InMemoryAssembly.PdbData);
-            var rp = new ReaderParameters
+            var pd = assembly.InMemoryAssembly.PeData;
+            using var ms = new MemoryStream(pd);
+            using var ad = AssemblyDefinition.ReadAssembly(ms, new ReaderParameters
             {
                 SymbolStream = ss,
                 SymbolReaderProvider = new PortablePdbReaderProvider(),
                 AssemblyResolver = ar,
                 ReflectionImporterProvider = new ReflectionProvider(),
                 ReadingMode = ReadingMode.Immediate
-            };
-            var pd = assembly.InMemoryAssembly.PeData;
-            using var ms = new MemoryStream(pd);
-            using var ad = AssemblyDefinition.ReadAssembly(ms, rp);
+            });
             ar.SetAssemblyDefinitionForCompiledAssembly(ad);
             var process = new Process(log);
             if (!process.Execute(ad, ar, out var change) || !change)
