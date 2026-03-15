@@ -241,7 +241,7 @@ namespace Astraia
                 var value = ComputeMD5(file.FullName);
                 if (items.TryGetValue(file.Name, out var item) && item == value)
                 {
-                    verify.bundles.Add(new Bundle(value, file.Name, (int)file.Length));
+                    verify.bundles.Add(new Bundle(value, file.Name, (ulong)file.Length));
                     Debug.Log("跳过未变更文件: {0}".Format(file.Name));
                     continue;
                 }
@@ -254,7 +254,7 @@ namespace Astraia
                 });
 
                 value = ComputeMD5(file.FullName);
-                verify.bundles.Add(new Bundle(value, file.Name, (int)file.Length));
+                verify.bundles.Add(new Bundle(value, file.Name, (ulong)file.Length));
                 Debug.Log("加密并更新文件: {0}".Color("G").Format(file.Name));
             }
 

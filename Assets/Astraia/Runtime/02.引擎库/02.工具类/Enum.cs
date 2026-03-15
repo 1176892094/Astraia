@@ -33,7 +33,6 @@ namespace Astraia
     {
         Resource,
         Simulate,
-        Actuator
     }
 
     internal enum InputMask : byte

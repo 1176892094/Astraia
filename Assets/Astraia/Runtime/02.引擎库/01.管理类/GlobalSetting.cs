@@ -54,11 +54,7 @@ namespace Astraia
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowIf("AssetMode", AssetMode.Simulate)]
 #endif
-        public string LocalPath = "http://192.168.0.1:8000/AssetBundles";
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowIf("AssetMode", AssetMode.Actuator)]
-#endif
-        public string RemotePath = "http://192.168.0.1:8000";
+        public string RemotePath = "https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main";
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [EnumToggleButtons]
 #endif
@@ -69,10 +65,9 @@ namespace Astraia
         public string[] EncryptGroup;
 
         public static string EditorPath => Target.Format(Path.GetDirectoryName(Application.dataPath));
-        public static string OptionPath => Instance.AssetMode == AssetMode.Actuator ? Instance.RemotePath : Instance.LocalPath;
         public static string BundlePath => Target.Format(Application.persistentDataPath);
         public static string TargetPath => Target.Format(Application.persistentDataPath) + "/{0}";
-        public static string ServerPath => Path.Combine(Target.Format(OptionPath), Instance.BuildTarget + "/{0}");
+        public static string ServerPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget + "/{0}");
         public static string ClientPath => Path.Combine(Application.streamingAssetsPath, Instance.BuildTarget + "/{0}");
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

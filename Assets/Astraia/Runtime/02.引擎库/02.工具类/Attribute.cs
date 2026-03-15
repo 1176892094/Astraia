@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using UnityEngine;
 
 namespace Astraia
 {
@@ -47,8 +46,8 @@ namespace Astraia
     [AttributeUsage(AttributeTargets.Class)]
     public class UIRectAttribute : Attribute
     {
-        public readonly int column;
         public readonly int row;
+        public readonly int column;
         public readonly float width;
         public readonly float height;
         public readonly bool vertical;
@@ -60,8 +59,8 @@ namespace Astraia
             this.height = height;
             this.vertical = vertical;
             this.selected = selected;
-            this.column = x + (vertical ? 0 : 1);
-            this.row = y + (vertical ? 1 : 0);
+            row = y + (vertical ? 1 : 0);
+            column = x + (vertical ? 0 : 1);
         }
     }
 }

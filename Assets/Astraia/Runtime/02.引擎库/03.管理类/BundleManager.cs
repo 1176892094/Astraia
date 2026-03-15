@@ -44,6 +44,7 @@ namespace Astraia.Core
             var clientResult = await LoadClientRequest(persistentData, streamingAsset);
             var clientVerify = LoadVerifyRequest(clientResult, out var clientData);
             var serverResult = await LoadServerRequest(processingData, GlobalSetting.Verify);
+
             var serverVerify = LoadVerifyRequest(serverResult, out var serverData);
             var isRemote = !string.IsNullOrEmpty(serverResult);
             if (isRemote)
@@ -92,16 +93,16 @@ namespace Astraia.Core
                 }
             }
 
-            var amount = 0L;
+            var bytes = 0UL;
             foreach (var name in names)
             {
                 if (serverData.TryGetValue(name, out var value))
                 {
-                    amount += value.size;
+                    bytes += value.size;
                 }
             }
 
-            EventManager.Invoke(new OnLoadBundle(names.Count, amount));
+            EventManager.Invoke(new OnLoadBundle(bytes));
             foreach (var deleteData in clientData.Keys)
             {
                 var targetPath = GlobalSetting.TargetPath.Format(deleteData);
@@ -140,23 +141,29 @@ namespace Astraia.Core
         private static async Task<bool> LoadBundleRequest(HashSet<string> names, bool isRemote)
         {
             var copies = new HashSet<string>(names);
-            for (var i = 0; i < 5; i++)
+            foreach (var name in names)
             {
-                foreach (var name in names)
+                var originPath = isRemote ? GlobalSetting.ServerPath.Format(name) : GlobalSetting.ClientPath.Format(name);
+                var targetPath = GlobalSetting.TargetPath.Format(name);
+
+                var success = false;
+                for (var i = 0; i < 5; i++)
                 {
-                    var originPath = isRemote ? GlobalSetting.ServerPath.Format(name) : GlobalSetting.ClientPath.Format(name);
-                    var webRequest = await LoadBundleRequest(originPath, name, isRemote);
-                    var targetPath = GlobalSetting.TargetPath.Format(name);
-                    await Task.Run(() => File.WriteAllBytes(targetPath, webRequest));
-                    if (copies.Contains(name))
+                    var data = await LoadBundleRequest(originPath, name, isRemote);
+                    if (data == null || data.Length == 0)
                     {
-                        copies.Remove(name);
+                        await Task.Delay(500);
+                        continue;
                     }
+
+                    await File.WriteAllBytesAsync(targetPath, data);
+                    success = true;
+                    break;
                 }
 
-                if (copies.Count == 0)
+                if (success)
                 {
-                    break;
+                    copies.Remove(name);
                 }
             }
 
@@ -169,7 +176,7 @@ namespace Astraia.Core
             {
                 using (var request = UnityWebRequest.Head(uri))
                 {
-                    request.timeout = 1;
+                    request.timeout = 5;
                     await request.SendWebRequest();
                     if (request.result != UnityWebRequest.Result.Success)
                     {
@@ -215,7 +222,7 @@ namespace Astraia.Core
 
             using (var request = UnityWebRequest.Head(uri))
             {
-                request.timeout = 1;
+                request.timeout = 5;
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
@@ -229,11 +236,11 @@ namespace Astraia.Core
                 var result = request.SendWebRequest();
                 while (!result.isDone && Instance)
                 {
-                    EventManager.Invoke(new OnBundleUpdate(name, request.downloadProgress));
+                    EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
                     await Task.Yield();
                 }
 
-                EventManager.Invoke(new OnBundleUpdate(name, 1));
+                EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
                 if (request.result != UnityWebRequest.Result.Success)
                 {
                     Service.Log.Warn("请求服务器下载 {0} 失败!\n".Format(name));
@@ -311,9 +318,9 @@ namespace Astraia.Core
     {
         public string code;
         public string name;
-        public int size;
+        public ulong size;
 
-        public Bundle(string code, string name, int size)
+        public Bundle(string code, string name, ulong size)
         {
             this.code = code;
             this.name = name;

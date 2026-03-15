@@ -19,9 +19,9 @@ namespace System.Runtime.CompilerServices
 
 namespace Astraia.Core
 {
-    public record OnLoadBundle(int count, long amount) : IEvent;
+    public record OnLoadBundle(ulong bytes) : IEvent;
 
-    public record OnBundleUpdate(string name, float progress) : IEvent;
+    public record OnBundleUpdate(string name, ulong bytes) : IEvent;
 
     public record OnBundleComplete(int status, string message) : IEvent;
 
