@@ -105,10 +105,7 @@ namespace Astraia.Core
 
         public Vector2Int Position(Vector2 position)
         {
-            return new Vector2Int(
-                Mathf.FloorToInt(position.x / scaleX),
-                Mathf.FloorToInt(position.y / scaleY)
-            );
+            return new Vector2Int(Mathf.FloorToInt(position.x / scaleX), Mathf.FloorToInt(position.y / scaleY));
         }
 
         public void Clear()
