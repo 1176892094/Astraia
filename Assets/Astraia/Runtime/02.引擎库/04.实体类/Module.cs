@@ -64,6 +64,13 @@ namespace Astraia.Core
         }
     }
 
+    public interface ISystem
+    {
+        void AddSystem() => GlobalManager.OnUpdate += Update;
+        void SubSystem() => GlobalManager.OnUpdate -= Update;
+        void Update();
+    }
+
     public interface IModule
     {
         void Acquire(Entity owner);

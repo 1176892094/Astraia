@@ -32,8 +32,6 @@ namespace Astraia
             }
         }
 
-        int ISystem.index => 10;
-
         public virtual void Update()
         {
         }

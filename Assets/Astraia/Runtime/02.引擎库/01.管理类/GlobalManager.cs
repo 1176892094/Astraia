@@ -32,10 +32,9 @@ namespace Astraia.Core
         internal static int audioVolume;
 
         internal static AssetBundleManifest manifest;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly Dictionary<int, List<ISystem>> systemLoop = new Dictionary<int, List<ISystem>>();
+
+        internal static event Action OnUpdate;
+
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -90,13 +89,19 @@ namespace Astraia.Core
 
         private void Update()
         {
-            SystemManager.Update();
+            OnUpdate?.Invoke();
+        }
+
+        private void LateUpdate()
+        {
+            SoundManager.Update();
         }
 
         private async void OnDestroy()
         {
             manifest = null;
             Instance = null;
+            OnUpdate = null;
             await Task.Yield();
             UIManager.Dispose();
             PoolManager.Dispose();
@@ -104,7 +109,6 @@ namespace Astraia.Core
             AssetManager.Dispose();
             EventManager.Dispose();
             SoundManager.Dispose();
-            SystemManager.Dispose();
             GC.Collect();
         }
     }

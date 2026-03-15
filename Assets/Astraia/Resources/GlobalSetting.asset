@@ -71,7 +71,7 @@ MonoBehaviour:
   m_Name: GlobalSetting
   m_EditorClassIdentifier: 
   BuildTarget: 9
-  AssetMode: 0
+  AssetMode: 1
   EncryptKey: 1
   RemotePath: https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main
   InputMask: 0
