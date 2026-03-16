@@ -33,6 +33,16 @@ namespace Astraia.Core
             return GetDict<T>().TryGetValue(key, out value);
         }
 
+        public ICollection<TKey> GetKeys<T>()
+        {
+            return GetDict<T>().Keys;
+        }
+
+        public ICollection<T> GetValues<T>()
+        {
+            return GetDict<T>().Values;
+        }
+
         public void Clear<T>()
         {
             GetDict<T>().Clear();
