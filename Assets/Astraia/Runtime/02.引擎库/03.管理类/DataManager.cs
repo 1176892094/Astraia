@@ -16,95 +16,81 @@ using UnityEngine;
 
 namespace Astraia.Core
 {
+    using static GlobalManager;
+
     public static class DataManager
     {
-        public static bool isLoaded;
-
         public static void LoadDataTable()
         {
             var assembly = Service.Ref.GetAssembly(GlobalSetting.Define);
-            if (assembly == null)
+            if (assembly != null)
             {
-                EventManager.Invoke(new OnDataComplete());
-                return;
-            }
-
-            var assetNames = new List<string>();
-            foreach (var assetType in assembly.GetTypes())
-            {
-                if (typeof(IDataTable).IsAssignableFrom(assetType))
+                foreach (var assetName in assembly.GetTypes().Where(type => typeof(IDataTable).IsAssignableFrom(type)).Select(type => type.Name))
                 {
-                    assetNames.Add(assetType.FullName);
-                }
-            }
-
-            if (assetNames.Count == 0)
-            {
-                EventManager.Invoke(new OnDataComplete());
-                return;
-            }
-
-            foreach (var assetName in assetNames)
-            {
-                var nickName = assetName.Substring(assetName.LastIndexOf('.') + 1);
-                try
-                {
-                    var assetData = (IDataTable)AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(nickName));
-                    var assetType = assembly.GetType(assetName.Substring(0, assetName.Length - 5));
-                    var properties = assetType.GetProperties(Service.Ref.Instance);
+                    var dataTable = (IDataTable)AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(assetName));
+                    var properties = dataTable.Type.GetProperties(Service.Ref.Instance);
                     foreach (var property in properties)
                     {
                         if (Service.Ref<PrimaryAttribute>.GetAttribute(property) != null)
                         {
-                            if (property.PropertyType == typeof(int))
-                            {
-                                assetData.AddData<int>(property.Name);
-                            }
-                            else if (property.PropertyType.IsEnum)
-                            {
-                                assetData.AddData<Enum>(property.Name);
-                            }
-                            else if (property.PropertyType == typeof(string))
-                            {
-                                assetData.AddData<string>(property.Name);
-                            }
+                            dataTable.AddData(property.Name, property.PropertyType);
                         }
                     }
                 }
-                catch (Exception e)
-                {
-                    Service.Log.Error("加载 {0} 数据失败!\n{1}".Format(nickName, e));
-                }
             }
 
-            isLoaded = true;
             EventManager.Invoke(new OnDataComplete());
         }
 
         public static T Get<T>(int key) where T : IData
         {
-            return DataTable<T>.By<int>.Get(key);
+            if (dataTable1.TryGetValue(typeof(T), out var data))
+            {
+                if (data.TryGetValue(key, out var result))
+                {
+                    return (T)result;
+                }
+            }
+
+            return default;
         }
 
         public static T Get<T>(Enum key) where T : IData
         {
-            return DataTable<T>.By<Enum>.Get(key);
+            if (dataTable2.TryGetValue(typeof(T), out var data))
+            {
+                if (data.TryGetValue(key, out var result))
+                {
+                    return (T)result;
+                }
+            }
+
+            return default;
         }
 
         public static T Get<T>(string key) where T : IData
         {
-            return DataTable<T>.By<string>.Get(key);
-        }
-
-        public static IList<T> GetTable<T>() where T : IData
-        {
-            if (DataTable<T>.Instance)
+            if (dataTable3.TryGetValue(typeof(T), out var data))
             {
-                return DataTable<T>.Instance.items;
+                if (data.TryGetValue(key, out var result))
+                {
+                    return (T)result;
+                }
             }
 
-            Service.Log.Warn("获取 {0} 失败!".Format(typeof(T).Name));
-            return null;
+            return default;
+        }
+
+        public static List<T> GetTable<T>() where T : IData
+        {
+            return (DataTable<T>)dataTable[typeof(T)];
+        }
+
+        public static void Dispose()
+        {
+            dataTable1.Clear();
+            dataTable2.Clear();
+            dataTable3.Clear();
         }
     }
 
@@ -270,66 +256,72 @@ namespace Astraia.Core
     [Serializable]
     public abstract class DataTable<TData> : ScriptableObject, IDataTable where TData : IData
     {
-        [SerializeField] internal List<TData> items = new List<TData>();
+        [SerializeField] private List<TData> items = new List<TData>();
 
-        internal static DataTable<TData> Instance;
+        Type IDataTable.Type => typeof(TData);
 
-        void IDataTable.AddData(IData data)
+        void IDataTable.AddData(IData data) => items.Add((TData)data);
+
+        void IDataTable.AddData(string name, Type type)
         {
-            items.Add((TData)data);
-        }
-
-        void IDataTable.AddData<TKey>(string name)
-        {
-            Instance = this;
-            By<TKey>.Add(items, name);
-        }
-
-        internal static class By<TKey>
-        {
-            private static readonly Dictionary<TKey, TData> itemData = new Dictionary<TKey, TData>();
-
-            public static void Add(List<TData> items, string name)
+            if (type == typeof(int))
             {
-                if (DataManager.isLoaded)
+                if (!dataTable1.ContainsKey(typeof(TData)))
                 {
-                    return;
+                    dataTable1[typeof(TData)] = GetData<int>(name);
                 }
-
-                itemData.Clear();
-                foreach (var item in items)
+            }
+            else if (type.IsEnum)
+            {
+                if (!dataTable2.ContainsKey(typeof(TData)))
                 {
-                    var index = item.GetValue<TKey>(name);
-                    if (itemData.TryGetValue(index, out var value))
-                    {
-                        Service.Log.Warn("加载数据 {0} 失败。键值重复: {1}".Format(value, index));
-                        continue;
-                    }
-
-                    itemData.Add(index, item);
+                    dataTable2[typeof(TData)] = GetData<Enum>(name);
+                }
+            }
+            else if (type == typeof(string))
+            {
+                if (!dataTable3.ContainsKey(typeof(TData)))
+                {
+                    dataTable3[typeof(TData)] = GetData<string>(name);
                 }
             }
 
-            public static TData Get(TKey key)
+            dataTable[typeof(TData)] = this;
+        }
+
+        private Dictionary<TKey, IData> GetData<TKey>(string name)
+        {
+            var result = new Dictionary<TKey, IData>();
+            foreach (var item in items)
             {
-                if (itemData.TryGetValue(key, out var item))
+                var index = item.GetValue<TKey>(name);
+                if (result.ContainsKey(index))
                 {
-                    return item;
+                    Service.Log.Warn("加载数据 {0} 失败。键值重复: {1}".Format(item, index));
                 }
 
-                return default;
+                result[index] = item;
             }
-        }
-    }
 
-    public interface IData
-    {
+            return result;
+        }
+
+        public static implicit operator List<TData>(DataTable<TData> dataTable)
+        {
+            return dataTable.items;
+        }
     }
 
     internal interface IDataTable
     {
+        Type Type { get; }
+
         void AddData(IData data);
 
-        void AddData<T>(string name);
+        void AddData(string name, Type type);
+    }
+
+    public interface IData
+    {
     }
 }

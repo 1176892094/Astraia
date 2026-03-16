@@ -58,6 +58,22 @@ namespace Astraia.Core
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
+        internal static readonly Dictionary<Type, IDataTable> dataTable = new Dictionary<Type, IDataTable>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly Dictionary<Type, Dictionary<int, IData>> dataTable1 = new Dictionary<Type, Dictionary<int, IData>>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly Dictionary<Type, Dictionary<Enum, IData>> dataTable2 = new Dictionary<Type, Dictionary<Enum, IData>>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
+        internal static readonly Dictionary<Type, Dictionary<string, IData>> dataTable3 = new Dictionary<Type, Dictionary<string, IData>>();
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        [Sirenix.OdinInspector.ShowInInspector]
+#endif
         internal static readonly Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]

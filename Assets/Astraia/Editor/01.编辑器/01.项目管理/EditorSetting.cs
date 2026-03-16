@@ -60,6 +60,7 @@ namespace Astraia
                 "Astraia.Run",
                 "Astraia.Net"
             });
+            DataManager.LoadDataTable();
         }
 
         public static void LoadWindows(Type result)
@@ -119,13 +120,6 @@ namespace Astraia
                     AssetDatabase.Refresh();
                     EditorUtility.ClearProgressBar();
                 }
-            }
-
-            if (!Application.isPlaying)
-            {
-                DataManager.isLoaded = false;
-                EditorApplication.delayCall -= DataManager.LoadDataTable;
-                EditorApplication.delayCall += DataManager.LoadDataTable;
             }
         }
 

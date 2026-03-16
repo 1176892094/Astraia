@@ -69,7 +69,7 @@ namespace Astraia
             finally
             {
                 Loaded = false;
-                DataManager.isLoaded = false;
+                DataManager.Dispose();
                 DataManager.LoadDataTable();
             }
         }
