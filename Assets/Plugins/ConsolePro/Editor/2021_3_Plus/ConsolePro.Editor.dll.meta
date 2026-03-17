@@ -1,0 +1,34 @@
+fileFormatVersion: 2
+guid: 66b61690e3884ba8befc39e01b78c6a0
+AssetOrigin:
+  serializedVersion: 1
+  productId: 11889
+  packageName: Editor Console Pro
+  packageVersion: 3.980
+  assetPath: Assets/ConsolePro/Editor/2021_3_Plus/ConsolePro.Editor.dll
+  uploadId: 846946
+PluginImporter:
+  externalObjects: {}
+  serializedVersion: 3
+  iconMap: {}
+  executionOrder: {}
+  defineConstraints: []
+  isPreloaded: 0
+  isOverridable: 0
+  isExplicitlyReferenced: 0
+  validateReferences: 1
+  platformData:
+    Any:
+      enabled: 0
+      settings: {}
+    Editor:
+      enabled: 0
+      settings:
+        DefaultValueInitialized: true
+    WindowsStoreApps:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
