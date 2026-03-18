@@ -33,36 +33,33 @@ namespace Astraia.Core
         protected float width;
         protected float height;
         protected Action OnMove;
-       
+
         [Inject] public RectTransform content;
 
         void IModule.Acquire(object owner)
         {
             this.owner = (Entity)owner;
-            var panel = Service.Ref<UIMaskAttribute>.GetAttribute(GetType());
-            if (panel != null)
+            if (GetType().GetAttribute(out UIMaskAttribute mask))
             {
-                layer = panel.layer;
-                group = panel.group;
+                layer = mask.layer;
+                group = mask.group;
             }
 
-            var value = Service.Ref<UIRectAttribute>.GetAttribute(GetType());
-            if (value != null)
+            if (GetType().GetAttribute(out UIRectAttribute rect))
             {
-                row = value.row;
-                width = value.width;
-                column = value.column;
-                height = value.height;
-                vertical = value.vertical;
-                selected = value.selected;
+                row = rect.row;
+                width = rect.width;
+                column = rect.column;
+                height = rect.height;
+                vertical = rect.vertical;
+                selected = rect.selected;
             }
 
             assetName = GlobalSetting.Prefab.Format(typeof(TGrid).Name);
             assetPath = assetName;
-            var asset = Service.Ref<UIPathAttribute>.GetAttribute(typeof(TGrid));
-            if (asset != null)
+            if (typeof(TGrid).GetAttribute(out UIPathAttribute path))
             {
-                assetPath = GlobalSetting.Prefab.Format(asset.asset);
+                assetPath = GlobalSetting.Prefab.Format(path.asset);
             }
 
             this.owner.Logic.OnHide += Unload;

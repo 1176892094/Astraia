@@ -31,7 +31,7 @@ namespace Astraia.Core
                     var properties = dataTable.Type.GetProperties(Service.Ref.Instance);
                     foreach (var property in properties)
                     {
-                        if (Service.Ref<PrimaryAttribute>.GetAttribute(property) != null)
+                        if (property.HasAttribute<PrimaryAttribute>())
                         {
                             dataTable.AddData(property.Name, property.PropertyType);
                         }

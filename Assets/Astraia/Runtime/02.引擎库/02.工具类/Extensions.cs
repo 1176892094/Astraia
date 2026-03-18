@@ -85,7 +85,7 @@ namespace Astraia
             var fields = target.GetType().GetFields(Service.Ref.Instance);
             foreach (var field in fields)
             {
-                if (Service.Ref<InjectAttribute>.GetAttribute(field) == null)
+                if (!field.HasAttribute<InjectAttribute>())
                 {
                     continue;
                 }

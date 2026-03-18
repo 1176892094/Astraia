@@ -9,6 +9,8 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Astraia
@@ -43,6 +45,18 @@ namespace Astraia
         public static bool IsNullOrWhiteSpace(this string result)
         {
             return string.IsNullOrWhiteSpace(result);
+        }
+
+        public static bool GetAttribute<T>(this MemberInfo member, out T attribute) where T : Attribute
+        {
+            attribute = member.GetCustomAttribute<T>(true);
+            return attribute != null;
+        }
+
+        public static bool HasAttribute<T>(this MemberInfo member) where T : Attribute
+        {
+            var attribute = member.GetCustomAttribute<T>(true);
+            return attribute != null;
         }
 
         public static string Mask(this string result, char mask = '*')

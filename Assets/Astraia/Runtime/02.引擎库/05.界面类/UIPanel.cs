@@ -24,11 +24,10 @@ namespace Astraia
         void IModule.Acquire(object owner)
         {
             this.owner = (Entity)owner;
-            var panel = Service.Ref<UIMaskAttribute>.GetAttribute(GetType());
-            if (panel != null)
+            if (GetType().GetAttribute(out UIMaskAttribute mask))
             {
-                layer = panel.layer;
-                group = panel.group;
+                layer = mask.layer;
+                group = mask.group;
             }
         }
 
