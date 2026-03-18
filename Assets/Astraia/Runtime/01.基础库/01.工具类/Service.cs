@@ -143,14 +143,13 @@ namespace Astraia
 
         public static class Xor
         {
-            private static readonly Dictionary<byte, byte[]> KeyMap = new Dictionary<byte, byte[]>();
-            private const int LENGTH = 16;
+            private static readonly Dictionary<int, byte[]> KeyMap = new Dictionary<int, byte[]>();
+            private const string NORMAL = "A1B2C3D4E5F6G7H8";
+            private const ushort LENGTH = 0x0010;
 
-            static Xor() => LoadData(0, "A1B2C3D4E5F6G7H8");
-
-            public static void LoadData(byte version, string data)
+            public static void LoadData(int version, string value)
             {
-                var item = Text.GetBytes(data);
+                var item = Text.GetBytes(value);
                 if (item.Length != LENGTH)
                 {
                     Array.Resize(ref item, LENGTH);
@@ -159,19 +158,23 @@ namespace Astraia
                 KeyMap[version] = item;
             }
 
-            public static unsafe byte[] Encrypt(byte[] data, byte version = 0)
+            public static unsafe byte[] Encrypt(byte[] data, int version = 0)
             {
                 var iv = new byte[LENGTH];
                 Seed.NextBytes(iv);
-                iv[0] = version;
 
-                var key = KeyMap[iv[0]];
-                var buffer = new byte[LENGTH + data.Length];
-                Buffer.BlockCopy(iv, 0, buffer, 0, LENGTH);
+                if (!KeyMap.TryGetValue(version, out var key) || key.Length == 0)
+                {
+                    key = Text.GetBytes(NORMAL);
+                }
+
+                var buffer = new byte[data.Length + LENGTH + 1];
+                Buffer.BlockCopy(iv, 0, buffer, 1, LENGTH);
+                buffer[0] = (byte)version;
 
                 fixed (byte* pData = data, pBuffer = buffer, pKey = key, pIv = iv)
                 {
-                    var pOutput = pBuffer + LENGTH;
+                    var pOutput = pBuffer + 1 + LENGTH;
                     for (var i = 0; i < data.Length; i++)
                     {
                         pOutput[i] = (byte)(pData[i] ^ pKey[i % key.Length] ^ pIv[i % LENGTH]);
@@ -185,13 +188,18 @@ namespace Astraia
             {
                 var iv = new byte[LENGTH];
 
-                Buffer.BlockCopy(data, 0, iv, 0, LENGTH);
-                var buffer = new byte[data.Length - LENGTH];
-                var key = KeyMap[iv[0]];
+                var version = data[0];
+                Buffer.BlockCopy(data, 1, iv, 0, LENGTH);
+                var buffer = new byte[data.Length - LENGTH - 1];
+
+                if (!KeyMap.TryGetValue(version, out var key) || key.Length == 0)
+                {
+                    key = Text.GetBytes(NORMAL);
+                }
 
                 fixed (byte* pData = data, pBuffer = buffer, pKey = key, pIv = iv)
                 {
-                    var pInput = pData + LENGTH;
+                    var pInput = pData + 1 + LENGTH;
                     for (var i = 0; i < buffer.Length; i++)
                     {
                         pBuffer[i] = (byte)(pInput[i] ^ pKey[i % key.Length] ^ pIv[i % LENGTH]);
@@ -221,16 +229,6 @@ namespace Astraia
             public static int Next(int min, int max)
             {
                 return random.Next(min, max);
-            }
-
-            public static int Next(Enum max)
-            {
-                return random.Next(Convert.ToInt32(max));
-            }
-
-            public static int Next(Enum min, Enum max)
-            {
-                return random.Next(Convert.ToInt32(min), Convert.ToInt32(max));
             }
 
             public static float Next(float max)
@@ -319,16 +317,14 @@ namespace Astraia
                     return IPAddress.Loopback.ToString();
                 }
             }
-        }
 
-        public static class Http
-        {
             public static void Start(int port, Func<HttpListenerRequest, HttpListenerResponse, Task> request)
             {
                 var reason = new HttpListener();
                 reason.Prefixes.Add("http://*:{0}/".Format(port));
                 reason.Start();
                 Task.Run(HttpThread);
+                return;
 
                 async Task HttpThread()
                 {
@@ -338,6 +334,7 @@ namespace Astraia
                         {
                             var context = await reason.GetContextAsync(); // 异步等待请求
                             _ = Task.Run(HttpRequest); // 每个请求单独处理
+                            return;
 
                             async Task HttpRequest()
                             {
