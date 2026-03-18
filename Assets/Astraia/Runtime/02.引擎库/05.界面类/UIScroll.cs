@@ -36,9 +36,9 @@ namespace Astraia.Core
        
         [Inject] public RectTransform content;
 
-        void IModule.Acquire(Entity owner)
+        void IModule.Acquire(object owner)
         {
-            this.owner = owner;
+            this.owner = (Entity)owner;
             var panel = Service.Ref<UIMaskAttribute>.GetAttribute(GetType());
             if (panel != null)
             {
@@ -65,7 +65,7 @@ namespace Astraia.Core
                 assetPath = GlobalSetting.Prefab.Format(asset.asset);
             }
 
-            owner.Logic.OnHide += Unload;
+            this.owner.Logic.OnHide += Unload;
             content.pivot = Vector2.up;
             content.anchorMin = Vector2.up;
             content.anchorMax = Vector2.one;

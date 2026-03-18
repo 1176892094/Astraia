@@ -21,9 +21,9 @@ namespace Astraia
         internal int group;
         internal int layer;
 
-        void IModule.Acquire(Entity owner)
+        void IModule.Acquire(object owner)
         {
-            this.owner = owner;
+            this.owner = (Entity)owner;
             var panel = Service.Ref<UIMaskAttribute>.GetAttribute(GetType());
             if (panel != null)
             {

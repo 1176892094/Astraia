@@ -31,12 +31,12 @@ namespace Astraia
 
         protected virtual void OnEnable()
         {
-            Logic.OnShow?.Invoke();
+            Logic.Show();
         }
 
         protected virtual void OnDisable()
         {
-            Logic.OnHide?.Invoke();
+            Logic.Hide();
         }
 
         protected virtual void OnDestroy()
@@ -47,7 +47,7 @@ namespace Astraia
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        private static List<string> Windows = GlobalSetting.windows;
+        private static readonly List<string> Windows = GlobalSetting.windows;
 
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<IModule> windows
@@ -66,23 +66,32 @@ namespace Astraia
     {
         private readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
         private object owner;
-        public Action OnShow;
-        public Action OnHide;
-        public Action OnFade;
+        public event Action OnShow;
+        public event Action OnHide;
+        public event Action OnFade;
         public ICollection<IModule> Modules => moduleData.Values;
 
         public Logic(object owner, List<string> moduleList)
         {
-            Debug.Log(owner);
             this.owner = owner;
             foreach (var module in moduleList)
             {
                 var result = Service.Ref.GetType(module);
                 if (result != null)
                 {
-                    LoadComponent(result, result);
+                    GetComponent(result, result);
                 }
             }
+        }
+
+        public void Show()
+        {
+            OnShow?.Invoke();
+        }
+
+        public void Hide()
+        {
+            OnHide?.Invoke();
         }
 
         public void Clear()
@@ -91,71 +100,67 @@ namespace Astraia
             OnFade = null;
             OnShow = null;
             OnHide = null;
+            owner = null;
             moduleData.Clear();
         }
 
         public T AddComponent<T>() where T : IModule
         {
-            return (T)LoadComponent(typeof(T), typeof(T));
+            return (T)GetComponent(typeof(T), typeof(T));
         }
 
-        public T AddComponent<T, V>() where T : IModule where V : IModule
+        public T AddComponent<T>(Type result) where T : IModule
         {
-            return (T)LoadComponent(typeof(T), typeof(V));
+            return (T)GetComponent(typeof(T), result);
         }
 
-        public T FindComponent<T>() where T : IModule
+        public T GetComponent<T>() where T : IModule
         {
-            return moduleData.TryGetValue(typeof(T), out var module) ? (T)module : default;
+            return (T)moduleData.GetValueOrDefault(typeof(T));
         }
 
-        internal IModule LoadComponent(Type keyType, Type realType)
+        internal IModule GetComponent(Type source, Type result)
         {
-            if (!moduleData.TryGetValue(keyType, out var module))
+            if (!moduleData.TryGetValue(source, out var module))
             {
-                module = HeapManager.Dequeue<IModule>(realType);
-                AddModule(module);
+                module = HeapManager.Dequeue<IModule>(result);
+                moduleData.Add(source, module);
+                var entity = (Entity)owner;
+                entity.Inject(module);
+                module.Acquire(entity);
+                module.Dequeue();
                 OnFade += () =>
                 {
                     module.Enqueue();
-                    moduleData.Remove(keyType);
-                    HeapManager.Enqueue(module, realType);
+                    moduleData.Remove(source);
+                    HeapManager.Enqueue(module, result);
                 };
-                moduleData.Add(keyType, module);
-            }
 
-            return module;
-        }
-
-        private void AddModule(IModule module)
-        {
-            var entity = (Entity)owner;
-            entity.Inject(module);
-            module.Acquire(entity);
-            module.Dequeue();
-
-            var events = module.GetType().GetInterfaces();
-            foreach (var @event in events)
-            {
-                if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
+                var events = module.GetType().GetInterfaces();
+                foreach (var @event in events)
                 {
-                    var result = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
-                    OnShow += (Action)Delegate.CreateDelegate(typeof(Action), module, result.GetMethod("Listen", Service.Ref.Instance)!);
-                    OnHide += (Action)Delegate.CreateDelegate(typeof(Action), module, result.GetMethod("Remove", Service.Ref.Instance)!);
+                    if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
+                    {
+                        var reason = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
+                        OnShow += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Listen", Service.Ref.Instance)!);
+                        OnHide += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Remove", Service.Ref.Instance)!);
+                    }
+                }
+
+                if (module is ISystem system)
+                {
+                    OnShow += system.AddSystem;
+                    OnHide += system.SubSystem;
+                }
+
+                if (module is IActive active)
+                {
+                    OnShow += active.OnShow;
+                    OnHide += active.OnHide;
                 }
             }
 
-            if (module is ISystem system)
-            {
-                OnShow += system.AddSystem;
-                OnHide += system.SubSystem;
-            }
-
-            if (module is IActive active)
-            {
-                OnShow += active.OnShow;
-                OnHide += active.OnHide;
-            }
+            return module;
         }
     }
 }

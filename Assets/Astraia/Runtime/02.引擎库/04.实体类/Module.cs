@@ -21,7 +21,7 @@ namespace Astraia.Core
         public Transform transform => owner?.transform;
         public GameObject gameObject => owner?.gameObject;
 
-        void IModule.Acquire(Entity owner)
+        void IModule.Acquire(object owner)
         {
             this.owner = (T)owner;
         }
@@ -49,7 +49,7 @@ namespace Astraia.Core
     {
         public static T Instance { get; private set; }
 
-        void IModule.Acquire(Entity owner)
+        void IModule.Acquire(object owner)
         {
             Instance = (T)this;
             this.owner = (TOwner)owner;
@@ -73,7 +73,7 @@ namespace Astraia.Core
 
     public interface IModule
     {
-        void Acquire(Entity owner);
+        void Acquire(object owner);
 
         void Dequeue();
 

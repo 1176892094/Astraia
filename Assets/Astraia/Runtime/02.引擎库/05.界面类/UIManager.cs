@@ -72,7 +72,7 @@ namespace Astraia.Core
             }
 
             var owner = Load(path, type.Name);
-            var panel = (UIPanel)owner.Logic.LoadComponent(type, type);
+            var panel = (UIPanel)owner.Logic.GetComponent(type, type);
             SetLayer(panel.transform, panel.layer);
             panelData.Add(type, panel);
             return panel;
