@@ -11,7 +11,7 @@
 
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using Astraia.Core;
 
 namespace Astraia
 {
@@ -23,13 +23,23 @@ namespace Astraia
     public abstract class CompositeNode : INode
     {
         protected IList<INode> nodes;
+        public void Create(params INode[] nodes) => this.nodes = nodes;
         public abstract Node OnTick();
     }
 
     public abstract class DecoratorNode : INode
     {
         protected INode node;
+        public void Create(INode node) => this.node = node;
         public abstract Node OnTick();
+    }
+
+    [Serializable]
+    public sealed class Interval : INode
+    {
+        private float interval;
+        public void Create(float duration) => interval = TimeManager.Time + duration;
+        public Node OnTick() => interval < TimeManager.Time ? Node.Success : Node.Running;
     }
 
     [Serializable]
@@ -59,11 +69,6 @@ namespace Astraia
             index = 0;
             return Node.Success;
         }
-
-        public static Sequence Create(params INode[] nodes)
-        {
-            return new Sequence { nodes = nodes };
-        }
     }
 
     [Serializable]
@@ -92,11 +97,6 @@ namespace Astraia
 
             index = 0;
             return Node.Failure;
-        }
-
-        public static Selector Create(params INode[] nodes)
-        {
-            return new Selector { nodes = nodes };
         }
     }
 
@@ -156,11 +156,6 @@ namespace Astraia
             return isAny ? Node.Success : Node.Running;
         }
 
-        public static Parallel Create(params INode[] nodes)
-        {
-            return new Parallel { nodes = nodes };
-        }
-
         public enum Mode
         {
             All,
@@ -189,11 +184,6 @@ namespace Astraia
             index = -1;
             return result;
         }
-
-        public static Actuator Create(params INode[] nodes)
-        {
-            return new Actuator { nodes = nodes };
-        }
     }
 
     [Serializable]
@@ -219,11 +209,6 @@ namespace Astraia
             index = 0;
             return Node.Success;
         }
-
-        public static Repeater Create(params INode[] nodes)
-        {
-            return new Repeater { node = nodes[0] };
-        }
     }
 
     [Serializable]
@@ -244,11 +229,6 @@ namespace Astraia
 
             return Node.Running;
         }
-
-        public static Inverter Create(params INode[] nodes)
-        {
-            return new Inverter { node = nodes[0] };
-        }
     }
 
     [Serializable]
@@ -258,11 +238,6 @@ namespace Astraia
         {
             return node.OnTick() == Node.Running ? Node.Running : Node.Success;
         }
-
-        public static Success Create(params INode[] nodes)
-        {
-            return new Success { node = nodes[0] };
-        }
     }
 
     [Serializable]
@@ -271,39 +246,6 @@ namespace Astraia
         public override Node OnTick()
         {
             return node.OnTick() == Node.Running ? Node.Running : Node.Failure;
-        }
-
-        public static Failure Create(params INode[] nodes)
-        {
-            return new Failure { node = nodes[0] };
-        }
-    }
-
-    [Serializable]
-    public sealed class WaitTime : INode
-    {
-        private float duration;
-        private float waitTime = -1;
-
-        public Node OnTick()
-        {
-            if (waitTime < 0)
-            {
-                waitTime = Time.realtimeSinceStartup;
-            }
-
-            if (waitTime + duration > Time.realtimeSinceStartup)
-            {
-                return Node.Running;
-            }
-
-            waitTime = -1;
-            return Node.Success;
-        }
-
-        public static WaitTime Create(float duration)
-        {
-            return new WaitTime { duration = duration };
         }
     }
 }

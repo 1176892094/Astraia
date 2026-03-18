@@ -149,8 +149,8 @@ namespace Astraia
 
                 if (module is ISystem system)
                 {
-                    OnShow += system.AddSystem;
-                    OnHide += system.SubSystem;
+                    OnShow += system.AddEvent;
+                    OnHide += system.SubEvent;
                 }
 
                 if (module is IActive active)

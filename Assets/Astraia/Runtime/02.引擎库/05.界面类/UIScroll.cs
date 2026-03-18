@@ -36,9 +36,9 @@ namespace Astraia.Core
 
         [Inject] public RectTransform content;
 
-        void IModule.Acquire(object owner)
+        void IAcquire.Acquire(object item)
         {
-            this.owner = (Entity)owner;
+            this.owner = (Entity)item;
             if (GetType().GetAttribute(out UIMaskAttribute mask))
             {
                 layer = mask.layer;

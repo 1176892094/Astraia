@@ -90,7 +90,7 @@ namespace Astraia
         internal static Timer Create(Component owner, float duration)
         {
             var item = HeapManager.Dequeue<Timer>();
-            ((ISystem)item).AddSystem();
+            ((ISystem)item).AddEvent();
             item.owner = owner;
             item.progress = 1;
             item.complete = 0;
@@ -105,7 +105,7 @@ namespace Astraia
                 item.complete = 1;
                 item.onNext = null;
                 item.onUpdate = null;
-                ((ISystem)item).SubSystem();
+                ((ISystem)item).SubEvent();
                 HeapManager.Enqueue(item);
             }
         }
@@ -170,7 +170,7 @@ namespace Astraia
         internal static Tween Create(Component owner, float duration)
         {
             var item = HeapManager.Dequeue<Tween>();
-            ((ISystem)item).AddSystem();
+            ((ISystem)item).AddEvent();
             item.owner = owner;
             item.progress = 0;
             item.complete = 0;
@@ -185,7 +185,7 @@ namespace Astraia
                 item.complete = 1;
                 item.onNext = null;
                 item.onUpdate = null;
-                ((ISystem)item).SubSystem();
+                ((ISystem)item).SubEvent();
                 HeapManager.Enqueue(item);
             }
         }
