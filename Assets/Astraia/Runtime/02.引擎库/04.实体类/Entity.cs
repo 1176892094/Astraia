@@ -53,7 +53,7 @@ namespace Astraia
         private IEnumerable<IModule> windows
         {
             get => Logic?.Modules.ToList();
-            set => Service.Log.Error(value);
+            set => Log.Error(value);
         }
 
         [HideInPlayMode, PropertyOrder(1), ValueDropdown("Windows")]

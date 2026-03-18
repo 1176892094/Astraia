@@ -127,7 +127,7 @@ namespace Astraia
                 }
                 else
                 {
-                    Service.Log.Error("Scene '{0}' is not in the Build Settings.", sceneName);
+                    Log.Error("Scene '{0}' is not in the Build Settings.", sceneName);
                 }
             }
             else
@@ -141,7 +141,7 @@ namespace Astraia
                 }
                 else
                 {
-                    Service.Log.Error("Scene at path '{0}' does not exist.", scenePath);
+                    Log.Error("Scene at path '{0}' does not exist.", scenePath);
                 }
             }
         }

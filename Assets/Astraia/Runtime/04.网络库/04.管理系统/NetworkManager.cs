@@ -102,7 +102,7 @@ namespace Astraia.Net
         {
             if (isServer)
             {
-                Service.Log.Warn("服务器已经连接!");
+                Log.Warn("服务器已经连接!");
                 return;
             }
 
@@ -113,7 +113,7 @@ namespace Astraia.Net
         {
             if (!isServer)
             {
-                Service.Log.Warn("服务器已经停止!");
+                Log.Warn("服务器已经停止!");
                 return;
             }
 
@@ -124,7 +124,7 @@ namespace Astraia.Net
         {
             if (isClient)
             {
-                Service.Log.Warn("客户端已经连接!");
+                Log.Warn("客户端已经连接!");
                 return;
             }
 
@@ -135,7 +135,7 @@ namespace Astraia.Net
         {
             if (isClient)
             {
-                Service.Log.Warn("客户端已经连接!");
+                Log.Warn("客户端已经连接!");
                 return;
             }
 
@@ -146,7 +146,7 @@ namespace Astraia.Net
         {
             if (!isClient)
             {
-                Service.Log.Warn("客户端已经停止!");
+                Log.Warn("客户端已经停止!");
                 return;
             }
 
@@ -162,7 +162,7 @@ namespace Astraia.Net
         {
             if (isServer || isClient)
             {
-                Service.Log.Warn("客户端或服务器已经连接!");
+                Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 
@@ -185,7 +185,7 @@ namespace Astraia.Net
 
             if (isLobby)
             {
-                Service.Log.Warn("大厅服务器已经连接!");
+                Log.Warn("大厅服务器已经连接!");
                 return;
             }
 
@@ -201,7 +201,7 @@ namespace Astraia.Net
 
             if (!isLobby)
             {
-                Service.Log.Warn("大厅服务器已经停止!");
+                Log.Warn("大厅服务器已经停止!");
                 return;
             }
 
@@ -212,7 +212,7 @@ namespace Astraia.Net
         {
             if (!isRemote || !Lobby.isActive)
             {
-                Service.Log.Warn("您必须连接到大厅以请求房间列表!");
+                Log.Warn("您必须连接到大厅以请求房间列表!");
                 return;
             }
 
@@ -228,7 +228,7 @@ namespace Astraia.Net
 
             if (!Lobby.isServer)
             {
-                Service.Log.Warn("您必须连接到大厅以更新房间信息!");
+                Log.Warn("您必须连接到大厅以更新房间信息!");
                 return;
             }
 
@@ -239,12 +239,12 @@ namespace Astraia.Net
         {
             if (!isRemote || !Lobby.isActive)
             {
-                Service.Log.Warn("没有连接到大厅!");
+                Log.Warn("没有连接到大厅!");
             }
 
             if (isServer || isClient || Lobby.isServer || Lobby.isClient)
             {
-                Service.Log.Warn("客户端或服务器已经连接!");
+                Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 
@@ -257,12 +257,12 @@ namespace Astraia.Net
         {
             if (!isRemote || !Lobby.isActive)
             {
-                Service.Log.Warn("没有连接到大厅!");
+                Log.Warn("没有连接到大厅!");
             }
 
             if (isServer || isClient || Lobby.isServer || Lobby.isClient)
             {
-                Service.Log.Warn("客户端或服务器已经连接!");
+                Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 

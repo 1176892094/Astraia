@@ -116,7 +116,7 @@ namespace Astraia
             var newData = Common.Decode(segment.Array, segment.Offset + 1);
             if (state == State.Connected && newData != userData)
             {
-                Service.Log.Warn("{0}数据校验失败。旧: {1} 新: {2}", userName, userData, newData);
+                Log.Warn("{0}数据校验失败。旧: {1} 新: {2}", userName, userData, newData);
                 return;
             }
 
@@ -125,7 +125,7 @@ namespace Astraia
             {
                 if (kcp.Input(message.Array, message.Offset, message.Count) != 0)
                 {
-                    Service.Log.Warn("{0}发送可靠消息失败。消息大小: {1}", userName, message.Count - 1);
+                    Log.Warn("{0}发送可靠消息失败。消息大小: {1}", userName, message.Count - 1);
                 }
             }
             else if (channel == Channel.Unreliable)
@@ -162,7 +162,7 @@ namespace Astraia
         {
             if (segment.Count > udpLength)
             {
-                Service.Log.Error("{0}发送不可靠消息失败。消息大小: {1}", userName, segment.Count);
+                Log.Error("{0}发送不可靠消息失败。消息大小: {1}", userName, segment.Count);
                 return;
             }
 

@@ -83,7 +83,7 @@ namespace Astraia
                 Service.Input.LoadData(LoadAsset(AssetData.Input));
             }
 
-            Service.Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
+            Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
         }
 
         private static readonly Dictionary<AssetData, TextAsset> assetData = new Dictionary<AssetData, TextAsset>();

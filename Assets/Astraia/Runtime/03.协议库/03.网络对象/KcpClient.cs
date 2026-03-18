@@ -37,7 +37,7 @@ namespace Astraia
             {
                 if (state != State.Disconnect)
                 {
-                    Service.Log.Warn("客户端已经连接!");
+                    Log.Warn("客户端已经连接!");
                     return;
                 }
 
@@ -50,7 +50,7 @@ namespace Astraia
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     Common.Blocked(socket);
                     socket.Connect(endPoint);
-                    Service.Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
+                    Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
                     kcpPeer.Handshake();
                 }
             }
@@ -87,7 +87,7 @@ namespace Astraia
             {
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    Service.Log.Info("客户端接收消息失败!\n{0}", e);
+                    Log.Info("客户端接收消息失败!\n{0}", e);
                     kcpPeer.Disconnect();
                 }
 
@@ -123,14 +123,14 @@ namespace Astraia
 
         private void OnConnect()
         {
-            Service.Log.Info("客户端连接成功。");
+            Log.Info("客户端连接成功。");
             state = State.Connected;
             onEvent.Connect.Invoke();
         }
 
         private void OnDisconnect()
         {
-            Service.Log.Info("客户端断开连接。");
+            Log.Info("客户端断开连接。");
             state = State.Disconnect;
             socket.Close();
             socket = null;
@@ -164,7 +164,7 @@ namespace Astraia
             {
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    Service.Log.Info("客户端发送消息失败!\n{0}", e);
+                    Log.Info("客户端发送消息失败!\n{0}", e);
                 }
             }
         }

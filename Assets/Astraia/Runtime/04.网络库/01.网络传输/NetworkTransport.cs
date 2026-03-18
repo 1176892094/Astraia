@@ -60,7 +60,7 @@ namespace Astraia.Net
 
         private static void OnError(Error error, string message)
         {
-            Service.Log.Warn("{0}: {1}", error, message);
+            Log.Warn("{0}: {1}", error, message);
         }
 
         public override uint GetLength(int channel)

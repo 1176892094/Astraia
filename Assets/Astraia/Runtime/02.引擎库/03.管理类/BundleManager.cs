@@ -189,7 +189,7 @@ namespace Astraia.Core
                     await request.SendWebRequest();
                     if (request.result != UnityWebRequest.Result.Success)
                     {
-                        Service.Log.Warn("请求服务器下载 {0} 失败!\n".Format(name));
+                        Log.Warn("请求服务器下载 {0} 失败!\n".Format(name));
                         continue;
                     }
 
@@ -226,7 +226,7 @@ namespace Astraia.Core
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Service.Log.Warn("请求服务器校验 {0} 失败!\n".Format(name));
+                    Log.Warn("请求服务器校验 {0} 失败!\n".Format(name));
                     return null;
                 }
             }
@@ -243,7 +243,7 @@ namespace Astraia.Core
                 EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Service.Log.Warn("请求服务器下载 {0} 失败!\n".Format(name));
+                    Log.Warn("请求服务器下载 {0} 失败!\n".Format(name));
                     return null;
                 }
 

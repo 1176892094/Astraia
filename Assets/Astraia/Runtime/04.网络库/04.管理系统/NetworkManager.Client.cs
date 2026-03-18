@@ -142,13 +142,13 @@ namespace Astraia.Net
 
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Service.Log.Warn("无法同步网络对象: {0}", message.objectId);
+                    Log.Warn("无法同步网络对象: {0}", message.objectId);
                     return;
                 }
 
                 if (!entity)
                 {
-                    Service.Log.Warn("无法同步网络对象: {0}", message.objectId);
+                    Log.Warn("无法同步网络对象: {0}", message.objectId);
                     return;
                 }
 
@@ -210,13 +210,13 @@ namespace Astraia.Net
             {
                 if (connection == null)
                 {
-                    Service.Log.Error("没有连接到有效的服务器！");
+                    Log.Error("没有连接到有效的服务器！");
                     return;
                 }
 
                 if (!connection.reader.AddPacket(segment))
                 {
-                    Service.Log.Warn("无法处理来自服务器的消息。");
+                    Log.Warn("无法处理来自服务器的消息。");
                     connection.Disconnect();
                     return;
                 }
@@ -226,7 +226,7 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
                     {
-                        Service.Log.Warn("无法处理来自服务器的消息。没有头部。");
+                        Log.Warn("无法处理来自服务器的消息。没有头部。");
                         connection.Disconnect();
                         return;
                     }
@@ -234,7 +234,7 @@ namespace Astraia.Net
                     var message = reader.ReadUShort();
                     if (!NetworkMessage.client.TryGetValue(message, out var onMessage))
                     {
-                        Service.Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
+                        Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
                         connection.Disconnect();
                         return;
                     }
@@ -244,7 +244,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && connection.reader.Count > 0)
                 {
-                    Service.Log.Warn("无法处理来自服务器的消息。残留消息: {0}", connection.reader.Count);
+                    Log.Warn("无法处理来自服务器的消息。残留消息: {0}", connection.reader.Count);
                 }
             }
         }
@@ -356,19 +356,19 @@ namespace Astraia.Net
                     var prefab = AssetManager.Load<GameObject>(GlobalSetting.Prefab.Format(message.assetId));
                     if (!prefab.TryGetComponent(out entity))
                     {
-                        Service.Log.Error("无法注册网络对象 {0} 没有网络对象组件。", prefab.name);
+                        Log.Error("无法注册网络对象 {0} 没有网络对象组件。", prefab.name);
                         return false;
                     }
 
                     if (entity.sceneId != 0)
                     {
-                        Service.Log.Error("无法注册网络对象 {0}。因为该预置体为场景对象。", entity.name);
+                        Log.Error("无法注册网络对象 {0}。因为该预置体为场景对象。", entity.name);
                         return false;
                     }
                 }
                 else if (!scenes.Remove(message.sceneId, out entity))
                 {
-                    Service.Log.Error("无法注册网络对象 {0}。场景标识无效。", message.sceneId);
+                    Log.Error("无法注册网络对象 {0}。场景标识无效。", message.sceneId);
                     return false;
                 }
 

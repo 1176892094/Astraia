@@ -534,7 +534,7 @@ namespace Astraia.Core
                             var component = components[componentIndex];
                             if (component is NetworkDebugger || component is Transform)
                             {
-                                Service.Log.Warn("无法销毁组件: " + component.GetType().Name);
+                                Log.Warn("无法销毁组件: " + component.GetType().Name);
                             }
                             else
                             {

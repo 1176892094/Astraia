@@ -297,7 +297,7 @@ namespace Astraia.Core
                 var index = item.GetValue<TKey>(name);
                 if (result.ContainsKey(index))
                 {
-                    Service.Log.Warn("加载数据 {0} 失败。键值重复: {1}".Format(item, index));
+                    Log.Warn("加载数据 {0} 失败。键值重复: {1}".Format(item, index));
                 }
 
                 result[index] = item;

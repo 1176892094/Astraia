@@ -56,14 +56,14 @@ namespace Astraia.Net
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Service.Log.Warn("无法获取服务器列表: {0}:{1}", Transport.address, Transport.port);
+                    Log.Warn("无法获取服务器列表: {0}:{1}", Transport.address, Transport.port);
                     return;
                 }
 
                 var rooms = Service.Zip.Decompress(request.downloadHandler.text);
                 var jsons = JsonManager.FromJson<LobbyData[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
-                Service.Log.Info("房间信息: {0}", rooms);
+                Log.Info("房间信息: {0}", rooms);
             }
 
             internal static void Submit(RoomMode roomMode)
@@ -179,7 +179,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Service.Log.Warn(e.Message);
+                    Log.Warn(e.Message);
                 }
             }
         }

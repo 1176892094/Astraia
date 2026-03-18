@@ -80,7 +80,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Service.Log.Error(e);
+                Log.Error(e);
             }
         }
 
@@ -101,7 +101,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Service.Log.Error(e);
+                    Log.Error(e);
                 }
             }
         }
@@ -123,7 +123,7 @@ namespace Astraia.Net
             }
             catch (Exception e)
             {
-                Service.Log.Error(e);
+                Log.Error(e);
             }
         }
 
@@ -149,7 +149,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Service.Log.Error(e);
+                    Log.Error(e);
                 }
             }
         }
