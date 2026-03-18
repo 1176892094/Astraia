@@ -63,7 +63,7 @@ namespace Astraia.Editor
                 return true;
             }
 
-            return tr.IsResolve() && IsDerivedFrom(tr.Resolve(), t);
+            return tr.CanResolve() && IsDerivedFrom(tr.Resolve(), t);
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Astraia.Editor
         /// <summary>
         /// 是能够解析的
         /// </summary>
-        public static bool IsResolve(this TypeReference self)
+        public static bool CanResolve(this TypeReference self)
         {
             while (self != null)
             {
@@ -220,13 +220,14 @@ namespace Astraia.Editor
         /// <summary>
         /// 找到所有公开字段
         /// </summary>
-        public static IEnumerable<FieldDefinition> FindPublicFields(this TypeDefinition self)
+        public static IEnumerable<FieldDefinition> GetPublicFields(this TypeDefinition self)
         {
             while (self != null)
             {
-                foreach (var field in self.Fields.Where(field => !field.IsStatic && !field.IsPrivate && !field.IsFamily && !field.IsAssembly && !field.IsNotSerialized))
+                foreach (var field in self.Fields.Where(field => field.IsPublic && !field.IsStatic))
                 {
                     yield return field;
+                    
                 }
 
                 try
@@ -245,17 +246,9 @@ namespace Astraia.Editor
         /// </summary>
         public static IEnumerable<MethodDefinition> GetConstructors(this TypeDefinition self)
         {
-            if (self == null)
+            foreach (var method in self.Methods.Where(method => method.IsConstructor))
             {
-                throw new ArgumentNullException(nameof(self));
-            }
-
-            if (self.HasMethods)
-            {
-                foreach (var method in self.Methods.Where(method => method.IsConstructor))
-                {
-                    yield return method;
-                }
+                yield return method;
             }
         }
 

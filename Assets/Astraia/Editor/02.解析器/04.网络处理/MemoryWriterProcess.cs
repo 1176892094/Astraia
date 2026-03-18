@@ -221,7 +221,7 @@ namespace Astraia.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition("Write{0}".Format(NetworkMessage.Id(tr.FullName)), Const.RAW_ATTRS, module.Import(typeof(void)));
+            var md = new MethodDefinition("Write{0}".Format(NetworkMessage.Id(tr.FullName)), Const.GEN_RAW, module.Import(typeof(void)));
             md.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
             md.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, tr));
             md.Body.InitLocals = true;
@@ -248,7 +248,7 @@ namespace Astraia.Editor
 
         private bool AddFields(TypeReference tr, ILProcessor worker, ref bool failed)
         {
-            foreach (var field in tr.Resolve().FindPublicFields())
+            foreach (var field in tr.Resolve().GetPublicFields())
             {
                 var mr = GetFunction(field.FieldType, ref failed);
                 if (mr == null)

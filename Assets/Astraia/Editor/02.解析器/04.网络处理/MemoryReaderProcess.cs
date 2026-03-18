@@ -226,13 +226,6 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldloca, 0);
                 worker.Emit(OpCodes.Initobj, tr);
             }
-            else if (td.IsDerivedFrom<ScriptableObject>())
-            {
-                var generic = new GenericInstanceMethod(module.CreateInstance);
-                generic.GenericArguments.Add(tr);
-                worker.Emit(OpCodes.Call, generic);
-                worker.Emit(OpCodes.Stloc_0);
-            }
             else
             {
                 var ctor = Resolve.GetConstructor(tr);
@@ -256,7 +249,7 @@ namespace Astraia.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition("Read{0}".Format(NetworkMessage.Id(tr.FullName)), Const.RAW_ATTRS, tr);
+            var md = new MethodDefinition("Read{0}".Format(NetworkMessage.Id(tr.FullName)), Const.GEN_RAW, tr);
             md.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             md.Body.InitLocals = true;
             Register(tr, md);
@@ -277,7 +270,7 @@ namespace Astraia.Editor
 
         private void AddFields(TypeReference tr, ILProcessor worker, ref bool failed)
         {
-            foreach (var field in tr.Resolve().FindPublicFields())
+            foreach (var field in tr.Resolve().GetPublicFields())
             {
                 worker.Emit(tr.IsValueType ? OpCodes.Ldloca : OpCodes.Ldloc, 0);
                 var mr = GetFunction(field.FieldType, ref failed);

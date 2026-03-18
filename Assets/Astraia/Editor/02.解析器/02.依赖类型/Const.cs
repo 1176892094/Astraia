@@ -73,31 +73,31 @@ namespace Astraia.Editor
         /// <summary>
         /// Rpc调用属性
         /// </summary>
-        public const MethodAttributes RPC_ATTRS = MethodAttributes.Family | MethodAttributes.Static | MethodAttributes.HideBySig;
+        public const MethodAttributes GEN_RPC = MethodAttributes.Family | MethodAttributes.Static | MethodAttributes.HideBySig;
 
         /// <summary>
         /// Reader 和 Writer 属性
         /// </summary>
-        public const MethodAttributes RAW_ATTRS = MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig;
+        public const MethodAttributes GEN_RAW = MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig;
 
         /// <summary>
         /// 序列化属性
         /// </summary>
-        public const MethodAttributes SER_ATTRS = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig;
+        public const MethodAttributes GEN_VAR = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig;
 
         /// <summary>
         /// 网络变量属性
         /// </summary>
-        public const MethodAttributes VAR_ATTRS = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
+        public const MethodAttributes GEN_SYNC = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
 
         /// <summary>
         /// 静态构造属性
         /// </summary>
-        public const MethodAttributes CTOR_ATTRS = MethodAttributes.Private | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName | MethodAttributes.HideBySig;
+        public const MethodAttributes GEN_CTOR = MethodAttributes.Private | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName | MethodAttributes.HideBySig;
 
         /// <summary>
         /// 类型属性
         /// </summary>
-        public const TypeAttributes GEN_ATTRS = TypeAttributes.Class | TypeAttributes.AnsiClass | TypeAttributes.Public | TypeAttributes.AutoClass | TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit;
+        public const TypeAttributes GEN_ATTR = TypeAttributes.Class | TypeAttributes.AnsiClass | TypeAttributes.Public | TypeAttributes.AutoClass | TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit;
     }
 }

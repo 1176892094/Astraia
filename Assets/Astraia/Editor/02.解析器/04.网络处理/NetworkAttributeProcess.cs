@@ -38,7 +38,7 @@ namespace Astraia.Editor
         public static MethodDefinition ProcessClientRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Weaver.GenerateMethodName(Const.INV_METHOD, md);
-            var rpc = new MethodDefinition(rpcName, Const.RPC_ATTRS, module.Import(typeof(void)));
+            var rpc = new MethodDefinition(rpcName, Const.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
             NetworkClientActive(worker, module, md.Name, label, "ClientRpc");
@@ -108,7 +108,7 @@ namespace Astraia.Editor
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Weaver.GenerateMethodName(Const.INV_METHOD, md);
-            var rpc = new MethodDefinition(rpcName, Const.RPC_ATTRS, module.Import(typeof(void)));
+            var rpc = new MethodDefinition(rpcName, Const.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
             NetworkServerActive(worker, module, md.Name, label, "ServerRpc");
@@ -187,7 +187,7 @@ namespace Astraia.Editor
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Weaver.GenerateMethodName(Const.INV_METHOD, md);
-            var rpc = new MethodDefinition(rpcName, Const.RPC_ATTRS, module.Import(typeof(void)));
+            var rpc = new MethodDefinition(rpcName, Const.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
             NetworkClientActive(worker, module, md.Name, label, "TargetRpc");

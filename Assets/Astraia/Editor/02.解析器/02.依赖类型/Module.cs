@@ -58,12 +58,7 @@ namespace Astraia.Editor
         /// 对ArraySegment的构造函数的注入
         /// </summary>
         public readonly MethodReference AddArraySegment;
-
-        /// <summary>
-        /// 创建SO方法
-        /// </summary>
-        public readonly MethodReference CreateInstance;
-
+        
         /// <summary>
         /// 读取泛型的 NetworkModule
         /// </summary>
@@ -229,8 +224,6 @@ namespace Astraia.Editor
             RegisterClientRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, log, "RegisterClientRpc", ref failed);
 
             InvokeDelegate = Resolve.GetMethod(Import<InvokeDelegate>(), assembly, log, Const.CTOR, ref failed);
-
-            CreateInstance = Resolve.GetMethod(Import<ScriptableObject>(), assembly, log, method => method.Name == "CreateInstance" && method.HasGenericParameters, ref failed);
 
             LogError = Resolve.GetMethod(Import<Debug>(), assembly, log, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName, ref failed);
 

@@ -352,7 +352,7 @@ namespace Astraia.Editor
             }
             else
             {
-                cctor = new MethodDefinition(".cctor", Const.CTOR_ATTRS, module.Import(typeof(void)));
+                cctor = new MethodDefinition(".cctor", Const.GEN_CTOR, module.Import(typeof(void)));
             }
 
             ILProcessor worker = cctor.Body.GetILProcessor();
@@ -431,7 +431,7 @@ namespace Astraia.Editor
         {
             if (generate.GetMethod(Const.SER_METHOD) != null) return;
             if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(Const.SER_METHOD, Const.SER_ATTRS, module.Import(typeof(void)));
+            var serialize = new MethodDefinition(Const.SER_METHOD, Const.GEN_VAR, module.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
             serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
@@ -530,7 +530,7 @@ namespace Astraia.Editor
         {
             if (generate.GetMethod(Const.DES_METHOD) != null) return;
             if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(Const.DES_METHOD, Const.SER_ATTRS, module.Import(typeof(void)));
+            var serialize = new MethodDefinition(Const.DES_METHOD, Const.GEN_VAR, module.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();

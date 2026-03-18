@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Astraia.Net;
 using Mono.Cecil;
 
@@ -40,17 +41,14 @@ namespace Astraia.Editor
             {
                 this.assembly = assembly;
 
-                foreach (var type in assembly.MainModule.GetTypes())
+                if (assembly.MainModule.GetTypes().Any(type => type.Namespace == Const.GEN_TYPE && type.Name == Const.GEN_NAME))
                 {
-                    if (type.Namespace == Const.GEN_TYPE && type.Name == Const.GEN_NAME)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
 
                 access = new SyncVarAccess();
                 module = new Module(assembly, log, ref failed);
-                process = new TypeDefinition(Const.GEN_TYPE, Const.GEN_NAME, Const.GEN_ATTRS, module.Import<object>());
+                process = new TypeDefinition(Const.GEN_TYPE, Const.GEN_NAME, Const.GEN_ATTR, module.Import<object>());
                 writer = new Writer(assembly, module, process, log);
                 reader = new Reader(assembly, module, process, log);
                 modified = RuntimeAttribute.Process(assembly, resolver, log, writer, reader, ref failed);
@@ -138,7 +136,7 @@ namespace Astraia.Editor
             var result = false;
             foreach (var td in md.Types)
             {
-                if (td.IsClass && td.BaseType.IsResolve())
+                if (td.IsClass && td.BaseType.CanResolve())
                 {
                     result |= ProcessNetworkModule(td, ref failed);
                 }

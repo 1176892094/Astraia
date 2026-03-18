@@ -275,7 +275,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string name, FieldDefinition fieldId)
         {
-            var get = new MethodDefinition("get_Network{0}".Format(name), Const.VAR_ATTRS, fd.FieldType);
+            var get = new MethodDefinition("get_Network{0}".Format(name), Const.GEN_SYNC, fd.FieldType);
 
             var worker = get.Body.GetILProcessor();
 
@@ -342,7 +342,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string name, long dirtyBit, FieldDefinition fieldId, ref bool failed)
         {
-            var set = new MethodDefinition("set_Network{0}".Format(name), Const.VAR_ATTRS, module.Import(typeof(void)));
+            var set = new MethodDefinition("set_Network{0}".Format(name), Const.GEN_SYNC, module.Import(typeof(void)));
 
             var worker = set.Body.GetILProcessor();
             var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
