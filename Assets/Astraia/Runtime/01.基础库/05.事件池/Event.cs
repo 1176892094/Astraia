@@ -45,7 +45,7 @@ namespace Astraia.Core
                 return (Pool<T>)pool;
             }
 
-            pool = Pool<T>.Create(typeof(T), typeof(T).Name);
+            pool = new Pool<T>(typeof(T), typeof(T).Name);
             poolData.Add(typeof(T), pool);
             return (Pool<T>)pool;
         }
@@ -71,6 +71,12 @@ namespace Astraia.Core
             public int Release { get; private set; }
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
+            
+            public Pool(Type type, string path)
+            {
+                Type = type;
+                Path = path;
+            }
 
             public void Listen(IEvent<T> obj)
             {
@@ -102,14 +108,6 @@ namespace Astraia.Core
             {
                 cached.Clear();
                 OnExecute = null;
-            }
-
-            public static Pool<T> Create(Type type, string path)
-            {
-                var instance = new Pool<T>();
-                instance.Type = type;
-                instance.Path = path;
-                return instance;
             }
         }
     }

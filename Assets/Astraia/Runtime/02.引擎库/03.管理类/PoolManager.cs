@@ -134,7 +134,7 @@ namespace Astraia.Core
                 return (Pool)pool;
             }
 
-            pool = Pool.Create(typeof(GameObject), path, AssetManager.Load<GameObject>);
+            pool = new Pool(typeof(GameObject), path, AssetManager.Load<GameObject>);
             poolData.Add(path, pool);
             return (Pool)pool;
         }
@@ -146,7 +146,7 @@ namespace Astraia.Core
                 return (Pool)pool;
             }
 
-            pool = Pool.Create(typeof(GameObject), path, AssetManager.Load<GameObject>);
+            pool = new Pool(typeof(GameObject), path, AssetManager.Load<GameObject>);
             poolData.Add(name, pool);
             return (Pool)pool;
         }
@@ -158,7 +158,7 @@ namespace Astraia.Core
                 return (Pool)pool;
             }
 
-            pool = Pool.Create(args[0], path, item => new GameObject(item, args));
+            pool = new Pool(args[0], path, item => new GameObject(item, args));
             poolData.Add(path, pool);
             return (Pool)pool;
         }
@@ -191,6 +191,13 @@ namespace Astraia.Core
             public int Release { get; private set; }
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
+
+            public Pool(Type type, string path, Func<string, GameObject> onCreate)
+            {
+                Type = type;
+                Path = path;
+                OnCreate = onCreate;
+            }
 
             public void Build(int capacity, int threshold, float timestamp)
             {
@@ -274,15 +281,6 @@ namespace Astraia.Core
             {
                 cached.Clear();
                 unused.Clear();
-            }
-
-            public static Pool Create(Type type, string path, Func<string, GameObject> onCreate)
-            {
-                var instance = new Pool();
-                instance.Type = type;
-                instance.Path = path;
-                instance.OnCreate = onCreate;
-                return instance;
             }
         }
     }

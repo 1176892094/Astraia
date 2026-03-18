@@ -51,7 +51,7 @@ namespace Astraia.Core
                 return (Pool<T>)item;
             }
 
-            item = Pool<T>.Create(type, type.Name);
+            item = new Pool<T>(type, type.Name);
             poolData.Add(type, item);
             return (Pool<T>)item;
         }
@@ -77,6 +77,12 @@ namespace Astraia.Core
             public int Release { get; private set; }
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
+
+            public Pool(Type type, string path)
+            {
+                Type = type;
+                Path = path;
+            }
 
             public T Load(params object[] args)
             {
@@ -113,14 +119,6 @@ namespace Astraia.Core
                 cached.Clear();
                 unused.Clear();
             }
-
-            public static Pool<T> Create(Type type, string path)
-            {
-                var instance = new Pool<T>();
-                instance.Type = type;
-                instance.Path = path;
-                return instance;
-            }
         }
     }
 
@@ -155,7 +153,8 @@ namespace Astraia.Core
 
         public override string ToString()
         {
-            var result = Release.ToString().Align(10);
+            var result = string.Empty;
+            result += Release.ToString().Align(10);
             result += Acquire.ToString().Align(10);
             result += Dequeue.ToString().Align(10);
             result += Enqueue.ToString().Align(10);
