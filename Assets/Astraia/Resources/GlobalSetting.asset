@@ -71,7 +71,7 @@ MonoBehaviour:
   m_Name: GlobalSetting
   m_EditorClassIdentifier: 
   BuildTarget: 9
-  AssetMode: 1
+  AssetMode: 0
   EncryptKey: 1
   RemotePath: https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main
   InputMask: 0
@@ -86,6 +86,7 @@ MonoBehaviour:
   ignoreAssets:
   - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
   cacheAssets:
+  - {fileID: 102900000, guid: 2accc338c4feb4f3c9164e607159707e, type: 3}
   - {fileID: 102900000, guid: d997d30491f12460a83474cffc127ae4, type: 3}
   - {fileID: 102900000, guid: 7ee700e87bf3541bdadae33287525107, type: 3}
   - {fileID: 102900000, guid: 40d95e4e2b8594e018558d8d142f3b06, type: 3}

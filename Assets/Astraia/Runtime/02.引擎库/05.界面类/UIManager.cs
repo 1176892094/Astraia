@@ -57,10 +57,10 @@ namespace Astraia.Core
         private static Entity Load(string path, string name)
         {
             Initialized();
-            var asset = AssetManager.Load<GameObject>(path);
-            asset.SetActive(false);
+            var asset = AssetManager.Load<GameObject>(path).GetOrAddComponent<Entity>();
             asset.gameObject.name = name;
-            return asset.GetOrAddComponent<Entity>();
+            asset.gameObject.SetActive(false);
+            return asset;
         }
 
         private static UIPanel Load(string path, Type type)
@@ -71,7 +71,8 @@ namespace Astraia.Core
                 path = GlobalSetting.Prefab.Format(item.asset);
             }
 
-            var panel = (UIPanel)Load(path, type.Name).LoadComponent(type, type);
+            var owner = Load(path, type.Name);
+            var panel = (UIPanel)owner.Logic.LoadComponent(type, type);
             SetLayer(panel.transform, panel.layer);
             panelData.Add(type, panel);
             return panel;

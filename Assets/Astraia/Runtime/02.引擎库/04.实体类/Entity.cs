@@ -22,14 +22,59 @@ namespace Astraia
 {
     public class Entity : MonoBehaviour
     {
-        private readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
-        public event Action OnShow;
-        public event Action OnHide;
-        public event Action OnFade;
-        public ICollection<IModule> Modules => moduleData.Values;
+        public Logic Logic;
 
         protected virtual void Awake()
         {
+            Logic = new Logic(this, moduleList);
+        }
+
+        protected virtual void OnEnable()
+        {
+            Logic.OnShow?.Invoke();
+        }
+
+        protected virtual void OnDisable()
+        {
+            Logic.OnHide?.Invoke();
+        }
+
+        protected virtual void OnDestroy()
+        {
+            Logic.Clear();
+            Logic = null;
+            moduleList.Clear();
+        }
+
+#if UNITY_EDITOR && ODIN_INSPECTOR
+        private static List<string> Windows = GlobalSetting.windows;
+
+        [HideInEditorMode, ShowInInspector]
+        private IEnumerable<IModule> windows
+        {
+            get => Logic?.Modules.ToList();
+            set => Service.Log.Error(value);
+        }
+
+        [HideInPlayMode, PropertyOrder(1), ValueDropdown("Windows")]
+#endif
+        [SerializeField]
+        private List<string> moduleList = new List<string>();
+    }
+
+    public class Logic
+    {
+        private readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
+        private object owner;
+        public Action OnShow;
+        public Action OnHide;
+        public Action OnFade;
+        public ICollection<IModule> Modules => moduleData.Values;
+
+        public Logic(object owner, List<string> moduleList)
+        {
+            Debug.Log(owner);
+            this.owner = owner;
             foreach (var module in moduleList)
             {
                 var result = Service.Ref.GetType(module);
@@ -40,41 +85,15 @@ namespace Astraia
             }
         }
 
-        protected virtual void OnEnable()
-        {
-            OnShow?.Invoke();
-        }
-
-        protected virtual void OnDisable()
-        {
-            OnHide?.Invoke();
-        }
-
-        protected virtual void OnDestroy()
+        public void Clear()
         {
             OnFade?.Invoke();
             OnFade = null;
             OnShow = null;
             OnHide = null;
-            moduleList.Clear();
             moduleData.Clear();
         }
 
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        private static List<string> Windows = GlobalSetting.windows;
-
-        [HideInEditorMode, ShowInInspector]
-        private IEnumerable<IModule> windows
-        {
-            get => moduleData.Values.ToList();
-            set => Service.Log.Error(value);
-        }
-
-        [HideInPlayMode, PropertyOrder(1), ValueDropdown("Windows")]
-#endif
-        [SerializeField]
-        private List<string> moduleList = new List<string>();
-        
         public T AddComponent<T>() where T : IModule
         {
             return (T)LoadComponent(typeof(T), typeof(T));
@@ -110,8 +129,9 @@ namespace Astraia
 
         private void AddModule(IModule module)
         {
-            this.Inject(module);
-            module.Acquire(this);
+            var entity = (Entity)owner;
+            entity.Inject(module);
+            module.Acquire(entity);
             module.Dequeue();
 
             var events = module.GetType().GetInterfaces();

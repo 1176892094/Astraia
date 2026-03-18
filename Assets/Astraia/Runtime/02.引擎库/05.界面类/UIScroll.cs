@@ -65,7 +65,7 @@ namespace Astraia.Core
                 assetPath = GlobalSetting.Prefab.Format(asset.asset);
             }
 
-            owner.OnHide += Unload;
+            owner.Logic.OnHide += Unload;
             content.pivot = Vector2.up;
             content.anchorMin = Vector2.up;
             content.anchorMax = Vector2.one;
