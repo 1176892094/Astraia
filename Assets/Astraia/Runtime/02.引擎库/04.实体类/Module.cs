@@ -66,8 +66,8 @@ namespace Astraia.Core
 
     public interface ISystem
     {
-        void AddSystem() => GlobalManager.OnUpdate += Update;
-        void SubSystem() => GlobalManager.OnUpdate -= Update;
+        void AddSystem() => TimeManager.OnUpdate += Update;
+        void SubSystem() => TimeManager.OnUpdate -= Update;
         void Update();
     }
 

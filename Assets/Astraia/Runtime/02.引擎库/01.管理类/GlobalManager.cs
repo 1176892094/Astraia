@@ -33,8 +33,6 @@ namespace Astraia.Core
 
         internal static AssetBundleManifest manifest;
 
-        internal static event Action OnUpdate;
-
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -105,7 +103,7 @@ namespace Astraia.Core
 
         private void Update()
         {
-            OnUpdate?.Invoke();
+            TimeManager.Update(Time.time);
         }
 
         private void LateUpdate()
@@ -117,15 +115,33 @@ namespace Astraia.Core
         {
             manifest = null;
             Instance = null;
-            OnUpdate = null;
             await Task.Yield();
             UIManager.Dispose();
+            TimeManager.Dispose();
             PoolManager.Dispose();
             HeapManager.Dispose();
             AssetManager.Dispose();
             EventManager.Dispose();
             SoundManager.Dispose();
             GC.Collect();
+        }
+    }
+    
+    internal static class TimeManager
+    {
+        public static float Time;
+        public static event Action OnUpdate;
+
+        public static void Update(float value)
+        {
+            Time = value;
+            OnUpdate?.Invoke();
+        }
+
+        public static void Dispose()
+        {
+            Time = 0;
+            OnUpdate = null;
         }
     }
 }

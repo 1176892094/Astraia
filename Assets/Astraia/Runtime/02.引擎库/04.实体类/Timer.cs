@@ -16,20 +16,76 @@ using UnityEngine;
 
 namespace Astraia
 {
-    [Serializable]
-    public sealed class Timer : ISystem, INotifyCompletion
+    public abstract class Tick<T> : ISystem, INotifyCompletion
     {
-        private Component owner;
-        private int complete;
-        private int progress;
-        private float waitTime;
-        private float nextTime;
-        private float duration;
-        private Action onNext;
-        private Action onUpdate;
-        private Action onComplete;
+        protected T owner;
+        protected int complete;
+        protected float nextTime;
+        protected float duration;
+        protected Action onNext;
+        protected Action onComplete;
+        public bool IsCompleted => complete > 0;
 
-        private bool isActive => owner && owner.gameObject.activeInHierarchy;
+        void ISystem.Update()
+        {
+            try
+            {
+                if (IsActive())
+                {
+                    OnTick();
+                }
+                else
+                {
+                    Break();
+                }
+            }
+            catch (Exception e)
+            {
+                Break();
+                Service.Log.Info("无法执行异步方法：\n{0}".Format(e));
+            }
+        }
+
+        protected abstract bool IsActive();
+        protected abstract void OnTick();
+
+        public void Break()
+        {
+            onComplete.Invoke();
+        }
+
+        public void OnComplete(Action onComplete)
+        {
+            this.onComplete += onComplete;
+        }
+
+        public bool GetResult()
+        {
+            return complete == 2;
+        }
+
+        public Tick<T> GetAwaiter()
+        {
+            return this;
+        }
+
+        void INotifyCompletion.OnCompleted(Action onNext)
+        {
+            if (!IsActive())
+            {
+                Break();
+                return;
+            }
+
+            this.onNext = onNext;
+        }
+    }
+
+    [Serializable]
+    public sealed class Timer : Tick<Component>
+    {
+        private int progress;
+        private Action onUpdate;
 
         internal static Timer Create(Component owner, float duration)
         {
@@ -37,9 +93,9 @@ namespace Astraia
             ((ISystem)item).AddSystem();
             item.owner = owner;
             item.progress = 1;
-            item.nextTime = 0;
             item.complete = 0;
             item.duration = duration;
+            item.nextTime = TimeManager.Time + duration;
             item.onComplete = OnComplete;
             return item;
 
@@ -54,45 +110,28 @@ namespace Astraia
             }
         }
 
-        void ISystem.Update()
+        protected override bool IsActive()
         {
-            try
+            return owner && owner.gameObject.activeInHierarchy;
+        }
+
+        protected override void OnTick()
+        {
+            if (nextTime < TimeManager.Time)
             {
-                if (!isActive)
-                {
-                    Break();
-                    return;
-                }
-
-                waitTime = Time.time;
-                if (nextTime <= 0)
-                {
-                    nextTime = waitTime + duration;
-                }
-
-                if (waitTime <= nextTime)
-                {
-                    return;
-                }
-
-                progress--;
-                nextTime = waitTime + duration;
+                nextTime = TimeManager.Time + duration;
                 if (onUpdate != null)
                 {
                     onUpdate.Invoke();
                 }
 
+                progress--;
                 if (progress == 0)
                 {
                     complete = 2;
                     onComplete += onNext;
                     onComplete.Invoke();
                 }
-            }
-            catch (Exception e)
-            {
-                Break();
-                Service.Log.Info("无法执行异步方法：\n{0}".Format(e));
             }
         }
 
@@ -102,16 +141,10 @@ namespace Astraia
             return this;
         }
 
-        public Timer OnComplete(Action onComplete)
-        {
-            this.onComplete += onComplete;
-            return this;
-        }
-
         public Timer Set(float duration)
         {
             this.duration = duration;
-            nextTime = waitTime + duration;
+            nextTime = TimeManager.Time + duration;
             return this;
         }
 
@@ -126,49 +159,13 @@ namespace Astraia
             this.progress = progress;
             return this;
         }
-
-        public Timer Break()
-        {
-            onComplete.Invoke();
-            return this;
-        }
-
-        public bool IsCompleted => complete > 0;
-
-        public Timer GetAwaiter()
-        {
-            return this;
-        }
-
-        void INotifyCompletion.OnCompleted(Action continuation)
-        {
-            if (!isActive)
-            {
-                Break();
-                return;
-            }
-
-            onNext = continuation;
-        }
-
-        public bool GetResult()
-        {
-            return complete == 2;
-        }
     }
 
     [Serializable]
-    public sealed class Tween : ISystem, INotifyCompletion
+    public sealed class Tween : Tick<Component>
     {
-        private Component owner;
-        private int complete;
         private float progress;
-        private float nextTime;
-        private float duration;
-        private Action onNext;
-        private Action onComplete;
         private Action<float> onUpdate;
-        private bool isActive => owner && owner.gameObject.activeInHierarchy;
 
         internal static Tween Create(Component owner, float duration)
         {
@@ -176,9 +173,9 @@ namespace Astraia
             ((ISystem)item).AddSystem();
             item.owner = owner;
             item.progress = 0;
-            item.nextTime = 0;
             item.complete = 0;
             item.duration = duration;
+            item.nextTime = TimeManager.Time;
             item.onComplete = OnComplete;
             return item;
 
@@ -193,29 +190,22 @@ namespace Astraia
             }
         }
 
-        void ISystem.Update()
+        protected override bool IsActive()
         {
-            try
+            return owner && owner.gameObject.activeInHierarchy;
+        }
+
+        protected override void OnTick()
+        {
+            if (nextTime < TimeManager.Time)
             {
-                if (!isActive)
-                {
-                    Break();
-                    return;
-                }
-
-                if (nextTime <= 0)
-                {
-                    nextTime = Time.time;
-                }
-
-                progress = (Time.time - nextTime) / duration;
+                progress = (TimeManager.Time - nextTime) / duration;
                 if (progress > 1)
                 {
                     progress = 1;
                 }
 
                 onUpdate.Invoke(progress);
-
                 if (progress >= 1)
                 {
                     complete = 2;
@@ -223,52 +213,12 @@ namespace Astraia
                     onComplete.Invoke();
                 }
             }
-            catch (Exception e)
-            {
-                Break();
-                Service.Log.Info("无法执行异步方法：\n{0}".Format(e));
-            }
         }
 
         public Tween OnUpdate(Action<float> onUpdate)
         {
             this.onUpdate += onUpdate;
             return this;
-        }
-
-        public Tween OnComplete(Action onComplete)
-        {
-            this.onComplete += onComplete;
-            return this;
-        }
-
-        public Tween Break()
-        {
-            onComplete.Invoke();
-            return this;
-        }
-
-        public bool IsCompleted => complete > 0;
-
-        public Tween GetAwaiter()
-        {
-            return this;
-        }
-
-        void INotifyCompletion.OnCompleted(Action continuation)
-        {
-            if (!isActive)
-            {
-                Break();
-                return;
-            }
-
-            onNext = continuation;
-        }
-
-        public bool GetResult()
-        {
-            return complete == 2;
         }
     }
 }
