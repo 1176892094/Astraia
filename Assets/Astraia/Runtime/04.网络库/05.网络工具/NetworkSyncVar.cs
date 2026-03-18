@@ -20,12 +20,12 @@ namespace Astraia.Net
             var mask = ServerDirtyMasks(modules, isInit);
             if (mask.owner != 0)
             {
-                Bit.EncodeULong(owner, mask.owner);
+                Compress.EncodeULong(owner, mask.owner);
             }
 
             if (mask.agent != 0)
             {
-                Bit.EncodeULong(agent, mask.agent);
+                Compress.EncodeULong(agent, mask.agent);
             }
 
             if ((mask.owner | mask.agent) != 0)
@@ -57,7 +57,7 @@ namespace Astraia.Net
             var mask = ClientDirtyMask(modules, isOwner);
             if (mask != 0)
             {
-                Bit.EncodeULong(writer, mask);
+                Compress.EncodeULong(writer, mask);
                 for (var i = 0; i < modules.Length; ++i)
                 {
                     if (IsDirty(mask, i))
@@ -70,7 +70,7 @@ namespace Astraia.Net
 
         internal static bool ServerDeserialize(NetworkModule[] modules, MemoryReader reader)
         {
-            var mask = Bit.DecodeULong(reader);
+            var mask = Compress.DecodeULong(reader);
             for (var i = 0; i < modules.Length; ++i)
             {
                 if (IsDirty(mask, i))
@@ -92,7 +92,7 @@ namespace Astraia.Net
 
         internal static void ClientDeserialize(NetworkModule[] modules, MemoryReader reader, bool isInit = false)
         {
-            var mask = Bit.DecodeULong(reader);
+            var mask = Compress.DecodeULong(reader);
             for (var i = 0; i < modules.Length; ++i)
             {
                 if (IsDirty(mask, i))

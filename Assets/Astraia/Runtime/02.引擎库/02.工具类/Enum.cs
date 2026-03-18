@@ -54,12 +54,6 @@ namespace Astraia
         Stable,
     }
 
-    public enum Node : byte
-    {
-        Running,
-        Success,
-        Failure
-    }
 
     public enum AudioState : byte
     {

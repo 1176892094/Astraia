@@ -10,77 +10,10 @@
 // *********************************************************************************
 
 using System;
-using System.Runtime.CompilerServices;
-using Astraia.Core;
 using UnityEngine;
 
 namespace Astraia
 {
-    public abstract class Tick<T> : ISystem, INotifyCompletion
-    {
-        protected T owner;
-        protected int complete;
-        protected float nextTime;
-        protected float duration;
-        protected Action onNext;
-        protected Action onComplete;
-        public bool IsCompleted => complete > 0;
-
-        void ISystem.Update()
-        {
-            try
-            {
-                if (IsActive())
-                {
-                    OnTick();
-                }
-                else
-                {
-                    Break();
-                }
-            }
-            catch (Exception e)
-            {
-                Break();
-                Log.Info("无法执行异步方法：\n{0}".Format(e));
-            }
-        }
-
-        protected abstract bool IsActive();
-        protected abstract void OnTick();
-
-        public void Break()
-        {
-            onComplete.Invoke();
-        }
-
-        public void OnComplete(Action onComplete)
-        {
-            this.onComplete += onComplete;
-        }
-
-        public bool GetResult()
-        {
-            return complete == 2;
-        }
-
-        public Tick<T> GetAwaiter()
-        {
-            return this;
-        }
-
-        void INotifyCompletion.OnCompleted(Action onNext)
-        {
-            if (!IsActive())
-            {
-                Break();
-                return;
-            }
-
-            this.onNext = onNext;
-        }
-    }
-
     [Serializable]
     public sealed class Timer : Tick<Component>
     {
@@ -101,8 +34,8 @@ namespace Astraia
 
             void OnComplete()
             {
-                item.owner = null;
                 item.complete = 1;
+                item.owner = null;
                 item.onNext = null;
                 item.onUpdate = null;
                 ((ISystem)item).SubEvent();
@@ -181,8 +114,8 @@ namespace Astraia
 
             void OnComplete()
             {
-                item.owner = null;
                 item.complete = 1;
+                item.owner = null;
                 item.onNext = null;
                 item.onUpdate = null;
                 ((ISystem)item).SubEvent();

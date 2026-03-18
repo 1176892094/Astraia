@@ -17,7 +17,7 @@ using UnityEngine.UIElements;
 
 namespace Astraia
 {
-    using static EventManager;
+    using static EditorEvent;
 
     internal static partial class Hierarchy
     {

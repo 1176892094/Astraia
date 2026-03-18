@@ -1156,12 +1156,12 @@ namespace Astraia.Core
 
         internal static void OnSend<T>(T message, int bytes) where T : struct, IMessage
         {
-            itemSend?.Record(message, Bit.Invoke((uint)bytes) + bytes);
+            itemSend?.Record(message, Compress.Invoke((uint)bytes) + bytes);
         }
 
         internal static void OnReceive<T>(T message, int bytes) where T : struct, IMessage
         {
-            itemReceive?.Record(message, Bit.Invoke((uint)bytes + 2) + bytes + 2);
+            itemReceive?.Record(message, Compress.Invoke((uint)bytes + 2) + bytes + 2);
         }
 
         internal static string PrettyBytes(long bytes)

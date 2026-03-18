@@ -17,7 +17,7 @@ using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<UnityEngine.Entit
 
 namespace Astraia
 {
-    using static EventManager;
+    using static EditorEvent;
 
     internal static partial class Hierarchy
     {

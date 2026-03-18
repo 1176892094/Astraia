@@ -12,7 +12,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Astraia.Core;
 using UnityEngine;
 #if UNITY_EDITOR && ODIN_INSPECTOR
 using Sirenix.OdinInspector;
@@ -62,19 +61,20 @@ namespace Astraia
         private List<string> moduleList = new List<string>();
     }
 
-    public class Logic
+    public sealed class Logic
     {
-        private readonly Dictionary<Type, IModule> moduleData = new Dictionary<Type, IModule>();
+        private readonly Dictionary<Type, IModule> modules = new Dictionary<Type, IModule>();
         private object owner;
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
-        public ICollection<IModule> Modules => moduleData.Values;
 
-        public Logic(object owner, List<string> moduleList)
+        public ICollection<IModule> Modules => modules.Values;
+
+        public Logic(object owner, List<string> modules)
         {
             this.owner = owner;
-            foreach (var module in moduleList)
+            foreach (var module in modules)
             {
                 var result = Search.GetType(module);
                 if (result != null)
@@ -101,7 +101,7 @@ namespace Astraia
             OnShow = null;
             OnHide = null;
             owner = null;
-            moduleData.Clear();
+            modules.Clear();
         }
 
         public T AddComponent<T>() where T : IModule
@@ -116,23 +116,22 @@ namespace Astraia
 
         public T GetComponent<T>() where T : IModule
         {
-            return (T)moduleData.GetValueOrDefault(typeof(T));
+            return (T)modules.GetValueOrDefault(typeof(T));
         }
 
         internal IModule GetComponent(Type source, Type result)
         {
-            if (!moduleData.TryGetValue(source, out var module))
+            if (!modules.TryGetValue(source, out var module))
             {
                 module = HeapManager.Dequeue<IModule>(result);
-                moduleData.Add(source, module);
-                var entity = (Entity)owner;
-                entity.Inject(module);
-                module.Acquire(entity);
+                modules.Add(source, module);
+                ((Entity)owner).Inject(module);
+                module.Acquire(owner);
                 module.Dequeue();
                 OnFade += () =>
                 {
                     module.Enqueue();
-                    moduleData.Remove(source);
+                    modules.Remove(source);
                     HeapManager.Enqueue(module, result);
                 };
 
@@ -161,6 +160,44 @@ namespace Astraia
             }
 
             return module;
+        }
+    }
+
+    public abstract class Module<T> : Acquire<T>, IModule where T : Entity
+    {
+        public Transform transform => owner?.transform;
+        public GameObject gameObject => owner?.gameObject;
+
+        public virtual void Dequeue()
+        {
+        }
+
+        public virtual void Enqueue()
+        {
+        }
+
+        public static implicit operator bool(Module<T> module)
+        {
+            return module != null && module.owner && module.owner.isActiveAndEnabled;
+        }
+    }
+
+    public abstract class Singleton<TKey, T> : Module<T>, IAcquire, IActive where TKey : Singleton<TKey, T> where T : Entity
+    {
+        public static TKey Instance;
+
+        void IAcquire.Acquire(object item)
+        {
+            owner = (T)item;
+            Instance = (TKey)this;
+        }
+
+        public virtual void OnShow()
+        {
+        }
+
+        public virtual void OnHide()
+        {
         }
     }
 }

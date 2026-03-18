@@ -19,8 +19,8 @@ namespace Astraia.Net
     [Serializable]
     public sealed class NetworkServer
     {
-        private Dictionary<int, PacketWriter> packets = new Dictionary<int, PacketWriter>();
-        internal PacketReader reader = new PacketReader();
+        private Dictionary<int, WriterQueue> packets = new Dictionary<int, WriterQueue>();
+        internal ReaderQueue reader = new ReaderQueue();
         internal bool isReady;
 
         internal void Update()
@@ -57,7 +57,7 @@ namespace Astraia.Net
         {
             if (!packets.TryGetValue(channel, out var batch))
             {
-                batch = new PacketWriter(NetworkManager.Transport.GetLength(channel));
+                batch = new WriterQueue(NetworkManager.Transport.GetLength(channel));
                 packets[channel] = batch;
             }
 
