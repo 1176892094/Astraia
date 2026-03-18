@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Astraia.Core
@@ -23,19 +24,19 @@ namespace Astraia.Core
     }
 
     [Serializable]
-    public abstract class StateMachine<TEntity> : Module<TEntity> where TEntity : Entity
+    public abstract class StateMachine<TKey, T> : Module<T> where T : Entity
     {
-        private Dictionary<int, IState> states = new Dictionary<int, IState>();
+        private Dictionary<TKey, IState> states = new Dictionary<TKey, IState>();
         private IState state;
 
-        public void Create<T>(int key) where T : IState
+        public void Create<TState>(TKey key) where TState : IState
         {
-            var item = HeapManager.Dequeue<IState>(typeof(T));
+            var item = HeapManager.Dequeue<IState>(typeof(TState));
             item.Acquire(owner);
             states[key] = item;
         }
 
-        public void Switch(int key)
+        public void Switch(TKey key)
         {
             state?.OnExit();
             states.TryGetValue(key, out state);
@@ -83,78 +84,52 @@ namespace Astraia.Core
     }
 
     [Serializable]
-    public sealed class Blackboard<TEnum> where TEnum : Enum
+    public abstract class Blackboard<TKey, TEntity> : Module<TEntity> where TEntity : Entity
     {
-        private Dictionary<TEnum, object> properties = new Dictionary<TEnum, object>();
-
-        public void Set<T>(TEnum key, T value)
-        {
-            properties[key] = value;
-        }
-
-        public T Get<T>(TEnum key)
-        {
-            if (properties.TryGetValue(key, out var value))
-            {
-                return (T)value;
-            }
-
-            return default;
-        }
-
-        public void Clear()
-        {
-            properties.Clear();
-        }
-    }
-
-    [Serializable]
-    public abstract class Blackboard<TEnum, TEntity> : Module<TEntity> where TEnum : Enum where TEntity : Entity
-    {
-        private Dictionary<TEnum, int> properties = new Dictionary<TEnum, int>();
+        private Dictionary<TKey, int> properties = new Dictionary<TKey, int>();
         private const int SCALE = 100;
 
-        public int GetInt(TEnum key)
+        public int GetInt(TKey key)
         {
             properties.TryAdd(key, 0);
             return properties[key] / SCALE;
         }
 
-        public void SetInt(TEnum key, int value)
+        public void SetInt(TKey key, int value)
         {
             properties[key] = value * SCALE;
         }
 
-        public void AddInt(TEnum key, int value)
+        public void AddInt(TKey key, int value)
         {
             properties.TryAdd(key, 0);
             properties[key] += value * SCALE;
         }
 
-        public void SubInt(TEnum key, int value)
+        public void SubInt(TKey key, int value)
         {
             properties.TryAdd(key, 0);
             properties[key] -= value * SCALE;
         }
 
-        public float GetFloat(TEnum key)
+        public float GetFloat(TKey key)
         {
             properties.TryAdd(key, 0);
             return properties[key] / (float)SCALE;
         }
 
-        public void SetFloat(TEnum key, float value)
+        public void SetFloat(TKey key, float value)
         {
             properties[key] = (int)Math.Round(value * SCALE);
         }
 
-        public void AddFloat(TEnum key, float value)
+        public void AddFloat(TKey key, float value)
         {
             properties.TryAdd(key, 0);
             properties[key] += (int)Math.Round(value * SCALE);
         }
 
-        public void SubFloat(TEnum key, float value)
+        public void SubFloat(TKey key, float value)
         {
             properties.TryAdd(key, 0);
             properties[key] -= (int)Math.Round(value * SCALE);
@@ -163,6 +138,73 @@ namespace Astraia.Core
         public override void Enqueue()
         {
             properties.Clear();
+        }
+    }
+
+    [Serializable]
+    public class Dictionary<TKey> : IDisposable
+    {
+        private readonly Dictionary<Type, IDictionary> Items = new Dictionary<Type, IDictionary>();
+
+        public void Set<T>(TKey key, T value)
+        {
+            GetDict<T>()[key] = value;
+        }
+
+        public T Get<T>(TKey key)
+        {
+            return GetDict<T>()[key];
+        }
+
+        public void Add<T>(TKey key, T value)
+        {
+            GetDict<T>().Add(key, value);
+        }
+
+        public void Remove<T>(TKey key)
+        {
+            GetDict<T>().Remove(key);
+        }
+
+        public bool ContainsKey<T>(TKey key)
+        {
+            return GetDict<T>().ContainsKey(key);
+        }
+
+        public ICollection<TKey> GetKeys<T>()
+        {
+            return GetDict<T>().Keys;
+        }
+
+        public ICollection<T> GetValues<T>()
+        {
+            return GetDict<T>().Values;
+        }
+
+        public void Clear<T>()
+        {
+            GetDict<T>().Clear();
+        }
+
+        public void Dispose()
+        {
+            foreach (var item in Items.Values)
+            {
+                item.Clear();
+            }
+
+            Items.Clear();
+        }
+
+        private Dictionary<TKey, T> GetDict<T>()
+        {
+            if (!Items.TryGetValue(typeof(T), out var items))
+            {
+                items = new Dictionary<TKey, T>();
+                Items.Add(typeof(T), items);
+            }
+
+            return (Dictionary<TKey, T>)items;
         }
     }
 }
