@@ -161,14 +161,14 @@ namespace Astraia
 
             var fileData = (IDataTable)ScriptableObject.CreateInstance(GlobalSetting.SheetName.Format(sheetName));
             if (fileData == null) return;
-            var fileType = Service.Ref.GetType(GlobalSetting.SheetData.Format(sheetName));
+            var fileType = Search.GetType(GlobalSetting.SheetData.Format(sheetName));
             await Task.Run(() =>
             {
                 foreach (var column in scripts)
                 {
                     if (!string.IsNullOrEmpty(column[0]))
                     {
-                        var bytes = column.Select(c => new Xor.Bytes(Service.Text.GetBytes(c))).ToArray();
+                        var bytes = column.Select(c => new XorBytes(Text.GetBytes(c))).ToArray();
                         fileData.AddData((IData)Activator.CreateInstance(fileType, bytes));
                     }
                 }

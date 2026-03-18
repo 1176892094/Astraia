@@ -22,13 +22,13 @@ namespace Astraia.Core
     {
         public static void LoadDataTable()
         {
-            var assembly = Service.Ref.GetAssembly(GlobalSetting.Define);
+            var assembly = Search.GetAssembly(GlobalSetting.Define);
             if (assembly != null)
             {
                 foreach (var assetName in assembly.GetTypes().Where(type => typeof(IDataTable).IsAssignableFrom(type)).Select(type => type.Name))
                 {
                     var dataTable = (IDataTable)AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(assetName));
-                    var properties = dataTable.Type.GetProperties(Service.Ref.Instance);
+                    var properties = dataTable.Type.GetProperties(Search.Instance);
                     foreach (var property in properties)
                     {
                         if (property.HasAttribute<PrimaryAttribute>())
@@ -112,10 +112,10 @@ namespace Astraia.Core
             parsers[typeof(Vector3Int[])] = new Func<string, Vector3Int[]>(InputVector3IntArray);
         }
 
-        public static T Parse<T>(this Xor.Bytes[] reason, int index)
+        public static T Parse<T>(this XorBytes[] reason, int index)
         {
             if (reason == null) return default;
-            var value = Service.Text.GetString(reason[index]);
+            var value = Text.GetString(reason[index]);
             if (parsers.TryGetValue(typeof(T), out var func))
             {
                 return ((Func<string, T>)func).Invoke(value);
@@ -241,7 +241,7 @@ namespace Astraia.Core
             else
             {
                 var parts = reason.Split(',');
-                var member = target.GetFields(Service.Ref.Instance);
+                var member = target.GetFields(Search.Instance);
                 var result = Activator.CreateInstance(target);
                 for (var i = 0; i < parts.Length; i++)
                 {

@@ -76,7 +76,7 @@ namespace Astraia
             this.owner = owner;
             foreach (var module in moduleList)
             {
-                var result = Service.Ref.GetType(module);
+                var result = Search.GetType(module);
                 if (result != null)
                 {
                     GetComponent(result, result);
@@ -142,8 +142,8 @@ namespace Astraia
                     if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
                     {
                         var reason = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
-                        OnShow += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Listen", Service.Ref.Instance)!);
-                        OnHide += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Remove", Service.Ref.Instance)!);
+                        OnShow += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Listen", Search.Instance)!);
+                        OnHide += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Remove", Search.Instance)!);
                     }
                 }
 

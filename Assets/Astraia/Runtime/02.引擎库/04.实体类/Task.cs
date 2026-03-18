@@ -197,7 +197,7 @@ namespace Astraia
                     return true;
                 }
 
-                var index = Service.Seed.Next(nodes.Length);
+                var index = Seed.Next(nodes.Length);
                 var state = await nodes[index].Execute(data);
                 if (state)
                 {

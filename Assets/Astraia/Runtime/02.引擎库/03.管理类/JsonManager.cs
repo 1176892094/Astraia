@@ -53,9 +53,9 @@ namespace Astraia.Core
         {
             var path = LoadPath(name);
             var json = ToJson(data);
-            json = Service.Zip.Compress(json);
-            var item = Service.Text.GetBytes(json);
-            item = Service.Xor.Encrypt(item, GlobalSetting.Instance.EncryptKey);
+            json = Zip.Compress(json);
+            var item = Text.GetBytes(json);
+            item = Xor.Encrypt(item, GlobalSetting.Instance.EncryptKey);
             File.WriteAllBytes(path, item);
         }
 
@@ -68,9 +68,9 @@ namespace Astraia.Core
             }
 
             var item = File.ReadAllBytes(path);
-            item = Service.Xor.Decrypt(item);
-            var json = Service.Text.GetString(item);
-            json = Service.Zip.Decompress(json);
+            item = Xor.Decrypt(item);
+            var json = Text.GetString(item);
+            json = Zip.Decompress(json);
             FromJson(json, data);
         }
 
@@ -83,9 +83,9 @@ namespace Astraia.Core
             }
 
             var item = File.ReadAllBytes(path);
-            item = Service.Xor.Decrypt(item);
-            var json = Service.Text.GetString(item);
-            json = Service.Zip.Decompress(json);
+            item = Xor.Decrypt(item);
+            var json = Text.GetString(item);
+            json = Zip.Decompress(json);
             return FromJson<T>(json);
         }
 

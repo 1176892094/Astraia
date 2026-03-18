@@ -82,7 +82,7 @@ namespace Astraia
     {
         public static void Inject(this Component inject, object target)
         {
-            var fields = target.GetType().GetFields(Service.Ref.Instance);
+            var fields = target.GetType().GetFields(Search.Instance);
             foreach (var field in fields)
             {
                 if (!field.HasAttribute<InjectAttribute>())
@@ -118,13 +118,13 @@ namespace Astraia
 
                     field.SetValue(target, component);
 
-                    var method = target.GetType().GetMethod(upper, Service.Ref.Instance);
+                    var method = target.GetType().GetMethod(upper, Search.Instance);
                     if (method == null)
                     {
                         continue;
                     }
 
-                    var cacheType = Service.Ref.GetType("UnityEngine.UI.Button,UnityEngine.UI");
+                    var cacheType = Search.GetType("UnityEngine.UI.Button,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var button))
                     {
                         if (target is UIPanel panel)
@@ -143,7 +143,7 @@ namespace Astraia
                         }
                     }
 
-                    cacheType = Service.Ref.GetType("UnityEngine.UI.Toggle,UnityEngine.UI");
+                    cacheType = Search.GetType("UnityEngine.UI.Toggle,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var toggle))
                     {
                         if (target is UIPanel panel)
@@ -162,7 +162,7 @@ namespace Astraia
                         }
                     }
 
-                    cacheType = Service.Ref.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
+                    cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
                     if (component.TryGetComponent(cacheType, out var inputField))
                     {
                         if (target is UIPanel panel)

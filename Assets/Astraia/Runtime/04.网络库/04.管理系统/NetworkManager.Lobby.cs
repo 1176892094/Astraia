@@ -60,7 +60,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                var rooms = Service.Zip.Decompress(request.downloadHandler.text);
+                var rooms = Zip.Decompress(request.downloadHandler.text);
                 var jsons = JsonManager.FromJson<LobbyData[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
                 Log.Info("房间信息: {0}", rooms);

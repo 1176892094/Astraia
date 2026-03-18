@@ -172,7 +172,7 @@ namespace Astraia
         {
             if (index == -1)
             {
-                index = Service.Seed.Next(nodes.Count);
+                index = Seed.Next(nodes.Count);
             }
 
             var result = nodes[index].OnTick();

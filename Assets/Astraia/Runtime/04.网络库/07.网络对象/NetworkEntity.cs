@@ -145,7 +145,7 @@ namespace Astraia.Net
         {
             if (sceneId == 0 || sceneData.TryGetValue(sceneId, out var entity) && entity && entity != gameObject)
             {
-                sceneId = (uint)Service.Seed.Next();
+                sceneId = (uint)Seed.Next();
             }
 
             sceneData[sceneId] = gameObject;

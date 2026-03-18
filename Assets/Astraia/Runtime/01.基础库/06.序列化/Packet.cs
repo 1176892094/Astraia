@@ -216,7 +216,7 @@ namespace Astraia
 
         public void AddMessage(ArraySegment<byte> segment)
         {
-            var length = Service.Bit.Invoke((ulong)segment.Count);
+            var length = Bit.Invoke((ulong)segment.Count);
             if (writer != null && writer.position + length + segment.Count > maxLength)
             {
                 writers.Enqueue(writer);
@@ -224,7 +224,7 @@ namespace Astraia
             }
 
             writer ??= MemoryWriter.Pop();
-            Service.Bit.EncodeULong(writer, (ulong)segment.Count);
+            Bit.EncodeULong(writer, (ulong)segment.Count);
             writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 
@@ -319,7 +319,7 @@ namespace Astraia
                 return false;
             }
 
-            var length = (int)Service.Bit.DecodeULong(reader);
+            var length = (int)Bit.DecodeULong(reader);
 
             if (reader.buffer.Count - reader.position < length)
             {

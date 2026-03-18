@@ -75,12 +75,12 @@ namespace Astraia
         {
             for (byte i = 1; i < Instance.EncryptGroup.Length; i++)
             {
-                Service.Xor.LoadData(i, Instance.EncryptGroup[i]);
+                Xor.LoadData(i, Instance.EncryptGroup[i]);
             }
 
             if (Instance.InputMask != InputMask.Disable)
             {
-                Service.Input.LoadData(LoadAsset(AssetData.Input));
+                Word.LoadData(LoadAsset(AssetData.Input));
             }
 
             Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);

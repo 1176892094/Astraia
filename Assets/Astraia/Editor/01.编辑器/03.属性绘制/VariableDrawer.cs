@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace Astraia
 {
-    [CustomPropertyDrawer(typeof(Xor.Int))]
+    [CustomPropertyDrawer(typeof(XorInt32))]
     internal class XorIntDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -38,7 +38,7 @@ namespace Astraia
         }
     }
 
-    [CustomPropertyDrawer(typeof(Xor.Long))]
+    [CustomPropertyDrawer(typeof(XorInt64))]
     internal class XorLongDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

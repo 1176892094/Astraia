@@ -166,7 +166,7 @@ namespace Astraia.Core
             byte[] bytes = null;
             if (item.Key == 1)
             {
-                bytes = await Task.Run(() => Service.Xor.Decrypt(File.ReadAllBytes(item.Value)));
+                bytes = await Task.Run(() => Xor.Decrypt(File.ReadAllBytes(item.Value)));
             }
             else if (item.Key == 2)
             {
@@ -174,7 +174,7 @@ namespace Astraia.Core
                 await request.SendWebRequest();
                 if (request.result == UnityWebRequest.Result.Success)
                 {
-                    bytes = await Task.Run(() => Service.Xor.Decrypt(request.downloadHandler.data));
+                    bytes = await Task.Run(() => Xor.Decrypt(request.downloadHandler.data));
                 }
             }
 

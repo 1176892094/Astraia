@@ -32,12 +32,12 @@ namespace Astraia
 
         static EditorManager()
         {
-            Service.Ref.OnLoad -= EditorSetting.LoadWindows;
-            Service.Ref.OnLoad += EditorSetting.LoadWindows;
-            Service.Ref.OnLoad -= GlobalSetting.LoadSetting;
-            Service.Ref.OnLoad += GlobalSetting.LoadSetting;
-            Service.Ref.OnLoadComplete -= GlobalSetting.LoadComplete;
-            Service.Ref.OnLoadComplete += GlobalSetting.LoadComplete;
+            Search.OnLoad -= EditorSetting.LoadWindows;
+            Search.OnLoad += EditorSetting.LoadWindows;
+            Search.OnLoad -= GlobalSetting.LoadSetting;
+            Search.OnLoad += GlobalSetting.LoadSetting;
+            Search.OnLoadComplete -= GlobalSetting.LoadComplete;
+            Search.OnLoadComplete += GlobalSetting.LoadComplete;
 
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
@@ -128,7 +128,7 @@ namespace Astraia
 
         static EditorIcon()
         {
-            var data = Service.Zip.Decompress(GlobalSetting.LoadAsset(AssetData.Icons));
+            var data = Zip.Decompress(GlobalSetting.LoadAsset(AssetData.Icons));
             items = JsonManager.FromJson<List<KeyValue>>(data).ToDictionary(p => p.Key, p => p.Value);
         }
 

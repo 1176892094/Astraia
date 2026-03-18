@@ -55,7 +55,7 @@ namespace Astraia
         [InitializeOnLoadMethod]
         private static void LoadAssembly()
         {
-            Service.Ref.LoadData(new HashSet<string>
+            Search.LoadData(new HashSet<string>
             {
                 "Astraia.Run",
                 "Astraia.Net"
@@ -243,7 +243,7 @@ namespace Astraia
                 await Task.Run(() =>
                 {
                     var bytes = File.ReadAllBytes(file.FullName);
-                    bytes = Service.Xor.Encrypt(bytes);
+                    bytes = Xor.Encrypt(bytes);
                     File.WriteAllBytes(file.FullName, bytes);
                 });
 

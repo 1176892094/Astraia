@@ -42,7 +42,7 @@ namespace Astraia.Core
         protected override void Awake()
         {
             base.Awake();
-            address = Service.Host.Ip();
+            address = Host.Ip();
             screenColor = Color.white;
             screenRate = new Vector2(2560, 1440);
             screenRect = new Rect(10, 20, 100, 60);
@@ -1156,12 +1156,12 @@ namespace Astraia.Core
 
         internal static void OnSend<T>(T message, int bytes) where T : struct, IMessage
         {
-            itemSend?.Record(message, Service.Bit.Invoke((uint)bytes) + bytes);
+            itemSend?.Record(message, Bit.Invoke((uint)bytes) + bytes);
         }
 
         internal static void OnReceive<T>(T message, int bytes) where T : struct, IMessage
         {
-            itemReceive?.Record(message, Service.Bit.Invoke((uint)bytes + 2) + bytes + 2);
+            itemReceive?.Record(message, Bit.Invoke((uint)bytes + 2) + bytes + 2);
         }
 
         internal static string PrettyBytes(long bytes)
