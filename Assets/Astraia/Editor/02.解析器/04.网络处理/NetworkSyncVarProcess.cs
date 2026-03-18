@@ -85,7 +85,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
         {
-            var attribute = syncVar.GetCustomAttribute<SyncVarAttribute>();
+            var attribute = syncVar.GetAttribute<SyncVarAttribute>();
             var hookMethod = attribute.GetField<string>();
             if (hookMethod != null)
             {
@@ -169,7 +169,7 @@ namespace Astraia.Editor
 
             foreach (var fd in td.Fields)
             {
-                if (!fd.HasCustomAttribute<SyncVarAttribute>())
+                if (!fd.HasAttribute<SyncVarAttribute>())
                 {
                     continue;
                 }

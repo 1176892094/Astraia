@@ -144,7 +144,7 @@ namespace Astraia.Editor
                 if (!md.ReturnType.Is(typeof(void)))
                     continue;
 
-                if (!md.HasCustomAttribute<ExtensionAttribute>())
+                if (!md.HasAttribute<ExtensionAttribute>())
                     continue;
 
                 if (md.HasGenericParameters)
@@ -174,7 +174,7 @@ namespace Astraia.Editor
                 if (md.ReturnType.Is(typeof(void)))
                     continue;
 
-                if (!md.HasCustomAttribute<ExtensionAttribute>())
+                if (!md.HasAttribute<ExtensionAttribute>())
                     continue;
 
                 if (md.HasGenericParameters)

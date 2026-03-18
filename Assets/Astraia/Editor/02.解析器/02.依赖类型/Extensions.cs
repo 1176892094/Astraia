@@ -109,15 +109,7 @@ namespace Astraia.Editor
         /// </summary>
         public static MethodDefinition GetMethod(this TypeDefinition self, string name)
         {
-            foreach (var method in self.Methods)
-            {
-                if (method.Name == name)
-                {
-                    return method;
-                }
-            }
-
-            return null;
+            return self.Methods.FirstOrDefault(method => method.Name == name);
         }
 
         /// <summary>
@@ -131,7 +123,7 @@ namespace Astraia.Editor
         /// <summary>
         /// 判断自定义特性
         /// </summary>
-        public static bool HasCustomAttribute<T>(this ICustomAttributeProvider self)
+        public static bool HasAttribute<T>(this ICustomAttributeProvider self)
         {
             return self.CustomAttributes.Any(custom => custom.AttributeType.Is<T>());
         }
@@ -139,7 +131,7 @@ namespace Astraia.Editor
         /// <summary>
         /// 获取自定义特性
         /// </summary>
-        public static CustomAttribute GetCustomAttribute<T>(this ICustomAttributeProvider self)
+        public static CustomAttribute GetAttribute<T>(this ICustomAttributeProvider self)
         {
             return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<T>());
         }
