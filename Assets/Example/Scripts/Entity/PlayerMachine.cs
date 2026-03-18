@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerMachine : StateMachine<Player>
+    public class PlayerMachine : StateMachine<int, Player>
     {
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;

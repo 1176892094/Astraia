@@ -16,11 +16,11 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
-        public PlayerInput Input => FindComponent<PlayerInput>();
-        public PlayerSender Sender => FindComponent<PlayerSender>();
-        public PlayerMachine Machine => FindComponent<PlayerMachine>();
-        public PlayerFeature Feature => FindComponent<PlayerFeature>();
-        public NetworkTransform Transform => FindComponent<NetworkTransform>();
+        public PlayerInput Input => Logic.GetComponent<PlayerInput>();
+        public PlayerSender Sender => Logic.GetComponent<PlayerSender>();
+        public PlayerMachine Machine => Logic.GetComponent<PlayerMachine>();
+        public PlayerFeature Feature => Logic.GetComponent<PlayerFeature>();
+        public NetworkTransform Transform => Logic.GetComponent<NetworkTransform>();
         private Ray2D DLRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
         private Ray2D DRRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
         private Ray2D RURay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
@@ -33,9 +33,9 @@ namespace Runtime
         protected override void Awake()
         {
             base.Awake();
-            AddComponent<PlayerFeature>();
-            AddComponent<PlayerMachine>();
-            AddComponent<PlayerInput>();
+            Logic.AddComponent<PlayerFeature>();
+            Logic.AddComponent<PlayerMachine>();
+            Logic.AddComponent<PlayerInput>();
             Transform.syncDirection = SyncMode.Client;
         }
 

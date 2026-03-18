@@ -92,13 +92,5 @@ namespace Runtime
             var obj = AssetManager.Load<GameObject>("Prefabs/30001");
             NetworkManager.Server.Spawn(obj, message.client);
         }
-
-#if UNITY_EDITOR
-        [UnityEditor.InitializeOnLoadMethod]
-        public static void Initialized()
-        {
-            Service.Ref.LoadData(new HashSet<string>());
-        }
-#endif
     }
 }
