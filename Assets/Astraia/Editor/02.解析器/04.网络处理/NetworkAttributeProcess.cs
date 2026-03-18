@@ -35,9 +35,9 @@ namespace Astraia.Editor
         /// <param name="func"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessClientRpc(Module module, Reader reader, ILog log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ProcessClientRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Process.GenerateMethodName(Const.INV_METHOD, md);
+            var rpcName = Weaver.GenerateMethodName(Const.INV_METHOD, md);
             var rpc = new MethodDefinition(rpcName, Const.RPC_ATTRS, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
@@ -69,7 +69,7 @@ namespace Astraia.Editor
         /// <param name="ca"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessClientRpcInvoke(Module module, Writer writer, ILog log, TypeDefinition td,
+        public static MethodDefinition ProcessClientRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td,
             MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
             var rpc = BaseInvokeMethod(log, td, md, ref failed);
@@ -104,10 +104,10 @@ namespace Astraia.Editor
         /// <param name="func"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessServerRpc(Module module, Reader reader, ILog log, TypeDefinition td,
+        public static MethodDefinition ProcessServerRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Process.GenerateMethodName(Const.INV_METHOD, md);
+            var rpcName = Weaver.GenerateMethodName(Const.INV_METHOD, md);
             var rpc = new MethodDefinition(rpcName, Const.RPC_ATTRS, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
@@ -147,7 +147,7 @@ namespace Astraia.Editor
         /// <param name="ca"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessServerRpcInvoke(Module module, Writer writer, ILog log, TypeDefinition td,
+        public static MethodDefinition ProcessServerRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td,
             MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
             var rpc = BaseInvokeMethod(log, td, md, ref failed);
@@ -183,10 +183,10 @@ namespace Astraia.Editor
         /// <param name="func"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpc(Module module, Reader reader, ILog log, TypeDefinition td,
+        public static MethodDefinition ProcessTargetRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Process.GenerateMethodName(Const.INV_METHOD, md);
+            var rpcName = Weaver.GenerateMethodName(Const.INV_METHOD, md);
             var rpc = new MethodDefinition(rpcName, Const.RPC_ATTRS, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
@@ -223,7 +223,7 @@ namespace Astraia.Editor
         /// <param name="ca"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpcInvoke(Module module, Writer writer, ILog log, TypeDefinition td,
+        public static MethodDefinition ProcessTargetRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td,
             MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
             var rpc = BaseInvokeMethod(log, td, md, ref failed);
@@ -258,7 +258,7 @@ namespace Astraia.Editor
         /// <param name="mode"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool WriteArguments(ILProcessor worker, Writer writer, ILog log, MethodDefinition method, InvokeMode mode, ref bool failed)
+        private static bool WriteArguments(ILProcessor worker, Writer writer, ILogPostProcessor log, MethodDefinition method, InvokeMode mode, ref bool failed)
         {
             var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
             var argument = 1;
@@ -303,7 +303,7 @@ namespace Astraia.Editor
         /// <param name="mode"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static bool ReadArguments(MethodDefinition method, Reader reader, ILog log, ILProcessor worker, InvokeMode mode, ref bool failed)
+        private static bool ReadArguments(MethodDefinition method, Reader reader, ILogPostProcessor log, ILProcessor worker, InvokeMode mode, ref bool failed)
         {
             var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
             var argument = 1;
@@ -423,9 +423,9 @@ namespace Astraia.Editor
         /// <param name="md"></param>
         /// <param name="failed"></param>
         /// <returns></returns>
-        private static MethodDefinition BaseInvokeMethod(ILog log, TypeDefinition td, MethodDefinition md, ref bool failed)
+        private static MethodDefinition BaseInvokeMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
-            var newName = Process.GenerateMethodName(Const.RPC_METHOD, md);
+            var newName = Weaver.GenerateMethodName(Const.RPC_METHOD, md);
             var method = new MethodDefinition(newName, md.Attributes, md.ReturnType)
             {
                 IsPublic = false,
@@ -465,7 +465,7 @@ namespace Astraia.Editor
         /// <param name="td"></param>
         /// <param name="md"></param>
         /// <param name="failed"></param>
-        private static void ProcessBaseMethod(ILog log, TypeDefinition td, MethodDefinition md, ref bool failed)
+        private static void ProcessBaseMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
             var fullName = md.Name;
             if (!fullName.StartsWith(Const.RPC_METHOD))
@@ -479,7 +479,7 @@ namespace Astraia.Editor
             {
                 if (IsInvokeToMethod(instruction, out var methodDef))
                 {
-                    var newName = Process.GenerateMethodName("", methodDef);
+                    var newName = Weaver.GenerateMethodName("", methodDef);
                     if (newName == name)
                     {
                         var baseType = td.BaseType.Resolve();

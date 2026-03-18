@@ -194,7 +194,7 @@ namespace Astraia.Editor
         /// <param name="assembly"></param>
         /// <param name="log"></param>
         /// <param name="failed"></param>
-        public Module(AssemblyDefinition assembly, ILog log, ref bool failed)
+        public Module(AssemblyDefinition assembly, ILogPostProcessor log, ref bool failed)
         {
             this.assembly = assembly;
 

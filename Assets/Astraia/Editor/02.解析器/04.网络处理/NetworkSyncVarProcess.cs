@@ -22,12 +22,12 @@ namespace Astraia.Editor
 
     internal class SyncVarProcess
     {
-        private readonly ILog log;
+        private readonly ILogPostProcessor log;
         private readonly Module module;
         private readonly SyncVarAccess access;
         private readonly AssemblyDefinition assembly;
 
-        public SyncVarProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, ILog log)
+        public SyncVarProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, ILogPostProcessor log)
         {
             this.log = log;
             this.access = access;

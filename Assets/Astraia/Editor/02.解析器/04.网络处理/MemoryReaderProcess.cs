@@ -23,11 +23,11 @@ namespace Astraia.Editor
     {
         private readonly Dictionary<TypeReference, MethodReference> methods = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly Module module;
-        private readonly ILog log;
+        private readonly ILogPostProcessor log;
         private readonly TypeDefinition generate;
         private readonly AssemblyDefinition assembly;
 
-        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition generate, ILog log)
+        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition generate, ILogPostProcessor log)
         {
             this.log = log;
             this.module = module;

@@ -21,6 +21,11 @@ namespace Astraia.Editor
         public const string ASSEMBLY = "Astraia.Net";
 
         /// <summary>
+        /// 忽略程序集
+        /// </summary>
+        public const string IGNORE = "ILPP_IGNORE";
+        
+        /// <summary>
         /// 命名空间
         /// </summary>
         public const string GEN_TYPE = "Astraia.Net";

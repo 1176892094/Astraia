@@ -23,7 +23,7 @@ namespace Astraia.Editor
         private Dictionary<FieldDefinition, FieldDefinition> syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
         private readonly Module module;
-        private readonly ILog log;
+        private readonly ILogPostProcessor log;
         private readonly Writer writer;
         private readonly Reader reader;
         private readonly SyncVarAccess access;
@@ -39,7 +39,7 @@ namespace Astraia.Editor
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
         public NetworkModuleProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader,
-            ILog log, TypeDefinition type)
+            ILogPostProcessor log, TypeDefinition type)
         {
             generate = type;
             this.type = type;

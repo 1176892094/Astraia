@@ -65,7 +65,7 @@ namespace Astraia.Editor
         /// <summary>
         /// 在Process中调用
         /// </summary>
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILog log, Writer writer, Reader reader, ref bool failed)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor log, Writer writer, Reader reader, ref bool failed)
         {
             ProcessAssembly(assembly, resolver, log, writer, reader, ref failed);
             return ProcessCustomCode(assembly, assembly, writer, reader, ref failed);
@@ -74,7 +74,7 @@ namespace Astraia.Editor
         /// <summary>
         /// 处理网络代码
         /// </summary>
-        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILog log, Writer writer, Reader reader, ref bool failed)
+        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor log, Writer writer, Reader reader, ref bool failed)
         {
             AssemblyNameReference assemblyRef = null;
             foreach (var reference in assembly.MainModule.AssemblyReferences)

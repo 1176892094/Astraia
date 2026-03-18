@@ -51,7 +51,7 @@ namespace Astraia.Editor
             return tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
         }
 
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, ILog log, Predicate<MethodDefinition> match, ref bool failed)
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, ILogPostProcessor log, Predicate<MethodDefinition> match, ref bool failed)
         {
             var mr = GetMethod(tr, ad, match);
             if (mr == null)
@@ -63,7 +63,7 @@ namespace Astraia.Editor
             return mr;
         }
 
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, ILog log, string name, ref bool failed)
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, ILogPostProcessor log, string name, ref bool failed)
         {
             var mr = GetMethod(tr, ad, method => method.Name == name);
             if (mr == null)

@@ -16,7 +16,7 @@ using Mono.Cecil;
 
 namespace Astraia.Editor
 {
-    internal class Process
+    internal class Weaver
     {
         private bool failed;
         private Module module;
@@ -25,17 +25,17 @@ namespace Astraia.Editor
         private SyncVarAccess access;
         private TypeDefinition process;
         private AssemblyDefinition assembly;
-        private readonly ILog log;
+        private readonly ILogPostProcessor log;
 
-        public Process(ILog log)
+        public Weaver(ILogPostProcessor log)
         {
             this.log = log;
         }
 
-        public bool Execute(AssemblyDefinition assembly, IAssemblyResolver resolver, out bool change)
+        public bool Weave(AssemblyDefinition assembly, IAssemblyResolver resolver, out bool modified)
         {
             failed = false;
-            change = false;
+            modified = false;
             try
             {
                 this.assembly = assembly;
@@ -53,17 +53,17 @@ namespace Astraia.Editor
                 process = new TypeDefinition(Const.GEN_TYPE, Const.GEN_NAME, Const.GEN_ATTRS, module.Import<object>());
                 writer = new Writer(assembly, module, process, log);
                 reader = new Reader(assembly, module, process, log);
-                change = RuntimeAttribute.Process(assembly, resolver, log, writer, reader, ref failed);
+                modified = RuntimeAttribute.Process(assembly, resolver, log, writer, reader, ref failed);
 
                 var mainModule = assembly.MainModule;
 
-                change |= ProcessModule(mainModule);
+                modified |= ProcessModule(mainModule);
                 if (failed)
                 {
                     return false;
                 }
 
-                if (change)
+                if (modified)
                 {
                     SyncVarReplace.Process(mainModule, access);
                     mainModule.Types.Add(process);
