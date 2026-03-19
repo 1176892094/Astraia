@@ -160,41 +160,37 @@ namespace Astraia.Editor
         private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarIds, long dirtyBits, ref bool failed)
         {
             FieldDefinition objectId = null;
-            if (fd.FieldType.IsSubclassOf<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
+            if (fd.FieldType.Is<NetworkModule>() || fd.FieldType.IsSubclassOf<NetworkModule>())
             {
-                objectId = new FieldDefinition("{0}Id".Format(fd.Name), FieldAttributes.Family, module.Import<NetworkVariable>())
-                {
-                    DeclaringType = td
-                };
+                objectId = new FieldDefinition("{0}ID".Format(fd.Name), FieldAttributes.Family, module.Import<NetworkVariable>());
                 syncVarIds[fd] = objectId;
+                objectId.DeclaringType = td;
             }
-            else if (fd.FieldType.Support())
+            else if (fd.FieldType.Is<GameObject>() || fd.FieldType.Is<NetworkEntity>())
             {
-                objectId = new FieldDefinition("{0}Id".Format(fd.Name), FieldAttributes.Family, module.Import<uint>())
-                {
-                    DeclaringType = td
-                };
+                objectId = new FieldDefinition("{0}ID".Format(fd.Name), FieldAttributes.Family, module.Import<uint>());
                 syncVarIds[fd] = objectId;
+                objectId.DeclaringType = td;
             }
 
-            var get = GenerateSyncVarGetter(fd, fd.Name, objectId);
-            var set = GenerateSyncVarSetter(td, fd, fd.Name, dirtyBits, objectId, ref failed);
+            var getter = GenerateSyncVarGetter(fd, fd.Name, objectId);
+            var setter = GenerateSyncVarSetter(td, fd, fd.Name, dirtyBits, objectId, ref failed);
 
-            var pd = new PropertyDefinition("Network{0}".Format(fd.Name), PropertyAttributes.None, fd.FieldType)
+            var property = new PropertyDefinition("{0}Var".Format(fd.Name), PropertyAttributes.None, fd.FieldType)
             {
-                GetMethod = get,
-                SetMethod = set
+                GetMethod = getter,
+                SetMethod = setter
             };
 
-            td.Methods.Add(get);
-            td.Methods.Add(set);
-            td.Properties.Add(pd);
+            td.Methods.Add(getter);
+            td.Methods.Add(setter);
+            td.Properties.Add(property);
 
-            access.setter[fd] = set;
+            access.setter[fd] = setter;
 
             if (fd.FieldType.Support())
             {
-                access.getter[fd] = get;
+                access.getter[fd] = getter;
             }
         }
 
@@ -207,7 +203,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string name, FieldDefinition fieldId)
         {
-            var get = new MethodDefinition("get_Network{0}".Format(name), Weaver.GEN_SYNC, fd.FieldType);
+            var get = new MethodDefinition("get_{0}Var".Format(name), Weaver.GEN_SYNC, fd.FieldType);
 
             var worker = get.Body.GetILProcessor();
 
@@ -274,7 +270,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string name, long dirtyBit, FieldDefinition fieldId, ref bool failed)
         {
-            var set = new MethodDefinition("set_Network{0}".Format(name), Weaver.GEN_SYNC, module.Import(typeof(void)));
+            var set = new MethodDefinition("set_{0}Var".Format(name), Weaver.GEN_SYNC, module.Import(typeof(void)));
 
             var worker = set.Body.GetILProcessor();
             var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeGeneric() : fd;
