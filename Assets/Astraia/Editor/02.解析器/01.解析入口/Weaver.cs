@@ -20,6 +20,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Member = Mono.Cecil.TypeAttributes;
 using Method = Mono.Cecil.MethodAttributes;
+using Object = UnityEngine.Object;
 
 namespace Astraia.Editor
 {
@@ -264,4 +265,5 @@ namespace Astraia.Editor
             return method.Name == nameof(Net.Extensions.ReadNetworkModule) && method.HasGenericParameters;
         }
     }
+
 }
