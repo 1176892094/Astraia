@@ -43,7 +43,7 @@ namespace Astraia.Editor
 
         public static MethodDefinition GetConstructor(TypeReference tr)
         {
-            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Weaver.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
+            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Weaver.GEN_CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
         }
 
         public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match, ILogPostProcessor Log, ref bool failure)

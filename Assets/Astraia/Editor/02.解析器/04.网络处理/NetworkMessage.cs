@@ -235,7 +235,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, GetFunction(module.Import<bool>(), ref failed));
             }
 
-            foreach (var field in tr.Resolve().GetPublicFields())
+            foreach (var field in tr.Resolve().GetFields())
             {
                 var mr = GetFunction(field.FieldType, ref failed);
                 if (mr == null)
@@ -380,7 +380,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Initobj, tr);
             }
 
-            foreach (var field in tr.Resolve().GetPublicFields())
+            foreach (var field in tr.Resolve().GetFields())
             {
                 worker.Emit(tr.IsValueType ? OpCodes.Ldloca : OpCodes.Ldloc, 0);
                 var mr = GetFunction(field.FieldType, ref failed);

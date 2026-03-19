@@ -12,9 +12,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Astraia.Net;
 using Mono.Cecil;
 using UnityEngine;
+using Astraia.Net;
 
 namespace Astraia.Editor
 {
@@ -30,11 +30,6 @@ namespace Astraia.Editor
             return self.Is(typeof(T));
         }
 
-        public static bool IsValid(this TypeReference self)
-        {
-            return self.Is<GameObject>() || self.Is<NetworkEntity>() || self.IsDerivedFrom<NetworkModule>() || self.Is<NetworkModule>();
-        }
-
         public static bool HasAttribute<T>(this ICustomAttributeProvider self)
         {
             return self.CustomAttributes.Any(custom => custom.AttributeType.Is<T>());
@@ -45,24 +40,83 @@ namespace Astraia.Editor
             return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<T>());
         }
 
-        public static T GetField<T>(this CustomAttribute self)
-        {
-            return (T)self.ConstructorArguments.FirstOrDefault(argument => argument.Type.FullName == typeof(T).FullName).Value;
-        }
-
         public static MethodDefinition GetMethod(this TypeDefinition self, string name)
         {
             return self.Methods.FirstOrDefault(method => method.Name == name);
         }
 
-        public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
-        {
-            return self.Methods.Where(method => method.Name == name);
-        }
-
         public static IEnumerable<MethodDefinition> GetConstructors(this TypeDefinition self)
         {
             return self.Methods.Where(method => method.IsConstructor);
+        }
+
+        public static object GetArgument(this ICustomAttribute self)
+        {
+            return self.ConstructorArguments[0].Value;
+        }
+
+        public static bool Support(this TypeReference self)
+        {
+            return self.Is<GameObject>() || self.Is<NetworkEntity>() || self.IsDerivedFrom<NetworkModule>() || self.Is<NetworkModule>();
+        }
+
+        public static string GetName(this MethodDefinition self, string name)
+        {
+            return self.Name + name;
+        }
+
+        public static IEnumerable<FieldDefinition> GetFields(this TypeDefinition self)
+        {
+            while (self != null)
+            {
+                foreach (var fd in self.Fields.Where(field => field.IsPublic && !field.IsStatic))
+                {
+                    yield return fd;
+                }
+
+                self = self.GetBaseType();
+            }
+        }
+
+
+        public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
+        {
+            while (self != null)
+            {
+                foreach (var md in self.Methods.Where(md => md.Name == name))
+                {
+                    yield return md;
+                }
+
+                self = self.GetBaseType();
+            }
+        }
+
+        public static bool HasInterface<T>(this TypeDefinition self)
+        {
+            while (self != null)
+            {
+                if (self.Interfaces.Any(ii => ii.InterfaceType.Is<T>()))
+                {
+                    return true;
+                }
+
+                self = self.GetBaseType();
+            }
+
+            return false;
+        }
+
+        public static TypeDefinition GetBaseType(this TypeDefinition self)
+        {
+            try
+            {
+                return self.BaseType?.Resolve();
+            }
+            catch (AssemblyResolutionException)
+            {
+                return null;
+            }
         }
 
         private static bool IsDerivedFrom(this TypeReference self, Type t)
@@ -170,49 +224,6 @@ namespace Astraia.Editor
             return md.ImportReference(method);
         }
 
-        public static IEnumerable<FieldDefinition> GetPublicFields(this TypeDefinition self)
-        {
-            while (self != null)
-            {
-                foreach (var field in self.Fields.Where(field => field.IsPublic && !field.IsStatic))
-                {
-                    yield return field;
-                }
-
-                try
-                {
-                    self = self.BaseType?.Resolve();
-                }
-                catch (AssemblyResolutionException)
-                {
-                    break;
-                }
-            }
-        }
-
-        public static bool IsImplement<T>(this TypeDefinition self)
-        {
-            var td = self;
-            while (td != null)
-            {
-                if (td.Interfaces.Any(implementation => implementation.InterfaceType.Is<T>()))
-                {
-                    return true;
-                }
-
-                try
-                {
-                    td = td.BaseType?.Resolve();
-                }
-                catch
-                {
-                    break;
-                }
-            }
-
-            return false;
-        }
-
 
         public static FieldReference SpecializeField(this FieldReference self, ModuleDefinition md, GenericInstanceType type)
         {
@@ -227,29 +238,6 @@ namespace Astraia.Editor
             }
 
             throw new ArgumentException("无效的枚举类型: " + self.FullName);
-        }
-
-        public static MethodDefinition GetMethodInBaseType(this TypeDefinition self, string name)
-        {
-            var td = self;
-            while (td != null)
-            {
-                foreach (var md in td.Methods.Where(md => md.Name == name))
-                {
-                    return md;
-                }
-
-                try
-                {
-                    td = td.BaseType?.Resolve();
-                }
-                catch
-                {
-                    break;
-                }
-            }
-
-            return null;
         }
     }
 }

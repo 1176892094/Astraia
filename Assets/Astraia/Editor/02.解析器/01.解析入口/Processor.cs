@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,7 +23,7 @@ using Unity.CompilationPipeline.Common.ILPostProcessing;
 
 namespace Astraia.Editor
 {
-    internal class NetworkProcessor : ILPostProcessor
+    internal sealed class NetworkProcessor : ILPostProcessor
     {
         public override ILPostProcessor GetInstance() => this;
 
@@ -121,8 +122,8 @@ namespace Astraia.Editor
 
     internal sealed class AssemblyResolver : IAssemblyResolver
     {
-        private readonly Dictionary<string, AssemblyDefinition> Definitions = new Dictionary<string, AssemblyDefinition>();
-        private readonly Dictionary<string, string> Assemblies = new Dictionary<string, string>();
+        private readonly ConcurrentDictionary<string, AssemblyDefinition> Definitions = new ConcurrentDictionary<string, AssemblyDefinition>();
+        private readonly ConcurrentDictionary<string, string> Assemblies = new ConcurrentDictionary<string, string>();
         private readonly ICompiledAssembly Assembly;
         private readonly ILogPostProcessor Debugger;
         private AssemblyDefinition Definition;

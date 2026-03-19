@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Astraia.Net;
@@ -22,23 +21,25 @@ using Method = Mono.Cecil.MethodAttributes;
 
 namespace Astraia.Editor
 {
+    [Serializable]
     internal class Weaver
     {
-        public const int SYNC_LIMIT = 64;
-        public const string CTOR = ".ctor";
-        public const string GEN_TYPE = "Astraia.Net";
+        public const int BIT_COUNT = 64;
         public const string GEN_SKIP = "ILPP_IGNORE";
-        public const string GEN_FUNC = "NetworkProcessor";
-        public const string INV_METHOD = "_0";
-        public const string RPC_METHOD = "_1";
-        public const string SER_METHOD = "SerializeSyncVars";
-        public const string DES_METHOD = "DeserializeSyncVars";
+        public const string GEN_TYPE = "Astraia.Net";
+        public const string GEN_CTOR = ".ctor";
+        public const string GEN_CCTOR = ".cctor";
+        public const string MED_RPC = "V1";
+        public const string MED_INV = "V2";
+        public const string MED_SER = "SerializeSyncVars";
+        public const string MED_DES = "DeserializeSyncVars";
+        public const string GEN_FUN = nameof(NetworkProcessor);
         public const Method GEN_RPC = Method.HideBySig | Method.Family | Method.Static;
         public const Method GEN_RAW = Method.HideBySig | Method.Public | Method.Static;
         public const Method GEN_VAR = Method.HideBySig | Method.Public | Method.Virtual;
         public const Method GEN_SYNC = Method.HideBySig | Method.Public | Method.SpecialName;
-        public const Method GEN_CTOR = Method.HideBySig | Method.Static | Method.SpecialName | Method.Private | Method.RTSpecialName;
-        private const Member GEN_ATTR = Member.AutoClass | Member.Public | Member.Class | Member.AnsiClass | Member.Abstract | Member.Sealed | Member.BeforeFieldInit;
+        public const Method GEN_DATA = Method.HideBySig | Method.Static | Method.SpecialName | Method.Private | Method.RTSpecialName;
+        public const Member GEN_ATTR = Member.AutoClass | Member.Public | Member.Class | Member.AnsiClass | Member.Abstract | Member.Sealed | Member.BeforeFieldInit;
 
         private bool failed;
         private Module module;
@@ -46,13 +47,9 @@ namespace Astraia.Editor
         private Reader reader;
         private SyncVarAccess access;
         private TypeDefinition expand;
-        private AssemblyDefinition assembly;
         private readonly ILogPostProcessor debugger;
 
-        public Weaver(ILogPostProcessor debugger)
-        {
-            this.debugger = debugger;
-        }
+        public Weaver(ILogPostProcessor debugger) => this.debugger = debugger;
 
         public bool Weave(AssemblyDefinition assembly, IAssemblyResolver resolver, out bool modified)
         {
@@ -60,9 +57,8 @@ namespace Astraia.Editor
             modified = false;
             try
             {
-                this.assembly = assembly;
                 var watch = Stopwatch.StartNew();
-                if (assembly.MainModule.GetTypes().Any(type => type.Namespace == GEN_TYPE && type.Name == nameof(NetworkProcessor)))
+                if (assembly.MainModule.GetTypes().Any(type => type.Namespace == GEN_TYPE && type.Name == GEN_FUN))
                 {
                     return true;
                 }
@@ -70,17 +66,24 @@ namespace Astraia.Editor
                 access = new SyncVarAccess();
                 module = new Module(assembly, debugger, ref failed);
 
-                expand = new TypeDefinition(GEN_TYPE, nameof(NetworkProcessor), GEN_ATTR, module.Import<object>());
+                expand = new TypeDefinition(GEN_TYPE, GEN_FUN, GEN_ATTR, module.Import<object>());
                 writer = new Writer(assembly, module, expand, debugger);
                 reader = new Reader(assembly, module, expand, debugger);
                 modified = NetworkRuntime.Process(assembly, resolver, debugger, writer, reader, ref failed);
 
                 var mainModule = assembly.MainModule;
-                foreach (var td in mainModule.Types)
+                foreach (var td in mainModule.Types.Where(td => td.IsClass && td.BaseType.CanResolve() && td.IsDerivedFrom<NetworkModule>()))
                 {
-                    if (td.IsClass && td.BaseType.CanResolve())
+                    var self = td;
+                    while (self != null)
                     {
-                        modified |= ProcessModule(td, ref failed);
+                        if (self.Is<NetworkModule>())
+                        {
+                            break;
+                        }
+
+                        modified |= new NetworkMember(assembly, access, module, writer, reader, debugger, self).Process(ref failed);
+                        self = self.GetBaseType();
                     }
                 }
 
@@ -106,53 +109,6 @@ namespace Astraia.Editor
                 debugger.Error(e.ToString());
                 return false;
             }
-        }
-
-        private bool ProcessModule(TypeDefinition td, ref bool failed)
-        {
-            if (!td.IsClass)
-            {
-                return false;
-            }
-
-            if (!td.IsDerivedFrom<NetworkModule>())
-            {
-                return false;
-            }
-
-            var modules = new List<TypeDefinition>();
-            var parent = td;
-            while (parent != null)
-            {
-                if (parent.Is<NetworkModule>())
-                {
-                    break;
-                }
-
-                try
-                {
-                    modules.Insert(0, parent);
-                    parent = parent.BaseType.Resolve();
-                }
-                catch (AssemblyResolutionException)
-                {
-                    break;
-                }
-            }
-
-            var changed = false;
-            foreach (var m in modules)
-            {
-                changed |= new NetworkMember(assembly, access, module, writer, reader, debugger, m).Process(ref failed);
-            }
-
-            return changed;
-        }
-
-
-        public static string GetMethodName(MethodDefinition md, string prefix)
-        {
-            return md.Name + prefix;
         }
     }
 
@@ -194,15 +150,14 @@ namespace Astraia.Editor
         public readonly MethodReference SendTargetRpcInternal;
         public readonly MethodReference SendClientRpcInternal;
 
-
         public Module(AssemblyDefinition assembly, ILogPostProcessor debugger, ref bool failed)
         {
             this.assembly = assembly;
             Initialized = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
             LogError = Resolve.GetMethod(Import<Debug>(), assembly, OnLogError, debugger, ref failed);
-            SyncVarHook = Resolve.GetMethod(Import(typeof(Action<,>)), assembly, Weaver.CTOR, debugger, ref failed);
-            InvokeDelegate = Resolve.GetMethod(Import<InvokeDelegate>(), assembly, Weaver.CTOR, debugger, ref failed);
-            AddArraySegment = Resolve.GetMethod(Import(typeof(ArraySegment<>)), assembly, Weaver.CTOR, debugger, ref failed);
+            SyncVarHook = Resolve.GetMethod(Import(typeof(Action<,>)), assembly, Weaver.GEN_CTOR, debugger, ref failed);
+            InvokeDelegate = Resolve.GetMethod(Import<InvokeDelegate>(), assembly, Weaver.GEN_CTOR, debugger, ref failed);
+            AddArraySegment = Resolve.GetMethod(Import(typeof(ArraySegment<>)), assembly, Weaver.GEN_CTOR, debugger, ref failed);
             GetTypeFromHandle = Resolve.GetMethod(Import<Type>(), assembly, "GetTypeFromHandle", debugger, ref failed);
             ReadNetworkModule = Resolve.GetMethod(Import(typeof(Net.Extensions)), assembly, ReadModule, debugger, ref failed);
 

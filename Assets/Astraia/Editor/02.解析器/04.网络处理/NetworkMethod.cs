@@ -9,6 +9,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System.Linq;
 using Astraia.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -26,7 +27,7 @@ namespace Astraia.Editor
     {
         public static MethodDefinition ClientRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Weaver.GetMethodName(md, Weaver.INV_METHOD);
+            var rpcName = md.GetName(Weaver.MED_INV);
             var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
@@ -63,7 +64,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, ca.GetField<int>());
+            worker.Emit(OpCodes.Ldc_I4, (int)ca.GetArgument());
             worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
             NetworkMember.WritePushSetter(worker, module);
             worker.Emit(OpCodes.Ret);
@@ -72,7 +73,7 @@ namespace Astraia.Editor
 
         public static MethodDefinition ServerRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Weaver.GetMethodName(md, Weaver.INV_METHOD);
+            var rpcName = md.GetName(Weaver.MED_INV);
             var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
@@ -117,7 +118,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, ca.GetField<int>());
+            worker.Emit(OpCodes.Ldc_I4, (int)ca.GetArgument());
             worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
             NetworkMember.WritePushSetter(worker, module);
             worker.Emit(OpCodes.Ret);
@@ -127,7 +128,7 @@ namespace Astraia.Editor
 
         public static MethodDefinition TargetRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Weaver.GetMethodName(md, Weaver.INV_METHOD);
+            var rpcName = md.GetName(Weaver.MED_INV);
             var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
@@ -170,7 +171,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldstr, md.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(md.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, ca.GetField<int>());
+            worker.Emit(OpCodes.Ldc_I4, (int)ca.GetArgument());
             worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
             NetworkMember.WritePushSetter(worker, module);
             worker.Emit(OpCodes.Ret);
@@ -300,22 +301,22 @@ namespace Astraia.Editor
         private static void BaseMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
             var fullName = md.Name;
-            if (!fullName.StartsWith(Weaver.RPC_METHOD))
+            if (!fullName.StartsWith(Weaver.MED_RPC))
             {
                 return;
             }
 
-            var name = md.Name.Substring(Weaver.RPC_METHOD.Length);
+            var name = md.Name.Substring(Weaver.MED_RPC.Length);
 
             foreach (var instruction in md.Body.Instructions)
             {
                 if (CanInvoke(instruction, out var method))
                 {
-                    var newName = Weaver.GetMethodName(method, string.Empty);
+                    var newName = method.GetName(string.Empty);
                     if (newName == name)
                     {
                         var baseType = td.BaseType.Resolve();
-                        var baseMethod = baseType.GetMethodInBaseType(fullName);
+                        var baseMethod = baseType.GetMethods(fullName).FirstOrDefault();
 
                         if (baseMethod == null)
                         {
@@ -339,7 +340,7 @@ namespace Astraia.Editor
 
         private static MethodDefinition BaseMethodInvoke(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
-            var newName = Weaver.GetMethodName(md, Weaver.RPC_METHOD);
+            var newName = md.GetName(Weaver.MED_RPC);
             var method = new MethodDefinition(newName, md.Attributes, md.ReturnType)
             {
                 IsPublic = false,

@@ -49,7 +49,7 @@ namespace Astraia.Editor
         /// </summary>
         private static void ProcessMethod(MethodDefinition md, SyncVarAccess access)
         {
-            if (md.Name == ".cctor" || md.Name == Weaver.GEN_FUNC || md.Name.StartsWith(Weaver.INV_METHOD))
+            if (md.Name == ".cctor" || md.Name == Weaver.GEN_FUN || md.Name.StartsWith(Weaver.MED_INV))
             {
                 return;
             }
@@ -97,7 +97,7 @@ namespace Astraia.Editor
         /// </summary>
         private static void ProcessSetter(MethodDefinition md, Instruction i, FieldDefinition opField, SyncVarAccess access)
         {
-            if (md.Name == Weaver.CTOR)
+            if (md.Name == Weaver.GEN_CTOR)
             {
                 return;
             }
@@ -114,7 +114,7 @@ namespace Astraia.Editor
         /// </summary>
         private static void ProcessGetter(MethodDefinition md, Instruction i, FieldDefinition opField, SyncVarAccess access)
         {
-            if (md.Name == Weaver.CTOR)
+            if (md.Name == Weaver.GEN_CTOR)
             {
                 return;
             }
@@ -131,7 +131,7 @@ namespace Astraia.Editor
         /// </summary>
         private static int ProcessAddress(MethodDefinition md, Instruction instr, FieldDefinition opField, SyncVarAccess access, int index)
         {
-            if (md.Name == Weaver.CTOR)
+            if (md.Name == Weaver.GEN_CTOR)
             {
                 return 1;
             }

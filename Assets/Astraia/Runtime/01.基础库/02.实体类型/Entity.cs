@@ -586,7 +586,7 @@ namespace Astraia
 
     public abstract class Acquire<T> : IAcquire
     {
-        public T owner;
+        [NonSerialized] public T owner;
         void IAcquire.Acquire(object item) => owner = (T)item;
     }
 

@@ -26,21 +26,21 @@ namespace Astraia.Editor
         private readonly Writer writer;
         private readonly Reader reader;
         private readonly SyncVarAccess access;
+        private readonly TypeDefinition cached;
         private readonly TypeDefinition expand;
-        private readonly TypeDefinition extend;
         private readonly SyncVarProcess process;
         private readonly ILogPostProcessor debugger;
         private readonly AssemblyDefinition assembly;
-        private readonly List<KeyValuePair<MethodDefinition, int>> serverRpcList = new List<KeyValuePair<MethodDefinition, int>>();
+        private readonly List<(MethodDefinition, int)> serverRpcList = new List<(MethodDefinition, int)>();
         private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
-        private readonly List<KeyValuePair<MethodDefinition, int>> clientRpcList = new List<KeyValuePair<MethodDefinition, int>>();
+        private readonly List<(MethodDefinition, int)> clientRpcList = new List<(MethodDefinition, int)>();
         private readonly List<MethodDefinition> clientRpcFuncList = new List<MethodDefinition>();
-        private readonly List<KeyValuePair<MethodDefinition, int>> targetRpcList = new List<KeyValuePair<MethodDefinition, int>>();
+        private readonly List<(MethodDefinition, int)> targetRpcList = new List<(MethodDefinition, int)>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
         public NetworkMember(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader, ILogPostProcessor debugger, TypeDefinition expand)
         {
-            extend = expand;
+            cached = expand;
             this.expand = expand;
             this.module = module;
             this.access = access;
@@ -53,14 +53,14 @@ namespace Astraia.Editor
 
         public bool Process(ref bool failed)
         {
-            if (expand.GetMethod(Weaver.GEN_FUNC) != null)
+            if (cached.GetMethod(Weaver.GEN_FUN) != null)
             {
                 return false;
             }
 
-            MarkAsProcessed(expand);
+            MarkAsProcessed(cached);
 
-            (syncVars, syncVarIds) = process.ProcessSyncVars(expand, ref failed);
+            (syncVars, syncVarIds) = process.ProcessSyncVars(cached, ref failed);
 
             ProcessRpcMethods(ref failed);
 
@@ -84,7 +84,7 @@ namespace Astraia.Editor
 
         private void MarkAsProcessed(TypeDefinition td)
         {
-            var versionMethod = new MethodDefinition(Weaver.GEN_FUNC, MethodAttributes.Private, module.Import(typeof(void)));
+            var versionMethod = new MethodDefinition(Weaver.GEN_FUN, MethodAttributes.Private, module.Import(typeof(void)));
             var worker = versionMethod.Body.GetILProcessor();
             worker.Emit(OpCodes.Ret);
             td.Methods.Add(versionMethod);
@@ -124,7 +124,7 @@ namespace Astraia.Editor
         private void ProcessRpcMethods(ref bool failed)
         {
             var names = new HashSet<string>();
-            var methods = new List<MethodDefinition>(extend.Methods);
+            var methods = new List<MethodDefinition>(expand.Methods);
 
             foreach (var md in methods)
             {
@@ -174,10 +174,9 @@ namespace Astraia.Editor
             switch (mode)
             {
                 case InvokeMode.ServerRpc:
-                    serverRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkMethod.ServerRpcInvoke(module, writer, debugger, extend, md, rpc, ref failed);
-
-                    rpcFunc = NetworkMethod.ServerRpc(module, reader, debugger, extend, md, func, ref failed);
+                    serverRpcList.Add((md, (int)rpc.GetArgument()));
+                    func = NetworkMethod.ServerRpcInvoke(module, writer, debugger, expand, md, rpc, ref failed);
+                    rpcFunc = NetworkMethod.ServerRpc(module, reader, debugger, expand, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         serverRpcFuncList.Add(rpcFunc);
@@ -185,9 +184,9 @@ namespace Astraia.Editor
 
                     break;
                 case InvokeMode.ClientRpc:
-                    clientRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkMethod.ClientRpcInvoke(module, writer, debugger, extend, md, rpc, ref failed);
-                    rpcFunc = NetworkMethod.ClientRpc(module, reader, debugger, extend, md, func, ref failed);
+                    clientRpcList.Add((md, (int)rpc.GetArgument()));
+                    func = NetworkMethod.ClientRpcInvoke(module, writer, debugger, expand, md, rpc, ref failed);
+                    rpcFunc = NetworkMethod.ClientRpc(module, reader, debugger, expand, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         clientRpcFuncList.Add(rpcFunc);
@@ -195,9 +194,9 @@ namespace Astraia.Editor
 
                     break;
                 case InvokeMode.TargetRpc:
-                    targetRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkMethod.TargetRpcInvoke(module, writer, debugger, extend, md, rpc, ref failed);
-                    rpcFunc = NetworkMethod.TargetRpc(module, reader, debugger, extend, md, func, ref failed);
+                    targetRpcList.Add((md, (int)rpc.GetArgument()));
+                    func = NetworkMethod.TargetRpcInvoke(module, writer, debugger, expand, md, rpc, ref failed);
+                    rpcFunc = NetworkMethod.TargetRpc(module, reader, debugger, expand, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         targetRpcFuncList.Add(rpcFunc);
@@ -316,20 +315,20 @@ namespace Astraia.Editor
         private void InjectStaticConstructor(ref bool failed)
         {
             if (serverRpcList.Count == 0 && clientRpcList.Count == 0 && targetRpcList.Count == 0) return;
-            MethodDefinition cctor = extend.GetMethod(".cctor");
+            MethodDefinition cctor = expand.GetMethod(Weaver.GEN_CCTOR);
             bool cctorFound = cctor != null;
             if (cctor != null)
             {
                 if (!RemoveFinalRetInstruction(cctor))
                 {
-                    debugger.Error("{0} 无效的静态构造函数。".Format(extend.Name), cctor);
+                    debugger.Error("{0} 无效的静态构造函数。".Format(expand.Name), cctor);
                     failed = true;
                     return;
                 }
             }
             else
             {
-                cctor = new MethodDefinition(".cctor", Weaver.GEN_CTOR, module.Import(typeof(void)));
+                cctor = new MethodDefinition(Weaver.GEN_CCTOR, Weaver.GEN_DATA, module.Import(typeof(void)));
             }
 
             ILProcessor worker = cctor.Body.GetILProcessor();
@@ -351,10 +350,10 @@ namespace Astraia.Editor
             worker.Append(worker.Create(OpCodes.Ret));
             if (!cctorFound)
             {
-                extend.Methods.Add(cctor);
+                expand.Methods.Add(cctor);
             }
 
-            extend.Attributes &= ~TypeAttributes.BeforeFieldInit;
+            expand.Attributes &= ~TypeAttributes.BeforeFieldInit;
         }
 
         /// <summary>
@@ -380,12 +379,12 @@ namespace Astraia.Editor
         /// <summary>
         /// 在静态构造函数中注入ClientRpc委托
         /// </summary>
-        private void GenerateDelegate(ILProcessor worker, MethodReference mr, MethodDefinition md, KeyValuePair<MethodDefinition, int> pair)
+        private void GenerateDelegate(ILProcessor worker, MethodReference mr, MethodDefinition md, (MethodDefinition, int) pair)
         {
-            worker.Emit(OpCodes.Ldtoken, extend);
+            worker.Emit(OpCodes.Ldtoken, expand);
             worker.Emit(OpCodes.Call, module.GetTypeFromHandle);
-            worker.Emit(OpCodes.Ldc_I4, pair.Value);
-            worker.Emit(OpCodes.Ldstr, pair.Key.FullName);
+            worker.Emit(OpCodes.Ldc_I4, pair.Item2);
+            worker.Emit(OpCodes.Ldstr, pair.Item1.FullName);
             worker.Emit(OpCodes.Ldnull);
             worker.Emit(OpCodes.Ldftn, md);
             worker.Emit(OpCodes.Newobj, module.InvokeDelegate);
@@ -400,15 +399,15 @@ namespace Astraia.Editor
         /// </summary>
         private void GenerateSerialize(ref bool failed)
         {
-            if (extend.GetMethod(Weaver.SER_METHOD) != null) return;
+            if (expand.GetMethod(Weaver.MED_SER) != null) return;
             if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(Weaver.SER_METHOD, Weaver.GEN_VAR, module.Import(typeof(void)));
+            var serialize = new MethodDefinition(Weaver.MED_SER, Weaver.GEN_VAR, module.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
             serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
-            var baseSerialize = Resolve.GetMethod(extend.BaseType, assembly, Weaver.SER_METHOD);
+            var baseSerialize = Resolve.GetMethod(expand.BaseType, assembly, Weaver.MED_SER);
             if (baseSerialize != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -423,7 +422,7 @@ namespace Astraia.Editor
             foreach (var syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
-                if (extend.HasGenericParameters)
+                if (expand.HasGenericParameters)
                 {
                     syncVar = syncVarDef.MakeHostInstanceGeneric();
                 }
@@ -452,11 +451,11 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Call, module.SyncVarDirty);
             var writeUint64Func = writer.GetFunction(module.Import<ulong>(), ref failed);
             worker.Emit(OpCodes.Call, writeUint64Func);
-            int dirty = access.GetSyncVar(extend.BaseType.FullName);
+            int dirty = access.GetSyncVar(expand.BaseType.FullName);
             foreach (var syncVarDef in syncVars)
             {
                 FieldReference syncVar = syncVarDef;
-                if (extend.HasGenericParameters)
+                if (expand.HasGenericParameters)
                 {
                     syncVar = syncVarDef.MakeHostInstanceGeneric();
                 }
@@ -491,7 +490,7 @@ namespace Astraia.Editor
             }
 
             worker.Emit(OpCodes.Ret);
-            extend.Methods.Add(serialize);
+            expand.Methods.Add(serialize);
         }
 
         /// <summary>
@@ -499,9 +498,9 @@ namespace Astraia.Editor
         /// </summary>
         private void GenerateDeserialize(ref bool failed)
         {
-            if (extend.GetMethod(Weaver.DES_METHOD) != null) return;
+            if (expand.GetMethod(Weaver.MED_DES) != null) return;
             if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(Weaver.DES_METHOD, Weaver.GEN_VAR, module.Import(typeof(void)));
+            var serialize = new MethodDefinition(Weaver.MED_DES, Weaver.GEN_VAR, module.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
@@ -510,7 +509,7 @@ namespace Astraia.Editor
             var dirtyBitsLocal = new VariableDefinition(module.Import<long>());
             serialize.Body.Variables.Add(dirtyBitsLocal);
 
-            var baseDeserialize = Resolve.GetMethod(extend.BaseType, assembly, Weaver.DES_METHOD);
+            var baseDeserialize = Resolve.GetMethod(expand.BaseType, assembly, Weaver.MED_DES);
             if (baseDeserialize != null)
             {
                 worker.Append(worker.Create(OpCodes.Ldarg_0));
@@ -535,7 +534,7 @@ namespace Astraia.Editor
             worker.Append(worker.Create(OpCodes.Call, reader.GetFunction(module.Import<ulong>(), ref failed)));
             worker.Append(worker.Create(OpCodes.Stloc_0));
 
-            int dirtyBits = access.GetSyncVar(extend.BaseType.FullName);
+            int dirtyBits = access.GetSyncVar(expand.BaseType.FullName);
             foreach (var syncVar in syncVars)
             {
                 var varLabel = worker.Create(OpCodes.Nop);
@@ -551,7 +550,7 @@ namespace Astraia.Editor
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
-            extend.Methods.Add(serialize);
+            expand.Methods.Add(serialize);
         }
 
         /// <summary>
@@ -561,9 +560,9 @@ namespace Astraia.Editor
         {
             worker.Append(worker.Create(OpCodes.Ldarg_0));
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Ldflda, extend.HasGenericParameters ? syncVar.MakeHostInstanceGeneric() : syncVar);
+            worker.Emit(OpCodes.Ldflda, expand.HasGenericParameters ? syncVar.MakeHostInstanceGeneric() : syncVar);
 
-            var hookMethod = process.GetHookMethod(extend, syncVar, ref failed);
+            var hookMethod = process.GetHookMethod(expand, syncVar, ref failed);
             if (hookMethod != null)
             {
                 process.GenerateNewActionFromHookMethod(syncVar, worker, hookMethod);

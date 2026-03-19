@@ -86,7 +86,7 @@ namespace Astraia.Editor
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
         {
             var attribute = syncVar.GetAttribute<SyncVarAttribute>();
-            var hookMethod = attribute.GetField<string>();
+            var hookMethod = (string)attribute.GetArgument();
             if (hookMethod != null)
             {
                 return FindHookMethod(td, syncVar, hookMethod, ref failed);
@@ -200,9 +200,9 @@ namespace Astraia.Editor
                 ProcessSyncVar(td, fd, syncVarIds, 1L << dirtyBits, ref failed);
                 dirtyBits += 1;
 
-                if (dirtyBits > Weaver.SYNC_LIMIT)
+                if (dirtyBits > Weaver.BIT_COUNT)
                 {
-                    debugger.Error("{0} 网络变量数量大于 {1}。".Format(fd.Name, Weaver.SYNC_LIMIT), td);
+                    debugger.Error("{0} 网络变量数量大于 {1}。".Format(fd.Name, Weaver.BIT_COUNT), td);
                     failed = true;
                 }
             }
@@ -236,7 +236,7 @@ namespace Astraia.Editor
                 };
                 syncVarIds[fd] = objectId;
             }
-            else if (fd.FieldType.IsValid())
+            else if (fd.FieldType.Support())
             {
                 objectId = new FieldDefinition("{0}Id".Format(fd.Name), FieldAttributes.Family, module.Import<uint>())
                 {
@@ -260,7 +260,7 @@ namespace Astraia.Editor
 
             access.setter[fd] = set;
 
-            if (fd.FieldType.IsValid())
+            if (fd.FieldType.Support())
             {
                 access.getter[fd] = get;
             }
