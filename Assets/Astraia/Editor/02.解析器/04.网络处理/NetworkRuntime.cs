@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace Astraia.Editor
 {
-    internal static class RuntimeAttribute
+    internal static class NetworkRuntime
     {
         public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor debugger, Writer writer, Reader reader, ref bool failed)
         {
@@ -26,12 +26,11 @@ namespace Astraia.Editor
             return ProcessProperty(assembly, assembly, writer, reader, ref failed);
         }
 
-        
         public static void Processed(AssemblyDefinition assembly, Module module, Writer writer, Reader reader, TypeDefinition expand)
         {
             var method = new MethodDefinition(nameof(Processed), MethodAttributes.Public | MethodAttributes.Static, module.Import(typeof(void)));
 
-            var construct = module.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
+            var construct = module.Initialized.GetConstructors().Last();
             var attribute = new CustomAttribute(assembly.MainModule.ImportReference(construct));
             attribute.ConstructorArguments.Add(new CustomAttributeArgument(module.Import<RuntimeInitializeLoadType>(), RuntimeInitializeLoadType.BeforeSceneLoad));
             method.CustomAttributes.Add(attribute);

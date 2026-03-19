@@ -15,12 +15,10 @@ using System.Diagnostics;
 using System.Linq;
 using Astraia.Net;
 using Mono.Cecil;
-using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Member = Mono.Cecil.TypeAttributes;
 using Method = Mono.Cecil.MethodAttributes;
-using Object = UnityEngine.Object;
 
 namespace Astraia.Editor
 {
@@ -75,7 +73,7 @@ namespace Astraia.Editor
                 expand = new TypeDefinition(GEN_TYPE, nameof(NetworkProcessor), GEN_ATTR, module.Import<object>());
                 writer = new Writer(assembly, module, expand, debugger);
                 reader = new Reader(assembly, module, expand, debugger);
-                modified = RuntimeAttribute.Process(assembly, resolver, debugger, writer, reader, ref failed);
+                modified = NetworkRuntime.Process(assembly, resolver, debugger, writer, reader, ref failed);
 
                 var mainModule = assembly.MainModule;
                 foreach (var td in mainModule.Types)
@@ -95,7 +93,7 @@ namespace Astraia.Editor
                 {
                     SyncVarReplace.Process(mainModule, access);
                     mainModule.Types.Add(expand);
-                    RuntimeAttribute.Processed(assembly, module, writer, reader, expand);
+                    NetworkRuntime.Processed(assembly, module, writer, reader, expand);
                 }
 
                 watch.Stop();
@@ -145,7 +143,7 @@ namespace Astraia.Editor
             var changed = false;
             foreach (var m in modules)
             {
-                changed |= new NetworkModuleProcess(assembly, access, module, writer, reader, debugger, m).Process(ref failed);
+                changed |= new NetworkMember(assembly, access, module, writer, reader, debugger, m).Process(ref failed);
             }
 
             return changed;
@@ -161,6 +159,7 @@ namespace Astraia.Editor
     internal class Module
     {
         private readonly AssemblyDefinition assembly;
+        public readonly TypeDefinition Initialized;
 
         public readonly MethodReference LogError;
         public readonly MethodReference SyncVarHook;
@@ -173,17 +172,19 @@ namespace Astraia.Editor
         public readonly MethodReference WriterEnqueue;
         public readonly MethodReference GetClientActive;
         public readonly MethodReference GetServerActive;
+        public readonly MethodReference RegisterServerRpc;
+        public readonly MethodReference RegisterClientRpc;
 
         public readonly MethodReference SyncVarDirty;
-        public readonly MethodReference SyncVarSetterGeneral;
-        public readonly MethodReference SyncVarSetterGameObject;
-        public readonly MethodReference SyncVarSetterNetworkEntity;
-        public readonly MethodReference SyncVarSetterNetworkModule;
-
         public readonly MethodReference SyncVarGetterGeneral;
         public readonly MethodReference SyncVarGetterGameObject;
         public readonly MethodReference SyncVarGetterNetworkEntity;
         public readonly MethodReference SyncVarGetterNetworkModule;
+
+        public readonly MethodReference SyncVarSetterGeneral;
+        public readonly MethodReference SyncVarSetterGameObject;
+        public readonly MethodReference SyncVarSetterNetworkEntity;
+        public readonly MethodReference SyncVarSetterNetworkModule;
 
         public readonly MethodReference GetSyncVarGameObject;
         public readonly MethodReference GetSyncVarNetworkEntity;
@@ -193,15 +194,11 @@ namespace Astraia.Editor
         public readonly MethodReference SendTargetRpcInternal;
         public readonly MethodReference SendClientRpcInternal;
 
-        public readonly MethodReference RegisterServerRpc;
-        public readonly MethodReference RegisterClientRpc;
-
-        public readonly TypeDefinition InitializeOnLoadMethodAttribute;
-        public readonly TypeDefinition RuntimeInitializeOnLoadMethodAttribute;
 
         public Module(AssemblyDefinition assembly, ILogPostProcessor debugger, ref bool failed)
         {
             this.assembly = assembly;
+            Initialized = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
             LogError = Resolve.GetMethod(Import<Debug>(), assembly, OnLogError, debugger, ref failed);
             SyncVarHook = Resolve.GetMethod(Import(typeof(Action<,>)), assembly, Weaver.CTOR, debugger, ref failed);
             InvokeDelegate = Resolve.GetMethod(Import<InvokeDelegate>(), assembly, Weaver.CTOR, debugger, ref failed);
@@ -213,36 +210,28 @@ namespace Astraia.Editor
             WriterEnqueue = Resolve.GetMethod(Import<MemoryWriter>(), assembly, "Push", debugger, ref failed);
             GetClientActive = Resolve.GetMethod(Import<NetworkManager>(), assembly, "get_isClient", debugger, ref failed);
             GetServerActive = Resolve.GetMethod(Import<NetworkManager>(), assembly, "get_isServer", debugger, ref failed);
+            RegisterServerRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, nameof(RegisterServerRpc), debugger, ref failed);
+            RegisterClientRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, nameof(RegisterClientRpc), debugger, ref failed);
 
             var NetworkModuleType = Import<NetworkModule>();
             SyncVarDirty = Resolve.GetProperty(NetworkModuleType, assembly, "syncVarDirty");
-            SyncVarSetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarSetterGeneral", debugger, ref failed);
-            SyncVarSetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarSetterGameObject", debugger, ref failed);
-            SyncVarSetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarSetterNetworkEntity", debugger, ref failed);
-            SyncVarSetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarSetterNetworkModule", debugger, ref failed);
+            SyncVarGetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SyncVarGetterGeneral), debugger, ref failed);
+            SyncVarGetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SyncVarGetterGameObject), debugger, ref failed);
+            SyncVarGetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SyncVarGetterNetworkEntity), debugger, ref failed);
+            SyncVarGetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SyncVarGetterNetworkModule), debugger, ref failed);
 
-            SyncVarGetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarGetterGeneral", debugger, ref failed);
-            SyncVarGetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarGetterGameObject", debugger, ref failed);
-            SyncVarGetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarGetterNetworkEntity", debugger, ref failed);
-            SyncVarGetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarGetterNetworkModule", debugger, ref failed);
+            SyncVarSetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SyncVarSetterGeneral), debugger, ref failed);
+            SyncVarSetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SyncVarSetterGameObject), debugger, ref failed);
+            SyncVarSetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SyncVarSetterNetworkEntity), debugger, ref failed);
+            SyncVarSetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SyncVarSetterNetworkModule), debugger, ref failed);
 
-            GetSyncVarGameObject = Resolve.GetMethod(NetworkModuleType, assembly, "GetSyncVarGameObject", debugger, ref failed);
-            GetSyncVarNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, "GetSyncVarNetworkEntity", debugger, ref failed);
-            GetSyncVarNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, "GetSyncVarNetworkModule", debugger, ref failed);
+            GetSyncVarGameObject = Resolve.GetMethod(NetworkModuleType, assembly, nameof(GetSyncVarGameObject), debugger, ref failed);
+            GetSyncVarNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, nameof(GetSyncVarNetworkEntity), debugger, ref failed);
+            GetSyncVarNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, nameof(GetSyncVarNetworkModule), debugger, ref failed);
 
-            SendServerRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, "SendServerRpcInternal", debugger, ref failed);
-            SendClientRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, "SendClientRpcInternal", debugger, ref failed);
-            SendTargetRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, "SendTargetRpcInternal", debugger, ref failed);
-
-            RegisterServerRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, "RegisterServerRpc", debugger, ref failed);
-            RegisterClientRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, "RegisterClientRpc", debugger, ref failed);
-
-            if (Resolve.IsEditor(assembly))
-            {
-                InitializeOnLoadMethodAttribute = Import<InitializeOnLoadMethodAttribute>().Resolve();
-            }
-
-            RuntimeInitializeOnLoadMethodAttribute = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
+            SendServerRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SendServerRpcInternal), debugger, ref failed);
+            SendClientRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SendClientRpcInternal), debugger, ref failed);
+            SendTargetRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, nameof(SendTargetRpcInternal), debugger, ref failed);
         }
 
         public TypeReference Import(Type t)
@@ -265,5 +254,4 @@ namespace Astraia.Editor
             return method.Name == nameof(Net.Extensions.ReadNetworkModule) && method.HasGenericParameters;
         }
     }
-
 }

@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace Astraia.Editor
 {
-    internal partial class NetworkModuleProcess
+    internal partial class NetworkMember
     {
         private Dictionary<FieldDefinition, FieldDefinition> syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
@@ -38,7 +38,7 @@ namespace Astraia.Editor
         private readonly List<KeyValuePair<MethodDefinition, int>> targetRpcList = new List<KeyValuePair<MethodDefinition, int>>();
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
-        public NetworkModuleProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader,
+        public NetworkMember(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader,
             ILogPostProcessor debugger, TypeDefinition type)
         {
             generate = type;
@@ -117,7 +117,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkModuleProcess
+    internal partial class NetworkMember
     {
         /// <summary>
         /// 处理Rpc方法
@@ -181,9 +181,9 @@ namespace Astraia.Editor
             {
                 case InvokeMode.ServerRpc:
                     serverRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkAttributeProcess.ProcessServerRpcInvoke(module, writer, debugger, generate, md, rpc, ref failed);
+                    func = NetworkMethod.ServerRpcInvoke(module, writer, debugger, generate, md, rpc, ref failed);
 
-                    rpcFunc = NetworkAttributeProcess.ProcessServerRpc(module, reader, debugger, generate, md, func, ref failed);
+                    rpcFunc = NetworkMethod.ServerRpc(module, reader, debugger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         serverRpcFuncList.Add(rpcFunc);
@@ -192,8 +192,8 @@ namespace Astraia.Editor
                     break;
                 case InvokeMode.ClientRpc:
                     clientRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkAttributeProcess.ProcessClientRpcInvoke(module, writer, debugger, generate, md, rpc, ref failed);
-                    rpcFunc = NetworkAttributeProcess.ProcessClientRpc(module, reader, debugger, generate, md, func, ref failed);
+                    func = NetworkMethod.ClientRpcInvoke(module, writer, debugger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkMethod.ClientRpc(module, reader, debugger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         clientRpcFuncList.Add(rpcFunc);
@@ -202,8 +202,8 @@ namespace Astraia.Editor
                     break;
                 case InvokeMode.TargetRpc:
                     targetRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkAttributeProcess.ProcessTargetRpcInvoke(module, writer, debugger, generate, md, rpc, ref failed);
-                    rpcFunc = NetworkAttributeProcess.ProcessTargetRpc(module, reader, debugger, generate, md, func, ref failed);
+                    func = NetworkMethod.TargetRpcInvoke(module, writer, debugger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkMethod.TargetRpc(module, reader, debugger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         targetRpcFuncList.Add(rpcFunc);
@@ -304,7 +304,7 @@ namespace Astraia.Editor
             }
 
             bool connection = param.ParameterType.Is<NetworkClient>();
-            bool sendTarget = NetworkAttributeProcess.IsNetworkClient(param, rpcType);
+            bool sendTarget = NetworkMethod.IsNetworkClient(param, rpcType);
 
             if (param.IsOut)
             {
@@ -331,7 +331,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkModuleProcess
+    internal partial class NetworkMember
     {
         /// <summary>
         /// 注入静态构造函数
@@ -422,7 +422,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal partial class NetworkModuleProcess
+    internal partial class NetworkMember
     {
         /// <summary>
         /// 生成SyncVar的序列化方法

@@ -31,11 +31,6 @@ namespace Astraia.Editor
 
     internal static class Resolve
     {
-        public static bool IsEditor(AssemblyDefinition ad)
-        {
-            return ad.MainModule.AssemblyReferences.Any(reference => reference.Name.StartsWith(nameof(UnityEditor)));
-        }
-
         public static MethodReference GetProperty(TypeReference tr, AssemblyDefinition ad, string name)
         {
             return tr.Resolve().Properties.Where(pd => pd.Name == name).Select(pd => ad.MainModule.ImportReference(pd.GetMethod)).FirstOrDefault();

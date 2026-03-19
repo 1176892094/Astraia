@@ -22,26 +22,15 @@ namespace Astraia.Editor
         TargetRpc,
     }
 
-    internal static class NetworkAttributeProcess
+    internal static class NetworkMethod
     {
-        /// <summary>
-        /// ClientRpc方法
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="reader"></param>
-        /// <param name="log"></param>
-        /// <param name="td"></param>
-        /// <param name="md"></param>
-        /// <param name="func"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
-        public static MethodDefinition ProcessClientRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ClientRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Weaver.GetMethodName(md, Weaver.INV_METHOD);
             var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
-            NetworkClientActive(worker, module, md.Name, label, "ClientRpc");
+            IsActiveClient(worker, module, md.Name, label, "ClientRpc");
 
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
@@ -53,29 +42,17 @@ namespace Astraia.Editor
 
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkModuleProcess.AddInvokeParameters(module, rpc.Parameters);
+            NetworkMember.AddInvokeParameters(module, rpc.Parameters);
             td.Methods.Add(rpc);
             return rpc;
         }
 
-        /// <summary>
-        /// ClientRpc方法体
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="writer"></param>
-        /// <param name="log"></param>
-        /// <param name="td"></param>
-        /// <param name="md"></param>
-        /// <param name="ca"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
-        public static MethodDefinition ProcessClientRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td,
-            MethodDefinition md, CustomAttribute ca, ref bool failed)
+        public static MethodDefinition ClientRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
-            var rpc = BaseInvokeMethod(log, td, md, ref failed);
+            var rpc = BaseMethodInvoke(log, td, md, ref failed);
             var worker = md.Body.GetILProcessor();
-            NetworkModuleProcess.WriteInitLocals(worker, module);
-            NetworkModuleProcess.WritePopSetter(worker, module);
+            NetworkMember.WriteInitLocals(worker, module);
+            NetworkMember.WritePopSetter(worker, module);
 
             if (!WriteArguments(worker, writer, log, md, InvokeMode.ClientRpc, ref failed))
             {
@@ -88,30 +65,18 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetField<int>());
             worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
-            NetworkModuleProcess.WritePushSetter(worker, module);
+            NetworkMember.WritePushSetter(worker, module);
             worker.Emit(OpCodes.Ret);
             return rpc;
         }
 
-        /// <summary>
-        /// ServerRpc方法
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="reader"></param>
-        /// <param name="log"></param>
-        /// <param name="td"></param>
-        /// <param name="md"></param>
-        /// <param name="func"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
-        public static MethodDefinition ProcessServerRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td,
-            MethodDefinition md, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ServerRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Weaver.GetMethodName(md, Weaver.INV_METHOD);
             var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
-            NetworkServerActive(worker, module, md.Name, label, "ServerRpc");
+            IsActiveServer(worker, module, md.Name, label, "ServerRpc");
 
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
@@ -131,29 +96,17 @@ namespace Astraia.Editor
 
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkModuleProcess.AddInvokeParameters(module, rpc.Parameters);
+            NetworkMember.AddInvokeParameters(module, rpc.Parameters);
             td.Methods.Add(rpc);
             return rpc;
         }
 
-        /// <summary>
-        /// ServerRpc方法体
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="writer"></param>
-        /// <param name="log"></param>
-        /// <param name="td"></param>
-        /// <param name="md"></param>
-        /// <param name="ca"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
-        public static MethodDefinition ProcessServerRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td,
-            MethodDefinition md, CustomAttribute ca, ref bool failed)
+        public static MethodDefinition ServerRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
-            var rpc = BaseInvokeMethod(log, td, md, ref failed);
+            var rpc = BaseMethodInvoke(log, td, md, ref failed);
             var worker = md.Body.GetILProcessor();
-            NetworkModuleProcess.WriteInitLocals(worker, module);
-            NetworkModuleProcess.WritePopSetter(worker, module);
+            NetworkMember.WriteInitLocals(worker, module);
+            NetworkMember.WritePopSetter(worker, module);
 
             if (!WriteArguments(worker, writer, log, md, InvokeMode.ServerRpc, ref failed))
             {
@@ -166,31 +119,19 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetField<int>());
             worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
-            NetworkModuleProcess.WritePushSetter(worker, module);
+            NetworkMember.WritePushSetter(worker, module);
             worker.Emit(OpCodes.Ret);
 
             return rpc;
         }
 
-        /// <summary>
-        /// TargetRpc方法
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="reader"></param>
-        /// <param name="log"></param>
-        /// <param name="td"></param>
-        /// <param name="md"></param>
-        /// <param name="func"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td,
-            MethodDefinition md, MethodDefinition func, ref bool failed)
+        public static MethodDefinition TargetRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
             var rpcName = Weaver.GetMethodName(md, Weaver.INV_METHOD);
             var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
-            NetworkClientActive(worker, module, md.Name, label, "TargetRpc");
+            IsActiveClient(worker, module, md.Name, label, "TargetRpc");
 
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, td);
@@ -207,29 +148,17 @@ namespace Astraia.Editor
 
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkModuleProcess.AddInvokeParameters(module, rpc.Parameters);
+            NetworkMember.AddInvokeParameters(module, rpc.Parameters);
             td.Methods.Add(rpc);
             return rpc;
         }
 
-        /// <summary>
-        /// TargetRpc方法体
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="writer"></param>
-        /// <param name="log"></param>
-        /// <param name="td"></param>
-        /// <param name="md"></param>
-        /// <param name="ca"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
-        public static MethodDefinition ProcessTargetRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td,
-            MethodDefinition md, CustomAttribute ca, ref bool failed)
+        public static MethodDefinition TargetRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, CustomAttribute ca, ref bool failed)
         {
-            var rpc = BaseInvokeMethod(log, td, md, ref failed);
+            var rpc = BaseMethodInvoke(log, td, md, ref failed);
             var worker = md.Body.GetILProcessor();
-            NetworkModuleProcess.WriteInitLocals(worker, module);
-            NetworkModuleProcess.WritePopSetter(worker, module);
+            NetworkMember.WriteInitLocals(worker, module);
+            NetworkMember.WritePopSetter(worker, module);
 
             if (!WriteArguments(worker, writer, log, md, InvokeMode.TargetRpc, ref failed))
             {
@@ -243,21 +172,11 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, ca.GetField<int>());
             worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
-            NetworkModuleProcess.WritePushSetter(worker, module);
+            NetworkMember.WritePushSetter(worker, module);
             worker.Emit(OpCodes.Ret);
             return rpc;
         }
 
-        /// <summary>
-        /// 写入参数
-        /// </summary>
-        /// <param name="worker"></param>
-        /// <param name="writer"></param>
-        /// <param name="log"></param>
-        /// <param name="method"></param>
-        /// <param name="mode"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
         private static bool WriteArguments(ILProcessor worker, Writer writer, ILogPostProcessor log, MethodDefinition method, InvokeMode mode, ref bool failed)
         {
             var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
@@ -293,16 +212,6 @@ namespace Astraia.Editor
             return true;
         }
 
-        /// <summary>
-        /// 读取参数
-        /// </summary>
-        /// <param name="method"></param>
-        /// <param name="reader"></param>
-        /// <param name="log"></param>
-        /// <param name="worker"></param>
-        /// <param name="mode"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
         private static bool ReadArguments(MethodDefinition method, Reader reader, ILogPostProcessor log, ILProcessor worker, InvokeMode mode, ref bool failed)
         {
             var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
@@ -346,11 +255,6 @@ namespace Astraia.Editor
             return true;
         }
 
-        /// <summary>
-        /// 判断指定连接参数
-        /// </summary>
-        /// <param name="md"></param>
-        /// <returns></returns>
         private static bool HasNetworkClient(MethodDefinition md)
         {
             if (md.Parameters.Count <= 0)
@@ -362,12 +266,6 @@ namespace Astraia.Editor
             return tr.Is<NetworkClient>() || tr.IsDerivedFrom<NetworkClient>();
         }
 
-        /// <summary>
-        /// 发送连接
-        /// </summary>
-        /// <param name="pd"></param>
-        /// <param name="mode"></param>
-        /// <returns></returns>
         public static bool IsNetworkClient(ParameterDefinition pd, InvokeMode mode)
         {
             if (mode != InvokeMode.ServerRpc)
@@ -379,15 +277,7 @@ namespace Astraia.Editor
             return tr.Is<NetworkClient>() || tr.Resolve().IsDerivedFrom<NetworkClient>();
         }
 
-        /// <summary>
-        /// 注入网络客户端是否活跃
-        /// </summary>
-        /// <param name="worker"></param>
-        /// <param name="module"></param>
-        /// <param name="mdName"></param>
-        /// <param name="label"></param>
-        /// <param name="error"></param>
-        private static void NetworkClientActive(ILProcessor worker, Module module, string mdName, Instruction label, string error)
+        private static void IsActiveClient(ILProcessor worker, Module module, string mdName, Instruction label, string error)
         {
             worker.Emit(OpCodes.Call, module.GetClientActive);
             worker.Emit(OpCodes.Brtrue, label);
@@ -397,15 +287,7 @@ namespace Astraia.Editor
             worker.Append(label);
         }
 
-        /// <summary>
-        /// 注入网络服务器是否活跃
-        /// </summary>
-        /// <param name="worker"></param>
-        /// <param name="module"></param>
-        /// <param name="mdName"></param>
-        /// <param name="label"></param>
-        /// <param name="error"></param>
-        private static void NetworkServerActive(ILProcessor worker, Module module, string mdName, Instruction label, string error)
+        private static void IsActiveServer(ILProcessor worker, Module module, string mdName, Instruction label, string error)
         {
             worker.Emit(OpCodes.Call, module.GetServerActive);
             worker.Emit(OpCodes.Brtrue, label);
@@ -415,15 +297,47 @@ namespace Astraia.Editor
             worker.Append(label);
         }
 
-        /// <summary>
-        /// 处理基本的Rpc方法
-        /// </summary>
-        /// <param name="log"></param>
-        /// <param name="td"></param>
-        /// <param name="md"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
-        private static MethodDefinition BaseInvokeMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
+        private static void BaseMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
+        {
+            var fullName = md.Name;
+            if (!fullName.StartsWith(Weaver.RPC_METHOD))
+            {
+                return;
+            }
+
+            var name = md.Name.Substring(Weaver.RPC_METHOD.Length);
+
+            foreach (var instruction in md.Body.Instructions)
+            {
+                if (CanInvoke(instruction, out var method))
+                {
+                    var newName = Weaver.GetMethodName(method, string.Empty);
+                    if (newName == name)
+                    {
+                        var baseType = td.BaseType.Resolve();
+                        var baseMethod = baseType.GetMethodInBaseType(fullName);
+
+                        if (baseMethod == null)
+                        {
+                            log.Error("找不到base方法: {0}".Format(fullName), md);
+                            failed = true;
+                            return;
+                        }
+
+                        if (!baseMethod.IsVirtual)
+                        {
+                            log.Error("找不到virtual的方法: {0}".Format(fullName), md);
+                            failed = true;
+                            return;
+                        }
+
+                        instruction.Operand = baseMethod;
+                    }
+                }
+            }
+        }
+
+        private static MethodDefinition BaseMethodInvoke(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
             var newName = Weaver.GetMethodName(md, Weaver.RPC_METHOD);
             var method = new MethodDefinition(newName, md.Attributes, md.ReturnType)
@@ -454,58 +368,11 @@ namespace Astraia.Editor
             md.CustomDebugInformations.Clear();
             (md.DebugInformation.Scope, method.DebugInformation.Scope) = (method.DebugInformation.Scope, md.DebugInformation.Scope);
             td.Methods.Add(method);
-            ProcessBaseMethod(log, td, method, ref failed);
+            BaseMethod(log, td, method, ref failed);
             return method;
         }
 
-        /// <summary>
-        /// 处理修正的Rpc方法
-        /// </summary>
-        /// <param name="log"></param>
-        /// <param name="td"></param>
-        /// <param name="md"></param>
-        /// <param name="failed"></param>
-        private static void ProcessBaseMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
-        {
-            var fullName = md.Name;
-            if (!fullName.StartsWith(Weaver.RPC_METHOD))
-            {
-                return;
-            }
-
-            var name = md.Name.Substring(Weaver.RPC_METHOD.Length);
-
-            foreach (var instruction in md.Body.Instructions)
-            {
-                if (IsInvokeToMethod(instruction, out var method))
-                {
-                    var newName = Weaver.GetMethodName(method, string.Empty);
-                    if (newName == name)
-                    {
-                        var baseType = td.BaseType.Resolve();
-                        var baseMethod = baseType.GetMethodInBaseType(fullName);
-
-                        if (baseMethod == null)
-                        {
-                            log.Error("找不到base方法: {0}".Format(fullName), md);
-                            failed = true;
-                            return;
-                        }
-
-                        if (!baseMethod.IsVirtual)
-                        {
-                            log.Error("找不到virtual的方法: {0}".Format(fullName), md);
-                            failed = true;
-                            return;
-                        }
-
-                        instruction.Operand = baseMethod;
-                    }
-                }
-            }
-        }
-
-        private static bool IsInvokeToMethod(Instruction instr, out MethodDefinition md)
+        private static bool CanInvoke(Instruction instr, out MethodDefinition md)
         {
             if (instr.OpCode == OpCodes.Call && instr.Operand is MethodDefinition method)
             {
