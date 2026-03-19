@@ -41,38 +41,27 @@ namespace Astraia.Editor
         public const Method GEN_DATA = Method.HideBySig | Method.Static | Method.SpecialName | Method.Private | Method.RTSpecialName;
         public const Member GEN_ATTR = Member.AutoClass | Member.Public | Member.Class | Member.AnsiClass | Member.Abstract | Member.Sealed | Member.BeforeFieldInit;
 
-        private bool failed;
-        private Module module;
-        private Writer writer;
-        private Reader reader;
-        private SyncVarAccess access;
-        private TypeDefinition expand;
-        private readonly ILogPostProcessor debugger;
-
-        public Weaver(ILogPostProcessor debugger) => this.debugger = debugger;
-
-        public bool Weave(AssemblyDefinition assembly, IAssemblyResolver resolver, out bool modified)
+        public bool Weave(AssemblyDefinition assembly, ILogPostProcessor debugger, IAssemblyResolver resolver, out bool modified)
         {
-            failed = false;
             modified = false;
             try
             {
-                var watch = Stopwatch.StartNew();
-                if (assembly.MainModule.GetTypes().Any(type => type.Namespace == GEN_TYPE && type.Name == GEN_FUN))
+                var failed = false;
+                if (assembly.MainModule.GetTypes().Any(td => td.Namespace == GEN_TYPE && td.Name == GEN_FUN))
                 {
                     return true;
                 }
 
-                access = new SyncVarAccess();
-                module = new Module(assembly, debugger, ref failed);
-
-                expand = new TypeDefinition(GEN_TYPE, GEN_FUN, GEN_ATTR, module.Import<object>());
-                writer = new Writer(assembly, module, expand, debugger);
-                reader = new Reader(assembly, module, expand, debugger);
+                var elapse = Stopwatch.StartNew();
+                var access = new SyncVarAccess();
+                var module = new Module(assembly, debugger, ref failed);
+                var expand = new TypeDefinition(GEN_TYPE, GEN_FUN, GEN_ATTR, module.Import<object>());
+                var writer = new Writer(assembly, module, expand, debugger);
+                var reader = new Reader(assembly, module, expand, debugger);
                 modified = NetworkRuntime.Process(assembly, resolver, debugger, writer, reader, ref failed);
 
                 var mainModule = assembly.MainModule;
-                foreach (var td in mainModule.Types.Where(td => td.IsClass && td.BaseType.CanResolve() && td.IsDerivedFrom<NetworkModule>()))
+                foreach (var td in mainModule.Types.Where(td => td.IsSubclassOf<NetworkModule>()))
                 {
                     var self = td;
                     while (self != null)
@@ -99,13 +88,12 @@ namespace Astraia.Editor
                     NetworkRuntime.Processed(assembly, module, writer, reader, expand);
                 }
 
-                watch.Stop();
-                debugger.Warn("Module: {0:F2} 秒  ".Color("G").Format(watch.ElapsedMilliseconds / 1000F) + assembly.Name.Name);
+                elapse.Stop();
+                debugger.Warn("{0:F2}ms ".Color("G").Format(elapse.ElapsedMilliseconds / 1000F) + assembly.Name.Name);
                 return true;
             }
             catch (Exception e)
             {
-                failed = true;
                 debugger.Error(e.ToString());
                 return false;
             }

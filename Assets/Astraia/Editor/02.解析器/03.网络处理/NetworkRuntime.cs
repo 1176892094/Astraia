@@ -137,7 +137,7 @@ namespace Astraia.Editor
         private static bool ProcessMessage(ModuleDefinition module, Writer writer, Reader reader, TypeDefinition definition, ref bool failed)
         {
             var modified = false;
-            if (!definition.IsAbstract && !definition.IsInterface && definition.HasInterface<IMessage>())
+            if (!definition.IsAbstract && !definition.IsInterface && definition.HasInterface(typeof(IMessage)))
             {
                 reader.GetFunction(module.ImportReference(definition), ref failed);
                 writer.GetFunction(module.ImportReference(definition), ref failed);

@@ -104,12 +104,12 @@ namespace Astraia.Editor
                 return AddCollection(tr, ((GenericInstanceType)tr).GenericArguments[0], nameof(Net.Extensions.ReadHashSet), ref failed);
             }
 
-            if (tr.IsDerivedFrom<NetworkModule>() || tr.Is<NetworkModule>())
+            if (tr.IsSubclassOf<NetworkModule>() || tr.Is<NetworkModule>())
             {
                 return AddNetworkModule(tr);
             }
 
-            if (td.IsDerivedFrom<Component>())
+            if (td.IsSubclassOf<Component>())
             {
                 debugger.Error("无法为组件 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
@@ -276,10 +276,8 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldnull);
                 worker.Emit(OpCodes.Ldftn, method);
-                var instance = func.MakeGenericInstanceType(tr, type);
-                worker.Emit(OpCodes.Newobj, mr.MakeHostInstanceGeneric(assembly.MainModule, instance));
-                instance = writer.MakeGenericInstanceType(type);
-                worker.Emit(OpCodes.Stsfld, fr.SpecializeField(assembly.MainModule, instance));
+                worker.Emit(OpCodes.Newobj, mr.MakeHostInstanceGeneric(main, func.MakeGenericInstanceType(tr, type)));
+                worker.Emit(OpCodes.Stsfld, main.ImportReference(new FieldReference(fr.Name, fr.FieldType, writer.MakeGenericInstanceType(type))));
             }
         }
     }
@@ -425,10 +423,8 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldnull);
                 worker.Emit(OpCodes.Ldftn, method);
-                var instance = func.MakeGenericInstanceType(tr, type);
-                worker.Emit(OpCodes.Newobj, mr.MakeHostInstanceGeneric(assembly.MainModule, instance));
-                instance = reader.MakeGenericInstanceType(type);
-                worker.Emit(OpCodes.Stsfld, fr.SpecializeField(assembly.MainModule, instance));
+                worker.Emit(OpCodes.Newobj, mr.MakeHostInstanceGeneric(main, func.MakeGenericInstanceType(tr, type)));
+                worker.Emit(OpCodes.Stsfld, main.ImportReference(new FieldReference(fr.Name, fr.FieldType, reader.MakeGenericInstanceType(type))));
             }
         }
     }

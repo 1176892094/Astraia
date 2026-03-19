@@ -264,7 +264,7 @@ namespace Astraia.Editor
             }
 
             var tr = md.Parameters[0].ParameterType;
-            return tr.Is<NetworkClient>() || tr.IsDerivedFrom<NetworkClient>();
+            return tr.Is<NetworkClient>() || tr.IsSubclassOf<NetworkClient>();
         }
 
         public static bool IsNetworkClient(ParameterDefinition pd, InvokeMode mode)
@@ -275,7 +275,7 @@ namespace Astraia.Editor
             }
 
             var tr = pd.ParameterType;
-            return tr.Is<NetworkClient>() || tr.Resolve().IsDerivedFrom<NetworkClient>();
+            return tr.Is<NetworkClient>() || tr.Resolve().IsSubclassOf<NetworkClient>();
         }
 
         private static void IsActiveClient(ILProcessor worker, Module module, string mdName, Instruction label, string error)
@@ -316,7 +316,7 @@ namespace Astraia.Editor
                     if (newName == name)
                     {
                         var baseType = td.BaseType.Resolve();
-                        var baseMethod = baseType.GetMethods(fullName).FirstOrDefault();
+                        var baseMethod = baseType.GetMethod(fullName);
 
                         if (baseMethod == null)
                         {

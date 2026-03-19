@@ -38,51 +38,43 @@ namespace Astraia.Editor
         /// <summary>
         /// 从挂钩方法中生成新的方法
         /// </summary>
-        /// <param name="syncVar"></param>
-        /// <param name="worker"></param>
-        /// <param name="hookMethod"></param>
-        public void GenerateNewActionFromHookMethod(FieldDefinition syncVar, ILProcessor worker, MethodDefinition hookMethod)
+        public void GenerateNewActionFromHookMethod(FieldDefinition syncVar, ILProcessor worker, MethodDefinition func)
         {
-            worker.Emit(hookMethod.IsStatic ? OpCodes.Ldnull : OpCodes.Ldarg_0);
-            MethodReference hookMethodRef;
-            if (hookMethod.DeclaringType.HasGenericParameters)
+            worker.Emit(func.IsStatic ? OpCodes.Ldnull : OpCodes.Ldarg_0);
+            MethodReference method;
+            if (func.DeclaringType.HasGenericParameters)
             {
-                var param = new TypeReference[hookMethod.DeclaringType.GenericParameters.Count];
+                var param = new TypeReference[func.DeclaringType.GenericParameters.Count];
                 for (int i = 0; i < param.Length; i++)
                 {
-                    param[i] = hookMethod.DeclaringType.GenericParameters[i];
+                    param[i] = func.DeclaringType.GenericParameters[i];
                 }
 
-                var instanceType = hookMethod.DeclaringType.MakeGenericInstanceType(param);
-                hookMethodRef = hookMethod.MakeHostInstanceGeneric(hookMethod.Module, instanceType);
+                method = func.MakeHostInstanceGeneric(func.Module, func.DeclaringType.MakeGenericInstanceType(param));
             }
             else
             {
-                hookMethodRef = hookMethod;
+                method = func;
             }
 
-            if (hookMethod.IsVirtual)
+            if (func.IsVirtual)
             {
                 worker.Emit(OpCodes.Dup);
-                worker.Emit(OpCodes.Ldvirtftn, hookMethodRef);
+                worker.Emit(OpCodes.Ldvirtftn, method);
             }
             else
             {
-                worker.Emit(OpCodes.Ldftn, hookMethodRef);
+                worker.Emit(OpCodes.Ldftn, method);
             }
 
-            var actionRef = assembly.MainModule.ImportReference(typeof(Action<,>));
-            var genericInstance = actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType);
-            worker.Emit(OpCodes.Newobj, module.SyncVarHook.MakeHostInstanceGeneric(assembly.MainModule, genericInstance));
+            var main = assembly.MainModule;
+            var actionRef = main.ImportReference(typeof(Action<,>));
+            worker.Emit(OpCodes.Newobj, module.SyncVarHook.MakeHostInstanceGeneric(main, actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType)));
         }
 
         /// <summary>
         /// 获取挂钩方法
         /// </summary>
-        /// <param name="td"></param>
-        /// <param name="syncVar"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
         public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
         {
             var attribute = syncVar.GetAttribute<SyncVarAttribute>();
@@ -98,11 +90,6 @@ namespace Astraia.Editor
         /// <summary>
         /// 寻找挂钩方法
         /// </summary>
-        /// <param name="td"></param>
-        /// <param name="syncVar"></param>
-        /// <param name="hookMethod"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
         private MethodDefinition FindHookMethod(TypeDefinition td, FieldDefinition syncVar, string hookMethod, ref bool failed)
         {
             var methods = td.GetMethods(hookMethod);
@@ -228,7 +215,7 @@ namespace Astraia.Editor
         private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarIds, long dirtyBits, ref bool failed)
         {
             FieldDefinition objectId = null;
-            if (fd.FieldType.IsDerivedFrom<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
+            if (fd.FieldType.IsSubclassOf<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
             {
                 objectId = new FieldDefinition("{0}Id".Format(fd.Name), FieldAttributes.Family, module.Import<NetworkVariable>())
                 {
@@ -307,7 +294,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, module.GetSyncVarNetworkEntity);
                 worker.Emit(OpCodes.Ret);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
+            else if (fd.FieldType.IsSubclassOf<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_0);
@@ -383,7 +370,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldflda, fieldReference);
                 worker.Emit(OpCodes.Call, module.SyncVarSetterNetworkEntity);
             }
-            else if (fd.FieldType.IsDerivedFrom<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
+            else if (fd.FieldType.IsSubclassOf<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fieldReference);

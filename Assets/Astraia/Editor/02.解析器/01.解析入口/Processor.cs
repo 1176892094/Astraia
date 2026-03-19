@@ -55,7 +55,7 @@ namespace Astraia.Editor
                 ReadingMode = ReadingMode.Immediate
             });
             resolver.SetAssemblyDefinitionForCompiledAssembly(assembly);
-            if (new Weaver(debugger).Weave(assembly, resolver, out var modified) && modified)
+            if (new Weaver().Weave(assembly, debugger, resolver, out var modified) && modified)
             {
                 var module = assembly.MainModule;
                 if (module.AssemblyReferences.Any(reference => reference.Name == assembly.Name.Name))

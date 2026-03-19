@@ -430,7 +430,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
-                var writeFunc = writer.GetFunction(syncVar.FieldType.IsDerivedFrom<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType, ref failed);
+                var writeFunc = writer.GetFunction(syncVar.FieldType.IsSubclassOf<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType, ref failed);
 
                 if (writeFunc != null)
                 {
@@ -471,7 +471,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
                 var writeFunc = writer.GetFunction(
-                    syncVar.FieldType.IsDerivedFrom<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType,
+                    syncVar.FieldType.IsSubclassOf<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType,
                     ref failed);
 
                 if (writeFunc != null)
@@ -588,7 +588,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldflda, objectId);
                 worker.Emit(OpCodes.Call, module.SyncVarGetterNetworkEntity);
             }
-            else if (syncVar.FieldType.IsDerivedFrom<NetworkModule>() || syncVar.FieldType.Is<NetworkModule>())
+            else if (syncVar.FieldType.IsSubclassOf<NetworkModule>() || syncVar.FieldType.Is<NetworkModule>())
             {
                 var objectId = syncVarIds[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);

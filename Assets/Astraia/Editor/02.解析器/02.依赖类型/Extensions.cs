@@ -40,9 +40,9 @@ namespace Astraia.Editor
             return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<T>());
         }
 
-        public static MethodDefinition GetMethod(this TypeDefinition self, string name)
+        public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
         {
-            return self.Methods.FirstOrDefault(method => method.Name == name);
+            return self.Methods.Where(md => md.Name == name);
         }
 
         public static IEnumerable<MethodDefinition> GetConstructors(this TypeDefinition self)
@@ -50,14 +50,14 @@ namespace Astraia.Editor
             return self.Methods.Where(method => method.IsConstructor);
         }
 
+        public static bool Support(this TypeReference self)
+        {
+            return self.Is<GameObject>() || self.Is<NetworkEntity>() || self.Is<NetworkModule>() || self.IsSubclassOf<NetworkModule>();
+        }
+
         public static object GetArgument(this ICustomAttribute self)
         {
             return self.ConstructorArguments[0].Value;
-        }
-
-        public static bool Support(this TypeReference self)
-        {
-            return self.Is<GameObject>() || self.Is<NetworkEntity>() || self.IsDerivedFrom<NetworkModule>() || self.Is<NetworkModule>();
         }
 
         public static string GetName(this MethodDefinition self, string name)
@@ -78,25 +78,11 @@ namespace Astraia.Editor
             }
         }
 
-
-        public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
+        public static bool HasInterface(this TypeDefinition self, Type t)
         {
             while (self != null)
             {
-                foreach (var md in self.Methods.Where(md => md.Name == name))
-                {
-                    yield return md;
-                }
-
-                self = self.GetBaseType();
-            }
-        }
-
-        public static bool HasInterface<T>(this TypeDefinition self)
-        {
-            while (self != null)
-            {
-                if (self.Interfaces.Any(ii => ii.InterfaceType.Is<T>()))
+                if (self.Interfaces.Any(ii => ii.InterfaceType.Is(t)))
                 {
                     return true;
                 }
@@ -105,6 +91,21 @@ namespace Astraia.Editor
             }
 
             return false;
+        }
+
+        public static MethodDefinition GetMethod(this TypeDefinition self, string name)
+        {
+            while (self != null)
+            {
+                foreach (var md in self.Methods.Where(md => md.Name == name))
+                {
+                    return md;
+                }
+
+                self = self.GetBaseType();
+            }
+
+            return null;
         }
 
         public static TypeDefinition GetBaseType(this TypeDefinition self)
@@ -119,7 +120,7 @@ namespace Astraia.Editor
             }
         }
 
-        private static bool IsDerivedFrom(this TypeReference self, Type t)
+        private static bool IsSubclassOf(this TypeReference self, Type t)
         {
             var td = self.Resolve();
             if (!td.IsClass)
@@ -138,15 +139,15 @@ namespace Astraia.Editor
                 return true;
             }
 
-            return tr.CanResolve() && tr.Resolve().IsDerivedFrom(t);
+            return tr.CanResolve() && tr.Resolve().IsSubclassOf(t);
         }
 
-        public static bool IsDerivedFrom<T>(this TypeReference self)
+        public static bool IsSubclassOf<T>(this TypeReference self)
         {
-            return self.IsDerivedFrom(typeof(T));
+            return self.IsSubclassOf(typeof(T));
         }
 
-        public static bool CanResolve(this TypeReference self)
+        private static bool CanResolve(this TypeReference self)
         {
             while (self != null)
             {
@@ -224,17 +225,11 @@ namespace Astraia.Editor
             return md.ImportReference(method);
         }
 
-
-        public static FieldReference SpecializeField(this FieldReference self, ModuleDefinition md, GenericInstanceType type)
-        {
-            return md.ImportReference(new FieldReference(self.Name, self.FieldType, type));
-        }
-
         public static TypeReference GetEnumUnderlyingType(this TypeDefinition self)
         {
-            foreach (var field in self.Fields.Where(field => !field.IsStatic))
+            foreach (var fd in self.Fields.Where(fd => !fd.IsStatic))
             {
-                return field.FieldType;
+                return fd.FieldType;
             }
 
             throw new ArgumentException("无效的枚举类型: " + self.FullName);
