@@ -49,9 +49,9 @@ namespace Astraia.Editor
                 SymbolStream = pdbData,
                 SymbolReaderProvider = new PortablePdbReaderProvider(),
                 ReadSymbols = true,
-                ReadWrite = true,
                 AssemblyResolver = resolver,
-                ReflectionImporterProvider = new ReflectionProvider()
+                ReflectionImporterProvider = new ReflectionProvider(),
+                ReadingMode = ReadingMode.Immediate
             });
             resolver.SetAssemblyDefinitionForCompiledAssembly(assembly);
             if (new Weaver(debugger).Weave(assembly, resolver, out var modified) && modified)
@@ -103,7 +103,7 @@ namespace Astraia.Editor
             var reason = message.ToString();
             if (member != null)
             {
-                reason = reason + " with <color=#00FF00>[" + member + "]</color>";
+                reason = "{0} with [{1}]".Format(reason, member.ToString().Color("G"));
             }
 
             var source = reason.Split('\n');
@@ -136,6 +136,14 @@ namespace Astraia.Editor
         public void Dispose()
         {
             GC.SuppressFinalize(this);
+        }
+
+        ~AssemblyResolver()
+        {
+            foreach (var definition in Definitions.Values)
+            {
+                definition.Dispose();
+            }
         }
 
         public AssemblyDefinition Resolve(AssemblyNameReference assembly)

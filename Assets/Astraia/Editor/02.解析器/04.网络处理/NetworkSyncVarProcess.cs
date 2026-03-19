@@ -236,7 +236,7 @@ namespace Astraia.Editor
                 };
                 syncVarIds[fd] = objectId;
             }
-            else if (fd.FieldType.IsNetworkEntity())
+            else if (fd.FieldType.IsValid())
             {
                 objectId = new FieldDefinition("{0}Id".Format(fd.Name), FieldAttributes.Family, module.Import<uint>())
                 {
@@ -260,7 +260,7 @@ namespace Astraia.Editor
 
             access.setter[fd] = set;
 
-            if (fd.FieldType.IsNetworkEntity())
+            if (fd.FieldType.IsValid())
             {
                 access.getter[fd] = get;
             }

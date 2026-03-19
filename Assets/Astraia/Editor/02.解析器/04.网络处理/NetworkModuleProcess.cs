@@ -437,7 +437,7 @@ namespace Astraia.Editor
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
-            var baseSerialize = Resolve.GetMethodByParent(generate.BaseType, assembly, Weaver.SER_METHOD);
+            var baseSerialize = Resolve.GetMethod(generate.BaseType, assembly, Weaver.SER_METHOD);
             if (baseSerialize != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -539,7 +539,7 @@ namespace Astraia.Editor
             var dirtyBitsLocal = new VariableDefinition(module.Import<long>());
             serialize.Body.Variables.Add(dirtyBitsLocal);
 
-            var baseDeserialize = Resolve.GetMethodByParent(generate.BaseType, assembly, Weaver.DES_METHOD);
+            var baseDeserialize = Resolve.GetMethod(generate.BaseType, assembly, Weaver.DES_METHOD);
             if (baseDeserialize != null)
             {
                 worker.Append(worker.Create(OpCodes.Ldarg_0));

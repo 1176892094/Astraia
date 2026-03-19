@@ -20,30 +20,51 @@ namespace Astraia.Editor
 {
     internal static class Extensions
     {
-        /// <summary>
-        /// 指定类型判断
-        /// </summary>
         public static bool Is(this TypeReference self, Type t)
         {
-            if (t.IsGenericType)
-            {
-                return self.GetElementType().FullName == t.FullName;
-            }
-
-            return self.FullName == t.FullName;
+            return t.IsGenericType ? self.GetElementType().FullName == t.FullName : self.FullName == t.FullName;
         }
 
-        /// <summary>
-        /// 指定类型判断
-        /// </summary>
         public static bool Is<T>(this TypeReference self)
         {
-            return Is(self, typeof(T));
+            return self.Is(typeof(T));
         }
 
-        /// <summary>
-        /// 是指定类型的派生类型
-        /// </summary>
+        public static bool IsValid(this TypeReference self)
+        {
+            return self.Is<GameObject>() || self.Is<NetworkEntity>() || self.IsDerivedFrom<NetworkModule>() || self.Is<NetworkModule>();
+        }
+
+        public static bool HasAttribute<T>(this ICustomAttributeProvider self)
+        {
+            return self.CustomAttributes.Any(custom => custom.AttributeType.Is<T>());
+        }
+
+        public static CustomAttribute GetAttribute<T>(this ICustomAttributeProvider self)
+        {
+            return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<T>());
+        }
+
+        public static T GetField<T>(this CustomAttribute self)
+        {
+            return (T)self.ConstructorArguments.FirstOrDefault(argument => argument.Type.FullName == typeof(T).FullName).Value;
+        }
+
+        public static MethodDefinition GetMethod(this TypeDefinition self, string name)
+        {
+            return self.Methods.FirstOrDefault(method => method.Name == name);
+        }
+
+        public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
+        {
+            return self.Methods.Where(method => method.Name == name);
+        }
+
+        public static IEnumerable<MethodDefinition> GetConstructors(this TypeDefinition self)
+        {
+            return self.Methods.Where(method => method.IsConstructor);
+        }
+
         private static bool IsDerivedFrom(this TypeReference self, Type t)
         {
             var td = self.Resolve();
@@ -63,20 +84,14 @@ namespace Astraia.Editor
                 return true;
             }
 
-            return tr.CanResolve() && IsDerivedFrom(tr.Resolve(), t);
+            return tr.CanResolve() && tr.Resolve().IsDerivedFrom(t);
         }
 
-        /// <summary>
-        /// 是指定类型的派生类型
-        /// </summary>
         public static bool IsDerivedFrom<T>(this TypeReference self)
         {
-            return IsDerivedFrom(self, typeof(T));
+            return self.IsDerivedFrom(typeof(T));
         }
 
-        /// <summary>
-        /// 是能够解析的
-        /// </summary>
         public static bool CanResolve(this TypeReference self)
         {
             while (self != null)
@@ -104,41 +119,17 @@ namespace Astraia.Editor
             return true;
         }
 
-        /// <summary>
-        /// 从指定类型中获取方法
-        /// </summary>
-        public static MethodDefinition GetMethod(this TypeDefinition self, string name)
+        public static FieldReference MakeHostInstanceGeneric(this FieldReference self)
         {
-            return self.Methods.FirstOrDefault(method => method.Name == name);
+            var tr = new GenericInstanceType(self.DeclaringType);
+            foreach (var param in self.DeclaringType.GenericParameters)
+            {
+                tr.GenericArguments.Add(param);
+            }
+
+            return new FieldReference(self.Name, self.FieldType, tr);
         }
 
-        /// <summary>
-        /// 从指定类型中获取方法组
-        /// </summary>
-        public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
-        {
-            return self.Methods.Where(method => method.Name == name);
-        }
-
-        /// <summary>
-        /// 判断自定义特性
-        /// </summary>
-        public static bool HasAttribute<T>(this ICustomAttributeProvider self)
-        {
-            return self.CustomAttributes.Any(custom => custom.AttributeType.Is<T>());
-        }
-
-        /// <summary>
-        /// 获取自定义特性
-        /// </summary>
-        public static CustomAttribute GetAttribute<T>(this ICustomAttributeProvider self)
-        {
-            return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<T>());
-        }
-
-        /// <summary>
-        /// 获取宿主实例泛型方法
-        /// </summary>
         public static MethodReference MakeHostInstanceGeneric(this MethodReference self, ModuleDefinition md, GenericInstanceType type)
         {
             var mr = new MethodReference(self.Name, self.ReturnType, type)
@@ -161,57 +152,24 @@ namespace Astraia.Editor
             return md.ImportReference(mr);
         }
 
-        /// <summary>
-        /// 获取宿主实例泛型字段
-        /// </summary>
-        /// <param name="self"></param>
-        /// <returns></returns>
-        public static FieldReference MakeHostInstanceGeneric(this FieldReference self)
+        public static GenericInstanceType MakeGenericInstanceType(this TypeReference self, params TypeReference[] parameters)
         {
-            var type = new GenericInstanceType(self.DeclaringType);
-            foreach (var parameter in self.DeclaringType.GenericParameters)
+            var tr = new GenericInstanceType(self);
+            foreach (var param in parameters)
             {
-                type.GenericArguments.Add(parameter);
+                tr.GenericArguments.Add(param);
             }
 
-            return new FieldReference(self.Name, self.FieldType, type);
+            return tr;
         }
 
-        /// <summary>
-        /// 获取泛型实例类型
-        /// </summary>
-        public static GenericInstanceType MakeGenericInstanceType(this TypeReference self, params TypeReference[] arguments)
-        {
-            var type = new GenericInstanceType(self);
-            foreach (var tr in arguments)
-            {
-                type.GenericArguments.Add(tr);
-            }
-
-            return type;
-        }
-
-        /// <summary>
-        /// 获取泛型实例方法
-        /// </summary>
         public static MethodReference MakeGenericInstanceType(this MethodReference self, ModuleDefinition md, TypeReference tr)
         {
-            var instance = new GenericInstanceMethod(self);
-            instance.GenericArguments.Add(tr);
-            return md.ImportReference(instance);
+            var method = new GenericInstanceMethod(self);
+            method.GenericArguments.Add(tr);
+            return md.ImportReference(method);
         }
 
-        /// <summary>
-        /// 从构造方法中获取字段
-        /// </summary>
-        public static T GetField<T>(this CustomAttribute self)
-        {
-            return (T)self.ConstructorArguments.FirstOrDefault(argument => argument.Type.FullName == typeof(T).FullName).Value;
-        }
-
-        /// <summary>
-        /// 找到所有公开字段
-        /// </summary>
         public static IEnumerable<FieldDefinition> GetPublicFields(this TypeDefinition self)
         {
             while (self != null)
@@ -219,7 +177,6 @@ namespace Astraia.Editor
                 foreach (var field in self.Fields.Where(field => field.IsPublic && !field.IsStatic))
                 {
                     yield return field;
-                    
                 }
 
                 try
@@ -233,26 +190,12 @@ namespace Astraia.Editor
             }
         }
 
-        /// <summary>
-        /// 获取构造函数
-        /// </summary>
-        public static IEnumerable<MethodDefinition> GetConstructors(this TypeDefinition self)
-        {
-            foreach (var method in self.Methods.Where(method => method.IsConstructor))
-            {
-                yield return method;
-            }
-        }
-
-        /// <summary>
-        /// 是实现指定接口的
-        /// </summary>
         public static bool IsImplement<T>(this TypeDefinition self)
         {
             var td = self;
             while (td != null)
             {
-                if (td.Interfaces.Any(i => i.InterfaceType.Is<T>()))
+                if (td.Interfaces.Any(implementation => implementation.InterfaceType.Is<T>()))
                 {
                     return true;
                 }
@@ -270,17 +213,12 @@ namespace Astraia.Editor
             return false;
         }
 
-        /// <summary>
-        /// 导入特定字段
-        /// </summary>
+
         public static FieldReference SpecializeField(this FieldReference self, ModuleDefinition md, GenericInstanceType type)
         {
             return md.ImportReference(new FieldReference(self.Name, self.FieldType, type));
         }
 
-        /// <summary>
-        /// 添加枚举类型
-        /// </summary>
         public static TypeReference GetEnumUnderlyingType(this TypeDefinition self)
         {
             foreach (var field in self.Fields.Where(field => !field.IsStatic))
@@ -291,9 +229,6 @@ namespace Astraia.Editor
             throw new ArgumentException("无效的枚举类型: " + self.FullName);
         }
 
-        /// <summary>
-        /// 获取父类的方法
-        /// </summary>
         public static MethodDefinition GetMethodInBaseType(this TypeDefinition self, string name)
         {
             var td = self;
@@ -315,84 +250,6 @@ namespace Astraia.Editor
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// 应用泛型参数
-        /// </summary>
-        public static TypeReference ApplyGenericParameters(this TypeReference self, TypeReference child)
-        {
-            if (!self.IsGenericInstance)
-            {
-                return self;
-            }
-
-            var args = (GenericInstanceType)self;
-            var it = new GenericInstanceType(self.Resolve());
-            foreach (var tr in args.GenericArguments)
-            {
-                it.GenericArguments.Add(tr);
-            }
-
-            for (var i = 0; i < it.GenericArguments.Count; i++)
-            {
-                if (!it.GenericArguments[i].IsGenericParameter)
-                {
-                    continue;
-                }
-
-                var tr = child.FindMatchingGenericArgument(it.GenericArguments[i].Name);
-                it.GenericArguments[i] = self.Module.ImportReference(tr);
-            }
-
-            return it;
-        }
-
-        /// <summary>
-        /// 查找匹配的泛型参数
-        /// </summary>
-        private static TypeReference FindMatchingGenericArgument(this TypeReference self, string name)
-        {
-            var td = self.Resolve();
-            if (!td.HasGenericParameters)
-            {
-                throw new InvalidOperationException("方法带有泛型参数，在子类中找不到它们。");
-            }
-
-            for (var i = 0; i < td.GenericParameters.Count; i++)
-            {
-                if (td.GenericParameters[i].Name == name)
-                {
-                    return ((GenericInstanceType)self).GenericArguments[i];
-                }
-            }
-
-            throw new InvalidOperationException("没有找到匹配的泛型参数。");
-        }
-
-        /// <summary>
-        /// 判断网络对象
-        /// </summary>
-        /// <param name="tr"></param>
-        /// <returns></returns>
-        public static bool IsNetworkEntity(this TypeReference tr)
-        {
-            if (tr.Is<GameObject>())
-            {
-                return true;
-            }
-
-            if (tr.Is<NetworkEntity>())
-            {
-                return true;
-            }
-
-            if (tr.IsDerivedFrom<NetworkModule>())
-            {
-                return true;
-            }
-
-            return tr.Is<NetworkModule>();
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Astraia.Editor
     {
         public static bool IsEditor(AssemblyDefinition ad)
         {
-            return ad.MainModule.AssemblyReferences.Any(r => r.Name.StartsWith(nameof(UnityEditor)));
+            return ad.MainModule.AssemblyReferences.Any(reference => reference.Name.StartsWith(nameof(UnityEditor)));
         }
 
         public static MethodReference GetProperty(TypeReference tr, AssemblyDefinition ad, string name)
@@ -41,14 +41,14 @@ namespace Astraia.Editor
             return tr.Resolve().Properties.Where(pd => pd.Name == name).Select(pd => ad.MainModule.ImportReference(pd.GetMethod)).FirstOrDefault();
         }
 
+        private static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match)
+        {
+            return tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
+        }
+
         public static MethodDefinition GetConstructor(TypeReference tr)
         {
             return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Weaver.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
-        }
-
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match)
-        {
-            return tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
         }
 
         public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match, ILogPostProcessor Log, ref bool failure)
@@ -75,15 +75,10 @@ namespace Astraia.Editor
             return mr;
         }
 
-        public static MethodReference GetMethodByParent(TypeReference tr, AssemblyDefinition ad, string name)
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, string name)
         {
-            while (true)
+            while (tr != null)
             {
-                if (tr == null)
-                {
-                    return null;
-                }
-
                 foreach (var md in tr.Resolve().Methods)
                 {
                     if (md.Name == name)
@@ -98,8 +93,56 @@ namespace Astraia.Editor
                     }
                 }
 
-                tr = tr.Resolve().BaseType.ApplyGenericParameters(tr);
+                tr = ApplyGenericParameters(tr);
             }
+
+            return null;
+        }
+
+        private static TypeReference ApplyGenericParameters(TypeReference self)
+        {
+            var parent = self.Resolve().BaseType;
+            if (parent.IsGenericInstance)
+            {
+                var args = (GenericInstanceType)parent;
+                var it = new GenericInstanceType(parent.Resolve());
+                foreach (var tr in args.GenericArguments)
+                {
+                    it.GenericArguments.Add(tr);
+                }
+
+                for (var i = 0; i < it.GenericArguments.Count; i++)
+                {
+                    if (it.GenericArguments[i].IsGenericParameter)
+                    {
+                        var tr = FindGenericArgument(self, it.GenericArguments[i].Name);
+                        it.GenericArguments[i] = parent.Module.ImportReference(tr);
+                    }
+                }
+
+                return it;
+            }
+
+            return parent;
+        }
+
+        private static TypeReference FindGenericArgument(TypeReference self, string name)
+        {
+            var td = self.Resolve();
+            if (td.HasGenericParameters)
+            {
+                for (var i = 0; i < td.GenericParameters.Count; i++)
+                {
+                    if (td.GenericParameters[i].Name == name)
+                    {
+                        return ((GenericInstanceType)self).GenericArguments[i];
+                    }
+                }
+
+                throw new InvalidOperationException("没有找到匹配的泛型参数。");
+            }
+
+            throw new InvalidOperationException("方法带有泛型参数，在子类中找不到它们。");
         }
     }
 }
