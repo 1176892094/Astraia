@@ -37,8 +37,8 @@ namespace Astraia.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessClientRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Weaver.GenerateMethodName(Const.INV_METHOD, md);
-            var rpc = new MethodDefinition(rpcName, Const.GEN_RPC, module.Import(typeof(void)));
+            var rpcName = Weaver.GenerateMethodName(Weaver.INV_METHOD, md);
+            var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
             NetworkClientActive(worker, module, md.Name, label, "ClientRpc");
@@ -107,8 +107,8 @@ namespace Astraia.Editor
         public static MethodDefinition ProcessServerRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Weaver.GenerateMethodName(Const.INV_METHOD, md);
-            var rpc = new MethodDefinition(rpcName, Const.GEN_RPC, module.Import(typeof(void)));
+            var rpcName = Weaver.GenerateMethodName(Weaver.INV_METHOD, md);
+            var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
             NetworkServerActive(worker, module, md.Name, label, "ServerRpc");
@@ -186,8 +186,8 @@ namespace Astraia.Editor
         public static MethodDefinition ProcessTargetRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Weaver.GenerateMethodName(Const.INV_METHOD, md);
-            var rpc = new MethodDefinition(rpcName, Const.GEN_RPC, module.Import(typeof(void)));
+            var rpcName = Weaver.GenerateMethodName(Weaver.INV_METHOD, md);
+            var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
             NetworkClientActive(worker, module, md.Name, label, "TargetRpc");
@@ -425,7 +425,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         private static MethodDefinition BaseInvokeMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
-            var newName = Weaver.GenerateMethodName(Const.RPC_METHOD, md);
+            var newName = Weaver.GenerateMethodName(Weaver.RPC_METHOD, md);
             var method = new MethodDefinition(newName, md.Attributes, md.ReturnType)
             {
                 IsPublic = false,
@@ -468,12 +468,12 @@ namespace Astraia.Editor
         private static void ProcessBaseMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
             var fullName = md.Name;
-            if (!fullName.StartsWith(Const.RPC_METHOD))
+            if (!fullName.StartsWith(Weaver.RPC_METHOD))
             {
                 return;
             }
 
-            var name = md.Name.Substring(Const.RPC_METHOD.Length);
+            var name = md.Name.Substring(Weaver.RPC_METHOD.Length);
 
             foreach (var instruction in md.Body.Instructions)
             {

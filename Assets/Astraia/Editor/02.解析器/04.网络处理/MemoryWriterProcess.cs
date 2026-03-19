@@ -176,7 +176,7 @@ namespace Astraia.Editor
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Resolve.GetMethod(extensions, assembly, log, name, ref failed);
+            var mr = Resolve.GetMethod(extensions, assembly, name, log, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -221,7 +221,7 @@ namespace Astraia.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition("Write{0}".Format(NetworkMessage.Id(tr.FullName)), Const.GEN_RAW, module.Import(typeof(void)));
+            var md = new MethodDefinition("Write{0}".Format(NetworkMessage.Id(tr.FullName)), Weaver.GEN_RAW, module.Import(typeof(void)));
             md.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
             md.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, tr));
             md.Body.InitLocals = true;

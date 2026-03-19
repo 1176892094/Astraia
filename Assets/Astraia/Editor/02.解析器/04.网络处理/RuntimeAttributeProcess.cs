@@ -79,7 +79,7 @@ namespace Astraia.Editor
             AssemblyNameReference assemblyRef = null;
             foreach (var reference in assembly.MainModule.AssemblyReferences)
             {
-                if (reference.Name == Const.ASSEMBLY)
+                if (reference.Name == Weaver.GEN_TYPE)
                 {
                     assemblyRef = reference;
                     break;

@@ -58,7 +58,7 @@ namespace Astraia.Editor
         /// 对ArraySegment的构造函数的注入
         /// </summary>
         public readonly MethodReference AddArraySegment;
-        
+
         /// <summary>
         /// 读取泛型的 NetworkModule
         /// </summary>
@@ -187,50 +187,45 @@ namespace Astraia.Editor
         /// 初始化
         /// </summary>
         /// <param name="assembly"></param>
-        /// <param name="log"></param>
+        /// <param name="debugger"></param>
         /// <param name="failed"></param>
-        public Module(AssemblyDefinition assembly, ILogPostProcessor log, ref bool failed)
+        public Module(AssemblyDefinition assembly, ILogPostProcessor debugger, ref bool failed)
         {
             this.assembly = assembly;
+            LogError = Resolve.GetMethod(Import<Debug>(), assembly, OnLogError, debugger, ref failed);
+            SyncVarHook = Resolve.GetMethod(Import(typeof(Action<,>)), assembly, Weaver.CTOR, debugger, ref failed);
+            InvokeDelegate = Resolve.GetMethod(Import<InvokeDelegate>(), assembly, Weaver.CTOR, debugger, ref failed);
+            AddArraySegment = Resolve.GetMethod(Import(typeof(ArraySegment<>)), assembly, Weaver.CTOR, debugger, ref failed);
+            GetTypeFromHandle = Resolve.GetMethod(Import<Type>(), assembly, "GetTypeFromHandle", debugger, ref failed);
+            ReadNetworkModule = Resolve.GetMethod(Import(typeof(Net.Extensions)), assembly, NetworkModule, debugger, ref failed);
 
-            SyncVarHook = Resolve.GetMethod(Import(typeof(Action<,>)), assembly, log, Const.CTOR, ref failed);
-            AddArraySegment = Resolve.GetMethod(Import(typeof(ArraySegment<>)), assembly, log, Const.CTOR, ref failed);
-            GetClientActive = Resolve.GetMethod(Import(typeof(NetworkManager)), assembly, log, "get_isClient", ref failed);
-            GetServerActive = Resolve.GetMethod(Import(typeof(NetworkManager)), assembly, log, "get_isServer", ref failed);
-
-            ReadNetworkModule = Resolve.GetMethod(Import(typeof(Net.Extensions)), assembly, log, method => method.Name == nameof(Net.Extensions.ReadNetworkModule) && method.HasGenericParameters, ref failed);
+            WriterDequeue = Resolve.GetMethod(Import<MemoryWriter>(), assembly, "Pop", debugger, ref failed);
+            WriterEnqueue = Resolve.GetMethod(Import<MemoryWriter>(), assembly, "Push", debugger, ref failed);
+            GetClientActive = Resolve.GetMethod(Import<NetworkManager>(), assembly, "get_isClient", debugger, ref failed);
+            GetServerActive = Resolve.GetMethod(Import<NetworkManager>(), assembly, "get_isServer", debugger, ref failed);
 
             var NetworkModuleType = Import<NetworkModule>();
             SyncVarDirty = Resolve.GetProperty(NetworkModuleType, assembly, "syncVarDirty");
-            SyncVarSetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, log, "SyncVarSetterGeneral", ref failed);
-            SyncVarSetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, log, "SyncVarSetterGameObject", ref failed);
-            SyncVarSetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, log, "SyncVarSetterNetworkModule", ref failed);
-            SyncVarSetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, log, "SyncVarSetterNetworkEntity", ref failed);
-            
-            SyncVarGetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, log, "SyncVarGetterGeneral", ref failed);
-            SyncVarGetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, log, "SyncVarGetterGameObject", ref failed);
-            SyncVarGetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, log, "SyncVarGetterNetworkModule", ref failed);
-            SyncVarGetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, log, "SyncVarGetterNetworkEntity", ref failed);
-            
-            GetSyncVarGameObject = Resolve.GetMethod(NetworkModuleType, assembly, log, "GetSyncVarGameObject", ref failed);
-            GetSyncVarNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, log, "GetSyncVarNetworkModule", ref failed);
-            GetSyncVarNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, log, "GetSyncVarNetworkEntity", ref failed);
-            
-            SendServerRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, log, "SendServerRpcInternal", ref failed);
-            SendClientRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, log, "SendClientRpcInternal", ref failed);
-            SendTargetRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, log, "SendTargetRpcInternal", ref failed);
-            
-            RegisterServerRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, log, "RegisterServerRpc", ref failed);
-            RegisterClientRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, log, "RegisterClientRpc", ref failed);
+            SyncVarSetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarSetterGeneral", debugger, ref failed);
+            SyncVarSetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarSetterGameObject", debugger, ref failed);
+            SyncVarSetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarSetterNetworkEntity", debugger, ref failed);
+            SyncVarSetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarSetterNetworkModule", debugger, ref failed);
 
-            InvokeDelegate = Resolve.GetMethod(Import<InvokeDelegate>(), assembly, log, Const.CTOR, ref failed);
+            SyncVarGetterGeneral = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarGetterGeneral", debugger, ref failed);
+            SyncVarGetterGameObject = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarGetterGameObject", debugger, ref failed);
+            SyncVarGetterNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarGetterNetworkEntity", debugger, ref failed);
+            SyncVarGetterNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, "SyncVarGetterNetworkModule", debugger, ref failed);
 
-            LogError = Resolve.GetMethod(Import<Debug>(), assembly, log, method => method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName, ref failed);
+            GetSyncVarGameObject = Resolve.GetMethod(NetworkModuleType, assembly, "GetSyncVarGameObject", debugger, ref failed);
+            GetSyncVarNetworkEntity = Resolve.GetMethod(NetworkModuleType, assembly, "GetSyncVarNetworkEntity", debugger, ref failed);
+            GetSyncVarNetworkModule = Resolve.GetMethod(NetworkModuleType, assembly, "GetSyncVarNetworkModule", debugger, ref failed);
 
-            GetTypeFromHandle = Resolve.GetMethod(Import<Type>(), assembly, log, "GetTypeFromHandle", ref failed);
+            SendServerRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, "SendServerRpcInternal", debugger, ref failed);
+            SendClientRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, "SendClientRpcInternal", debugger, ref failed);
+            SendTargetRpcInternal = Resolve.GetMethod(NetworkModuleType, assembly, "SendTargetRpcInternal", debugger, ref failed);
 
-            WriterDequeue = Resolve.GetMethod(Import<MemoryWriter>(), assembly, log, "Pop", ref failed);
-            WriterEnqueue = Resolve.GetMethod(Import<MemoryWriter>(), assembly, log, "Push", ref failed);
+            RegisterServerRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, "RegisterServerRpc", debugger, ref failed);
+            RegisterClientRpc = Resolve.GetMethod(Import(typeof(NetworkAttribute)), assembly, "RegisterClientRpc", debugger, ref failed);
 
             if (Resolve.IsEditor(assembly))
             {
@@ -238,6 +233,16 @@ namespace Astraia.Editor
             }
 
             RuntimeInitializeOnLoadMethodAttribute = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
+        }
+
+        private static bool NetworkModule(MethodDefinition method)
+        {
+            return method.Name == nameof(Net.Extensions.ReadNetworkModule) && method.HasGenericParameters;
+        }
+
+        private static bool OnLogError(MethodDefinition method)
+        {
+            return method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName;
         }
     }
 }

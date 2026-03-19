@@ -200,9 +200,9 @@ namespace Astraia.Editor
                 ProcessSyncVar(td, fd, syncVarIds, 1L << dirtyBits, ref failed);
                 dirtyBits += 1;
 
-                if (dirtyBits > Const.SYNC_LIMIT)
+                if (dirtyBits > Weaver.SYNC_LIMIT)
                 {
-                    log.Error("{0} 网络变量数量大于 {1}。".Format(fd.Name, Const.SYNC_LIMIT), td);
+                    log.Error("{0} 网络变量数量大于 {1}。".Format(fd.Name, Weaver.SYNC_LIMIT), td);
                     failed = true;
                 }
             }
@@ -275,7 +275,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string name, FieldDefinition fieldId)
         {
-            var get = new MethodDefinition("get_Network{0}".Format(name), Const.GEN_SYNC, fd.FieldType);
+            var get = new MethodDefinition("get_Network{0}".Format(name), Weaver.GEN_SYNC, fd.FieldType);
 
             var worker = get.Body.GetILProcessor();
 
@@ -342,7 +342,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         private MethodDefinition GenerateSyncVarSetter(TypeDefinition td, FieldDefinition fd, string name, long dirtyBit, FieldDefinition fieldId, ref bool failed)
         {
-            var set = new MethodDefinition("set_Network{0}".Format(name), Const.GEN_SYNC, module.Import(typeof(void)));
+            var set = new MethodDefinition("set_Network{0}".Format(name), Weaver.GEN_SYNC, module.Import(typeof(void)));
 
             var worker = set.Body.GetILProcessor();
             var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;

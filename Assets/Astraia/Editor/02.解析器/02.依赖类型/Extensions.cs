@@ -206,15 +206,7 @@ namespace Astraia.Editor
         /// </summary>
         public static T GetField<T>(this CustomAttribute self)
         {
-            foreach (var custom in self.ConstructorArguments)
-            {
-                if (custom.Type.FullName == typeof(T).FullName)
-                {
-                    return (T)custom.Value;
-                }
-            }
-
-            return default;
+            return (T)self.ConstructorArguments.FirstOrDefault(argument => argument.Type.FullName == typeof(T).FullName).Value;
         }
 
         /// <summary>

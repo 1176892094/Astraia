@@ -14,11 +14,30 @@ using System.Collections.Generic;
 using System.Linq;
 using Astraia.Net;
 using Mono.Cecil;
+using Member = Mono.Cecil.TypeAttributes;
+using Method = Mono.Cecil.MethodAttributes;
 
 namespace Astraia.Editor
 {
     internal class Weaver
     {
+        public const int SYNC_LIMIT = 64;
+        public const string CTOR = ".ctor";
+        public const string GEN_TYPE = "Astraia.Net";
+        public const string GEN_SKIP = "ILPP_IGNORE";
+        public const string GEN_FUNC = "NetworkProcessor";
+        public const string INV_METHOD = "_0";
+        public const string RPC_METHOD = "_1";
+        public const string SER_METHOD = "SerializeSyncVars";
+        public const string DES_METHOD = "DeserializeSyncVars";
+        public const Method GEN_RPC = Method.HideBySig | Method.Family | Method.Static;
+        public const Method GEN_RAW = Method.HideBySig | Method.Public | Method.Static;
+        public const Method GEN_VAR = Method.HideBySig | Method.Public | Method.Virtual;
+        public const Method GEN_SYNC = Method.HideBySig | Method.Public | Method.SpecialName;
+        public const Method GEN_CTOR = Method.HideBySig | Method.Static | Method.SpecialName | Method.Private | Method.RTSpecialName;
+        public const Member GEN_ATTR = Member.AutoClass | Member.Public | Member.Class | Member.AnsiClass | Member.Abstract | Member.Sealed | Member.BeforeFieldInit;
+
+
         private bool failed;
         private Module module;
         private Writer writer;
@@ -41,14 +60,14 @@ namespace Astraia.Editor
             {
                 this.assembly = assembly;
 
-                if (assembly.MainModule.GetTypes().Any(type => type.Namespace == Const.GEN_TYPE && type.Name == Const.GEN_NAME))
+                if (assembly.MainModule.GetTypes().Any(type => type.Namespace == GEN_TYPE && type.Name == nameof(NetworkProcessor)))
                 {
                     return true;
                 }
 
                 access = new SyncVarAccess();
                 module = new Module(assembly, log, ref failed);
-                process = new TypeDefinition(Const.GEN_TYPE, Const.GEN_NAME, Const.GEN_ATTR, module.Import<object>());
+                process = new TypeDefinition(GEN_TYPE, nameof(NetworkProcessor), GEN_ATTR, module.Import<object>());
                 writer = new Writer(assembly, module, process, log);
                 reader = new Reader(assembly, module, process, log);
                 modified = RuntimeAttribute.Process(assembly, resolver, log, writer, reader, ref failed);

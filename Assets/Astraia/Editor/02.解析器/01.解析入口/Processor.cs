@@ -28,13 +28,13 @@ namespace Astraia.Editor
 
         public override bool WillProcess(ICompiledAssembly compiledAssembly)
         {
-            return compiledAssembly.Name == Const.ASSEMBLY || FindReference(compiledAssembly);
+            return compiledAssembly.Name == Weaver.GEN_TYPE || FindReference(compiledAssembly);
         }
 
         private static bool FindReference(ICompiledAssembly compiledAssembly)
         {
-            var result = compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == Const.ASSEMBLY);
-            return result && !compiledAssembly.Defines.Contains(Const.IGNORE);
+            var result = compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == Weaver.GEN_TYPE);
+            return result && !compiledAssembly.Defines.Contains(Weaver.GEN_SKIP);
         }
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)

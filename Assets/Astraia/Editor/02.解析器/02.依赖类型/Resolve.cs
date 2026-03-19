@@ -43,7 +43,7 @@ namespace Astraia.Editor
 
         public static MethodDefinition GetConstructor(TypeReference tr)
         {
-            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Const.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
+            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Weaver.CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
         }
 
         public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match)
@@ -51,25 +51,25 @@ namespace Astraia.Editor
             return tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
         }
 
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, ILogPostProcessor log, Predicate<MethodDefinition> match, ref bool failed)
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match, ILogPostProcessor Log, ref bool failure)
         {
             var mr = GetMethod(tr, ad, match);
             if (mr == null)
             {
-                log.Error("在类型 {0} 中没有找到方法".Format(tr.Name), tr);
-                failed = true;
+                Log.Error("在类型 {0} 中没有找到方法".Format(tr), tr);
+                failure = true;
             }
 
             return mr;
         }
 
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, ILogPostProcessor log, string name, ref bool failed)
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, string name, ILogPostProcessor Log, ref bool failure)
         {
             var mr = GetMethod(tr, ad, method => method.Name == name);
             if (mr == null)
             {
-                log.Error("在类型 {0} 中没有找到名称 {1} 的方法".Format(tr.Name,name), tr);
-                failed = true;
+                Log.Error("在类型 {0} 中没有找到名称 {1} 的方法".Format(tr, name), tr);
+                failure = true;
             }
 
             return mr;

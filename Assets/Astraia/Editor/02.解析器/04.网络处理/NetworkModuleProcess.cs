@@ -54,7 +54,7 @@ namespace Astraia.Editor
 
         public bool Process(ref bool failed)
         {
-            if (type.GetMethod(Const.GEN_FUNC) != null)
+            if (type.GetMethod(Weaver.GEN_FUNC) != null)
             {
                 return false;
             }
@@ -85,7 +85,7 @@ namespace Astraia.Editor
 
         private void MarkAsProcessed(TypeDefinition td)
         {
-            var versionMethod = new MethodDefinition(Const.GEN_FUNC, MethodAttributes.Private, module.Import(typeof(void)));
+            var versionMethod = new MethodDefinition(Weaver.GEN_FUNC, MethodAttributes.Private, module.Import(typeof(void)));
             var worker = versionMethod.Body.GetILProcessor();
             worker.Emit(OpCodes.Ret);
             td.Methods.Add(versionMethod);
@@ -352,7 +352,7 @@ namespace Astraia.Editor
             }
             else
             {
-                cctor = new MethodDefinition(".cctor", Const.GEN_CTOR, module.Import(typeof(void)));
+                cctor = new MethodDefinition(".cctor", Weaver.GEN_CTOR, module.Import(typeof(void)));
             }
 
             ILProcessor worker = cctor.Body.GetILProcessor();
@@ -429,15 +429,15 @@ namespace Astraia.Editor
         /// </summary>
         private void GenerateSerialize(ref bool failed)
         {
-            if (generate.GetMethod(Const.SER_METHOD) != null) return;
+            if (generate.GetMethod(Weaver.SER_METHOD) != null) return;
             if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(Const.SER_METHOD, Const.GEN_VAR, module.Import(typeof(void)));
+            var serialize = new MethodDefinition(Weaver.SER_METHOD, Weaver.GEN_VAR, module.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
             serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
-            var baseSerialize = Resolve.GetMethodByParent(generate.BaseType, assembly, Const.SER_METHOD);
+            var baseSerialize = Resolve.GetMethodByParent(generate.BaseType, assembly, Weaver.SER_METHOD);
             if (baseSerialize != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -528,9 +528,9 @@ namespace Astraia.Editor
         /// </summary>
         private void GenerateDeserialize(ref bool failed)
         {
-            if (generate.GetMethod(Const.DES_METHOD) != null) return;
+            if (generate.GetMethod(Weaver.DES_METHOD) != null) return;
             if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(Const.DES_METHOD, Const.GEN_VAR, module.Import(typeof(void)));
+            var serialize = new MethodDefinition(Weaver.DES_METHOD, Weaver.GEN_VAR, module.Import(typeof(void)));
             serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
             var worker = serialize.Body.GetILProcessor();
@@ -539,7 +539,7 @@ namespace Astraia.Editor
             var dirtyBitsLocal = new VariableDefinition(module.Import<long>());
             serialize.Body.Variables.Add(dirtyBitsLocal);
 
-            var baseDeserialize = Resolve.GetMethodByParent(generate.BaseType, assembly, Const.DES_METHOD);
+            var baseDeserialize = Resolve.GetMethodByParent(generate.BaseType, assembly, Weaver.DES_METHOD);
             if (baseDeserialize != null)
             {
                 worker.Append(worker.Create(OpCodes.Ldarg_0));
