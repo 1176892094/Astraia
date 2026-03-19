@@ -50,7 +50,7 @@ namespace Astraia.Editor
                     param[i] = func.DeclaringType.GenericParameters[i];
                 }
 
-                method = func.MakeHostInstanceGeneric(func.Module, func.DeclaringType.MakeGenericInstanceType(param));
+                method = func.GenericInstance(func.Module, func.DeclaringType.MakeGeneric(param));
             }
             else
             {
@@ -69,7 +69,7 @@ namespace Astraia.Editor
 
             var main = assembly.MainModule;
             var actionRef = main.ImportReference(typeof(Action<,>));
-            worker.Emit(OpCodes.Newobj, module.SyncVarHook.MakeHostInstanceGeneric(main, actionRef.MakeGenericInstanceType(syncVar.FieldType, syncVar.FieldType)));
+            worker.Emit(OpCodes.Newobj, module.SyncVarHook.GenericInstance(main, actionRef.MakeGeneric(syncVar.FieldType, syncVar.FieldType)));
         }
 
         /// <summary>
@@ -266,12 +266,12 @@ namespace Astraia.Editor
 
             var worker = get.Body.GetILProcessor();
 
-            var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
+            var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeGeneric() : fd;
 
             FieldReference fieldReference = null;
             if (fieldId != null)
             {
-                fieldReference = fieldId.DeclaringType.HasGenericParameters ? fieldId.MakeHostInstanceGeneric() : fieldId;
+                fieldReference = fieldId.DeclaringType.HasGenericParameters ? fieldId.MakeGeneric() : fieldId;
             }
 
             if (fd.FieldType.Is<GameObject>())
@@ -301,7 +301,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldfld, fieldReference);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, module.GetSyncVarNetworkModule.MakeGenericInstanceType(assembly.MainModule, fd.FieldType));
+                worker.Emit(OpCodes.Call, module.GetSyncVarNetworkModule.GenericInstance(assembly.MainModule, fd.FieldType));
                 worker.Emit(OpCodes.Ret);
             }
             else
@@ -332,12 +332,12 @@ namespace Astraia.Editor
             var set = new MethodDefinition("set_Network{0}".Format(name), Weaver.GEN_SYNC, module.Import(typeof(void)));
 
             var worker = set.Body.GetILProcessor();
-            var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeHostInstanceGeneric() : fd;
+            var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeGeneric() : fd;
 
             FieldReference fieldReference = null;
             if (fieldId != null)
             {
-                fieldReference = fieldId.DeclaringType.HasGenericParameters ? fieldId.MakeHostInstanceGeneric() : fieldId;
+                fieldReference = fieldId.DeclaringType.HasGenericParameters ? fieldId.MakeGeneric() : fieldId;
             }
 
             var endOfMethod = worker.Create(OpCodes.Nop);
@@ -374,11 +374,11 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fieldReference);
-                worker.Emit(OpCodes.Call, module.SyncVarSetterNetworkModule.MakeGenericInstanceType(assembly.MainModule, fd.FieldType));
+                worker.Emit(OpCodes.Call, module.SyncVarSetterNetworkModule.GenericInstance(assembly.MainModule, fd.FieldType));
             }
             else
             {
-                worker.Emit(OpCodes.Call, module.SyncVarSetterGeneral.MakeGenericInstanceType(assembly.MainModule, fd.FieldType));
+                worker.Emit(OpCodes.Call, module.SyncVarSetterGeneral.GenericInstance(assembly.MainModule, fd.FieldType));
             }
 
             worker.Append(endOfMethod);

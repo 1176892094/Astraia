@@ -407,7 +407,7 @@ namespace Astraia.Editor
             var worker = serialize.Body.GetILProcessor();
 
             serialize.Body.InitLocals = true;
-            var baseSerialize = Resolve.GetMethod(expand.BaseType, assembly, Weaver.MED_SER);
+            var baseSerialize = Common.GetMethod(expand.BaseType, assembly, Weaver.MED_SER);
             if (baseSerialize != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -424,7 +424,7 @@ namespace Astraia.Editor
                 FieldReference syncVar = syncVarDef;
                 if (expand.HasGenericParameters)
                 {
-                    syncVar = syncVarDef.MakeHostInstanceGeneric();
+                    syncVar = syncVarDef.MakeGeneric();
                 }
 
                 worker.Emit(OpCodes.Ldarg_1);
@@ -457,7 +457,7 @@ namespace Astraia.Editor
                 FieldReference syncVar = syncVarDef;
                 if (expand.HasGenericParameters)
                 {
-                    syncVar = syncVarDef.MakeHostInstanceGeneric();
+                    syncVar = syncVarDef.MakeGeneric();
                 }
 
                 var varLabel = worker.Create(OpCodes.Nop);
@@ -509,7 +509,7 @@ namespace Astraia.Editor
             var dirtyBitsLocal = new VariableDefinition(module.Import<long>());
             serialize.Body.Variables.Add(dirtyBitsLocal);
 
-            var baseDeserialize = Resolve.GetMethod(expand.BaseType, assembly, Weaver.MED_DES);
+            var baseDeserialize = Common.GetMethod(expand.BaseType, assembly, Weaver.MED_DES);
             if (baseDeserialize != null)
             {
                 worker.Append(worker.Create(OpCodes.Ldarg_0));
@@ -560,7 +560,7 @@ namespace Astraia.Editor
         {
             worker.Append(worker.Create(OpCodes.Ldarg_0));
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Ldflda, expand.HasGenericParameters ? syncVar.MakeHostInstanceGeneric() : syncVar);
+            worker.Emit(OpCodes.Ldflda, expand.HasGenericParameters ? syncVar.MakeGeneric() : syncVar);
 
             var hookMethod = process.GetHookMethod(expand, syncVar, ref failed);
             if (hookMethod != null)
@@ -594,7 +594,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
-                var getFunc = module.SyncVarGetterNetworkModule.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
+                var getFunc = module.SyncVarGetterNetworkModule.GenericInstance(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
@@ -609,7 +609,7 @@ namespace Astraia.Editor
 
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Call, readFunc);
-                MethodReference generic = module.SyncVarGetterGeneral.MakeGenericInstanceType(assembly.MainModule, syncVar.FieldType);
+                MethodReference generic = module.SyncVarGetterGeneral.GenericInstance(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, generic);
             }
         }

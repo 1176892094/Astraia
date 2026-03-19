@@ -25,6 +25,13 @@ namespace Astraia.Editor
 {
     internal sealed class NetworkProcessor : ILPostProcessor
     {
+        private static readonly HashSet<string> IgnoreAssemblies = new  HashSet<string>()
+        {
+            "Assembly-CSharp-firstpass",
+            "Assembly-CSharp-Editor",
+            "Assembly-CSharp-Editor-firstpass",
+        };
+
         public override ILPostProcessor GetInstance() => this;
 
         public override bool WillProcess(ICompiledAssembly compiledAssembly)
@@ -35,7 +42,7 @@ namespace Astraia.Editor
         private static bool FindReference(ICompiledAssembly compiledAssembly)
         {
             var result = compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == Weaver.GEN_TYPE);
-            return result && !compiledAssembly.Defines.Contains(Weaver.GEN_SKIP);
+            return result && !IgnoreAssemblies.Contains(compiledAssembly.Name);
         }
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)

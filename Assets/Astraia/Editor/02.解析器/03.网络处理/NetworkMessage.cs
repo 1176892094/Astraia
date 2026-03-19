@@ -152,6 +152,19 @@ namespace Astraia.Editor
         protected abstract MethodDefinition AddEnum(TypeReference tr, ref bool failed);
         protected abstract MethodDefinition AddSegment(TypeReference tr, ref bool failed);
         protected abstract MethodDefinition AddActivator(TypeReference tr, ref bool failed);
+
+        private class Comparer : IEqualityComparer<TypeReference>
+        {
+            public bool Equals(TypeReference x, TypeReference y)
+            {
+                return x?.FullName == y?.FullName;
+            }
+
+            public int GetHashCode(TypeReference obj)
+            {
+                return obj.FullName.GetHashCode();
+            }
+        }
     }
 
     internal class Writer : Stream
@@ -164,7 +177,7 @@ namespace Astraia.Editor
         {
             var md = AddMethod(tr);
             var worker = md.Body.GetILProcessor();
-            var mr = GetFunction(tr.Resolve().GetEnumUnderlyingType(), ref failed);
+            var mr = GetFunction(tr.Resolve().GetField().FieldType, ref failed);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Call, mr);
@@ -190,7 +203,7 @@ namespace Astraia.Editor
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Resolve.GetMethod(extensions, assembly, name, debugger, ref failed);
+            var mr = Common.GetMethod(extensions, assembly, name, debugger, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -276,8 +289,8 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldnull);
                 worker.Emit(OpCodes.Ldftn, method);
-                worker.Emit(OpCodes.Newobj, mr.MakeHostInstanceGeneric(main, func.MakeGenericInstanceType(tr, type)));
-                worker.Emit(OpCodes.Stsfld, main.ImportReference(new FieldReference(fr.Name, fr.FieldType, writer.MakeGenericInstanceType(type))));
+                worker.Emit(OpCodes.Newobj, mr.GenericInstance(main, func.MakeGeneric(tr, type)));
+                worker.Emit(OpCodes.Stsfld, fr.GenericField(main, writer.MakeGeneric(type)));
             }
         }
     }
@@ -292,7 +305,7 @@ namespace Astraia.Editor
         {
             var md = AddMethod(tr);
             var worker = md.Body.GetILProcessor();
-            var mr = GetFunction(tr.Resolve().GetEnumUnderlyingType(), ref failed);
+            var mr = GetFunction(tr.Resolve().GetField().FieldType, ref failed);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, mr);
             worker.Emit(OpCodes.Ret);
@@ -307,7 +320,7 @@ namespace Astraia.Editor
             var worker = md.Body.GetILProcessor();
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, GetFunction(new ArrayType(element), ref failed));
-            worker.Emit(OpCodes.Newobj, module.AddArraySegment.MakeHostInstanceGeneric(assembly.MainModule, generic));
+            worker.Emit(OpCodes.Newobj, module.AddArraySegment.GenericInstance(assembly.MainModule, generic));
             worker.Emit(OpCodes.Ret);
             return md;
         }
@@ -325,7 +338,7 @@ namespace Astraia.Editor
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Resolve.GetMethod(extensions, assembly, name, debugger, ref failed);
+            var mr = Common.GetMethod(extensions, assembly, name, debugger, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -338,7 +351,7 @@ namespace Astraia.Editor
 
         protected override MethodReference AddNetworkModule(TypeReference tr)
         {
-            var mr = module.ReadNetworkModule.MakeGenericInstanceType(assembly.MainModule, tr);
+            var mr = module.ReadNetworkModule.GenericInstance(assembly.MainModule, tr);
             Register(tr, mr);
             return mr;
         }
@@ -360,7 +373,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ret);
                 worker.Append(nop);
 
-                var ctor = Resolve.GetConstructor(tr);
+                var ctor = Common.GetConstructor(tr);
                 if (ctor == null)
                 {
                     debugger.Error("{0} 不能被反序列化，因为它没有默认的构造函数".Format(tr.Name), tr);
@@ -423,8 +436,8 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldnull);
                 worker.Emit(OpCodes.Ldftn, method);
-                worker.Emit(OpCodes.Newobj, mr.MakeHostInstanceGeneric(main, func.MakeGenericInstanceType(tr, type)));
-                worker.Emit(OpCodes.Stsfld, main.ImportReference(new FieldReference(fr.Name, fr.FieldType, reader.MakeGenericInstanceType(type))));
+                worker.Emit(OpCodes.Newobj, mr.GenericInstance(main, func.MakeGeneric(tr, type)));
+                worker.Emit(OpCodes.Stsfld, fr.GenericField(main, reader.MakeGeneric(type)));
             }
         }
     }
