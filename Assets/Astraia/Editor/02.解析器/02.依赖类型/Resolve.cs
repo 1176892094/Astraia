@@ -110,7 +110,7 @@ namespace Astraia.Editor
                 {
                     if (it.GenericArguments[i].IsGenericParameter)
                     {
-                        var tr = FindGenericArgument(self, it.GenericArguments[i].Name);
+                        var tr = GetGenericArgument(self, it.GenericArguments[i].Name);
                         it.GenericArguments[i] = parent.Module.ImportReference(tr);
                     }
                 }
@@ -121,7 +121,7 @@ namespace Astraia.Editor
             return parent;
         }
 
-        private static TypeReference FindGenericArgument(TypeReference self, string name)
+        private static TypeReference GetGenericArgument(TypeReference self, string name)
         {
             var td = self.Resolve();
             if (td.HasGenericParameters)
