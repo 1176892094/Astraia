@@ -276,7 +276,7 @@ namespace Astraia.Net
                         return;
                     }
 
-                    var message = reader.ReadUShort();
+                    var message = reader.ReadUInt16();
                     if (!NetworkMessage.server.TryGetValue(message, out var onMessage))
                     {
                         Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", id, message);

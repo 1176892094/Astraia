@@ -57,62 +57,62 @@ namespace Astraia.Net
             writer.WriteNullable(value.HasValue ? (byte)(value.Value ? 1 : 0) : new byte?());
         }
 
-        public static void WriteShort(this MemoryWriter writer, short value)
+        public static void WriteInt16(this MemoryWriter writer, short value)
         {
             writer.Write(value);
         }
 
-        public static void WriteShortNullable(this MemoryWriter writer, short? value)
+        public static void WriteInt16Nullable(this MemoryWriter writer, short? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteUShort(this MemoryWriter writer, ushort value)
+        public static void WriteUInt16(this MemoryWriter writer, ushort value)
         {
             writer.Write(value);
         }
 
-        public static void WriteUShortNullable(this MemoryWriter writer, ushort? value)
+        public static void WriteUInt16Nullable(this MemoryWriter writer, ushort? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteInt(this MemoryWriter writer, int value)
+        public static void WriteInt32(this MemoryWriter writer, int value)
         {
-            writer.WriteUInt(Compress.ZigZagEncode(value));
+            writer.WriteUInt32(Compress.ZigZagEncode(value));
         }
 
-        public static void WriteIntNullable(this MemoryWriter writer, int? value)
-        {
-            writer.WriteNullable(value);
-        }
-
-        public static void WriteUInt(this MemoryWriter writer, uint value)
-        {
-            Compress.EncodeUInt(writer, value);
-        }
-
-        public static void WriteUIntNullable(this MemoryWriter writer, uint? value)
+        public static void WriteInt32Nullable(this MemoryWriter writer, int? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteLong(this MemoryWriter writer, long value)
+        public static void WriteUInt32(this MemoryWriter writer, uint value)
         {
-            writer.WriteULong(Compress.ZigZagEncode(value));
+            Compress.EncodeUInt32(writer, value);
         }
 
-        public static void WriteLongNullable(this MemoryWriter writer, long? value)
+        public static void WriteUInt32Nullable(this MemoryWriter writer, uint? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteULong(this MemoryWriter writer, ulong value)
+        public static void WriteInt64(this MemoryWriter writer, long value)
         {
-            Compress.EncodeULong(writer, value);
+            writer.WriteUInt64(Compress.ZigZagEncode(value));
         }
 
-        public static void WriteULongNullable(this MemoryWriter writer, ulong? value)
+        public static void WriteInt64Nullable(this MemoryWriter writer, long? value)
+        {
+            writer.WriteNullable(value);
+        }
+
+        public static void WriteUInt64(this MemoryWriter writer, ulong value)
+        {
+            Compress.EncodeUInt64(writer, value);
+        }
+
+        public static void WriteUInt64Nullable(this MemoryWriter writer, ulong? value)
         {
             writer.WriteNullable(value);
         }
@@ -151,7 +151,7 @@ namespace Astraia.Net
         {
             if (value == null)
             {
-                writer.WriteUShort(0);
+                writer.WriteUInt16(0);
                 return;
             }
 
@@ -162,7 +162,7 @@ namespace Astraia.Net
                 throw new EndOfStreamException("写入字符串过长!");
             }
 
-            writer.WriteUShort(checked((ushort)(count + 1)));
+            writer.WriteUInt16(checked((ushort)(count + 1)));
             writer.position += count;
         }
 
@@ -170,11 +170,11 @@ namespace Astraia.Net
         {
             if (value == null)
             {
-                Compress.EncodeULong(writer, 0);
+                Compress.EncodeUInt32(writer, 0);
                 return;
             }
 
-            Compress.EncodeULong(writer, checked((uint)value.Length) + 1);
+            Compress.EncodeUInt32(writer, checked((uint)value.Length + 1));
             writer.WriteBytes(value, 0, value.Length);
         }
 
@@ -182,11 +182,11 @@ namespace Astraia.Net
         {
             if (value == default)
             {
-                Compress.EncodeULong(writer, 0);
+                Compress.EncodeUInt32(writer, 0);
                 return;
             }
 
-            Compress.EncodeULong(writer, checked((uint)value.Count) + 1);
+            Compress.EncodeUInt32(writer, checked((uint)value.Count + 1));
             writer.WriteBytes(value.Array, value.Offset, value.Count);
         }
 
@@ -199,11 +199,11 @@ namespace Astraia.Net
         {
             if (values == null)
             {
-                Compress.EncodeULong(writer, 0);
+                Compress.EncodeUInt32(writer, 0);
                 return;
             }
 
-            Compress.EncodeULong(writer, checked((uint)values.Count) + 1);
+            Compress.EncodeUInt32(writer, checked((uint)values.Count + 1));
             foreach (var value in values)
             {
                 writer.Invoke(value);
@@ -214,11 +214,11 @@ namespace Astraia.Net
         {
             if (values == null)
             {
-                Compress.EncodeULong(writer, 0);
+                Compress.EncodeUInt32(writer, 0);
                 return;
             }
 
-            Compress.EncodeULong(writer, checked((uint)values.Count) + 1);
+            Compress.EncodeUInt32(writer, checked((uint)values.Count + 1));
             foreach (var value in values)
             {
                 writer.Invoke(value);
@@ -229,11 +229,11 @@ namespace Astraia.Net
         {
             if (values == null)
             {
-                Compress.EncodeULong(writer, 0);
+                Compress.EncodeUInt32(writer, 0);
                 return;
             }
 
-            Compress.EncodeULong(writer, checked((uint)values.Length) + 1);
+            Compress.EncodeUInt32(writer, checked((uint)values.Length + 1));
             foreach (var value in values)
             {
                 writer.Invoke(value);
@@ -249,17 +249,6 @@ namespace Astraia.Net
             }
 
             writer.WriteString(value.ToString());
-        }
-
-        public static void WriteType(this MemoryWriter writer, Type value)
-        {
-            if (value == null)
-            {
-                writer.WriteString(null);
-                return;
-            }
-
-            writer.WriteString(value.FullName + "," + value.Assembly.GetName().Name);
         }
     }
 }

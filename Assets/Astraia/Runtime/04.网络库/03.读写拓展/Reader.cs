@@ -47,8 +47,8 @@ namespace Astraia.Net
 
         public static Vector2Int ReadVector2Int(this MemoryReader reader)
         {
-            var x = reader.ReadInt();
-            var y = reader.ReadInt();
+            var x = reader.ReadInt32();
+            var y = reader.ReadInt32();
             return new Vector2Int(x, y);
         }
 
@@ -59,9 +59,9 @@ namespace Astraia.Net
 
         public static Vector3Int ReadVector3Int(this MemoryReader reader)
         {
-            var x = reader.ReadInt();
-            var y = reader.ReadInt();
-            var z = reader.ReadInt();
+            var x = reader.ReadInt32();
+            var y = reader.ReadInt32();
+            var z = reader.ReadInt32();
             return new Vector3Int(x, y, z);
         }
 
@@ -112,7 +112,7 @@ namespace Astraia.Net
 
         public static NetworkEntity ReadNetworkEntity(this MemoryReader reader)
         {
-            var objectId = reader.ReadUInt();
+            var objectId = reader.ReadUInt32();
             return objectId != 0 ? (NetworkEntity)objectId : null;
         }
 
@@ -136,13 +136,13 @@ namespace Astraia.Net
 
         public static Texture2D ReadTexture2D(this MemoryReader reader)
         {
-            var width = reader.ReadShort();
+            var width = reader.ReadInt16();
             if (width < 0)
             {
                 return null;
             }
 
-            var height = reader.ReadShort();
+            var height = reader.ReadInt16();
             var texture = new Texture2D(width, height);
             var pixels = reader.ReadArray<Color32>();
             texture.SetPixels32(pixels);
@@ -163,7 +163,7 @@ namespace Astraia.Net
 
         public static NetworkVariable ReadNetworkVariable(this MemoryReader reader)
         {
-            var objectId = reader.ReadUInt();
+            var objectId = reader.ReadUInt32();
             byte moduleId = 0;
 
             if (objectId != 0)

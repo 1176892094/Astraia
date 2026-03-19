@@ -34,7 +34,7 @@ namespace Astraia.Net
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.同步网络数据);
                 writer.WriteArraySegment(segment);
-                writer.WriteInt(playerId);
+                writer.WriteInt32(playerId);
                 Transport.SendToServer(writer);
             }
         }
@@ -44,7 +44,7 @@ namespace Astraia.Net
             using var writer = MemoryWriter.Pop();
             writer.WriteByte((byte)Lobby.同步网络数据);
             writer.WriteArraySegment(segment);
-            writer.WriteInt(0);
+            writer.WriteInt32(0);
             Transport.SendToServer(writer);
         }
 
@@ -55,7 +55,7 @@ namespace Astraia.Net
             writer.WriteByte((byte)Lobby.请求创建房间);
             writer.WriteString(NetworkManager.Instance.roomName);
             writer.WriteString(NetworkManager.Instance.roomData);
-            writer.WriteInt(NetworkManager.Instance.maxPlayer);
+            writer.WriteInt32(NetworkManager.Instance.maxPlayer);
             writer.WriteByte((byte)NetworkManager.Instance.roomMode);
             Transport.SendToServer(writer);
         }
@@ -77,7 +77,7 @@ namespace Astraia.Net
             {
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.请求移除玩家);
-                writer.WriteInt(playerId);
+                writer.WriteInt32(playerId);
                 Transport.SendToServer(writer);
             }
         }

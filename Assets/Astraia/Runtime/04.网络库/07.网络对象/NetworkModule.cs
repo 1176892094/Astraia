@@ -342,7 +342,7 @@ namespace Astraia.Net
         {
             var oldValue = objectId;
             var value = field;
-            objectId = reader.ReadUInt();
+            objectId = reader.ReadUInt32();
             field = GetSyncVarGameObject(objectId, ref field);
             if (onUpdate != null && !SyncVarEqualGeneral(oldValue, ref objectId))
             {
@@ -355,7 +355,7 @@ namespace Astraia.Net
         {
             var oldValue = objectId;
             var value = field;
-            objectId = reader.ReadUInt();
+            objectId = reader.ReadUInt32();
             field = GetSyncVarNetworkEntity(objectId, ref field);
             if (onUpdate != null && !SyncVarEqualGeneral(oldValue, ref objectId))
             {

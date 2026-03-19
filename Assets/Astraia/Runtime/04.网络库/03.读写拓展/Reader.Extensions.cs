@@ -58,62 +58,62 @@ namespace Astraia.Net
             return value.HasValue ? value.Value != 0 : default(bool?);
         }
 
-        public static short ReadShort(this MemoryReader reader)
+        public static short ReadInt16(this MemoryReader reader)
         {
             return reader.Read<short>();
         }
 
-        public static short? ReadShortNullable(this MemoryReader reader)
+        public static short? ReadInt16Nullable(this MemoryReader reader)
         {
             return reader.ReadNullable<short>();
         }
 
-        public static ushort ReadUShort(this MemoryReader reader)
+        public static ushort ReadUInt16(this MemoryReader reader)
         {
             return reader.Read<ushort>();
         }
 
-        public static ushort? ReadUShortNullable(this MemoryReader reader)
+        public static ushort? ReadUInt16Nullable(this MemoryReader reader)
         {
             return reader.ReadNullable<ushort>();
         }
 
-        public static int ReadInt(this MemoryReader reader)
+        public static int ReadInt32(this MemoryReader reader)
         {
-            return Compress.ZigZagDecode(reader.ReadUInt());
+            return Compress.ZigZagDecode(reader.ReadUInt32());
         }
 
-        public static int? ReadIntNullable(this MemoryReader reader)
+        public static int? ReadInt32Nullable(this MemoryReader reader)
         {
             return reader.ReadNullable<int>();
         }
 
-        public static uint ReadUInt(this MemoryReader reader)
+        public static uint ReadUInt32(this MemoryReader reader)
         {
-            return Compress.DecodeUInt(reader);
+            return Compress.DecodeUInt32(reader);
         }
 
-        public static uint? ReadUIntNullable(this MemoryReader reader)
+        public static uint? ReadUInt32Nullable(this MemoryReader reader)
         {
             return reader.ReadNullable<uint>();
         }
 
-        public static long ReadLong(this MemoryReader reader)
+        public static long ReadInt64(this MemoryReader reader)
         {
-            return Compress.ZigZagDecode(reader.ReadULong());
+            return Compress.ZigZagDecode(reader.ReadUInt64());
         }
 
-        public static long? ReadLongNullable(this MemoryReader reader)
+        public static long? ReadInt64Nullable(this MemoryReader reader)
         {
             return reader.ReadNullable<long>();
         }
 
-        public static ulong ReadULong(this MemoryReader reader)
+        public static ulong ReadUInt64(this MemoryReader reader)
         {
-            return Compress.DecodeULong(reader);
+            return Compress.DecodeUInt64(reader);
         }
 
-        public static ulong? ReadULongNullable(this MemoryReader reader)
+        public static ulong? ReadUInt64Nullable(this MemoryReader reader)
         {
             return reader.ReadNullable<ulong>();
         }
@@ -150,7 +150,7 @@ namespace Astraia.Net
 
         public static string ReadString(this MemoryReader reader)
         {
-            var count = reader.ReadUShort();
+            var count = reader.ReadUInt16();
             if (count == 0)
             {
                 return null;
@@ -168,7 +168,7 @@ namespace Astraia.Net
 
         public static byte[] ReadBytes(this MemoryReader reader)
         {
-            var count = Compress.DecodeULong(reader);
+            var count = Compress.DecodeUInt32(reader);
             if (count == 0)
             {
                 return null;
@@ -181,7 +181,7 @@ namespace Astraia.Net
 
         public static ArraySegment<byte> ReadArraySegment(this MemoryReader reader)
         {
-            var count = Compress.DecodeULong(reader);
+            var count = Compress.DecodeUInt32(reader);
             return count == 0 ? default : reader.ReadArraySegment(checked((int)(count - 1)));
         }
 
@@ -192,7 +192,7 @@ namespace Astraia.Net
 
         public static List<T> ReadList<T>(this MemoryReader reader)
         {
-            var count = (uint)Compress.DecodeULong(reader);
+            var count = Compress.DecodeUInt32(reader);
             if (count == 0) return null;
 
             count--;
@@ -207,7 +207,7 @@ namespace Astraia.Net
 
         public static HashSet<T> ReadHashSet<T>(this MemoryReader reader)
         {
-            var count = (uint)Compress.DecodeULong(reader);
+            var count = Compress.DecodeUInt32(reader);
             if (count == 0) return null;
 
             count--;
@@ -222,7 +222,7 @@ namespace Astraia.Net
 
         public static T[] ReadArray<T>(this MemoryReader reader)
         {
-            var count = (uint)Compress.DecodeULong(reader);
+            var count = Compress.DecodeUInt32(reader);
             if (count == 0) return null;
 
             count--;
@@ -239,12 +239,6 @@ namespace Astraia.Net
         {
             var uri = reader.ReadString();
             return string.IsNullOrWhiteSpace(uri) ? null : new Uri(uri);
-        }
-
-        public static Type ReadType(this MemoryReader reader)
-        {
-            var type = reader.ReadString();
-            return string.IsNullOrWhiteSpace(type) ? null : Search.GetType(type);
         }
     }
 }

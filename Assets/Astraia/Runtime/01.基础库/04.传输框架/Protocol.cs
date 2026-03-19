@@ -236,7 +236,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void EncodeULong(MemoryWriter writer, ulong value)
+        public static void EncodeUInt64(MemoryWriter writer, ulong value)
         {
             while (value >= 0x80)
             {
@@ -248,7 +248,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong DecodeULong(MemoryReader reader)
+        public static ulong DecodeUInt64(MemoryReader reader)
         {
             var shift = 0;
             var value = 0UL;
@@ -280,7 +280,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void EncodeUInt(MemoryWriter writer, uint value)
+        public static void EncodeUInt32(MemoryWriter writer, uint value)
         {
             while (value >= 0x80)
             {
@@ -292,7 +292,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint DecodeUInt(MemoryReader reader)
+        public static uint DecodeUInt32(MemoryReader reader)
         {
             var shift = 0;
             var value = 0U;
@@ -348,7 +348,7 @@ namespace Astraia
             }
 
             writer ??= MemoryWriter.Pop();
-            Compress.EncodeULong(writer, (ulong)segment.Count);
+            Compress.EncodeUInt64(writer, (ulong)segment.Count);
             writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 
@@ -446,7 +446,7 @@ namespace Astraia
                 return false;
             }
 
-            var length = (int)Compress.DecodeULong(reader);
+            var length = (int)Compress.DecodeUInt64(reader);
 
             if (reader.buffer.Count - reader.position < length)
             {

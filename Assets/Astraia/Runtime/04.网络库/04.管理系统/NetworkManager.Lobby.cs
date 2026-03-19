@@ -73,7 +73,7 @@ namespace Astraia.Net
                 writer.WriteString(Instance.roomName);
                 writer.WriteString(Instance.roomData);
                 writer.WriteByte((byte)roomMode);
-                writer.WriteInt(Instance.maxPlayer);
+                writer.WriteInt32(Instance.maxPlayer);
                 Account.SendToServer(writer);
             }
 
@@ -127,7 +127,7 @@ namespace Astraia.Net
                         if (isServer)
                         {
                             objectId++;
-                            var clientId = reader.ReadInt();
+                            var clientId = reader.ReadInt32();
                             clients.Add(clientId, objectId);
                             players.Add(objectId, clientId);
                             Transport.server.Connect.Invoke(objectId);
@@ -151,7 +151,7 @@ namespace Astraia.Net
                         var message = reader.ReadArraySegment();
                         if (isServer)
                         {
-                            var clientId = reader.ReadInt();
+                            var clientId = reader.ReadInt32();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
                                 Transport.server.Receive.Invoke(playerId, message, channel);
@@ -167,7 +167,7 @@ namespace Astraia.Net
                     {
                         if (isServer)
                         {
-                            var clientId = reader.ReadInt();
+                            var clientId = reader.ReadInt32();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
                                 Transport.server.Disconnect.Invoke(playerId);

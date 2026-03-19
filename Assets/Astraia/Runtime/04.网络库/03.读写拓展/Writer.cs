@@ -48,8 +48,8 @@ namespace Astraia.Net
 
         public static void WriteVector2Int(this MemoryWriter writer, Vector2Int value)
         {
-            writer.WriteInt(value.x);
-            writer.WriteInt(value.y);
+            writer.WriteInt32(value.x);
+            writer.WriteInt32(value.y);
         }
 
         public static void WriteVector2IntNullable(this MemoryWriter writer, Vector2Int? value)
@@ -59,9 +59,9 @@ namespace Astraia.Net
 
         public static void WriteVector3Int(this MemoryWriter writer, Vector3Int value)
         {
-            writer.WriteInt(value.x);
-            writer.WriteInt(value.y);
-            writer.WriteInt(value.z);
+            writer.WriteInt32(value.x);
+            writer.WriteInt32(value.y);
+            writer.WriteInt32(value.z);
         }
 
         public static void WriteVector3IntNullable(this MemoryWriter writer, Vector3Int? value)
@@ -116,25 +116,25 @@ namespace Astraia.Net
         {
             if (value == null)
             {
-                writer.WriteUInt(0);
+                writer.WriteUInt32(0);
                 return;
             }
 
             if (value.objectId == 0)
             {
                 Log.Warn("网络对象的网络标识无效。");
-                writer.WriteUInt(0);
+                writer.WriteUInt32(0);
                 return;
             }
 
-            writer.WriteUInt(value.objectId);
+            writer.WriteUInt32(value.objectId);
         }
 
         public static void WriteNetworkModule(this MemoryWriter writer, NetworkModule value)
         {
             if (value == null)
             {
-                writer.WriteUInt(0);
+                writer.WriteUInt32(0);
                 return;
             }
 
@@ -146,7 +146,7 @@ namespace Astraia.Net
         {
             if (value == null)
             {
-                writer.WriteUInt(0);
+                writer.WriteUInt32(0);
                 return;
             }
 
@@ -157,7 +157,7 @@ namespace Astraia.Net
         {
             if (value == null)
             {
-                writer.WriteUInt(0);
+                writer.WriteUInt32(0);
                 return;
             }
 
@@ -168,12 +168,12 @@ namespace Astraia.Net
         {
             if (value == null)
             {
-                writer.WriteShort(-1);
+                writer.WriteInt16(-1);
                 return;
             }
 
-            writer.WriteShort((short)value.width);
-            writer.WriteShort((short)value.height);
+            writer.WriteInt16((short)value.width);
+            writer.WriteInt16((short)value.height);
             writer.WriteArray(value.GetPixels32());
         }
 
@@ -192,7 +192,7 @@ namespace Astraia.Net
 
         public static void WriteArraySegment<T>(this MemoryWriter writer, ArraySegment<T> value)
         {
-            writer.WriteInt(value.Count);
+            writer.WriteInt32(value.Count);
             for (var i = 0; i < value.Count; i++)
             {
                 writer.Invoke(value.Array![value.Offset + i]);
