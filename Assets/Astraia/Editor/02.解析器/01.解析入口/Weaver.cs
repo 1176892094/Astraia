@@ -22,7 +22,7 @@ using Method = Mono.Cecil.MethodAttributes;
 namespace Astraia.Editor
 {
     [Serializable]
-    internal class Weaver
+    internal sealed class Weaver
     {
         public const int BIT_COUNT = 64;
         public const string GEN_SKIP = "ILPP_IGNORE";
@@ -112,7 +112,7 @@ namespace Astraia.Editor
         }
     }
 
-    internal class Module
+    internal sealed class Module
     {
         private readonly AssemblyDefinition assembly;
         public readonly TypeDefinition Initialized;
