@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Astraia.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -35,10 +36,7 @@ namespace Astraia.Editor
             this.assembly = assembly;
         }
 
-        /// <summary>
-        /// 从挂钩方法中生成新的方法
-        /// </summary>
-        public void GenerateNewActionFromHookMethod(FieldDefinition syncVar, ILProcessor worker, MethodDefinition func)
+        public void AddHook(FieldDefinition syncVar, ILProcessor worker, MethodDefinition func)
         {
             worker.Emit(func.IsStatic ? OpCodes.Ldnull : OpCodes.Ldarg_0);
             MethodReference method;
@@ -68,86 +66,41 @@ namespace Astraia.Editor
             }
 
             var main = assembly.MainModule;
-            var actionRef = main.ImportReference(typeof(Action<,>));
-            worker.Emit(OpCodes.Newobj, module.SyncVarHook.GenericInstance(main, actionRef.MakeGeneric(syncVar.FieldType, syncVar.FieldType)));
+            var instance = main.ImportReference(typeof(Action<,>)).MakeGeneric(syncVar.FieldType, syncVar.FieldType);
+            worker.Emit(OpCodes.Newobj, module.SyncVarHook.GenericInstance(main, instance));
         }
 
-        /// <summary>
-        /// 获取挂钩方法
-        /// </summary>
-        public MethodDefinition GetHookMethod(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
+        public MethodDefinition GetHook(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
         {
-            var attribute = syncVar.GetAttribute<SyncVarAttribute>();
-            var hookMethod = (string)attribute.GetArgument();
-            if (hookMethod != null)
+            var name = (string)syncVar.GetAttribute<SyncVarAttribute>().GetArgument();
+            if (name != null)
             {
-                return FindHookMethod(td, syncVar, hookMethod, ref failed);
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// 寻找挂钩方法
-        /// </summary>
-        private MethodDefinition FindHookMethod(TypeDefinition td, FieldDefinition syncVar, string hookMethod, ref bool failed)
-        {
-            var methods = td.GetMethods(hookMethod);
-
-            var fixMethods = new List<MethodDefinition>();
-            foreach (var method in methods)
-            {
-                if (method.Parameters.Count == 2)
+                var methods = td.GetMethods(name);
+                var results = methods.Where(method => method.Parameters.Count == 2).ToList();
+                if (results.Count == 0)
                 {
-                    fixMethods.Add(method);
+                    debugger.Error("{0} 缺少参数 void {1}({2} oldValue, {2} newValue)".Format(syncVar.Name, name, syncVar.FieldType), syncVar);
+                    failed = true;
+                    return null;
                 }
-            }
 
-            if (fixMethods.Count == 0)
-            {
-                debugger.Error("无法注册 {0} 请修改为 {1}".Format(syncVar.Name, HookMethod(hookMethod, syncVar.FieldType)), syncVar);
+                foreach (var result in results)
+                {
+                    var oldValue = result.Parameters[0].ParameterType.FullName == syncVar.FieldType.FullName;
+                    var newValue = result.Parameters[1].ParameterType.FullName == syncVar.FieldType.FullName;
+                    if (oldValue && newValue)
+                    {
+                        return result;
+                    }
+                }
+
+                debugger.Error("{0} 参数错误 void {1}({2} oldValue, {2} newValue)".Format(syncVar.Name, name, syncVar.FieldType), syncVar);
                 failed = true;
-                return null;
             }
 
-            foreach (var method in fixMethods)
-            {
-                if (MatchesParameters(syncVar, method))
-                {
-                    return method;
-                }
-            }
-
-            debugger.Error("参数类型错误 {0} 请修改为 {1}".Format(syncVar.Name, HookMethod(hookMethod, syncVar.FieldType)), syncVar);
-            failed = true;
             return null;
         }
 
-        /// <summary>
-        /// 挂钩方法的模版
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="valueType"></param>
-        /// <returns></returns>
-        private static string HookMethod(string name, TypeReference valueType) => "void {0}({1} oldValue, {1} newValue)".Format(name, valueType);
-
-        /// <summary>
-        /// 参数配对
-        /// </summary>
-        /// <param name="syncVar"></param>
-        /// <param name="md"></param>
-        /// <returns></returns>
-        private static bool MatchesParameters(FieldDefinition syncVar, MethodDefinition md)
-        {
-            return md.Parameters[0].ParameterType.FullName == syncVar.FieldType.FullName && md.Parameters[1].ParameterType.FullName == syncVar.FieldType.FullName;
-        }
-
-        /// <summary>
-        /// 处理每个NetworkModule的SyncVar
-        /// </summary>
-        /// <param name="td"></param>
-        /// <param name="failed"></param>
-        /// <returns></returns>
         public FieldDefinitionPair ProcessSyncVars(TypeDefinition td, ref bool failed)
         {
             var syncVars = new List<FieldDefinition>();
@@ -204,14 +157,6 @@ namespace Astraia.Editor
             return new FieldDefinitionPair(syncVars, syncVarIds);
         }
 
-        /// <summary>
-        /// 处理SyncVar
-        /// </summary>
-        /// <param name="td"></param>
-        /// <param name="fd"></param>
-        /// <param name="syncVarIds"></param>
-        /// <param name="dirtyBits"></param>
-        /// <param name="failed"></param>
         private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, Dictionary<FieldDefinition, FieldDefinition> syncVarIds, long dirtyBits, ref bool failed)
         {
             FieldDefinition objectId = null;
@@ -348,10 +293,10 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldflda, fr);
             worker.Emit(OpCodes.Ldc_I8, dirtyBit);
 
-            var hookMethod = GetHookMethod(td, fd, ref failed);
+            var hookMethod = GetHook(td, fd, ref failed);
             if (hookMethod != null)
             {
-                GenerateNewActionFromHookMethod(fd, worker, hookMethod);
+                AddHook(fd, worker, hookMethod);
             }
             else
             {

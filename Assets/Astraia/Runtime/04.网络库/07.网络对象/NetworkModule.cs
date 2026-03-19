@@ -77,7 +77,7 @@ namespace Astraia.Net
             syncVarTime = Time.unscaledTimeAsDouble;
         }
 
-        internal void Serialize(MemoryWriter writer, bool initialize)
+        internal void Serialize(MemoryWriter writer, bool isInit)
         {
             var headerPosition = writer.position;
             writer.WriteByte(0);
@@ -85,7 +85,7 @@ namespace Astraia.Net
 
             try
             {
-                OnSerialize(writer, initialize);
+                OnSerialize(writer, isInit);
             }
             catch (Exception e)
             {
@@ -100,14 +100,14 @@ namespace Astraia.Net
             writer.position = endPosition;
         }
 
-        internal bool Deserialize(MemoryReader reader, bool initialize)
+        internal bool Deserialize(MemoryReader reader, bool isInit)
         {
             var result = true;
             var safety = reader.ReadByte();
             var startPosition = reader.position;
             try
             {
-                OnDeserialize(reader, initialize);
+                OnDeserialize(reader, isInit);
             }
             catch (Exception e)
             {
@@ -128,21 +128,21 @@ namespace Astraia.Net
             return result;
         }
 
-        protected virtual void OnSerialize(MemoryWriter writer, bool initialize)
+        protected virtual void OnSerialize(MemoryWriter writer, bool isInit)
         {
-            SerializeSyncVars(writer, initialize);
+            SerializeSyncVars(writer, isInit);
         }
 
-        protected virtual void OnDeserialize(MemoryReader reader, bool initialize)
+        protected virtual void OnDeserialize(MemoryReader reader, bool isInit)
         {
-            DeserializeSyncVars(reader, initialize);
+            DeserializeSyncVars(reader, isInit);
         }
 
-        protected virtual void SerializeSyncVars(MemoryWriter writer, bool initialize)
+        protected virtual void SerializeSyncVars(MemoryWriter writer, bool isInit)
         {
         }
 
-        protected virtual void DeserializeSyncVars(MemoryReader reader, bool initialize)
+        protected virtual void DeserializeSyncVars(MemoryReader reader, bool isInit)
         {
         }
 

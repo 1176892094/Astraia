@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace Astraia.Editor
 {
-    internal partial class NetworkMember
+    internal sealed class NetworkMember
     {
         private Dictionary<FieldDefinition, FieldDefinition> syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
@@ -107,10 +107,7 @@ namespace Astraia.Editor
             collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             collection.Add(new ParameterDefinition("target", ParameterAttributes.None, module.Import<NetworkClient>()));
         }
-    }
 
-    internal partial class NetworkMember
-    {
         private void ProcessRpc(ref bool failed)
         {
             var names = new HashSet<string>();
@@ -232,13 +229,7 @@ namespace Astraia.Editor
                 if (funcV2 != null) targetRpcFuncList.Add(funcV2);
             }
         }
-    }
 
-    internal partial class NetworkMember
-    {
-        /// <summary>
-        /// 注入静态构造函数
-        /// </summary>
         private void ProcessCctor(ref bool failed)
         {
             if (serverRpcList.Count == 0 && clientRpcList.Count == 0 && targetRpcList.Count == 0)
@@ -287,9 +278,7 @@ namespace Astraia.Editor
             expand.Attributes &= ~TypeAttributes.BeforeFieldInit;
         }
 
-        /// <summary>
-        /// 获取最后一条指令
-        /// </summary>
+
         private static bool EndInstruction(MethodDefinition md)
         {
             if (md.Body.Instructions.Count == 0)
@@ -306,9 +295,6 @@ namespace Astraia.Editor
             return true;
         }
 
-        /// <summary>
-        /// 在静态构造函数中注入ClientRpc委托
-        /// </summary>
         private void GenerateDelegate(ILProcessor worker, MethodReference mr, MethodDefinition md, (MethodDefinition, int) pair)
         {
             worker.Emit(OpCodes.Ldtoken, expand);
@@ -320,10 +306,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Newobj, module.InvokeDelegate);
             worker.Emit(OpCodes.Call, mr);
         }
-    }
 
-    internal partial class NetworkMember
-    {
         private void SerializeSyncVars(ref bool failed)
         {
             if (expand.GetMethod(Weaver.MED_SER) != null) return;
@@ -331,7 +314,7 @@ namespace Astraia.Editor
 
             var method = new MethodDefinition(Weaver.MED_SER, Weaver.GEN_VAR, module.Import(typeof(void)));
             method.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
-            method.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
+            method.Parameters.Add(new ParameterDefinition("isInit", ParameterAttributes.None, module.Import<bool>()));
             var worker = method.Body.GetILProcessor();
 
             method.Body.InitLocals = true;
@@ -384,12 +367,12 @@ namespace Astraia.Editor
                     syncVar = value.MakeGeneric();
                 }
 
-                var varLabel = worker.Create(OpCodes.Nop);
+                var nop = worker.Create(OpCodes.Nop);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Call, module.SyncVarDirty);
                 worker.Emit(OpCodes.Ldc_I8, 1L << mask);
                 worker.Emit(OpCodes.And);
-                worker.Emit(OpCodes.Brfalse, varLabel);
+                worker.Emit(OpCodes.Brfalse, nop);
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
@@ -403,7 +386,7 @@ namespace Astraia.Editor
                 }
 
                 worker.Emit(OpCodes.Call, func);
-                worker.Append(varLabel);
+                worker.Append(nop);
                 mask += 1;
             }
 
@@ -420,7 +403,7 @@ namespace Astraia.Editor
 
             var method = new MethodDefinition(Weaver.MED_DES, Weaver.GEN_VAR, module.Import(typeof(void)));
             method.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
-            method.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
+            method.Parameters.Add(new ParameterDefinition("isInit", ParameterAttributes.None, module.Import<bool>()));
             var worker = method.Body.GetILProcessor();
 
             method.Body.InitLocals = true;
@@ -471,10 +454,10 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldflda, expand.HasGenericParameters ? syncVar.MakeGeneric() : syncVar);
 
-            var method = process.GetHookMethod(expand, syncVar, ref failed);
+            var method = process.GetHook(expand, syncVar, ref failed);
             if (method != null)
             {
-                process.GenerateNewActionFromHookMethod(syncVar, worker, method);
+                process.AddHook(syncVar, worker, method);
             }
             else
             {

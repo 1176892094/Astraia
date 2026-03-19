@@ -143,17 +143,17 @@ namespace Astraia.Net
             target.localScale = this.mutation = mutation ?? target.localScale;
         }
 
-        protected override void OnSerialize(MemoryWriter writer, bool initialize)
+        protected override void OnSerialize(MemoryWriter writer, bool isInit)
         {
-            if (!initialize) return;
+            if (!isInit) return;
             if ((option & Option.Position) != 0) writer.WriteVector3(target.localPosition);
             if ((option & Option.Rotation) != 0) writer.WriteQuaternion(target.localRotation);
             if ((option & Option.Mutation) != 0) writer.WriteVector3(target.localScale);
         }
 
-        protected override void OnDeserialize(MemoryReader reader, bool initialize)
+        protected override void OnDeserialize(MemoryReader reader, bool isInit)
         {
-            if (!initialize) return;
+            if (!isInit) return;
             if ((option & Option.Position) != 0) position = reader.ReadVector3();
             if ((option & Option.Rotation) != 0) rotation = reader.ReadQuaternion();
             if ((option & Option.Mutation) != 0) mutation = reader.ReadVector3();
