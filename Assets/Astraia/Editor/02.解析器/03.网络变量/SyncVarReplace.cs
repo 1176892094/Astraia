@@ -9,6 +9,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -21,12 +22,9 @@ namespace Astraia.Editor
         /// </summary>
         public static void Process(ModuleDefinition md, SyncVarAccess access)
         {
-            foreach (var td in md.Types)
+            foreach (var td in md.Types.Where(td => td.IsClass))
             {
-                if (td.IsClass)
-                {
-                    ProcessClass(td, access);
-                }
+                ProcessClass(td, access);
             }
         }
 

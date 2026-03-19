@@ -22,16 +22,16 @@ namespace Astraia.Editor
 
     internal class SyncVarProcess
     {
-        private readonly ILogPostProcessor log;
         private readonly Module module;
         private readonly SyncVarAccess access;
+        private readonly ILogPostProcessor debugger;
         private readonly AssemblyDefinition assembly;
 
-        public SyncVarProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, ILogPostProcessor log)
+        public SyncVarProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, ILogPostProcessor debugger)
         {
-            this.log = log;
             this.access = access;
             this.module = module;
+            this.debugger = debugger;
             this.assembly = assembly;
         }
 
@@ -118,7 +118,7 @@ namespace Astraia.Editor
 
             if (fixMethods.Count == 0)
             {
-                log.Error("无法注册 {0} 请修改为 {1}".Format(syncVar.Name, HookMethod(hookMethod, syncVar.FieldType)), syncVar);
+                debugger.Error("无法注册 {0} 请修改为 {1}".Format(syncVar.Name, HookMethod(hookMethod, syncVar.FieldType)), syncVar);
                 failed = true;
                 return null;
             }
@@ -131,7 +131,7 @@ namespace Astraia.Editor
                 }
             }
 
-            log.Error("参数类型错误 {0} 请修改为 {1}".Format(syncVar.Name, HookMethod(hookMethod, syncVar.FieldType)), syncVar);
+            debugger.Error("参数类型错误 {0} 请修改为 {1}".Format(syncVar.Name, HookMethod(hookMethod, syncVar.FieldType)), syncVar);
             failed = true;
             return null;
         }
@@ -176,21 +176,21 @@ namespace Astraia.Editor
 
                 if ((fd.Attributes & FieldAttributes.Static) != 0)
                 {
-                    log.Error("{0} 不能是静态字段。".Format(fd.Name), fd);
+                    debugger.Error("{0} 不能是静态字段。".Format(fd.Name), fd);
                     failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsGenericParameter)
                 {
-                    log.Error("{0} 不能用泛型参数。".Format(fd.Name), fd);
+                    debugger.Error("{0} 不能用泛型参数。".Format(fd.Name), fd);
                     failed = true;
                     continue;
                 }
 
                 if (fd.FieldType.IsArray)
                 {
-                    log.Error("{0} 不能使用数组。".Format(fd.Name), fd);
+                    debugger.Error("{0} 不能使用数组。".Format(fd.Name), fd);
                     failed = true;
                     continue;
                 }
@@ -202,7 +202,7 @@ namespace Astraia.Editor
 
                 if (dirtyBits > Weaver.SYNC_LIMIT)
                 {
-                    log.Error("{0} 网络变量数量大于 {1}。".Format(fd.Name, Weaver.SYNC_LIMIT), td);
+                    debugger.Error("{0} 网络变量数量大于 {1}。".Format(fd.Name, Weaver.SYNC_LIMIT), td);
                     failed = true;
                 }
             }

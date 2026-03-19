@@ -20,120 +20,71 @@ namespace Astraia.Editor
 {
     internal static class RuntimeAttribute
     {
-        /// <summary>
-        /// 初始化读写流
-        /// </summary>
-        public static void RuntimeInitializeOnLoad(AssemblyDefinition assembly, Module module, Writer writer, Reader reader, TypeDefinition td)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor debugger, Writer writer, Reader reader, ref bool failed)
         {
-            var method = new MethodDefinition(nameof(RuntimeInitializeOnLoad), MethodAttributes.Public | MethodAttributes.Static, module.Import(typeof(void)));
+            ProcessAssembly(assembly, resolver, debugger, writer, reader, ref failed);
+            return ProcessProperty(assembly, assembly, writer, reader, ref failed);
+        }
 
-            AddRuntimeInitializeOnLoadAttribute(assembly, module, method);
+        
+        public static void Processed(AssemblyDefinition assembly, Module module, Writer writer, Reader reader, TypeDefinition expand)
+        {
+            var method = new MethodDefinition(nameof(Processed), MethodAttributes.Public | MethodAttributes.Static, module.Import(typeof(void)));
 
-            if (Resolve.IsEditor(assembly))
-            {
-                AddInitializeOnLoadAttribute(assembly, module, method);
-            }
+            var construct = module.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
+            var attribute = new CustomAttribute(assembly.MainModule.ImportReference(construct));
+            attribute.ConstructorArguments.Add(new CustomAttributeArgument(module.Import<RuntimeInitializeLoadType>(), RuntimeInitializeLoadType.BeforeSceneLoad));
+            method.CustomAttributes.Add(attribute);
 
             var worker = method.Body.GetILProcessor();
             writer.InitializeSetters(worker);
             reader.InitializeGetters(worker);
             worker.Emit(OpCodes.Ret);
-            td.Methods.Add(method);
+            expand.Methods.Add(method);
         }
 
-        /// <summary>
-        /// [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        /// </summary>
-        private static void AddRuntimeInitializeOnLoadAttribute(AssemblyDefinition assembly, Module module, MethodDefinition md)
+        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor debugger, Writer writer, Reader reader, ref bool failed)
         {
-            var ctor = module.RuntimeInitializeOnLoadMethodAttribute.GetConstructors().Last();
-            var attribute = new CustomAttribute(assembly.MainModule.ImportReference(ctor));
-            attribute.ConstructorArguments.Add(new CustomAttributeArgument(module.Import<RuntimeInitializeLoadType>(), RuntimeInitializeLoadType.BeforeSceneLoad));
-            md.CustomAttributes.Add(attribute);
-        }
-
-        /// <summary>
-        /// [InitializeOnLoadMethod]
-        /// </summary>
-        private static void AddInitializeOnLoadAttribute(AssemblyDefinition assembly, Module module, MethodDefinition md)
-        {
-            var ctor = module.InitializeOnLoadMethodAttribute.GetConstructors().First();
-            var attribute = new CustomAttribute(assembly.MainModule.ImportReference(ctor));
-            md.CustomAttributes.Add(attribute);
-        }
-
-        /// <summary>
-        /// 在Process中调用
-        /// </summary>
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor log, Writer writer, Reader reader, ref bool failed)
-        {
-            ProcessAssembly(assembly, resolver, log, writer, reader, ref failed);
-            return ProcessCustomCode(assembly, assembly, writer, reader, ref failed);
-        }
-
-        /// <summary>
-        /// 处理网络代码
-        /// </summary>
-        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor log, Writer writer, Reader reader, ref bool failed)
-        {
-            AssemblyNameReference assemblyRef = null;
-            foreach (var reference in assembly.MainModule.AssemblyReferences)
+            var ar = assembly.MainModule.AssemblyReferences.FirstOrDefault(reference => reference.Name == Weaver.GEN_TYPE);
+            if (ar != null)
             {
-                if (reference.Name == Weaver.GEN_TYPE)
+                var ad = resolver.Resolve(ar);
+                if (ad != null)
                 {
-                    assemblyRef = reference;
-                    break;
-                }
-            }
-
-            if (assemblyRef != null)
-            {
-                var assemblyDef = resolver.Resolve(assemblyRef);
-                if (assemblyDef != null)
-                {
-                    ProcessCustomCode(assembly, assemblyDef, writer, reader, ref failed);
+                    ProcessProperty(assembly, ad, writer, reader, ref failed);
                 }
                 else
                 {
-                    log.Error("自动生成网络代码失败: {0}".Format(assemblyRef));
+                    debugger.Error("自动生成网络代码失败: {0}".Format(ar));
                 }
             }
             else
             {
-                log.Error("注册程序集 Astraia.Net.dll 失败");
+                debugger.Error("注册程序集 Astraia.Net.dll 失败");
             }
         }
 
-        /// <summary>
-        /// 处理本地代码
-        /// </summary>
-        private static bool ProcessCustomCode(AssemblyDefinition assembly, AssemblyDefinition assemblyDef, Writer writer, Reader reader, ref bool failed)
+        private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition ad, Writer writer, Reader reader, ref bool failed)
         {
-            var changed = false;
-            foreach (var td in assemblyDef.MainModule.Types)
+            var modified = false;
+            foreach (var definition in ad.MainModule.Types.Where(td => td.IsAbstract && td.IsSealed))
             {
-                if (td.IsAbstract && td.IsSealed)
-                {
-                    changed |= ProcessSetter(assembly, td, writer);
-                    changed |= ProcessGetter(assembly, td, reader);
-                }
+                modified |= ProcessSetter(assembly, definition, writer);
+                modified |= ProcessGetter(assembly, definition, reader);
             }
 
-            foreach (var td in assemblyDef.MainModule.Types)
+            foreach (var definition in ad.MainModule.Types)
             {
-                changed |= ProcessMessage(assembly.MainModule, writer, reader, td, ref failed);
+                modified |= ProcessMessage(assembly.MainModule, writer, reader, definition, ref failed);
             }
 
-            return changed;
+            return modified;
         }
 
-        /// <summary>
-        /// 加载声明的写入器
-        /// </summary>
-        private static bool ProcessSetter(AssemblyDefinition assembly, TypeDefinition td, Writer writer)
+        private static bool ProcessSetter(AssemblyDefinition assembly, TypeDefinition definition, Writer writer)
         {
-            var change = false;
-            foreach (var md in td.Methods)
+            var modified = false;
+            foreach (var md in definition.Methods)
             {
                 if (md.Parameters.Count != 2)
                     continue;
@@ -151,19 +102,16 @@ namespace Astraia.Editor
                     continue;
 
                 writer.Register(md.Parameters[1].ParameterType, assembly.MainModule.ImportReference(md));
-                change = true;
+                modified = true;
             }
 
-            return change;
+            return modified;
         }
 
-        /// <summary>
-        /// 加载声明的读取器
-        /// </summary>
-        private static bool ProcessGetter(AssemblyDefinition assembly, TypeDefinition td, Reader reader)
+        private static bool ProcessGetter(AssemblyDefinition assembly, TypeDefinition definition, Reader reader)
         {
-            var change = false;
-            foreach (var md in td.Methods)
+            var modified = false;
+            foreach (var md in definition.Methods)
             {
                 if (md.Parameters.Count != 1)
                     continue;
@@ -181,31 +129,28 @@ namespace Astraia.Editor
                     continue;
 
                 reader.Register(md.ReturnType, assembly.MainModule.ImportReference(md));
-                change = true;
+                modified = true;
             }
 
-            return change;
+            return modified;
         }
 
-        /// <summary>
-        /// 加载读写流的信息
-        /// </summary>
-        private static bool ProcessMessage(ModuleDefinition module, Writer writer, Reader reader, TypeDefinition td, ref bool failed)
+        private static bool ProcessMessage(ModuleDefinition module, Writer writer, Reader reader, TypeDefinition definition, ref bool failed)
         {
-            var change = false;
-            if (!td.IsAbstract && !td.IsInterface && td.IsImplement<IMessage>())
+            var modified = false;
+            if (!definition.IsAbstract && !definition.IsInterface && definition.IsImplement<IMessage>())
             {
-                reader.GetFunction(module.ImportReference(td), ref failed);
-                writer.GetFunction(module.ImportReference(td), ref failed);
-                change = true;
+                reader.GetFunction(module.ImportReference(definition), ref failed);
+                writer.GetFunction(module.ImportReference(definition), ref failed);
+                modified = true;
             }
 
-            foreach (var nested in td.NestedTypes) // 嵌套类型
+            foreach (var nested in definition.NestedTypes)
             {
-                change |= ProcessMessage(module, writer, reader, nested, ref failed);
+                modified |= ProcessMessage(module, writer, reader, nested, ref failed);
             }
 
-            return change;
+            return modified;
         }
     }
 }

@@ -23,13 +23,13 @@ namespace Astraia.Editor
         private Dictionary<FieldDefinition, FieldDefinition> syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
         private List<FieldDefinition> syncVars = new List<FieldDefinition>();
         private readonly Module module;
-        private readonly ILogPostProcessor log;
         private readonly Writer writer;
         private readonly Reader reader;
         private readonly SyncVarAccess access;
         private readonly TypeDefinition type;
         private readonly TypeDefinition generate;
         private readonly SyncVarProcess process;
+        private readonly ILogPostProcessor debugger;
         private readonly AssemblyDefinition assembly;
         private readonly List<KeyValuePair<MethodDefinition, int>> serverRpcList = new List<KeyValuePair<MethodDefinition, int>>();
         private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
@@ -39,17 +39,17 @@ namespace Astraia.Editor
         private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
 
         public NetworkModuleProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader,
-            ILogPostProcessor log, TypeDefinition type)
+            ILogPostProcessor debugger, TypeDefinition type)
         {
             generate = type;
             this.type = type;
             this.module = module;
             this.access = access;
-            this.log = log;
+            this.debugger = debugger;
             this.writer = writer;
             this.reader = reader;
             this.assembly = assembly;
-            process = new SyncVarProcess(assembly, access, module, log);
+            process = new SyncVarProcess(assembly, access, module, debugger);
         }
 
         public bool Process(ref bool failed)
@@ -164,7 +164,7 @@ namespace Astraia.Editor
         {
             if (md.IsAbstract)
             {
-                log.Error("{0}不能作用在抽象方法中。".Format(mode), md);
+                debugger.Error("{0}不能作用在抽象方法中。".Format(mode), md);
                 failed = true;
                 return;
             }
@@ -181,9 +181,9 @@ namespace Astraia.Editor
             {
                 case InvokeMode.ServerRpc:
                     serverRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkAttributeProcess.ProcessServerRpcInvoke(module, writer, log, generate, md, rpc, ref failed);
+                    func = NetworkAttributeProcess.ProcessServerRpcInvoke(module, writer, debugger, generate, md, rpc, ref failed);
 
-                    rpcFunc = NetworkAttributeProcess.ProcessServerRpc(module, reader, log, generate, md, func, ref failed);
+                    rpcFunc = NetworkAttributeProcess.ProcessServerRpc(module, reader, debugger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         serverRpcFuncList.Add(rpcFunc);
@@ -192,8 +192,8 @@ namespace Astraia.Editor
                     break;
                 case InvokeMode.ClientRpc:
                     clientRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkAttributeProcess.ProcessClientRpcInvoke(module, writer, log, generate, md, rpc, ref failed);
-                    rpcFunc = NetworkAttributeProcess.ProcessClientRpc(module, reader, log, generate, md, func, ref failed);
+                    func = NetworkAttributeProcess.ProcessClientRpcInvoke(module, writer, debugger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkAttributeProcess.ProcessClientRpc(module, reader, debugger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         clientRpcFuncList.Add(rpcFunc);
@@ -202,8 +202,8 @@ namespace Astraia.Editor
                     break;
                 case InvokeMode.TargetRpc:
                     targetRpcList.Add(new KeyValuePair<MethodDefinition, int>(md, rpc.GetField<int>()));
-                    func = NetworkAttributeProcess.ProcessTargetRpcInvoke(module, writer, log, generate, md, rpc, ref failed);
-                    rpcFunc = NetworkAttributeProcess.ProcessTargetRpc(module, reader, log, generate, md, func, ref failed);
+                    func = NetworkAttributeProcess.ProcessTargetRpcInvoke(module, writer, debugger, generate, md, rpc, ref failed);
+                    rpcFunc = NetworkAttributeProcess.ProcessTargetRpc(module, reader, debugger, generate, md, func, ref failed);
                     if (rpcFunc != null)
                     {
                         targetRpcFuncList.Add(rpcFunc);
@@ -224,7 +224,7 @@ namespace Astraia.Editor
         {
             if (md.IsStatic)
             {
-                log.Error("{0} 方法不能是静态的。".Format(md.Name), md);
+                debugger.Error("{0} 方法不能是静态的。".Format(md.Name), md);
                 failed = true;
                 return false;
             }
@@ -242,21 +242,21 @@ namespace Astraia.Editor
         {
             if (mr.ReturnType.Is<IEnumerator>())
             {
-                log.Error("{0} 方法不能被迭代。".Format(mr.Name), mr);
+                debugger.Error("{0} 方法不能被迭代。".Format(mr.Name), mr);
                 failed = true;
                 return false;
             }
 
             if (!mr.ReturnType.Is(typeof(void)))
             {
-                log.Error("{0} 方法不能有返回值。".Format(mr.Name), mr);
+                debugger.Error("{0} 方法不能有返回值。".Format(mr.Name), mr);
                 failed = true;
                 return false;
             }
 
             if (mr.HasGenericParameters)
             {
-                log.Error("{0} 方法不能有泛型参数。".Format(mr.Name), mr);
+                debugger.Error("{0} 方法不能有泛型参数。".Format(mr.Name), mr);
                 failed = true;
                 return false;
             }
@@ -298,7 +298,7 @@ namespace Astraia.Editor
         {
             if (param.ParameterType.IsGenericParameter)
             {
-                log.Error("{0} 方法不能有泛型参数。".Format(method.Name), method);
+                debugger.Error("{0} 方法不能有泛型参数。".Format(method.Name), method);
                 failed = true;
                 return false;
             }
@@ -308,21 +308,21 @@ namespace Astraia.Editor
 
             if (param.IsOut)
             {
-                log.Error("{0} 方法不能携带 out 关键字。".Format(method.Name), method);
+                debugger.Error("{0} 方法不能携带 out 关键字。".Format(method.Name), method);
                 failed = true;
                 return false;
             }
 
             if (!sendTarget && connection && !(rpcType == InvokeMode.TargetRpc && firstParam))
             {
-                log.Error("{0} 方法无效的参数 {1}，不能传递网络连接。".Format(method.Name,param), method);
+                debugger.Error("{0} 方法无效的参数 {1}，不能传递网络连接。".Format(method.Name, param), method);
                 failed = true;
                 return false;
             }
 
             if (param.IsOptional && !sendTarget)
             {
-                log.Error("{0} 方法不能有可选参数。".Format(method.Name), method);
+                debugger.Error("{0} 方法不能有可选参数。".Format(method.Name), method);
                 failed = true;
                 return false;
             }
@@ -345,7 +345,7 @@ namespace Astraia.Editor
             {
                 if (!RemoveFinalRetInstruction(cctor))
                 {
-                    log.Error("{0} 无效的静态构造函数。".Format(generate.Name), cctor);
+                    debugger.Error("{0} 无效的静态构造函数。".Format(generate.Name), cctor);
                     failed = true;
                     return;
                 }
@@ -468,7 +468,7 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    log.Error("不支持 {0} 的类型".Format(syncVar.Name), syncVar);
+                    debugger.Error("不支持 {0} 的类型".Format(syncVar.Name), syncVar);
                     failed = true;
                     return;
                 }
@@ -510,7 +510,7 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    log.Error("不支持 {0} 的类型".Format(syncVar.Name), syncVar);
+                    debugger.Error("不支持 {0} 的类型".Format(syncVar.Name), syncVar);
                     failed = true;
                     return;
                 }
@@ -635,7 +635,7 @@ namespace Astraia.Editor
                 var readFunc = reader.GetFunction(syncVar.FieldType, ref failed);
                 if (readFunc == null)
                 {
-                    log.Error("不支持 {0} 的类型。".Format(syncVar.Name), syncVar);
+                    debugger.Error("不支持 {0} 的类型。".Format(syncVar.Name), syncVar);
                     failed = true;
                     return;
                 }

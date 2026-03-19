@@ -46,7 +46,7 @@ namespace Astraia.Editor
         private Writer writer;
         private Reader reader;
         private SyncVarAccess access;
-        private TypeDefinition extend;
+        private TypeDefinition expand;
         private AssemblyDefinition assembly;
         private readonly ILogPostProcessor debugger;
 
@@ -71,9 +71,9 @@ namespace Astraia.Editor
                 access = new SyncVarAccess();
                 module = new Module(assembly, debugger, ref failed);
 
-                extend = new TypeDefinition(GEN_TYPE, nameof(NetworkProcessor), GEN_ATTR, module.Import<object>());
-                writer = new Writer(assembly, module, extend, debugger);
-                reader = new Reader(assembly, module, extend, debugger);
+                expand = new TypeDefinition(GEN_TYPE, nameof(NetworkProcessor), GEN_ATTR, module.Import<object>());
+                writer = new Writer(assembly, module, expand, debugger);
+                reader = new Reader(assembly, module, expand, debugger);
                 modified = RuntimeAttribute.Process(assembly, resolver, debugger, writer, reader, ref failed);
 
                 var mainModule = assembly.MainModule;
@@ -93,8 +93,8 @@ namespace Astraia.Editor
                 if (modified)
                 {
                     SyncVarReplace.Process(mainModule, access);
-                    mainModule.Types.Add(extend);
-                    RuntimeAttribute.RuntimeInitializeOnLoad(assembly, module, writer, reader, extend);
+                    mainModule.Types.Add(expand);
+                    RuntimeAttribute.Processed(assembly, module, writer, reader, expand);
                 }
 
                 watch.Stop();
@@ -151,7 +151,7 @@ namespace Astraia.Editor
         }
 
 
-        public static string GenerateMethodName(string prefix, MethodDefinition md)
+        public static string GetMethodName(MethodDefinition md, string prefix)
         {
             return md.Name + prefix;
         }

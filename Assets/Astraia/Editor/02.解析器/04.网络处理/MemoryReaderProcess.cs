@@ -23,25 +23,25 @@ namespace Astraia.Editor
     {
         private readonly Dictionary<TypeReference, MethodReference> methods = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly Module module;
-        private readonly ILogPostProcessor log;
         private readonly TypeDefinition generate;
+        private readonly ILogPostProcessor debugger;
         private readonly AssemblyDefinition assembly;
 
-        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition generate, ILogPostProcessor log)
+        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition generate, ILogPostProcessor debugger)
         {
-            this.log = log;
             this.module = module;
+            this.debugger = debugger;
             this.assembly = assembly;
             this.generate = generate;
         }
 
         internal void Register(TypeReference tr, MethodReference mr)
         {
-            if (methods.TryGetValue(tr, out var existingMethod) && existingMethod.FullName != mr.FullName) 
+            if (methods.TryGetValue(tr, out var existingMethod) && existingMethod.FullName != mr.FullName)
             {
                 return;
             }
-            
+
             var imported = assembly.MainModule.ImportReference(tr);
             methods[imported] = mr;
         }
@@ -63,7 +63,7 @@ namespace Astraia.Editor
             {
                 if (tr is ArrayType { Rank: > 1 })
                 {
-                    log.Error("无法为多维数组 {0} 生成读取器".Format(tr.Name), tr);
+                    debugger.Error("无法为多维数组 {0} 生成读取器".Format(tr.Name), tr);
                     failed = true;
                     return null;
                 }
@@ -74,14 +74,14 @@ namespace Astraia.Editor
             var td = tr.Resolve();
             if (td == null)
             {
-                log.Error("无法为空类型 {0} 生成读取器".Format(tr.Name), tr);
+                debugger.Error("无法为空类型 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.IsByReference)
             {
-                log.Error("无法为反射 {0} 生成读取器".Format(tr.Name), tr);
+                debugger.Error("无法为反射 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
@@ -110,42 +110,42 @@ namespace Astraia.Editor
 
             if (td.IsDerivedFrom<Component>())
             {
-                log.Error("无法为组件 {0} 生成读取器".Format(tr.Name), tr);
+                debugger.Error("无法为组件 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.Is<Object>())
             {
-                log.Error("无法为对象 {0} 生成读取器".Format(tr.Name), tr);
+                debugger.Error("无法为对象 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.Is<ScriptableObject>())
             {
-                log.Error("无法为可视化脚本 {0} 生成读取器".Format(tr.Name), tr);
+                debugger.Error("无法为可视化脚本 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.HasGenericParameters)
             {
-                log.Error("无法为泛型参数 {0} 生成读取器".Format(tr.Name), tr);
+                debugger.Error("无法为泛型参数 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsInterface)
             {
-                log.Error("无法为接口 {0} 生成读取器".Format(tr.Name), tr);
+                debugger.Error("无法为接口 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsAbstract)
             {
-                log.Error("无法为抽象或泛型 {0} 生成读取器".Format(tr.Name), tr);
+                debugger.Error("无法为抽象或泛型 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
@@ -184,13 +184,13 @@ namespace Astraia.Editor
 
             if (func == null)
             {
-                log.Error("无法为 {0} 生成读取器".Format(tr.Name), tr);
+                debugger.Error("无法为 {0} 生成读取器".Format(tr.Name), tr);
                 failed = true;
                 return md;
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Resolve.GetMethod(extensions, assembly, name, log, ref failed);
+            var mr = Resolve.GetMethod(extensions, assembly, name, debugger, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -231,7 +231,7 @@ namespace Astraia.Editor
                 var ctor = Resolve.GetConstructor(tr);
                 if (ctor == null)
                 {
-                    log.Error("{0} 不能被反序列化，因为它没有默认的构造函数".Format(tr.Name), tr);
+                    debugger.Error("{0} 不能被反序列化，因为它没有默认的构造函数".Format(tr.Name), tr);
                     failed = true;
                 }
                 else
@@ -281,7 +281,7 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    log.Error("{0} 有不受支持的类型".Format(field.Name), field);
+                    debugger.Error("{0} 有不受支持的类型".Format(field.Name), field);
                     failed = true;
                 }
 

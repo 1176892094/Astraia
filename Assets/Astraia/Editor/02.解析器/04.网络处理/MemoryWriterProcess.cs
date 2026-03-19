@@ -23,13 +23,13 @@ namespace Astraia.Editor
     {
         private readonly Dictionary<TypeReference, MethodReference> methods = new Dictionary<TypeReference, MethodReference>(new Comparer());
         private readonly Module module;
-        private readonly ILogPostProcessor log;
         private readonly TypeDefinition generate;
+        private readonly ILogPostProcessor debugger;
         private readonly AssemblyDefinition assembly;
 
-        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition generate, ILogPostProcessor log)
+        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition generate, ILogPostProcessor debugger)
         {
-            this.log = log;
+            this.debugger = debugger;
             this.module = module;
             this.assembly = assembly;
             this.generate = generate;
@@ -63,7 +63,7 @@ namespace Astraia.Editor
             {
                 if (tr is ArrayType { Rank: > 1 })
                 {
-                    log.Error("无法为多维数组 {0} 生成写入器".Format(tr.Name), tr);
+                    debugger.Error("无法为多维数组 {0} 生成写入器".Format(tr.Name), tr);
                     return null;
                 }
 
@@ -73,13 +73,13 @@ namespace Astraia.Editor
             var td = tr.Resolve();
             if (td == null)
             {
-                log.Error("无法为空类型 {0} 生成写入器".Format(tr.Name), tr);
+                debugger.Error("无法为空类型 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (tr.IsByReference)
             {
-                log.Error("无法为反射 {0} 生成写入器".Format(tr.Name), tr);
+                debugger.Error("无法为反射 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
@@ -107,37 +107,37 @@ namespace Astraia.Editor
 
             if (td.IsDerivedFrom<Component>())
             {
-                log.Error("无法为组件 {0} 生成写入器".Format(tr.Name), tr);
+                debugger.Error("无法为组件 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (tr.Is<Object>())
             {
-                log.Error("无法为对象 {0} 生成写入器".Format(tr.Name), tr);
+                debugger.Error("无法为对象 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (tr.Is<ScriptableObject>())
             {
-                log.Error("无法为可视化脚本 {0} 生成写入器".Format(tr.Name), tr);
+                debugger.Error("无法为可视化脚本 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (td.HasGenericParameters)
             {
-                log.Error("无法为泛型参数 {0} 生成写入器".Format(tr.Name), tr);
+                debugger.Error("无法为泛型参数 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (td.IsInterface)
             {
-                log.Error("无法为接口 {0} 生成写入器".Format(tr.Name), tr);
+                debugger.Error("无法为接口 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
             if (td.IsAbstract)
             {
-                log.Error("无法为抽象或泛型 {0} 生成写入器".Format(tr.Name), tr);
+                debugger.Error("无法为抽象或泛型 {0} 生成写入器".Format(tr.Name), tr);
                 return null;
             }
 
@@ -170,13 +170,13 @@ namespace Astraia.Editor
 
             if (func == null)
             {
-                log.Error("无法为 {0} 生成写入器".Format(tr.Name), tr);
+                debugger.Error("无法为 {0} 生成写入器".Format(tr.Name), tr);
                 failed = true;
                 return md;
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Resolve.GetMethod(extensions, assembly, name, log, ref failed);
+            var mr = Resolve.GetMethod(extensions, assembly, name, debugger, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);

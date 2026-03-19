@@ -37,7 +37,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         public static MethodDefinition ProcessClientRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Weaver.GenerateMethodName(Weaver.INV_METHOD, md);
+            var rpcName = Weaver.GetMethodName(md, Weaver.INV_METHOD);
             var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
@@ -107,7 +107,7 @@ namespace Astraia.Editor
         public static MethodDefinition ProcessServerRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Weaver.GenerateMethodName(Weaver.INV_METHOD, md);
+            var rpcName = Weaver.GetMethodName(md, Weaver.INV_METHOD);
             var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
@@ -186,7 +186,7 @@ namespace Astraia.Editor
         public static MethodDefinition ProcessTargetRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td,
             MethodDefinition md, MethodDefinition func, ref bool failed)
         {
-            var rpcName = Weaver.GenerateMethodName(Weaver.INV_METHOD, md);
+            var rpcName = Weaver.GetMethodName(md, Weaver.INV_METHOD);
             var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = rpc.Body.GetILProcessor();
             var label = worker.Create(OpCodes.Nop);
@@ -425,7 +425,7 @@ namespace Astraia.Editor
         /// <returns></returns>
         private static MethodDefinition BaseInvokeMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
         {
-            var newName = Weaver.GenerateMethodName(Weaver.RPC_METHOD, md);
+            var newName = Weaver.GetMethodName(md, Weaver.RPC_METHOD);
             var method = new MethodDefinition(newName, md.Attributes, md.ReturnType)
             {
                 IsPublic = false,
@@ -477,9 +477,9 @@ namespace Astraia.Editor
 
             foreach (var instruction in md.Body.Instructions)
             {
-                if (IsInvokeToMethod(instruction, out var methodDef))
+                if (IsInvokeToMethod(instruction, out var method))
                 {
-                    var newName = Weaver.GenerateMethodName("", methodDef);
+                    var newName = Weaver.GetMethodName(method, string.Empty);
                     if (newName == name)
                     {
                         var baseType = td.BaseType.Resolve();
