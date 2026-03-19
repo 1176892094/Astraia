@@ -26,7 +26,6 @@ namespace Astraia.Editor
         private readonly Writer writer;
         private readonly Reader reader;
         private readonly SyncVarAccess access;
-        private readonly TypeDefinition cached;
         private readonly TypeDefinition expand;
         private readonly SyncVarProcess process;
         private readonly ILogPostProcessor debugger;
@@ -40,7 +39,6 @@ namespace Astraia.Editor
 
         public NetworkMember(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader, ILogPostProcessor debugger, TypeDefinition expand)
         {
-            cached = expand;
             this.expand = expand;
             this.module = module;
             this.access = access;
@@ -53,62 +51,57 @@ namespace Astraia.Editor
 
         public bool Process(ref bool failed)
         {
-            if (cached.GetMethod(Weaver.GEN_FUN) != null)
+            if (expand.GetMethod(Weaver.GEN_FUN) != null)
             {
                 return false;
             }
 
-            MarkAsProcessed(cached);
+            var method = new MethodDefinition(Weaver.GEN_FUN, MethodAttributes.Private, module.Import(typeof(void)));
+            var worker = method.Body.GetILProcessor();
+            worker.Emit(OpCodes.Ret);
+            expand.Methods.Add(method);
 
-            (syncVars, syncVarIds) = process.ProcessSyncVars(cached, ref failed);
+            (syncVars, syncVarIds) = process.ProcessSyncVars(expand, ref failed);
 
-            ProcessRpcMethods(ref failed);
-
-            if (failed)
+            if (!failed)
             {
-                return true;
+                ProcessRpc(ref failed);
             }
 
-            InjectStaticConstructor(ref failed);
-
-            GenerateSerialize(ref failed);
-
-            if (failed)
+            if (!failed)
             {
-                return true;
+                ProcessCctor(ref failed);
             }
 
-            GenerateDeserialize(ref failed);
+            if (!failed)
+            {
+                SerializeSyncVars(ref failed);
+            }
+
+            if (!failed)
+            {
+                DeserializeSyncVars(ref failed);
+            }
+
+            debugger.Warn("{0} {1} {2}".Format("Y".Color("S"), assembly.MainModule, expand.Name.Color("Y")));
             return true;
         }
 
-        private void MarkAsProcessed(TypeDefinition td)
-        {
-            var versionMethod = new MethodDefinition(Weaver.GEN_FUN, MethodAttributes.Private, module.Import(typeof(void)));
-            var worker = versionMethod.Body.GetILProcessor();
-            worker.Emit(OpCodes.Ret);
-            td.Methods.Add(versionMethod);
-        }
-
-        public static void WriteInitLocals(ILProcessor worker, Module module)
+        public static void WriterDequeue(ILProcessor worker, Module module)
         {
             worker.Body.InitLocals = true;
             worker.Body.Variables.Add(new VariableDefinition(module.Import<MemoryWriter>()));
-        }
-
-        public static void WritePopSetter(ILProcessor worker, Module module)
-        {
             worker.Emit(OpCodes.Call, module.WriterDequeue);
             worker.Emit(OpCodes.Stloc_0);
         }
 
-        public static void WritePushSetter(ILProcessor worker, Module module)
+        public static void WriterEnqueue(ILProcessor worker, Module module)
         {
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Call, module.WriterEnqueue);
         }
 
-        public static void AddInvokeParameters(Module module, ICollection<ParameterDefinition> collection)
+        public static void AddParameters(Module module, ICollection<ParameterDefinition> collection)
         {
             collection.Add(new ParameterDefinition("obj", ParameterAttributes.None, module.Import<NetworkModule>()));
             collection.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
@@ -118,192 +111,126 @@ namespace Astraia.Editor
 
     internal partial class NetworkMember
     {
-        /// <summary>
-        /// 处理Rpc方法
-        /// </summary>
-        private void ProcessRpcMethods(ref bool failed)
+        private void ProcessRpc(ref bool failed)
         {
             var names = new HashSet<string>();
             var methods = new List<MethodDefinition>(expand.Methods);
 
-            foreach (var md in methods)
+            foreach (var method in methods)
             {
-                foreach (var ca in md.CustomAttributes)
+                foreach (var attribute in method.CustomAttributes)
                 {
-                    if (ca.AttributeType.Is<ServerRpcAttribute>())
+                    if (attribute.AttributeType.Is<ServerRpcAttribute>())
                     {
-                        ProcessDelegate(names, md, ca, InvokeMode.ServerRpc, ref failed);
+                        ProcessRpc(names, method, attribute, InvokeMode.ServerRpc, ref failed);
                         break;
                     }
 
-                    if (ca.AttributeType.Is<TargetRpcAttribute>())
+                    if (attribute.AttributeType.Is<TargetRpcAttribute>())
                     {
-                        ProcessDelegate(names, md, ca, InvokeMode.TargetRpc, ref failed);
+                        ProcessRpc(names, method, attribute, InvokeMode.TargetRpc, ref failed);
                         break;
                     }
 
-                    if (ca.AttributeType.Is<ClientRpcAttribute>())
+                    if (attribute.AttributeType.Is<ClientRpcAttribute>())
                     {
-                        ProcessDelegate(names, md, ca, InvokeMode.ClientRpc, ref failed);
+                        ProcessRpc(names, method, attribute, InvokeMode.ClientRpc, ref failed);
                         break;
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// 处理ClientRpc
-        /// </summary>
-        private void ProcessDelegate(HashSet<string> names, MethodDefinition md, CustomAttribute rpc, InvokeMode mode, ref bool failed)
+        private void ProcessRpc(HashSet<string> names, MethodDefinition md, CustomAttribute source, InvokeMode mode, ref bool failed)
         {
             if (md.IsAbstract)
             {
-                debugger.Error("{0}不能作用在抽象方法中。".Format(mode), md);
+                debugger.Error("{0} 方法不能是抽象的。".Format(md.Name), md);
                 failed = true;
                 return;
             }
 
-            if (!IsValidMethod(md, mode, ref failed))
-            {
-                return;
-            }
-
-            names.Add(md.Name);
-            MethodDefinition func;
-            MethodDefinition rpcFunc;
-            switch (mode)
-            {
-                case InvokeMode.ServerRpc:
-                    serverRpcList.Add((md, (int)rpc.GetArgument()));
-                    func = NetworkMethod.ServerRpcInvoke(module, writer, debugger, expand, md, rpc, ref failed);
-                    rpcFunc = NetworkMethod.ServerRpc(module, reader, debugger, expand, md, func, ref failed);
-                    if (rpcFunc != null)
-                    {
-                        serverRpcFuncList.Add(rpcFunc);
-                    }
-
-                    break;
-                case InvokeMode.ClientRpc:
-                    clientRpcList.Add((md, (int)rpc.GetArgument()));
-                    func = NetworkMethod.ClientRpcInvoke(module, writer, debugger, expand, md, rpc, ref failed);
-                    rpcFunc = NetworkMethod.ClientRpc(module, reader, debugger, expand, md, func, ref failed);
-                    if (rpcFunc != null)
-                    {
-                        clientRpcFuncList.Add(rpcFunc);
-                    }
-
-                    break;
-                case InvokeMode.TargetRpc:
-                    targetRpcList.Add((md, (int)rpc.GetArgument()));
-                    func = NetworkMethod.TargetRpcInvoke(module, writer, debugger, expand, md, rpc, ref failed);
-                    rpcFunc = NetworkMethod.TargetRpc(module, reader, debugger, expand, md, func, ref failed);
-                    if (rpcFunc != null)
-                    {
-                        targetRpcFuncList.Add(rpcFunc);
-                    }
-
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 判断是否为非静态方法
-        /// </summary>
-        private bool IsValidMethod(MethodDefinition md, InvokeMode rpcType, ref bool failed)
-        {
             if (md.IsStatic)
             {
                 debugger.Error("{0} 方法不能是静态的。".Format(md.Name), md);
                 failed = true;
-                return false;
+                return;
             }
 
-            return IsValidFunc(md, ref failed) && IsValidParams(md, rpcType, ref failed);
-        }
-
-        /// <summary>
-        /// 判断是否为有效Rpc
-        /// </summary>
-        private bool IsValidFunc(MethodReference mr, ref bool failed)
-        {
-            if (mr.ReturnType.Is<IEnumerator>())
+            if (md.HasGenericParameters)
             {
-                debugger.Error("{0} 方法不能被迭代。".Format(mr.Name), mr);
+                debugger.Error("{0} 方法不能有泛型参数。".Format(md.Name), md);
                 failed = true;
-                return false;
+                return;
             }
 
-            if (!mr.ReturnType.Is(typeof(void)))
+            if (md.ReturnType.Is<IEnumerator>())
             {
-                debugger.Error("{0} 方法不能有返回值。".Format(mr.Name), mr);
+                debugger.Error("{0} 方法不能被迭代。".Format(md.Name), md);
                 failed = true;
-                return false;
+                return;
             }
 
-            if (mr.HasGenericParameters)
+            if (!md.ReturnType.Is(typeof(void)))
             {
-                debugger.Error("{0} 方法不能有泛型参数。".Format(mr.Name), mr);
+                debugger.Error("{0} 方法不能有返回值。".Format(md.Name), md);
                 failed = true;
-                return false;
+                return;
             }
 
-            return true;
-        }
-
-        /// <summary>
-        /// 判断Rpc携带的参数
-        /// </summary>
-        private bool IsValidParams(MethodReference mr, InvokeMode rpcType, ref bool failed)
-        {
-            for (int i = 0; i < mr.Parameters.Count; ++i)
+            for (int i = 0; i < md.Parameters.Count; ++i)
             {
-                ParameterDefinition param = mr.Parameters[i];
-                if (!IsValidParam(mr, param, rpcType, i == 0, ref failed))
+                var pd = md.Parameters[i];
+                if (pd.ParameterType.IsGenericParameter)
                 {
-                    return false;
+                    debugger.Error("{0} 方法不能有泛型参数。".Format(md.Name), md);
+                    failed = true;
+                    continue;
+                }
+
+                if (pd.IsOut)
+                {
+                    debugger.Error("{0} 方法不能携带 out 关键字。".Format(md.Name), md);
+                    failed = true;
+                    continue;
+                }
+
+                if (pd.IsOptional)
+                {
+                    debugger.Error("{0} 方法不能有可选参数。".Format(md.Name), md);
+                    failed = true;
+                    continue;
+                }
+
+                if (pd.ParameterType.Is<NetworkClient>() && (mode != InvokeMode.TargetRpc || i != 0))
+                {
+                    debugger.Error("{0} 方法不能传递 {1}。".Format(md.Name, nameof(NetworkClient)), md);
+                    failed = true;
                 }
             }
 
-            return true;
-        }
-
-        /// <summary>
-        /// 判断Rpc是否为有效参数
-        /// </summary>
-        private bool IsValidParam(MethodReference method, ParameterDefinition param, InvokeMode rpcType, bool firstParam, ref bool failed)
-        {
-            if (param.ParameterType.IsGenericParameter)
+            names.Add(md.Name);
+            if (mode == InvokeMode.ServerRpc)
             {
-                debugger.Error("{0} 方法不能有泛型参数。".Format(method.Name), method);
-                failed = true;
-                return false;
+                serverRpcList.Add((md, (int)source.GetArgument()));
+                var funcV1 = NetworkMethod.ServerRpcV1(module, writer, debugger, expand, md, source, ref failed);
+                var funcV2 = NetworkMethod.ServerRpcV2(module, reader, debugger, expand, md, funcV1, ref failed);
+                if (funcV2 != null) serverRpcFuncList.Add(funcV2);
             }
-
-            bool connection = param.ParameterType.Is<NetworkClient>();
-            bool sendTarget = NetworkMethod.IsNetworkClient(param, rpcType);
-
-            if (param.IsOut)
+            else if (mode == InvokeMode.ClientRpc)
             {
-                debugger.Error("{0} 方法不能携带 out 关键字。".Format(method.Name), method);
-                failed = true;
-                return false;
+                clientRpcList.Add((md, (int)source.GetArgument()));
+                var funcV1 = NetworkMethod.ClientRpcV1(module, writer, debugger, expand, md, source, ref failed);
+                var funcV2 = NetworkMethod.ClientRpcV2(module, reader, debugger, expand, md, funcV1, ref failed);
+                if (funcV2 != null) clientRpcFuncList.Add(funcV2);
             }
-
-            if (!sendTarget && connection && !(rpcType == InvokeMode.TargetRpc && firstParam))
+            else if (mode == InvokeMode.TargetRpc)
             {
-                debugger.Error("{0} 方法无效的参数 {1}，不能传递网络连接。".Format(method.Name, param), method);
-                failed = true;
-                return false;
+                targetRpcList.Add((md, (int)source.GetArgument()));
+                var funcV1 = NetworkMethod.TargetRpcV1(module, writer, debugger, expand, md, source, ref failed);
+                var funcV2 = NetworkMethod.TargetRpcV2(module, reader, debugger, expand, md, funcV1, ref failed);
+                if (funcV2 != null) targetRpcFuncList.Add(funcV2);
             }
-
-            if (param.IsOptional && !sendTarget)
-            {
-                debugger.Error("{0} 方法不能有可选参数。".Format(method.Name), method);
-                failed = true;
-                return false;
-            }
-
-            return true;
         }
     }
 
@@ -312,26 +239,30 @@ namespace Astraia.Editor
         /// <summary>
         /// 注入静态构造函数
         /// </summary>
-        private void InjectStaticConstructor(ref bool failed)
+        private void ProcessCctor(ref bool failed)
         {
-            if (serverRpcList.Count == 0 && clientRpcList.Count == 0 && targetRpcList.Count == 0) return;
-            MethodDefinition cctor = expand.GetMethod(Weaver.GEN_CCTOR);
-            bool cctorFound = cctor != null;
-            if (cctor != null)
+            if (serverRpcList.Count == 0 && clientRpcList.Count == 0 && targetRpcList.Count == 0)
             {
-                if (!RemoveFinalRetInstruction(cctor))
+                return;
+            }
+
+            var cctor = expand.GetMethod(Weaver.GEN_CCTOR);
+            var empty = cctor == null;
+            if (empty)
+            {
+                cctor = new MethodDefinition(Weaver.GEN_CCTOR, Weaver.GEN_DATA, module.Import(typeof(void)));
+            }
+            else
+            {
+                if (!EndInstruction(cctor))
                 {
                     debugger.Error("{0} 无效的静态构造函数。".Format(expand.Name), cctor);
                     failed = true;
                     return;
                 }
             }
-            else
-            {
-                cctor = new MethodDefinition(Weaver.GEN_CCTOR, Weaver.GEN_DATA, module.Import(typeof(void)));
-            }
 
-            ILProcessor worker = cctor.Body.GetILProcessor();
+            var worker = cctor.Body.GetILProcessor();
             for (int i = 0; i < serverRpcList.Count; ++i)
             {
                 GenerateDelegate(worker, module.RegisterServerRpc, serverRpcFuncList[i], serverRpcList[i]);
@@ -348,7 +279,7 @@ namespace Astraia.Editor
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
-            if (!cctorFound)
+            if (empty)
             {
                 expand.Methods.Add(cctor);
             }
@@ -357,22 +288,21 @@ namespace Astraia.Editor
         }
 
         /// <summary>
-        /// 判断自身静态构造函数是否被创建
+        /// 获取最后一条指令
         /// </summary>
-        private static bool RemoveFinalRetInstruction(MethodDefinition md)
+        private static bool EndInstruction(MethodDefinition md)
         {
-            if (md.Body.Instructions.Count != 0)
+            if (md.Body.Instructions.Count == 0)
             {
-                Instruction retInstr = md.Body.Instructions[^1];
-                if (retInstr.OpCode == OpCodes.Ret)
-                {
-                    md.Body.Instructions.RemoveAt(md.Body.Instructions.Count - 1);
-                    return true;
-                }
+                return true;
+            }
 
+            if (md.Body.Instructions[^1].OpCode != OpCodes.Ret)
+            {
                 return false;
             }
 
+            md.Body.Instructions.RemoveAt(md.Body.Instructions.Count - 1);
             return true;
         }
 
@@ -394,54 +324,49 @@ namespace Astraia.Editor
 
     internal partial class NetworkMember
     {
-        /// <summary>
-        /// 生成SyncVar的序列化方法
-        /// </summary>
-        private void GenerateSerialize(ref bool failed)
+        private void SerializeSyncVars(ref bool failed)
         {
             if (expand.GetMethod(Weaver.MED_SER) != null) return;
             if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(Weaver.MED_SER, Weaver.GEN_VAR, module.Import(typeof(void)));
-            serialize.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
-            serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
-            var worker = serialize.Body.GetILProcessor();
 
-            serialize.Body.InitLocals = true;
-            var baseSerialize = Common.GetMethod(expand.BaseType, assembly, Weaver.MED_SER);
-            if (baseSerialize != null)
+            var method = new MethodDefinition(Weaver.MED_SER, Weaver.GEN_VAR, module.Import(typeof(void)));
+            method.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
+            method.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
+            var worker = method.Body.GetILProcessor();
+
+            method.Body.InitLocals = true;
+            var reason = Common.GetMethod(expand.BaseType, assembly, Weaver.MED_SER);
+            if (reason != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_2);
-                worker.Emit(OpCodes.Call, baseSerialize);
+                worker.Emit(OpCodes.Call, reason);
             }
 
-            Instruction instruction = worker.Create(OpCodes.Nop);
+            var instruction = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Ldarg_2);
             worker.Emit(OpCodes.Brfalse, instruction);
-            foreach (var syncVarDef in syncVars)
+            foreach (var value in syncVars)
             {
-                FieldReference syncVar = syncVarDef;
+                FieldReference syncVar = value;
                 if (expand.HasGenericParameters)
                 {
-                    syncVar = syncVarDef.MakeGeneric();
+                    syncVar = value.MakeGeneric();
                 }
 
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
-                var writeFunc = writer.GetFunction(syncVar.FieldType.IsSubclassOf<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType, ref failed);
-
-                if (writeFunc != null)
-                {
-                    worker.Emit(OpCodes.Call, writeFunc);
-                }
-                else
+                var func = writer.GetFunction(syncVar.FieldType.IsSubclassOf<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType, ref failed);
+                if (func == null)
                 {
                     debugger.Error("不支持 {0} 的类型".Format(syncVar.Name), syncVar);
                     failed = true;
-                    return;
+                    continue;
                 }
+
+                worker.Emit(OpCodes.Call, func);
             }
 
             worker.Emit(OpCodes.Ret);
@@ -449,83 +374,72 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldarg_1);
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Call, module.SyncVarDirty);
-            var writeUint64Func = writer.GetFunction(module.Import<ulong>(), ref failed);
-            worker.Emit(OpCodes.Call, writeUint64Func);
-            int dirty = access.GetSyncVar(expand.BaseType.FullName);
-            foreach (var syncVarDef in syncVars)
+            worker.Emit(OpCodes.Call, writer.GetFunction(module.Import<ulong>(), ref failed));
+            var mask = access.GetSyncVar(expand.BaseType.FullName);
+            foreach (var value in syncVars)
             {
-                FieldReference syncVar = syncVarDef;
+                FieldReference syncVar = value;
                 if (expand.HasGenericParameters)
                 {
-                    syncVar = syncVarDef.MakeGeneric();
+                    syncVar = value.MakeGeneric();
                 }
 
                 var varLabel = worker.Create(OpCodes.Nop);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Call, module.SyncVarDirty);
-                worker.Emit(OpCodes.Ldc_I8, 1L << dirty);
+                worker.Emit(OpCodes.Ldc_I8, 1L << mask);
                 worker.Emit(OpCodes.And);
                 worker.Emit(OpCodes.Brfalse, varLabel);
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldfld, syncVar);
 
-                var writeFunc = writer.GetFunction(
-                    syncVar.FieldType.IsSubclassOf<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType,
-                    ref failed);
-
-                if (writeFunc != null)
-                {
-                    worker.Emit(OpCodes.Call, writeFunc);
-                }
-                else
+                var func = writer.GetFunction(syncVar.FieldType.IsSubclassOf<NetworkModule>() ? module.Import<NetworkModule>() : syncVar.FieldType, ref failed);
+                if (func == null)
                 {
                     debugger.Error("不支持 {0} 的类型".Format(syncVar.Name), syncVar);
                     failed = true;
-                    return;
+                    continue;
                 }
 
+                worker.Emit(OpCodes.Call, func);
                 worker.Append(varLabel);
-                dirty += 1;
+                mask += 1;
             }
 
             worker.Emit(OpCodes.Ret);
-            expand.Methods.Add(serialize);
+            expand.Methods.Add(method);
         }
 
-        /// <summary>
-        /// 生成SyncVar的反序列化方法
-        /// </summary>
-        private void GenerateDeserialize(ref bool failed)
+        private void DeserializeSyncVars(ref bool failed)
         {
-            if (expand.GetMethod(Weaver.MED_DES) != null) return;
-            if (syncVars.Count == 0) return;
-            var serialize = new MethodDefinition(Weaver.MED_DES, Weaver.GEN_VAR, module.Import(typeof(void)));
-            serialize.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
-            serialize.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
-            var worker = serialize.Body.GetILProcessor();
+            if (expand.GetMethod(Weaver.MED_DES) != null || syncVars.Count == 0)
+            {
+                return;
+            }
 
-            serialize.Body.InitLocals = true;
-            var dirtyBitsLocal = new VariableDefinition(module.Import<long>());
-            serialize.Body.Variables.Add(dirtyBitsLocal);
+            var method = new MethodDefinition(Weaver.MED_DES, Weaver.GEN_VAR, module.Import(typeof(void)));
+            method.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
+            method.Parameters.Add(new ParameterDefinition("initialize", ParameterAttributes.None, module.Import<bool>()));
+            var worker = method.Body.GetILProcessor();
 
-            var baseDeserialize = Common.GetMethod(expand.BaseType, assembly, Weaver.MED_DES);
-            if (baseDeserialize != null)
+            method.Body.InitLocals = true;
+            method.Body.Variables.Add(new VariableDefinition(module.Import<long>()));
+            var reason = Common.GetMethod(expand.BaseType, assembly, Weaver.MED_DES);
+            if (reason != null)
             {
                 worker.Append(worker.Create(OpCodes.Ldarg_0));
                 worker.Append(worker.Create(OpCodes.Ldarg_1));
                 worker.Append(worker.Create(OpCodes.Ldarg_2));
-                worker.Append(worker.Create(OpCodes.Call, baseDeserialize));
+                worker.Append(worker.Create(OpCodes.Call, reason));
             }
 
             var instruction = worker.Create(OpCodes.Nop);
-
             worker.Append(worker.Create(OpCodes.Ldarg_2));
             worker.Append(worker.Create(OpCodes.Brfalse, instruction));
-
             foreach (var syncVar in syncVars)
             {
-                DeserializeField(syncVar, worker, ref failed);
+                DeserializeSyncVar(syncVar, worker, ref failed);
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
@@ -534,38 +448,33 @@ namespace Astraia.Editor
             worker.Append(worker.Create(OpCodes.Call, reader.GetFunction(module.Import<ulong>(), ref failed)));
             worker.Append(worker.Create(OpCodes.Stloc_0));
 
-            int dirtyBits = access.GetSyncVar(expand.BaseType.FullName);
+            var mask = access.GetSyncVar(expand.BaseType.FullName);
             foreach (var syncVar in syncVars)
             {
-                var varLabel = worker.Create(OpCodes.Nop);
+                var nop = worker.Create(OpCodes.Nop);
                 worker.Append(worker.Create(OpCodes.Ldloc_0));
-                worker.Append(worker.Create(OpCodes.Ldc_I8, 1L << dirtyBits));
+                worker.Append(worker.Create(OpCodes.Ldc_I8, 1L << mask));
                 worker.Append(worker.Create(OpCodes.And));
-                worker.Append(worker.Create(OpCodes.Brfalse, varLabel));
-
-                DeserializeField(syncVar, worker, ref failed);
-
-                worker.Append(varLabel);
-                dirtyBits += 1;
+                worker.Append(worker.Create(OpCodes.Brfalse, nop));
+                DeserializeSyncVar(syncVar, worker, ref failed);
+                worker.Append(nop);
+                mask += 1;
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
-            expand.Methods.Add(serialize);
+            expand.Methods.Add(method);
         }
 
-        /// <summary>
-        /// 反序列化字段
-        /// </summary>
-        private void DeserializeField(FieldDefinition syncVar, ILProcessor worker, ref bool failed)
+        private void DeserializeSyncVar(FieldDefinition syncVar, ILProcessor worker, ref bool failed)
         {
             worker.Append(worker.Create(OpCodes.Ldarg_0));
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldflda, expand.HasGenericParameters ? syncVar.MakeGeneric() : syncVar);
 
-            var hookMethod = process.GetHookMethod(expand, syncVar, ref failed);
-            if (hookMethod != null)
+            var method = process.GetHookMethod(expand, syncVar, ref failed);
+            if (method != null)
             {
-                process.GenerateNewActionFromHookMethod(syncVar, worker, hookMethod);
+                process.GenerateNewActionFromHookMethod(syncVar, worker, method);
             }
             else
             {
@@ -599,8 +508,8 @@ namespace Astraia.Editor
             }
             else
             {
-                var readFunc = reader.GetFunction(syncVar.FieldType, ref failed);
-                if (readFunc == null)
+                var func = reader.GetFunction(syncVar.FieldType, ref failed);
+                if (func == null)
                 {
                     debugger.Error("不支持 {0} 的类型。".Format(syncVar.Name), syncVar);
                     failed = true;
@@ -608,9 +517,8 @@ namespace Astraia.Editor
                 }
 
                 worker.Emit(OpCodes.Ldarg_1);
-                worker.Emit(OpCodes.Call, readFunc);
-                MethodReference generic = module.SyncVarGetterGeneral.GenericInstance(assembly.MainModule, syncVar.FieldType);
-                worker.Emit(OpCodes.Call, generic);
+                worker.Emit(OpCodes.Call, func);
+                worker.Emit(OpCodes.Call, module.SyncVarGetterGeneral.GenericInstance(assembly.MainModule, syncVar.FieldType));
             }
         }
     }

@@ -111,7 +111,7 @@ namespace Astraia.Editor
             var reason = message.ToString();
             if (member != null)
             {
-                reason = "{0} with [{1}]".Format(reason, member.ToString().Color("G"));
+                reason = "{0} [{1}]".Format(reason, member.ToString().Color("G"));
             }
 
             var source = reason.Split('\n');

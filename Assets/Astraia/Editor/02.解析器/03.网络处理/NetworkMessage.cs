@@ -79,7 +79,7 @@ namespace Astraia.Editor
 
             if (tr.IsByReference) // in ref out
             {
-                debugger.Error("无法为反射 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为引用 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }

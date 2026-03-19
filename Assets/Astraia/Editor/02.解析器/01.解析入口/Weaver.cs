@@ -62,16 +62,16 @@ namespace Astraia.Editor
                 var mainModule = assembly.MainModule;
                 foreach (var td in mainModule.Types.Where(td => td.IsSubclassOf<NetworkModule>()))
                 {
-                    var self = td;
-                    while (self != null)
+                    var parent = td;
+                    while (parent != null)
                     {
-                        if (self.Is<NetworkModule>())
+                        if (parent.Is<NetworkModule>())
                         {
                             break;
                         }
 
-                        modified |= new NetworkMember(assembly, access, module, writer, reader, debugger, self).Process(ref failed);
-                        self = self.GetBaseType();
+                        modified |= new NetworkMember(assembly, access, module, writer, reader, debugger, parent).Process(ref failed);
+                        parent = parent.GetBaseType();
                     }
                 }
 
@@ -88,7 +88,7 @@ namespace Astraia.Editor
                 }
 
                 elapse.Stop();
-                debugger.Warn("{0:F2}ms ".Color("G").Format(elapse.ElapsedMilliseconds / 1000F) + assembly.Name.Name);
+                //  debugger.Warn("{0:F2}ms ".Color("G").Format(elapse.ElapsedMilliseconds / 1000F) + assembly.Name.Name);
                 return true;
             }
             catch (Exception e)

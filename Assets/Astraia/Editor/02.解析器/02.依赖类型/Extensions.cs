@@ -129,6 +129,11 @@ namespace Astraia.Editor
             return self.Fields.FirstOrDefault(fd => !fd.IsStatic);
         }
 
+        public static MethodDefinition GetMethod(this TypeDefinition self, string name)
+        {
+            return self.Methods.FirstOrDefault(md => md.Name == name);
+        }
+
         public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
         {
             return self.Methods.Where(md => md.Name == name);
@@ -152,7 +157,7 @@ namespace Astraia.Editor
             }
         }
 
-        public static MethodDefinition GetMethod(this TypeDefinition self, string name)
+        public static MethodDefinition GetBaseMethod(this TypeDefinition self, string name)
         {
             while (self != null)
             {

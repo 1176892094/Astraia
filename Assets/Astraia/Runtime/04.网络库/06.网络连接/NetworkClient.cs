@@ -26,7 +26,12 @@ namespace Astraia.Net
         internal bool isReady;
         internal HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
 
-        public NetworkClient(int clientId = 0)
+        public NetworkClient()
+        {
+            clientId = 0;
+        }
+
+        public NetworkClient(int clientId)
         {
             this.clientId = clientId;
         }

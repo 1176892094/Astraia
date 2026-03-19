@@ -9,7 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System.Linq;
 using Astraia.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -25,224 +24,258 @@ namespace Astraia.Editor
 
     internal static class NetworkMethod
     {
-        public static MethodDefinition ClientRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ClientRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
-            var rpcName = md.GetName(Weaver.MED_INV);
-            var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
-            var worker = rpc.Body.GetILProcessor();
-            var label = worker.Create(OpCodes.Nop);
-            IsActiveClient(worker, module, md.Name, label, "ClientRpc");
-
-            worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Castclass, td);
-
-            if (!ReadArguments(md, reader, log, worker, InvokeMode.ClientRpc, ref failed))
-            {
-                return null;
-            }
-
-            worker.Emit(OpCodes.Callvirt, func);
-            worker.Emit(OpCodes.Ret);
-            NetworkMember.AddInvokeParameters(module, rpc.Parameters);
-            td.Methods.Add(rpc);
-            return rpc;
-        }
-
-        public static MethodDefinition ClientRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, CustomAttribute ca, ref bool failed)
-        {
-            var rpc = BaseMethodInvoke(log, td, md, ref failed);
-            var worker = md.Body.GetILProcessor();
-            NetworkMember.WriteInitLocals(worker, module);
-            NetworkMember.WritePopSetter(worker, module);
-
-            if (!WriteArguments(worker, writer, log, md, InvokeMode.ClientRpc, ref failed))
+            var result = InvokeV1(Log, expand, method, ref failed);
+            var worker = method.Body.GetILProcessor();
+            NetworkMember.WriterDequeue(worker, module);
+            if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.ClientRpc, ref failed))
             {
                 return null;
             }
 
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(md.FullName));
+            worker.Emit(OpCodes.Ldstr, method.FullName);
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, (int)ca.GetArgument());
+            worker.Emit(OpCodes.Ldc_I4, (int)args.GetArgument());
             worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
-            NetworkMember.WritePushSetter(worker, module);
+            NetworkMember.WriterEnqueue(worker, module);
             worker.Emit(OpCodes.Ret);
-            return rpc;
+            return result;
         }
 
-        public static MethodDefinition ServerRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ClientRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
-            var rpcName = md.GetName(Weaver.MED_INV);
-            var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
-            var worker = rpc.Body.GetILProcessor();
-            var label = worker.Create(OpCodes.Nop);
-            IsActiveServer(worker, module, md.Name, label, "ServerRpc");
+            var result = new MethodDefinition(method.GetName(Weaver.MED_INV), Weaver.GEN_RPC, module.Import(typeof(void)));
+            var worker = result.Body.GetILProcessor();
+            IsClientActive(worker, module, method.Name, nameof(InvokeMode.ClientRpc));
 
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Castclass, td);
+            worker.Emit(OpCodes.Castclass, expand);
 
-            if (!ReadArguments(md, reader, log, worker, InvokeMode.ServerRpc, ref failed))
+            if (!ArgumentReader(worker, reader, Log, method, InvokeMode.ClientRpc, ref failed))
             {
                 return null;
-            }
-
-            foreach (var definition in md.Parameters)
-            {
-                if (IsNetworkClient(definition, InvokeMode.ServerRpc))
-                {
-                    worker.Emit(OpCodes.Ldarg_2);
-                }
             }
 
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkMember.AddInvokeParameters(module, rpc.Parameters);
-            td.Methods.Add(rpc);
-            return rpc;
+            NetworkMember.AddParameters(module, result.Parameters);
+            expand.Methods.Add(result);
+            return result;
         }
 
-        public static MethodDefinition ServerRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, CustomAttribute ca, ref bool failed)
+        public static MethodDefinition ServerRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
-            var rpc = BaseMethodInvoke(log, td, md, ref failed);
-            var worker = md.Body.GetILProcessor();
-            NetworkMember.WriteInitLocals(worker, module);
-            NetworkMember.WritePopSetter(worker, module);
-
-            if (!WriteArguments(worker, writer, log, md, InvokeMode.ServerRpc, ref failed))
+            var result = InvokeV1(Log, expand, method, ref failed);
+            var worker = method.Body.GetILProcessor();
+            NetworkMember.WriterDequeue(worker, module);
+            if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.ServerRpc, ref failed))
             {
                 return null;
             }
 
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(md.FullName));
+            worker.Emit(OpCodes.Ldstr, method.FullName);
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, (int)ca.GetArgument());
+            worker.Emit(OpCodes.Ldc_I4, (int)args.GetArgument());
             worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
-            NetworkMember.WritePushSetter(worker, module);
+            NetworkMember.WriterEnqueue(worker, module);
             worker.Emit(OpCodes.Ret);
-
-            return rpc;
+            return result;
         }
 
-        public static MethodDefinition TargetRpc(Module module, Reader reader, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ServerRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
-            var rpcName = md.GetName(Weaver.MED_INV);
-            var rpc = new MethodDefinition(rpcName, Weaver.GEN_RPC, module.Import(typeof(void)));
-            var worker = rpc.Body.GetILProcessor();
-            var label = worker.Create(OpCodes.Nop);
-            IsActiveClient(worker, module, md.Name, label, "TargetRpc");
+            var result = new MethodDefinition(method.GetName(Weaver.MED_INV), Weaver.GEN_RPC, module.Import(typeof(void)));
+            var worker = result.Body.GetILProcessor();
+            IsServerActive(worker, module, method.Name, nameof(InvokeMode.ServerRpc));
 
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Castclass, td);
+            worker.Emit(OpCodes.Castclass, expand);
 
-            if (HasNetworkClient(md))
+            if (!ArgumentReader(worker, reader, Log, method, InvokeMode.ServerRpc, ref failed))
+            {
+                return null;
+            }
+
+            worker.Emit(OpCodes.Callvirt, func);
+            worker.Emit(OpCodes.Ret);
+            NetworkMember.AddParameters(module, result.Parameters);
+            expand.Methods.Add(result);
+            return result;
+        }
+
+        public static MethodDefinition TargetRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, CustomAttribute args, ref bool failed)
+        {
+            var result = InvokeV1(Log, expand, method, ref failed);
+            var worker = method.Body.GetILProcessor();
+            NetworkMember.WriterDequeue(worker, module);
+            if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.TargetRpc, ref failed))
+            {
+                return null;
+            }
+
+            worker.Emit(OpCodes.Ldarg_0);
+            worker.Emit(IsNetworkClient(method) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
+            worker.Emit(OpCodes.Ldstr, method.FullName);
+            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
+            worker.Emit(OpCodes.Ldloc_0);
+            worker.Emit(OpCodes.Ldc_I4, (int)args.GetArgument());
+            worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
+            NetworkMember.WriterEnqueue(worker, module);
+            worker.Emit(OpCodes.Ret);
+            return result;
+        }
+
+        public static MethodDefinition TargetRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, MethodDefinition func, ref bool failed)
+        {
+            var result = new MethodDefinition(method.GetName(Weaver.MED_INV), Weaver.GEN_RPC, module.Import(typeof(void)));
+            var worker = result.Body.GetILProcessor();
+            IsClientActive(worker, module, method.Name, nameof(InvokeMode.TargetRpc));
+
+            worker.Emit(OpCodes.Ldarg_0);
+            worker.Emit(OpCodes.Castclass, expand);
+
+            if (IsNetworkClient(method))
             {
                 worker.Emit(OpCodes.Ldnull);
             }
 
-            if (!ReadArguments(md, reader, log, worker, InvokeMode.TargetRpc, ref failed))
+            if (!ArgumentReader(worker, reader, Log, method, InvokeMode.TargetRpc, ref failed))
             {
                 return null;
             }
 
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkMember.AddInvokeParameters(module, rpc.Parameters);
-            td.Methods.Add(rpc);
-            return rpc;
+            NetworkMember.AddParameters(module, result.Parameters);
+            expand.Methods.Add(result);
+            return result;
         }
 
-        public static MethodDefinition TargetRpcInvoke(Module module, Writer writer, ILogPostProcessor log, TypeDefinition td, MethodDefinition md, CustomAttribute ca, ref bool failed)
+        private static MethodDefinition InvokeV1(ILogPostProcessor debugger, TypeDefinition expand, MethodDefinition method, ref bool failed)
         {
-            var rpc = BaseMethodInvoke(log, td, md, ref failed);
-            var worker = md.Body.GetILProcessor();
-            NetworkMember.WriteInitLocals(worker, module);
-            NetworkMember.WritePopSetter(worker, module);
-
-            if (!WriteArguments(worker, writer, log, md, InvokeMode.TargetRpc, ref failed))
+            var md = new MethodDefinition(method.GetName(Weaver.MED_RPC), method.Attributes, method.ReturnType)
             {
-                return null;
-            }
+                IsPublic = false,
+                IsFamily = true
+            };
 
-            worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(HasNetworkClient(md) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
-            worker.Emit(OpCodes.Ldstr, md.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(md.FullName));
-            worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, (int)ca.GetArgument());
-            worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
-            NetworkMember.WritePushSetter(worker, module);
-            worker.Emit(OpCodes.Ret);
-            return rpc;
-        }
-
-        private static bool WriteArguments(ILProcessor worker, Writer writer, ILogPostProcessor log, MethodDefinition method, InvokeMode mode, ref bool failed)
-        {
-            var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
-            var argument = 1;
             foreach (var pd in method.Parameters)
             {
-                if (argument == 1 && skipFirst)
+                md.Parameters.Add(new ParameterDefinition(pd.Name, ParameterAttributes.None, pd.ParameterType));
+            }
+
+            (md.Body, method.Body) = (method.Body, md.Body);
+
+            foreach (var point in method.DebugInformation.SequencePoints)
+            {
+                md.DebugInformation.SequencePoints.Add(point);
+            }
+
+            method.DebugInformation.SequencePoints.Clear();
+
+            foreach (var info in method.CustomDebugInformations)
+            {
+                md.CustomDebugInformations.Add(info);
+            }
+
+            method.CustomDebugInformations.Clear();
+            (method.DebugInformation.Scope, md.DebugInformation.Scope) = (md.DebugInformation.Scope, method.DebugInformation.Scope);
+            expand.Methods.Add(md);
+            InvokeV2(debugger, expand, md, ref failed);
+            return md;
+        }
+
+        private static void InvokeV2(ILogPostProcessor debugger, TypeDefinition expand, MethodDefinition method, ref bool failed)
+        {
+            var fullName = method.Name;
+            if (fullName.EndsWith(Weaver.MED_RPC))
+            {
+                var name = method.Name.Substring(Weaver.MED_RPC.Length);
+
+                foreach (var instruction in method.Body.Instructions)
                 {
-                    argument += 1;
+                    if (instruction.OpCode == OpCodes.Call && instruction.Operand is MethodDefinition result)
+                    {
+                        if (result.GetName(string.Empty) == name)
+                        {
+                            var md = expand.BaseType.Resolve().GetBaseMethod(fullName);
+                            if (md == null)
+                            {
+                                debugger.Error("找不到base方法: {0}".Format(fullName), method);
+                                failed = true;
+                                return;
+                            }
+
+                            if (!md.IsVirtual)
+                            {
+                                debugger.Error("找不到virtual的方法: {0}".Format(fullName), method);
+                                failed = true;
+                                return;
+                            }
+
+                            instruction.Operand = md;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool ArgumentWriter(ILProcessor worker, Writer writer, ILogPostProcessor Log, MethodDefinition method, InvokeMode mode, ref bool failed)
+        {
+            var counter = 1;
+            var skipped = mode == InvokeMode.TargetRpc && IsNetworkClient(method);
+            foreach (var pd in method.Parameters)
+            {
+                if (counter == 1 && skipped)
+                {
+                    counter += 1;
                     continue;
                 }
 
-                if (IsNetworkClient(pd, mode))
+                var func = writer.GetFunction(pd.ParameterType, ref failed);
+                if (func == null)
                 {
-                    argument += 1;
-                    continue;
-                }
-
-                var cached = writer.GetFunction(pd.ParameterType, ref failed);
-                if (cached == null)
-                {
-                    log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(method.Name, pd, pd.ParameterType), method);
+                    Log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(method.Name, pd, pd.ParameterType), method);
                     failed = true;
                     return false;
                 }
 
                 worker.Emit(OpCodes.Ldloc_0);
-                worker.Emit(OpCodes.Ldarg, argument);
-                worker.Emit(OpCodes.Call, cached);
-                argument += 1;
+                worker.Emit(OpCodes.Ldarg, counter);
+                worker.Emit(OpCodes.Call, func);
+                counter += 1;
             }
 
             return true;
         }
 
-        private static bool ReadArguments(MethodDefinition method, Reader reader, ILogPostProcessor log, ILProcessor worker, InvokeMode mode, ref bool failed)
+        private static bool ArgumentReader(ILProcessor worker, Reader reader, ILogPostProcessor Log, MethodDefinition method, InvokeMode mode, ref bool failed)
         {
-            var skipFirst = mode == InvokeMode.TargetRpc && HasNetworkClient(method);
-            var argument = 1;
+            var counter = 1;
+            var skipped = mode == InvokeMode.TargetRpc && IsNetworkClient(method);
             foreach (var pd in method.Parameters)
             {
-                if (argument == 1 && skipFirst)
+                if (counter == 1 && skipped)
                 {
-                    argument += 1;
+                    counter += 1;
                     continue;
                 }
 
-                if (IsNetworkClient(pd, mode))
+                var func = reader.GetFunction(pd.ParameterType, ref failed);
+                if (func == null)
                 {
-                    argument += 1;
-                    continue;
-                }
-
-                var cached = reader.GetFunction(pd.ParameterType, ref failed);
-
-                if (cached == null)
-                {
-                    log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(method.Name, pd, pd.ParameterType), method);
+                    Log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(method.Name, pd, pd.ParameterType), method);
                     failed = true;
                     return false;
                 }
 
                 worker.Emit(OpCodes.Ldarg_1);
-                worker.Emit(OpCodes.Call, cached);
-
+                worker.Emit(OpCodes.Call, func);
                 if (pd.ParameterType.Is<float>())
                 {
                     worker.Emit(OpCodes.Conv_R4);
@@ -256,133 +289,37 @@ namespace Astraia.Editor
             return true;
         }
 
-        private static bool HasNetworkClient(MethodDefinition md)
+        private static bool IsNetworkClient(MethodDefinition md)
         {
-            if (md.Parameters.Count <= 0)
+            if (md.Parameters.Count > 0)
             {
-                return false;
+                var tr = md.Parameters[0].ParameterType;
+                return tr.Is<NetworkClient>() || tr.IsSubclassOf<NetworkClient>();
             }
 
-            var tr = md.Parameters[0].ParameterType;
-            return tr.Is<NetworkClient>() || tr.IsSubclassOf<NetworkClient>();
-        }
-
-        public static bool IsNetworkClient(ParameterDefinition pd, InvokeMode mode)
-        {
-            if (mode != InvokeMode.ServerRpc)
-            {
-                return false;
-            }
-
-            var tr = pd.ParameterType;
-            return tr.Is<NetworkClient>() || tr.Resolve().IsSubclassOf<NetworkClient>();
-        }
-
-        private static void IsActiveClient(ILProcessor worker, Module module, string mdName, Instruction label, string error)
-        {
-            worker.Emit(OpCodes.Call, module.GetClientActive);
-            worker.Emit(OpCodes.Brtrue, label);
-            worker.Emit(OpCodes.Ldstr, "{0} 远程调用 {1} 方法，但是客户端不是活跃的。".Format(error, mdName));
-            worker.Emit(OpCodes.Call, module.LogError);
-            worker.Emit(OpCodes.Ret);
-            worker.Append(label);
-        }
-
-        private static void IsActiveServer(ILProcessor worker, Module module, string mdName, Instruction label, string error)
-        {
-            worker.Emit(OpCodes.Call, module.GetServerActive);
-            worker.Emit(OpCodes.Brtrue, label);
-            worker.Emit(OpCodes.Ldstr, "{0} 远程调用 {1} 方法，但是服务器不是活跃的。".Format(error, mdName));
-            worker.Emit(OpCodes.Call, module.LogError);
-            worker.Emit(OpCodes.Ret);
-            worker.Append(label);
-        }
-
-        private static void BaseMethod(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
-        {
-            var fullName = md.Name;
-            if (!fullName.StartsWith(Weaver.MED_RPC))
-            {
-                return;
-            }
-
-            var name = md.Name.Substring(Weaver.MED_RPC.Length);
-
-            foreach (var instruction in md.Body.Instructions)
-            {
-                if (CanInvoke(instruction, out var method))
-                {
-                    var newName = method.GetName(string.Empty);
-                    if (newName == name)
-                    {
-                        var baseType = td.BaseType.Resolve();
-                        var baseMethod = baseType.GetMethod(fullName);
-
-                        if (baseMethod == null)
-                        {
-                            log.Error("找不到base方法: {0}".Format(fullName), md);
-                            failed = true;
-                            return;
-                        }
-
-                        if (!baseMethod.IsVirtual)
-                        {
-                            log.Error("找不到virtual的方法: {0}".Format(fullName), md);
-                            failed = true;
-                            return;
-                        }
-
-                        instruction.Operand = baseMethod;
-                    }
-                }
-            }
-        }
-
-        private static MethodDefinition BaseMethodInvoke(ILogPostProcessor log, TypeDefinition td, MethodDefinition md, ref bool failed)
-        {
-            var newName = md.GetName(Weaver.MED_RPC);
-            var method = new MethodDefinition(newName, md.Attributes, md.ReturnType)
-            {
-                IsPublic = false,
-                IsFamily = true
-            };
-
-            foreach (var pd in md.Parameters)
-            {
-                method.Parameters.Add(new ParameterDefinition(pd.Name, ParameterAttributes.None, pd.ParameterType));
-            }
-
-            (method.Body, md.Body) = (md.Body, method.Body);
-
-            foreach (var point in md.DebugInformation.SequencePoints)
-            {
-                method.DebugInformation.SequencePoints.Add(point);
-            }
-
-            md.DebugInformation.SequencePoints.Clear();
-
-            foreach (var info in md.CustomDebugInformations)
-            {
-                method.CustomDebugInformations.Add(info);
-            }
-
-            md.CustomDebugInformations.Clear();
-            (md.DebugInformation.Scope, method.DebugInformation.Scope) = (method.DebugInformation.Scope, md.DebugInformation.Scope);
-            td.Methods.Add(method);
-            BaseMethod(log, td, method, ref failed);
-            return method;
-        }
-
-        private static bool CanInvoke(Instruction instr, out MethodDefinition md)
-        {
-            if (instr.OpCode == OpCodes.Call && instr.Operand is MethodDefinition method)
-            {
-                md = method;
-                return true;
-            }
-
-            md = null;
             return false;
+        }
+
+        private static void IsClientActive(ILProcessor worker, Module module, string name, string target)
+        {
+            var nop = worker.Create(OpCodes.Nop);
+            worker.Emit(OpCodes.Call, module.GetClientActive);
+            worker.Emit(OpCodes.Brtrue, nop);
+            worker.Emit(OpCodes.Ldstr, "{0} 远程调用 {1} 方法，但是客户端不是活跃的。".Format(target, name));
+            worker.Emit(OpCodes.Call, module.LogError);
+            worker.Emit(OpCodes.Ret);
+            worker.Append(nop);
+        }
+
+        private static void IsServerActive(ILProcessor worker, Module module, string name, string target)
+        {
+            var nop = worker.Create(OpCodes.Nop);
+            worker.Emit(OpCodes.Call, module.GetServerActive);
+            worker.Emit(OpCodes.Brtrue, nop);
+            worker.Emit(OpCodes.Ldstr, "{0} 远程调用 {1} 方法，但是服务器不是活跃的。".Format(target, name));
+            worker.Emit(OpCodes.Call, module.LogError);
+            worker.Emit(OpCodes.Ret);
+            worker.Append(nop);
         }
     }
 }
