@@ -10,22 +10,20 @@
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using Astraia.Net;
+using System.Diagnostics;
+using System.Collections.Generic;
 using Mono.Cecil;
-using UnityEngine;
-using Debug = UnityEngine.Debug;
-using Member = Mono.Cecil.TypeAttributes;
-using Method = Mono.Cecil.MethodAttributes;
+using Astraia.Net;
 
 namespace Astraia.Editor
 {
+    using Member = TypeAttributes;
+    using Method = MethodAttributes;
+
     [Serializable]
     internal sealed class Weaver
     {
-        public const int BIT_COUNT = 64;
         public const string GEN_TYPE = "Astraia.Net";
         public const string GEN_CTOR = ".ctor";
         public const string GEN_CCTOR = ".cctor";
@@ -141,8 +139,8 @@ namespace Astraia.Editor
         public Module(AssemblyDefinition assembly, ILogPostProcessor debugger, ref bool failed)
         {
             this.assembly = assembly;
-            Initialized = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
-            LogError = Common.GetMethod(Import<Debug>(), assembly, OnLogError, debugger, ref failed);
+            Initialized = Import<UnityEngine.RuntimeInitializeOnLoadMethodAttribute>().Resolve();
+            LogError = Common.GetMethod(Import<UnityEngine.Debug>(), assembly, OnLogError, debugger, ref failed);
             SyncVarHook = Common.GetMethod(Import(typeof(Action<,>)), assembly, Weaver.GEN_CTOR, debugger, ref failed);
             InvokeDelegate = Common.GetMethod(Import<InvokeDelegate>(), assembly, Weaver.GEN_CTOR, debugger, ref failed);
             AddArraySegment = Common.GetMethod(Import(typeof(ArraySegment<>)), assembly, Weaver.GEN_CTOR, debugger, ref failed);
