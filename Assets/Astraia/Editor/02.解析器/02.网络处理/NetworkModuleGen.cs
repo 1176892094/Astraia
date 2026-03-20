@@ -18,26 +18,26 @@ using UnityEngine;
 
 namespace Astraia.Editor
 {
-    internal sealed class NetworkMember
+    internal sealed class NetworkModuleGen
     {
-        private Dictionary<FieldDefinition, FieldDefinition> syncVarIds = new Dictionary<FieldDefinition, FieldDefinition>();
-        private List<FieldDefinition> syncVars = new List<FieldDefinition>();
         private readonly Module module;
         private readonly Writer writer;
         private readonly Reader reader;
         private readonly SyncVarAccess access;
         private readonly TypeDefinition expand;
-        private readonly SyncVarProcess process;
+        private readonly NetworkSyncVarGen process;
         private readonly ILogPostProcessor debugger;
         private readonly AssemblyDefinition assembly;
-        private readonly List<(MethodDefinition, int)> serverRpcList = new List<(MethodDefinition, int)>();
-        private readonly List<MethodDefinition> serverRpcFuncList = new List<MethodDefinition>();
-        private readonly List<(MethodDefinition, int)> clientRpcList = new List<(MethodDefinition, int)>();
-        private readonly List<MethodDefinition> clientRpcFuncList = new List<MethodDefinition>();
-        private readonly List<(MethodDefinition, int)> targetRpcList = new List<(MethodDefinition, int)>();
-        private readonly List<MethodDefinition> targetRpcFuncList = new List<MethodDefinition>();
+        private readonly SyncVarList<FieldDefinition> syncVars = new SyncVarList<FieldDefinition>();
+        private readonly List<(MethodDefinition, int)> serverV1List = new List<(MethodDefinition, int)>();
+        private readonly List<MethodDefinition> serverV2List = new List<MethodDefinition>();
+        private readonly List<(MethodDefinition, int)> clientV1List = new List<(MethodDefinition, int)>();
+        private readonly List<MethodDefinition> clientV2List = new List<MethodDefinition>();
+        private readonly List<(MethodDefinition, int)> targetV1List = new List<(MethodDefinition, int)>();
+        private readonly List<MethodDefinition> targetV2List = new List<MethodDefinition>();
 
-        public NetworkMember(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader, ILogPostProcessor debugger, TypeDefinition expand)
+
+        public NetworkModuleGen(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader, ILogPostProcessor debugger, TypeDefinition expand)
         {
             this.expand = expand;
             this.module = module;
@@ -46,7 +46,7 @@ namespace Astraia.Editor
             this.reader = reader;
             this.debugger = debugger;
             this.assembly = assembly;
-            process = new SyncVarProcess(assembly, access, module, debugger);
+            process = new NetworkSyncVarGen(assembly, access, module, debugger);
         }
 
         public bool Process(ref bool failed)
@@ -61,7 +61,8 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ret);
             expand.Methods.Add(method);
 
-            (syncVars, syncVarIds) = process.ProcessSyncVars(expand, ref failed);
+            syncVars.Clear();
+            process.Process(syncVars, expand, ref failed);
 
             if (!failed)
             {
@@ -209,30 +210,30 @@ namespace Astraia.Editor
             names.Add(md.Name);
             if (mode == InvokeMode.ServerRpc)
             {
-                serverRpcList.Add((md, (int)source.GetArgument()));
-                var funcV1 = NetworkMethod.ServerRpcV1(module, writer, debugger, expand, md, source, ref failed);
-                var funcV2 = NetworkMethod.ServerRpcV2(module, reader, debugger, expand, md, funcV1, ref failed);
-                if (funcV2 != null) serverRpcFuncList.Add(funcV2);
+                serverV1List.Add((md, (int)source.GetArgument()));
+                var funcV1 = NetworkMethodGen.ServerRpcV1(module, writer, debugger, expand, md, source, ref failed);
+                var funcV2 = NetworkMethodGen.ServerRpcV2(module, reader, debugger, expand, md, funcV1, ref failed);
+                if (funcV2 != null) serverV2List.Add(funcV2);
             }
             else if (mode == InvokeMode.ClientRpc)
             {
-                clientRpcList.Add((md, (int)source.GetArgument()));
-                var funcV1 = NetworkMethod.ClientRpcV1(module, writer, debugger, expand, md, source, ref failed);
-                var funcV2 = NetworkMethod.ClientRpcV2(module, reader, debugger, expand, md, funcV1, ref failed);
-                if (funcV2 != null) clientRpcFuncList.Add(funcV2);
+                clientV1List.Add((md, (int)source.GetArgument()));
+                var funcV1 = NetworkMethodGen.ClientRpcV1(module, writer, debugger, expand, md, source, ref failed);
+                var funcV2 = NetworkMethodGen.ClientRpcV2(module, reader, debugger, expand, md, funcV1, ref failed);
+                if (funcV2 != null) clientV2List.Add(funcV2);
             }
             else if (mode == InvokeMode.TargetRpc)
             {
-                targetRpcList.Add((md, (int)source.GetArgument()));
-                var funcV1 = NetworkMethod.TargetRpcV1(module, writer, debugger, expand, md, source, ref failed);
-                var funcV2 = NetworkMethod.TargetRpcV2(module, reader, debugger, expand, md, funcV1, ref failed);
-                if (funcV2 != null) targetRpcFuncList.Add(funcV2);
+                targetV1List.Add((md, (int)source.GetArgument()));
+                var funcV1 = NetworkMethodGen.TargetRpcV1(module, writer, debugger, expand, md, source, ref failed);
+                var funcV2 = NetworkMethodGen.TargetRpcV2(module, reader, debugger, expand, md, funcV1, ref failed);
+                if (funcV2 != null) targetV2List.Add(funcV2);
             }
         }
 
         private void ProcessCctor(ref bool failed)
         {
-            if (serverRpcList.Count == 0 && clientRpcList.Count == 0 && targetRpcList.Count == 0)
+            if (serverV1List.Count == 0 && clientV1List.Count == 0 && targetV1List.Count == 0)
             {
                 return;
             }
@@ -254,19 +255,19 @@ namespace Astraia.Editor
             }
 
             var worker = cctor.Body.GetILProcessor();
-            for (int i = 0; i < serverRpcList.Count; ++i)
+            for (int i = 0; i < serverV1List.Count; ++i)
             {
-                GenerateDelegate(worker, module.RegisterServerRpc, serverRpcFuncList[i], serverRpcList[i]);
+                GenerateDelegate(worker, module.RegisterServerRpc, serverV2List[i], serverV1List[i]);
             }
 
-            for (int i = 0; i < clientRpcList.Count; ++i)
+            for (int i = 0; i < clientV1List.Count; ++i)
             {
-                GenerateDelegate(worker, module.RegisterClientRpc, clientRpcFuncList[i], clientRpcList[i]);
+                GenerateDelegate(worker, module.RegisterClientRpc, clientV2List[i], clientV1List[i]);
             }
 
-            for (int i = 0; i < targetRpcList.Count; ++i)
+            for (int i = 0; i < targetV1List.Count; ++i)
             {
-                GenerateDelegate(worker, module.RegisterClientRpc, targetRpcFuncList[i], targetRpcList[i]);
+                GenerateDelegate(worker, module.RegisterClientRpc, targetV2List[i], targetV1List[i]);
             }
 
             worker.Append(worker.Create(OpCodes.Ret));
@@ -330,7 +331,7 @@ namespace Astraia.Editor
             var instruction = worker.Create(OpCodes.Nop);
             worker.Emit(OpCodes.Ldarg_2);
             worker.Emit(OpCodes.Brfalse, instruction);
-            foreach (var value in syncVars)
+            foreach (var value in syncVars.Keys)
             {
                 FieldReference syncVar = value;
                 if (expand.HasGenericParameters)
@@ -359,7 +360,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Call, module.SyncVarDirty);
             worker.Emit(OpCodes.Call, writer.GetFunction(module.Import<ulong>(), ref failed));
             var mask = access.GetSyncVar(expand.BaseType.FullName);
-            foreach (var value in syncVars)
+            foreach (var value in syncVars.Keys)
             {
                 FieldReference syncVar = value;
                 if (expand.HasGenericParameters)
@@ -420,7 +421,7 @@ namespace Astraia.Editor
             var instruction = worker.Create(OpCodes.Nop);
             worker.Append(worker.Create(OpCodes.Ldarg_2));
             worker.Append(worker.Create(OpCodes.Brfalse, instruction));
-            foreach (var syncVar in syncVars)
+            foreach (var syncVar in syncVars.Keys)
             {
                 DeserializeSyncVar(syncVar, worker, ref failed);
             }
@@ -432,7 +433,7 @@ namespace Astraia.Editor
             worker.Append(worker.Create(OpCodes.Stloc_0));
 
             var mask = access.GetSyncVar(expand.BaseType.FullName);
-            foreach (var syncVar in syncVars)
+            foreach (var syncVar in syncVars.Keys)
             {
                 var nop = worker.Create(OpCodes.Nop);
                 worker.Append(worker.Create(OpCodes.Ldloc_0));
@@ -466,7 +467,7 @@ namespace Astraia.Editor
 
             if (syncVar.FieldType.Is<GameObject>())
             {
-                var objectId = syncVarIds[syncVar];
+                var objectId = syncVars[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
@@ -474,7 +475,7 @@ namespace Astraia.Editor
             }
             else if (syncVar.FieldType.Is<NetworkEntity>())
             {
-                var objectId = syncVarIds[syncVar];
+                var objectId = syncVars[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
@@ -482,7 +483,7 @@ namespace Astraia.Editor
             }
             else if (syncVar.FieldType.IsSubclassOf<NetworkModule>() || syncVar.FieldType.Is<NetworkModule>())
             {
-                var objectId = syncVarIds[syncVar];
+                var objectId = syncVars[syncVar];
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
@@ -503,6 +504,49 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, func);
                 worker.Emit(OpCodes.Call, module.SyncVarGetterGeneral.GenericInstance(assembly.MainModule, syncVar.FieldType));
             }
+        }
+    }
+
+    internal class SyncVarAccess
+    {
+        public readonly Dictionary<FieldDefinition, MethodDefinition> getter = new Dictionary<FieldDefinition, MethodDefinition>();
+        public readonly Dictionary<FieldDefinition, MethodDefinition> setter = new Dictionary<FieldDefinition, MethodDefinition>();
+        private readonly Dictionary<string, int> syncVars = new Dictionary<string, int>();
+
+        public int GetSyncVar(string className)
+        {
+            return syncVars.TryGetValue(className, out var value) ? value : 0;
+        }
+
+        public void SetSyncVar(string className, int index)
+        {
+            syncVars[className] = index;
+        }
+    }
+
+    internal class SyncVarList<T>
+    {
+        private readonly Dictionary<T, T> syncMaps = new Dictionary<T, T>();
+        private readonly List<T> syncVars = new List<T>();
+        public ICollection<T> Keys => syncVars;
+        public ICollection<T> Values => syncMaps.Values;
+        public int Count => syncVars.Count;
+
+        public T this[T key]
+        {
+            get => syncMaps[key];
+            set => syncMaps[key] = value;
+        }
+
+        public void Add(T key)
+        {
+            syncVars.Add(key);
+        }
+
+        public void Clear()
+        {
+            syncVars.Clear();
+            syncMaps.Clear();
         }
     }
 }

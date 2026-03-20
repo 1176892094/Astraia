@@ -22,13 +22,13 @@ namespace Astraia.Editor
         TargetRpc,
     }
 
-    internal static class NetworkMethod
+    internal static class NetworkMethodGen
     {
         public static MethodDefinition ClientRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
             var result = InvokeV1(Log, expand, method, ref failed);
             var worker = method.Body.GetILProcessor();
-            NetworkMember.WriterDequeue(worker, module);
+            NetworkModuleGen.WriterDequeue(worker, module);
             if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.ClientRpc, ref failed))
             {
                 return null;
@@ -40,7 +40,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, (int)args.GetArgument());
             worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
-            NetworkMember.WriterEnqueue(worker, module);
+            NetworkModuleGen.WriterEnqueue(worker, module);
             worker.Emit(OpCodes.Ret);
             return result;
         }
@@ -61,7 +61,7 @@ namespace Astraia.Editor
 
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkMember.AddParameters(module, result.Parameters);
+            NetworkModuleGen.AddParameters(module, result.Parameters);
             expand.Methods.Add(result);
             return result;
         }
@@ -70,7 +70,7 @@ namespace Astraia.Editor
         {
             var result = InvokeV1(Log, expand, method, ref failed);
             var worker = method.Body.GetILProcessor();
-            NetworkMember.WriterDequeue(worker, module);
+            NetworkModuleGen.WriterDequeue(worker, module);
             if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.ServerRpc, ref failed))
             {
                 return null;
@@ -82,7 +82,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, (int)args.GetArgument());
             worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
-            NetworkMember.WriterEnqueue(worker, module);
+            NetworkModuleGen.WriterEnqueue(worker, module);
             worker.Emit(OpCodes.Ret);
             return result;
         }
@@ -103,7 +103,7 @@ namespace Astraia.Editor
 
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkMember.AddParameters(module, result.Parameters);
+            NetworkModuleGen.AddParameters(module, result.Parameters);
             expand.Methods.Add(result);
             return result;
         }
@@ -112,7 +112,7 @@ namespace Astraia.Editor
         {
             var result = InvokeV1(Log, expand, method, ref failed);
             var worker = method.Body.GetILProcessor();
-            NetworkMember.WriterDequeue(worker, module);
+            NetworkModuleGen.WriterDequeue(worker, module);
             if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.TargetRpc, ref failed))
             {
                 return null;
@@ -125,7 +125,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldloc_0);
             worker.Emit(OpCodes.Ldc_I4, (int)args.GetArgument());
             worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
-            NetworkMember.WriterEnqueue(worker, module);
+            NetworkModuleGen.WriterEnqueue(worker, module);
             worker.Emit(OpCodes.Ret);
             return result;
         }
@@ -151,7 +151,7 @@ namespace Astraia.Editor
 
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
-            NetworkMember.AddParameters(module, result.Parameters);
+            NetworkModuleGen.AddParameters(module, result.Parameters);
             expand.Methods.Add(result);
             return result;
         }
