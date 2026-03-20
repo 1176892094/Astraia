@@ -129,9 +129,9 @@ namespace Astraia.Editor
                 ProcessSyncVar(td, fd, syncVars, 1L << dirtyBits, ref failed);
                 dirtyBits += 1;
 
-                if (dirtyBits > Weaver.BIT_COUNT)
+                if (dirtyBits > 64)
                 {
-                    debugger.Error("{0} 网络变量数量大于 {1}。".Format(fd.Name, Weaver.BIT_COUNT), td);
+                    debugger.Error("{0} 网络变量数量大于 {1}。".Format(fd.Name, 64), td);
                     failed = true;
                 }
             }
