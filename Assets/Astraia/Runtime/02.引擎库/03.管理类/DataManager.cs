@@ -28,12 +28,15 @@ namespace Astraia.Core
                 foreach (var assetName in assembly.GetTypes().Where(type => typeof(IDataTable).IsAssignableFrom(type)).Select(type => type.Name))
                 {
                     var dataTable = (IDataTable)AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(assetName));
-                    var properties = dataTable.Type.GetProperties(Search.Instance);
-                    foreach (var property in properties)
+                    if (dataTable != null)
                     {
-                        if (property.HasAttribute<PrimaryAttribute>())
+                        var properties = dataTable.Type.GetProperties(Search.Instance);
+                        foreach (var property in properties)
                         {
-                            dataTable.AddData(property.Name, property.PropertyType);
+                            if (property.HasAttribute<PrimaryAttribute>())
+                            {
+                                dataTable.AddData(property.Name, property.PropertyType);
+                            }
                         }
                     }
                 }

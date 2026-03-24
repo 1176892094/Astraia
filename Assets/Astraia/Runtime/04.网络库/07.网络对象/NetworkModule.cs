@@ -509,7 +509,7 @@ namespace Astraia.Net
             field = value;
         }
 
-        private GameObject GetSyncVarGameObject(uint objectId, ref GameObject field)
+        public GameObject GetSyncVarGameObject(uint objectId, ref GameObject field)
         {
             if (isServer || !isClient)
             {
@@ -524,7 +524,7 @@ namespace Astraia.Net
             return null;
         }
 
-        private NetworkEntity GetSyncVarNetworkEntity(uint objectId, ref NetworkEntity entity)
+        public NetworkEntity GetSyncVarNetworkEntity(uint objectId, ref NetworkEntity entity)
         {
             if (isServer || !isClient)
             {
