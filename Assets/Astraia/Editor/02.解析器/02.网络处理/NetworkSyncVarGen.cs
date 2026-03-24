@@ -18,14 +18,14 @@ using UnityEngine;
 
 namespace Astraia.Editor
 {
-    internal class NetworkSyncVarGen
+    internal class NetworkSyncVar
     {
         private readonly Module module;
         private readonly SyncVarAccess access;
         private readonly ILogPostProcessor debugger;
         private readonly AssemblyDefinition assembly;
 
-        public NetworkSyncVarGen(AssemblyDefinition assembly, SyncVarAccess access, Module module, ILogPostProcessor debugger)
+        public NetworkSyncVar(AssemblyDefinition assembly, SyncVarAccess access, Module module, ILogPostProcessor debugger)
         {
             this.access = access;
             this.module = module;
@@ -33,7 +33,7 @@ namespace Astraia.Editor
             this.assembly = assembly;
         }
 
-        public void AddHook(FieldDefinition syncVar, ILProcessor worker, MethodDefinition func)
+        public void AddFunc(FieldDefinition syncVar, ILProcessor worker, MethodDefinition func)
         {
             worker.Emit(func.IsStatic ? OpCodes.Ldnull : OpCodes.Ldarg_0);
             MethodReference method;
@@ -67,7 +67,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Newobj, module.SyncVarHook.GenericInstance(main, instance));
         }
 
-        public MethodDefinition GetHook(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
+        public MethodDefinition GetFunc(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
         {
             var name = (string)syncVar.GetAttribute<SyncVarAttribute>().GetArgument();
             if (name != null)
@@ -126,12 +126,12 @@ namespace Astraia.Editor
 
                 syncVars.Add(fd);
 
-                ProcessSyncVar(td, fd, syncVars, 1L << dirtyBits, ref failed);
+                ProcessSyncVar(syncVars, td, fd, 1L << dirtyBits, ref failed);
                 dirtyBits += 1;
 
                 if (dirtyBits > 64)
                 {
-                    debugger.Error("{0} 网络变量数量大于 {1}。".Format(fd.Name, 64), td);
+                    debugger.Error("{0} 网络变量数量大于 64".Format(fd.Name), td);
                     failed = true;
                 }
             }
@@ -141,28 +141,30 @@ namespace Astraia.Editor
                 td.Fields.Add(fd);
             }
 
-            int parentSyncVarCount = access.GetSyncVar(td.BaseType.FullName);
-            access.SetSyncVar(td.FullName, parentSyncVarCount + syncVars.Count);
+            int count = access.GetSyncVar(td.BaseType.FullName);
+            access.SetSyncVar(td.FullName, count + syncVars.Count);
         }
 
-        private void ProcessSyncVar(TypeDefinition td, FieldDefinition fd, SyncVarList<FieldDefinition> syncVarIds, long dirtyBits, ref bool failed)
+        private void ProcessSyncVar(SyncVarList<FieldDefinition> syncVars, TypeDefinition td, FieldDefinition fd, long dirtyBits, ref bool failed)
         {
-            FieldDefinition objectId = null;
+            FieldReference fr = null;
             if (fd.FieldType.Is<GameObject>() || fd.FieldType.Is<NetworkEntity>())
             {
-                objectId = new FieldDefinition("{0}ID".Format(fd.Name), FieldAttributes.Family, module.Import<uint>());
-                syncVarIds[fd] = objectId;
-                objectId.DeclaringType = td;
+                var id = new FieldDefinition("{0}ID".Format(fd.Name), FieldAttributes.Family, module.Import<uint>());
+                syncVars[fd] = id;
+                id.DeclaringType = td;
+                fr = td.HasGenericParameters ? id.MakeGeneric() : id;
             }
             else if (fd.FieldType.Is<NetworkModule>() || fd.FieldType.IsSubclassOf<NetworkModule>())
             {
-                objectId = new FieldDefinition("{0}ID".Format(fd.Name), FieldAttributes.Family, module.Import<NetworkVariable>());
-                syncVarIds[fd] = objectId;
-                objectId.DeclaringType = td;
+                var id = new FieldDefinition("{0}ID".Format(fd.Name), FieldAttributes.Family, module.Import<NetworkVariable>());
+                syncVars[fd] = id;
+                id.DeclaringType = td;
+                fr = td.HasGenericParameters ? id.MakeGeneric() : id;
             }
 
-            var getter = GenerateSyncVarGetter(fd, fd.Name, objectId);
-            var setter = GenerateSyncVarSetter(fd, fd.Name, objectId, td, dirtyBits, ref failed);
+            var getter = GenerateSyncVarGetter(fd, fd.Name, fr);
+            var setter = GenerateSyncVarSetter(fd, fd.Name, fr, td, dirtyBits, ref failed);
 
             var property = new PropertyDefinition("{0}Var".Format(fd.Name), PropertyAttributes.None, fd.FieldType)
             {
@@ -187,25 +189,17 @@ namespace Astraia.Editor
             return self.Is<GameObject>() || self.Is<NetworkEntity>() || self.Is<NetworkModule>() || self.IsSubclassOf<NetworkModule>();
         }
 
-        private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string name, FieldDefinition fieldId)
+        private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string name, FieldReference obj)
         {
-            var get = new MethodDefinition("get_{0}Var".Format(name), Weaver.GEN_SYNC, fd.FieldType);
-
-            var worker = get.Body.GetILProcessor();
-
+            var getter = new MethodDefinition("get_{0}Var".Format(name), Weaver.GEN_SYNC, fd.FieldType);
+            var worker = getter.Body.GetILProcessor();
             var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeGeneric() : fd;
-
-            FieldReference fieldReference = null;
-            if (fieldId != null)
-            {
-                fieldReference = fieldId.DeclaringType.HasGenericParameters ? fieldId.MakeGeneric() : fieldId;
-            }
 
             if (fd.FieldType.Is<GameObject>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Ldfld, fieldReference);
+                worker.Emit(OpCodes.Ldfld, obj);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
                 worker.Emit(OpCodes.Call, module.GetSyncVarGameObject);
@@ -215,7 +209,7 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Ldfld, fieldReference);
+                worker.Emit(OpCodes.Ldfld, obj);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
                 worker.Emit(OpCodes.Call, module.GetSyncVarNetworkEntity);
@@ -225,7 +219,7 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Ldfld, fieldReference);
+                worker.Emit(OpCodes.Ldfld, obj);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
                 worker.Emit(OpCodes.Call, module.GetSyncVarNetworkModule.GenericInstance(assembly.MainModule, fd.FieldType));
@@ -238,26 +232,19 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ret);
             }
 
-            get.Body.Variables.Add(new VariableDefinition(fd.FieldType));
-            get.Body.InitLocals = true;
-            get.SemanticsAttributes = MethodSemanticsAttributes.Getter;
-            return get;
+            getter.Body.Variables.Add(new VariableDefinition(fd.FieldType));
+            getter.Body.InitLocals = true;
+            getter.SemanticsAttributes = MethodSemanticsAttributes.Getter;
+            return getter;
         }
 
-        private MethodDefinition GenerateSyncVarSetter(FieldDefinition fd, string name, FieldDefinition fieldId, TypeDefinition td, long dirtyBit, ref bool failed)
+        private MethodDefinition GenerateSyncVarSetter(FieldDefinition fd, string name, FieldReference obj, TypeDefinition td, long dirtyBit, ref bool failed)
         {
-            var set = new MethodDefinition("set_{0}Var".Format(name), Weaver.GEN_SYNC, module.Import(typeof(void)));
-
-            var worker = set.Body.GetILProcessor();
+            var setter = new MethodDefinition("set_{0}Var".Format(name), Weaver.GEN_SYNC, module.Import(typeof(void)));
+            var worker = setter.Body.GetILProcessor();
             var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeGeneric() : fd;
 
-            FieldReference fieldReference = null;
-            if (fieldId != null)
-            {
-                fieldReference = fieldId.DeclaringType.HasGenericParameters ? fieldId.MakeGeneric() : fieldId;
-            }
-
-            var endOfMethod = worker.Create(OpCodes.Nop);
+            var nop = worker.Create(OpCodes.Nop);
 
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldarg_1);
@@ -265,10 +252,10 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldflda, fr);
             worker.Emit(OpCodes.Ldc_I8, dirtyBit);
 
-            var hookMethod = GetHook(td, fd, ref failed);
-            if (hookMethod != null)
+            var func = GetFunc(td, fd, ref failed);
+            if (func != null)
             {
-                AddHook(fd, worker, hookMethod);
+                AddFunc(fd, worker, func);
             }
             else
             {
@@ -278,19 +265,19 @@ namespace Astraia.Editor
             if (fd.FieldType.Is<GameObject>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Ldflda, fieldReference);
+                worker.Emit(OpCodes.Ldflda, obj);
                 worker.Emit(OpCodes.Call, module.SyncVarSetterGameObject);
             }
             else if (fd.FieldType.Is<NetworkEntity>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Ldflda, fieldReference);
+                worker.Emit(OpCodes.Ldflda, obj);
                 worker.Emit(OpCodes.Call, module.SyncVarSetterNetworkEntity);
             }
             else if (fd.FieldType.IsSubclassOf<NetworkModule>() || fd.FieldType.Is<NetworkModule>())
             {
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Ldflda, fieldReference);
+                worker.Emit(OpCodes.Ldflda, obj);
                 worker.Emit(OpCodes.Call, module.SyncVarSetterNetworkModule.GenericInstance(assembly.MainModule, fd.FieldType));
             }
             else
@@ -298,23 +285,18 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, module.SyncVarSetterGeneral.GenericInstance(assembly.MainModule, fd.FieldType));
             }
 
-            worker.Append(endOfMethod);
-
+            worker.Append(nop);
             worker.Emit(OpCodes.Ret);
-
-            set.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.In, fd.FieldType));
-            set.SemanticsAttributes = MethodSemanticsAttributes.Setter;
-            return set;
+            
+            setter.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.In, fd.FieldType));
+            setter.SemanticsAttributes = MethodSemanticsAttributes.Setter;
+            return setter;
         }
     }
 
 
-
     internal static class SyncVarReplace
     {
-        /// <summary>
-        /// 修正SyncVar
-        /// </summary>
         public static void Process(ModuleDefinition md, SyncVarAccess access)
         {
             foreach (var td in md.Types.Where(td => td.IsClass))
@@ -323,9 +305,6 @@ namespace Astraia.Editor
             }
         }
 
-        /// <summary>
-        /// 处理类
-        /// </summary>
         private static void ProcessClass(TypeDefinition td, SyncVarAccess access)
         {
             foreach (var md in td.Methods)
@@ -339,9 +318,6 @@ namespace Astraia.Editor
             }
         }
 
-        /// <summary>
-        /// 处理方法
-        /// </summary>
         private static void ProcessMethod(MethodDefinition md, SyncVarAccess access)
         {
             if (md.Name == ".cctor" || md.Name == Weaver.GEN_FUN || md.Name.StartsWith(Weaver.MED_INV))
@@ -364,9 +340,6 @@ namespace Astraia.Editor
             }
         }
 
-        /// <summary>
-        /// 处理指令
-        /// </summary>
         private static int ProcessInstruction(MethodDefinition md, Instruction instr, int index, SyncVarAccess access)
         {
             if (instr.OpCode == OpCodes.Stfld && instr.Operand is FieldDefinition OpStfLd)
@@ -387,63 +360,54 @@ namespace Astraia.Editor
             return 1;
         }
 
-        /// <summary>
-        /// 设置指令
-        /// </summary>
-        private static void ProcessSetter(MethodDefinition md, Instruction i, FieldDefinition opField, SyncVarAccess access)
+        private static void ProcessSetter(MethodDefinition md, Instruction i, FieldDefinition opcode, SyncVarAccess access)
         {
             if (md.Name == Weaver.GEN_CTOR)
             {
                 return;
             }
 
-            if (access.setter.TryGetValue(opField, out var method))
+            if (access.setter.TryGetValue(opcode, out var method))
             {
                 i.OpCode = OpCodes.Call;
                 i.Operand = method;
             }
         }
 
-        /// <summary>
-        /// 获取指令
-        /// </summary>
-        private static void ProcessGetter(MethodDefinition md, Instruction i, FieldDefinition opField, SyncVarAccess access)
+        private static void ProcessGetter(MethodDefinition md, Instruction i, FieldDefinition opcode, SyncVarAccess access)
         {
             if (md.Name == Weaver.GEN_CTOR)
             {
                 return;
             }
 
-            if (access.getter.TryGetValue(opField, out var method))
+            if (access.getter.TryGetValue(opcode, out var method))
             {
                 i.OpCode = OpCodes.Call;
                 i.Operand = method;
             }
         }
 
-        /// <summary>
-        /// 处理加载地址指令
-        /// </summary>
-        private static int ProcessAddress(MethodDefinition md, Instruction instr, FieldDefinition opField, SyncVarAccess access, int index)
+        private static int ProcessAddress(MethodDefinition md, Instruction instr, FieldDefinition opcode, SyncVarAccess access, int index)
         {
             if (md.Name == Weaver.GEN_CTOR)
             {
                 return 1;
             }
 
-            if (access.setter.TryGetValue(opField, out var method))
+            if (access.setter.TryGetValue(opcode, out var method))
             {
                 var next = md.Body.Instructions[index + 1];
 
                 if (next.OpCode == OpCodes.Initobj)
                 {
                     var worker = md.Body.GetILProcessor();
-                    var variable = new VariableDefinition(opField.FieldType);
-                    md.Body.Variables.Add(variable);
+                    var define = new VariableDefinition(opcode.FieldType);
+                    md.Body.Variables.Add(define);
 
-                    worker.InsertBefore(instr, worker.Create(OpCodes.Ldloca, variable));
-                    worker.InsertBefore(instr, worker.Create(OpCodes.Initobj, opField.FieldType));
-                    worker.InsertBefore(instr, worker.Create(OpCodes.Ldloc, variable));
+                    worker.InsertBefore(instr, worker.Create(OpCodes.Ldloca, define));
+                    worker.InsertBefore(instr, worker.Create(OpCodes.Initobj, opcode.FieldType));
+                    worker.InsertBefore(instr, worker.Create(OpCodes.Ldloc, define));
                     worker.InsertBefore(instr, worker.Create(OpCodes.Call, method));
 
                     worker.Remove(instr);

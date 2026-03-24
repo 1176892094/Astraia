@@ -25,7 +25,7 @@ namespace Astraia.Editor
         private readonly Reader reader;
         private readonly SyncVarAccess access;
         private readonly TypeDefinition expand;
-        private readonly NetworkSyncVarGen process;
+        private readonly NetworkSyncVar syncList;
         private readonly ILogPostProcessor debugger;
         private readonly AssemblyDefinition assembly;
         private readonly SyncVarList<FieldDefinition> syncVars = new SyncVarList<FieldDefinition>();
@@ -46,7 +46,7 @@ namespace Astraia.Editor
             this.reader = reader;
             this.debugger = debugger;
             this.assembly = assembly;
-            process = new NetworkSyncVarGen(assembly, access, module, debugger);
+            syncList = new NetworkSyncVar(assembly, access, module, debugger);
         }
 
         public bool Process(ref bool failed)
@@ -62,7 +62,7 @@ namespace Astraia.Editor
             expand.Methods.Add(method);
 
             syncVars.Clear();
-            process.Process(syncVars, expand, ref failed);
+            syncList.Process(syncVars, expand, ref failed);
 
             if (!failed)
             {
@@ -455,10 +455,10 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Ldflda, expand.HasGenericParameters ? syncVar.MakeGeneric() : syncVar);
 
-            var method = process.GetHook(expand, syncVar, ref failed);
+            var method = syncList.GetFunc(expand, syncVar, ref failed);
             if (method != null)
             {
-                process.AddHook(syncVar, worker, method);
+                syncList.AddFunc(syncVar, worker, method);
             }
             else
             {

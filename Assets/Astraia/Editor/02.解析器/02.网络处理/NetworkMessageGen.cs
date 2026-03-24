@@ -215,7 +215,7 @@ namespace Astraia.Editor
                 return null;
             }
 
-            if (tr.IsByReference) // in ref out
+            if (tr.IsByReference) // ref and out
             {
                 debugger.Error("无法为引用 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
