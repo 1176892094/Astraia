@@ -204,7 +204,7 @@ namespace Astraia.Editor
                     return null;
                 }
 
-                return AddCollection(tr, tr.GetElementType(), nameof(Net.Extensions.ReadArray), ref failed);
+                return AddCollection(tr, tr.GetElementType(), "Array", ref failed);
             }
 
             var td = tr.Resolve();
@@ -234,12 +234,12 @@ namespace Astraia.Editor
 
             if (td.Is(typeof(List<>)))
             {
-                return AddCollection(tr, ((GenericInstanceType)tr).GenericArguments[0], nameof(Net.Extensions.ReadList), ref failed);
+                return AddCollection(tr, ((GenericInstanceType)tr).GenericArguments[0], "List", ref failed);
             }
 
             if (td.Is(typeof(HashSet<>)))
             {
-                return AddCollection(tr, ((GenericInstanceType)tr).GenericArguments[0], nameof(Net.Extensions.ReadHashSet), ref failed);
+                return AddCollection(tr, ((GenericInstanceType)tr).GenericArguments[0], "HashSet", ref failed);
             }
 
             if (tr.IsSubclassOf<NetworkModule>() || tr.Is<NetworkModule>())
@@ -325,7 +325,7 @@ namespace Astraia.Editor
 
         protected override MethodDefinition AddSegment(TypeReference tr, ref bool failed)
         {
-            return AddCollection(tr, ((GenericInstanceType)tr).GenericArguments[0], nameof(Net.Extensions.WriteArraySegment), ref failed);
+            return AddCollection(tr, ((GenericInstanceType)tr).GenericArguments[0], "ArraySegment", ref failed);
         }
 
         protected override MethodDefinition AddCollection(TypeReference tr, TypeReference element, string name, ref bool failed)
@@ -341,7 +341,7 @@ namespace Astraia.Editor
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Common.GetMethod(extensions, assembly, name, debugger, ref failed);
+            var mr = Common.GetMethod(extensions, assembly, "Write" + name, debugger, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -476,7 +476,7 @@ namespace Astraia.Editor
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Common.GetMethod(extensions, assembly, name, debugger, ref failed);
+            var mr = Common.GetMethod(extensions, assembly, "Read" + name, debugger, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);

@@ -84,7 +84,6 @@ namespace Astraia.Editor
                 DeserializeSyncVars(ref failed);
             }
 
-            debugger.Warn("{0} {1} {2}".Format("Y".Color("S"), assembly.MainModule, expand.Name.Color("Y")));
             return true;
         }
 

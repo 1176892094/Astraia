@@ -117,13 +117,6 @@ namespace Astraia.Editor
                     continue;
                 }
 
-                if (fd.FieldType.IsArray)
-                {
-                    debugger.Error("{0} 不能使用数组。".Format(fd.Name), fd);
-                    failed = true;
-                    continue;
-                }
-
                 syncVars.Add(fd);
 
                 ProcessSyncVar(syncVars, td, fd, 1L << dirtyBits, ref failed);
@@ -287,7 +280,7 @@ namespace Astraia.Editor
 
             worker.Append(nop);
             worker.Emit(OpCodes.Ret);
-            
+
             setter.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.In, fd.FieldType));
             setter.SemanticsAttributes = MethodSemanticsAttributes.Setter;
             return setter;
