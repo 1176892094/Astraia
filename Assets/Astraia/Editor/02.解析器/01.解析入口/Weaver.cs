@@ -50,7 +50,7 @@ namespace Astraia.Editor
                     return true;
                 }
 
-                var elapse = Stopwatch.StartNew();
+                // var elapse = Stopwatch.StartNew();
                 var access = new SyncVarAccess();
                 var module = new Module(assembly, debugger, ref failed);
                 var expand = new TypeDefinition(GEN_TYPE, GEN_FUN, GEN_ATTR, module.Import<object>());
@@ -86,8 +86,8 @@ namespace Astraia.Editor
                     NetworkMessageGen.Processed(assembly, module, writer, reader, expand);
                 }
 
-                elapse.Stop();
-                //  debugger.Warn("{0:F2}ms ".Color("G").Format(elapse.ElapsedMilliseconds / 1000F) + assembly.Name.Name);
+                // elapse.Stop();
+                // debugger.Warn("{0:F2}ms ".Color("G").Format(elapse.ElapsedMilliseconds / 1000F) + assembly.Name.Name);
                 return true;
             }
             catch (Exception e)
