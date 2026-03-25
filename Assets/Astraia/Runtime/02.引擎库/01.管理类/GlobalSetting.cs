@@ -173,24 +173,6 @@ namespace Astraia
                 }
             }
         }
-
-        public static readonly List<string> windows = new List<string>();
-
-        public static void LoadSetting(Type result)
-        {
-            if (!result.IsAbstract && !result.IsGenericType)
-            {
-                if (typeof(IModule).IsAssignableFrom(result))
-                {
-                    windows.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
-                }
-            }
-        }
-
-        public static void LoadComplete()
-        {
-            windows.Sort(StringComparer.Ordinal);
-        }
     }
 #endif
 }

@@ -46,7 +46,23 @@ namespace Astraia
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        private static readonly List<string> Windows = GlobalSetting.windows;
+        private static readonly List<string> Windows = new List<string>();
+
+        internal static void LoadModule(Type result)
+        {
+            if (!result.IsAbstract && !result.IsGenericType)
+            {
+                if (typeof(IModule).IsAssignableFrom(result))
+                {
+                    Windows.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
+                }
+            }
+        }
+
+        internal static void LoadComplete()
+        {
+            Windows.Sort(StringComparer.Ordinal);
+        }
 
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<IModule> windows
@@ -64,14 +80,14 @@ namespace Astraia
     public sealed class Logic
     {
         private readonly Dictionary<Type, IModule> modules = new Dictionary<Type, IModule>();
-        private object owner;
+        private Entity owner;
         public event Action OnShow;
         public event Action OnHide;
         public event Action OnFade;
 
         public ICollection<IModule> Modules => modules.Values;
 
-        public Logic(object owner, List<string> modules)
+        public Logic(Entity owner, List<string> modules)
         {
             this.owner = owner;
             foreach (var module in modules)
@@ -125,7 +141,7 @@ namespace Astraia
             {
                 module = HeapManager.Dequeue<IModule>(result);
                 modules.Add(source, module);
-                ((Entity)owner).Inject(module);
+                owner.Inject(module);
                 module.Acquire(owner);
                 module.Dequeue();
                 OnFade += () =>

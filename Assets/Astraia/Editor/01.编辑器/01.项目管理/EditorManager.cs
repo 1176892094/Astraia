@@ -32,12 +32,12 @@ namespace Astraia
 
         static EditorManager()
         {
+            Search.OnLoad -= Entity.LoadModule;
+            Search.OnLoad += Entity.LoadModule;
             Search.OnLoad -= EditorSetting.LoadWindows;
             Search.OnLoad += EditorSetting.LoadWindows;
-            Search.OnLoad -= GlobalSetting.LoadSetting;
-            Search.OnLoad += GlobalSetting.LoadSetting;
-            Search.OnLoadComplete -= GlobalSetting.LoadComplete;
-            Search.OnLoadComplete += GlobalSetting.LoadComplete;
+            Search.OnLoadComplete -= Entity.LoadComplete;
+            Search.OnLoadComplete += Entity.LoadComplete;
 
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
