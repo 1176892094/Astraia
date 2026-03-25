@@ -853,29 +853,43 @@ namespace Astraia
     public interface INode
     {
         Node OnTick();
+        void Enqueue();
     }
 
     public abstract class CompositeNode : INode
     {
-        protected IList<INode> nodes;
-        public void Create(params INode[] nodes) => this.nodes = nodes;
+        public IList<INode> nodes = Array.Empty<INode>();
         public abstract Node OnTick();
+
+        public void Enqueue()
+        {
+            foreach (var node in nodes)
+            {
+                node.Enqueue();
+            }
+
+            nodes = Array.Empty<INode>();
+            HeapManager.Enqueue<INode>(this, GetType());
+        }
     }
 
     public abstract class DecoratorNode : INode
     {
-        protected INode node;
-        public void Create(INode node) => this.node = node;
+        public INode node;
         public abstract Node OnTick();
+
+        public void Enqueue()
+        {
+            if (node != null)
+            {
+                node.Enqueue();
+                node = null;
+            }
+
+            HeapManager.Enqueue<INode>(this, GetType());
+        }
     }
 
-    [Serializable]
-    public sealed class Interval : INode
-    {
-        private float interval;
-        public void Create(float duration) => interval = TimeManager.Time + duration;
-        public Node OnTick() => interval < TimeManager.Time ? Node.Success : Node.Running;
-    }
 
     [Serializable]
     public sealed class Sequence : CompositeNode
@@ -1067,6 +1081,17 @@ namespace Astraia
     }
 
     [Serializable]
+    public sealed class Interval : DecoratorNode
+    {
+        public float waitTime;
+
+        public override Node OnTick()
+        {
+            return waitTime < TimeManager.Time ? Node.Success : Node.Running;
+        }
+    }
+
+    [Serializable]
     public sealed class Success : DecoratorNode
     {
         public override Node OnTick()
@@ -1081,6 +1106,101 @@ namespace Astraia
         public override Node OnTick()
         {
             return node.OnTick() == Node.Running ? Node.Running : Node.Failure;
+        }
+    }
+
+
+    public static class NodeUtils
+    {
+        [Serializable]
+        public struct Node
+        {
+            public string Name;
+            public List<Node> Item;
+
+            public Node(string name)
+            {
+                Name = name;
+                Item = new List<Node>();
+            }
+        }
+
+        public static Node GetNode(string reason)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                return default;
+            }
+
+            var index = reason.IndexOf('(');
+            if (index < 0)
+            {
+                return new Node(reason);
+            }
+
+            var result = reason.Substring(0, index).Trim();
+            var target = Split(reason, index);
+
+            var node = new Node(result);
+            foreach (var child in Split(target))
+            {
+                node.Item.Add(GetNode(child));
+            }
+
+            return node;
+        }
+
+        private static string Split(string reason, int index)
+        {
+            var depth = 0;
+            var count = index;
+            while (count < reason.Length)
+            {
+                if (reason[count] == '(')
+                {
+                    depth++;
+                }
+                else if (reason[count] == ')')
+                {
+                    depth--;
+                }
+
+                if (depth == 0)
+                {
+                    break;
+                }
+
+                count++;
+            }
+
+            return reason.Substring(index + 1, count - index - 1);
+        }
+
+        private static List<string> Split(string reason)
+        {
+            var result = new List<string>();
+            var depth = 0;
+            var index = 0;
+
+            for (var i = 0; i < reason.Length; i++)
+            {
+                if (reason[i] == '(')
+                {
+                    depth++;
+                }
+                else if (reason[i] == ')')
+                {
+                    depth--;
+                }
+                else if ((reason[i] == ',' || reason[i] == '，') && depth == 0)
+                {
+                    result.Add(reason.Substring(index, i - index).Trim());
+                    index = i + 1;
+                }
+            }
+
+            result.Add(reason.Substring(index).Trim());
+            return result;
         }
     }
 }

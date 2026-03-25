@@ -9,11 +9,9 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Astraia.Core;
 using UnityEngine;
 using Object = UnityEngine.Object;
 #if ODIN_INSPECTOR
