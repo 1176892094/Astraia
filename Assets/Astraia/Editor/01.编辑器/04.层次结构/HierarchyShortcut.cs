@@ -21,8 +21,8 @@ namespace Astraia
 
     internal static partial class Hierarchy
     {
-        private static readonly Dictionary<int, bool> sceneExpandState = new Dictionary<int, bool>();
-        private static readonly HashSet<int> expandedScenes = new HashSet<int>();
+        private static readonly Dictionary<EntityId, bool> sceneExpandState = new Dictionary<EntityId, bool>();
+        private static readonly HashSet<EntityId> expandedScenes = new HashSet<EntityId>();
 
         public static void Shortcuts()
         {
@@ -56,8 +56,7 @@ namespace Astraia
             var state = tree.GetValue<TreeViewState>("state");
 
             var sceneActive = SceneManager.GetActiveScene();
-            var sceneId = (EntityId)sceneActive.handle.GetHashCode();
-
+            var sceneId = sceneActive.handle.GetValue<EntityId>("m_Value");
             var isExpanded = sceneExpandState.ContainsKey(sceneId) && sceneExpandState[sceneId];
 
             if (isExpanded)

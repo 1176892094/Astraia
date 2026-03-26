@@ -21,12 +21,16 @@ namespace Astraia
 
     internal static partial class Hierarchy
     {
-        private static readonly HashSet<int> windows = new HashSet<int>();
+        private static readonly HashSet<EntityId> windows = new HashSet<EntityId>();
         private static readonly List<Object> items = new List<Object>();
         private static bool pressed;
         private static bool command;
-
+#if UNITY_6000_4_OR_NEWER
+        public static void OnGUI(EntityId id, Rect rect)
+#else
         public static void OnGUI(int id, Rect rect)
+#endif
+
         {
             var target = (GameObject)EditorUtility.EntityIdToObject(id);
 
@@ -53,7 +57,7 @@ namespace Astraia
                 var window = EditorRef.Hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
                 if (window != null)
                 {
-                    var instance = window.GetInstanceID();
+                    var instance = window.GetEntityId();
                     if (!windows.Contains(instance))
                     {
                         var root = window.rootVisualElement.parent.Query<IMGUIContainer>().First();

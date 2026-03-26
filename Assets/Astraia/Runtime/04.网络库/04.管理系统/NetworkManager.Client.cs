@@ -259,7 +259,11 @@ namespace Astraia.Net
                 }
 
                 scenes.Clear();
+#if UNITY_6000_4_OR_NEWER
+                var entities = FindObjectsByType<NetworkEntity>();
+#else
                 var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#endif
                 foreach (var entity in entities)
                 {
                     if (entity.sceneId != 0 && entity.objectId == 0)

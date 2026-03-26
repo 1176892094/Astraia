@@ -97,7 +97,11 @@ namespace Astraia.Net
 
             private static void SpawnObjects()
             {
+#if UNITY_6000_4_OR_NEWER
+                var entities = FindObjectsByType<NetworkEntity>();
+#else
                 var entities = FindObjectsByType<NetworkEntity>(FindObjectsSortMode.None);
+#endif
                 foreach (var entity in entities)
                 {
                     if (entity.sceneId != 0 && entity.objectId == 0)

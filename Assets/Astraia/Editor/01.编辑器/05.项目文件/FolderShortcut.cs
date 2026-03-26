@@ -54,8 +54,8 @@ namespace Astraia
             {
                 var rootObj = AssetDatabase.LoadAssetAtPath<Object>(root);
                 if (rootObj == null) continue;
-
-                int rootId = rootObj.GetInstanceID();
+                
+                var rootId = rootObj.GetEntityId();
                 if (!state.expandedIDs.Contains(rootId))
                 {
                     data.Invoke("SetExpanded", rootId, true);
@@ -69,7 +69,7 @@ namespace Astraia
                     var subObj = AssetDatabase.LoadAssetAtPath<Object>(subDir);
                     if (subObj != null)
                     {
-                        if (state.expandedIDs.Contains(subObj.GetInstanceID()))
+                        if (state.expandedIDs.Contains(subObj.GetEntityId()))
                         {
                             hasChild = true;
                             break;

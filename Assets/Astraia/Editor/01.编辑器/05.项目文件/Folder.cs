@@ -74,7 +74,11 @@ namespace Astraia
 
         private static readonly Dictionary<string, List<string>> items = new();
 
+#if UNITY_6000_4_OR_NEWER
+        public static void OnGUI(EntityId id, Rect rect)
+#else
         public static void OnGUI(int id, Rect rect)
+#endif
         {
             if (!isRepaint)
             {
@@ -121,7 +125,7 @@ namespace Astraia
             }
         }
 
-        private static void DrawTexCoords(int id, Rect rect, string path)
+        private static void DrawTexCoords(EntityId id, Rect rect, string path)
         {
             var x = Mathf.Max(0, rect.x - 128 - 16);
             var width = Mathf.Min(128, rect.x - 16);

@@ -41,10 +41,17 @@ namespace Astraia
 
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
+#if UNITY_6000_4_OR_NEWER
+            EditorApplication.hierarchyWindowItemByEntityIdOnGUI -= Hierarchy.OnGUI;
+            EditorApplication.hierarchyWindowItemByEntityIdOnGUI += Hierarchy.OnGUI;
+            EditorApplication.projectWindowItemByEntityIdOnGUI -= Folder.OnGUI;
+            EditorApplication.projectWindowItemByEntityIdOnGUI += Folder.OnGUI;
+#else
             EditorApplication.hierarchyWindowItemOnGUI -= Hierarchy.OnGUI;
             EditorApplication.hierarchyWindowItemOnGUI += Hierarchy.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI -= Folder.OnGUI;
             EditorApplication.projectWindowItemInstanceOnGUI += Folder.OnGUI;
+#endif
             EditorApplication.projectChanged -= Folder.OnProjectChanged;
             EditorApplication.projectChanged += Folder.OnProjectChanged;
 

@@ -445,7 +445,11 @@ namespace Astraia.Core
         private void UpdateGameObject()
         {
             gameObjects.Clear();
+#if UNITY_6000_4_OR_NEWER
+            var objects = FindObjectsByType<GameObject>();
+#else
             var objects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+#endif
             foreach (var component in objects)
             {
                 gameObjects.Add(component);
