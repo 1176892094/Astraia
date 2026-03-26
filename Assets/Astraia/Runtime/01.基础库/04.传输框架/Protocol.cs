@@ -352,31 +352,31 @@ namespace Astraia
             writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 
-        public bool GetPacket(MemoryWriter target)
+        public bool GetPacket(MemoryWriter result)
         {
             if (writers.Count > 0)
             {
-                var cached = writers.Dequeue();
-                if (target.position != 0)
+                var target = writers.Dequeue();
+                if (result.position != 0)
                 {
                     throw new ArgumentException("拷贝目标不是空的！");
                 }
 
-                ArraySegment<byte> segment = cached;
-                target.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                MemoryWriter.Push(cached);
+                ArraySegment<byte> segment = target;
+                result.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                MemoryWriter.Push(target);
                 return true;
             }
 
             if (writer != null)
             {
-                if (target.position != 0)
+                if (result.position != 0)
                 {
                     throw new ArgumentException("拷贝目标不是空的！");
                 }
 
                 ArraySegment<byte> segment = writer;
-                target.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                result.WriteBytes(segment.Array, segment.Offset, segment.Count);
                 MemoryWriter.Push(writer);
                 writer = null;
                 return true;
@@ -432,8 +432,7 @@ namespace Astraia
                 MemoryWriter.Push(writer);
                 if (writers.Count > 0)
                 {
-                    writer = writers.Peek();
-                    reader.Reset(writer);
+                    reader.Reset(writers.Peek());
                 }
                 else
                 {

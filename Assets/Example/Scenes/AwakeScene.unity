@@ -1426,6 +1426,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7ebd91d087ac427bab9f4b472ebde57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Log::Astraia.Core.DebugManager
+  Font: {fileID: 12800000, guid: 7098b6de5b3fd4427a6cbb93e1ccfd35, type: 3}
+  Host: 192.168.1.4
 --- !u!114 &584064308
 MonoBehaviour:
   m_ObjectHideFlags: 0

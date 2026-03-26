@@ -1006,40 +1006,37 @@ namespace Astraia
             return Word.Invoke(result, mask);
         }
 
-        public static string Limit(this string result, int count)
+        public static string Align(this string str, int count, string mask = "")
         {
-            var value = string.Empty;
-            var input = 0;
+            var width = 0;
+            var i1 = str.Length;
 
-            foreach (var c in result)
+            for (int i = 0; i < i1; i++)
             {
-                var width = c > 255 ? 2 : 1;
-                if (input + width > count)
+                width += str[i] > 255 ? 2 : 1;
+            }
+
+            if (width <= count)
+            {
+                return str + new string(' ', count - width);
+            }
+
+            var cur = 0;
+            var i2 = 0;
+            while (i2 < i1)
+            {
+                var w = str[i2] > 255 ? 2 : 1;
+
+                if (cur + w + mask.Length > count)
                 {
                     break;
                 }
 
-                input += width;
-                value += c;
+                cur += w;
+                i2++;
             }
 
-            return value;
-        }
-
-        public static string Align(this string result, int count)
-        {
-            var width = 0;
-            foreach (var c in result)
-            {
-                width += c > 255 ? 2 : 1;
-            }
-
-            while (width++ < count)
-            {
-                result += ' ';
-            }
-
-            return result;
+            return str.Substring(0, i2) + mask;
         }
 
         public static bool HasAttribute<T>(this MemberInfo member) where T : Attribute

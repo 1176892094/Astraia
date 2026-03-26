@@ -50,7 +50,7 @@ namespace Astraia.Net
                 {
                     var position = reader.position;
                     var message = reader.Invoke<T>();
-                    Debugger.OnReceive(message, reader.position - position);
+                    Debugger.OnData(message, reader.position - position);
                     onReceive.Invoke(message);
                 }
                 catch (Exception e)
@@ -69,7 +69,7 @@ namespace Astraia.Net
                 {
                     var position = reader.position;
                     var message = reader.Invoke<T>();
-                    Debugger.OnReceive(message, reader.position - position);
+                    Debugger.OnData(message, reader.position - position);
                     onReceive.Invoke(client, message);
                 }
                 catch (Exception e)
@@ -88,7 +88,7 @@ namespace Astraia.Net
                 {
                     var position = reader.position;
                     var message = reader.Invoke<T>();
-                    Debugger.OnReceive(message, reader.position - position);
+                    Debugger.OnData(message, reader.position - position);
                     onReceive.Invoke(client, message, channel);
                 }
                 catch (Exception e)
