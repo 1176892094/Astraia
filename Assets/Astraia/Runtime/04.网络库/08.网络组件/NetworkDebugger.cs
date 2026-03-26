@@ -191,7 +191,7 @@ namespace Astraia.Net
                     pools.Add(assembly, pool);
                 }
 
-                pool.Add(message is Pools.发送队列 or Pools.接收队列 ? new Pool(item) : item);
+                pool.Add(message is Pools.发送队列 or Pools.接收队列 ? new Debugger.Pool(item) : item);
             }
         }
 
@@ -358,13 +358,13 @@ namespace Astraia.Net
         [Serializable]
         private class 网络 : IWindow
         {
-            private Dictionary<string, List<IPool>> sendData = new Dictionary<string, List<IPool>>();
-            private Dictionary<string, List<IPool>> receiveData = new Dictionary<string, List<IPool>>();
+            private Dictionary<string, List<IPool>> itemSend = new Dictionary<string, List<IPool>>();
+            private Dictionary<string, List<IPool>> itemData = new Dictionary<string, List<IPool>>();
             private float waitTime;
-            private Pool clientSend;
-            private Pool serverSend;
-            private Pool clientData;
-            private Pool serverData;
+            private IPool clientSend;
+            private IPool serverSend;
+            private IPool clientData;
+            private IPool serverData;
 
             public void Execute(bool modified)
             {
@@ -379,14 +379,14 @@ namespace Astraia.Net
                 if (waitTime < Time.realtimeSinceStartup)
                 {
                     waitTime = Time.realtimeSinceStartup + 1;
-                    clientSend = new Pool(Debugger.clientSend);
-                    serverSend = new Pool(Debugger.serverSend);
-                    clientData = new Pool(Debugger.clientData);
-                    serverData = new Pool(Debugger.serverData);
-                    Rebuild(sendData, Debugger.itemSend.messages.Values, Pools.发送队列, true);
-                    Rebuild(sendData, Debugger.itemSend.function.Values, Pools.发送队列, false);
-                    Rebuild(receiveData, Debugger.itemReceive.messages.Values, Pools.接收队列, true);
-                    Rebuild(receiveData, Debugger.itemReceive.function.Values, Pools.接收队列, false);
+                    clientSend = new Debugger.Pool(Debugger.clientSend);
+                    serverSend = new Debugger.Pool(Debugger.serverSend);
+                    clientData = new Debugger.Pool(Debugger.clientData);
+                    serverData = new Debugger.Pool(Debugger.serverData);
+                    Rebuild(itemSend, Debugger.itemSend.messages.Values, Pools.发送队列, true);
+                    Rebuild(itemSend, Debugger.itemSend.function.Values, Pools.发送队列, false);
+                    Rebuild(itemData, Debugger.itemData.messages.Values, Pools.接收队列, true);
+                    Rebuild(itemData, Debugger.itemData.function.Values, Pools.接收队列, false);
                     Debugger.Reset();
                 }
 
@@ -396,8 +396,8 @@ namespace Astraia.Net
                 GUILayout.Label("NetworkSend".Align(50) + (NetworkManager.isServer ? serverSend : clientSend), GUILayout.Height(20));
                 GUILayout.Label("NetworkReceive".Align(50) + (NetworkManager.isServer ? serverData : clientData), GUILayout.Height(20));
                 GUILayout.EndVertical();
-                Repaint(sendData, Pools.发送队列);
-                Repaint(receiveData, Pools.接收队列);
+                Repaint(itemSend, Pools.发送队列);
+                Repaint(itemData, Pools.接收队列);
                 GUILayout.EndScrollView();
 
                 GUILayout.BeginHorizontal();
@@ -1060,7 +1060,6 @@ namespace Astraia.Net
             public Pool(Type type)
             {
                 Type = type;
-                Path = string.Empty;
             }
 
             public void Add(int bytes)
@@ -1089,48 +1088,11 @@ namespace Astraia.Net
         }
     }
 
-    internal static partial class Debugger
-    {
-        public static readonly DebugPool itemSend = new DebugPool();
-        public static readonly DebugPool itemReceive = new DebugPool();
-
-        public static void OnSend<T>(T message, int bytes) where T : struct, IMessage
-        {
-            if (isActive)
-            {
-                itemSend.Record(message, Compress.Invoke((uint)bytes) + bytes);
-            }
-        }
-
-        public static void OnData<T>(T message, int bytes) where T : struct, IMessage
-        {
-            if (isActive)
-            {
-                itemReceive.Record(message, Compress.Invoke((uint)bytes) + bytes + 2);
-            }
-        }
-
-        public static void Reset()
-        {
-            itemSend.Reset();
-            itemReceive.Reset();
-            clientSend.Dispose();
-            clientData.Dispose();
-            serverSend.Dispose();
-            serverData.Dispose();
-        }
-
-        public static void Clear()
-        {
-            isActive = false;
-            itemSend.Clear();
-            itemReceive.Clear();
-        }
-    }
-
-    internal static partial class Debugger
+    internal static class Debugger
     {
         private static bool isActive;
+        public static readonly DebugPool itemSend = new DebugPool();
+        public static readonly DebugPool itemData = new DebugPool();
         public static readonly DebugPool.Pool clientSend = new DebugPool.Pool();
         public static readonly DebugPool.Pool clientData = new DebugPool.Pool();
         public static readonly DebugPool.Pool serverSend = new DebugPool.Pool();
@@ -1153,6 +1115,59 @@ namespace Astraia.Net
             isActive = true;
         }
 
+        private static void OnClientSend(ArraySegment<byte> segment)
+        {
+            clientSend.Add(segment.Count);
+        }
+
+        private static void OnClientReceive(ArraySegment<byte> segment, int channel)
+        {
+            clientData.Add(segment.Count);
+        }
+
+        private static void OnServerSend(int clientId, ArraySegment<byte> segment)
+        {
+            serverSend.Add(segment.Count);
+        }
+
+        private static void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
+        {
+            serverData.Add(segment.Count);
+        }
+
+        public static void OnSend<T>(T message, int bytes) where T : struct, IMessage
+        {
+            if (isActive)
+            {
+                itemSend.Record(message, Compress.Invoke((uint)bytes) + bytes);
+            }
+        }
+
+        public static void OnData<T>(T message, int bytes) where T : struct, IMessage
+        {
+            if (isActive)
+            {
+                itemData.Record(message, Compress.Invoke((uint)bytes) + bytes + 2);
+            }
+        }
+
+        public static void Reset()
+        {
+            itemSend.Reset();
+            itemData.Reset();
+            clientSend.Dispose();
+            clientData.Dispose();
+            serverSend.Dispose();
+            serverData.Dispose();
+        }
+
+        public static void Clear()
+        {
+            isActive = false;
+            itemSend.Clear();
+            itemData.Clear();
+        }
+
         public static string PrettyBytes(long bytes)
         {
             if (bytes < 1024)
@@ -1173,58 +1188,39 @@ namespace Astraia.Net
             return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
         }
 
-        private static void OnClientSend(ArraySegment<byte> segment)
-        {
-            clientSend.Add(segment.Count);
-        }
 
-        private static void OnClientReceive(ArraySegment<byte> segment, int channel)
+        internal readonly struct Pool : IPool
         {
-            clientData.Add(segment.Count);
-        }
+            public Type Type { get; }
+            public string Path { get; }
+            public int Acquire { get; }
+            public int Release { get; }
+            public int Dequeue { get; }
+            public int Enqueue { get; }
 
-        private static void OnServerSend(int clientId, ArraySegment<byte> segment)
-        {
-            serverSend.Add(segment.Count);
-        }
+            public Pool(IPool pool)
+            {
+                Type = pool.Type;
+                Path = pool.Path;
+                Acquire = pool.Acquire;
+                Release = pool.Release;
+                Dequeue = pool.Dequeue;
+                Enqueue = pool.Enqueue;
+            }
 
-        private static void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
-        {
-            serverData.Add(segment.Count);
-        }
-    }
+            public void Dispose()
+            {
+            }
 
-    internal readonly struct Pool : IPool
-    {
-        public Type Type { get; }
-        public string Path { get; }
-        public int Acquire { get; }
-        public int Release { get; }
-        public int Dequeue { get; }
-        public int Enqueue { get; }
-
-        public Pool(IPool pool)
-        {
-            Type = pool.Type;
-            Path = pool.Path;
-            Acquire = pool.Acquire;
-            Release = pool.Release;
-            Dequeue = pool.Dequeue;
-            Enqueue = pool.Enqueue;
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public override string ToString()
-        {
-            var result = string.Empty;
-            result += Release.ToString().Align(10);
-            result += Debugger.PrettyBytes(Acquire).Align(10);
-            result += Dequeue.ToString().Align(10);
-            result += Debugger.PrettyBytes(Enqueue).Align(10);
-            return result;
+            public override string ToString()
+            {
+                var result = string.Empty;
+                result += Release.ToString().Align(10);
+                result += PrettyBytes(Acquire).Align(10);
+                result += Dequeue.ToString().Align(10);
+                result += PrettyBytes(Enqueue).Align(10);
+                return result;
+            }
         }
     }
 }
