@@ -89,7 +89,7 @@ namespace Astraia.Net
 
         public override void OnPreviewGUI(Rect rect, GUIStyle background)
         {
-            if (UnityEngine.Event.current.type != EventType.Repaint)
+            if (Event.current.type != EventType.Repaint)
             {
                 return;
             }

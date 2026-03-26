@@ -140,31 +140,31 @@ namespace Astraia.Core
             }
 
             GUI.contentColor = window == Window.控制台 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.控制台.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.控制台), GUILayout.Height(30)))
             {
                 window = Window.控制台;
             }
 
             GUI.contentColor = window == Window.引用池 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.引用池.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.引用池), GUILayout.Height(30)))
             {
                 window = Window.引用池;
             }
 
             GUI.contentColor = window == Window.对象池 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.对象池.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.对象池), GUILayout.Height(30)))
             {
                 window = Window.对象池;
             }
 
             GUI.contentColor = window == Window.事件 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.事件.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.事件), GUILayout.Height(30)))
             {
                 window = Window.事件;
             }
 
             GUI.contentColor = window == Window.网络 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.网络.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.网络), GUILayout.Height(30)))
             {
                 window = Window.网络;
             }
@@ -174,7 +174,7 @@ namespace Astraia.Core
             GUILayout.BeginHorizontal();
 
             GUI.contentColor = window == Window.场景 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.场景.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.场景), GUILayout.Height(30)))
             {
                 UpdateGameObject();
                 UpdateComponent();
@@ -182,25 +182,25 @@ namespace Astraia.Core
             }
 
             GUI.contentColor = window == Window.内存 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.内存.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.内存), GUILayout.Height(30)))
             {
                 window = Window.内存;
             }
 
             GUI.contentColor = window == Window.时间 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.时间.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.时间), GUILayout.Height(30)))
             {
                 window = Window.时间;
             }
 
             GUI.contentColor = window == Window.系统 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.系统.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.系统), GUILayout.Height(30)))
             {
                 window = Window.系统;
             }
 
             GUI.contentColor = window == Window.程序 ? Color.white : Color.gray;
-            if (GUILayout.Button(Window.程序.ToString(), GUILayout.Height(30)))
+            if (GUILayout.Button(nameof(Window.程序), GUILayout.Height(30)))
             {
                 window = Window.程序;
             }

@@ -50,7 +50,7 @@ namespace Runtime
             owner.Machine.Create<PlayerDash>(StateConst.Dash);
             owner.Machine.Create<PlayerCrash>(StateConst.Crash);
             owner.Machine.Switch(StateConst.Idle);
-            GameManager.Instance.SetCamera(owner, new Vector3(0, 3, 0), new Vector2(30, 8));
+            GameManager.Instance.SetCamera(owner, new Vector3(0, 0, 0), new Vector2(30, 10));
         }
     }
 }
