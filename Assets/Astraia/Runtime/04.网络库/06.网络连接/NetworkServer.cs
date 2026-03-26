@@ -49,6 +49,11 @@ namespace Astraia.Net
                 return;
             }
 
+            if (!NetworkManager.isHost)
+            {
+                Debugger.OnSend(message, writer.position);
+            }
+
             AddMessage(writer, channel);
         }
 

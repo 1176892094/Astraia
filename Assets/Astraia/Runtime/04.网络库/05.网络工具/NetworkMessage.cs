@@ -50,7 +50,11 @@ namespace Astraia.Net
                 {
                     var position = reader.position;
                     var message = reader.Invoke<T>();
-                    Debugger.OnData(message, reader.position - position);
+                    if (!NetworkManager.isHost)
+                    {
+                        Debugger.OnData(message, reader.position - position);
+                    }
+                   
                     onReceive.Invoke(message);
                 }
                 catch (Exception e)
@@ -69,7 +73,11 @@ namespace Astraia.Net
                 {
                     var position = reader.position;
                     var message = reader.Invoke<T>();
-                    Debugger.OnData(message, reader.position - position);
+                    if (client.clientId != 0)
+                    {
+                        Debugger.OnData(message, reader.position - position);
+                    }
+                  
                     onReceive.Invoke(client, message);
                 }
                 catch (Exception e)
@@ -88,7 +96,11 @@ namespace Astraia.Net
                 {
                     var position = reader.position;
                     var message = reader.Invoke<T>();
-                    Debugger.OnData(message, reader.position - position);
+                    if (client.clientId != 0)
+                    {
+                        Debugger.OnData(message, reader.position - position);
+                    }
+
                     onReceive.Invoke(client, message, channel);
                 }
                 catch (Exception e)

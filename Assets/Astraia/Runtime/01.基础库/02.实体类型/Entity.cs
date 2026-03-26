@@ -370,6 +370,16 @@ namespace Astraia
                 cached.Clear();
                 unused.Clear();
             }
+
+            public override string ToString()
+            {
+                var result = string.Empty;
+                result += Release.ToString().Align(10);
+                result += Acquire.ToString().Align(10);
+                result += Dequeue.ToString().Align(10);
+                result += Enqueue.ToString().Align(10);
+                return result;
+            }
         }
     }
 
@@ -381,40 +391,7 @@ namespace Astraia
         public int Release { get; }
         public int Dequeue { get; }
         public int Enqueue { get; }
-    }
-
-    internal readonly struct Pool : IPool
-    {
-        public Type Type { get; }
-        public string Path { get; }
-        public int Acquire { get; }
-        public int Release { get; }
-        public int Dequeue { get; }
-        public int Enqueue { get; }
-
-        public Pool(IPool pool)
-        {
-            Type = pool.Type;
-            Path = pool.Path;
-            Acquire = pool.Acquire;
-            Release = pool.Release;
-            Dequeue = pool.Dequeue;
-            Enqueue = pool.Enqueue;
-        }
-
-        public override string ToString()
-        {
-            var result = string.Empty;
-            result += Release.ToString().Align(10);
-            result += Acquire.ToString().Align(10);
-            result += Dequeue.ToString().Align(10);
-            result += Enqueue.ToString().Align(10);
-            return result;
-        }
-
-        public void Dispose()
-        {
-        }
+        string ToString();
     }
 }
 
@@ -512,6 +489,16 @@ namespace Astraia
             {
                 cached.Clear();
                 OnExecute = null;
+            }
+
+            public override string ToString()
+            {
+                var result = string.Empty;
+                result += Release.ToString().Align(10);
+                result += Acquire.ToString().Align(10);
+                result += Dequeue.ToString().Align(10);
+                result += Enqueue.ToString().Align(10);
+                return result;
             }
         }
     }

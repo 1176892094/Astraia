@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Profiling;
 using Astraia.Core;
@@ -24,23 +25,26 @@ namespace Astraia.Net
         private static readonly Dictionary<LogType, Log> Logs = new Dictionary<LogType, Log>();
         private static readonly List<LogData> Queue = new List<LogData>();
         private static Font Font;
-        private static Rect Rect;
+        private static Rect Rect = new Rect(0, 0, 100, 60);
         private static string Host;
-        private static Vector2 Size;
-        private static Vector2 WindowView;
+        private static Vector2 Size = new Vector2(2560, 1440);
         private static Vector2 ScreenView;
+        private static Vector2 SecondView;
 
         private float FPSText;
         private float FPSTime;
-        private Window Option;
+        private Color FPSData = Color.white;
+        private Window Button = Window.控制台;
 
-        private static float ScreenX => Screen.width / ScreenXY;
-        private static float ScreenY => Screen.height / ScreenXY;
-        private static float ScreenXY => Screen.width / Size.x + Screen.height / Size.y;
-        private static Matrix4x4 Matrix => Matrix4x4.Scale(new Vector3(ScreenXY, ScreenXY, 1));
+        private static float Rate => Screen.width / Size.x + Screen.height / Size.y;
+        private static float ScreenX => Screen.width / Rate;
+        private static float ScreenY => Screen.height / Rate;
+        private static Matrix4x4 Matrix => Matrix4x4.Scale(new Vector3(Rate, Rate, 1));
 
         private void Awake()
         {
+            Logs.Clear();
+            Queue.Clear();
             foreach (var reason in typeof(IWindow).Assembly.GetTypes())
             {
                 if (!reason.IsAbstract && typeof(IWindow).IsAssignableFrom(reason))
@@ -53,8 +57,6 @@ namespace Astraia.Net
             }
 
             Host = Astraia.Host.Ip();
-            Rect = new Rect(0, 0, 100, 60);
-            Size = new Vector2(2560, 1440);
             Font = Resources.Load<Font>("Sarasa Mono SC");
         }
 
@@ -104,31 +106,33 @@ namespace Astraia.Net
 
         private void OnWindowGUI(int id)
         {
-            var windowMax = Rect.width > 100;
-            GUI.DragWindow(new Rect(0, 0, windowMax ? ScreenX : 100, 20));
-            if (windowMax)
+            GUI.DragWindow(new Rect(0, 0, Rect.width, 20));
+            GUI.contentColor = FPSData;
+            if (Rect.width > 100)
             {
                 GUILayout.BeginHorizontal();
+                if (GUILayout.Button("FPS: {0}".Format(FPSText), GUILayout.Height(30), GUILayout.Width(80)))
+                {
+                    Rect.size = Rect.width <= 100 ? new Vector2(ScreenX, ScreenY) : new Vector2(100, 60);
+                }
             }
-
-            GUI.contentColor = Color.white;
-            if (GUILayout.Button("FPS: {0}".Format(FPSText), GUILayout.Height(30), GUILayout.Width(80)))
+            else
             {
-                Rect.size = Rect.width <= 100 ? new Vector2(ScreenX, ScreenY) : new Vector2(100, 60);
-            }
+                if (GUILayout.Button("FPS: {0}".Format(FPSText), GUILayout.Height(30), GUILayout.Width(80)))
+                {
+                    Rect.size = Rect.width <= 100 ? new Vector2(ScreenX, ScreenY) : new Vector2(100, 60);
+                }
 
-            if (!windowMax)
-            {
                 return;
             }
 
-            var option = Option;
+            var copied = Button;
             for (var i = Window.控制台; i <= Window.网络; i++)
             {
-                GUI.contentColor = Option == i ? Color.white : Color.gray;
+                GUI.contentColor = Button == i ? Color.white : Color.gray;
                 if (GUILayout.Button(i.ToString(), GUILayout.Height(30)))
                 {
-                    Option = i;
+                    Button = i;
                 }
             }
 
@@ -136,19 +140,19 @@ namespace Astraia.Net
             GUILayout.BeginHorizontal();
             for (var i = Window.场景; i <= Window.程序; i++)
             {
-                GUI.contentColor = Option == i ? Color.white : Color.gray;
+                GUI.contentColor = Button == i ? Color.white : Color.gray;
                 if (GUILayout.Button(i.ToString(), GUILayout.Height(30)))
                 {
-                    Option = i;
+                    Button = i;
                 }
             }
 
             GUILayout.EndHorizontal();
             GUI.contentColor = Color.white;
-            Windows[Option].Execute(Option != option);
+            Windows[Button].Execute(Button != copied);
         }
 
-        private static void LogReceive(string message, string stackTrace, LogType logType)
+        private void LogReceive(string message, string stackTrace, LogType logType)
         {
             if (Queue.Count >= 300)
             {
@@ -158,57 +162,82 @@ namespace Astraia.Net
 
             Logs[logType].Count++;
             Queue.Add(new LogData(message, stackTrace, logType));
+            foreach (var item in Logs.Values.Reverse())
+            {
+                if (item.Count > 0)
+                {
+                    FPSData = item.Color;
+                    break;
+                }
+            }
         }
 
-        private static void DrawBox(Dictionary<string, List<Pool>> poolData, IEnumerable<IPool> items, string message, string module)
+        private static void Rebuild(Dictionary<string, List<IPool>> pools, ICollection<IPool> items, Pools message, bool dispose)
         {
-            foreach (var pool in poolData)
+            if (dispose)
             {
-                pool.Value.Clear();
+                foreach (var pool in pools)
+                {
+                    pool.Value.Clear();
+                }
             }
 
             foreach (var item in items)
             {
                 var assembly = "{0} - {1}".Format(item.Type.Assembly.GetName().Name, message);
-                if (!poolData.TryGetValue(assembly, out var pool))
+                if (!pools.TryGetValue(assembly, out var pool))
                 {
-                    pool = new List<Pool>();
-                    poolData.Add(assembly, pool);
+                    pool = new List<IPool>();
+                    pools.Add(assembly, pool);
                 }
 
-                pool.Add(new Pool(item));
+                pool.Add(message is Pools.发送队列 or Pools.接收队列 ? new Pool(item) : item);
             }
+        }
 
-            ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
+        private static void Repaint(Dictionary<string, List<IPool>> poolData, Pools message)
+        {
             foreach (var pool in poolData)
             {
                 pool.Value.Sort(Comparison);
-
                 GUILayout.BeginVertical("Box");
-                GUILayout.Label(pool.Key.Align(50, "...  ") + module, GUILayout.Height(20));
+                var reason = message switch
+                {
+                    Pools.对象池 => "未激活\t激活中\t出队次数\t入队次数",
+                    Pools.引用池 => "未使用\t使用中\t使用次数\t释放次数",
+                    Pools.事件池 => "触发数\t事件数\t添加次数\t移除次数",
+                    Pools.发送队列 => "每秒接收\t每秒接收\t累计接收\t累计接收",
+                    Pools.接收队列 => "每秒发送\t每秒发送\t累计发送\t累计发送",
+                    _ => string.Empty
+                };
+
+                GUILayout.Label(pool.Key.Align(50) + reason, GUILayout.Height(20));
                 foreach (var data in pool.Value)
                 {
-                    var assetName = data.Type.Name;
+                    var result = string.Empty;
                     if (!string.IsNullOrEmpty(data.Path))
                     {
-                        assetName = "{0} - {1}".Format(GetFriendlyName(data.Type), data.Path);
+                        result += "{0} - {1}".Format(GetName(data.Type), data.Path);
+                    }
+                    else
+                    {
+                        result += data.Type.Name;
                     }
 
-                    GUILayout.Label(assetName.Align(50, "...  ") + data, GUILayout.Height(20));
+                    result = result.Align(50, "...  ");
+                    GUILayout.Label(result + data.ToString(), GUILayout.Height(20));
                 }
 
                 GUILayout.EndVertical();
             }
-
-            GUILayout.EndScrollView();
         }
 
-        private static int Comparison(Pool origin, Pool target)
+        private static int Comparison(IPool origin, IPool target)
         {
             return string.Compare(origin.Type.Name, target.Type.Name, StringComparison.Ordinal);
         }
 
-        private static string GetFriendlyName(Type result)
+        private static string GetName(Type result)
         {
             if (result.IsGenericType)
             {
@@ -219,7 +248,7 @@ namespace Astraia.Net
                     name = name.Substring(0, index);
                 }
 
-                var args = string.Join(", ", Array.ConvertAll(result.GetGenericArguments(), GetFriendlyName));
+                var args = string.Join(", ", Array.ConvertAll(result.GetGenericArguments(), GetName));
                 return "{0}<{1}>".Format(name, args);
             }
 
@@ -274,7 +303,7 @@ namespace Astraia.Net
 
                 GUILayout.EndScrollView();
 
-                WindowView = GUILayout.BeginScrollView(WindowView, "Box");
+                SecondView = GUILayout.BeginScrollView(SecondView, "Box");
                 if (index != -1)
                 {
                     GUILayout.Label("{0}\n\n{1}".Format(Queue[index].Message, Queue[index].StackTrace));
@@ -287,42 +316,55 @@ namespace Astraia.Net
         [Serializable]
         private class 引用池 : IWindow
         {
-            private Dictionary<string, List<Pool>> poolData = new Dictionary<string, List<Pool>>();
+            private Dictionary<string, List<IPool>> poolData = new Dictionary<string, List<IPool>>();
 
             public void Execute(bool modified)
             {
-                DrawBox(poolData, HeapManager.poolData.Values, "引用池", "未使用\t使用中\t使用次数\t释放次数");
+                Rebuild(poolData, HeapManager.poolData.Values, Pools.引用池, true);
+                ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
+                Repaint(poolData, Pools.引用池);
+                GUILayout.EndScrollView();
             }
         }
 
         [Serializable]
         private class 对象池 : IWindow
         {
-            private Dictionary<string, List<Pool>> poolData = new Dictionary<string, List<Pool>>();
+            private Dictionary<string, List<IPool>> poolData = new Dictionary<string, List<IPool>>();
 
             public void Execute(bool modified)
             {
-                DrawBox(poolData, GlobalManager.poolData.Values, "对象池", "未激活\t激活中\t出队次数\t入队次数");
+                Rebuild(poolData, GlobalManager.poolData.Values, Pools.对象池, true);
+                ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
+                Repaint(poolData, Pools.对象池);
+                GUILayout.EndScrollView();
             }
         }
 
         [Serializable]
         private class 事件 : IWindow
         {
-            private Dictionary<string, List<Pool>> poolData = new Dictionary<string, List<Pool>>();
+            private Dictionary<string, List<IPool>> poolData = new Dictionary<string, List<IPool>>();
 
             public void Execute(bool modified)
             {
-                DrawBox(poolData, EventManager.poolData.Values, "事件池", "触发数\t事件数\t添加次数\t移除次数");
+                Rebuild(poolData, EventManager.poolData.Values, Pools.事件池, true);
+                ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
+                Repaint(poolData, Pools.事件池);
+                GUILayout.EndScrollView();
             }
         }
 
         [Serializable]
         private class 网络 : IWindow
         {
-            private Dictionary<string, List<Pool>> sendData = new Dictionary<string, List<Pool>>();
-            private Dictionary<string, List<Pool>> receiveData = new Dictionary<string, List<Pool>>();
+            private Dictionary<string, List<IPool>> sendData = new Dictionary<string, List<IPool>>();
+            private Dictionary<string, List<IPool>> receiveData = new Dictionary<string, List<IPool>>();
             private float waitTime;
+            private Pool clientSend;
+            private Pool serverSend;
+            private Pool clientData;
+            private Pool serverData;
 
             public void Execute(bool modified)
             {
@@ -330,19 +372,33 @@ namespace Astraia.Net
                 var peer = NetworkManager.Transport ? NetworkManager.Transport.address == "localhost" ? Host : NetworkManager.Transport.address : "127.0.0.1";
                 var port = NetworkManager.Transport ? NetworkManager.Transport.port : (ushort)20974;
                 var ping = NetworkManager.isClient ? "Ping: {0} ms".Format(Math.Min((int)(NetworkManager.Client.pingTime * 1000), 999)) : "Client is not active!";
-                GUILayout.Label("{0} : {1}".Format(peer, port), "Button", GUILayout.Width((ScreenX - 20) / 4), GUILayout.Height(30));
-                GUILayout.Label(NetworkManager.isServer ? Debugger.ServerMessage() : Debugger.ClientMessage(), "Button", GUILayout.Height(30));
-                GUILayout.Label(ping, "Button", GUILayout.Width((ScreenX - 20) / 4), GUILayout.Height(30));
+                GUILayout.Label("{0} : {1}".Format(peer, port), "Button", GUILayout.Width((ScreenX - 20) / 2), GUILayout.Height(30));
+                GUILayout.Label(ping, "Button", GUILayout.Width((ScreenX - 20) / 2), GUILayout.Height(30));
                 GUILayout.EndHorizontal();
 
                 if (waitTime < Time.realtimeSinceStartup)
                 {
                     waitTime = Time.realtimeSinceStartup + 1;
+                    clientSend = new Pool(Debugger.clientSend);
+                    serverSend = new Pool(Debugger.serverSend);
+                    clientData = new Pool(Debugger.clientData);
+                    serverData = new Pool(Debugger.serverData);
+                    Rebuild(sendData, Debugger.itemSend.messages.Values, Pools.发送队列, true);
+                    Rebuild(sendData, Debugger.itemSend.function.Values, Pools.发送队列, false);
+                    Rebuild(receiveData, Debugger.itemReceive.messages.Values, Pools.接收队列, true);
+                    Rebuild(receiveData, Debugger.itemReceive.function.Values, Pools.接收队列, false);
+                    Debugger.Reset();
                 }
 
-                DrawBox(sendData, Debugger.itemSend.Values, "发送队列", "每秒发送\t每秒发送\t全局发送\t全局发送");
-                DrawBox(receiveData, Debugger.itemReceive.Values, "接收队列", "每秒接收\t每秒接收\t全局接收\t全局接收");
-
+                ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
+                GUILayout.BeginVertical("Box");
+                GUILayout.Label("Astraia.Net - 网络信息".Align(50) + "每秒数量\t每秒大小\t累计数量\t累计大小", GUILayout.Height(20));
+                GUILayout.Label("NetworkSend".Align(50) + (NetworkManager.isServer ? serverSend : clientSend), GUILayout.Height(20));
+                GUILayout.Label("NetworkReceive".Align(50) + (NetworkManager.isServer ? serverData : clientData), GUILayout.Height(20));
+                GUILayout.EndVertical();
+                Repaint(sendData, Pools.发送队列);
+                Repaint(receiveData, Pools.接收队列);
+                GUILayout.EndScrollView();
 
                 GUILayout.BeginHorizontal();
                 DrawButton();
@@ -580,7 +636,7 @@ namespace Astraia.Net
                     GUILayout.EndHorizontal();
                 }
 
-                WindowView = GUILayout.BeginScrollView(WindowView);
+                SecondView = GUILayout.BeginScrollView(SecondView);
 
                 if (transformIndex != -1)
                 {
@@ -784,6 +840,7 @@ namespace Astraia.Net
                 GUILayout.EndScrollView();
 
                 GUILayout.BeginHorizontal();
+
                 if (GUILayout.Button("0.5x", GUILayout.Height(30)))
                 {
                     Size = new Vector2(3200, 1800);
@@ -838,6 +895,11 @@ namespace Astraia.Net
                 GUILayout.EndScrollView();
 
                 GUILayout.BeginHorizontal();
+                if (GUILayout.Button("重置位置", GUILayout.Height(30)))
+                {
+                    Rect.position = Vector2.zero;
+                }
+
                 if (GUILayout.Button("退出游戏", GUILayout.Height(30)))
                 {
                     Application.Quit();
@@ -883,6 +945,15 @@ namespace Astraia.Net
             }
         }
 
+        private enum Pools
+        {
+            对象池,
+            引用池,
+            事件池,
+            发送队列,
+            接收队列,
+        }
+
         private enum Window
         {
             控制台,
@@ -905,33 +976,11 @@ namespace Astraia.Net
 
     internal sealed class DebugPool
     {
-        private readonly Dictionary<Type, Pool> messages = new Dictionary<Type, Pool>();
-        private readonly Dictionary<ushort, Pool> function = new Dictionary<ushort, Pool>();
-
-        public IEnumerable<IPool> Values
-        {
-            get
-            {
-                foreach (var value in messages.Values)
-                {
-                    yield return value;
-                }
-
-                foreach (var value in function.Values)
-                {
-                    yield return value;
-                }
-            }
-        }
+        public readonly Dictionary<Type, IPool> messages = new Dictionary<Type, IPool>();
+        public readonly Dictionary<ushort, IPool> function = new Dictionary<ushort, IPool>();
 
         public void Record<T>(T message, int bytes) where T : struct, IMessage
         {
-            if (!messages.TryGetValue(typeof(T), out var item))
-            {
-                item = new Pool(typeof(T));
-                messages[typeof(T)] = item;
-            }
-
             switch (message)
             {
                 case ServerRpcMessage server:
@@ -940,9 +989,16 @@ namespace Astraia.Net
                 case ClientRpcMessage client:
                     Record<T>(client.methodHash, bytes);
                     break;
-            }
+                default:
+                    if (!messages.TryGetValue(typeof(T), out var item))
+                    {
+                        item = new Pool(typeof(T));
+                        messages[typeof(T)] = item;
+                    }
 
-            item.Add(bytes);
+                    ((Pool)item).Add(bytes);
+                    break;
+            }
         }
 
         private void Record<T>(ushort method, int bytes)
@@ -961,11 +1017,11 @@ namespace Astraia.Net
                         name = name.Substring(0, name.Length - 2);
                     }
 
-                    item.Path = "{0}.{1}".Format(result.Method.DeclaringType!.Name, name);
+                    ((Pool)item).Path = "{0}.{1}".Format(result.Method.DeclaringType!.Name, name);
                 }
             }
 
-            item.Add(bytes);
+            ((Pool)item).Add(bytes);
         }
 
         public void Reset()
@@ -988,7 +1044,7 @@ namespace Astraia.Net
             function.Clear();
         }
 
-        private class Pool : IPool
+        public class Pool : IPool
         {
             public Type Type { get; set; }
             public string Path { get; set; }
@@ -996,6 +1052,10 @@ namespace Astraia.Net
             public int Release { get; set; }
             public int Dequeue { get; set; }
             public int Enqueue { get; set; }
+
+            public Pool()
+            {
+            }
 
             public Pool(Type type)
             {
@@ -1015,6 +1075,16 @@ namespace Astraia.Net
             {
                 Acquire = 0;
                 Release = 0;
+            }
+
+            public override string ToString()
+            {
+                var result = string.Empty;
+                result += Release.ToString().Align(10);
+                result += Debugger.PrettyBytes(Acquire).Align(10);
+                result += Dequeue.ToString().Align(10);
+                result += Debugger.PrettyBytes(Enqueue).Align(10);
+                return result;
             }
         }
     }
@@ -1044,6 +1114,10 @@ namespace Astraia.Net
         {
             itemSend.Reset();
             itemReceive.Reset();
+            clientSend.Dispose();
+            clientData.Dispose();
+            serverSend.Dispose();
+            serverData.Dispose();
         }
 
         public static void Clear()
@@ -1057,14 +1131,10 @@ namespace Astraia.Net
     internal static partial class Debugger
     {
         private static bool isActive;
-        private static long clientSendCount;
-        private static long clientSendBytes;
-        private static long clientDataCount;
-        private static long clientDataBytes;
-        private static long serverSendCount;
-        private static long serverSendBytes;
-        private static long serverDataCount;
-        private static long serverDataBytes;
+        public static readonly DebugPool.Pool clientSend = new DebugPool.Pool();
+        public static readonly DebugPool.Pool clientData = new DebugPool.Pool();
+        public static readonly DebugPool.Pool serverSend = new DebugPool.Pool();
+        public static readonly DebugPool.Pool serverData = new DebugPool.Pool();
 
         public static void Enable()
         {
@@ -1103,44 +1173,58 @@ namespace Astraia.Net
             return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
         }
 
-        public static string ClientMessage()
-        {
-            var result = string.Empty;
-            result += "发送: {0}  数量: {1}".Format(PrettyBytes(clientSendBytes), clientSendCount).Align(30);
-            result += "接收: {0}  数量: {1}".Format(PrettyBytes(clientDataBytes), clientDataCount);
-            return result;
-        }
-
-        public static string ServerMessage()
-        {
-            var result = string.Empty;
-            result += "发送: {0}  数量: {1}".Format(PrettyBytes(serverSendBytes), serverSendCount).Align(30);
-            result += "接收: {0}  数量: {1}".Format(PrettyBytes(serverDataBytes), serverDataCount);
-            return result;
-        }
-
         private static void OnClientSend(ArraySegment<byte> segment)
         {
-            clientSendCount++;
-            clientSendBytes += segment.Count;
+            clientSend.Add(segment.Count);
         }
 
         private static void OnClientReceive(ArraySegment<byte> segment, int channel)
         {
-            clientDataCount++;
-            clientDataBytes += segment.Count;
+            clientData.Add(segment.Count);
         }
 
         private static void OnServerSend(int clientId, ArraySegment<byte> segment)
         {
-            serverSendCount++;
-            serverSendBytes += segment.Count;
+            serverSend.Add(segment.Count);
         }
 
         private static void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
         {
-            serverDataCount++;
-            serverDataBytes += segment.Count;
+            serverData.Add(segment.Count);
+        }
+    }
+
+    internal readonly struct Pool : IPool
+    {
+        public Type Type { get; }
+        public string Path { get; }
+        public int Acquire { get; }
+        public int Release { get; }
+        public int Dequeue { get; }
+        public int Enqueue { get; }
+
+        public Pool(IPool pool)
+        {
+            Type = pool.Type;
+            Path = pool.Path;
+            Acquire = pool.Acquire;
+            Release = pool.Release;
+            Dequeue = pool.Dequeue;
+            Enqueue = pool.Enqueue;
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public override string ToString()
+        {
+            var result = string.Empty;
+            result += Release.ToString().Align(10);
+            result += Debugger.PrettyBytes(Acquire).Align(10);
+            result += Dequeue.ToString().Align(10);
+            result += Debugger.PrettyBytes(Enqueue).Align(10);
+            return result;
         }
     }
 }
