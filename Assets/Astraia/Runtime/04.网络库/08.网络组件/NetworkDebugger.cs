@@ -191,7 +191,7 @@ namespace Astraia.Net
                     pools.Add(assembly, pool);
                 }
 
-                pool.Add(message is Pools.发送队列 or Pools.接收队列 ? new Debugger.Pool(item) : item);
+                pool.Add(new Debugger.Pool(item));
             }
         }
 
@@ -225,7 +225,18 @@ namespace Astraia.Net
                     }
 
                     result = result.Align(50, "...  ");
-                    GUILayout.Label(result + data.ToString(), GUILayout.Height(20));
+                    if (message is Pools.发送队列 or Pools.接收队列)
+                    {
+                        GUILayout.Label(result + data, GUILayout.Height(20));
+                    }
+                    else
+                    {
+                        result += data.Release.ToString().Align(10);
+                        result += data.Acquire.ToString().Align(10);
+                        result += data.Dequeue.ToString().Align(10);
+                        result += data.Enqueue.ToString().Align(10);
+                        GUILayout.Label(result, GUILayout.Height(20));
+                    }
                 }
 
                 GUILayout.EndVertical();
@@ -985,20 +996,19 @@ namespace Astraia.Net
             {
                 case ServerRpcMessage server:
                     Record<T>(server.methodHash, bytes);
-                    break;
+                    return;
                 case ClientRpcMessage client:
                     Record<T>(client.methodHash, bytes);
-                    break;
-                default:
-                    if (!messages.TryGetValue(typeof(T), out var item))
-                    {
-                        item = new Pool(typeof(T));
-                        messages[typeof(T)] = item;
-                    }
-
-                    ((Pool)item).Add(bytes);
-                    break;
+                    return;
             }
+
+            if (!messages.TryGetValue(typeof(T), out var item))
+            {
+                item = new Pool(typeof(T));
+                messages[typeof(T)] = item;
+            }
+
+            ((Pool)item).Add(bytes);
         }
 
         private void Record<T>(ushort method, int bytes)
@@ -1074,16 +1084,6 @@ namespace Astraia.Net
             {
                 Acquire = 0;
                 Release = 0;
-            }
-
-            public override string ToString()
-            {
-                var result = string.Empty;
-                result += Release.ToString().Align(10);
-                result += Debugger.PrettyBytes(Acquire).Align(10);
-                result += Dequeue.ToString().Align(10);
-                result += Debugger.PrettyBytes(Enqueue).Align(10);
-                return result;
             }
         }
     }
@@ -1187,7 +1187,6 @@ namespace Astraia.Net
 
             return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
         }
-
 
         internal readonly struct Pool : IPool
         {

@@ -282,16 +282,6 @@ namespace Astraia.Core
                 cached.Clear();
                 unused.Clear();
             }
-
-            public override string ToString()
-            {
-                var result = string.Empty;
-                result += Release.ToString().Align(10);
-                result += Acquire.ToString().Align(10);
-                result += Dequeue.ToString().Align(10);
-                result += Enqueue.ToString().Align(10);
-                return result;
-            }
         }
     }
 }
