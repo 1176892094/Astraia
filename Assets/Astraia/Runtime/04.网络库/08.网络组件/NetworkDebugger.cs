@@ -172,7 +172,7 @@ namespace Astraia.Net
             }
         }
 
-        private static void Rebuild(Dictionary<string, List<IPool>> pools, ICollection<IPool> items, Pools message)
+        private static void Rebuild(Dictionary<string, List<IPool>> pools, ICollection<IPool> items, string message)
         {
             foreach (var pool in pools)
             {
@@ -309,7 +309,7 @@ namespace Astraia.Net
 
             public void Execute(bool modified)
             {
-                Rebuild(poolData, HeapManager.poolData.Values, Pools.引用池);
+                Rebuild(poolData, HeapManager.poolData.Values, "引用池");
                 ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
                 Repaint(poolData, "未使用\t使用中\t使用次数\t释放次数");
                 GUILayout.EndScrollView();
@@ -323,7 +323,7 @@ namespace Astraia.Net
 
             public void Execute(bool modified)
             {
-                Rebuild(poolData, GlobalManager.poolData.Values, Pools.对象池);
+                Rebuild(poolData, GlobalManager.poolData.Values, "对象池");
                 ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
                 Repaint(poolData, "未激活\t激活中\t出队次数\t入队次数");
                 GUILayout.EndScrollView();
@@ -337,7 +337,7 @@ namespace Astraia.Net
 
             public void Execute(bool modified)
             {
-                Rebuild(poolData, EventManager.poolData.Values, Pools.事件池);
+                Rebuild(poolData, EventManager.poolData.Values, "事件池");
                 ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
                 Repaint(poolData, "触发数\t事件数\t添加次数\t移除次数");
                 GUILayout.EndScrollView();
@@ -372,8 +372,8 @@ namespace Astraia.Net
                     serverSend = new Pool(Debugger.Send.server);
                     clientData = new Pool(Debugger.Data.client);
                     serverData = new Pool(Debugger.Data.server);
-                    Rebuild(itemSend, Debugger.Send.Values, Pools.发送队列);
-                    Rebuild(itemData, Debugger.Data.Values, Pools.接收队列);
+                    Rebuild(itemSend, Debugger.Send.Values, "发送队列");
+                    Rebuild(itemData, Debugger.Data.Values, "接收队列");
                     Debugger.Reset();
                 }
 
@@ -961,15 +961,6 @@ namespace Astraia.Net
                 result += Debugger.PrettyBytes(Enqueue).Align(10);
                 return result;
             }
-        }
-
-        private enum Pools
-        {
-            对象池,
-            引用池,
-            事件池,
-            发送队列,
-            接收队列,
         }
 
         private enum Window
