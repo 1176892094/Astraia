@@ -47,15 +47,15 @@ namespace Astraia
     public class UIRectAttribute : Attribute
     {
         public readonly int row;
-        public readonly int column;
+        public readonly int col;
         public readonly float width;
         public readonly float height;
         public readonly bool rotation;
         public readonly bool selected;
 
-        public UIRectAttribute(int column, int row, float width, float height, bool rotation = true, bool selected = true)
+        public UIRectAttribute(int col, int row, float width, float height, bool rotation = true, bool selected = true)
         {
-            this.column = column;
+            this.col = col;
             this.row = row;
             this.width = width;
             this.height = height;

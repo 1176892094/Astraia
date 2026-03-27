@@ -1305,86 +1305,198 @@ namespace Astraia
         }
     }
 
+
+    /// <summary>
+    /// 环形缓冲区（队列）
+    /// </summary>
+    /// <typeparam name="T">元素类型</typeparam>
     public class RingQueue<T> : IEnumerable<T>
     {
-        private readonly T[] Buffer;
-        private int End;
-        private int Begin;
+        private T[] _buffer;
+        private int _head; // 队头索引
+        private int _tail; // 队尾索引
+        private int _count; // 当前元素数量
+        private readonly int _capacity;
+        private readonly bool _allowOverwrite; // 是否允许覆盖
 
-        public int Index;
-        public int Count => Buffer.Length;
-        public RingQueue(int count) => Buffer = new T[count];
-        public T this[int index] => Buffer[(Begin + index) % Count];
+        /// <summary>
+        /// 获取缓冲区容量
+        /// </summary>
+        public int Capacity => _capacity;
 
-        public void Enqueue(T item)
+        /// <summary>
+        /// 获取当前元素数量
+        /// </summary>
+        public int Count => _count;
+
+        /// <summary>
+        /// 获取是否为空
+        /// </summary>
+        public bool IsEmpty => _count == 0;
+
+        /// <summary>
+        /// 获取是否已满
+        /// </summary>
+        public bool IsFull => _count == _capacity;
+
+        /// <summary>
+        /// 初始化环形缓冲区
+        /// </summary>
+        /// <param name="capacity">容量</param>
+        /// <param name="allowOverwrite">是否允许覆盖（满时自动覆盖最旧数据）</param>
+        public RingQueue(int capacity, bool allowOverwrite = false)
         {
-            Buffer[End] = item;
-            if (Index == Count)
+            if (capacity <= 0)
+                throw new ArgumentException("容量必须大于0", nameof(capacity));
+
+            _capacity = capacity;
+            _allowOverwrite = allowOverwrite;
+            _buffer = new T[capacity];
+            _head = 0;
+            _tail = 0;
+            _count = 0;
+        }
+
+        /// <summary>
+        /// 入队
+        /// </summary>
+        /// <param name="item">元素</param>
+        /// <returns>是否成功入队（不允许覆盖且已满时返回false）</returns>
+        public bool Enqueue(T item)
+        {
+            if (IsFull)
             {
-                Begin = (Begin + 1) % Count;
+                if (_allowOverwrite)
+                {
+                    // 覆盖最旧的数据
+                    _buffer[_head] = item;
+                    _head = (_head + 1) % _capacity;
+                    _tail = (_tail + 1) % _capacity;
+                    return true;
+                }
+
+                return false;
+            }
+
+            _buffer[_tail] = item;
+            _tail = (_tail + 1) % _capacity;
+            _count++;
+            return true;
+        }
+
+        /// <summary>
+        /// 强制入队（满时自动覆盖最旧数据）
+        /// </summary>
+        public void EnqueueForce(T item)
+        {
+            if (IsFull)
+            {
+                _buffer[_head] = item;
+                _head = (_head + 1) % _capacity;
+                _tail = (_tail + 1) % _capacity;
             }
             else
             {
-                Index++;
+                _buffer[_tail] = item;
+                _tail = (_tail + 1) % _capacity;
+                _count++;
             }
-
-            End = (End + 1) % Count;
         }
 
-        public T Dequeue()
+        /// <summary>
+        /// 出队
+        /// </summary>
+        /// <param name="item">出队元素</param>
+        /// <returns>是否成功出队</returns>
+        public bool Dequeue(out T item)
         {
-            if (Index > 0)
+            if (IsEmpty)
             {
-                var item = Buffer[Begin];
-                Begin = (Begin + 1) % Count;
-                Index--;
-                return item;
+                item = default;
+                return false;
             }
 
-            return default;
+            item = _buffer[_head];
+            _buffer[_head] = default; // 清理引用
+            _head = (_head + 1) % _capacity;
+            _count--;
+            return true;
         }
 
-        public void EnqueueFront(T item)
+        /// <summary>
+        /// 查看队头元素（不移除）
+        /// </summary>
+        public T Peek()
         {
-            Begin = (Begin - 1 + Count) % Count;
-            Buffer[Begin] = item;
+            if (IsEmpty)
+                throw new InvalidOperationException("队列为空");
 
-            if (Index == Count)
-            {
-                End = (End - 1 + Count) % Count;
-            }
-            else
-            {
-                Index++;
-            }
+            return _buffer[_head];
         }
 
-        public T DequeueLast()
+        /// <summary>
+        /// 尝试查看队头元素
+        /// </summary>
+        public bool TryPeek(out T item)
         {
-            if (Index > 0)
+            if (IsEmpty)
             {
-                End = (End - 1 + Count) % Count;
-                var item = Buffer[End];
-                Index--;
-                return item;
+                item = default;
+                return false;
             }
 
-            return default;
+            item = _buffer[_head];
+            return true;
         }
 
+        /// <summary>
+        /// 清空队列
+        /// </summary>
         public void Clear()
         {
-            End = 0;
-            Begin = 0;
-            Index = 0;
-            Array.Clear(Buffer, 0, Count);
+            Array.Clear(_buffer, 0, _capacity);
+            _head = 0;
+            _tail = 0;
+            _count = 0;
         }
 
+        /// <summary>
+        /// 获取指定位置的元素（从队头开始索引）
+        /// </summary>
+        public T this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= _count)
+                    throw new IndexOutOfRangeException("索引超出范围");
+
+                int actualIndex = (_head + index) % _capacity;
+                return _buffer[actualIndex];
+            }
+        }
+
+        /// <summary>
+        /// 将数据复制到数组
+        /// </summary>
+        public T[] ToArray()
+        {
+            T[] array = new T[_count];
+            for (int i = 0; i < _count; i++)
+            {
+                array[i] = _buffer[(_head + i) % _capacity];
+            }
+
+            return array;
+        }
+
+        /// <summary>
+        /// 获取枚举器
+        /// </summary>
         public IEnumerator<T> GetEnumerator()
         {
-            for (int i = 0; i < Index; i++)
+            for (int i = 0; i < _count; i++)
             {
-                yield return this[i];
+                yield return _buffer[(_head + i) % _capacity];
             }
         }
 

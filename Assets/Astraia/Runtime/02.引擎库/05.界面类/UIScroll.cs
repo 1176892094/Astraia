@@ -29,7 +29,7 @@ namespace Astraia.Core
         private string assetPath;
 
         private int row;
-        private int column;
+        private int col;
         protected float width;
         protected float height;
         protected Action OnMove;
@@ -47,9 +47,9 @@ namespace Astraia.Core
 
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
-                row = rect.row;
+                row = rect.row + (rotation ? 0 : 1);
+                col = rect.col + (rotation ? 1 : 0);
                 width = rect.width;
-                column = rect.column;
                 height = rect.height;
                 rotation = rect.rotation;
                 selected = rect.selected;
@@ -81,33 +81,18 @@ namespace Astraia.Core
                 return;
             }
 
-            int min, max, idx;
-            if (rotation)
-            {
-                idx = (int)(content.anchoredPosition.y / height);
-                min = idx * column;
-                max = (idx + row) * column - 1;
-            }
-            else
-            {
-                idx = (int)(-content.anchoredPosition.x / width);
-                min = idx * row;
-                max = (idx + column) * row - 1;
-            }
+            var v1 = rotation ? col : row;
+            var v2 = rotation ? row : col;
+            var v3 = rotation ? height : width;
+            var v4 = rotation ? content.anchoredPosition.y : -content.anchoredPosition.x;
 
-            if (min < 0)
-            {
-                min = 0;
-            }
-
-            if (max > items.Count - 1)
-            {
-                max = items.Count - 1;
-            }
+            var idx = (int)(v4 / v3);
+            var min = Mathf.Max(idx * v1, 0);
+            var max = Mathf.Min((idx + v2) * v1 - 1, items.Count - 1);
 
             if (min != minIndex || max != maxIndex)
             {
-                for (var i = minIndex; i < min; ++i)
+                for (var i = minIndex; i < min; i++)
                 {
                     if (grids.Remove(i, out var grid) && grid)
                     {
@@ -116,7 +101,7 @@ namespace Astraia.Core
                     }
                 }
 
-                for (var i = max + 1; i <= maxIndex; ++i)
+                for (var i = max + 1; i <= maxIndex; i++)
                 {
                     if (grids.Remove(i, out var grid) && grid)
                     {
@@ -132,40 +117,26 @@ namespace Astraia.Core
             maxIndex = max;
             for (var i = min; i <= max; i++)
             {
-                if (grids.ContainsKey(i))
+                if (!grids.ContainsKey(i))
                 {
-                    continue;
-                }
+                    var grid = PoolManager.Show<TGrid>(assetPath, content, assetName);
+                    var rect = (RectTransform)grid.transform;
+                    rect.pivot = Vector2.up;
+                    rect.anchorMin = Vector2.up;
+                    rect.anchorMax = Vector2.up;
+                    rect.sizeDelta = new Vector2(width, height);
+                    var posX = rotation ? i % col : i / row;
+                    var posY = rotation ? i / col : i % row;
+                    rect.anchoredPosition = new Vector2(posX * width, -posY * height);
+                    if (selector && i == min)
+                    {
+                        selector = false;
+                        grid.Select();
+                    }
 
-                var position = Vector2.zero;
-                if (rotation)
-                {
-                    idx = i / column;
-                    position.x = i % column * width;
-                    position.y = -idx * height;
+                    grids[i] = grid;
+                    grid.SetItem(items[i]);
                 }
-                else
-                {
-                    idx = i / row;
-                    position.x = idx * width;
-                    position.y = -(i % row) * height;
-                }
-
-                var grid = PoolManager.Show<TGrid>(assetPath, content, assetName);
-                var rect = (RectTransform)grid.transform;
-                rect.pivot = Vector2.up;
-                rect.anchorMin = Vector2.up;
-                rect.anchorMax = Vector2.up;
-                rect.sizeDelta = new Vector2(width, height);
-                rect.anchoredPosition = position;
-                if (selector && i == min)
-                {
-                    selector = false;
-                    grid.Select();
-                }
-
-                grids[i] = grid;
-                grid.SetItem(items[i]);
             }
         }
 
@@ -191,8 +162,8 @@ namespace Astraia.Core
         {
             if (items != null)
             {
-                var r = rotation ? Mathf.CeilToInt((float)items.Count / column) : row;
-                var c = rotation ? column : Mathf.CeilToInt((float)items.Count / row);
+                var r = rotation ? Mathf.CeilToInt((float)items.Count / col) : row;
+                var c = rotation ? col : Mathf.CeilToInt((float)items.Count / row);
                 content.sizeDelta = new Vector2(c * width, r * height);
             }
 
@@ -217,9 +188,9 @@ namespace Astraia.Core
 
                     return;
                 case 1 when rotation:
-                    for (int i = 0; i < column; i++)
+                    for (int i = 0; i < col; i++)
                     {
-                        if (grids.TryGetValue(minIndex + i + column, out var current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(minIndex + i + col, out var current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.down * height;
                             return;
@@ -239,9 +210,9 @@ namespace Astraia.Core
 
                     return;
                 case 3 when rotation:
-                    for (int i = 0; i < column-1; i++)
+                    for (int i = 0; i < col - 1; i++)
                     {
-                        if (grids.TryGetValue(maxIndex - i - column, out var current) && current == (TGrid)grid)
+                        if (grids.TryGetValue(maxIndex - i - col, out var current) && current == (TGrid)grid)
                         {
                             content.anchoredPosition += Vector2.up * height;
                             return;
