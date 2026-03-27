@@ -1138,7 +1138,13 @@ namespace Astraia.Net
 
             public void ClearInternal()
             {
-                ResetInternal();
+                foreach (var item in messages.Values)
+                {
+                    ((Pool)item).Rebuild();
+                }
+
+                client.Rebuild();
+                server.Rebuild();
                 messages.Clear();
             }
         }
@@ -1169,6 +1175,14 @@ namespace Astraia.Net
             {
                 Acquire = 0;
                 Release = 0;
+            }
+
+            public void Rebuild()
+            {
+                Acquire = 0;
+                Release = 0;
+                Dequeue = 0;
+                Enqueue = 0;
             }
         }
     }
