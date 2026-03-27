@@ -1006,6 +1006,26 @@ namespace Astraia
             return Word.Invoke(result, mask);
         }
 
+        public static string Limit(this string result, int count)
+        {
+            var value = string.Empty;
+            var input = 0;
+
+            foreach (var c in result)
+            {
+                var width = c > 255 ? 2 : 1;
+                if (input + width > count)
+                {
+                    break;
+                }
+
+                input += width;
+                value += c;
+            }
+
+            return value;
+        }
+
         public static string Align(this string str, int count, string mask = "")
         {
             var width = 0;
