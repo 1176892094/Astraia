@@ -46,12 +46,11 @@ namespace Astraia.Core
             Object.DontDestroyOnLoad(Instance.canvas);
         }
 
-        public static void SetCamera(Camera camera, int sortingOrder = 20)
+        public static void SetCamera(Camera camera)
         {
             Initialized();
             Instance.canvas.renderMode = RenderMode.ScreenSpaceCamera;
             Instance.canvas.worldCamera = camera;
-            Instance.canvas.sortingOrder = sortingOrder;
         }
 
         private static Entity Load(string path, string name)
