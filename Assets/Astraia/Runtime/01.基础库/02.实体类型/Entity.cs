@@ -1304,4 +1304,93 @@ namespace Astraia
             return result;
         }
     }
+
+    public class RingQueue<T> : IEnumerable<T>
+    {
+        private readonly T[] Buffer;
+        private int End;
+        private int Begin;
+
+        public int Index;
+        public int Count => Buffer.Length;
+        public RingQueue(int count) => Buffer = new T[count];
+        public T this[int index] => Buffer[(Begin + index) % Count];
+
+        public void Enqueue(T item)
+        {
+            Buffer[End] = item;
+            if (Index == Count)
+            {
+                Begin = (Begin + 1) % Count;
+            }
+            else
+            {
+                Index++;
+            }
+
+            End = (End + 1) % Count;
+        }
+
+        public T Dequeue()
+        {
+            if (Index > 0)
+            {
+                var item = Buffer[Begin];
+                Begin = (Begin + 1) % Count;
+                Index--;
+                return item;
+            }
+
+            return default;
+        }
+
+        public void EnqueueFront(T item)
+        {
+            Begin = (Begin - 1 + Count) % Count;
+            Buffer[Begin] = item;
+
+            if (Index == Count)
+            {
+                End = (End - 1 + Count) % Count;
+            }
+            else
+            {
+                Index++;
+            }
+        }
+
+        public T DequeueLast()
+        {
+            if (Index > 0)
+            {
+                End = (End - 1 + Count) % Count;
+                var item = Buffer[End];
+                Index--;
+                return item;
+            }
+
+            return default;
+        }
+
+        public void Clear()
+        {
+            End = 0;
+            Begin = 0;
+            Index = 0;
+            Array.Clear(Buffer, 0, Count);
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            for (int i = 0; i < Index; i++)
+            {
+                yield return this[i];
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 }

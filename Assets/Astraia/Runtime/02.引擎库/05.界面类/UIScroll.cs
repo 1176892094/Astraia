@@ -24,7 +24,7 @@ namespace Astraia.Core
         private int maxIndex;
         private bool selector;
         private bool selected;
-        private bool vertical;
+        private bool rotation;
         private string assetName;
         private string assetPath;
 
@@ -38,7 +38,7 @@ namespace Astraia.Core
 
         void IAcquire.Acquire(object item)
         {
-            this.owner = (Entity)item;
+            owner = (Entity)item;
             if (GetType().GetAttribute(out UIMaskAttribute mask))
             {
                 layer = mask.layer;
@@ -51,7 +51,7 @@ namespace Astraia.Core
                 width = rect.width;
                 column = rect.column;
                 height = rect.height;
-                vertical = rect.vertical;
+                rotation = rect.rotation;
                 selected = rect.selected;
             }
 
@@ -62,7 +62,7 @@ namespace Astraia.Core
                 assetPath = GlobalSetting.Prefab.Format(path.asset);
             }
 
-            this.owner.Logic.OnHide += Unload;
+            owner.Logic.OnHide += Unload;
             content.pivot = Vector2.up;
             content.anchorMin = Vector2.up;
             content.anchorMax = Vector2.one;
@@ -82,7 +82,7 @@ namespace Astraia.Core
             }
 
             int min, max, idx;
-            if (vertical)
+            if (rotation)
             {
                 idx = (int)(content.anchoredPosition.y / height);
                 min = idx * column;
@@ -138,7 +138,7 @@ namespace Astraia.Core
                 }
 
                 var position = Vector2.zero;
-                if (vertical)
+                if (rotation)
                 {
                     idx = i / column;
                     position.x = i % column * width;
@@ -191,17 +191,9 @@ namespace Astraia.Core
         {
             if (items != null)
             {
-                float value = items.Count;
-                if (vertical)
-                {
-                    value = Mathf.Ceil(value / column);
-                    content.sizeDelta = new Vector2(0, value * height);
-                }
-                else
-                {
-                    value = Mathf.Ceil(value / row);
-                    content.sizeDelta = new Vector2(value * width, 0);
-                }
+                var r = rotation ? Mathf.CeilToInt((float)items.Count / column) : row;
+                var c = rotation ? column : Mathf.CeilToInt((float)items.Count / row);
+                content.sizeDelta = new Vector2(c * width, r * height);
             }
 
             Unload();
@@ -213,7 +205,7 @@ namespace Astraia.Core
         {
             switch (move)
             {
-                case 0 when !vertical:
+                case 0 when !rotation:
                     for (int i = 0; i < row; i++)
                     {
                         if (grids.TryGetValue(minIndex + i + row, out var current) && current == (TGrid)grid)
@@ -224,7 +216,7 @@ namespace Astraia.Core
                     }
 
                     return;
-                case 1 when vertical:
+                case 1 when rotation:
                     for (int i = 0; i < column; i++)
                     {
                         if (grids.TryGetValue(minIndex + i + column, out var current) && current == (TGrid)grid)
@@ -235,7 +227,7 @@ namespace Astraia.Core
                     }
 
                     return;
-                case 2 when !vertical:
+                case 2 when !rotation:
                     for (int i = 0; i < row; i++)
                     {
                         if (grids.TryGetValue(maxIndex - i - row, out var current) && current == (TGrid)grid)
@@ -246,8 +238,8 @@ namespace Astraia.Core
                     }
 
                     return;
-                case 3 when vertical:
-                    for (int i = 0; i < column; i++)
+                case 3 when rotation:
+                    for (int i = 0; i < column-1; i++)
                     {
                         if (grids.TryGetValue(maxIndex - i - column, out var current) && current == (TGrid)grid)
                         {

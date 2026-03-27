@@ -50,17 +50,17 @@ namespace Astraia
         public readonly int column;
         public readonly float width;
         public readonly float height;
-        public readonly bool vertical;
+        public readonly bool rotation;
         public readonly bool selected;
 
-        public UIRectAttribute(int x, int y, float width, float height, bool vertical = true, bool selected = true)
+        public UIRectAttribute(int column, int row, float width, float height, bool rotation = true, bool selected = true)
         {
+            this.column = column;
+            this.row = row;
             this.width = width;
             this.height = height;
-            this.vertical = vertical;
+            this.rotation = rotation;
             this.selected = selected;
-            row = y + (vertical ? 1 : 0);
-            column = x + (vertical ? 0 : 1);
         }
     }
 }
