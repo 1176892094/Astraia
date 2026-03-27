@@ -25,9 +25,8 @@ namespace Astraia.Net
         private static readonly Dictionary<LogType, Log> Logs = new Dictionary<LogType, Log>();
         private static readonly List<LogData> Queue = new List<LogData>();
         private static Font Font;
-        private static Rect Rect = new Rect(0, 0, 100, 60);
-        private static string Host;
-        private static Vector2 Size = new Vector2(2560, 1440);
+        private static Rect Rect;
+        private static Vector2 Size;
         private static Vector2 ScreenView;
         private static Vector2 SecondView;
 
@@ -56,7 +55,8 @@ namespace Astraia.Net
                 }
             }
 
-            Host = Astraia.Host.Ip();
+            Rect = new Rect(0, 0, 100, 60);
+            Size = new Vector2(2560, 1440);
             Font = Resources.Load<Font>("Sarasa Mono SC");
         }
 
@@ -172,14 +172,11 @@ namespace Astraia.Net
             }
         }
 
-        private static void Rebuild(Dictionary<string, List<IPool>> pools, ICollection<IPool> items, Pools message, bool dispose)
+        private static void Rebuild(Dictionary<string, List<IPool>> pools, ICollection<IPool> items, Pools message)
         {
-            if (dispose)
+            foreach (var pool in pools)
             {
-                foreach (var pool in pools)
-                {
-                    pool.Value.Clear();
-                }
+                pool.Value.Clear();
             }
 
             foreach (var item in items)
@@ -191,51 +188,32 @@ namespace Astraia.Net
                     pools.Add(assembly, pool);
                 }
 
-                pool.Add(new Debugger.Pool(item));
+                pool.Add(new Pool(item));
             }
         }
 
-        private static void Repaint(Dictionary<string, List<IPool>> poolData, Pools message)
+        private static void Repaint(Dictionary<string, List<IPool>> poolData, string message)
         {
             foreach (var pool in poolData)
             {
                 pool.Value.Sort(Comparison);
                 GUILayout.BeginVertical("Box");
-                var reason = message switch
-                {
-                    Pools.对象池 => "未激活\t激活中\t出队次数\t入队次数",
-                    Pools.引用池 => "未使用\t使用中\t使用次数\t释放次数",
-                    Pools.事件池 => "触发数\t事件数\t添加次数\t移除次数",
-                    Pools.发送队列 => "每秒接收\t每秒接收\t累计接收\t累计接收",
-                    Pools.接收队列 => "每秒发送\t每秒发送\t累计发送\t累计发送",
-                    _ => string.Empty
-                };
-
-                GUILayout.Label(pool.Key.Align(50) + reason, GUILayout.Height(20));
+                GUILayout.Label(pool.Key.Align(50) + message, GUILayout.Height(20));
                 foreach (var data in pool.Value)
                 {
-                    var result = string.Empty;
-                    if (!string.IsNullOrEmpty(data.Path))
+                    var reason = data.Path.IsNullOrEmpty() ? data.Type.Name : "{0} - {1}".Format(GetName(data.Type), data.Path);
+                    if (message.StartsWith("每秒"))
                     {
-                        result += "{0} - {1}".Format(GetName(data.Type), data.Path);
+                        GUILayout.Label(reason.Align(50, "...  ") + data, GUILayout.Height(20));
                     }
                     else
                     {
-                        result += data.Type.Name;
-                    }
-
-                    result = result.Align(50, "...  ");
-                    if (message is Pools.发送队列 or Pools.接收队列)
-                    {
-                        GUILayout.Label(result + data, GUILayout.Height(20));
-                    }
-                    else
-                    {
+                        var result = string.Empty;
                         result += data.Release.ToString().Align(10);
                         result += data.Acquire.ToString().Align(10);
                         result += data.Dequeue.ToString().Align(10);
                         result += data.Enqueue.ToString().Align(10);
-                        GUILayout.Label(result, GUILayout.Height(20));
+                        GUILayout.Label(reason.Align(50, "...  ") + result, GUILayout.Height(20));
                     }
                 }
 
@@ -331,9 +309,9 @@ namespace Astraia.Net
 
             public void Execute(bool modified)
             {
-                Rebuild(poolData, HeapManager.poolData.Values, Pools.引用池, true);
+                Rebuild(poolData, HeapManager.poolData.Values, Pools.引用池);
                 ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
-                Repaint(poolData, Pools.引用池);
+                Repaint(poolData, "未使用\t使用中\t使用次数\t释放次数");
                 GUILayout.EndScrollView();
             }
         }
@@ -345,9 +323,9 @@ namespace Astraia.Net
 
             public void Execute(bool modified)
             {
-                Rebuild(poolData, GlobalManager.poolData.Values, Pools.对象池, true);
+                Rebuild(poolData, GlobalManager.poolData.Values, Pools.对象池);
                 ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
-                Repaint(poolData, Pools.对象池);
+                Repaint(poolData, "未激活\t激活中\t出队次数\t入队次数");
                 GUILayout.EndScrollView();
             }
         }
@@ -359,9 +337,9 @@ namespace Astraia.Net
 
             public void Execute(bool modified)
             {
-                Rebuild(poolData, EventManager.poolData.Values, Pools.事件池, true);
+                Rebuild(poolData, EventManager.poolData.Values, Pools.事件池);
                 ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
-                Repaint(poolData, Pools.事件池);
+                Repaint(poolData, "触发数\t事件数\t添加次数\t移除次数");
                 GUILayout.EndScrollView();
             }
         }
@@ -380,24 +358,22 @@ namespace Astraia.Net
             public void Execute(bool modified)
             {
                 GUILayout.BeginHorizontal();
-                var peer = NetworkManager.Transport ? NetworkManager.Transport.address == "localhost" ? Host : NetworkManager.Transport.address : "127.0.0.1";
+                var ping = (int)Math.Min(NetworkManager.Client.pingTime * 1000, 999);
+                var peer = NetworkManager.Transport ? NetworkManager.Transport.address : "127.0.0.1";
                 var port = NetworkManager.Transport ? NetworkManager.Transport.port : (ushort)20974;
-                var ping = NetworkManager.isClient ? "Ping: {0} ms".Format(Math.Min((int)(NetworkManager.Client.pingTime * 1000), 999)) : "Client is not active!";
                 GUILayout.Label("{0} : {1}".Format(peer, port), "Button", GUILayout.Width((ScreenX - 20) / 2), GUILayout.Height(30));
-                GUILayout.Label(ping, "Button", GUILayout.Width((ScreenX - 20) / 2), GUILayout.Height(30));
+                GUILayout.Label(NetworkManager.isClient ? "Ping: {0} ms".Format(ping) : "Client is not active!", "Button", GUILayout.Height(30));
                 GUILayout.EndHorizontal();
 
                 if (waitTime < Time.realtimeSinceStartup)
                 {
                     waitTime = Time.realtimeSinceStartup + 1;
-                    clientSend = new Debugger.Pool(Debugger.clientSend);
-                    serverSend = new Debugger.Pool(Debugger.serverSend);
-                    clientData = new Debugger.Pool(Debugger.clientData);
-                    serverData = new Debugger.Pool(Debugger.serverData);
-                    Rebuild(itemSend, Debugger.itemSend.messages.Values, Pools.发送队列, true);
-                    Rebuild(itemSend, Debugger.itemSend.function.Values, Pools.发送队列, false);
-                    Rebuild(itemData, Debugger.itemData.messages.Values, Pools.接收队列, true);
-                    Rebuild(itemData, Debugger.itemData.function.Values, Pools.接收队列, false);
+                    clientSend = new Pool(Debugger.Send.client);
+                    serverSend = new Pool(Debugger.Send.server);
+                    clientData = new Pool(Debugger.Data.client);
+                    serverData = new Pool(Debugger.Data.server);
+                    Rebuild(itemSend, Debugger.Send.Values, Pools.发送队列);
+                    Rebuild(itemData, Debugger.Data.Values, Pools.接收队列);
                     Debugger.Reset();
                 }
 
@@ -407,8 +383,8 @@ namespace Astraia.Net
                 GUILayout.Label("NetworkSend".Align(50) + (NetworkManager.isServer ? serverSend : clientSend), GUILayout.Height(20));
                 GUILayout.Label("NetworkReceive".Align(50) + (NetworkManager.isServer ? serverData : clientData), GUILayout.Height(20));
                 GUILayout.EndVertical();
-                Repaint(itemSend, Pools.发送队列);
-                Repaint(itemData, Pools.接收队列);
+                Repaint(itemSend, "每秒发送\t每秒发送\t累计发送\t累计发送");
+                Repaint(itemData, "每秒接收\t每秒接收\t累计接收\t累计接收");
                 GUILayout.EndScrollView();
 
                 GUILayout.BeginHorizontal();
@@ -488,14 +464,11 @@ namespace Astraia.Net
             {
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    if (!assembly.GetName().Name.Contains("UnityEngine"))
+                    foreach (var result in assembly.GetTypes())
                     {
-                        foreach (var result in assembly.GetTypes())
+                        if (!result.IsAbstract && !result.IsGenericType && result.IsSubclassOf(typeof(MonoBehaviour)))
                         {
-                            if (!result.IsAbstract && !result.IsGenericType && result.IsSubclassOf(typeof(MonoBehaviour)))
-                            {
-                                cachedTypes.Add(result);
-                            }
+                            cachedTypes.Add(result);
                         }
                     }
                 }
@@ -956,6 +929,40 @@ namespace Astraia.Net
             }
         }
 
+        private readonly struct Pool : IPool
+        {
+            public Type Type { get; }
+            public string Path { get; }
+            public int Acquire { get; }
+            public int Release { get; }
+            public int Dequeue { get; }
+            public int Enqueue { get; }
+
+            public Pool(IPool pool)
+            {
+                Type = pool.Type;
+                Path = pool.Path;
+                Acquire = pool.Acquire;
+                Release = pool.Release;
+                Dequeue = pool.Dequeue;
+                Enqueue = pool.Enqueue;
+            }
+
+            public void Dispose()
+            {
+            }
+
+            public override string ToString()
+            {
+                var result = string.Empty;
+                result += Release.ToString().Align(10);
+                result += Debugger.PrettyBytes(Acquire).Align(10);
+                result += Dequeue.ToString().Align(10);
+                result += Debugger.PrettyBytes(Enqueue).Align(10);
+                return result;
+            }
+        }
+
         private enum Pools
         {
             对象池,
@@ -985,118 +992,11 @@ namespace Astraia.Net
         }
     }
 
-    internal sealed class DebugPool
-    {
-        public readonly Dictionary<Type, IPool> messages = new Dictionary<Type, IPool>();
-        public readonly Dictionary<ushort, IPool> function = new Dictionary<ushort, IPool>();
-
-        public void Record<T>(T message, int bytes) where T : struct, IMessage
-        {
-            switch (message)
-            {
-                case ServerRpcMessage server:
-                    Record<T>(server.methodHash, bytes);
-                    return;
-                case ClientRpcMessage client:
-                    Record<T>(client.methodHash, bytes);
-                    return;
-            }
-
-            if (!messages.TryGetValue(typeof(T), out var item))
-            {
-                item = new Pool(typeof(T));
-                messages[typeof(T)] = item;
-            }
-
-            ((Pool)item).Add(bytes);
-        }
-
-        private void Record<T>(ushort method, int bytes)
-        {
-            if (!function.TryGetValue(method, out var item))
-            {
-                item = new Pool(typeof(T));
-                function[method] = item;
-
-                var result = NetworkAttribute.GetInvoke(method);
-                if (result != null)
-                {
-                    var name = result.Method.Name;
-                    if (name.EndsWith("V2"))
-                    {
-                        name = name.Substring(0, name.Length - 2);
-                    }
-
-                    ((Pool)item).Path = "{0}.{1}".Format(result.Method.DeclaringType!.Name, name);
-                }
-            }
-
-            ((Pool)item).Add(bytes);
-        }
-
-        public void Reset()
-        {
-            foreach (var item in function.Values)
-            {
-                item.Dispose();
-            }
-
-            foreach (var item in messages.Values)
-            {
-                item.Dispose();
-            }
-        }
-
-        public void Clear()
-        {
-            Reset();
-            messages.Clear();
-            function.Clear();
-        }
-
-        public class Pool : IPool
-        {
-            public Type Type { get; set; }
-            public string Path { get; set; }
-            public int Acquire { get; set; }
-            public int Release { get; set; }
-            public int Dequeue { get; set; }
-            public int Enqueue { get; set; }
-
-            public Pool()
-            {
-            }
-
-            public Pool(Type type)
-            {
-                Type = type;
-            }
-
-            public void Add(int bytes)
-            {
-                Release++;
-                Acquire += bytes;
-                Dequeue++;
-                Enqueue += bytes;
-            }
-
-            public void Dispose()
-            {
-                Acquire = 0;
-                Release = 0;
-            }
-        }
-    }
-
     internal static class Debugger
     {
         private static bool isActive;
-        public static readonly DebugPool itemSend = new DebugPool();
-        public static readonly DebugPool itemData = new DebugPool();
-        public static readonly DebugPool.Pool clientSend = new DebugPool.Pool();
-        public static readonly DebugPool.Pool clientData = new DebugPool.Pool();
-        public static readonly DebugPool.Pool serverSend = new DebugPool.Pool();
-        public static readonly DebugPool.Pool serverData = new DebugPool.Pool();
+        public static readonly Message Send = new Message();
+        public static readonly Message Data = new Message();
 
         public static void Enable()
         {
@@ -1117,29 +1017,29 @@ namespace Astraia.Net
 
         private static void OnClientSend(ArraySegment<byte> segment)
         {
-            clientSend.Add(segment.Count);
+            Send.client.Add(segment.Count);
         }
 
         private static void OnClientReceive(ArraySegment<byte> segment, int channel)
         {
-            clientData.Add(segment.Count);
+            Data.client.Add(segment.Count);
         }
 
         private static void OnServerSend(int clientId, ArraySegment<byte> segment)
         {
-            serverSend.Add(segment.Count);
+            Send.server.Add(segment.Count);
         }
 
         private static void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
         {
-            serverData.Add(segment.Count);
+            Data.server.Add(segment.Count);
         }
 
         public static void OnSend<T>(T message, int bytes) where T : struct, IMessage
         {
             if (isActive)
             {
-                itemSend.Record(message, Compress.Invoke((uint)bytes) + bytes);
+                Send.Record(message, Compress.Invoke((uint)bytes) + bytes);
             }
         }
 
@@ -1147,25 +1047,21 @@ namespace Astraia.Net
         {
             if (isActive)
             {
-                itemData.Record(message, Compress.Invoke((uint)bytes) + bytes + 2);
+                Data.Record(message, Compress.Invoke((uint)bytes) + bytes + 2);
             }
         }
 
         public static void Reset()
         {
-            itemSend.Reset();
-            itemData.Reset();
-            clientSend.Dispose();
-            clientData.Dispose();
-            serverSend.Dispose();
-            serverData.Dispose();
+            Send.ResetInternal();
+            Data.ResetInternal();
         }
 
         public static void Clear()
         {
             isActive = false;
-            itemSend.Clear();
-            itemData.Clear();
+            Send.ClearInternal();
+            Data.ClearInternal();
         }
 
         public static string PrettyBytes(long bytes)
@@ -1188,37 +1084,91 @@ namespace Astraia.Net
             return "{0:F2} GB".Format(bytes / 1024F / 1024F / 1024F);
         }
 
-        internal readonly struct Pool : IPool
+        public sealed class Message
         {
-            public Type Type { get; }
-            public string Path { get; }
-            public int Acquire { get; }
-            public int Release { get; }
-            public int Dequeue { get; }
-            public int Enqueue { get; }
+            private readonly Dictionary<uint, IPool> messages = new Dictionary<uint, IPool>();
+            public readonly Pool client = new Pool();
+            public readonly Pool server = new Pool();
+            public ICollection<IPool> Values => messages.Values;
 
-            public Pool(IPool pool)
+            public void Record<T>(T message, int bytes) where T : struct, IMessage
             {
-                Type = pool.Type;
-                Path = pool.Path;
-                Acquire = pool.Acquire;
-                Release = pool.Release;
-                Dequeue = pool.Dequeue;
-                Enqueue = pool.Enqueue;
+                var reason = -1;
+                var result = (uint)NetworkMessage<T>.Id;
+                switch (message)
+                {
+                    case ServerRpcMessage serverRpc:
+                        reason = serverRpc.methodHash;
+                        result *= serverRpc.methodHash;
+                        break;
+                    case ClientRpcMessage clientRpc:
+                        reason = clientRpc.methodHash;
+                        result *= clientRpc.methodHash;
+                        break;
+                }
+
+                if (!messages.TryGetValue(result, out var item))
+                {
+                    item = new Pool(typeof(T));
+                    messages[result] = item;
+                    if (reason != -1)
+                    {
+                        var method = NetworkAttribute.GetInvoke((ushort)reason);
+                        if (method != null)
+                        {
+                            var name = method.Method.Name.EndsWith("V2") ? method.Method.Name[..^2] : method.Method.Name;
+                            ((Pool)item).Path = "{0}.{1}".Format(method.Method.DeclaringType!.Name, name);
+                        }
+                    }
+                }
+
+                ((Pool)item).Add(bytes);
+            }
+
+            public void ResetInternal()
+            {
+                foreach (var item in messages.Values)
+                {
+                    item.Dispose();
+                }
+
+                client.Dispose();
+                server.Dispose();
+            }
+
+            public void ClearInternal()
+            {
+                ResetInternal();
+                messages.Clear();
+            }
+        }
+
+        public class Pool : IPool
+        {
+            public Type Type { get; set; }
+            public string Path { get; set; }
+            public int Acquire { get; set; }
+            public int Release { get; set; }
+            public int Dequeue { get; set; }
+            public int Enqueue { get; set; }
+
+            public Pool(Type type = null)
+            {
+                Type = type;
+            }
+
+            public void Add(int bytes)
+            {
+                Release++;
+                Acquire += bytes;
+                Dequeue++;
+                Enqueue += bytes;
             }
 
             public void Dispose()
             {
-            }
-
-            public override string ToString()
-            {
-                var result = string.Empty;
-                result += Release.ToString().Align(10);
-                result += PrettyBytes(Acquire).Align(10);
-                result += Dequeue.ToString().Align(10);
-                result += PrettyBytes(Enqueue).Align(10);
-                return result;
+                Acquire = 0;
+                Release = 0;
             }
         }
     }
