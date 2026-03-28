@@ -19,11 +19,10 @@ namespace Astraia.Core
     public abstract class UIPanel<T, TGrid> : UIPanel, IModule, ISystem, IMove where TGrid : Component, IGrid<T>
     {
         protected readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
-        private readonly List<T> items = new List<T>();
+        private IList<T> items;
         private int minIndex;
         private int maxIndex;
-        private bool selector;
-        private bool selected;
+
         private bool rotation;
         private string assetName;
         private string assetPath;
@@ -39,6 +38,8 @@ namespace Astraia.Core
         void IAcquire.Acquire(object item)
         {
             owner = (Entity)item;
+            owner.Logic.OnHide += Unload;
+
             if (GetType().GetAttribute(out UIMaskAttribute mask))
             {
                 layer = mask.layer;
@@ -47,12 +48,11 @@ namespace Astraia.Core
 
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
-                row = rect.row + (rotation ? 0 : 1);
-                col = rect.col + (rotation ? 1 : 0);
+                col = rect.col;
+                row = rect.row;
                 width = rect.width;
                 height = rect.height;
                 rotation = rect.rotation;
-                selected = rect.selected;
             }
 
             assetName = GlobalSetting.Prefab.Format(typeof(TGrid).Name);
@@ -62,7 +62,6 @@ namespace Astraia.Core
                 assetPath = GlobalSetting.Prefab.Format(path.asset);
             }
 
-            owner.Logic.OnHide += Unload;
             content.pivot = Vector2.up;
             content.anchorMin = Vector2.up;
             content.anchorMax = Vector2.one;
@@ -74,7 +73,6 @@ namespace Astraia.Core
             Update();
         }
 
-
         private void Reload()
         {
             if (items != null && items.Count != 0)
@@ -82,28 +80,31 @@ namespace Astraia.Core
                 var pos = content.anchoredPosition;
                 var cor = rotation ? col : row;
                 var roc = rotation ? row : col;
-                var how = rotation ? pos.y / height : -pos.x / width;
-                var min = Mathf.Max((int)how * cor, 0);
-                var max = Mathf.Min((int)how * cor + roc * cor - 1, items.Count - 1);
+                var val = rotation ? pos.y / height : -pos.x / width;
+                var min = Mathf.Max((int)val * cor, 0);
+                var max = Mathf.Min((int)val * cor + roc * cor - 1, items.Count - 1);
 
-                for (var i = minIndex; i < min; i++)
+                if (min != minIndex || max != maxIndex)
                 {
-                    if (grids.Remove(i, out var grid) && grid)
+                    for (var i = minIndex; i < min; i++)
                     {
-                        grid.Dispose();
-                        OnMove?.Invoke();
-                        PoolManager.Hide(grid);
+                        if (grids.Remove(i, out var grid) && grid)
+                        {
+                            grid.Dispose();
+                            PoolManager.Hide(grid);
+                        }
                     }
-                }
 
-                for (var i = max + 1; i <= maxIndex; i++)
-                {
-                    if (grids.Remove(i, out var grid) && grid)
+                    for (var i = max + 1; i <= maxIndex; i++)
                     {
-                        grid.Dispose();
-                        OnMove?.Invoke();
-                        PoolManager.Hide(grid);
+                        if (grids.Remove(i, out var grid) && grid)
+                        {
+                            grid.Dispose();
+                            PoolManager.Hide(grid);
+                        }
                     }
+
+                    OnMove?.Invoke();
                 }
 
                 minIndex = min;
@@ -113,36 +114,27 @@ namespace Astraia.Core
                     if (!grids.ContainsKey(i))
                     {
                         var grid = PoolManager.Show<TGrid>(assetPath, content, assetName);
+                        grid.index = i;
+                        grid.SetItem(items[i]);
+                        grids[i] = grid;
+
+                        var posX = rotation ? i % col : i / row;
+                        var posY = rotation ? i / col : i % row;
                         var rect = (RectTransform)grid.transform;
                         rect.pivot = Vector2.up;
                         rect.anchorMin = Vector2.up;
                         rect.anchorMax = Vector2.up;
                         rect.sizeDelta = new Vector2(width, height);
-                        var posX = rotation ? i % col : i / row;
-                        var posY = rotation ? i / col : i % row;
                         rect.anchoredPosition = new Vector2(posX * width, -posY * height);
-                        if (selector && i == min)
-                        {
-                            selector = false;
-                            grid.Select();
-                        }
-
-                        grid.index = i;
-                        grid.SetItem(items[i]);
-                        grids[i] = grid;
                     }
                 }
             }
         }
 
-        public void SetItem(ICollection<T> item)
+        public void SetItem(IList<T> item)
         {
             Unload();
-            if (item != null)
-            {
-                items.AddRange(item);
-            }
-
+            items = item ?? Array.Empty<T>();
             var sizeX = rotation ? Mathf.CeilToInt((float)items.Count / col) : row;
             var sizeY = rotation ? col : Mathf.CeilToInt((float)items.Count / row);
             content.sizeDelta = new Vector2(sizeY * width, sizeX * height);
@@ -153,7 +145,6 @@ namespace Astraia.Core
         {
             minIndex = -1;
             maxIndex = -1;
-            selector = selected;
             foreach (var i in grids.Keys)
             {
                 if (grids.TryGetValue(i, out var grid) && grid)
@@ -163,7 +154,7 @@ namespace Astraia.Core
                 }
             }
 
-            items.Clear();
+            items = null;
             grids.Clear();
         }
 
@@ -188,8 +179,10 @@ namespace Astraia.Core
                     break;
             }
 
-            pos.x = Mathf.Clamp(pos.x, 0, content.rect.width - (col - (rotation ? 0 : 1)) * width);
-            pos.y = Mathf.Clamp(pos.y, 0, content.rect.height - (row - (rotation ? 1 : 0)) * height);
+            cor = rotation ? col : col - 1;
+            roc = rotation ? row - 1 : row;
+            pos.x = Mathf.Clamp(pos.x, 0, content.rect.width - cor * width);
+            pos.y = Mathf.Clamp(pos.y, 0, content.rect.height - roc * height);
             content.anchoredPosition = pos;
         }
     }
