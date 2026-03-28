@@ -18,7 +18,7 @@ namespace Astraia.Core
     [Serializable]
     public abstract class UIPanel<T, TGrid> : UIPanel, IAcquire, ISystem, IMove where TGrid : Component, IGrid<T>
     {
-        protected readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
+        private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
         private IList<T> items;
         private int minIndex;
         private int maxIndex;

@@ -53,15 +53,6 @@ namespace Astraia.Core
             Instance.canvas.worldCamera = camera;
         }
 
-        private static Entity Load(string path, string name)
-        {
-            Initialized();
-            var asset = AssetManager.Load<GameObject>(path).GetOrAddComponent<Entity>();
-            asset.gameObject.name = name;
-            asset.gameObject.SetActive(false);
-            return asset;
-        }
-
         private static UIPanel Load(string path, Type type)
         {
             if (type.GetAttribute(out UIPathAttribute item))
@@ -69,8 +60,11 @@ namespace Astraia.Core
                 path = GlobalSetting.Prefab.Format(item.asset);
             }
 
-            var owner = Load(path, type.Name);
-            var panel = (UIPanel)owner.Logic.GetComponent(type, type);
+            Initialized();
+            var asset = AssetManager.Load<GameObject>(path).GetOrAddComponent<Entity>();
+            asset.gameObject.name = type.Name;
+            asset.gameObject.SetActive(false);
+            var panel = asset.Logic.AddComponent<UIPanel>(type);
             SetLayer(panel.transform, panel.layer);
             panelData.Add(type, panel);
             return panel;

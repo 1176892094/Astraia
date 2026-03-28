@@ -108,7 +108,7 @@ namespace Astraia.Core
 
         private void LateUpdate()
         {
-            SoundManager.Update();
+            AudioManager.Update();
         }
 
         private async void OnDestroy()
@@ -122,7 +122,7 @@ namespace Astraia.Core
             HeapManager.Dispose();
             AssetManager.Dispose();
             EventManager.Dispose();
-            SoundManager.Dispose();
+            AudioManager.Dispose();
             GC.Collect();
         }
     }

@@ -9,7 +9,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -17,72 +17,40 @@ namespace Astraia
 {
     public static partial class Extensions
     {
-        public static T GetOrAddComponent<T>(this Component entity) where T : Component
+        private static readonly Dictionary<char, string> colors = new Dictionary<char, string>();
+
+        static Extensions()
         {
-            var component = entity.GetComponent<T>();
-            if (component == null)
-            {
-                component = entity.gameObject.AddComponent<T>();
-            }
-
-            return component;
-        }
-
-        public static Component GetOrAddComponent(this Component entity, Type type)
-        {
-            var component = entity.GetComponent(type);
-            if (component == null)
-            {
-                component = entity.gameObject.AddComponent(type);
-            }
-
-            return component;
-        }
-
-        public static T GetOrAddComponent<T>(this GameObject gameObject) where T : Component
-        {
-            var component = gameObject.GetComponent<T>();
-            if (component == null)
-            {
-                component = gameObject.AddComponent<T>();
-            }
-
-            return component;
-        }
-
-        public static Component GetOrAddComponent(this GameObject gameObject, Type type)
-        {
-            var component = gameObject.GetComponent(type);
-            if (component == null)
-            {
-                component = gameObject.AddComponent(type);
-            }
-
-            return component;
+            colors['R'] = "#FF0000";
+            colors['G'] = "#00FF00";
+            colors['B'] = "#0000FF";
+            colors['Y'] = "#FFFF00";
+            colors['O'] = "#FFAA00";
+            colors['S'] = "#00FFFF";
+            colors['P'] = "#FFAAFF";
+            colors['W'] = "#FFFFFF";
         }
 
         public static string Color(this string result, string format)
         {
-            return format switch
-            {
-                "R" => "<color=#FF0000>{0}</color>".Format(result), // 红
-                "G" => "<color=#00FF00>{0}</color>".Format(result), // 绿
-                "B" => "<color=#0000FF>{0}</color>".Format(result), // 蓝
-                "Y" => "<color=#FFFF00>{0}</color>".Format(result), // 黄
-                "O" => "<color=#FFAA00>{0}</color>".Format(result), // 橙
-                "S" => "<color=#00FFFF>{0}</color>".Format(result), // 青
-                "P" => "<color=#FFAAFF>{0}</color>".Format(result), // 紫
-                "W" => "<color=#FFFFFF>{0}</color>".Format(result), // 白
-                _ => "<color=#{0}>{1}</color>".Format(format, result)
-            };
+            return "<color={0}>{1}</color>".Format(colors.GetValueOrDefault(format[0], format), result);
         }
-    }
 
-    public static partial class Extensions
-    {
-        public static Component Inject(this Component inject, object target)
+        public static T GetOrAddComponent<T>(this GameObject self) where T : Component
         {
-            var fields = target.GetType().GetFields(Search.Instance);
+            var component = self.GetComponent<T>();
+            return component ? component : self.AddComponent<T>();
+        }
+
+        public static T GetOrAddComponent<T>(this Component self) where T : Component
+        {
+            var component = self.GetComponent<T>();
+            return component ? component : self.gameObject.AddComponent<T>();
+        }
+
+        public static Component Inject(this Component inject, object module)
+        {
+            var fields = module.GetType().GetFields(Search.Instance);
             foreach (var field in fields)
             {
                 if (!field.HasAttribute<InjectAttribute>())
@@ -100,7 +68,7 @@ namespace Astraia
                     var component = inject.GetComponent(field.FieldType);
                     if (component)
                     {
-                        field.SetValue(target, component);
+                        field.SetValue(module, component);
                         continue;
                     }
                 }
@@ -116,9 +84,9 @@ namespace Astraia
                         continue;
                     }
 
-                    field.SetValue(target, component);
+                    field.SetValue(module, component);
 
-                    var method = target.GetType().GetMethod(upper, Search.Instance);
+                    var method = module.GetType().GetMethod(upper, Search.Instance);
                     if (method == null)
                     {
                         continue;
@@ -127,57 +95,57 @@ namespace Astraia
                     var cacheType = Search.GetType("UnityEngine.UI.Button,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var button))
                     {
-                        if (target is UIPanel panel)
+                        if (module is UIPanel panel)
                         {
                             button.GetValue<UnityEvent>("onClick").AddListener(() =>
                             {
                                 if (panel.state != UIState.Freeze)
                                 {
-                                    target.Invoke(upper);
+                                    module.Invoke(upper);
                                 }
                             });
                         }
                         else
                         {
-                            button.GetValue<UnityEvent>("onClick").AddListener(() => target.Invoke(upper));
+                            button.GetValue<UnityEvent>("onClick").AddListener(() => module.Invoke(upper));
                         }
                     }
 
                     cacheType = Search.GetType("UnityEngine.UI.Toggle,UnityEngine.UI");
                     if (component.TryGetComponent(cacheType, out var toggle))
                     {
-                        if (target is UIPanel panel)
+                        if (module is UIPanel panel)
                         {
                             toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value =>
                             {
                                 if (panel.state != UIState.Freeze)
                                 {
-                                    target.Invoke(upper, value);
+                                    module.Invoke(upper, value);
                                 }
                             });
                         }
                         else
                         {
-                            toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value => target.Invoke(upper, value));
+                            toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value => module.Invoke(upper, value));
                         }
                     }
 
                     cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
                     if (component.TryGetComponent(cacheType, out var inputField))
                     {
-                        if (target is UIPanel panel)
+                        if (module is UIPanel panel)
                         {
                             inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                             {
                                 if (panel.state != UIState.Freeze)
                                 {
-                                    target.Invoke(upper, value);
+                                    module.Invoke(upper, value);
                                 }
                             });
                         }
                         else
                         {
-                            inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => target.Invoke(upper, value));
+                            inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => module.Invoke(upper, value));
                         }
                     }
                 }
