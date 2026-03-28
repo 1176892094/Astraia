@@ -25,7 +25,7 @@ namespace Astraia
 
         protected virtual void Awake()
         {
-            Logic = new Logic(new InjectAdaptor(this), moduleList);
+            Logic = new Logic(new InjectAdaptor(this), modules);
         }
 
         protected virtual void OnEnable()
@@ -41,20 +41,16 @@ namespace Astraia
         protected virtual void OnDestroy()
         {
             Logic.Clear();
-            Logic = null;
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
         private static readonly List<string> Windows = new List<string>();
 
-        internal static void LoadModule(Type result)
+        internal static void LoadComponent(Type module)
         {
-            if (!result.IsAbstract && !result.IsGenericType)
+            if (!module.IsAbstract && !module.IsGenericType && typeof(IModule).IsAssignableFrom(module))
             {
-                if (typeof(IModule).IsAssignableFrom(result))
-                {
-                    Windows.Add("{0}, {1}".Format(result.FullName, result.Assembly.GetName().Name));
-                }
+                Windows.Add("{0}, {1}".Format(module.FullName, module.Assembly.GetName().Name));
             }
         }
 
@@ -73,7 +69,7 @@ namespace Astraia
         [HideInPlayMode, PropertyOrder(1), ValueDropdown("Windows")]
 #endif
         [SerializeField]
-        private List<string> moduleList = new List<string>();
+        private List<string> modules = new List<string>();
 
         private readonly struct InjectAdaptor : Logic.IInject
         {

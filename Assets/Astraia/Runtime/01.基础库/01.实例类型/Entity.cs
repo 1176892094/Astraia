@@ -545,6 +545,8 @@ namespace Astraia
                     GetComponent(result, result);
                 }
             }
+
+            modules.Clear();
         }
 
         internal void Show()
