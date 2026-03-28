@@ -54,7 +54,7 @@ namespace Astraia.Net
                     {
                         Debugger.OnData(message, reader.position - position);
                     }
-                   
+
                     onReceive.Invoke(message);
                 }
                 catch (Exception e)
@@ -77,7 +77,7 @@ namespace Astraia.Net
                     {
                         Debugger.OnData(message, reader.position - position);
                     }
-                  
+
                     onReceive.Invoke(client, message);
                 }
                 catch (Exception e)
