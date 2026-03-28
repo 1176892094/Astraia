@@ -97,7 +97,7 @@ namespace Astraia.Core
             {
                 return streamingName;
             }
-            
+
             var persistentRoot = Path.Combine(Application.persistentDataPath, nameof(JsonManager));
             var persistentName = Path.GetDirectoryName(fileName);
             var persistentPath = string.IsNullOrEmpty(persistentName) ? persistentRoot : Path.Combine(persistentRoot, persistentName);

@@ -15,7 +15,7 @@ using Astraia.Core;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel : Module<Entity>, IModule, ISystem
+    public abstract class UIPanel : Module<Entity>, IAcquire, ISystem
     {
         public UIState state = UIState.Common;
         internal int group;
@@ -23,7 +23,7 @@ namespace Astraia
 
         void IAcquire.Acquire(object item)
         {
-            this.owner = (Entity)item;
+            owner = (Entity)item;
             if (GetType().GetAttribute(out UIMaskAttribute mask))
             {
                 layer = mask.layer;
