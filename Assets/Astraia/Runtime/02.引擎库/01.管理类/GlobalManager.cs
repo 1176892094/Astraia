@@ -98,7 +98,7 @@ namespace Astraia.Core
 
         private void Start()
         {
-            BundleManager.Update();
+            LoadManager.Update();
         }
 
         private void Update()

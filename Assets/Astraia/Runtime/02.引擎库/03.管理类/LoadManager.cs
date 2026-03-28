@@ -20,7 +20,7 @@ namespace Astraia.Core
 {
     using static GlobalManager;
 
-    internal static class BundleManager
+    internal static class LoadManager
     {
         public static async void Update()
         {
