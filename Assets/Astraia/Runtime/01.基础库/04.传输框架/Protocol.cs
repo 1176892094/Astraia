@@ -352,7 +352,7 @@ namespace Astraia
             writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
         }
 
-        public bool GetPacket(MemoryWriter result)
+        public bool GetBatch(MemoryWriter result)
         {
             if (writers.Count > 0)
             {
@@ -395,7 +395,7 @@ namespace Astraia
         private readonly MemoryReader reader = new MemoryReader();
         public int Count => writers.Count;
 
-        public bool AddPacket(ArraySegment<byte> segment)
+        public bool AddBatch(ArraySegment<byte> segment)
         {
             if (segment.Count < sizeof(ushort))
             {

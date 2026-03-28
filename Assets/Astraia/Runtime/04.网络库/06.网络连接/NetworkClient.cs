@@ -41,7 +41,7 @@ namespace Astraia.Net
             foreach (var packet in packets)
             {
                 using var writer = MemoryWriter.Pop();
-                while (packet.Value.GetPacket(writer))
+                while (packet.Value.GetBatch(writer))
                 {
                     NetworkManager.Transport.SendToClient(clientId, writer, packet.Key);
                     writer.Reset();
@@ -84,7 +84,7 @@ namespace Astraia.Net
             if (NetworkManager.isHost && clientId == 0)
             {
                 using var target = MemoryWriter.Pop();
-                if (batch.GetPacket(target))
+                if (batch.GetBatch(target))
                 {
                     NetworkManager.Client.Receive(target, Channel.Reliable);
                 }

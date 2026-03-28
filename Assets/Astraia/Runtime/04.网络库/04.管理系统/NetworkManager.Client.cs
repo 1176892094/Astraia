@@ -214,7 +214,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (!connection.reader.AddPacket(segment))
+                if (!connection.reader.AddBatch(segment))
                 {
                     Log.Warn("无法处理来自服务器的消息。");
                     connection.Disconnect();
