@@ -25,7 +25,7 @@ namespace Astraia
 
         protected virtual void Awake()
         {
-            Logic = new Logic(this, moduleList);
+            Logic = new Logic(new InjectAdaptor(this), moduleList);
         }
 
         protected virtual void OnEnable()
@@ -75,109 +75,15 @@ namespace Astraia
 #endif
         [SerializeField]
         private List<string> moduleList = new List<string>();
-    }
 
-    public sealed class Logic
-    {
-        private readonly Dictionary<Type, IModule> modules = new Dictionary<Type, IModule>();
-        private Entity owner;
-        public event Action OnShow;
-        public event Action OnHide;
-        public event Action OnFade;
-
-        public ICollection<IModule> Modules => modules.Values;
-
-        public Logic(Entity owner, List<string> modules)
+        private readonly struct InjectAdaptor : Logic.IInject
         {
-            this.owner = owner;
-            foreach (var module in modules)
-            {
-                var result = Search.GetType(module);
-                if (result != null)
-                {
-                    GetComponent(result, result);
-                }
-            }
-        }
-
-        public void Show()
-        {
-            OnShow?.Invoke();
-        }
-
-        public void Hide()
-        {
-            OnHide?.Invoke();
-        }
-
-        public void Clear()
-        {
-            OnFade?.Invoke();
-            OnFade = null;
-            OnShow = null;
-            OnHide = null;
-            owner = null;
-            modules.Clear();
-        }
-
-        public T AddComponent<T>() where T : IModule
-        {
-            return (T)GetComponent(typeof(T), typeof(T));
-        }
-
-        public T AddComponent<T>(Type result) where T : IModule
-        {
-            return (T)GetComponent(typeof(T), result);
-        }
-
-        public T GetComponent<T>() where T : IModule
-        {
-            return (T)modules.GetValueOrDefault(typeof(T));
-        }
-
-        internal IModule GetComponent(Type source, Type result)
-        {
-            if (!modules.TryGetValue(source, out var module))
-            {
-                module = HeapManager.Dequeue<IModule>(result);
-                modules.Add(source, module);
-                owner.Inject(module);
-                module.Acquire(owner);
-                module.Dequeue();
-                OnFade += () =>
-                {
-                    module.Enqueue();
-                    modules.Remove(source);
-                    HeapManager.Enqueue(module, result);
-                };
-
-                var events = module.GetType().GetInterfaces();
-                foreach (var @event in events)
-                {
-                    if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
-                    {
-                        var reason = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
-                        OnShow += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Listen", Search.Instance)!);
-                        OnHide += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Remove", Search.Instance)!);
-                    }
-                }
-
-                if (module is ISystem system)
-                {
-                    OnShow += system.AddEvent;
-                    OnHide += system.SubEvent;
-                }
-
-                if (module is IActive active)
-                {
-                    OnShow += active.OnShow;
-                    OnHide += active.OnHide;
-                }
-            }
-
-            return module;
+            private readonly Entity owner;
+            public InjectAdaptor(Entity owner) => this.owner = owner;
+            public object Inject(object target) => owner.Inject(target);
         }
     }
+
 
     public abstract class Module<T> : Acquire<T>, IModule where T : Entity
     {

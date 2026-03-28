@@ -41,7 +41,6 @@ namespace Astraia
 
         public static T GetOrAddComponent<T>(this GameObject gameObject) where T : Component
         {
-           
             var component = gameObject.GetComponent<T>();
             if (component == null)
             {
@@ -81,7 +80,7 @@ namespace Astraia
 
     public static partial class Extensions
     {
-        public static void Inject(this Component inject, object target)
+        public static Component Inject(this Component inject, object target)
         {
             var fields = target.GetType().GetFields(Search.Instance);
             foreach (var field in fields)
@@ -183,6 +182,8 @@ namespace Astraia
                     }
                 }
             }
+
+            return inject;
         }
 
         private static Transform GetChild(this Transform parent, string name)

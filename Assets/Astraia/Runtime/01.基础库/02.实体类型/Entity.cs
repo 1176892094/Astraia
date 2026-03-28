@@ -519,6 +519,112 @@ namespace Astraia
 
 namespace Astraia
 {
+    public sealed class Logic
+    {
+        internal interface IInject
+        {
+            object Inject(object target);
+        }
+
+        private readonly Dictionary<Type, IModule> modules = new Dictionary<Type, IModule>();
+        private IInject inject;
+        public event Action OnShow;
+        public event Action OnHide;
+        public event Action OnFade;
+
+        public ICollection<IModule> Modules => modules.Values;
+
+        internal Logic(IInject inject, List<string> modules)
+        {
+            this.inject = inject;
+            foreach (var module in modules)
+            {
+                var result = Search.GetType(module);
+                if (result != null)
+                {
+                    GetComponent(result, result);
+                }
+            }
+        }
+
+        internal void Show()
+        {
+            OnShow?.Invoke();
+        }
+
+        internal void Hide()
+        {
+            OnHide?.Invoke();
+        }
+
+        internal void Clear()
+        {
+            OnFade?.Invoke();
+            OnFade = null;
+            OnShow = null;
+            OnHide = null;
+            inject = null;
+            modules.Clear();
+        }
+
+        public T AddComponent<T>() where T : IModule
+        {
+            return (T)GetComponent(typeof(T), typeof(T));
+        }
+
+        public T AddComponent<T>(Type result) where T : IModule
+        {
+            return (T)GetComponent(typeof(T), result);
+        }
+
+        public T GetComponent<T>() where T : IModule
+        {
+            return (T)modules.GetValueOrDefault(typeof(T));
+        }
+
+        internal IModule GetComponent(Type source, Type result)
+        {
+            if (!modules.TryGetValue(source, out var module))
+            {
+                module = HeapManager.Dequeue<IModule>(result);
+                modules.Add(source, module);
+                module.Acquire(inject.Inject(module));
+                module.Dequeue();
+                OnFade += () =>
+                {
+                    module.Enqueue();
+                    modules.Remove(source);
+                    HeapManager.Enqueue(module, result);
+                };
+
+                var events = module.GetType().GetInterfaces();
+                foreach (var @event in events)
+                {
+                    if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
+                    {
+                        var reason = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
+                        OnShow += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Listen", Search.Instance)!);
+                        OnHide += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Remove", Search.Instance)!);
+                    }
+                }
+
+                if (module is ISystem system)
+                {
+                    OnShow += system.AddEvent;
+                    OnHide += system.SubEvent;
+                }
+
+                if (module is IActive active)
+                {
+                    OnShow += active.OnShow;
+                    OnHide += active.OnHide;
+                }
+            }
+
+            return module;
+        }
+    }
+
     public interface ISystem
     {
         void Update();
@@ -991,7 +1097,6 @@ namespace Astraia
         }
     }
 
-
     [Serializable]
     public sealed class Sequence : CompositeNode
     {
@@ -1209,7 +1314,6 @@ namespace Astraia
             return node.OnTick() == Node.Running ? Node.Running : Node.Failure;
         }
     }
-
 
     public static class NodeUtils
     {

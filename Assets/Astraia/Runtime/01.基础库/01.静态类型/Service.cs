@@ -292,7 +292,7 @@ namespace Astraia
 
 namespace Astraia
 {
-    public static class String
+    internal static class String
     {
         [ThreadStatic] private static StringBuilder stringBuilder;
 
