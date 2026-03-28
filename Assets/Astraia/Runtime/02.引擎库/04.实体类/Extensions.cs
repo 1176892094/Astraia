@@ -15,7 +15,7 @@ using UnityEngine.Events;
 
 namespace Astraia
 {
-    public static partial class Extensions
+    public static class Extensions
     {
         private static readonly Dictionary<char, string> colors = new Dictionary<char, string>();
 
@@ -173,10 +173,7 @@ namespace Astraia
 
             return null;
         }
-    }
 
-    public static partial class Extensions
-    {
         private readonly struct TickAdaptor : Tick.IAdaptor
         {
             private readonly Component owner;

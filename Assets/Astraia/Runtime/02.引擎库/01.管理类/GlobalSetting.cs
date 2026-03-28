@@ -9,6 +9,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,7 +24,8 @@ using UnityEditor;
 
 namespace Astraia
 {
-    internal sealed partial class GlobalSetting : ScriptableObject
+    [Serializable]
+    internal sealed class GlobalSetting : ScriptableObject
     {
         private static GlobalSetting instance;
 
@@ -101,10 +103,8 @@ namespace Astraia
 
             return assetData[option].text;
         }
-    }
+
 #if UNITY_EDITOR
-    internal partial class GlobalSetting
-    {
         public const string Scripts = "Assets/Scripts/02.数据系统";
         public const string Assembly = Scripts + "/" + Define + ".asmdef";
         public const string EnumPath = Scripts + "/01.枚举类/{0}.cs";
@@ -171,6 +171,6 @@ namespace Astraia
                 }
             }
         }
-    }
 #endif
+    }
 }
