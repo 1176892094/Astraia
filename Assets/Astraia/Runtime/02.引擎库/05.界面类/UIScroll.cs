@@ -24,6 +24,8 @@ namespace Astraia.Core
         private int maxIndex;
 
         private bool rotation;
+        private bool selected;
+        private bool selector;
         private string assetName;
         private string assetPath;
 
@@ -32,7 +34,7 @@ namespace Astraia.Core
 
         public float width;
         public float height;
-        public Action OnMove;
+        public Action<IGrid> OnMove;
         [Inject] public RectTransform content;
 
         void IAcquire.Acquire(object item)
@@ -53,6 +55,7 @@ namespace Astraia.Core
                 width = rect.width;
                 height = rect.height;
                 rotation = rect.rotation;
+                selected = rect.selected;
             }
 
             assetName = GlobalSetting.Prefab.Format(typeof(TGrid).Name);
@@ -90,7 +93,8 @@ namespace Astraia.Core
                     {
                         if (grids.Remove(i, out var grid) && grid)
                         {
-                            grid.Dispose();
+                            grid.Release();
+                            OnMove?.Invoke(grid);
                             PoolManager.Hide(grid);
                         }
                     }
@@ -99,12 +103,11 @@ namespace Astraia.Core
                     {
                         if (grids.Remove(i, out var grid) && grid)
                         {
-                            grid.Dispose();
+                            grid.Release();
+                            OnMove?.Invoke(grid);
                             PoolManager.Hide(grid);
                         }
                     }
-
-                    OnMove?.Invoke();
                 }
 
                 minIndex = min;
@@ -115,8 +118,13 @@ namespace Astraia.Core
                     {
                         var grid = PoolManager.Show<TGrid>(assetPath, content, assetName);
                         grid.index = i;
-                        grid.SetItem(items[i]);
+                        grid.Acquire(items[i]);
                         grids[i] = grid;
+                        if (selector && i == min)
+                        {
+                            selector = false;
+                            grid.Select();
+                        }
 
                         var posX = rotation ? i % col : i / row;
                         var posY = rotation ? i / col : i % row;
@@ -145,11 +153,12 @@ namespace Astraia.Core
         {
             minIndex = -1;
             maxIndex = -1;
+            selector = selected;
             foreach (var i in grids.Keys)
             {
                 if (grids.TryGetValue(i, out var grid) && grid)
                 {
-                    grid.Dispose();
+                    grid.Release();
                     PoolManager.Hide(grid);
                 }
             }
@@ -194,16 +203,14 @@ namespace Astraia.Core
 
     public interface IGrid
     {
-        int index { get; set; }
-
+        int index { set; }
         void Select();
-
-        void Dispose();
     }
 
     public interface IGrid<T> : IGrid
     {
         T item { get; }
-        void SetItem(T item);
+        void Acquire(T item);
+        void Release();
     }
 }
