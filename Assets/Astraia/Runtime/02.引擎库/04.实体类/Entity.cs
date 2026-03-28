@@ -42,7 +42,6 @@ namespace Astraia
         {
             Logic.Clear();
             Logic = null;
-            moduleList.Clear();
         }
 
 #if UNITY_EDITOR && ODIN_INSPECTOR
