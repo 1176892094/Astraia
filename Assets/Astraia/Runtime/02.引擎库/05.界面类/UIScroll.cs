@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Astraia.Core
 {
     [Serializable]
-    public abstract class UIPanel<T, TGrid> : UIPanel, IAcquire, ISystem, IMove where TGrid : Component, IGrid<T>
+    public abstract class UIPanel2<T, TGrid> : UIPanel, IAcquire, ISystem, IMove where TGrid : Component, IGrid<T>
     {
         private readonly Dictionary<int, TGrid> grids = new Dictionary<int, TGrid>();
         private IList<T> items;
