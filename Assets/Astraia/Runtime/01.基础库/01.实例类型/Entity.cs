@@ -82,9 +82,10 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public XorInt32 SetBit(int shift, int mask, int value)
+        public XorInt32 SetBit(int shift, int bits, int v)
         {
-            return (Value & ~((1 << mask) - 1 << shift)) | ((value & (1 << mask) - 1) << shift);
+            var mask = ((1 << bits) - 1) << shift;
+            return (Value & ~mask) | ((v << shift) & mask);
         }
     }
 
@@ -163,9 +164,10 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public XorInt64 SetBit(int shift, int mask, int value)
+        public XorInt64 SetBit(int shift, int bits, int v)
         {
-            return (Value & ~((1L << mask) - 1 << shift)) | ((value & (1L << mask) - 1) << shift);
+            var mask = ((1L << bits) - 1) << shift;
+            return (Value & ~mask) | ((v << shift) & mask);
         }
     }
 
