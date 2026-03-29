@@ -44,6 +44,8 @@ namespace Astraia.Core
         {
             owner = (Entity)item;
             owner.Logic.OnHide += Unload;
+            owner.Logic.OnShow += AddListener;
+            owner.Logic.OnHide += RemoveListener;
 
             if (GetType().GetAttribute(out UIMaskAttribute mask))
             {
@@ -68,16 +70,25 @@ namespace Astraia.Core
                 assetPath = GlobalSetting.Prefab.Format(path.asset);
             }
 
+            content.pivot = Vector2.up;
+            content.anchorMin = Vector2.up;
+            content.anchorMax = Vector2.up;
+            
             col = rotation ? col : col + 1;
             row = rotation ? row + 1 : row;
             cor = rotation ? col : row;
             roc = rotation ? row : col;
             grids = new TGrid[col * row];
+        }
 
-            content.pivot = Vector2.up;
-            content.anchorMin = Vector2.up;
-            content.anchorMax = Vector2.up;
+        private void AddListener()
+        {
             scrollView.onValueChanged.AddListener(OnScroll);
+        }
+
+        private void RemoveListener()
+        {
+            scrollView.onValueChanged.RemoveListener(OnScroll);
         }
 
         private void OnScroll(Vector2 position)
@@ -119,6 +130,27 @@ namespace Astraia.Core
             Reload(min, max, selected);
         }
 
+        private void Unload()
+        {
+            for (var i = grids.Length - 1; i >= 0; i--)
+            {
+                Unload(i);
+            }
+
+            items = null;
+        }
+
+        private void Unload(int i)
+        {
+            var grid = grids[i];
+            if (grid)
+            {
+                grids[i] = null;
+                grid.Release();
+                PoolManager.Hide(grid);
+            }
+        }
+
         private void Reload(int min, int max, bool selected = false)
         {
             for (var i = min; i <= max; i++)
@@ -151,27 +183,6 @@ namespace Astraia.Core
 
             minIndex = min;
             maxIndex = max;
-        }
-
-        private void Unload()
-        {
-            for (var i = grids.Length - 1; i >= 0; i--)
-            {
-                Unload(i);
-            }
-
-            items = null;
-        }
-
-        private void Unload(int i)
-        {
-            var grid = grids[i];
-            if (grid)
-            {
-                grids[i] = null;
-                grid.Release();
-                PoolManager.Hide(grid);
-            }
         }
 
         public void Move(int index, int move)
