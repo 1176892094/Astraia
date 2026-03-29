@@ -225,7 +225,7 @@ namespace Runtime
 
         public override void OnEnter()
         {
-            SoundManager.Play("30001");
+            AudioManager.Play("30001");
             Feature.SetInt(Attribute.DashFrame, Time.frameCount + 10);
             owner.Sender.SyncColorServerRpc(Color.magenta);
             Feature.state |= StateType.Dash;

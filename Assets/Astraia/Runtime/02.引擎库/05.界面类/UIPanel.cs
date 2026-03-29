@@ -17,7 +17,7 @@ namespace Astraia
     [Serializable]
     public abstract class UIPanel : Module<Entity>, IAcquire, ISystem
     {
-        public UIState state = UIState.Common;
+        public UIState state;
         internal int group;
         internal int layer;
 
@@ -46,13 +46,7 @@ namespace Astraia
 
     internal sealed class UIStack
     {
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
         private UIPanel current;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
         private UIPanel reverse;
 
         public void Push(UIPanel panel)
