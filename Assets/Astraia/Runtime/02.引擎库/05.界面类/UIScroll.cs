@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Astraia.Core
@@ -73,7 +74,7 @@ namespace Astraia.Core
             content.pivot = Vector2.up;
             content.anchorMin = Vector2.up;
             content.anchorMax = Vector2.up;
-            
+
             col = rotation ? col : col + 1;
             row = rotation ? row + 1 : row;
             cor = rotation ? col : row;
@@ -155,25 +156,29 @@ namespace Astraia.Core
         {
             for (var i = min; i <= max; i++)
             {
-                var index = i % grids.Length;
-                var grid = grids[index];
-                if (grid)
-                {
-                    continue;
-                }
+                Reload(i, selected);
+            }
 
-                grid = PoolManager.Show<TGrid>(assetPath, content, assetName);
-                grids[index] = grid;
-                grid.index = i;
-                grid.SetItem(items[i]);
-                if (selected && i == min)
-                {
-                    grid.Select();
-                }
+            minIndex = min;
+            maxIndex = max;
+        }
 
+        private void Reload(int i, bool selected)
+        {
+            var index = i % grids.Length;
+            var grid = grids[index];
+            if (grid)
+            {
+                return;
+            }
+
+            grid = PoolManager.Show<TGrid>(assetPath, content, assetName);
+            grids[index] = grid;
+
+            if (grid.TryGetComponent(out RectTransform rect))
+            {
                 var posX = rotation ? i % col : i / row;
                 var posY = rotation ? i / col : i % row;
-                var rect = (RectTransform)grid.transform;
                 rect.pivot = Vector2.up;
                 rect.anchorMin = Vector2.up;
                 rect.anchorMax = Vector2.up;
@@ -181,25 +186,30 @@ namespace Astraia.Core
                 rect.anchoredPosition = new Vector2(posX * width, -posY * height);
             }
 
-            minIndex = min;
-            maxIndex = max;
+            if (selected && index == 0)
+            {
+                grid.Select();
+            }
+
+            grid.index = i;
+            grid.SetItem(items[i]);
         }
 
-        public void Move(int index, int move)
+        public void Move(int index, MoveDirection move)
         {
             var pos = content.anchoredPosition;
             switch (move)
             {
-                case 0 when !rotation && index / roc == minIndex / roc + 1: // 左
+                case MoveDirection.Left when !rotation && index / roc == minIndex / roc + 1:
                     pos.x += width;
                     break;
-                case 1 when rotation && index / cor == minIndex / cor + 1: // 上
+                case MoveDirection.Up when rotation && index / cor == minIndex / cor + 1:
                     pos.y -= height;
                     break;
-                case 2 when !rotation && index / roc == maxIndex / roc - 1: // 右
+                case MoveDirection.Right when !rotation && index / roc == maxIndex / roc - 1:
                     pos.x -= width;
                     break;
-                case 3 when rotation && index / cor == maxIndex / cor - 1: // 下
+                case MoveDirection.Down when rotation && index / cor == maxIndex / cor - 1:
                     pos.y += height;
                     break;
             }
@@ -214,7 +224,7 @@ namespace Astraia.Core
 
     public interface IMove
     {
-        void Move(int index, int move);
+        void Move(int index, MoveDirection move);
     }
 
     public interface IGrid
