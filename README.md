@@ -30,7 +30,7 @@
 
         public void Save()
         {
-            JsonManager.Save(this, "Name"); // 存储玩家数据
+            JsonManager.Save(this, "Example"); // 存储玩家数据
         }
 
         public void Load()
