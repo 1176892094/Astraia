@@ -76,16 +76,15 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetBit(int shift, int mask)
+        public int GetBit(int shift, int bits)
         {
-            return (Value >> shift) & (1 << mask) - 1;
+            return (Value >> shift) & (1 << bits) - 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Xor32 SetBit(int shift, int bits, int v)
+        public Xor32 SetBit(int shift, int bits, int value)
         {
-            var mask = ((1 << bits) - 1) << shift;
-            return (Value & ~mask) | ((v << shift) & mask);
+            return (Value & ~((1 << bits) - 1 << shift)) | ((value & (1 << bits) - 1) << shift);
         }
     }
 
@@ -158,16 +157,15 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetBit(int shift, int mask)
+        public int GetBit(int shift, int bits)
         {
-            return (int)((Value >> shift) & (1L << mask) - 1);
+            return (int)((Value >> shift) & (1L << bits) - 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Xor64 SetBit(int shift, int bits, int v)
+        public Xor64 SetBit(int shift, int bits, int value)
         {
-            var mask = ((1L << bits) - 1) << shift;
-            return (Value & ~mask) | ((v << shift) & mask);
+            return (Value & ~((1L << bits) - 1 << shift)) | ((value & (1L << bits) - 1) << shift);
         }
     }
 
@@ -225,7 +223,7 @@ namespace Astraia
 
         public bool Equals(Bytes other)
         {
-            return buffer - offset == other.buffer - other.offset;
+            return Value == other.Value;
         }
 
         public override bool Equals(object obj)
@@ -265,7 +263,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe int GetBits(int shift, int bits)
+        public unsafe int GetBit(int shift, int bits)
         {
             fixed (byte* ptr = origin)
             {
@@ -301,7 +299,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void SetBits(int shift, int bits, int value)
+        public unsafe void SetBit(int shift, int bits, int value)
         {
             fixed (byte* ptr = origin)
             {

@@ -37,6 +37,7 @@ namespace Astraia.Core
 
         public float width;
         public float height;
+        public Action<IGrid> OnMove;
         [Inject] public ScrollRect scrollView;
 
         private RectTransform content => scrollView.content;
@@ -149,6 +150,7 @@ namespace Astraia.Core
                 grids[i] = null;
                 grid.Release();
                 PoolManager.Hide(grid);
+                OnMove?.Invoke(grid);
             }
         }
 
