@@ -1125,31 +1125,339 @@ namespace Astraia
 
 namespace Astraia
 {
-    public abstract class Node
+    public enum NodeState
     {
-        public abstract State OnTick();
-        public abstract void Dispose();
+        Running,
+        Success,
+        Failure
+    }
 
-        public enum State : byte
+    public interface IRoot
+    {
+        public int[] Item { get; }
+    }
+
+    public interface INode<in T> where T : IRoot
+    {
+        NodeState OnTick(T root);
+    }
+
+    public readonly struct Sequence<T> : INode<T> where T : IRoot
+    {
+        private readonly IList<INode<T>> Nodes;
+        private readonly int Index;
+
+        public Sequence(int index, IList<INode<T>> nodes)
         {
-            Running,
-            Success,
-            Failure
+            Index = index;
+            Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        public readonly struct Map
+        NodeState INode<T>.OnTick(T root)
         {
-            public readonly string Name;
-            public readonly List<Map> Root;
-
-            public Map(string name)
+            var reason = root.Item;
+            while (reason[Index] < Nodes.Count)
             {
-                Name = name;
-                Root = new List<Map>();
+                var result = Nodes[reason[Index]].OnTick(root);
+                if (result == NodeState.Running)
+                {
+                    return NodeState.Running;
+                }
+
+                if (result == NodeState.Failure)
+                {
+                    reason[Index] = 0;
+                    return NodeState.Failure;
+                }
+
+                reason[Index]++;
             }
+
+            reason[Index] = 0;
+            return NodeState.Success;
+        }
+    }
+
+    public readonly struct Selector<T> : INode<T> where T : IRoot
+    {
+        private readonly IList<INode<T>> Nodes;
+        private readonly int Index;
+
+        public Selector(int index, IList<INode<T>> nodes)
+        {
+            Index = index;
+            Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        public static Map GetNode(string reason)
+        NodeState INode<T>.OnTick(T root)
+        {
+            var reason = root.Item;
+            while (reason[Index] < Nodes.Count)
+            {
+                var result = Nodes[reason[Index]].OnTick(root);
+                if (result == NodeState.Running)
+                {
+                    return NodeState.Running;
+                }
+
+                if (result == NodeState.Success)
+                {
+                    reason[Index] = 0;
+                    return NodeState.Success;
+                }
+
+                reason[Index]++;
+            }
+
+            reason[Index] = 0;
+            return NodeState.Failure;
+        }
+    }
+
+
+    public readonly struct Parallel<T> : INode<T> where T : IRoot
+    {
+        private readonly IList<INode<T>> Nodes;
+        private readonly bool IsAny;
+
+        public Parallel(int index, IList<INode<T>> nodes)
+        {
+            IsAny = index != 0;
+            Nodes = nodes ?? Array.Empty<INode<T>>();
+        }
+
+        NodeState INode<T>.OnTick(T root)
+        {
+            var isAll = true;
+            var isAny = false;
+
+            foreach (var node in Nodes)
+            {
+                var result = node.OnTick(root);
+                if (IsAny)
+                {
+                    if (result == NodeState.Success)
+                    {
+                        return NodeState.Success;
+                    }
+
+                    if (result == NodeState.Failure)
+                    {
+                        return NodeState.Failure;
+                    }
+                }
+                else
+                {
+                    if (result == NodeState.Failure)
+                    {
+                        return NodeState.Failure;
+                    }
+
+                    if (result != NodeState.Success)
+                    {
+                        isAll = false;
+                    }
+
+                    if (result == NodeState.Success)
+                    {
+                        isAny = true;
+                    }
+                }
+            }
+
+            if (IsAny)
+            {
+                return isAny ? NodeState.Success : NodeState.Running;
+            }
+
+            return isAll ? NodeState.Success : NodeState.Running;
+        }
+    }
+
+    public readonly struct Actuator<T> : INode<T> where T : IRoot
+    {
+        private readonly IList<INode<T>> Nodes;
+        private readonly int Index;
+
+        public Actuator(int index, IList<INode<T>> nodes)
+        {
+            Index = index;
+            Nodes = nodes ?? Array.Empty<INode<T>>();
+        }
+
+        NodeState INode<T>.OnTick(T root)
+        {
+            var reason = root.Item;
+            if (reason[Index] == 0)
+            {
+                reason[Index] = Seed.Next(Nodes.Count) + 1;
+            }
+
+            var result = Nodes[reason[Index] - 1].OnTick(root);
+            if (result == NodeState.Running)
+            {
+                return NodeState.Running;
+            }
+
+            reason[Index] = 0;
+            return result;
+        }
+    }
+
+    public readonly struct Repeater<T> : INode<T> where T : IRoot
+    {
+        private readonly INode<T> Node;
+        private readonly int Index;
+        private readonly int Count;
+
+        public Repeater(int index, int count, INode<T> node)
+        {
+            Node = node;
+            Index = index;
+            Count = count;
+        }
+
+        NodeState INode<T>.OnTick(T root)
+        {
+            var reason = root.Item;
+            var result = Node.OnTick(root);
+            if (result == NodeState.Running)
+            {
+                return NodeState.Running;
+            }
+
+            reason[Index]++;
+            if (Count < 0 || reason[Index] < Count)
+            {
+                return NodeState.Running;
+            }
+
+            reason[Index] = 0;
+            return NodeState.Success;
+        }
+    }
+
+    public readonly struct Inverter<T> : INode<T> where T : IRoot
+    {
+        private readonly INode<T> Node;
+
+        public Inverter(INode<T> node)
+        {
+            Node = node;
+        }
+
+        NodeState INode<T>.OnTick(T root)
+        {
+            var result = Node.OnTick(root);
+            if (result == NodeState.Success)
+            {
+                return NodeState.Failure;
+            }
+
+            if (result == NodeState.Failure)
+            {
+                return NodeState.Success;
+            }
+
+            return NodeState.Running;
+        }
+    }
+
+    public readonly struct Success<T> : INode<T> where T : IRoot
+    {
+        private readonly INode<T> Node;
+
+        public Success(INode<T> node)
+        {
+            Node = node;
+        }
+
+        NodeState INode<T>.OnTick(T root)
+        {
+            return Node.OnTick(root) == NodeState.Running ? NodeState.Running : NodeState.Success;
+        }
+    }
+
+    public readonly struct Failure<T> : INode<T> where T : IRoot
+    {
+        private readonly INode<T> Node;
+
+        public Failure(INode<T> node)
+        {
+            Node = node;
+        }
+
+        NodeState INode<T>.OnTick(T root)
+        {
+            return Node.OnTick(root) == NodeState.Running ? NodeState.Running : NodeState.Failure;
+        }
+    }
+
+    public static class Nodes
+    {
+        public static INode<T> LoadNode<T>(Node node, Func<Node, Type> func) where T : IRoot
+        {
+            if (node.Name.IsNullOrEmpty())
+            {
+                throw new NullReferenceException();
+            }
+
+            var root = func.Invoke(node);
+            if (root == typeof(Sequence<>))
+            {
+                return new Sequence<T>(node.Index, LoadNodes<T>(node, func));
+            }
+
+            if (root == typeof(Selector<>))
+            {
+                return new Selector<T>(node.Index, LoadNodes<T>(node, func));
+            }
+
+            if (root == typeof(Parallel<>))
+            {
+                return new Parallel<T>(int.Parse(node.Data), LoadNodes<T>(node, func));
+            }
+
+            if (root == typeof(Actuator<>))
+            {
+                return new Actuator<T>(node.Index, LoadNodes<T>(node, func));
+            }
+
+            if (root == typeof(Repeater<>))
+            {
+                return new Repeater<T>(node.Index, int.Parse(node.Data), LoadNode<T>(node.Nodes[0], func));
+            }
+
+            if (root == typeof(Inverter<>))
+            {
+                return new Inverter<T>(LoadNode<T>(node.Nodes[0], func));
+            }
+
+            if (root == typeof(Success<>))
+            {
+                return new Success<T>(LoadNode<T>(node.Nodes[0], func));
+            }
+
+            if (root == typeof(Failure<>))
+            {
+                return new Failure<T>(LoadNode<T>(node.Nodes[0], func));
+            }
+
+            return (INode<T>)Activator.CreateInstance(root);
+        }
+
+        private static INode<T>[] LoadNodes<T>(Node node, Func<Node, Type> func) where T : IRoot
+        {
+            var nodes = new INode<T>[node.Nodes.Count];
+            for (var i = 0; i < node.Nodes.Count; i++)
+            {
+                nodes[i] = LoadNode<T>(node.Nodes[i], func);
+            }
+
+            return nodes;
+        }
+
+        public static Node GetNode(string reason, ref int i)
         {
             if (string.IsNullOrEmpty(reason))
             {
@@ -1159,13 +1467,13 @@ namespace Astraia
             var index = reason.IndexOf('(');
             if (index < 0)
             {
-                return new Map(reason);
+                return new Node(reason, i++);
             }
 
-            var result = new Map(reason.Substring(0, index).Trim());
-            foreach (var child in LoadRoot(Checked(reason, index)))
+            var result = new Node(reason.Substring(0, index).Trim(), i++);
+            foreach (var child in LoadNode(Checked(reason, index)))
             {
-                result.Root.Add(GetNode(child));
+                result.Nodes.Add(GetNode(child, ref i));
             }
 
             return result;
@@ -1197,7 +1505,7 @@ namespace Astraia
             return reason.Substring(index + 1, count - index - 1);
         }
 
-        private static List<string> LoadRoot(string reason)
+        private static List<string> LoadNode(string reason)
         {
             var result = new List<string>();
             var depth = 0;
@@ -1205,15 +1513,16 @@ namespace Astraia
 
             for (var i = 0; i < reason.Length; i++)
             {
-                if (reason[i] == '(')
+                var c = reason[i];
+                if (c == '(')
                 {
                     depth++;
                 }
-                else if (reason[i] == ')')
+                else if (c == ')')
                 {
                     depth--;
                 }
-                else if ((reason[i] == ',' || reason[i] == '，') && depth == 0)
+                else if (depth == 0 && c == '，')
                 {
                     result.Add(reason.Substring(index, i - index).Trim());
                     index = i + 1;
@@ -1223,244 +1532,32 @@ namespace Astraia
             result.Add(reason.Substring(index).Trim());
             return result;
         }
-    }
 
-    public abstract class CompositeNode : Node
-    {
-        public IList<Node> nodes = Array.Empty<Node>();
-
-        public override void Dispose()
+        [Serializable]
+        public struct Node
         {
-            foreach (var node in nodes)
+            public int Index;
+            public string Name;
+            public string Data;
+            public List<Node> Nodes;
+
+            public Node(string name, int index)
             {
-                node.Dispose();
-            }
-
-            nodes = Array.Empty<Node>();
-            HeapManager.Enqueue<Node>(this, GetType());
-        }
-    }
-
-    public abstract class DecoratorNode : Node
-    {
-        public Node node;
-
-        public override void Dispose()
-        {
-            if (node != null)
-            {
-                node.Dispose();
-                node = null;
-            }
-
-            HeapManager.Enqueue<Node>(this, GetType());
-        }
-    }
-
-    [Serializable]
-    public sealed class Sequence : CompositeNode
-    {
-        private int index;
-
-        public override State OnTick()
-        {
-            while (index < nodes.Count)
-            {
-                var result = nodes[index].OnTick();
-                if (result == State.Running)
+                var i = name.IndexOf(':');
+                if (i < 0)
                 {
-                    return State.Running;
+                    Name = name;
+                    Data = null;
+                }
+                else
+                {
+                    Name = name.Substring(0, i);
+                    Data = name.Substring(i + 1);
                 }
 
-                if (result == State.Failure)
-                {
-                    index = 0;
-                    return State.Failure;
-                }
-
-                index++;
+                Index = index;
+                Nodes = new List<Node>();
             }
-
-            index = 0;
-            return State.Success;
-        }
-    }
-
-    [Serializable]
-    public sealed class Selector : CompositeNode
-    {
-        private int index;
-
-        public override State OnTick()
-        {
-            while (index < nodes.Count)
-            {
-                var result = nodes[index].OnTick();
-                if (result == State.Running)
-                {
-                    return State.Running;
-                }
-
-                if (result == State.Success)
-                {
-                    index = 0;
-                    return State.Success;
-                }
-
-                index++;
-            }
-
-            index = 0;
-            return State.Failure;
-        }
-    }
-
-    [Serializable]
-    public sealed class Parallel : CompositeNode
-    {
-        private Mode mode;
-
-        public override State OnTick()
-        {
-            var isAll = true;
-            var isAny = false;
-
-            foreach (var child in nodes)
-            {
-                var result = child.OnTick();
-                switch (mode)
-                {
-                    case Mode.Any:
-                        if (result == State.Success)
-                        {
-                            return State.Success;
-                        }
-
-                        if (result == State.Failure)
-                        {
-                            return State.Failure;
-                        }
-
-                        break;
-
-                    case Mode.All:
-                        if (result == State.Failure)
-                        {
-                            return State.Failure;
-                        }
-
-                        if (result != State.Success)
-                        {
-                            isAll = false;
-                        }
-
-                        if (result == State.Success)
-                        {
-                            isAny = true;
-                        }
-
-                        break;
-                }
-            }
-
-            if (mode == Mode.All)
-            {
-                return isAll ? State.Success : State.Running;
-            }
-
-            return isAny ? State.Success : State.Running;
-        }
-
-        public enum Mode
-        {
-            All,
-            Any
-        }
-    }
-
-    [Serializable]
-    public sealed class Actuator : CompositeNode
-    {
-        private int index = -1;
-
-        public override State OnTick()
-        {
-            if (index == -1)
-            {
-                index = Seed.Next(nodes.Count);
-            }
-
-            var result = nodes[index].OnTick();
-            if (result == State.Running)
-            {
-                return State.Running;
-            }
-
-            index = -1;
-            return result;
-        }
-    }
-
-    [Serializable]
-    public sealed class Repeater : DecoratorNode
-    {
-        private int count = -1;
-        private int index;
-
-        public override State OnTick()
-        {
-            var result = node.OnTick();
-            if (result == State.Running)
-            {
-                return State.Running;
-            }
-
-            index++;
-            if (count < 0 || index < count)
-            {
-                return State.Running;
-            }
-
-            index = 0;
-            return State.Success;
-        }
-    }
-
-    [Serializable]
-    public sealed class Inverter : DecoratorNode
-    {
-        public override State OnTick()
-        {
-            var result = node.OnTick();
-            if (result == State.Success)
-            {
-                return State.Failure;
-            }
-
-            if (result == State.Failure)
-            {
-                return State.Success;
-            }
-
-            return State.Running;
-        }
-    }
-
-    [Serializable]
-    public sealed class Success : DecoratorNode
-    {
-        public override State OnTick()
-        {
-            return node.OnTick() == State.Running ? State.Running : State.Success;
-        }
-    }
-
-    [Serializable]
-    public sealed class Failure : DecoratorNode
-    {
-        public override State OnTick()
-        {
-            return node.OnTick() == State.Running ? State.Running : State.Failure;
         }
     }
 }
