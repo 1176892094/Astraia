@@ -168,7 +168,7 @@ namespace Astraia
                 {
                     if (!string.IsNullOrEmpty(column[0]))
                     {
-                        var bytes = column.Select(c => new XorBytes(Text.GetBytes(c))).ToArray();
+                        var bytes = column.Select(c => new Bytes(Text.GetBytes(c))).ToArray();
                         fileData.AddData((IData)Activator.CreateInstance(fileType, bytes));
                     }
                 }

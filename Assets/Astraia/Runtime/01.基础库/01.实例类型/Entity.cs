@@ -8,7 +8,7 @@ namespace Astraia
     public record OnVariableEvent : IEvent;
 
     [Serializable]
-    public struct XorInt32 : IEquatable<XorInt32>
+    public struct Xor32 : IEquatable<Xor32>
     {
         private static readonly int Ticks = (int)DateTime.Now.Ticks;
         public int origin;
@@ -38,31 +38,31 @@ namespace Astraia
             }
         }
 
-        public XorInt32(int value = 0)
+        public Xor32(int value = 0)
         {
             offset = Ticks;
             origin = value ^ offset;
             buffer = (offset >> 8) ^ value;
         }
 
-        public static implicit operator int(XorInt32 data)
+        public static implicit operator int(Xor32 data)
         {
             return data.Value;
         }
 
-        public static implicit operator XorInt32(int data)
+        public static implicit operator Xor32(int data)
         {
-            return new XorInt32(data);
+            return new Xor32(data);
         }
 
-        public bool Equals(XorInt32 other)
+        public bool Equals(Xor32 other)
         {
             return Value == other.Value;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is XorInt32 other && Equals(other);
+            return obj is Xor32 other && Equals(other);
         }
 
         public override string ToString()
@@ -82,7 +82,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public XorInt32 SetBit(int shift, int bits, int v)
+        public Xor32 SetBit(int shift, int bits, int v)
         {
             var mask = ((1 << bits) - 1) << shift;
             return (Value & ~mask) | ((v << shift) & mask);
@@ -90,7 +90,7 @@ namespace Astraia
     }
 
     [Serializable]
-    public struct XorInt64 : IEquatable<XorInt64>
+    public struct Xor64 : IEquatable<Xor64>
     {
         private static readonly long Ticks = DateTime.Now.Ticks;
         public long origin;
@@ -120,31 +120,31 @@ namespace Astraia
             }
         }
 
-        public XorInt64(long value = 0)
+        public Xor64(long value = 0)
         {
             offset = Ticks;
             origin = value ^ offset;
             buffer = (offset >> 8) ^ value;
         }
 
-        public static implicit operator long(XorInt64 data)
+        public static implicit operator long(Xor64 data)
         {
             return data.Value;
         }
 
-        public static implicit operator XorInt64(long data)
+        public static implicit operator Xor64(long data)
         {
-            return new XorInt64(data);
+            return new Xor64(data);
         }
 
-        public bool Equals(XorInt64 other)
+        public bool Equals(Xor64 other)
         {
             return Value == other.Value;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is XorInt64 other && Equals(other);
+            return obj is Xor64 other && Equals(other);
         }
 
         public override string ToString()
@@ -164,7 +164,7 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public XorInt64 SetBit(int shift, int bits, int v)
+        public Xor64 SetBit(int shift, int bits, int v)
         {
             var mask = ((1L << bits) - 1) << shift;
             return (Value & ~mask) | ((v << shift) & mask);
@@ -172,7 +172,7 @@ namespace Astraia
     }
 
     [Serializable]
-    public struct XorBytes : IEquatable<XorBytes>
+    public struct Bytes : IEquatable<Bytes>
     {
         private static readonly int Ticks = (int)DateTime.Now.Ticks;
         public byte[] origin;
@@ -205,7 +205,7 @@ namespace Astraia
             }
         }
 
-        public XorBytes(byte[] value)
+        public Bytes(byte[] value)
         {
             buffer = 0;
             offset = Ticks;
@@ -213,24 +213,24 @@ namespace Astraia
             buffer = GetHashCode();
         }
 
-        public static implicit operator byte[](XorBytes variable)
+        public static implicit operator byte[](Bytes variable)
         {
             return variable.Value;
         }
 
-        public static implicit operator XorBytes(byte[] value)
+        public static implicit operator Bytes(byte[] value)
         {
-            return new XorBytes(value);
+            return new Bytes(value);
         }
 
-        public bool Equals(XorBytes other)
+        public bool Equals(Bytes other)
         {
             return buffer - offset == other.buffer - other.offset;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is XorBytes other && Equals(other);
+            return obj is Bytes other && Equals(other);
         }
 
         public override string ToString()
@@ -261,6 +261,77 @@ namespace Astraia
                 }
 
                 return result;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe int GetBits(int shift, int bits)
+        {
+            fixed (byte* ptr = origin)
+            {
+                var byteIndex = shift >> 3;
+                var bitOffset = shift & 7;
+
+                var result = 0;
+                var read = 0;
+
+                var p = ptr + byteIndex;
+
+                while (read < bits)
+                {
+                    var take = 8 - bitOffset;
+                    var remain = bits - read;
+
+                    if (take > remain)
+                        take = remain;
+
+                    var mask = (1 << take) - 1;
+
+                    var part = (*p >> bitOffset) & mask;
+
+                    result |= part << read;
+
+                    read += take;
+                    bitOffset = 0;
+                    p++;
+                }
+
+                return result;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void SetBits(int shift, int bits, int value)
+        {
+            fixed (byte* ptr = origin)
+            {
+                var byteIndex = shift >> 3;
+                var bitOffset = shift & 7;
+
+                var written = 0;
+
+                var p = ptr + byteIndex;
+
+                while (written < bits)
+                {
+                    var take = 8 - bitOffset;
+                    var remain = bits - written;
+
+                    if (take > remain)
+                        take = remain;
+
+                    var mask = (1 << take) - 1;
+
+                    var part = (value >> written) & mask;
+
+                    var clearMask = ~(mask << bitOffset);
+
+                    *p = (byte)((*p & clearMask) | (part << bitOffset));
+
+                    written += take;
+                    bitOffset = 0;
+                    p++;
+                }
             }
         }
     }
