@@ -5,18 +5,37 @@
 ```c#
     public class Example
     {
-        private Xor.Int playerId; // 对内存进行绑定的变量 防止内存修改
-        private Xor.Float playerHp;
-        private Xor.Bytes buffer;
+        private Xor32 v1; // 进行 压缩 位运算 验证数据完整性
+        private Xor64 v2;
+        private Bytes v3;
+
+        public int Id
+        {
+            get => v1.GetBit(16, 16); // 16 bit
+            set => v1 = v1.SetBit(16, 16, value);
+        }
+
+        public int Count
+        {
+            get => v1.GetBit(08, 08); // 8 bit
+            set => v1 = v1.SetBit(08, 08, value);
+        }
+
+        public int Level
+        {
+            get => v1.GetBit(00, 08); // 8 bit
+            set => v1 = v1.SetBit(00, 08, value);
+        }
+
 
         public void Save()
         {
-            JsonManager.Save(this, "Example"); // 存储玩家数据
+            JsonManager.Save(this, "Name"); // 存储玩家数据
         }
 
         public void Load()
         {
-            JsonManager.Save(this, "Example"); // 加载玩家数据
+            JsonManager.Load(this, "Example"); // 加载玩家数据
         }
     }
 ```
@@ -28,13 +47,13 @@
     {
         public void Test(string result, byte[] buffer)
         {
-            result = Service.Zip.Compress(result);    // 字符串压缩
-            buffer = Service.Text.GetBytes(result);   // 转化为字节
-            buffer = Service.Xor.Encrypt(buffer);     // 字节异或加密
+            result = Zip.Compress(result);    // 字符串压缩
+            buffer = Text.GetBytes(result);   // 转化为字节
+            buffer = Xor.Encrypt(buffer);     // 字节异或加密
             
-            buffer = Service.Xor.Decrypt(buffer);     // 字节异或解密
-            result = Service.Text.GetString(buffer);  // 转化为字符串
-            result = Service.Zip.Decompress(result);  // 字符串解压
+            buffer = Xor.Decrypt(buffer);     // 字节异或解密
+            result = Text.GetString(buffer);  // 转化为字符串
+            result = Zip.Decompress(result);  // 字符串解压
         }
     }
 ```
@@ -60,7 +79,7 @@
 4.事件池
 
 ```c#
-    public class Example : MonoBehaviour, IEvent<PackComplete>
+    public class Example : MonoBehaviour, IEvent<OnBundleComplete>
     {
         private void OnEnable()
         {
@@ -69,12 +88,12 @@
 
         private void OnDisable()
         {
-            EventManager.Remove(this);// 移除下载完成事件
+            EventManager.Remove(this); // 移除下载完成事件
         }
 
-        public void Execute(PackComplete message)
+        public void Execute(OnBundleComplete message)
         {
-            AssetManager.LoadAssetData(); // 当 AssetBundle 更新下载完成后 加载 AssetBundle 到内存中
+            AssetManager.LoadAssetBundle(); // 当 AssetBundle 更新下载完成后 加载 AssetBundle 到内存中
         }
     }
 ```
@@ -112,12 +131,10 @@
         {
             if (Input.GetMouseButtonDown(0))
             {
-                PoolManager.Show("Prefabs/Monster", monster => // 从对象池中 取出 或 生成
+                var monster = PoolManager.Show("Prefabs/Monster");
+                monster.transform.Wait(5).OnComplete(() =>
                 {
-                    monster.transform.Wait(5).OnComplete(() =>
-                    {
-                        PoolManager.Hide(monster); // 等待5秒后 放入对象池
-                    });
+                    PoolManager.Hide(monster); // 等待5秒后 放入对象池
                 });
             }
         }
@@ -133,7 +150,7 @@
         {
             NetworkManager.StartHost(); // 开启主机
         
-            NetworkManager.StartHost(EntryMode.None); // 取消传输层调用，单机模式可用
+            NetworkManager.StartHost(false); // 取消传输层调用，单机模式可用
         
             NetworkManager.StopHost(); // 停止主机
         
@@ -181,14 +198,12 @@
 
         public void Execute(ServerReady message) // 当客户端在服务器准备就绪 (可以发送Rpc和网络变量同步)(客户端使用无效)
         {
-            AssetManager.Load<GameObject>("Player", player =>
-            {
-                NetworkManager.Server.Spawn(player, message.client); // 在这里为客户端生成玩家
+            var player = AssetManager.Load<GameObject>("Player");
+            NetworkManager.Server.Spawn(player, message.client); // 在这里为客户端生成玩家
 
-                transform.Wait(5).OnComplete(() => // 等待5秒后销毁
-                {
-                    NetworkManager.Server.Destroy(player);
-                });
+            transform.Wait(5).OnComplete(() => // 等待5秒后销毁
+            {
+                NetworkManager.Server.Destroy(player);
             });
         }
     }
@@ -197,18 +212,16 @@
 9.NetworkClient的使用
 
 ```c#
-    public class Example : MonoBehaviour, IEvent<ClientConnect>, IEvent<ClientDisconnect>, IEvent<ClientNotReady>
+    public class Example : MonoBehaviour, IEvent<ClientConnect>, IEvent<ClientDisconnect>
     {
         private void OnEnable()
         {
-            EventManager.Listen<ClientNotReady>(this);
             EventManager.Listen<ClientConnect>(this);
             EventManager.Listen<ClientDisconnect>(this);
         }
 
         private void OnDisable()
         {
-            EventManager.Remove<ClientNotReady>(this);
             EventManager.Remove<ClientConnect>(this);
             EventManager.Remove<ClientDisconnect>(this);
         }
@@ -222,18 +235,13 @@
         {
             Debug.Log("连接断开");
         }
-
-        public void Execute(ClientNotReady message) // 在场景准备加载时会调用该方法(服务器使用无效)
-        {
-            Debug.Log("客户端取消准备");
-        }
     }
 ```
 
 10.NetworkScene的使用
 
 ```c#
-    public class Example : MonoBehaviour, IEvent<ServerChangeScene>, IEvent<ServerSceneChanged>, IEvent<ClientChangeScene>, IEvent<ClientSceneChanged>
+    public class Example : MonoBehaviour, IEvent<ServerLoadScene>, IEvent<ServerSceneLoaded>, IEvent<ClientLoadScene>, IEvent<ClientSceneLoaded>
     {
         private void Start()
         {
@@ -242,37 +250,37 @@
 
         private void OnEnable()
         {
-            EventManager.Listen<ServerChangeScene>(this);
-            EventManager.Listen<ServerSceneChanged>(this);
-            EventManager.Listen<ClientChangeScene>(this);
-            EventManager.Listen<ClientSceneChanged>(this);
+            EventManager.Listen<ServerLoadScene>(this);
+            EventManager.Listen<ServerSceneLoaded>(this);
+            EventManager.Listen<ClientLoadScene>(this);
+            EventManager.Listen<ClientSceneLoaded>(this);
         }
 
         private void OnDisable()
         {
-            EventManager.Remove<ServerChangeScene>(this);
-            EventManager.Remove<ServerSceneChanged>(this);
-            EventManager.Remove<ClientChangeScene>(this);
-            EventManager.Remove<ClientSceneChanged>(this);
+            EventManager.Remove<ServerLoadScene>(this);
+            EventManager.Remove<ServerSceneLoaded>(this);
+            EventManager.Remove<ClientLoadScene>(this);
+            EventManager.Remove<ClientSceneLoaded>(this);
         }
 
 
-        public void Execute(ServerChangeScene message) // 当服务器场景加载完成后
+        public void Execute(ServerLoadScene message) // 当服务器场景加载完成后
         {
             Debug.Log("服务器准备改变场景");
         }
 
-        public void Execute(ServerSceneChanged message) // 当服务器场景加载完成后(客户端不调用)
+        public void Execute(ServerSceneLoaded message) // 当服务器场景加载完成后(客户端不调用)
         {
             Debug.Log("服务器场景加载完成");
         }
 
-        public void Execute(ClientChangeScene message) // 当客户端准备改变场景
+        public void Execute(ClientLoadScene message) // 当客户端准备改变场景
         {
             Debug.Log("客户端准备改变场景");
         }
 
-        public void Execute(ClientSceneChanged message) // 当客户端场景加载完成后(服务器不调用)
+        public void Execute(ClientSceneLoaded message) // 当客户端场景加载完成后(服务器不调用)
         {
             Debug.Log("客户端场景加载完成");
         }
@@ -282,7 +290,7 @@
 11.远程调用和网络变量
 
 ```c#
-    public class Example : NetworkAgent // 继承NetworkAgent
+    public class Example : NetworkModule
     {
         /// <summary>
         /// 网络变量 支持 基本类型，结构体，GameObject，NetworkEntity，NetworkAgent
@@ -294,20 +302,32 @@
             Debug.Log(oldValue + "=>" + newValue);
         }
 
-        [ServerRpc] // 可传参数
+        [ServerRpc]
         public void Test1()
         {
-            Debug.Log("ServerRpc"); // 由客户端向连接服务器 进行远程调用
+            Debug.Log("ServerRpc 1"); // 由客户端向连接服务器 进行远程调用
         }
 
-        [ClientRpc(Channel.Reliable)] //默认为可靠传输
+        [ServerRpc(Channel.Reliable | Channel.IgnoreOwner)] //非 Owner 也能调用
         public void Test2()
         {
-            Debug.Log("ClientRpc"); // 由服务器向所有客户端 进行远程调用
+            Debug.Log("ServerRpc 2"); // 由客户端向连接服务器 进行远程调用
         }
 
-        [TargetRpc(Channel.Unreliable)] //可设置为不可靠传输
-        public void Test3(NetworkClient client)
+        [ClientRpc]
+        public void Test3()
+        {
+            Debug.Log("ClientRpc 1"); // 由服务器向所有客户端 进行远程调用
+        }
+
+        [ClientRpc(Channel.Reliable | Channel.IgnoreOwner)] //发给非 Owner 的客户端
+        public void Test4()
+        {
+            Debug.Log("ClientRpc 2"); // 由客户端向连接服务器 进行远程调用
+        }
+
+        [TargetRpc(Channel.Unreliable)] //发给指定 client 的客户端
+        public void Test5(NetworkClient client)
         {
             Debug.Log("TargetRpc"); // 由服务器向指定客户端 进行远程调用
         }
