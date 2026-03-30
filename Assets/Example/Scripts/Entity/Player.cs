@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using Astraia;
 using Astraia.Net;
 using UnityEngine;
 
@@ -33,9 +34,11 @@ namespace Runtime
         protected override void Awake()
         {
             base.Awake();
+            Logic.AddComponent<PlayerInput>();
             Logic.AddComponent<PlayerFeature>();
             Logic.AddComponent<PlayerMachine>();
-            Logic.AddComponent<PlayerInput>();
+            Logic.AddComponent<PlayerSender>();
+            Logic.AddComponent<NetworkTransform>();
             Transform.syncDirection = SyncMode.Client;
         }
 

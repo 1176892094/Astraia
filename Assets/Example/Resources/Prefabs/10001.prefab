@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4880443872429666158}
-  - component: {fileID: 8087870240613574326}
+  - component: {fileID: 5576890031461154260}
   m_Layer: 0
   m_Name: 10001
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8087870240613574326
+--- !u!114 &5576890031461154260
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -43,8 +43,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
-  moduleList:
+  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkEntity
+  modules:
   - Runtime.SpawnManager, Assembly-CSharp
+  objectId: 0
   assetId: 10001
   sceneId: 0
+  visible: 0
