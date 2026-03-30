@@ -1447,17 +1447,6 @@ namespace Astraia
     }
 
     [Serializable]
-    public sealed class Interval : DecoratorNode
-    {
-        public float waitTime;
-
-        public override State OnTick()
-        {
-            return waitTime < TimeManager.Time ? State.Success : State.Running;
-        }
-    }
-
-    [Serializable]
     public sealed class Success : DecoratorNode
     {
         public override State OnTick()
