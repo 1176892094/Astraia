@@ -1214,7 +1214,6 @@ namespace Astraia
         }
     }
 
-
     public readonly struct Parallel<T> : INode<T> where T : IRoot
     {
         private readonly INode<T>[] Nodes;
@@ -1231,9 +1230,9 @@ namespace Astraia
             var isAll = true;
             var isAny = false;
 
-            foreach (var node in Nodes)
+            foreach (var reason in Nodes)
             {
-                var result = node.OnTick(root);
+                var result = reason.OnTick(root);
                 if (IsAny)
                 {
                     if (result == BTState.Success)
@@ -1395,14 +1394,14 @@ namespace Astraia
 
     public static class Nodes
     {
-        public static INode<T> LoadNode<T>(Node node, Func<Node, Type> func) where T : IRoot
+        public static INode<T> LoadNode<T>(Node node, Func<Node, string> func) where T : IRoot
         {
             if (node.Name.IsNullOrEmpty())
             {
                 throw new NullReferenceException();
             }
 
-            var root = func.Invoke(node);
+            var root = Search.GetType(func.Invoke(node));
             if (root == typeof(Sequence<>))
             {
                 return new Sequence<T>(node.Index, LoadNodes<T>(node, func));
@@ -1446,7 +1445,7 @@ namespace Astraia
             return (INode<T>)Activator.CreateInstance(root);
         }
 
-        private static INode<T>[] LoadNodes<T>(Node node, Func<Node, Type> func) where T : IRoot
+        private static INode<T>[] LoadNodes<T>(Node node, Func<Node, string> func) where T : IRoot
         {
             var nodes = new INode<T>[node.Nodes.Count];
             for (var i = 0; i < node.Nodes.Count; i++)
