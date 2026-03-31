@@ -1125,7 +1125,7 @@ namespace Astraia
 
 namespace Astraia
 {
-    public enum NodeState
+    public enum BTState
     {
         Running,
         Success,
@@ -1139,94 +1139,94 @@ namespace Astraia
 
     public interface INode<in T> where T : IRoot
     {
-        NodeState OnTick(T root);
+        BTState OnTick(T root);
     }
 
     public readonly struct Sequence<T> : INode<T> where T : IRoot
     {
-        private readonly IList<INode<T>> Nodes;
+        private readonly INode<T>[] Nodes;
         private readonly int Index;
 
-        public Sequence(int index, IList<INode<T>> nodes)
+        public Sequence(int index, INode<T>[] nodes)
         {
             Index = index;
             Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        NodeState INode<T>.OnTick(T root)
+        BTState INode<T>.OnTick(T root)
         {
             var reason = root.Item;
-            while (reason[Index] < Nodes.Count)
+            while (reason[Index] < Nodes.Length)
             {
                 var result = Nodes[reason[Index]].OnTick(root);
-                if (result == NodeState.Running)
+                if (result == BTState.Running)
                 {
-                    return NodeState.Running;
+                    return BTState.Running;
                 }
 
-                if (result == NodeState.Failure)
+                if (result == BTState.Failure)
                 {
                     reason[Index] = 0;
-                    return NodeState.Failure;
+                    return BTState.Failure;
                 }
 
                 reason[Index]++;
             }
 
             reason[Index] = 0;
-            return NodeState.Success;
+            return BTState.Success;
         }
     }
 
     public readonly struct Selector<T> : INode<T> where T : IRoot
     {
-        private readonly IList<INode<T>> Nodes;
+        private readonly INode<T>[] Nodes;
         private readonly int Index;
 
-        public Selector(int index, IList<INode<T>> nodes)
+        public Selector(int index, INode<T>[] nodes)
         {
             Index = index;
             Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        NodeState INode<T>.OnTick(T root)
+        BTState INode<T>.OnTick(T root)
         {
             var reason = root.Item;
-            while (reason[Index] < Nodes.Count)
+            while (reason[Index] < Nodes.Length)
             {
                 var result = Nodes[reason[Index]].OnTick(root);
-                if (result == NodeState.Running)
+                if (result == BTState.Running)
                 {
-                    return NodeState.Running;
+                    return BTState.Running;
                 }
 
-                if (result == NodeState.Success)
+                if (result == BTState.Success)
                 {
                     reason[Index] = 0;
-                    return NodeState.Success;
+                    return BTState.Success;
                 }
 
                 reason[Index]++;
             }
 
             reason[Index] = 0;
-            return NodeState.Failure;
+            return BTState.Failure;
         }
     }
 
 
     public readonly struct Parallel<T> : INode<T> where T : IRoot
     {
-        private readonly IList<INode<T>> Nodes;
+        private readonly INode<T>[] Nodes;
         private readonly bool IsAny;
 
-        public Parallel(int index, IList<INode<T>> nodes)
+        public Parallel(int index, INode<T>[] nodes)
         {
             IsAny = index != 0;
             Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        NodeState INode<T>.OnTick(T root)
+        BTState INode<T>.OnTick(T root)
         {
             var isAll = true;
             var isAny = false;
@@ -1236,29 +1236,29 @@ namespace Astraia
                 var result = node.OnTick(root);
                 if (IsAny)
                 {
-                    if (result == NodeState.Success)
+                    if (result == BTState.Success)
                     {
-                        return NodeState.Success;
+                        return BTState.Success;
                     }
 
-                    if (result == NodeState.Failure)
+                    if (result == BTState.Failure)
                     {
-                        return NodeState.Failure;
+                        return BTState.Failure;
                     }
                 }
                 else
                 {
-                    if (result == NodeState.Failure)
+                    if (result == BTState.Failure)
                     {
-                        return NodeState.Failure;
+                        return BTState.Failure;
                     }
 
-                    if (result != NodeState.Success)
+                    if (result != BTState.Success)
                     {
                         isAll = false;
                     }
 
-                    if (result == NodeState.Success)
+                    if (result == BTState.Success)
                     {
                         isAny = true;
                     }
@@ -1267,36 +1267,36 @@ namespace Astraia
 
             if (IsAny)
             {
-                return isAny ? NodeState.Success : NodeState.Running;
+                return isAny ? BTState.Success : BTState.Running;
             }
 
-            return isAll ? NodeState.Success : NodeState.Running;
+            return isAll ? BTState.Success : BTState.Running;
         }
     }
 
     public readonly struct Actuator<T> : INode<T> where T : IRoot
     {
-        private readonly IList<INode<T>> Nodes;
+        private readonly INode<T>[] Nodes;
         private readonly int Index;
 
-        public Actuator(int index, IList<INode<T>> nodes)
+        public Actuator(int index, INode<T>[] nodes)
         {
             Index = index;
             Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        NodeState INode<T>.OnTick(T root)
+        BTState INode<T>.OnTick(T root)
         {
             var reason = root.Item;
             if (reason[Index] == 0)
             {
-                reason[Index] = Seed.Next(Nodes.Count) + 1;
+                reason[Index] = Seed.Next(Nodes.Length) + 1;
             }
 
             var result = Nodes[reason[Index] - 1].OnTick(root);
-            if (result == NodeState.Running)
+            if (result == BTState.Running)
             {
-                return NodeState.Running;
+                return BTState.Running;
             }
 
             reason[Index] = 0;
@@ -1317,23 +1317,23 @@ namespace Astraia
             Count = count;
         }
 
-        NodeState INode<T>.OnTick(T root)
+        BTState INode<T>.OnTick(T root)
         {
             var reason = root.Item;
             var result = Node.OnTick(root);
-            if (result == NodeState.Running)
+            if (result == BTState.Running)
             {
-                return NodeState.Running;
+                return BTState.Running;
             }
 
             reason[Index]++;
             if (Count < 0 || reason[Index] < Count)
             {
-                return NodeState.Running;
+                return BTState.Running;
             }
 
             reason[Index] = 0;
-            return NodeState.Success;
+            return BTState.Success;
         }
     }
 
@@ -1346,20 +1346,20 @@ namespace Astraia
             Node = node;
         }
 
-        NodeState INode<T>.OnTick(T root)
+        BTState INode<T>.OnTick(T root)
         {
             var result = Node.OnTick(root);
-            if (result == NodeState.Success)
+            if (result == BTState.Success)
             {
-                return NodeState.Failure;
+                return BTState.Failure;
             }
 
-            if (result == NodeState.Failure)
+            if (result == BTState.Failure)
             {
-                return NodeState.Success;
+                return BTState.Success;
             }
 
-            return NodeState.Running;
+            return BTState.Running;
         }
     }
 
@@ -1372,9 +1372,9 @@ namespace Astraia
             Node = node;
         }
 
-        NodeState INode<T>.OnTick(T root)
+        BTState INode<T>.OnTick(T root)
         {
-            return Node.OnTick(root) == NodeState.Running ? NodeState.Running : NodeState.Success;
+            return Node.OnTick(root) == BTState.Running ? BTState.Running : BTState.Success;
         }
     }
 
@@ -1387,9 +1387,9 @@ namespace Astraia
             Node = node;
         }
 
-        NodeState INode<T>.OnTick(T root)
+        BTState INode<T>.OnTick(T root)
         {
-            return Node.OnTick(root) == NodeState.Running ? NodeState.Running : NodeState.Failure;
+            return Node.OnTick(root) == BTState.Running ? BTState.Running : BTState.Failure;
         }
     }
 
