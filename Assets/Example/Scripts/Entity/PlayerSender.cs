@@ -20,10 +20,10 @@ namespace Runtime
     [Serializable]
     public class PlayerSender : NetworkModule, IStartAuthority
     {
-        [SyncVar(nameof(OnColorValueChanged))] public Color syncColor;
+        [SyncVar(nameof(OnColorValueChanged))] public Color32 syncColor;
         private new Player owner => (Player)base.owner;
 
-        private void OnColorValueChanged(Color oldValue, Color newValue)
+        private void OnColorValueChanged(Color32 oldValue, Color32 newValue)
         {
             owner.Machine.renderer.color = newValue;
         }
@@ -35,7 +35,7 @@ namespace Runtime
         }
 
         [ServerRpc]
-        public void SyncColorServerRpc(Color syncColor)
+        public void SyncColorServerRpc(Color32 syncColor)
         {
             this.syncColor = syncColor;
         }

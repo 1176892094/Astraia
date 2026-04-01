@@ -16,46 +16,44 @@ using Astraia.Core;
 namespace Runtime
 {
     [Serializable]
-    public class PlayerFeature : Blackboard<Attribute, Player>
+    public class PlayerFeature : Blackboard<Label, Player>
     {
-        public StateType state = StateType.None;
-        public float moveX;
-        public float moveY;
-        public bool isWalk => moveX != 0 || moveY != 0;
-        public float moveSpeed => GetFloat(Attribute.MoveSpeed);
-        public float jumpForce => GetFloat(Attribute.JumpForce);
-        public float dashSpeed => GetFloat(Attribute.DashSpeed);
-        public float dashFrame => GetFloat(Attribute.DashFrame);
-        public float waitFrame => GetFloat(Attribute.WaitFrame);
+        public StateType state = StateType.默认;
+        public bool isWalk => InputManager.MoveX != 0 || InputManager.MoveY != 0;
+        public float moveSpeed => GetFloat(Label.移动速度);
+        public float jumpForce => GetFloat(Label.跳跃力度);
+        public float dashSpeed => GetFloat(Label.冲刺速度);
+        public float dashFrame => GetFloat(Label.冲刺时间);
+        public float waitFrame => GetFloat(Label.等待时间);
 
         public override void Dequeue()
         {
-            SetFloat(Attribute.MoveSpeed, 2);
-            SetFloat(Attribute.JumpForce, 4);
-            SetFloat(Attribute.DashSpeed, 5);
+            SetFloat(Label.移动速度, 2);
+            SetFloat(Label.跳跃力度, 4);
+            SetFloat(Label.冲刺速度, 5);
         }
 
         public void Update()
         {
             if (owner.DRHit || owner.DLHit)
             {
-                state |= StateType.Ground;
-                SetInt(Attribute.JumpCount, 1);
-                SetInt(Attribute.DashCount, 1);
+                state |= StateType.地面;
+                SetInt(Label.跳跃次数, 1);
+                SetInt(Label.冲刺次数, 1);
             }
             else
             {
-                state &= ~StateType.Ground;
+                state &= ~StateType.地面;
             }
 
             if (owner.RDHit)
             {
-                state |= StateType.Wall;
-                SetInt(Attribute.JumpCount, 1);
+                state |= StateType.墙面;
+                SetInt(Label.跳跃次数, 1);
             }
             else
             {
-                state &= ~StateType.Wall;
+                state &= ~StateType.墙面;
             }
         }
     }

@@ -32,7 +32,7 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (Feature.state.HasFlag(StateType.Wall) && Feature.state.HasFlag(StateType.Climb))
+            if (Feature.state.HasFlag(StateType.墙面) && Feature.state.HasFlag(StateType.抓墙缓冲))
             {
                 Machine.Switch(StateConst.Grab);
                 return;
@@ -58,7 +58,7 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (Feature.state.HasFlag(StateType.Wall) && Feature.state.HasFlag(StateType.Climb))
+            if (Feature.state.HasFlag(StateType.墙面) && Feature.state.HasFlag(StateType.抓墙缓冲))
             {
                 Machine.Switch(StateConst.Grab);
                 return;
@@ -70,7 +70,7 @@ namespace Runtime
                 return;
             }
 
-            Machine.velocityX = Feature.moveX * Feature.moveSpeed;
+            Machine.velocityX = InputManager.MoveX * Feature.moveSpeed;
         }
 
         public override void OnExit()
@@ -86,15 +86,15 @@ namespace Runtime
         {
             frameCount = Time.frameCount + 10;
             owner.Sender.SyncColorServerRpc(Color.red);
-            Feature.state |= StateType.Jump;
-            Feature.SubInt(Attribute.JumpCount, 1);
-            if (Feature.state.HasFlag(StateType.Ground))
+            Feature.state |= StateType.跳跃;
+            Feature.SubInt(Label.跳跃次数, 1);
+            if (Feature.state.HasFlag(StateType.地面))
             {
                 Machine.velocityY = Feature.jumpForce;
             }
-            else if (Feature.state.HasFlag(StateType.Wall))
+            else if (Feature.state.HasFlag(StateType.墙面))
             {
-                Feature.state |= StateType.Jumped;
+                Feature.state |= StateType.墙蹬跳;
                 Machine.velocityY = Feature.jumpForce;
                 Machine.velocityX = -transform.localScale.x * Feature.jumpForce;
                 transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
@@ -115,23 +115,23 @@ namespace Runtime
 
             if (Feature.dashFrame > Time.frameCount)
             {
-                if (Feature.moveX != 0)
+                if (InputManager.MoveX != 0)
                 {
                     Machine.Switch(StateConst.Crash);
                     return;
                 }
             }
 
-            if (!Feature.state.HasFlag(StateType.Jumped))
+            if (!Feature.state.HasFlag(StateType.墙蹬跳))
             {
-                Machine.velocityX = Feature.moveX * Feature.moveSpeed;
+                Machine.velocityX =InputManager.MoveX * Feature.moveSpeed;
             }
         }
 
         public override void OnExit()
         {
-            Feature.state &= ~StateType.Jump;
-            Feature.state &= ~StateType.Jumped;
+            Feature.state &= ~StateType.跳跃;
+            Feature.state &= ~StateType.墙蹬跳;
         }
     }
 
@@ -143,7 +143,7 @@ namespace Runtime
         {
             frameCount = Time.frameCount + 5;
             owner.Sender.SyncColorServerRpc(Color.cyan);
-            Feature.state |= StateType.Grab;
+            Feature.state |= StateType.抓墙;
             Machine.velocityY = 0;
         }
 
@@ -157,23 +157,23 @@ namespace Runtime
 
             if (frameCount < Time.frameCount)
             {
-                if (!Feature.state.HasFlag(StateType.Wall) || !Feature.state.HasFlag(StateType.Climb))
+                if (!Feature.state.HasFlag(StateType.墙面) || !Feature.state.HasFlag(StateType.抓墙缓冲))
                 {
                     Machine.Switch(StateConst.Idle);
                     return;
                 }
             }
-            else if (Feature.moveX != 0)
+            else if (InputManager.MoveX != 0)
             {
                 transform.position += Vector3.up * 0.02f;
             }
 
-            Machine.velocityY = Feature.moveY * Feature.moveSpeed / 2;
+            Machine.velocityY = InputManager.MoveX * Feature.moveSpeed / 2;
         }
 
         public override void OnExit()
         {
-            Feature.state &= ~StateType.Grab;
+            Feature.state &= ~StateType.抓墙;
         }
     }
 
@@ -187,7 +187,7 @@ namespace Runtime
         {
             frameCount = Time.frameCount + 10;
             owner.Sender.SyncColorServerRpc(Color.red);
-            Feature.state |= StateType.Grab;
+            Feature.state |= StateType.抓墙;
             point = transform.position;
         }
 
@@ -215,7 +215,7 @@ namespace Runtime
 
         public override void OnExit()
         {
-            Feature.state &= ~StateType.Grab;
+            Feature.state &= ~StateType.抓墙;
         }
     }
 
@@ -226,12 +226,12 @@ namespace Runtime
         public override void OnEnter()
         {
             AudioManager.Play("30001");
-            Feature.SetInt(Attribute.DashFrame, Time.frameCount + 10);
+            Feature.SetInt(Label.冲刺时间, Time.frameCount + 10);
             owner.Sender.SyncColorServerRpc(Color.magenta);
-            Feature.state |= StateType.Dash;
-            Feature.SubInt(Attribute.DashCount, 1);
-            direction = new Vector3(Feature.moveX, Feature.moveY).normalized;
-            Feature.SetInt(Attribute.WaitFrame, 0);
+            Feature.state |= StateType.冲刺;
+            Feature.SubInt(Label.冲刺次数, 1);
+            direction = new Vector3(InputManager.MoveX, InputManager.MoveY).normalized;
+            Feature.SetInt(Label.等待时间, 0);
         }
 
         public override void OnUpdate()
@@ -247,13 +247,13 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            Feature.AddInt(Attribute.WaitFrame, 1);
+            Feature.AddInt(Label.等待时间, 1);
             var position = transform.position;
             if (direction == Vector3.zero)
             {
                 position += Vector3.right * (transform.localScale.x * Feature.dashSpeed * Time.fixedDeltaTime);
             }
-            else if (Feature.moveY < 0 && Feature.state.HasFlag(StateType.Ground))
+            else if (InputManager.MoveY < 0 && Feature.state.HasFlag(StateType.地面))
             {
                 position += Vector3.right * (transform.localScale.x * Feature.dashSpeed * Time.fixedDeltaTime);
             }
@@ -268,7 +268,7 @@ namespace Runtime
         public override void OnExit()
         {
             Machine.velocityY = 0;
-            Feature.state &= ~StateType.Dash;
+            Feature.state &= ~StateType.冲刺;
         }
     }
 
@@ -276,13 +276,13 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            Feature.state |= StateType.Crash;
+            Feature.state |= StateType.冲刺跳;
             owner.Sender.SyncColorServerRpc(Color.magenta);
         }
 
         public override void OnUpdate()
         {
-            if (Feature.state.HasFlag(StateType.Wall) || Feature.state.HasFlag(StateType.Ground))
+            if (Feature.state.HasFlag(StateType.墙面) || Feature.state.HasFlag(StateType.地面))
             {
                 Machine.Switch(StateConst.Idle);
                 return;
@@ -293,14 +293,14 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            Feature.AddInt(Attribute.WaitFrame, 1);
+            Feature.AddInt(Label.等待时间, 1);
             Machine.velocityX = transform.localScale.x * Feature.moveSpeed * 2;
         }
 
         public override void OnExit()
         {
             Machine.velocityX = 0;
-            Feature.state &= ~StateType.Crash;
+            Feature.state &= ~StateType.冲刺跳;
         }
     }
 }

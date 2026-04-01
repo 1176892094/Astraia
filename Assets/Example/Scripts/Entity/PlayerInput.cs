@@ -10,8 +10,8 @@
 // // *********************************************************************************
 
 using Astraia;
-using Astraia.Core;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Runtime
 {
@@ -21,76 +21,95 @@ namespace Runtime
 
         public void Update()
         {
-            if (!Feature.state.HasFlag(StateType.Stop))
+            if (InputManager.MoveX > 0)
             {
-                var x = Input.GetAxisRaw("Horizontal");
-                var y = Input.GetAxisRaw("Vertical");
-                Feature.moveX = x;
-                Feature.moveY = y;
-
-                if (Input.GetKeyDown(KeyCode.C))
-                {
-                    DashButton();
-                }
-
-                if (Input.GetKeyDown(KeyCode.X))
-                {
-                    JumpButton();
-                }
-
-                if (Input.GetKeyUp(KeyCode.X))
-                {
-                    FallButton();
-                }
-
-                if (Input.GetKeyDown(KeyCode.Z))
-                {
-                    ClimbButton();
-                }
-
-                if (Input.GetKeyUp(KeyCode.Z))
-                {
-                    GrabButton();
-                }
+                transform.localScale = new Vector3(InputManager.MoveX, 1, 1);
+            }
+            else if (InputManager.MoveX < 0)
+            {
+                transform.localScale = new Vector3(InputManager.MoveX, 1, 1);
             }
 
-            MoveUpdate();
+            DashUpdate();
+
+            if (Feature.state.HasFlag(StateType.地面))
+            {
+                Feature.SetFloat(Label.土狼时间, Time.time + 0.2f);
+                JumpUpdate();
+            }
+            else if (Feature.state.HasFlag(StateType.墙面))
+            {
+                if (!Feature.state.HasFlag(StateType.抓墙缓冲))
+                {
+                    FallUpdate();
+                }
+
+                Feature.SetFloat(Label.土狼时间, Time.time + 0.2f);
+                JumpUpdate();
+            }
+            else
+            {
+                FallUpdate();
+            }
+
+            if (Feature.GetFloat(Label.土狼时间) > Time.time)
+            {
+                JumpUpdate();
+            }
         }
 
-        private void JumpButton()
+        public override void Dequeue()
         {
-            Feature.state |= StateType.Jumping;
-            Feature.SetFloat(Attribute.JumpInput, Time.time + 0.2f);
+            InputManager.Dash.performed += DashButton;
+            InputManager.Jump.started += JumpButton;
+            InputManager.Jump.canceled += FallButton;
+            InputManager.Attack.started += AttackButton;
+            InputManager.Attack.canceled += FinishButton;
         }
 
-        private void FallButton()
+        public override void Enqueue()
         {
-            Feature.state &= ~StateType.Jumping;
+            InputManager.Dash.performed -= DashButton;
+            InputManager.Jump.started -= JumpButton;
+            InputManager.Jump.canceled -= FallButton;
+            InputManager.Attack.started -= AttackButton;
+            InputManager.Attack.canceled -= FinishButton;
         }
 
-        private void ClimbButton()
+        private void DashButton(InputAction.CallbackContext obj)
         {
-            Feature.state |= StateType.Climb;
+            Feature.SetFloat(Label.冲刺输入, Time.time + 0.2f);
         }
 
-        private void GrabButton()
+        private void JumpButton(InputAction.CallbackContext obj)
         {
-            Feature.state &= ~StateType.Climb;
+            Feature.state |= StateType.跳跃缓冲;
+            Feature.SetFloat(Label.跳跃输入, Time.time + 0.2f);
         }
 
-        private void DashButton()
+        private void FallButton(InputAction.CallbackContext obj)
         {
-            Feature.SetFloat(Attribute.DashInput, Time.time + 0.2f);
+            Feature.state &= ~StateType.跳跃缓冲;
+        }
+
+        private void AttackButton(InputAction.CallbackContext obj)
+        {
+            Feature.state |= StateType.抓墙缓冲;
+        }
+
+        private void FinishButton(InputAction.CallbackContext obj)
+        {
+            Feature.state &= ~StateType.抓墙缓冲;
         }
 
         private void FallUpdate()
         {
-            if (Feature.state.HasFlag(StateType.Dash))
+            if (Feature.state.HasFlag(StateType.冲刺))
             {
                 return;
             }
 
-            if (Feature.state.HasFlag(StateType.Jumping))
+            if (Feature.state.HasFlag(StateType.跳跃缓冲))
             {
                 owner.Machine.velocityY -= 9.81f * Time.deltaTime;
             }
@@ -102,83 +121,44 @@ namespace Runtime
             owner.Machine.velocityY = Mathf.Max(-5, owner.Machine.velocityY);
         }
 
-        private void MoveUpdate()
-        {
-            if (Feature.moveX > 0)
-            {
-                transform.localScale = new Vector3(Feature.moveX, 1, 1);
-            }
-            else if (Feature.moveX < 0)
-            {
-                transform.localScale = new Vector3(Feature.moveX, 1, 1);
-            }
-
-            DashUpdate();
-
-            if (Feature.state.HasFlag(StateType.Ground))
-            {
-                Feature.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
-                JumpUpdate();
-            }
-            else if (Feature.state.HasFlag(StateType.Wall))
-            {
-                if (!Feature.state.HasFlag(StateType.Climb))
-                {
-                    FallUpdate();
-                }
-
-                Feature.SetFloat(Attribute.JumpGrace, Time.time + 0.2f);
-                JumpUpdate();
-            }
-            else
-            {
-                FallUpdate();
-            }
-
-            if (Feature.GetFloat(Attribute.JumpGrace) > Time.time)
-            {
-                JumpUpdate();
-            }
-        }
-
         private void JumpUpdate()
         {
-            if (Feature.GetInt(Attribute.JumpCount) <= 0)
+            if (Feature.GetInt(Label.跳跃次数) <= 0)
             {
                 return;
             }
 
-            if (Feature.GetFloat(Attribute.JumpInput) < Time.time)
+            if (Feature.GetFloat(Label.跳跃输入) < Time.time)
             {
                 return;
             }
 
-            if (!Feature.state.HasFlag(StateType.Jump))
+            if (!Feature.state.HasFlag(StateType.跳跃))
             {
                 owner.Machine.Switch(StateConst.Jump);
             }
 
-            Feature.SetFloat(Attribute.JumpInput, Time.time);
+            Feature.SetFloat(Label.跳跃输入, Time.time);
         }
 
         private void DashUpdate()
         {
-            if (Feature.GetInt(Attribute.DashCount) <= 0)
+            if (Feature.GetInt(Label.冲刺次数) <= 0)
             {
                 return;
             }
 
-            if (Feature.GetFloat(Attribute.DashInput) < Time.time)
+            if (Feature.GetFloat(Label.冲刺输入) < Time.time)
             {
                 return;
             }
 
-            if (!Feature.state.HasFlag(StateType.Dash))
+            if (!Feature.state.HasFlag(StateType.冲刺))
             {
                 owner.Machine.Switch(StateConst.Dash);
             }
 
-            Feature.SetFloat(Attribute.DashInput, Time.time);
+            Feature.SetFloat(Label.冲刺输入, Time.time);
         }
     }
 }
