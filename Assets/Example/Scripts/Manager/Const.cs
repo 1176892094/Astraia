@@ -78,4 +78,47 @@ namespace Runtime
             });
         }
     }
+
+    public static class CameraUtils
+    {
+        public static void Clamp(Camera camera, Bounds bounds)
+        {
+            var cam = camera.transform.parent;
+            var pos = cam.position;
+
+            var min = bounds.min;
+            var max = bounds.max;
+
+            var w = max.x - min.x;
+            var h = max.y - min.y;
+
+            var x = camera.orthographicSize;
+            var y = camera.orthographicSize * camera.aspect;
+
+            pos.x = w <= y * 2 ? bounds.center.x : Mathf.Clamp(pos.x, min.x + y, max.x - y);
+            pos.y = h <= x * 2 ? bounds.center.y : Mathf.Clamp(pos.y, min.y + x, max.y - x);
+
+            cam.position = pos;
+        }
+
+        public static void Move(Camera camera, Transform target, ref Vector3 smooth, float speed)
+        {
+            var cam = camera.transform.parent;
+            var targetPos = new Vector3(target.position.x, target.position.y, cam.position.z);
+            Vector3 smoothPos;
+            if (camera.targetTexture)
+            {
+                var pixelate = camera.orthographicSize * 2 / camera.targetTexture.height;
+                smoothPos = Vector3.Distance(target.position, cam.position) > pixelate ? Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed) : target.position;
+                smoothPos.x = Mathf.Round(smoothPos.x / pixelate) * pixelate;
+                smoothPos.y = Mathf.Round(smoothPos.y / pixelate) * pixelate;
+            }
+            else
+            {
+                smoothPos = Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed);
+            }
+
+            cam.position = new Vector3(smoothPos.x, smoothPos.y, cam.position.z);
+        }
+    }
 }

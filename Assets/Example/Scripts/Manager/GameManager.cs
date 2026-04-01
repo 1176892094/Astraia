@@ -14,8 +14,9 @@ using Astraia;
 using Astraia.Core;
 using Astraia.Net;
 using UnityEngine;
-using UnityEngine.UI;
-using Text = UnityEngine.UI.Text;
+using UnityEngine.InputSystem;
+using Object = UnityEngine.Object;
+
 
 namespace Runtime
 {
@@ -70,89 +71,52 @@ namespace Runtime
         }
     }
 
-    public static class CameraUtils
+    [Serializable]
+    public class InputManager : Singleton<InputManager, Entity>
     {
-        public static void Clamp(Camera camera, Bounds bounds)
+        private static int moveX;
+        private static int moveY;
+        private static InputActionAsset inputAsset;
+        public static InputAction Bag => inputAsset.FindAction(nameof(Bag));
+        public static InputAction Move => inputAsset.FindAction(nameof(Move));
+        public static InputAction Jump => inputAsset.FindAction(nameof(Jump));
+        public static InputAction Dash => inputAsset.FindAction(nameof(Dash));
+        public static InputAction Attack => inputAsset.FindAction(nameof(Attack));
+        public static InputAction Escape => inputAsset.FindAction(nameof(Escape));
+        public static int MoveX => moveX != 0 ? moveX : Move.ReadValue<Vector2>().x > 0 ? 1 : Move.ReadValue<Vector2>().x < 0 ? -1 : 0;
+        public static int MoveY => moveY != 0 ? moveY : Move.ReadValue<Vector2>().y > 0 ? 1 : Move.ReadValue<Vector2>().y < 0 ? -1 : 0;
+        public static Vector2 Direction => new Vector2(MoveX, MoveY).normalized;
+
+        public override void Dequeue()
         {
-            var cam = camera.transform.parent;
-            var pos = cam.position;
-
-            var min = bounds.min;
-            var max = bounds.max;
-
-            var w = max.x - min.x;
-            var h = max.y - min.y;
-
-            var x = camera.orthographicSize;
-            var y = camera.orthographicSize * camera.aspect;
-
-            pos.x = w <= y * 2 ? bounds.center.x : Mathf.Clamp(pos.x, min.x + y, max.x - y);
-            pos.y = h <= x * 2 ? bounds.center.y : Mathf.Clamp(pos.y, min.y + x, max.y - x);
-
-            cam.position = pos;
+            inputAsset = AssetManager.Load<InputActionAsset>("Settings/InputManager");
+            inputAsset.Enable();
+            inputAsset.LoadBindingOverridesFromJson(JsonManager.Load<string>(nameof(InputManager)));
         }
 
-        public static void Move(Camera camera, Transform target, ref Vector3 smooth, float speed)
+        public override void Enqueue()
         {
-            var cam = camera.transform.parent;
-            var targetPos = new Vector3(target.position.x, target.position.y, cam.position.z);
-            Vector3 smoothPos;
-            if (camera.targetTexture)
-            {
-                var pixelate = camera.orthographicSize * 2 / camera.targetTexture.height;
-                smoothPos = Vector3.Distance(target.position, cam.position) > pixelate ? Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed) : target.position;
-                smoothPos.x = Mathf.Round(smoothPos.x / pixelate) * pixelate;
-                smoothPos.y = Mathf.Round(smoothPos.y / pixelate) * pixelate;
-            }
-            else
-            {
-                smoothPos = Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed);
-            }
-
-            cam.position = new Vector3(smoothPos.x, smoothPos.y, cam.position.z);
+            inputAsset.Disable();
         }
     }
 
-    [UIMask(2)]
-    public class LoadPanel : UIPanel, ITween
+    public class SpawnManager : NetworkModule
     {
-        [Inject] private Image panel;
+        public static SpawnManager Instance;
 
-        public override async void OnShow()
+        public override void Dequeue()
         {
-            await panel.DOFade(1, 0.25f);
-            UIManager.Hide<LoadPanel>();
+            Instance = this;
+            Object.DontDestroyOnLoad(gameObject);
         }
 
-
-        public override async void OnHide()
+        [ClientRpc]
+        public async void LoadEffectClientRpc(Vector3 position)
         {
-            await panel.DOFade(0, 0.5f);
-            gameObject.SetActive(false);
-            UIManager.Show<LabelPanel>();
-        }
-    }
-
-    [UIMask(1)]
-    public class LabelPanel : UIPanel
-    {
-        [Inject] private Text message;
-        [Inject] private Button prevButton;
-        [Inject] private Button nextButton;
-
-        public override void OnShow()
-        {
-            message.text = "1.点击调试器\n2.找到Network面板\n3.房主启动 Host 模式\n4.房员启动 Client 模式";
-        }
-
-        private void PrevButton()
-        {
-            message.text = "1.点击调试器\n2.找到Network面板\n3.房主启动 Host 模式\n4.房员启动 Client 模式";
-        }
-
-        private void NextButton()
-        {
-            message.text = "1.使用方向键进行移动\n2.使用Z键抓取墙壁\n3.使用X键进行跳跃\n4.使用C键进行冲刺";
+            var sprite = PoolManager.Show<SpriteRenderer>("Prefabs/Effect", position);
+            sprite.color = new Color(0, 0, 0, 1);
+            await sprite.DOFade(0, 0.5f);
+            PoolManager.Hide(sprite);
         }
     }
 }

@@ -9,7 +9,9 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using Astraia;
+using Astraia.Core;
 using Astraia.Net;
 using UnityEngine;
 
@@ -66,6 +68,44 @@ namespace Runtime
             Gizmos.DrawRay(RURay.origin, RURay.direction * 0.12f);
             Gizmos.DrawRay(DLRay.origin, DRRay.direction * 0.12f);
             Gizmos.DrawRay(DRRay.origin, DRRay.direction * 0.12f);
+        }
+    }
+
+    [Serializable]
+    public class PlayerSender : NetworkModule, IStartAuthority
+    {
+        [SyncVar(nameof(OnColorValueChanged))] public Color32 syncColor;
+        private new Player owner => (Player)base.owner;
+
+        private void OnColorValueChanged(Color32 oldValue, Color32 newValue)
+        {
+            owner.Machine.renderer.color = newValue;
+        }
+
+        [ServerRpc]
+        public void LoadEffectServerRpc(Vector3 position)
+        {
+            SpawnManager.Instance.LoadEffectClientRpc(position);
+        }
+
+        [ServerRpc]
+        public void SyncColorServerRpc(Color32 syncColor)
+        {
+            this.syncColor = syncColor;
+        }
+
+        public void OnStartAuthority()
+        {
+            owner.Machine.Create<PlayerHop>(StateConst.Hop);
+            owner.Machine.Create<PlayerIdle>(StateConst.Idle);
+            owner.Machine.Create<PlayerWalk>(StateConst.Walk);
+            owner.Machine.Create<PlayerJump>(StateConst.Jump);
+            owner.Machine.Create<PlayerGrab>(StateConst.Grab);
+            owner.Machine.Create<PlayerDash>(StateConst.Dash);
+            owner.Machine.Create<PlayerCrash>(StateConst.Crash);
+            owner.Machine.Switch(StateConst.Idle);
+            GameManager.Instance.SetPlayer(owner.transform);
+            GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(30, 10)));
         }
     }
 }
