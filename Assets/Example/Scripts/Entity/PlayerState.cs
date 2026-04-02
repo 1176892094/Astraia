@@ -17,9 +17,9 @@ namespace Runtime
     public abstract class PlayerState : State<Player>
     {
         protected bool isWalk => InputManager.MoveX != 0 || InputManager.MoveY != 0;
-        protected bool isCrash => State.HasFlag(StateType.墙面) || State.HasFlag(StateType.地面);
-        protected bool isGrab => State.HasFlag(StateType.墙面) && State.HasFlag(StateType.攻击);
-        protected bool isFall => !State.HasFlag(StateType.墙面) && !State.HasFlag(StateType.地面) && velocityY < 0;
+        protected bool isCrash => State.HasFlag(Runtime.State.墙面) || State.HasFlag(Runtime.State.地面);
+        protected bool isGrab => State.HasFlag(Runtime.State.墙面) && State.HasFlag(Runtime.State.攻击);
+        protected bool isFall => !State.HasFlag(Runtime.State.墙面) && !State.HasFlag(Runtime.State.地面) && velocityY < 0;
         protected Transform transform => owner.transform;
         protected PlayerMachine Machine => owner.Machine;
         protected PlayerFeature Feature => owner.Feature;
@@ -30,7 +30,7 @@ namespace Runtime
             set => owner.Sender.Direction = value;
         }
 
-        protected StateType State
+        protected State State
         {
             get => owner.State;
             set => owner.State = value;
@@ -80,12 +80,12 @@ namespace Runtime
 
         protected void Gravity()
         {
-            if (State.HasFlag(StateType.地面))
+            if (State.HasFlag(State.地面))
             {
                 return;
             }
 
-            if (State.HasFlag(StateType.缓冲))
+            if (State.HasFlag(State.缓冲))
             {
                 velocityY = Mathf.Lerp(velocityY, Physics2D.gravity.y, Time.fixedDeltaTime);
                 return;
@@ -96,9 +96,9 @@ namespace Runtime
 
         protected void Contact()
         {
-            State &= ~StateType.地面;
-            State &= ~StateType.墙面;
-            State &= ~StateType.头顶;
+            State &= ~State.地面;
+            State &= ~State.墙面;
+            State &= ~State.头顶;
             foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
             {
                 var normal = contact.normal;
@@ -106,31 +106,31 @@ namespace Runtime
                 {
                     if (normal.y > 0)
                     {
-                        if (!State.HasFlag(StateType.跳跃))
+                        if (!State.HasFlag(State.跳跃))
                         {
                             Feature.JumpCount = 1;
                         }
 
-                        if (!State.HasFlag(StateType.冲刺))
+                        if (!State.HasFlag(State.冲刺))
                         {
                             Feature.DashCount = 1;
                         }
 
-                        State |= StateType.地面;
+                        State |= State.地面;
                     }
                     else
                     {
-                        State |= StateType.头顶;
+                        State |= State.头顶;
                     }
                 }
                 else
                 {
-                    if (!State.HasFlag(StateType.跳跃))
+                    if (!State.HasFlag(State.跳跃))
                     {
                         Feature.JumpCount = 1;
                     }
 
-                    State |= StateType.墙面;
+                    State |= State.墙面;
                 }
             }
         }
@@ -174,19 +174,19 @@ namespace Runtime
         {
             if (isGrab)
             {
-                Machine.Switch(StateConst.Grab);
+                Machine.Switch(Animations.Grab);
                 return;
             }
 
             if (isFall)
             {
-                Machine.Switch(StateConst.Fall);
+                Machine.Switch(Animations.Fall);
                 return;
             }
 
             if (isWalk)
             {
-                Machine.Switch(StateConst.Walk);
+                Machine.Switch(Animations.Walk);
             }
 
             Move(InputManager.MoveX, Feature.MoveSpeed);
@@ -208,19 +208,19 @@ namespace Runtime
         {
             if (isGrab)
             {
-                Machine.Switch(StateConst.Grab);
+                Machine.Switch(Animations.Grab);
                 return;
             }
 
             if (isFall)
             {
-                Machine.Switch(StateConst.Fall);
+                Machine.Switch(Animations.Fall);
                 return;
             }
 
             if (!isWalk)
             {
-                Machine.Switch(StateConst.Idle);
+                Machine.Switch(Animations.Idle);
             }
 
             Move(InputManager.MoveX, Feature.MoveSpeed);
@@ -240,15 +240,15 @@ namespace Runtime
             waitTime = Time.fixedTime + 0.2F;
             owner.Sender.SyncColorServerRpc(Color.yellow);
 
-            if (State.HasFlag(StateType.墙面) && !State.HasFlag(StateType.地面))
+            if (State.HasFlag(State.墙面) && !State.HasFlag(State.地面))
             {
-                State |= StateType.墙蹬跳;
+                State |= State.墙蹬跳;
                 Direction = -owner.Sender.Direction;
                 Machine.velocityX = Direction * Feature.JumpForce;
             }
 
             Feature.JumpCount--;
-            State |= StateType.跳跃;
+            State |= State.跳跃;
             Machine.velocityY = Mathf.Max(Machine.velocityY + Feature.JumpForce, Feature.JumpForce);
         }
 
@@ -258,9 +258,9 @@ namespace Runtime
             {
                 if (isWalk && InputManager.MoveY != 1)
                 {
-                    if (State.HasFlag(StateType.地面))
+                    if (State.HasFlag(State.地面))
                     {
-                        Machine.Switch(StateConst.Crash);
+                        Machine.Switch(Animations.Crash);
                         return;
                     }
                 }
@@ -268,19 +268,19 @@ namespace Runtime
 
             if (waitTime < Time.fixedTime)
             {
-                Machine.Switch(StateConst.Idle);
+                Machine.Switch(Animations.Idle);
                 return;
             }
 
             if (isGrab)
             {
-                Machine.Switch(StateConst.Grab);
+                Machine.Switch(Animations.Grab);
                 return;
             }
 
             if (isFall)
             {
-                Machine.Switch(StateConst.Fall);
+                Machine.Switch(Animations.Fall);
             }
 
             Move(InputManager.MoveX, Feature.MoveSpeed * 1.2F);
@@ -288,8 +288,8 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.跳跃;
-            State &= ~StateType.墙蹬跳;
+            State &= ~State.跳跃;
+            State &= ~State.墙蹬跳;
         }
     }
 
@@ -297,7 +297,7 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            State |= StateType.下落;
+            State |= State.下落;
             owner.Sender.SyncColorServerRpc(Color.red);
         }
 
@@ -305,13 +305,13 @@ namespace Runtime
         {
             if (isGrab)
             {
-                Machine.Switch(StateConst.Grab);
+                Machine.Switch(Animations.Grab);
                 return;
             }
 
             if (!isFall)
             {
-                Machine.Switch(StateConst.Idle);
+                Machine.Switch(Animations.Idle);
             }
 
             Move(InputManager.MoveX, Feature.MoveSpeed * 1.2F);
@@ -319,7 +319,7 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.下落;
+            State &= ~State.下落;
         }
     }
 
@@ -327,7 +327,7 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            State |= StateType.挂墙;
+            State |= State.挂墙;
             owner.Sender.SyncColorServerRpc(Color.cyan);
         }
 
@@ -335,13 +335,13 @@ namespace Runtime
         {
             if (!isGrab)
             {
-                Machine.Switch(StateConst.Idle);
+                Machine.Switch(Animations.Idle);
                 return;
             }
 
             if (isFall)
             {
-                Machine.Switch(StateConst.Fall);
+                Machine.Switch(Animations.Fall);
                 return;
             }
 
@@ -350,29 +350,29 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.挂墙;
+            State &= ~State.挂墙;
         }
     }
 
     public class PlayerDash : PlayerState
     {
-        private Vector2 direction;
+        private Vector2 velocity;
 
         public override void OnEnter()
         {
             Feature.DashCount--;
             Feature.DashTimer = Time.fixedTime + 0.22F;
             owner.Sender.SyncColorServerRpc(Color.magenta);
-            State |= StateType.冲刺;
+            State |= State.冲刺;
             Feature.ShadowFrame = 0;
-            direction = InputManager.Direction;
+            velocity = InputManager.Direction;
         }
 
         public override void OnUpdate()
         {
             if (Feature.DashTimer < Time.fixedTime)
             {
-                Machine.Switch(StateConst.Idle);
+                Machine.Switch(Animations.Idle);
                 return;
             }
 
@@ -381,25 +381,25 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            var moveX = direction.x * Feature.DashSpeed;
-            var moveY = direction.y * Feature.DashSpeed;
+            var moveX = velocity.x * Feature.DashSpeed;
+            var moveY = velocity.y * Feature.DashSpeed;
 
-            if (direction == Vector2.zero)
+            if (velocity == Vector2.zero)
             {
                 moveX = Direction * Feature.DashSpeed;
             }
-            else if (direction.y < 0)
+            else if (velocity.y < 0)
             {
                 Contact();
-                if (State.HasFlag(StateType.地面))
+                if (State.HasFlag(State.地面))
                 {
                     moveX = Dash();
                 }
             }
-            else if (direction.y > 0)
+            else if (velocity.y > 0)
             {
                 Contact();
-                if (State.HasFlag(StateType.头顶))
+                if (State.HasFlag(State.头顶))
                 {
                     moveX = Dash();
                 }
@@ -413,7 +413,7 @@ namespace Runtime
         {
             velocityX = 0;
             velocityY = 0;
-            State &= ~StateType.冲刺;
+            State &= ~State.冲刺;
         }
     }
 
@@ -423,7 +423,7 @@ namespace Runtime
 
         public override void OnEnter()
         {
-            State |= StateType.冲刺跳;
+            State |= State.冲刺跳;
             waitTime = Time.fixedTime + 0.1F;
             Feature.DashStack += Feature.CrashSpeed / 4;
             velocityX = Direction * (Feature.CrashSpeed + Feature.DashStack);
@@ -435,7 +435,7 @@ namespace Runtime
             {
                 if (isCrash)
                 {
-                    Machine.Switch(StateConst.Idle);
+                    Machine.Switch(Animations.Idle);
                     return;
                 }
             }
@@ -451,7 +451,7 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.冲刺跳;
+            State &= ~State.冲刺跳;
         }
     }
 
@@ -464,7 +464,7 @@ namespace Runtime
         {
             waitTime = Time.fixedTime + 0.3f;
             owner.Sender.SyncColorServerRpc(Color.red);
-            State |= StateType.挂墙;
+            State |= State.挂墙;
             point = transform.position;
         }
 
@@ -472,7 +472,7 @@ namespace Runtime
         {
             if (waitTime < Time.fixedTime)
             {
-                Machine.Switch(StateConst.Idle);
+                Machine.Switch(Animations.Idle);
                 return;
             }
 
@@ -492,7 +492,7 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.挂墙;
+            State &= ~State.挂墙;
         }
     }
 }

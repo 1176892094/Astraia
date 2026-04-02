@@ -112,7 +112,7 @@ namespace Runtime
         private PlayerFeature Feature => owner.Feature;
         private PlayerMachine Machine => owner.Machine;
 
-        private StateType State
+        private State State
         {
             get => owner.State;
             set => owner.State = value;
@@ -149,23 +149,23 @@ namespace Runtime
 
         private void JumpButton(InputAction.CallbackContext obj)
         {
-            State |= StateType.缓冲;
+            State |= State.缓冲;
             Feature.JumpInput = Time.time + 0.2f;
         }
 
         private void FallButton(InputAction.CallbackContext obj)
         {
-            State &= ~StateType.缓冲;
+            State &= ~State.缓冲;
         }
 
         private void AttackButton(InputAction.CallbackContext obj)
         {
-            State |= StateType.攻击;
+            State |= State.攻击;
         }
 
         private void FinishButton(InputAction.CallbackContext obj)
         {
-            State &= ~StateType.攻击;
+            State &= ~State.攻击;
         }
 
         public void Update()
@@ -191,23 +191,23 @@ namespace Runtime
                 return;
             }
 
-            if (State.HasFlag(StateType.冲刺))
+            if (State.HasFlag(State.冲刺))
             {
                 return;
             }
 
-            Machine.Switch(StateConst.Dash);
+            Machine.Switch(Animations.Dash);
             Feature.DashCD = Time.time + 0.4F;
         }
 
         private void JumpUpdate()
         {
-            if (State.HasFlag(StateType.地面))
+            if (State.HasFlag(State.地面))
             {
                 Feature.JumpTimer = Time.time + 0.2F;
             }
 
-            if (State.HasFlag(StateType.墙面))
+            if (State.HasFlag(State.墙面))
             {
                 Feature.JumpTimer = Time.time + 0.2F;
             }
@@ -232,12 +232,12 @@ namespace Runtime
                 return;
             }
 
-            if (State.HasFlag(StateType.跳跃))
+            if (State.HasFlag(State.跳跃))
             {
                 return;
             }
 
-            Machine.Switch(StateConst.Jump);
+            Machine.Switch(Animations.Jump);
             Feature.JumpCD = Time.time + 0.3F;
         }
     }

@@ -36,7 +36,7 @@ namespace Runtime
     }
 
     [Flags]
-    public enum StateType
+    public enum State
     {
         默认,
         跳跃 = 1 << 0,
@@ -64,7 +64,7 @@ namespace Runtime
         }
     }
 
-    public static class StateConst
+    public static class Animations
     {
         public static readonly int Hold = Animator.StringToHash(nameof(Hold));
         public static readonly int Idle = Animator.StringToHash(nameof(Idle));

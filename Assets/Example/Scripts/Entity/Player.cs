@@ -18,7 +18,7 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
-        public StateType State = StateType.默认;
+        public State State = State.默认;
         public PlayerSender Sender => Logic.GetComponent<PlayerSender>();
         public PlayerMachine Machine => Logic.GetComponent<PlayerMachine>();
         public PlayerFeature Feature => Logic.GetComponent<PlayerFeature>();
@@ -147,15 +147,15 @@ namespace Runtime
 
         public void OnStartAuthority()
         {
-            Machine.Create<PlayerHold>(StateConst.Hold);
-            Machine.Create<PlayerIdle>(StateConst.Idle);
-            Machine.Create<PlayerWalk>(StateConst.Walk);
-            Machine.Create<PlayerJump>(StateConst.Jump);
-            Machine.Create<PlayerFall>(StateConst.Fall);
-            Machine.Create<PlayerGrab>(StateConst.Grab);
-            Machine.Create<PlayerDash>(StateConst.Dash);
-            Machine.Create<PlayerCrash>(StateConst.Crash);
-            Machine.Switch(StateConst.Idle);
+            Machine.Create<PlayerHold>(Animations.Hold);
+            Machine.Create<PlayerIdle>(Animations.Idle);
+            Machine.Create<PlayerWalk>(Animations.Walk);
+            Machine.Create<PlayerJump>(Animations.Jump);
+            Machine.Create<PlayerFall>(Animations.Fall);
+            Machine.Create<PlayerGrab>(Animations.Grab);
+            Machine.Create<PlayerDash>(Animations.Dash);
+            Machine.Create<PlayerCrash>(Animations.Crash);
+            Machine.Switch(Animations.Idle);
             GameManager.Instance.SetPlayer(transform);
             GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(30, 10)));
         }
