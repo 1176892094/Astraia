@@ -18,6 +18,9 @@ namespace Runtime
     public abstract class PlayerState : State<Player>
     {
         protected bool isWalk => InputManager.MoveX != 0 || InputManager.MoveY != 0;
+        protected bool isCrash => State.HasFlag(StateType.墙面) || State.HasFlag(StateType.地面);
+        protected bool isGrab => State.HasFlag(StateType.墙面) && State.HasFlag(StateType.攻击);
+        protected bool isFall => !State.HasFlag(StateType.墙面) && !State.HasFlag(StateType.地面) && velocityY < 0;
         protected Transform transform => owner.transform;
         protected PlayerMachine Machine => owner.Machine;
         protected PlayerFeature Feature => owner.Feature;
@@ -26,6 +29,31 @@ namespace Runtime
         {
             get => owner.State;
             set => owner.State = value;
+        }
+
+        protected float velocityX
+        {
+            get => Machine.velocityX;
+            set => Machine.velocityX = value;
+        }
+
+        protected float velocityY
+        {
+            get => Machine.velocityY;
+            set => Machine.velocityY = value;
+        }
+
+        protected void Move(int moveX, float speed)
+        {
+            if (moveX != 0)
+            {
+                owner.Sender.Direction = moveX;
+                velocityX = Mathf.Lerp(velocityX, speed * moveX, Time.deltaTime * 10);
+            }
+            else
+            {
+                velocityX = Mathf.Abs(velocityX) > 0.01F ? Mathf.Lerp(velocityX, 0, Time.deltaTime * 5) : 0;
+            }
         }
     }
 
@@ -38,9 +66,15 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (State.HasFlag(StateType.墙面) && State.HasFlag(StateType.抓墙缓冲))
+            if (isGrab)
             {
                 Machine.Switch(StateConst.Grab);
+                return;
+            }
+
+            if (isFall)
+            {
+                Machine.Switch(StateConst.Fall);
                 return;
             }
 
@@ -48,6 +82,8 @@ namespace Runtime
             {
                 Machine.Switch(StateConst.Walk);
             }
+
+            Move(InputManager.MoveX, Feature.MoveSpeed);
         }
 
         public override void OnExit()
@@ -64,9 +100,15 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (State.HasFlag(StateType.墙面) && State.HasFlag(StateType.抓墙缓冲))
+            if (isGrab)
             {
                 Machine.Switch(StateConst.Grab);
+                return;
+            }
+
+            if (isFall)
+            {
+                Machine.Switch(StateConst.Fall);
                 return;
             }
 
@@ -74,6 +116,8 @@ namespace Runtime
             {
                 Machine.Switch(StateConst.Idle);
             }
+
+            Move(InputManager.MoveX, Feature.MoveSpeed);
         }
 
         public override void OnExit()
@@ -83,52 +127,45 @@ namespace Runtime
 
     public class PlayerJump : PlayerState
     {
-        private int frameCount;
+        private float waitTime;
 
         public override void OnEnter()
         {
-            frameCount = Time.frameCount + 10;
-            owner.Sender.SyncColorServerRpc(Color.red);
-            State |= StateType.跳跃;
-            Feature.SubInt(Label.跳跃次数, 1);
-            if (State.HasFlag(StateType.地面))
-            {
-                Machine.velocityY = Feature.JumpForce;
-            }
-            else if (State.HasFlag(StateType.墙面))
+            waitTime = Time.fixedTime + 0.2F;
+            owner.Sender.SyncColorServerRpc(Color.yellow);
+
+            if (State.HasFlag(StateType.墙面) && !State.HasFlag(StateType.地面))
             {
                 State |= StateType.墙蹬跳;
-                Machine.velocityY = Feature.JumpForce;
-                Machine.velocityX = -transform.localScale.x * Feature.JumpForce;
-                transform.localScale = new Vector3(-transform.localScale.x, 1, 1);
+                owner.Sender.Direction = -owner.Sender.Direction;
+                Machine.velocityX = owner.Sender.Direction * Feature.JumpForce;
             }
-            else
-            {
-                Machine.velocityY = Feature.JumpForce;
-            }
+
+            Feature.JumpCount--;
+            State |= StateType.跳跃;
+            Machine.velocityY = Mathf.Max(Machine.velocityY + Feature.JumpForce, Feature.JumpForce);
         }
 
         public override void OnUpdate()
         {
-            if (frameCount < Time.frameCount)
+            if (waitTime < Time.fixedTime)
             {
                 Machine.Switch(StateConst.Idle);
                 return;
             }
 
-            if (Feature.DashTimer > Time.frameCount)
+            if (isGrab)
             {
-                if (InputManager.MoveX != 0)
-                {
-                    Machine.Switch(StateConst.Crash);
-                    return;
-                }
+                Machine.Switch(StateConst.Grab);
+                return;
             }
 
-            if (!State.HasFlag(StateType.墙蹬跳))
+            if (isFall)
             {
-                Machine.velocityX = InputManager.MoveX * Feature.MoveSpeed;
+                Machine.Switch(StateConst.Fall);
             }
+
+            Move(InputManager.MoveX, Feature.MoveSpeed * 1.2F);
         }
 
         public override void OnExit()
@@ -138,59 +175,83 @@ namespace Runtime
         }
     }
 
-    public class PlayerGrab : PlayerState
+    public class PlayerFall : PlayerState
     {
-        private int frameCount;
-
         public override void OnEnter()
         {
-            frameCount = Time.frameCount + 5;
-            owner.Sender.SyncColorServerRpc(Color.cyan);
-            State |= StateType.抓墙;
-            Machine.velocityY = 0;
+            State |= StateType.下落;
+            owner.Sender.SyncColorServerRpc(Color.red);
         }
 
         public override void OnUpdate()
         {
-            if (frameCount < Time.frameCount)
+            if (isGrab)
             {
-                if (!State.HasFlag(StateType.墙面) || !State.HasFlag(StateType.抓墙缓冲))
-                {
-                    Machine.Switch(StateConst.Idle);
-                    return;
-                }
-            }
-            else if (InputManager.MoveX != 0)
-            {
-                transform.position += Vector3.up * 0.02f;
+                Machine.Switch(StateConst.Grab);
+                return;
             }
 
-            Machine.velocityY = InputManager.MoveX * Feature.MoveSpeed / 2;
+            if (!isFall)
+            {
+                Machine.Switch(StateConst.Idle);
+            }
+
+            Move(InputManager.MoveX, Feature.MoveSpeed * 1.2F);
         }
 
         public override void OnExit()
         {
-            State &= ~StateType.抓墙;
+            State &= ~StateType.下落;
         }
     }
 
-    public class PlayerHop : PlayerState
+    public class PlayerGrab : PlayerState
     {
-        private int frameCount;
-        private Vector3 point;
+        public override void OnEnter()
+        {
+            State |= StateType.挂墙;
+            owner.Sender.SyncColorServerRpc(Color.cyan);
+        }
 
+        public override void OnUpdate()
+        {
+            if (!isGrab)
+            {
+                Machine.Switch(StateConst.Idle);
+                return;
+            }
+
+            if (isFall)
+            {
+                Machine.Switch(StateConst.Fall);
+                return;
+            }
+
+            Machine.velocityY = 0;
+        }
+
+        public override void OnExit()
+        {
+            State &= ~StateType.挂墙;
+        }
+    }
+
+    public class PlayerHold : PlayerState
+    {
+        private float waitTime;
+        private Vector3 point;
 
         public override void OnEnter()
         {
-            frameCount = Time.frameCount + 10;
+            waitTime = Time.fixedTime + 0.3f;
             owner.Sender.SyncColorServerRpc(Color.red);
-            State |= StateType.抓墙;
+            State |= StateType.挂墙;
             point = transform.position;
         }
 
         public override void OnUpdate()
         {
-            if (frameCount < Time.frameCount)
+            if (waitTime < Time.fixedTime)
             {
                 Machine.Switch(StateConst.Idle);
                 return;
@@ -212,59 +273,86 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.抓墙;
+            State &= ~StateType.挂墙;
         }
     }
 
     public class PlayerDash : PlayerState
     {
-        private Vector3 direction;
+        private Vector2 direction;
 
         public override void OnEnter()
         {
             AudioManager.Play("30001");
-            Feature.SetInt(Label.冲刺时间, Time.frameCount + 10);
+            Feature.DashCount--;
+            Feature.DashTimer = Time.fixedTime + 0.22F;
             owner.Sender.SyncColorServerRpc(Color.magenta);
             State |= StateType.冲刺;
-            Feature.SubInt(Label.冲刺次数, 1);
-            direction = new Vector3(InputManager.MoveX, InputManager.MoveY).normalized;
-            Feature.SetInt(Label.等待时间, 0);
+            Feature.WaitTime = 0;
+            direction = InputManager.Direction;
         }
 
         public override void OnUpdate()
         {
-            if (Feature.DashTimer < Time.frameCount)
+            if (Feature.DashTimer < Time.fixedTime)
             {
                 Machine.Switch(StateConst.Idle);
                 return;
             }
 
-            if (Feature.WaitTime % 4 == 0)
+            if (Feature.WaitTime++ % 4 == 0)
             {
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            Feature.AddInt(Label.等待时间, 1);
-            var position = transform.position;
-            if (direction == Vector3.zero)
+            var moveX = direction.x * Feature.DashSpeed;
+            var moveY = direction.y * Feature.DashSpeed;
+
+            if (direction == Vector2.zero)
             {
-                position += Vector3.right * (transform.localScale.x * Feature.DashSpeed * Time.fixedDeltaTime);
+                moveX = owner.Sender.Direction * Feature.DashSpeed;
             }
-            else if (InputManager.MoveY < 0 && State.HasFlag(StateType.地面))
+            else if (direction.y < 0)
             {
-                position += Vector3.right * (transform.localScale.x * Feature.DashSpeed * Time.fixedDeltaTime);
+                if (State.HasFlag(StateType.地面))
+                {
+                    moveX = owner.Sender.Direction * Feature.DashSpeed;
+                }
             }
-            else
+            else if (direction.y > 0)
             {
-                position += direction * (Feature.DashSpeed * Time.fixedDeltaTime);
+                if (State.HasFlag(StateType.顶面))
+                {
+                    var bounds = Machine.collider.bounds;
+                    var position = transform.position;
+                    foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
+                    {
+                        var ceiling = contact.collider.bounds;
+                        if (position.x > ceiling.max.x - bounds.extents.x)
+                        {
+                            position.x = ceiling.max.x + bounds.extents.x + 0.02F;
+                            transform.position = position;
+                            break;
+                        }
+
+                        if (position.x < ceiling.min.x + bounds.extents.x)
+                        {
+                            position.x = ceiling.min.x - bounds.extents.x - 0.02F;
+                            transform.position = position;
+                            break;
+                        }
+                    }
+                }
             }
 
-            Machine.rigidbody.MovePosition(position);
+            velocityX = moveX;
+            velocityY = moveY;
         }
 
         public override void OnExit()
         {
-            Machine.velocityY = 0;
+            velocityY = 0;
+            velocityX = 0;
             State &= ~StateType.冲刺;
         }
     }
@@ -279,7 +367,7 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (State.HasFlag(StateType.墙面) || State.HasFlag(StateType.地面))
+            if (isCrash)
             {
                 Machine.Switch(StateConst.Idle);
                 return;

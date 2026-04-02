@@ -10,6 +10,8 @@
 // // *********************************************************************************
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Astraia;
 using UnityEngine;
 using UnityEngine.UI;
@@ -37,24 +39,38 @@ namespace Runtime
     {
         默认,
         跳跃 = 1 << 0,
-        跳跃缓冲 = 1 << 1,
-        抓墙 = 1 << 2,
-        抓墙缓冲 = 1 << 3,
+        缓冲 = 1 << 1,
+        挂墙 = 1 << 2,
+        攻击 = 1 << 3,
         地面 = 1 << 4,
         墙面 = 1 << 5,
-        下落 = 1 << 6,
-        冲刺 = 1 << 7,
-        冲刺跳 = 1 << 8,
-        墙蹬跳 = 1 << 9,
+        顶面 = 1 << 6,
+        下落 = 1 << 7,
+        冲刺 = 1 << 8,
+        冲刺跳 = 1 << 9,
+        墙蹬跳 = 1 << 10,
+    }
+
+    public static class LayerConst
+    {
+        public static ContactFilter2D Ground;
+
+        static LayerConst()
+        {
+            Ground = new ContactFilter2D();
+            Ground.SetLayerMask(LayerMask.GetMask("Ground"));
+            Ground.useTriggers = false;
+        }
     }
 
     public static class StateConst
     {
-        public static readonly int Hop = Animator.StringToHash(nameof(Hop));
+        public static readonly int Hold = Animator.StringToHash(nameof(Hold));
         public static readonly int Idle = Animator.StringToHash(nameof(Idle));
         public static readonly int Walk = Animator.StringToHash(nameof(Walk));
         public static readonly int Jump = Animator.StringToHash(nameof(Jump));
         public static readonly int Dash = Animator.StringToHash(nameof(Dash));
+        public static readonly int Fall = Animator.StringToHash(nameof(Fall));
         public static readonly int Grab = Animator.StringToHash(nameof(Grab));
         public static readonly int Crash = Animator.StringToHash(nameof(Crash));
     }
@@ -79,6 +95,75 @@ namespace Runtime
                 var colorA = Mathf.Lerp(color.a, endValue, progress);
                 component.color = new Color(color.r, color.g, color.b, colorA);
             });
+        }
+    }
+
+    public static class ContactUtils
+    {
+        private static readonly Enumerable<ContactPoint2D> contacts = new Enumerable<ContactPoint2D>(8);
+
+        public static Enumerable<ContactPoint2D> Contacts(this Rigidbody2D rigidbody, ContactFilter2D filter)
+        {
+            contacts.count = rigidbody.GetContacts(filter, contacts.items);
+            return contacts;
+        }
+
+        public class Enumerable<T> : IEnumerable<T>
+        {
+            public readonly T[] items;
+            public int count;
+
+            public Enumerable(int count)
+            {
+                items = new T[count];
+            }
+
+            public Enumerator GetEnumerator()
+            {
+                return new Enumerator(items, count);
+            }
+
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            public struct Enumerator : IEnumerator<T>
+            {
+                private readonly T[] items;
+                private readonly int count;
+                private int index;
+
+                public Enumerator(T[] items, int count)
+                {
+                    this.items = items;
+                    this.count = count;
+                    index = -1;
+                }
+
+                public T Current => items[index];
+                object IEnumerator.Current => items[index];
+
+                public bool MoveNext()
+                {
+                    index++;
+                    return index < count;
+                }
+
+                public void Reset()
+                {
+                    index = -1;
+                }
+
+                public void Dispose()
+                {
+                }
+            }
         }
     }
 

@@ -20,7 +20,6 @@ namespace Runtime
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
 
-
         public float velocityX
         {
 #if UNITY_6000_0_OR_NEWER

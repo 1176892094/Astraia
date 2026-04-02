@@ -19,10 +19,11 @@ namespace Runtime
     public class Player : NetworkEntity
     {
         public StateType State = StateType.默认;
-        public PlayerInput Input => Logic.GetComponent<PlayerInput>();
         public PlayerSender Sender => Logic.GetComponent<PlayerSender>();
         public PlayerMachine Machine => Logic.GetComponent<PlayerMachine>();
         public PlayerFeature Feature => Logic.GetComponent<PlayerFeature>();
+
+        private PlayerInput Input => Logic.GetComponent<PlayerInput>();
         private NetworkTransform Transform => Logic.GetComponent<NetworkTransform>();
 
         protected override void Awake()
@@ -147,10 +148,11 @@ namespace Runtime
 
         public void OnStartAuthority()
         {
-            Machine.Create<PlayerHop>(StateConst.Hop);
+            Machine.Create<PlayerHold>(StateConst.Hold);
             Machine.Create<PlayerIdle>(StateConst.Idle);
             Machine.Create<PlayerWalk>(StateConst.Walk);
             Machine.Create<PlayerJump>(StateConst.Jump);
+            Machine.Create<PlayerFall>(StateConst.Fall);
             Machine.Create<PlayerGrab>(StateConst.Grab);
             Machine.Create<PlayerDash>(StateConst.Dash);
             Machine.Create<PlayerCrash>(StateConst.Crash);

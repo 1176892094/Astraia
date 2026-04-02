@@ -94,7 +94,7 @@ namespace Runtime
         public override void Dequeue()
         {
             MoveSpeed = 2;
-            JumpForce = 5;
+            JumpForce = 4;
             DashSpeed = 5;
         }
     }
@@ -103,19 +103,11 @@ namespace Runtime
     {
         private PlayerFeature Feature => owner.Feature;
         private PlayerMachine Machine => owner.Machine;
-        private Bounds Bounds => Machine.collider.bounds;
-        public float velocity;
 
         private StateType State
         {
             get => owner.State;
             set => owner.State = value;
-        }
-
-        private float velocityX
-        {
-            get => Machine.velocityX;
-            set => Machine.velocityX = value;
         }
 
         private float velocityY
@@ -149,66 +141,81 @@ namespace Runtime
 
         private void JumpButton(InputAction.CallbackContext obj)
         {
-            State |= StateType.跳跃缓冲;
+            State |= StateType.缓冲;
             Feature.JumpInput = Time.time + 0.2f;
         }
 
         private void FallButton(InputAction.CallbackContext obj)
         {
-            State &= ~StateType.跳跃缓冲;
+            State &= ~StateType.缓冲;
         }
 
         private void AttackButton(InputAction.CallbackContext obj)
         {
-            State |= StateType.抓墙缓冲;
+            State |= StateType.攻击;
         }
 
         private void FinishButton(InputAction.CallbackContext obj)
         {
-            State &= ~StateType.抓墙缓冲;
+            State &= ~StateType.攻击;
         }
 
         public void Update()
         {
-            MoveUpdate();
-            DashUpdate();
-            GroundUpdate();
             FallUpdate();
+            DashUpdate();
+            JumpUpdate();
         }
 
-        private void MoveUpdate()
+        private void FallUpdate()
         {
+            State &= ~StateType.地面;
+            State &= ~StateType.墙面;
+            State &= ~StateType.顶面;
+            foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
+            {
+                if (contact.normal.y > 0.5F)
+                {
+                    if (!State.HasFlag(StateType.跳跃))
+                    {
+                        Feature.JumpCount = 1;
+                    }
+
+                    if (!State.HasFlag(StateType.冲刺))
+                    {
+                        Feature.DashCount = 1;
+                    }
+
+                    State |= StateType.地面;
+                }
+
+                if (contact.normal.y < -0.5F)
+                {
+                    State |= StateType.顶面;
+                }
+
+                if (contact.normal.x > 0.5F || contact.normal.x < -0.5F)
+                {
+                    if (!State.HasFlag(StateType.跳跃))
+                    {
+                        Feature.JumpCount = 1;
+                    }
+
+                    State |= StateType.墙面;
+                }
+            }
+
             if (State.HasFlag(StateType.冲刺))
             {
                 return;
             }
 
-            var moveX = InputManager.MoveX;
-            owner.Sender.Direction = moveX;
-
-            if (State.HasFlag(StateType.冲刺跳))
+            if (State.HasFlag(StateType.地面))
             {
                 return;
             }
 
-            if (State.HasFlag(StateType.跳跃))
-            {
-                return;
-            }
-
-            if (State.HasFlag(StateType.下落))
-            {
-                return;
-            }
-
-            if (moveX != 0)
-            {
-                velocityX = Mathf.Lerp(velocityX, Feature.MoveSpeed * moveX, 0.2F);
-            }
-            else
-            {
-                velocityX = Mathf.Abs(velocityX) > 0.01F ? Mathf.Lerp(velocityX, 0, 0.1F) : 0;
-            }
+            velocityY = Mathf.Lerp(velocityY, Physics2D.gravity.y, Time.deltaTime * (State.HasFlag(StateType.缓冲) ? 1 : 2));
         }
 
         private void DashUpdate()
@@ -234,12 +241,26 @@ namespace Runtime
             }
 
             Machine.Switch(StateConst.Dash);
-            Feature.DashInput = Time.time;
             Feature.DashCD = Time.time + 0.4F;
         }
 
         private void JumpUpdate()
         {
+            if (State.HasFlag(StateType.地面))
+            {
+                Feature.JumpTimer = Time.time + 0.2F;
+            }
+
+            if (State.HasFlag(StateType.墙面))
+            {
+                Feature.JumpTimer = Time.time + 0.2F;
+            }
+
+            if (Feature.JumpTimer < Time.time)
+            {
+                return;
+            }
+
             if (Feature.JumpCount <= 0)
             {
                 return;
@@ -261,62 +282,7 @@ namespace Runtime
             }
 
             Machine.Switch(StateConst.Jump);
-            Feature.JumpInput = Time.time;
             Feature.JumpCD = Time.time + 0.3F;
-        }
-
-        private void GroundUpdate()
-        {
-            if (State.HasFlag(StateType.地面))
-            {
-                Feature.JumpTimer = Time.time + 0.2F;
-                JumpUpdate();
-            }
-            else if (State.HasFlag(StateType.墙面))
-            {
-                Feature.JumpTimer = Time.time + 0.2F;
-                JumpUpdate();
-            }
-
-            if (Feature.JumpTimer > Time.time)
-            {
-                JumpUpdate();
-            }
-        }
-
-        private void FallUpdate()
-        {
-            var collider = Physics2D.BoxCast(Bounds.center, Bounds.size, 0, Vector2.down, 0.01F, 1 << 6);
-            if (collider)
-            {
-                if (!State.HasFlag(StateType.跳跃))
-                {
-                    Feature.JumpCount = 1;
-                }
-
-                if (!State.HasFlag(StateType.冲刺))
-                {
-                    Feature.DashCount = 1;
-                }
-
-                State |= StateType.地面;
-            }
-            else
-            {
-                State &= ~StateType.地面;
-            }
-
-            if (State.HasFlag(StateType.冲刺))
-            {
-                return;
-            }
-
-            if (State.HasFlag(StateType.地面))
-            {
-                return;
-            }
-
-            velocityY = Mathf.SmoothDamp(velocityY, -9.81F, ref velocity, State.HasFlag(StateType.跳跃缓冲) ? 0.8F : 0.4F);
         }
     }
 }
