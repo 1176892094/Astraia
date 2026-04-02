@@ -252,7 +252,7 @@ namespace Runtime
 
             if (isWall && !State.HasFlag(State.地面))
             {
-                State |= State.墙蹬跳;
+                State |= State.蹬墙跳;
                 Direction = -owner.Sender.Direction;
                 Machine.velocityX = Direction * Feature.JumpForce / 2;
             }
@@ -275,10 +275,10 @@ namespace Runtime
                     }
                 }
 
-                if (isWall && State.HasFlag(State.墙蹬跳))
+                if (isWall && State.HasFlag(State.蹬墙跳))
                 {
                     State |= State.超级跳;
-                    State &= ~State.墙蹬跳;
+                    State &= ~State.蹬墙跳;
 
                     if (State.HasFlag(State.左墙))
                     {
@@ -324,7 +324,7 @@ namespace Runtime
                     return;
                 }
 
-                if (State.HasFlag(State.墙蹬跳))
+                if (State.HasFlag(State.蹬墙跳))
                 {
                     return;
                 }
@@ -338,7 +338,7 @@ namespace Runtime
         {
             State &= ~State.跳跃;
             State &= ~State.超级跳;
-            State &= ~State.墙蹬跳;
+            State &= ~State.蹬墙跳;
         }
     }
 
@@ -376,7 +376,7 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            State |= State.挂墙;
+            State |= State.悬挂;
             owner.Sender.SyncColorServerRpc(Color.cyan);
         }
 
@@ -399,7 +399,7 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~State.挂墙;
+            State &= ~State.悬挂;
         }
     }
 
@@ -513,7 +513,7 @@ namespace Runtime
         {
             waitTime = Time.fixedTime + 0.3f;
             owner.Sender.SyncColorServerRpc(Color.red);
-            State |= State.挂墙;
+            State |= State.悬挂;
             point = transform.position;
         }
 
@@ -541,7 +541,7 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~State.挂墙;
+            State &= ~State.悬挂;
         }
     }
 }

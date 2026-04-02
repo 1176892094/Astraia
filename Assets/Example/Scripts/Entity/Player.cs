@@ -119,7 +119,7 @@ namespace Runtime
         private void OnValueChanged(Color32 oldValue, Color32 newValue)
         {
             Machine.renderer.color = newValue;
-            Machine.trailRenderer.startColor = newValue;
+            Machine.graphics.startColor = newValue;
         }
 
         [ServerRpc]
