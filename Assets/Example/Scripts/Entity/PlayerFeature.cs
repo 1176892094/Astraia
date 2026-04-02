@@ -19,87 +19,109 @@ namespace Runtime
     [Serializable]
     public class PlayerFeature : Blackboard<Label, Player>
     {
-        public StateType state = StateType.默认;
-        public bool isWalk => InputManager.MoveX != 0 || InputManager.MoveY != 0;
-        public float moveSpeed => GetFloat(Label.移动速度);
-        public float jumpForce => GetFloat(Label.跳跃力度);
-        public float dashSpeed => GetFloat(Label.冲刺速度);
-        public float dashFrame => GetFloat(Label.冲刺时间);
-        public float waitFrame => GetFloat(Label.等待时间);
+        public float MoveSpeed
+        {
+            get => GetFloat(Label.移动速度);
+            set => SetFloat(Label.移动速度, value);
+        }
+
+        public float JumpForce
+        {
+            get => GetFloat(Label.跳跃力度);
+            set => SetFloat(Label.跳跃力度, value);
+        }
+
+        public float JumpTimer
+        {
+            get => GetFloat(Label.土狼时间);
+            set => SetFloat(Label.土狼时间, value);
+        }
+
+        public float JumpInput
+        {
+            get => GetFloat(Label.跳跃输入);
+            set => SetFloat(Label.跳跃输入, value);
+        }
+
+        public float JumpCount
+        {
+            get => GetFloat(Label.跳跃次数);
+            set => SetFloat(Label.跳跃次数, value);
+        }
+
+        public float JumpCD
+        {
+            get => GetFloat(Label.跳跃冷却);
+            set => SetFloat(Label.跳跃冷却, value);
+        }
+
+        public float DashInput
+        {
+            get => GetFloat(Label.冲刺输入);
+            set => SetFloat(Label.冲刺输入, value);
+        }
+
+        public float DashCount
+        {
+            get => GetFloat(Label.冲刺次数);
+            set => SetFloat(Label.冲刺次数, value);
+        }
+
+        public float DashSpeed
+        {
+            get => GetFloat(Label.冲刺速度);
+            set => SetFloat(Label.冲刺速度, value);
+        }
+
+        public float DashTimer
+        {
+            get => GetFloat(Label.冲刺时间);
+            set => SetFloat(Label.冲刺时间, value);
+        }
+
+        public float DashCD
+        {
+            get => GetFloat(Label.冲刺冷却);
+            set => SetFloat(Label.冲刺冷却, value);
+        }
+
+        public float WaitTime
+        {
+            get => GetFloat(Label.等待时间);
+            set => SetFloat(Label.等待时间, value);
+        }
 
         public override void Dequeue()
         {
-            SetFloat(Label.移动速度, 2);
-            SetFloat(Label.跳跃力度, 4);
-            SetFloat(Label.冲刺速度, 5);
-        }
-
-        public void Update()
-        {
-            if (owner.DRHit || owner.DLHit)
-            {
-                state |= StateType.地面;
-                SetInt(Label.跳跃次数, 1);
-                SetInt(Label.冲刺次数, 1);
-            }
-            else
-            {
-                state &= ~StateType.地面;
-            }
-
-            if (owner.RDHit)
-            {
-                state |= StateType.墙面;
-                SetInt(Label.跳跃次数, 1);
-            }
-            else
-            {
-                state &= ~StateType.墙面;
-            }
+            MoveSpeed = 2;
+            JumpForce = 5;
+            DashSpeed = 5;
         }
     }
 
     public class PlayerInput : Module<Player>
     {
         private PlayerFeature Feature => owner.Feature;
+        private PlayerMachine Machine => owner.Machine;
+        private Bounds Bounds => Machine.collider.bounds;
+        public float velocity;
 
-        public void Update()
+        private StateType State
         {
-            if (InputManager.MoveX > 0)
-            {
-                transform.localScale = new Vector3(InputManager.MoveX, 1, 1);
-            }
-            else if (InputManager.MoveX < 0)
-            {
-                transform.localScale = new Vector3(InputManager.MoveX, 1, 1);
-            }
+            get => owner.State;
+            set => owner.State = value;
+        }
 
-            DashUpdate();
+        private float velocityX
+        {
+            get => Machine.velocityX;
+            set => Machine.velocityX = value;
+        }
 
-            if (Feature.state.HasFlag(StateType.地面))
-            {
-                Feature.SetFloat(Label.土狼时间, Time.time + 0.2f);
-                JumpUpdate();
-            }
-            else if (Feature.state.HasFlag(StateType.墙面))
-            {
-                if (!Feature.state.HasFlag(StateType.抓墙缓冲))
-                {
-                    FallUpdate();
-                }
-
-                Feature.SetFloat(Label.土狼时间, Time.time + 0.2f);
-                JumpUpdate();
-            }
-            else
-            {
-                FallUpdate();
-            }
-
-            if (Feature.GetFloat(Label.土狼时间) > Time.time)
-            {
-                JumpUpdate();
-            }
+        private float velocityY
+        {
+            get => Machine.velocityY;
+            set => Machine.velocityY = value;
         }
 
         public override void Dequeue()
@@ -122,87 +144,179 @@ namespace Runtime
 
         private void DashButton(InputAction.CallbackContext obj)
         {
-            Feature.SetFloat(Label.冲刺输入, Time.time + 0.2f);
+            Feature.DashInput = Time.time + 0.2f;
         }
 
         private void JumpButton(InputAction.CallbackContext obj)
         {
-            Feature.state |= StateType.跳跃缓冲;
-            Feature.SetFloat(Label.跳跃输入, Time.time + 0.2f);
+            State |= StateType.跳跃缓冲;
+            Feature.JumpInput = Time.time + 0.2f;
         }
 
         private void FallButton(InputAction.CallbackContext obj)
         {
-            Feature.state &= ~StateType.跳跃缓冲;
+            State &= ~StateType.跳跃缓冲;
         }
 
         private void AttackButton(InputAction.CallbackContext obj)
         {
-            Feature.state |= StateType.抓墙缓冲;
+            State |= StateType.抓墙缓冲;
         }
 
         private void FinishButton(InputAction.CallbackContext obj)
         {
-            Feature.state &= ~StateType.抓墙缓冲;
+            State &= ~StateType.抓墙缓冲;
         }
 
-        private void FallUpdate()
+        public void Update()
         {
-            if (Feature.state.HasFlag(StateType.冲刺))
+            MoveUpdate();
+            DashUpdate();
+            GroundUpdate();
+            FallUpdate();
+        }
+
+        private void MoveUpdate()
+        {
+            if (State.HasFlag(StateType.冲刺))
             {
                 return;
             }
 
-            if (Feature.state.HasFlag(StateType.跳跃缓冲))
+            var moveX = InputManager.MoveX;
+            owner.Sender.Direction = moveX;
+
+            if (State.HasFlag(StateType.冲刺跳))
             {
-                owner.Machine.velocityY -= 9.81f * Time.deltaTime;
+                return;
+            }
+
+            if (State.HasFlag(StateType.跳跃))
+            {
+                return;
+            }
+
+            if (State.HasFlag(StateType.下落))
+            {
+                return;
+            }
+
+            if (moveX != 0)
+            {
+                velocityX = Mathf.Lerp(velocityX, Feature.MoveSpeed * moveX, 0.2F);
             }
             else
             {
-                owner.Machine.velocityY -= 9.81f * Time.deltaTime * 2;
+                velocityX = Mathf.Abs(velocityX) > 0.01F ? Mathf.Lerp(velocityX, 0, 0.1F) : 0;
             }
-
-            owner.Machine.velocityY = Mathf.Max(-5, owner.Machine.velocityY);
-        }
-
-        private void JumpUpdate()
-        {
-            if (Feature.GetInt(Label.跳跃次数) <= 0)
-            {
-                return;
-            }
-
-            if (Feature.GetFloat(Label.跳跃输入) < Time.time)
-            {
-                return;
-            }
-
-            if (!Feature.state.HasFlag(StateType.跳跃))
-            {
-                owner.Machine.Switch(StateConst.Jump);
-            }
-
-            Feature.SetFloat(Label.跳跃输入, Time.time);
         }
 
         private void DashUpdate()
         {
-            if (Feature.GetInt(Label.冲刺次数) <= 0)
+            if (Feature.DashCount <= 0)
             {
                 return;
             }
 
-            if (Feature.GetFloat(Label.冲刺输入) < Time.time)
+            if (Feature.DashInput < Time.time)
             {
                 return;
             }
 
-            if (!Feature.state.HasFlag(StateType.冲刺))
+            if (Feature.DashCD > Time.time)
             {
-                owner.Machine.Switch(StateConst.Dash);
+                return;
             }
 
-            Feature.SetFloat(Label.冲刺输入, Time.time);
+            if (State.HasFlag(StateType.冲刺))
+            {
+                return;
+            }
+
+            Machine.Switch(StateConst.Dash);
+            Feature.DashInput = Time.time;
+            Feature.DashCD = Time.time + 0.4F;
+        }
+
+        private void JumpUpdate()
+        {
+            if (Feature.JumpCount <= 0)
+            {
+                return;
+            }
+
+            if (Feature.JumpInput < Time.time)
+            {
+                return;
+            }
+
+            if (Feature.JumpCD > Time.time)
+            {
+                return;
+            }
+
+            if (State.HasFlag(StateType.跳跃))
+            {
+                return;
+            }
+
+            Machine.Switch(StateConst.Jump);
+            Feature.JumpInput = Time.time;
+            Feature.JumpCD = Time.time + 0.3F;
+        }
+
+        private void GroundUpdate()
+        {
+            if (State.HasFlag(StateType.地面))
+            {
+                Feature.JumpTimer = Time.time + 0.2F;
+                JumpUpdate();
+            }
+            else if (State.HasFlag(StateType.墙面))
+            {
+                Feature.JumpTimer = Time.time + 0.2F;
+                JumpUpdate();
+            }
+
+            if (Feature.JumpTimer > Time.time)
+            {
+                JumpUpdate();
+            }
+        }
+
+        private void FallUpdate()
+        {
+            var collider = Physics2D.BoxCast(Bounds.center, Bounds.size, 0, Vector2.down, 0.01F, 1 << 6);
+            if (collider)
+            {
+                if (!State.HasFlag(StateType.跳跃))
+                {
+                    Feature.JumpCount = 1;
+                }
+
+                if (!State.HasFlag(StateType.冲刺))
+                {
+                    Feature.DashCount = 1;
+                }
+
+                State |= StateType.地面;
+            }
+            else
+            {
+                State &= ~StateType.地面;
+            }
+
+            if (State.HasFlag(StateType.冲刺))
+            {
+                return;
+            }
+
+            if (State.HasFlag(StateType.地面))
+            {
+                return;
+            }
+
+            velocityY = Mathf.SmoothDamp(velocityY, -9.81F, ref velocity, State.HasFlag(StateType.跳跃缓冲) ? 0.8F : 0.4F);
         }
     }
 }

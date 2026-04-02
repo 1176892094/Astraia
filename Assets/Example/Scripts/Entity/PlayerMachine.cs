@@ -16,8 +16,10 @@ namespace Runtime
 {
     public class PlayerMachine : StateMachine<int, Player>
     {
+        public Collider2D collider;
         public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
+
 
         public float velocityX
         {
@@ -54,8 +56,9 @@ namespace Runtime
 
         public override void Dequeue()
         {
-            rigidbody = owner.GetComponent<Rigidbody2D>();
+            collider = owner.GetComponent<Collider2D>();
             renderer = owner.GetComponent<SpriteRenderer>();
+            rigidbody = owner.GetComponent<Rigidbody2D>();
         }
     }
 }

@@ -10,7 +10,6 @@
 // // *********************************************************************************
 
 using System;
-using Astraia;
 using Astraia.Core;
 using Astraia.Net;
 using UnityEngine;
@@ -19,67 +18,125 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
+        public StateType State = StateType.默认;
         public PlayerInput Input => Logic.GetComponent<PlayerInput>();
         public PlayerSender Sender => Logic.GetComponent<PlayerSender>();
         public PlayerMachine Machine => Logic.GetComponent<PlayerMachine>();
         public PlayerFeature Feature => Logic.GetComponent<PlayerFeature>();
-        public NetworkTransform Transform => Logic.GetComponent<NetworkTransform>();
-        private Ray2D DLRay => new Ray2D(transform.position - Vector3.right * 0.075f, Vector3.down);
-        private Ray2D DRRay => new Ray2D(transform.position + Vector3.right * 0.075f, Vector3.down);
-        private Ray2D RURay => new Ray2D(transform.position + Vector3.up * 0.1f, Vector3.right * transform.localScale.x);
-        private Ray2D RDRay => new Ray2D(transform.position - Vector3.up * 0.075f, Vector3.right * transform.localScale.x);
-        public RaycastHit2D DLHit => Physics2D.Raycast(DLRay.origin, DLRay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D DRHit => Physics2D.Raycast(DRRay.origin, DRRay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D RUHit => Physics2D.Raycast(RURay.origin, RURay.direction, 0.12f, 1 << 6);
-        public RaycastHit2D RDHit => Physics2D.Raycast(RDRay.origin, RDRay.direction, 0.12f, 1 << 6);
+        private NetworkTransform Transform => Logic.GetComponent<NetworkTransform>();
 
         protected override void Awake()
         {
             base.Awake();
             Logic.AddComponent<PlayerInput>();
+            Logic.AddComponent<PlayerSender>();
             Logic.AddComponent<PlayerFeature>();
             Logic.AddComponent<PlayerMachine>();
-            Logic.AddComponent<PlayerSender>();
             Logic.AddComponent<NetworkTransform>();
             Transform.syncDirection = SyncMode.Client;
         }
-
 
         private void Update()
         {
             if (isOwner)
             {
                 Input.Update();
-                Machine.Update();
-                Feature.Update();
             }
 
             Transform.Update();
+        }
+
+        private void FixedUpdate()
+        {
+            if (isOwner)
+            {
+                Machine.Update();
+            }
         }
 
         private void LateUpdate()
         {
             Transform.LateUpdate();
         }
-
-        private void OnDrawGizmos()
-        {
-            Gizmos.DrawRay(RDRay.origin, RDRay.direction * 0.12f);
-            Gizmos.DrawRay(RURay.origin, RURay.direction * 0.12f);
-            Gizmos.DrawRay(DLRay.origin, DRRay.direction * 0.12f);
-            Gizmos.DrawRay(DRRay.origin, DRRay.direction * 0.12f);
-        }
     }
 
     [Serializable]
     public class PlayerSender : NetworkModule, IStartAuthority
     {
-        [SyncVar(nameof(OnColorValueChanged))] public Color32 syncColor;
-        private new Player owner => (Player)base.owner;
+        [SyncVar(nameof(OnValueChanged))] public Color32 color;
 
-        private void OnColorValueChanged(Color32 oldValue, Color32 newValue)
+        public int Direction
         {
-            owner.Machine.renderer.color = newValue;
+            get
+            {
+                if (transform.localScale.x > 0)
+                {
+                    return 1;
+                }
+
+                if (transform.localScale.x < 0)
+                {
+                    return -1;
+                }
+
+                return 0;
+            }
+            set
+            {
+                if (value > 0 && Direction < 0)
+                {
+                    if (isOwner)
+                    {
+                        SetDirectionServerRpc(1);
+                    }
+                    else if (isServer)
+                    {
+                        SetDirectionClientRpc(1);
+                    }
+
+                    transform.localScale = new Vector3(1, 1, 1);
+                    return;
+                }
+
+                if (value < 0 && Direction > 0)
+                {
+                    if (isOwner)
+                    {
+                        SetDirectionServerRpc(-1);
+                    }
+                    else if (isServer)
+                    {
+                        SetDirectionClientRpc(-1);
+                    }
+
+                    transform.localScale = new Vector3(-1, 1, 1);
+                }
+            }
+        }
+
+        private PlayerMachine Machine => owner.Logic.GetComponent<PlayerMachine>();
+
+        private void OnValueChanged(Color32 oldValue, Color32 newValue)
+        {
+            Machine.renderer.color = newValue;
+        }
+
+        [ServerRpc]
+        public void SyncColorServerRpc(Color32 color)
+        {
+            this.color = color;
+        }
+
+        [ServerRpc]
+        private void SetDirectionServerRpc(int direction)
+        {
+            SetDirectionClientRpc(direction);
+        }
+
+        [ClientRpc(Channel.Reliable | Channel.IgnoreOwner)]
+        private void SetDirectionClientRpc(int direction)
+        {
+            transform.localScale = new Vector3(direction, 1, 1);
         }
 
         [ServerRpc]
@@ -88,23 +145,17 @@ namespace Runtime
             SpawnManager.Instance.LoadEffectClientRpc(position);
         }
 
-        [ServerRpc]
-        public void SyncColorServerRpc(Color32 syncColor)
-        {
-            this.syncColor = syncColor;
-        }
-
         public void OnStartAuthority()
         {
-            owner.Machine.Create<PlayerHop>(StateConst.Hop);
-            owner.Machine.Create<PlayerIdle>(StateConst.Idle);
-            owner.Machine.Create<PlayerWalk>(StateConst.Walk);
-            owner.Machine.Create<PlayerJump>(StateConst.Jump);
-            owner.Machine.Create<PlayerGrab>(StateConst.Grab);
-            owner.Machine.Create<PlayerDash>(StateConst.Dash);
-            owner.Machine.Create<PlayerCrash>(StateConst.Crash);
-            owner.Machine.Switch(StateConst.Idle);
-            GameManager.Instance.SetPlayer(owner.transform);
+            Machine.Create<PlayerHop>(StateConst.Hop);
+            Machine.Create<PlayerIdle>(StateConst.Idle);
+            Machine.Create<PlayerWalk>(StateConst.Walk);
+            Machine.Create<PlayerJump>(StateConst.Jump);
+            Machine.Create<PlayerGrab>(StateConst.Grab);
+            Machine.Create<PlayerDash>(StateConst.Dash);
+            Machine.Create<PlayerCrash>(StateConst.Crash);
+            Machine.Switch(StateConst.Idle);
+            GameManager.Instance.SetPlayer(transform);
             GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(30, 10)));
         }
     }
