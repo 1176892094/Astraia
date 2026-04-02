@@ -10,7 +10,6 @@
 // // *********************************************************************************
 
 using Astraia;
-using Astraia.Core;
 using UnityEngine;
 
 namespace Runtime
@@ -54,12 +53,112 @@ namespace Runtime
             if (moveX != 0)
             {
                 Direction = moveX;
-                velocityX = Mathf.Lerp(velocityX, speed * moveX, Time.deltaTime * 10);
+                velocityX = Mathf.Lerp(velocityX, speed * moveX, Time.fixedDeltaTime * 10);
             }
             else
             {
-                velocityX = Mathf.Abs(velocityX) > 0.01F ? Mathf.Lerp(velocityX, 0, Time.deltaTime * 5) : 0;
+                velocityX = Mathf.Abs(velocityX) > 0.01F ? Mathf.Lerp(velocityX, 0, Time.fixedDeltaTime * 5) : 0;
             }
+
+            Contact();
+            Gravity();
+        }
+
+        protected void Grab(int moveY, float speed)
+        {
+            if (moveY != 0)
+            {
+                velocityY = Mathf.Lerp(velocityY, speed * moveY, Time.fixedDeltaTime * 10);
+            }
+            else
+            {
+                velocityY = 0;
+            }
+
+            Contact();
+        }
+
+        protected void Gravity()
+        {
+            if (State.HasFlag(StateType.地面))
+            {
+                return;
+            }
+
+            if (State.HasFlag(StateType.缓冲))
+            {
+                velocityY = Mathf.Lerp(velocityY, Physics2D.gravity.y, Time.fixedDeltaTime);
+                return;
+            }
+
+            velocityY = Mathf.Lerp(velocityY, Physics2D.gravity.y, Time.fixedDeltaTime * 2);
+        }
+
+        protected void Contact()
+        {
+            State &= ~StateType.地面;
+            State &= ~StateType.墙面;
+            State &= ~StateType.头顶;
+            foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
+            {
+                var normal = contact.normal;
+                if (Mathf.Abs(normal.y) > Mathf.Abs(normal.x))
+                {
+                    if (normal.y > 0)
+                    {
+                        if (!State.HasFlag(StateType.跳跃))
+                        {
+                            Feature.JumpCount = 1;
+                        }
+
+                        if (!State.HasFlag(StateType.冲刺))
+                        {
+                            Feature.DashCount = 1;
+                        }
+
+                        State |= StateType.地面;
+                    }
+                    else
+                    {
+                        State |= StateType.头顶;
+                    }
+                }
+                else
+                {
+                    if (!State.HasFlag(StateType.跳跃))
+                    {
+                        Feature.JumpCount = 1;
+                    }
+
+                    State |= StateType.墙面;
+                }
+            }
+        }
+
+        protected float Dash()
+        {
+            var moveX = Direction * Feature.DashSpeed;
+            var extents = Machine.collider.bounds.extents;
+            var position = transform.position;
+            foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
+            {
+                var bounds = contact.collider.bounds;
+                if (position.x > bounds.max.x - extents.x)
+                {
+                    position.x = bounds.max.x + extents.x + 0.02F;
+                    transform.position = position;
+                    return 0;
+                }
+
+                if (position.x < bounds.min.x + extents.x)
+                {
+                    position.x = bounds.min.x - extents.x - 0.02F;
+                    transform.position = position;
+                    return 0;
+                }
+            }
+
+            return moveX;
         }
     }
 
@@ -67,6 +166,7 @@ namespace Runtime
     {
         public override void OnEnter()
         {
+            Feature.DashStack = 0;
             owner.Sender.SyncColorServerRpc(Color.white);
         }
 
@@ -245,7 +345,7 @@ namespace Runtime
                 return;
             }
 
-            Machine.velocityY = 0;
+            Grab(InputManager.MoveY, Feature.MoveSpeed);
         }
 
         public override void OnExit()
@@ -260,7 +360,6 @@ namespace Runtime
 
         public override void OnEnter()
         {
-            AudioManager.Play("30001");
             Feature.DashCount--;
             Feature.DashTimer = Time.fixedTime + 0.22F;
             owner.Sender.SyncColorServerRpc(Color.magenta);
@@ -291,34 +390,18 @@ namespace Runtime
             }
             else if (direction.y < 0)
             {
+                Contact();
                 if (State.HasFlag(StateType.地面))
                 {
-                    moveX = Direction * Feature.DashSpeed;
+                    moveX = Dash();
                 }
             }
             else if (direction.y > 0)
             {
-                if (State.HasFlag(StateType.顶面))
+                Contact();
+                if (State.HasFlag(StateType.头顶))
                 {
-                    var bounds = Machine.collider.bounds;
-                    var position = transform.position;
-                    foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
-                    {
-                        var ceiling = contact.collider.bounds;
-                        if (position.x > ceiling.max.x - bounds.extents.x)
-                        {
-                            position.x = ceiling.max.x + bounds.extents.x + 0.02F;
-                            transform.position = position;
-                            break;
-                        }
-
-                        if (position.x < ceiling.min.x + bounds.extents.x)
-                        {
-                            position.x = ceiling.min.x - bounds.extents.x - 0.02F;
-                            transform.position = position;
-                            break;
-                        }
-                    }
+                    moveX = Dash();
                 }
             }
 
@@ -328,6 +411,8 @@ namespace Runtime
 
         public override void OnExit()
         {
+            velocityX = 0;
+            velocityY = 0;
             State &= ~StateType.冲刺;
         }
     }
@@ -338,29 +423,17 @@ namespace Runtime
 
         public override void OnEnter()
         {
-            waitTime = Time.fixedTime + 0.1F;
             State |= StateType.冲刺跳;
-            if (Mathf.Abs(velocityX) < Feature.CrashSpeed)
-            {
-                velocityX = Direction * Feature.CrashSpeed;
-            }
-            else
-            {
-                velocityX += Direction * Feature.CrashSpeed / 4;
-            }
+            waitTime = Time.fixedTime + 0.1F;
+            Feature.DashStack += Feature.CrashSpeed / 4;
+            velocityX = Direction * (Feature.CrashSpeed + Feature.DashStack);
         }
 
         public override void OnUpdate()
         {
             if (waitTime < Time.fixedTime)
             {
-                if (State.HasFlag(StateType.墙面))
-                {
-                    Machine.Switch(StateConst.Idle);
-                    return;
-                }
-
-                if (State.HasFlag(StateType.地面))
+                if (isCrash)
                 {
                     Machine.Switch(StateConst.Idle);
                     return;
@@ -371,11 +444,13 @@ namespace Runtime
             {
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
+
+            Contact();
+            Gravity();
         }
 
         public override void OnExit()
         {
-            Machine.velocityX = 0;
             State &= ~StateType.冲刺跳;
         }
     }

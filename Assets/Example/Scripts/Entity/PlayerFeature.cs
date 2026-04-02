@@ -90,6 +90,12 @@ namespace Runtime
             get => GetFloat(Label.玩家阴影);
             set => SetFloat(Label.玩家阴影, value);
         }
+        
+        public float DashStack
+        {
+            get => GetFloat(Label.冲刺叠加);
+            set => SetFloat(Label.冲刺叠加, value);
+        }
 
         public float CrashSpeed => MoveSpeed * 2;
 
@@ -164,60 +170,8 @@ namespace Runtime
 
         public void Update()
         {
-            FallUpdate();
             DashUpdate();
             JumpUpdate();
-        }
-
-        private void FallUpdate()
-        {
-            State &= ~StateType.地面;
-            State &= ~StateType.墙面;
-            State &= ~StateType.顶面;
-            foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
-            {
-                if (contact.normal.y > 0.5F)
-                {
-                    if (!State.HasFlag(StateType.跳跃))
-                    {
-                        Feature.JumpCount = 1;
-                    }
-
-                    if (!State.HasFlag(StateType.冲刺))
-                    {
-                        Feature.DashCount = 1;
-                    }
-
-                    State |= StateType.地面;
-                }
-
-                if (contact.normal.y < -0.5F)
-                {
-                    State |= StateType.顶面;
-                }
-
-                if (contact.normal.x > 0.5F || contact.normal.x < -0.5F)
-                {
-                    if (!State.HasFlag(StateType.跳跃))
-                    {
-                        Feature.JumpCount = 1;
-                    }
-
-                    State |= StateType.墙面;
-                }
-            }
-
-            if (State.HasFlag(StateType.冲刺))
-            {
-                return;
-            }
-
-            if (State.HasFlag(StateType.地面))
-            {
-                return;
-            }
-
-            velocityY = Mathf.Lerp(velocityY, Physics2D.gravity.y, Time.deltaTime * (State.HasFlag(StateType.缓冲) ? 1 : 2));
         }
 
         private void DashUpdate()

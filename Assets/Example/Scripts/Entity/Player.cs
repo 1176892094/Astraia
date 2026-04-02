@@ -22,7 +22,6 @@ namespace Runtime
         public PlayerSender Sender => Logic.GetComponent<PlayerSender>();
         public PlayerMachine Machine => Logic.GetComponent<PlayerMachine>();
         public PlayerFeature Feature => Logic.GetComponent<PlayerFeature>();
-
         private PlayerInput Input => Logic.GetComponent<PlayerInput>();
         private NetworkTransform Transform => Logic.GetComponent<NetworkTransform>();
 
