@@ -31,7 +31,7 @@ namespace Runtime
         冲刺速度,
         冲刺时间,
         冲刺冷却,
-        等待时间,
+        玩家阴影,
     }
 
     [Flags]

@@ -25,6 +25,12 @@ namespace Runtime
         protected PlayerMachine Machine => owner.Machine;
         protected PlayerFeature Feature => owner.Feature;
 
+        protected int Direction
+        {
+            get => owner.Sender.Direction;
+            set => owner.Sender.Direction = value;
+        }
+
         protected StateType State
         {
             get => owner.State;
@@ -47,7 +53,7 @@ namespace Runtime
         {
             if (moveX != 0)
             {
-                owner.Sender.Direction = moveX;
+                Direction = moveX;
                 velocityX = Mathf.Lerp(velocityX, speed * moveX, Time.deltaTime * 10);
             }
             else
@@ -137,8 +143,8 @@ namespace Runtime
             if (State.HasFlag(StateType.墙面) && !State.HasFlag(StateType.地面))
             {
                 State |= StateType.墙蹬跳;
-                owner.Sender.Direction = -owner.Sender.Direction;
-                Machine.velocityX = owner.Sender.Direction * Feature.JumpForce;
+                Direction = -owner.Sender.Direction;
+                Machine.velocityX = Direction * Feature.JumpForce;
             }
 
             Feature.JumpCount--;
@@ -148,6 +154,18 @@ namespace Runtime
 
         public override void OnUpdate()
         {
+            if (Feature.DashTimer > Time.fixedTime)
+            {
+                if (isWalk && InputManager.MoveY != 1)
+                {
+                    if (State.HasFlag(StateType.地面))
+                    {
+                        Machine.Switch(StateConst.Crash);
+                        return;
+                    }
+                }
+            }
+
             if (waitTime < Time.fixedTime)
             {
                 Machine.Switch(StateConst.Idle);
@@ -236,6 +254,132 @@ namespace Runtime
         }
     }
 
+    public class PlayerDash : PlayerState
+    {
+        private Vector2 direction;
+
+        public override void OnEnter()
+        {
+            AudioManager.Play("30001");
+            Feature.DashCount--;
+            Feature.DashTimer = Time.fixedTime + 0.22F;
+            owner.Sender.SyncColorServerRpc(Color.magenta);
+            State |= StateType.冲刺;
+            Feature.ShadowFrame = 0;
+            direction = InputManager.Direction;
+        }
+
+        public override void OnUpdate()
+        {
+            if (Feature.DashTimer < Time.fixedTime)
+            {
+                Machine.Switch(StateConst.Idle);
+                return;
+            }
+
+            if (Feature.ShadowFrame++ % 4 == 0)
+            {
+                owner.Sender.LoadEffectServerRpc(transform.position);
+            }
+
+            var moveX = direction.x * Feature.DashSpeed;
+            var moveY = direction.y * Feature.DashSpeed;
+
+            if (direction == Vector2.zero)
+            {
+                moveX = Direction * Feature.DashSpeed;
+            }
+            else if (direction.y < 0)
+            {
+                if (State.HasFlag(StateType.地面))
+                {
+                    moveX = Direction * Feature.DashSpeed;
+                }
+            }
+            else if (direction.y > 0)
+            {
+                if (State.HasFlag(StateType.顶面))
+                {
+                    var bounds = Machine.collider.bounds;
+                    var position = transform.position;
+                    foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
+                    {
+                        var ceiling = contact.collider.bounds;
+                        if (position.x > ceiling.max.x - bounds.extents.x)
+                        {
+                            position.x = ceiling.max.x + bounds.extents.x + 0.02F;
+                            transform.position = position;
+                            break;
+                        }
+
+                        if (position.x < ceiling.min.x + bounds.extents.x)
+                        {
+                            position.x = ceiling.min.x - bounds.extents.x - 0.02F;
+                            transform.position = position;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            velocityX = moveX;
+            velocityY = moveY;
+        }
+
+        public override void OnExit()
+        {
+            State &= ~StateType.冲刺;
+        }
+    }
+
+    public class PlayerCrash : PlayerState
+    {
+        private float waitTime;
+
+        public override void OnEnter()
+        {
+            waitTime = Time.fixedTime + 0.1F;
+            State |= StateType.冲刺跳;
+            if (Mathf.Abs(velocityX) < Feature.CrashSpeed)
+            {
+                velocityX = Direction * Feature.CrashSpeed;
+            }
+            else
+            {
+                velocityX += Direction * Feature.CrashSpeed / 4;
+            }
+        }
+
+        public override void OnUpdate()
+        {
+            if (waitTime < Time.fixedTime)
+            {
+                if (State.HasFlag(StateType.墙面))
+                {
+                    Machine.Switch(StateConst.Idle);
+                    return;
+                }
+
+                if (State.HasFlag(StateType.地面))
+                {
+                    Machine.Switch(StateConst.Idle);
+                    return;
+                }
+            }
+
+            if (Feature.ShadowFrame++ % 4 == 0)
+            {
+                owner.Sender.LoadEffectServerRpc(transform.position);
+            }
+        }
+
+        public override void OnExit()
+        {
+            Machine.velocityX = 0;
+            State &= ~StateType.冲刺跳;
+        }
+    }
+
     public class PlayerHold : PlayerState
     {
         private float waitTime;
@@ -274,118 +418,6 @@ namespace Runtime
         public override void OnExit()
         {
             State &= ~StateType.挂墙;
-        }
-    }
-
-    public class PlayerDash : PlayerState
-    {
-        private Vector2 direction;
-
-        public override void OnEnter()
-        {
-            AudioManager.Play("30001");
-            Feature.DashCount--;
-            Feature.DashTimer = Time.fixedTime + 0.22F;
-            owner.Sender.SyncColorServerRpc(Color.magenta);
-            State |= StateType.冲刺;
-            Feature.WaitTime = 0;
-            direction = InputManager.Direction;
-        }
-
-        public override void OnUpdate()
-        {
-            if (Feature.DashTimer < Time.fixedTime)
-            {
-                Machine.Switch(StateConst.Idle);
-                return;
-            }
-
-            if (Feature.WaitTime++ % 4 == 0)
-            {
-                owner.Sender.LoadEffectServerRpc(transform.position);
-            }
-
-            var moveX = direction.x * Feature.DashSpeed;
-            var moveY = direction.y * Feature.DashSpeed;
-
-            if (direction == Vector2.zero)
-            {
-                moveX = owner.Sender.Direction * Feature.DashSpeed;
-            }
-            else if (direction.y < 0)
-            {
-                if (State.HasFlag(StateType.地面))
-                {
-                    moveX = owner.Sender.Direction * Feature.DashSpeed;
-                }
-            }
-            else if (direction.y > 0)
-            {
-                if (State.HasFlag(StateType.顶面))
-                {
-                    var bounds = Machine.collider.bounds;
-                    var position = transform.position;
-                    foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
-                    {
-                        var ceiling = contact.collider.bounds;
-                        if (position.x > ceiling.max.x - bounds.extents.x)
-                        {
-                            position.x = ceiling.max.x + bounds.extents.x + 0.02F;
-                            transform.position = position;
-                            break;
-                        }
-
-                        if (position.x < ceiling.min.x + bounds.extents.x)
-                        {
-                            position.x = ceiling.min.x - bounds.extents.x - 0.02F;
-                            transform.position = position;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            velocityX = moveX;
-            velocityY = moveY;
-        }
-
-        public override void OnExit()
-        {
-            velocityY = 0;
-            velocityX = 0;
-            State &= ~StateType.冲刺;
-        }
-    }
-
-    public class PlayerCrash : PlayerState
-    {
-        public override void OnEnter()
-        {
-            State |= StateType.冲刺跳;
-            owner.Sender.SyncColorServerRpc(Color.magenta);
-        }
-
-        public override void OnUpdate()
-        {
-            if (isCrash)
-            {
-                Machine.Switch(StateConst.Idle);
-                return;
-            }
-
-            if (Feature.WaitTime % 5 == 0)
-            {
-                owner.Sender.LoadEffectServerRpc(transform.position);
-            }
-
-            Feature.AddInt(Label.等待时间, 1);
-            Machine.velocityX = transform.localScale.x * Feature.MoveSpeed * 2;
-        }
-
-        public override void OnExit()
-        {
-            Machine.velocityX = 0;
-            State &= ~StateType.冲刺跳;
         }
     }
 }

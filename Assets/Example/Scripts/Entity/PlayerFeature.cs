@@ -85,11 +85,13 @@ namespace Runtime
             set => SetFloat(Label.冲刺冷却, value);
         }
 
-        public float WaitTime
+        public float ShadowFrame
         {
-            get => GetFloat(Label.等待时间);
-            set => SetFloat(Label.等待时间, value);
+            get => GetFloat(Label.玩家阴影);
+            set => SetFloat(Label.玩家阴影, value);
         }
+
+        public float CrashSpeed => MoveSpeed * 2;
 
         public override void Dequeue()
         {
