@@ -85,16 +85,16 @@ namespace Runtime
             set => SetFloat(Label.冲刺冷却, value);
         }
 
-        public float ShadowFrame
-        {
-            get => GetFloat(Label.玩家阴影);
-            set => SetFloat(Label.玩家阴影, value);
-        }
-        
         public float DashStack
         {
             get => GetFloat(Label.冲刺叠加);
             set => SetFloat(Label.冲刺叠加, value);
+        }
+
+        public float ShadowIndex
+        {
+            get => GetFloat(Label.玩家阴影);
+            set => SetFloat(Label.玩家阴影, value);
         }
 
         public float CrashSpeed => MoveSpeed * 2;
@@ -116,12 +116,6 @@ namespace Runtime
         {
             get => owner.State;
             set => owner.State = value;
-        }
-
-        private float velocityY
-        {
-            get => Machine.velocityY;
-            set => Machine.velocityY = value;
         }
 
         public override void Dequeue()
@@ -207,7 +201,7 @@ namespace Runtime
                 Feature.JumpTimer = Time.time + 0.2F;
             }
 
-            if (State.HasFlag(State.墙面))
+            if (State.HasFlag(State.左墙) || State.HasFlag(State.右墙))
             {
                 Feature.JumpTimer = Time.time + 0.2F;
             }

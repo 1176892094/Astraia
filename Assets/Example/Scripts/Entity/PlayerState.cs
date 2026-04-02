@@ -17,9 +17,10 @@ namespace Runtime
     public abstract class PlayerState : State<Player>
     {
         protected bool isWalk => InputManager.MoveX != 0 || InputManager.MoveY != 0;
-        protected bool isCrash => State.HasFlag(Runtime.State.墙面) || State.HasFlag(Runtime.State.地面);
-        protected bool isGrab => State.HasFlag(Runtime.State.墙面) && State.HasFlag(Runtime.State.攻击);
-        protected bool isFall => !State.HasFlag(Runtime.State.墙面) && !State.HasFlag(Runtime.State.地面) && velocityY < 0;
+        protected bool isWall => State.HasFlag(State.左墙) || State.HasFlag(State.右墙);
+        protected bool isGround => isWall || State.HasFlag(State.地面);
+        protected bool isGrab => isWall && State.HasFlag(State.攻击);
+        protected bool isFall => !isWall && !State.HasFlag(State.地面) && velocityY < 0;
         protected Transform transform => owner.transform;
         protected PlayerMachine Machine => owner.Machine;
         protected PlayerFeature Feature => owner.Feature;
@@ -97,7 +98,8 @@ namespace Runtime
         protected void Contact()
         {
             State &= ~State.地面;
-            State &= ~State.墙面;
+            State &= ~State.左墙;
+            State &= ~State.右墙;
             State &= ~State.头顶;
             foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
             {
@@ -130,7 +132,14 @@ namespace Runtime
                         Feature.JumpCount = 1;
                     }
 
-                    State |= State.墙面;
+                    if (normal.x > 0)
+                    {
+                        State |= State.左墙;
+                    }
+                    else
+                    {
+                        State |= State.右墙;
+                    }
                 }
             }
         }
@@ -145,14 +154,14 @@ namespace Runtime
                 var bounds = contact.collider.bounds;
                 if (position.x > bounds.max.x - extents.x)
                 {
-                    position.x = bounds.max.x + extents.x + 0.02F;
+                    position.x = bounds.max.x + extents.x;
                     transform.position = position;
                     return 0;
                 }
 
                 if (position.x < bounds.min.x + extents.x)
                 {
-                    position.x = bounds.min.x - extents.x - 0.02F;
+                    position.x = bounds.min.x - extents.x;
                     transform.position = position;
                     return 0;
                 }
@@ -223,6 +232,7 @@ namespace Runtime
                 Machine.Switch(Animations.Idle);
             }
 
+
             Move(InputManager.MoveX, Feature.MoveSpeed);
         }
 
@@ -237,14 +247,14 @@ namespace Runtime
 
         public override void OnEnter()
         {
-            waitTime = Time.fixedTime + 0.2F;
+            waitTime = Time.fixedTime + 0.1F;
             owner.Sender.SyncColorServerRpc(Color.yellow);
 
-            if (State.HasFlag(State.墙面) && !State.HasFlag(State.地面))
+            if (isWall && !State.HasFlag(State.地面))
             {
                 State |= State.墙蹬跳;
                 Direction = -owner.Sender.Direction;
-                Machine.velocityX = Direction * Feature.JumpForce;
+                Machine.velocityX = Direction * Feature.JumpForce / 2;
             }
 
             Feature.JumpCount--;
@@ -256,20 +266,31 @@ namespace Runtime
         {
             if (Feature.DashTimer > Time.fixedTime)
             {
-                if (isWalk && InputManager.MoveY != 1)
+                if (InputManager.MoveY != 1)
                 {
-                    if (State.HasFlag(State.地面))
+                    if (State.HasFlag(State.地面) && isWalk)
                     {
                         Machine.Switch(Animations.Crash);
                         return;
                     }
                 }
-            }
 
-            if (waitTime < Time.fixedTime)
-            {
-                Machine.Switch(Animations.Idle);
-                return;
+                if (isWall && State.HasFlag(State.墙蹬跳))
+                {
+                    State |= State.超级跳;
+                    State &= ~State.墙蹬跳;
+
+                    if (State.HasFlag(State.左墙))
+                    {
+                        Machine.velocityX = Feature.JumpForce * 0.8f;
+                    }
+                    else
+                    {
+                        Machine.velocityX = -Feature.JumpForce  * 0.8f;
+                    }
+
+                    Machine.velocityY *= InputManager.MoveY >= 0 ? 1.2f : -1.2f;
+                }
             }
 
             if (isGrab)
@@ -283,12 +304,29 @@ namespace Runtime
                 Machine.Switch(Animations.Fall);
             }
 
+            if (waitTime < Time.fixedTime)
+            {
+                if (isGround)
+                {
+                    Machine.Switch(Animations.Idle);
+                    return;
+                }
+            }
+            else
+            {
+                if (State.HasFlag(State.墙蹬跳) || State.HasFlag(State.超级跳))
+                {
+                    return;
+                }
+            }
+
             Move(InputManager.MoveX, Feature.MoveSpeed * 1.2F);
         }
 
         public override void OnExit()
         {
             State &= ~State.跳跃;
+            State &= ~State.超级跳;
             State &= ~State.墙蹬跳;
         }
     }
@@ -361,10 +399,10 @@ namespace Runtime
         public override void OnEnter()
         {
             Feature.DashCount--;
-            Feature.DashTimer = Time.fixedTime + 0.22F;
+            Feature.DashTimer = Time.fixedTime + 0.24F;
             owner.Sender.SyncColorServerRpc(Color.magenta);
             State |= State.冲刺;
-            Feature.ShadowFrame = 0;
+            Feature.ShadowIndex = 0;
             velocity = InputManager.Direction;
         }
 
@@ -376,7 +414,7 @@ namespace Runtime
                 return;
             }
 
-            if (Feature.ShadowFrame++ % 4 == 0)
+            if (Feature.ShadowIndex++ % 4 == 0)
             {
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
@@ -401,7 +439,7 @@ namespace Runtime
                 Contact();
                 if (State.HasFlag(State.头顶))
                 {
-                    moveX = Dash();
+                    Dash();
                 }
             }
 
@@ -433,14 +471,14 @@ namespace Runtime
         {
             if (waitTime < Time.fixedTime)
             {
-                if (isCrash)
+                if (isGround)
                 {
                     Machine.Switch(Animations.Idle);
                     return;
                 }
             }
 
-            if (Feature.ShadowFrame++ % 4 == 0)
+            if (Feature.ShadowIndex++ % 4 == 0)
             {
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
