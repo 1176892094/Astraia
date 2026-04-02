@@ -34,7 +34,17 @@ namespace Runtime
             Application.targetFrameRate = 60;
             UIManager.SetCamera(mainCamera);
             UIManager.Show<LoadPanel>();
-            owner.Wait(0.1F).OnComplete(() => NetworkManager.StartHost());
+            owner.Wait(0.1F).OnComplete(() =>
+            {
+                try
+                {
+                    NetworkManager.StartHost();
+                }
+                catch
+                {
+                    NetworkManager.StartClient();
+                }
+            });
         }
 
         public void Update()

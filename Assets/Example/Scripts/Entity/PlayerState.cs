@@ -286,7 +286,7 @@ namespace Runtime
                     }
                     else
                     {
-                        Machine.velocityX = -Feature.JumpForce  * 0.8f;
+                        Machine.velocityX = -Feature.JumpForce * 0.8f;
                     }
 
                     Machine.velocityY *= InputManager.MoveY >= 0 ? 1.2f : -1.2f;
@@ -314,11 +314,22 @@ namespace Runtime
             }
             else
             {
-                if (State.HasFlag(State.墙蹬跳) || State.HasFlag(State.超级跳))
+                if (State.HasFlag(State.超级跳))
+                {
+                    if (Feature.ShadowIndex++ % 4 == 0)
+                    {
+                        owner.Sender.LoadEffectServerRpc(transform.position);
+                    }
+
+                    return;
+                }
+
+                if (State.HasFlag(State.墙蹬跳))
                 {
                     return;
                 }
             }
+
 
             Move(InputManager.MoveX, Feature.MoveSpeed * 1.2F);
         }

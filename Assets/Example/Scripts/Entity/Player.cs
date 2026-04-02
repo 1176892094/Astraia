@@ -119,6 +119,7 @@ namespace Runtime
         private void OnValueChanged(Color32 oldValue, Color32 newValue)
         {
             Machine.renderer.color = newValue;
+            Machine.trailRenderer.startColor = newValue;
         }
 
         [ServerRpc]
@@ -142,11 +143,13 @@ namespace Runtime
         [ServerRpc]
         public void LoadEffectServerRpc(Vector3 position)
         {
-            SpawnManager.Instance.LoadEffectClientRpc(position);
+          //  SpawnManager.Instance.LoadEffectClientRpc(position);
         }
 
         public void OnStartAuthority()
         {
+            GameManager.Instance.SetPlayer(transform);
+            GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(30, 10)));
             Machine.Create<PlayerHold>(Animations.Hold);
             Machine.Create<PlayerIdle>(Animations.Idle);
             Machine.Create<PlayerWalk>(Animations.Walk);
@@ -156,8 +159,6 @@ namespace Runtime
             Machine.Create<PlayerDash>(Animations.Dash);
             Machine.Create<PlayerCrash>(Animations.Crash);
             Machine.Switch(Animations.Idle);
-            GameManager.Instance.SetPlayer(transform);
-            GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(30, 10)));
         }
     }
 }
