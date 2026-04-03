@@ -469,12 +469,14 @@ namespace Runtime
     public class PlayerCrash : PlayerState
     {
         private float waitTime;
+        private int moveX;
 
         public override void OnEnter()
         {
             State |= State.冲刺跳;
             waitTime = Time.fixedTime + 0.1F;
             Feature.DashStack += Feature.CrashSpeed / 4;
+            moveX = Direction;
             velocityX = Direction * (Feature.CrashSpeed + Feature.DashStack);
         }
 
@@ -483,6 +485,12 @@ namespace Runtime
             if (waitTime < Time.fixedTime)
             {
                 if (isGround)
+                {
+                    Machine.Switch(Animations.Idle);
+                    return;
+                }
+
+                if (moveX != InputManager.MoveX)
                 {
                     Machine.Switch(Animations.Idle);
                     return;
