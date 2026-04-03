@@ -146,9 +146,8 @@ namespace Runtime
 
         protected float Dash()
         {
-            var moveX = Direction * Feature.DashSpeed;
-            var extents = Machine.collider.bounds.extents;
             var position = transform.position;
+            var extents = Machine.collider.bounds.extents;
             foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
             {
                 var bounds = contact.collider.bounds;
@@ -167,7 +166,34 @@ namespace Runtime
                 }
             }
 
-            return moveX;
+            return Direction * Feature.DashSpeed;
+        }
+
+        protected void Hold()
+        {
+            var position = transform.position;
+            var extents = Machine.collider.bounds.extents;
+            foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
+            {
+                var bounds = contact.collider.bounds;
+                if (position.y > bounds.max.y - extents.y)
+                {
+                    position.y = Mathf.Lerp(position.y, bounds.max.y + extents.y, 0.2F);
+                    transform.position = position;
+                }
+
+                if (position.x < bounds.min.x)
+                {
+                    position.x = Mathf.Lerp(position.x, bounds.min.x - extents.x, 0.2F);
+                    transform.position = position;
+                }
+
+                if (position.x > bounds.max.x)
+                {
+                    position.x = Mathf.Lerp(position.x, bounds.max.x - extents.x, 0.2F);
+                    transform.position = position;
+                }
+            }
         }
     }
 
@@ -515,14 +541,13 @@ namespace Runtime
     public class PlayerHold : PlayerState
     {
         private float waitTime;
-        private Vector3 point;
+
 
         public override void OnEnter()
         {
             waitTime = Time.fixedTime + 0.3f;
             owner.Sender.SyncColorServerRpc(Color.red);
             State |= State.悬挂;
-            point = transform.position;
         }
 
         public override void OnUpdate()
@@ -532,19 +557,16 @@ namespace Runtime
                 Machine.Switch(Animations.Idle);
                 return;
             }
-
-            var position = transform.position;
-            if (position.y < point.y + 0.2f)
+            
+            Contact();
+            if (State.HasFlag(State.左墙) && InputManager.MoveX < 0)
             {
-                position += Vector3.up * (2 * Time.fixedDeltaTime);
+                Hold();
             }
-
-            if (position.x < point.x + 0.2f || position.x > point.x - 0.2f)
+            else if (State.HasFlag(State.右墙) && InputManager.MoveX > 0)
             {
-                position += Vector3.right * (transform.localScale.x * Time.fixedDeltaTime);
+                Hold();
             }
-
-            Machine.rigidbody.MovePosition(position);
         }
 
         public override void OnExit()
