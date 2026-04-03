@@ -1,4 +1,4 @@
-# 欢迎来到Astraia部分功能介绍
+# 欢迎来到Astraia部分功能介绍[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/1176892094/Astraia)
 
 1.持久化
 
