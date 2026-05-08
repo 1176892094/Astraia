@@ -337,6 +337,68 @@ namespace Astraia
 
 namespace Astraia
 {
+    [Serializable]
+    public class Enumerable<T> : IEnumerable<T>
+    {
+        public readonly T[] items;
+        public int count;
+
+        public Enumerable(int count)
+        {
+            items = new T[count];
+        }
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(items, count);
+        }
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public struct Enumerator : IEnumerator<T>
+        {
+            private readonly T[] items;
+            private readonly int count;
+            private int index;
+            public T Current => items[index];
+            object IEnumerator.Current => items[index];
+
+            public Enumerator(T[] items, int count)
+            {
+                this.items = items;
+                this.count = count;
+                index = -1;
+            }
+
+            public bool MoveNext()
+            {
+                index++;
+                return index < count;
+            }
+
+            public void Reset()
+            {
+                index = -1;
+            }
+
+            public void Dispose()
+            {
+                index = -1;
+            }
+        }
+    }
+}
+
+namespace Astraia
+{
     public static class HeapManager
     {
         internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
