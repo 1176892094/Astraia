@@ -129,37 +129,34 @@ namespace Astraia.Core
 
         private static Pool LoadPool(string path)
         {
-            if (poolData.TryGetValue(path, out var pool))
+            if (!poolData.TryGetValue(path, out var pool))
             {
-                return (Pool)pool;
+                pool = new Pool(typeof(GameObject), path, AssetManager.Load<GameObject>);
+                poolData.Add(path, pool);
             }
 
-            pool = new Pool(typeof(GameObject), path, AssetManager.Load<GameObject>);
-            poolData.Add(path, pool);
             return (Pool)pool;
         }
 
         private static Pool LoadPool(string path, string name)
         {
-            if (poolData.TryGetValue(name, out var pool))
+            if (!poolData.TryGetValue(name, out var pool))
             {
-                return (Pool)pool;
+                pool = new Pool(typeof(GameObject), path, AssetManager.Load<GameObject>);
+                poolData.Add(name, pool);
             }
 
-            pool = new Pool(typeof(GameObject), path, AssetManager.Load<GameObject>);
-            poolData.Add(name, pool);
             return (Pool)pool;
         }
 
         private static Pool LoadPool(string path, params Type[] args)
         {
-            if (poolData.TryGetValue(path, out var pool))
+            if (!poolData.TryGetValue(path, out var pool))
             {
-                return (Pool)pool;
+                pool = new Pool(args[0], path, item => new GameObject(item, args));
+                poolData.Add(path, pool);
             }
 
-            pool = new Pool(args[0], path, item => new GameObject(item, args));
-            poolData.Add(path, pool);
             return (Pool)pool;
         }
 
