@@ -368,13 +368,12 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Pool<T> LoadPool<T>(Type type)
         {
-            if (poolData.TryGetValue(type, out var item))
+            if (!poolData.TryGetValue(type, out var item))
             {
-                return (Pool<T>)item;
+                item = new Pool<T>(type, type.Name);
+                poolData.Add(type, item);
             }
 
-            item = new Pool<T>(type, type.Name);
-            poolData.Add(type, item);
             return (Pool<T>)item;
         }
 
@@ -482,13 +481,12 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Pool<T> LoadPool<T>() where T : IEvent
         {
-            if (poolData.TryGetValue(typeof(T), out var pool))
+            if (!poolData.TryGetValue(typeof(T), out var pool))
             {
-                return (Pool<T>)pool;
+                pool = new Pool<T>(typeof(T), typeof(T).Name);
+                poolData.Add(typeof(T), pool);
             }
 
-            pool = new Pool<T>(typeof(T), typeof(T).Name);
-            poolData.Add(typeof(T), pool);
             return (Pool<T>)pool;
         }
 
