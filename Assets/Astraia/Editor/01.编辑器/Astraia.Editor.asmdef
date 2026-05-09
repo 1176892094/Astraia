@@ -1,19 +1,19 @@
 {
-    "name": "Astraia.Editor",
-    "rootNamespace": "",
-    "references": [
-        "GUID:aa053e14409e744ee99695800f09a6fb",
-        "GUID:d7b5476ac52be4da88cfdfdc8b8c889a"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Astraia.Editor",
+  "rootNamespace": "",
+  "references": [
+    "GUID:aa053e14409e744ee99695800f09a6fb",
+    "GUID:d7b5476ac52be4da88cfdfdc8b8c889a"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

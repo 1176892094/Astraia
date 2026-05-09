@@ -33,7 +33,7 @@ namespace Astraia.Core
     public record ClientSceneLoaded(string sceneName) : IEvent;
 
     public record ServerResponse(Uri uri) : IEvent;
-    
+
     public record ServerObserver(NetworkEntity entity) : IEvent;
 
     public record LobbyUpdate(LobbyData[] rooms) : IEvent;

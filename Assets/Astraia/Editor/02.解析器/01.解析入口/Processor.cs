@@ -25,7 +25,7 @@ namespace Astraia.Editor
 {
     internal sealed class NetworkProcessor : ILPostProcessor
     {
-        private static readonly HashSet<string> IgnoreAssemblies = new  HashSet<string>()
+        private static readonly HashSet<string> IgnoreAssemblies = new HashSet<string>()
         {
             "Assembly-CSharp-firstpass",
             "Assembly-CSharp-Editor",

@@ -54,7 +54,7 @@ namespace Astraia
             {
                 var rootObj = AssetDatabase.LoadAssetAtPath<Object>(root);
                 if (rootObj == null) continue;
-                
+
                 var rootId = rootObj.GetEntityId();
                 if (!state.expandedIDs.Contains(rootId))
                 {

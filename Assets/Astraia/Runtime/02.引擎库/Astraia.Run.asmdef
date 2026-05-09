@@ -1,16 +1,16 @@
 {
-    "name": "Astraia.Run",
-    "rootNamespace": "",
-    "references": [
-        "GUID:aa053e14409e744ee99695800f09a6fb"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Astraia.Run",
+  "rootNamespace": "",
+  "references": [
+    "GUID:aa053e14409e744ee99695800f09a6fb"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

@@ -69,8 +69,7 @@ namespace Astraia
         [HideInPlayMode, PropertyOrder(1), ValueDropdown("Windows")]
 #endif
 #endif
-        [SerializeField]
-        private List<string> modules = new List<string>();
+        [SerializeField] private List<string> modules = new List<string>();
 
         private readonly struct InjectAdaptor : Logic.IInject
         {

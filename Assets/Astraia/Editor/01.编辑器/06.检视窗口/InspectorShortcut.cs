@@ -43,7 +43,7 @@ namespace Astraia
                 window.Repaint();
                 Use();
             }
-            
+
             if (W)
             {
                 SetExpand(window, 2);
@@ -57,7 +57,7 @@ namespace Astraia
                 window.Repaint();
                 Use();
             }
-            
+
             if (R)
             {
                 SetExpand(window, 4);

@@ -1,22 +1,22 @@
 {
-    "name": "Unity.Astraia.CodeGen",
-    "rootNamespace": "",
-    "references": [
-        "GUID:aa053e14409e744ee99695800f09a6fb",
-        "GUID:d7b5476ac52be4da88cfdfdc8b8c889a",
-        "GUID:25698154d24f0428fa172324a8fd83d9"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": true,
-    "precompiledReferences": [
-        "Mono.Cecil.dll"
-    ],
-    "autoReferenced": false,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Unity.Astraia.CodeGen",
+  "rootNamespace": "",
+  "references": [
+    "GUID:aa053e14409e744ee99695800f09a6fb",
+    "GUID:d7b5476ac52be4da88cfdfdc8b8c889a",
+    "GUID:25698154d24f0428fa172324a8fd83d9"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "Mono.Cecil.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

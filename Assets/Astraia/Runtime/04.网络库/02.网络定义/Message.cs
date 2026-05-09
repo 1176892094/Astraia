@@ -21,7 +21,7 @@ namespace Astraia.Core
     internal struct ReadyMessage : IMessage
     {
     }
-    
+
     internal struct SceneMessage : IMessage
     {
         public readonly string sceneName;
