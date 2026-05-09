@@ -112,7 +112,7 @@ namespace Runtime
         private PlayerFeature Feature => owner.Feature;
         private PlayerMachine Machine => owner.Machine;
 
-        private State State
+        private StateType State
         {
             get => owner.State;
             set => owner.State = value;
@@ -143,23 +143,23 @@ namespace Runtime
 
         private void JumpButton(InputAction.CallbackContext obj)
         {
-            State |= State.缓冲;
+            State |= StateType.缓冲;
             Feature.JumpInput = Time.time + 0.2f;
         }
 
         private void FallButton(InputAction.CallbackContext obj)
         {
-            State &= ~State.缓冲;
+            State &= ~StateType.缓冲;
         }
 
         private void AttackButton(InputAction.CallbackContext obj)
         {
-            State |= State.攻击;
+            State |= StateType.攻击;
         }
 
         private void FinishButton(InputAction.CallbackContext obj)
         {
-            State &= ~State.攻击;
+            State &= ~StateType.攻击;
         }
 
         public void Update()
@@ -185,7 +185,7 @@ namespace Runtime
                 return;
             }
 
-            if (State.HasFlag(State.冲刺))
+            if (State.HasFlag(StateType.冲刺))
             {
                 return;
             }
@@ -196,12 +196,12 @@ namespace Runtime
 
         private void JumpUpdate()
         {
-            if (State.HasFlag(State.地面))
+            if (State.HasFlag(StateType.地面))
             {
                 Feature.JumpTimer = Time.time + 0.2F;
             }
 
-            if (State.HasFlag(State.左墙) || State.HasFlag(State.右墙))
+            if (State.HasFlag(StateType.左墙) || State.HasFlag(StateType.右墙))
             {
                 Feature.JumpTimer = Time.time + 0.2F;
             }
@@ -226,7 +226,7 @@ namespace Runtime
                 return;
             }
 
-            if (State.HasFlag(State.跳跃))
+            if (State.HasFlag(StateType.跳跃))
             {
                 return;
             }

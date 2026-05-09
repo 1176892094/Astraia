@@ -10,8 +10,6 @@
 // // *********************************************************************************
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Astraia;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,7 +34,7 @@ namespace Runtime
     }
 
     [Flags]
-    public enum State
+    public enum StateType
     {
         默认,
         跳跃 = 1 << 0,
@@ -109,64 +107,6 @@ namespace Runtime
         {
             contacts.count = rigidbody.GetContacts(filter, contacts.items);
             return contacts;
-        }
-
-        public class Enumerable<T> : IEnumerable<T>
-        {
-            public readonly T[] items;
-            public int count;
-
-            public Enumerable(int count)
-            {
-                items = new T[count];
-            }
-
-            public Enumerator GetEnumerator()
-            {
-                return new Enumerator(items, count);
-            }
-
-            IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public struct Enumerator : IEnumerator<T>
-            {
-                private readonly T[] items;
-                private readonly int count;
-                private int index;
-
-                public Enumerator(T[] items, int count)
-                {
-                    this.items = items;
-                    this.count = count;
-                    index = -1;
-                }
-
-                public T Current => items[index];
-                object IEnumerator.Current => items[index];
-
-                public bool MoveNext()
-                {
-                    index++;
-                    return index < count;
-                }
-
-                public void Reset()
-                {
-                    index = -1;
-                }
-
-                public void Dispose()
-                {
-                }
-            }
         }
     }
 

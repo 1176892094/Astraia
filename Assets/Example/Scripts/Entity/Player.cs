@@ -18,7 +18,7 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
-        public State State = State.默认;
+        public StateType State = StateType.默认;
         public PlayerSender Sender => Logic.GetComponent<PlayerSender>();
         public PlayerMachine Machine => Logic.GetComponent<PlayerMachine>();
         public PlayerFeature Feature => Logic.GetComponent<PlayerFeature>();
