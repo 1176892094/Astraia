@@ -43,7 +43,7 @@ namespace Astraia
             Logic.Clear();
         }
 
-#if UNITY_EDITOR && ODIN_INSPECTOR
+#if UNITY_EDITOR
         private static readonly List<string> Windows = new List<string>();
 
         internal static void LoadComponent(Type module)
@@ -58,7 +58,7 @@ namespace Astraia
         {
             Windows.Sort(StringComparer.Ordinal);
         }
-
+#if ODIN_INSPECTOR
         [HideInEditorMode, ShowInInspector]
         private IEnumerable<IModule> windows
         {
@@ -67,6 +67,7 @@ namespace Astraia
         }
 
         [HideInPlayMode, PropertyOrder(1), ValueDropdown("Windows")]
+#endif
 #endif
         [SerializeField]
         private List<string> modules = new List<string>();
