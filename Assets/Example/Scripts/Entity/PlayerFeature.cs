@@ -17,93 +17,35 @@ using UnityEngine.InputSystem;
 namespace Runtime
 {
     [Serializable]
-    public class PlayerFeature : Blackboard<Label, Player>
+    public class PlayerFeature : Module<Player>
     {
-        public int MoveSpeed
-        {
-            get => GetInt(Label.移动速度);
-            set => SetInt(Label.移动速度, value);
-        }
+        public int MoveSpeed;
+        public int VelocityX;
+        public int VelocityY;
+        public int PositionX;
+        public int PositionY;
 
-        public int JumpForce
-        {
-            get => GetInt(Label.跳跃力度);
-            set => SetInt(Label.跳跃力度, value);
-        }
+        public int JumpForce;
+        public float JumpInput;
+        public float JumpCount;
+        public float JumpTimer;
+        public float JumpCD;
 
-        public float JumpTimer
-        {
-            get => GetFloat(Label.土狼时间);
-            set => SetFloat(Label.土狼时间, value);
-        }
+        public int DashSpeed;
+        public float DashInput;
+        public float DashCount;
+        public float DashTimer;
+        public float DashCD;
 
-        public float JumpInput
-        {
-            get => GetFloat(Label.跳跃输入);
-            set => SetFloat(Label.跳跃输入, value);
-        }
-
-        public float JumpCount
-        {
-            get => GetFloat(Label.跳跃次数);
-            set => SetFloat(Label.跳跃次数, value);
-        }
-
-        public float JumpCD
-        {
-            get => GetFloat(Label.跳跃冷却);
-            set => SetFloat(Label.跳跃冷却, value);
-        }
-
-        public float DashInput
-        {
-            get => GetFloat(Label.冲刺输入);
-            set => SetFloat(Label.冲刺输入, value);
-        }
-
-        public float DashCount
-        {
-            get => GetFloat(Label.冲刺次数);
-            set => SetFloat(Label.冲刺次数, value);
-        }
-
-        public float DashSpeed
-        {
-            get => GetFloat(Label.冲刺速度);
-            set => SetFloat(Label.冲刺速度, value);
-        }
-
-        public float DashTimer
-        {
-            get => GetFloat(Label.冲刺时间);
-            set => SetFloat(Label.冲刺时间, value);
-        }
-
-        public float DashCD
-        {
-            get => GetFloat(Label.冲刺冷却);
-            set => SetFloat(Label.冲刺冷却, value);
-        }
-
-        public int DashStack
-        {
-            get => GetInt(Label.冲刺叠加);
-            set => SetInt(Label.冲刺叠加, value);
-        }
-
-        public float ShadowIndex
-        {
-            get => GetFloat(Label.玩家阴影);
-            set => SetFloat(Label.玩家阴影, value);
-        }
-
-        public int CrashSpeed => MoveSpeed * 2;
+        public int CrashSpeed;
+        public int CrashStack;
 
         public override void Dequeue()
         {
-            MoveSpeed = 2;
-            JumpForce = 4;
-            DashSpeed = 5;
+            MoveSpeed = 30;
+            JumpForce = 60;
+            DashSpeed = 120;
+            CrashSpeed = 60;
         }
     }
 

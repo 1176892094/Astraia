@@ -16,11 +16,9 @@ namespace Runtime
 {
     public class PlayerMachine : StateMachine<int, Player>
     {
-        public int velocityX;
-        public int velocityY;
-        public int positionX;
-        public int positionY;
-        
+   
+
+        public Vector3 recorder;
         public Collider2D collider;
         public SpriteRenderer renderer;
         

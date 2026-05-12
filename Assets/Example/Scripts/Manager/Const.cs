@@ -16,23 +16,7 @@ using UnityEngine.UI;
 
 namespace Runtime
 {
-    public enum Label
-    {
-        移动速度,
-        跳跃力度,
-        跳跃输入,
-        跳跃次数,
-        土狼时间,
-        跳跃冷却,
-        冲刺输入,
-        冲刺次数,
-        冲刺速度,
-        冲刺时间,
-        冲刺冷却,
-        冲刺叠加,
-        玩家阴影,
-    }
-
+ 
     [Flags]
     public enum StateType
     {
@@ -48,7 +32,7 @@ namespace Runtime
         下落 = 1 << 8,
         冲刺 = 1 << 9,
         冲刺跳 = 1 << 10,
-        蹬墙跳 = 1 << 11,
+        侧跳 = 1 << 11,
         超级跳 = 1 << 12,
     }
 

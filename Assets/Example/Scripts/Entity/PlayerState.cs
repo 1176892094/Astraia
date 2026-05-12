@@ -10,13 +10,14 @@
 // // *********************************************************************************
 
 using Astraia;
+using Sirenix.Utilities;
 using UnityEngine;
 
 namespace Runtime
 {
     public abstract class PlayerState : State<Player>
     {
-        protected const float FIX = 200;
+        protected const float FIX = 1000;
         protected bool isWalk => InputManager.MoveX != 0 || InputManager.MoveY != 0;
         protected bool isWall => State.HasFlag(StateType.左墙) || State.HasFlag(StateType.右墙);
         protected bool isGround => isWall || State.HasFlag(StateType.地面);
@@ -40,50 +41,71 @@ namespace Runtime
 
         protected int velocityX
         {
-            get => Machine.velocityX;
-            set => Machine.velocityX = value;
+            get => Feature.VelocityX;
+            set => Feature.VelocityX = value;
         }
 
         protected int velocityY
         {
-            get => Machine.velocityY;
-            set => Machine.velocityY = value;
+            get =>Feature.VelocityY;
+            set => Feature.VelocityY = value;
         }
 
         private int positionX
         {
-            get => Machine.positionX;
-            set => Machine.positionX = value;
+            get => Feature.PositionX;
+            set => Feature.PositionX = value;
         }
 
         private int positionY
         {
-            get => Machine.positionY;
-            set => Machine.positionY = value;
+            get => Feature.PositionY;
+            set => Feature.PositionY = value;
         }
 
-        private int Lerp(float begin, float end, float delta)
-        {
-            return (int)Mathf.Lerp(begin, end, delta);
-        }
 
-        protected void Move(int speed)
+        protected void Move(int moveSpeed, int percent = 0)
         {
             var moveX = InputManager.MoveX;
             if (moveX != 0)
             {
-                speed *= moveX;
-                Direction = moveX;
-                if (Mathf.Abs(velocityX) < Mathf.Abs(speed))
+                moveSpeed = moveX * moveSpeed;
+                if (Direction != moveX || Mathf.Abs(velocityX) < Mathf.Abs(moveSpeed / 2))
                 {
-                    velocityX = speed;
+                    Direction = moveX;
+                    velocityX = moveSpeed / 2;
                 }
-
-                velocityX = Lerp(velocityX, speed, 0.2F);
+                else
+                {
+                    moveSpeed += moveSpeed * percent / 10;
+                    switch (velocityX)
+                    {
+                        case > 0 when velocityX < moveSpeed:
+                            velocityX++;
+                            break;
+                        case < 0 when velocityX > moveSpeed:
+                            velocityX--;
+                            break;
+                        case < 0 when velocityX < moveSpeed:
+                            velocityX++;
+                            break;
+                        case > 0 when velocityX > moveSpeed:
+                            velocityX--;
+                            break;
+                    }
+                }
             }
-            else if (Mathf.Abs(velocityX) > 0.01F)
+            else if (velocityX != 0)
             {
-                velocityX = Lerp(velocityX, 0, 0.2F);
+                switch (velocityX)
+                {
+                    case > 0:
+                        velocityX = Mathf.Max(velocityX - 2, 0);
+                        break;
+                    case < 0:
+                        velocityX = Mathf.Min(velocityX + 2, 0);
+                        break;
+                }
             }
             else
             {
@@ -103,17 +125,17 @@ namespace Runtime
 
             if (State.HasFlag(StateType.抓墙))
             {
-                velocityY = Lerp(velocityY, -10, 0.02F);
+                velocityY = Mathf.Max(velocityY - 2, -10);
                 return;
             }
 
             if (State.HasFlag(StateType.缓冲))
             {
-                velocityY = Lerp(velocityY, -20, 0.02F);
+                velocityY = Mathf.Max(velocityY - 3, -90);
                 return;
             }
 
-            velocityY = Lerp(velocityY, -20, 0.04F);
+            velocityY = Mathf.Max(velocityY - 6, -90);
         }
 
         protected void Contact()
@@ -234,7 +256,8 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            Feature.DashStack = 0;
+            Feature.CrashStack = 0;
+            Machine.recorder = Vector3.zero;
             owner.Sender.SyncColorServerRpc(Color.white);
         }
 
@@ -302,23 +325,24 @@ namespace Runtime
 
     public class PlayerJump : PlayerState
     {
+        private int moveX;
         private float waitTime;
 
         public override void OnEnter()
         {
+            Feature.JumpCount--;
+            State |= StateType.跳跃;
             waitTime = Time.fixedTime + 0.1F;
             owner.Sender.SyncColorServerRpc(Color.yellow);
 
             if (isWall && !State.HasFlag(StateType.地面))
             {
-                State |= StateType.蹬墙跳;
-                Direction = -owner.Sender.Direction;
+                State |= StateType.侧跳;
+                moveX = State.HasFlag(StateType.左墙) ? 1 : -1;
                 velocityX = Direction * Feature.JumpForce / 2;
             }
 
-            Feature.JumpCount--;
-            State |= StateType.跳跃;
-            velocityY = Mathf.Max(Machine.velocityY + Feature.JumpForce, Feature.JumpForce);
+            velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
         }
 
         public override void OnUpdate()
@@ -333,38 +357,21 @@ namespace Runtime
                         return;
                     }
                 }
-
-                if (isWall && State.HasFlag(StateType.蹬墙跳))
-                {
-                    State |= StateType.超级跳;
-                    State &= ~StateType.蹬墙跳;
-
-                    if (State.HasFlag(StateType.左墙))
-                    {
-                        velocityX = Feature.JumpForce;
-                    }
-                    else
-                    {
-                        velocityX = -Feature.JumpForce;
-                    }
-
-                    velocityY *= InputManager.MoveY >= 0 ? 1 : -1;
-                }
-            }
-
-            if (isGrab)
-            {
-                Machine.Switch(Animations.Grab);
-                return;
-            }
-
-            if (isFall)
-            {
-                Machine.Switch(Animations.Fall);
             }
 
             if (waitTime < Time.fixedTime)
             {
+                if (isGrab)
+                {
+                    Machine.Switch(Animations.Grab);
+                    return;
+                }
+
+                if (isFall)
+                {
+                    Machine.Switch(Animations.Fall);
+                }
+
                 if (isGround)
                 {
                     Machine.Switch(Animations.Idle);
@@ -373,31 +380,26 @@ namespace Runtime
             }
             else
             {
-                if (State.HasFlag(StateType.超级跳))
+                if (State.HasFlag(StateType.侧跳))
                 {
-                    if (Feature.ShadowIndex++ % 4 == 0)
+                    if (moveX != 0 && InputManager.MoveX == moveX)
                     {
-                        owner.Sender.LoadEffectServerRpc(transform.position);
+                        velocityX = moveX * Feature.JumpForce;
+                        moveX = 0;
                     }
 
-                    return;
-                }
-
-                if (State.HasFlag(StateType.蹬墙跳))
-                {
                     return;
                 }
             }
 
 
-            Move((int)(Feature.MoveSpeed * 1.2F));
+            Move(Feature.MoveSpeed, 2);
         }
 
         public override void OnExit()
         {
             State &= ~StateType.跳跃;
-            State &= ~StateType.超级跳;
-            State &= ~StateType.蹬墙跳;
+            State &= ~StateType.侧跳;
         }
     }
 
@@ -422,7 +424,7 @@ namespace Runtime
                 Machine.Switch(Animations.Idle);
             }
 
-            Move((int)(Feature.MoveSpeed * 1.2F));
+            Move(Feature.MoveSpeed, 2);
         }
 
         public override void OnExit()
@@ -464,16 +466,15 @@ namespace Runtime
 
     public class PlayerDash : PlayerState
     {
-        private Vector2 velocity;
+        private Vector2 direction;
 
         public override void OnEnter()
         {
             Feature.DashCount--;
-            Feature.DashTimer = Time.fixedTime + 0.24F;
-            owner.Sender.SyncColorServerRpc(Color.magenta);
             State |= StateType.冲刺;
-            Feature.ShadowIndex = 0;
-            velocity = InputManager.Direction;
+            Feature.DashTimer = Time.fixedTime + 0.20F;
+            owner.Sender.SyncColorServerRpc(Color.magenta);
+            direction = InputManager.Direction.normalized;
         }
 
         public override void OnUpdate()
@@ -484,29 +485,28 @@ namespace Runtime
                 return;
             }
 
-            if (Feature.ShadowIndex++ % 4 == 0)
+            if (Vector3.Distance(transform.position, Machine.recorder) >= 0.4f)
             {
+                Machine.recorder = transform.position;
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            var moveX = velocity.x * Feature.DashSpeed;
-            var moveY = velocity.y * Feature.DashSpeed;
+            var moveX = direction.x * Feature.DashSpeed;
+            var moveY = direction.y * Feature.DashSpeed;
 
-            if (velocity == Vector2.zero)
+            if (direction == Vector2.zero)
             {
                 moveX = Direction * Feature.DashSpeed;
             }
-            else if (velocity.y < 0)
+            else if (direction.y < 0)
             {
-                Contact();
                 if (State.HasFlag(StateType.地面))
                 {
                     moveX = Dash();
                 }
             }
-            else if (velocity.y > 0)
+            else if (direction.y > 0)
             {
-                Contact();
                 if (State.HasFlag(StateType.头顶))
                 {
                     Dash();
@@ -515,6 +515,7 @@ namespace Runtime
 
             velocityX = (int)moveX;
             velocityY = (int)moveY;
+            Contact();
         }
 
         public override void OnExit()
@@ -535,8 +536,8 @@ namespace Runtime
             State |= StateType.冲刺跳;
             waitTime = Time.fixedTime + 0.1F;
             moveX = Direction;
-            velocityX = Direction * (Feature.CrashSpeed + Feature.CrashSpeed * Feature.DashStack / 4);
-            Feature.DashStack++;
+            velocityX = Direction * (Feature.CrashSpeed + Feature.CrashSpeed * Feature.CrashStack / 4);
+            Feature.CrashStack++;
         }
 
         public override void OnUpdate()
@@ -556,8 +557,9 @@ namespace Runtime
                 }
             }
 
-            if (Feature.ShadowIndex++ % 4 == 0)
+            if (Vector3.Distance(transform.position, Machine.recorder) >= 0.4f)
             {
+                Machine.recorder = transform.position;
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
