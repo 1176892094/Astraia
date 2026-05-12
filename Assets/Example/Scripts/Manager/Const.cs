@@ -47,7 +47,6 @@ namespace Runtime
 
     public static class Animations
     {
-        public static readonly int Hold = Animator.StringToHash(nameof(Hold));
         public static readonly int Idle = Animator.StringToHash(nameof(Idle));
         public static readonly int Walk = Animator.StringToHash(nameof(Walk));
         public static readonly int Jump = Animator.StringToHash(nameof(Jump));
