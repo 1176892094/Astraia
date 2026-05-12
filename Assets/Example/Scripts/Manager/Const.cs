@@ -16,24 +16,21 @@ using UnityEngine.UI;
 
 namespace Runtime
 {
- 
     [Flags]
     public enum StateType
     {
         默认,
-        跳跃 = 1 << 0,
-        缓冲 = 1 << 1,
-        抓墙 = 1 << 2,
-        攻击 = 1 << 3,
-        地面 = 1 << 4,
-        左墙 = 1 << 5,
-        右墙 = 1 << 6,
-        头顶 = 1 << 7,
-        下落 = 1 << 8,
-        冲刺 = 1 << 9,
-        冲刺跳 = 1 << 10,
-        侧跳 = 1 << 11,
-        超级跳 = 1 << 12,
+        地面 = 1 << 0,
+        左墙 = 1 << 1,
+        右墙 = 1 << 2,
+        头顶 = 1 << 3,
+        跳跃 = 1 << 4,
+        缓冲 = 1 << 5,
+        攀爬 = 1 << 6,
+        下落 = 1 << 7,
+        冲刺 = 1 << 8,
+        冲跳 = 1 << 9,
+        侧跳 = 1 << 10,
     }
 
     public static class LayerConst
@@ -91,7 +88,6 @@ namespace Runtime
             });
         }
     }
-
 
     public static class CameraUtils
     {

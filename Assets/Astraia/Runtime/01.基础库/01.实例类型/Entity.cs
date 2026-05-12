@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Sirenix.OdinInspector;
 
 namespace Astraia
 {
@@ -813,7 +814,7 @@ namespace Astraia
     public abstract class StateMachine<TKey, T> : Acquire<T>, IModule
     {
         private readonly Dictionary<TKey, IState> states = new Dictionary<TKey, IState>();
-        private IState state;
+        [ShowInInspector]private IState state;
 
         public void Create<TState>(TKey key) where TState : IState
         {

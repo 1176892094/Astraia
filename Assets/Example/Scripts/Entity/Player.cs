@@ -149,7 +149,6 @@ namespace Runtime
         {
             GameManager.Instance.SetPlayer(transform);
             GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(13, 6)));
-            Machine.Create<PlayerHold>(Animations.Hold);
             Machine.Create<PlayerIdle>(Animations.Idle);
             Machine.Create<PlayerWalk>(Animations.Walk);
             Machine.Create<PlayerJump>(Animations.Jump);

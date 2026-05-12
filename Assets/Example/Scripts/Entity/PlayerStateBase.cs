@@ -1,0 +1,240 @@
+using Astraia;
+using UnityEngine;
+
+namespace Runtime
+{
+    public abstract class PlayerState : State<Player>
+    {
+        protected const float FIX = 1000;
+        private bool isLeft => State.HasFlag(StateType.左墙) && InputManager.MoveX < 0;
+        private bool isRight => State.HasFlag(StateType.右墙) && InputManager.MoveX > 0;
+        protected bool isWalk => InputManager.MoveX != 0;
+        protected bool isWall => State.HasFlag(StateType.左墙) || State.HasFlag(StateType.右墙);
+        protected bool isGround => State.HasFlag(StateType.地面);
+        protected bool isRoad => isWall || isGround;
+        protected bool isGrab => (isLeft || isRight) && isFall;
+        protected bool isFall => !isGround && velocityY < 0;
+        protected Transform transform => owner.transform;
+        protected PlayerMachine Machine => owner.Machine;
+        protected PlayerFeature Feature => owner.Feature;
+
+        protected int Direction
+        {
+            get => owner.Sender.Direction;
+            set => owner.Sender.Direction = value;
+        }
+
+        protected StateType State
+        {
+            get => owner.State;
+            set => owner.State = value;
+        }
+
+        protected int velocityX
+        {
+            get => Feature.VelocityX;
+            set => Feature.VelocityX = value;
+        }
+
+        protected int velocityY
+        {
+            get => Feature.VelocityY;
+            set => Feature.VelocityY = value;
+        }
+
+        protected int positionX
+        {
+            get => Feature.PositionX;
+            set => Feature.PositionX = value;
+        }
+
+        protected int positionY
+        {
+            get => Feature.PositionY;
+            set => Feature.PositionY = value;
+        }
+
+        protected void Move(int moveSpeed, int percent = 0)
+        {
+            var moveX = InputManager.MoveX;
+            if (moveX != 0)
+            {
+                moveSpeed = moveX * moveSpeed;
+                if (Direction != moveX || Mathf.Abs(velocityX) < Mathf.Abs(moveSpeed / 2))
+                {
+                    Direction = moveX;
+                    velocityX = moveSpeed / 2;
+                }
+                else
+                {
+                    moveSpeed += moveSpeed * percent / 10;
+                    switch (velocityX)
+                    {
+                        case > 0 when velocityX < moveSpeed:
+                            velocityX++;
+                            break;
+                        case < 0 when velocityX > moveSpeed:
+                            velocityX--;
+                            break;
+                        case < 0 when velocityX < moveSpeed:
+                            velocityX++;
+                            break;
+                        case > 0 when velocityX > moveSpeed:
+                            velocityX--;
+                            break;
+                    }
+                }
+            }
+            else if (velocityX != 0)
+            {
+                switch (velocityX)
+                {
+                    case > 0:
+                        velocityX = Mathf.Max(velocityX - 2, 0);
+                        break;
+                    case < 0:
+                        velocityX = Mathf.Min(velocityX + 2, 0);
+                        break;
+                }
+            }
+            else
+            {
+                velocityX = 0;
+            }
+
+            Gravity();
+            Contact();
+        }
+
+        protected void Gravity()
+        {
+            if (State.HasFlag(StateType.地面))
+            {
+                return;
+            }
+
+            if (State.HasFlag(StateType.攀爬))
+            {
+                velocityY = Mathf.Max(velocityY - 2, -10);
+                return;
+            }
+
+            if (State.HasFlag(StateType.缓冲))
+            {
+                velocityY = Mathf.Max(velocityY - 3, -90);
+                return;
+            }
+
+            velocityY = Mathf.Max(velocityY - 6, -90);
+        }
+
+        protected void Contact()
+        {
+            State &= ~(StateType.地面 | StateType.左墙 | StateType.右墙 | StateType.头顶);
+
+            var extents = Machine.collider.bounds.extents;
+            var velocity = new Vector2(velocityX, velocityY);
+            foreach (var contact in Machine.collider.Contacts(velocity))
+            {
+                var point = contact.point;
+                var normal = contact.normal;
+                if (Mathf.Abs(normal.y) > Mathf.Abs(normal.x))
+                {
+                    if (normal.y > 0)
+                    {
+                        if (!State.HasFlag(StateType.跳跃))
+                        {
+                            Feature.JumpCount = 1;
+                        }
+
+                        if (!State.HasFlag(StateType.冲刺))
+                        {
+                            Feature.DashCount = 1;
+                        }
+
+                        State |= StateType.地面;
+                        velocityY = Mathf.Max(velocityY, 0);
+                        positionY = (int)((point.y + extents.y) * FIX);
+                    }
+                    else
+                    {
+                        State |= StateType.头顶;
+                        velocityY = Mathf.Min(velocityY, 0);
+                        positionY = (int)((point.y - extents.y) * FIX);
+                    }
+                }
+                else
+                {
+                    if (!State.HasFlag(StateType.跳跃))
+                    {
+                        Feature.JumpCount = 1;
+                    }
+
+                    if (normal.x > 0)
+                    {
+                        State |= StateType.左墙;
+                        velocityX = Mathf.Max(velocityX, 0);
+                        positionX = (int)((point.x + extents.x) * FIX);
+                    }
+                    else
+                    {
+                        State |= StateType.右墙;
+                        velocityX = Mathf.Min(velocityX, 0);
+                        positionX = (int)((point.x - extents.x) * FIX);
+                    }
+                }
+            }
+
+            positionX += velocityX;
+            positionY += velocityY;
+            transform.position = new Vector3(positionX, positionY) / FIX;
+        }
+
+        protected float Dash()
+        {
+            var extents = Machine.collider.bounds.extents;
+            var velocity = new Vector2(velocityX, velocityY);
+            foreach (var contact in Machine.collider.Contacts(velocity))
+            {
+                var bounds = contact.collider.bounds;
+                if (positionX > (int)((bounds.max.x - extents.x) * FIX))
+                {
+                    positionX = (int)((bounds.max.x + extents.x) * FIX);
+                    return 0;
+                }
+
+                if (positionX < (int)((bounds.min.x + extents.x) * FIX))
+                {
+                    positionX = (int)((bounds.min.x - extents.x) * FIX);
+                    return 0;
+                }
+            }
+
+            return Direction * Feature.DashSpeed;
+        }
+
+        protected bool Hold()
+        {
+            var extents = Machine.collider.bounds.extents;
+            var velocity = new Vector2(velocityX, velocityY);
+            foreach (var contact in Machine.collider.Contacts(velocity))
+            {
+                var bounds = contact.collider.bounds;
+                var normal = contact.normal;
+                if (Mathf.Abs(normal.y) < Mathf.Abs(normal.x))
+                {
+                    var min = (int)((bounds.max.y - extents.y) * FIX);
+                    var max = (int)((bounds.max.y + extents.y) * FIX);
+                    if (positionY < max && positionY > min)
+                    {
+                        positionY += Feature.JumpForce;
+                        transform.position = new Vector3(positionX, positionY) / FIX;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+    }
+}
