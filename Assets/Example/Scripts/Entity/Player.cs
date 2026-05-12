@@ -19,10 +19,10 @@ namespace Runtime
     public class Player : NetworkEntity
     {
         public StateType State = StateType.默认;
+        private PlayerInput Input => Logic.GetComponent<PlayerInput>();
         public PlayerSender Sender => Logic.GetComponent<PlayerSender>();
         public PlayerMachine Machine => Logic.GetComponent<PlayerMachine>();
         public PlayerFeature Feature => Logic.GetComponent<PlayerFeature>();
-        private PlayerInput Input => Logic.GetComponent<PlayerInput>();
         private NetworkTransform Transform => Logic.GetComponent<NetworkTransform>();
 
         protected override void Awake()
@@ -119,7 +119,6 @@ namespace Runtime
         private void OnValueChanged(Color32 oldValue, Color32 newValue)
         {
             Machine.renderer.color = newValue;
-            Machine.graphics.startColor = newValue;
         }
 
         [ServerRpc]
@@ -143,13 +142,13 @@ namespace Runtime
         [ServerRpc]
         public void LoadEffectServerRpc(Vector3 position)
         {
-          //  SpawnManager.Instance.LoadEffectClientRpc(position);
+          SpawnManager.Instance.LoadEffectClientRpc(position);
         }
 
         public void OnStartAuthority()
         {
             GameManager.Instance.SetPlayer(transform);
-            GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(30, 10)));
+            GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(13, 6)));
             Machine.Create<PlayerHold>(Animations.Hold);
             Machine.Create<PlayerIdle>(Animations.Idle);
             Machine.Create<PlayerWalk>(Animations.Walk);

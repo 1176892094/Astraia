@@ -78,6 +78,14 @@ namespace Runtime
 
     public static class Extensions
     {
+        private static readonly Enumerable<ContactPoint2D> contacts = new Enumerable<ContactPoint2D>(8);
+
+        public static Enumerable<ContactPoint2D> Contacts(this Rigidbody2D rigidbody, ContactFilter2D filter)
+        {
+            contacts.count = rigidbody.GetContacts(filter, contacts.items);
+            return contacts;
+        }
+
         public static Tween DOFade(this SpriteRenderer component, float endValue, float duration)
         {
             var color = component.color;
@@ -99,16 +107,6 @@ namespace Runtime
         }
     }
 
-    public static class ContactUtils
-    {
-        private static readonly Enumerable<ContactPoint2D> contacts = new Enumerable<ContactPoint2D>(8);
-
-        public static Enumerable<ContactPoint2D> Contacts(this Rigidbody2D rigidbody, ContactFilter2D filter)
-        {
-            contacts.count = rigidbody.GetContacts(filter, contacts.items);
-            return contacts;
-        }
-    }
 
     public static class CameraUtils
     {

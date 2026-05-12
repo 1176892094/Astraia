@@ -18,7 +18,6 @@ namespace Runtime
     {
         public Collider2D collider;
         public Rigidbody2D rigidbody;
-        public TrailRenderer graphics;
         public SpriteRenderer renderer;
 
         public float velocityX
@@ -58,7 +57,6 @@ namespace Runtime
         {
             collider = owner.GetComponent<Collider2D>();
             renderer = owner.GetComponent<SpriteRenderer>();
-            graphics = owner.GetComponentInChildren<TrailRenderer>();
             rigidbody = owner.GetComponent<Rigidbody2D>();
         }
     }

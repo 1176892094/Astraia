@@ -557,7 +557,7 @@ namespace Runtime
                 Machine.Switch(Animations.Idle);
                 return;
             }
-            
+
             Contact();
             if (State.HasFlag(StateType.左墙) && InputManager.MoveX < 0)
             {

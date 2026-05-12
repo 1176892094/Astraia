@@ -366,7 +366,7 @@ namespace Astraia.Net
                     position = entity.transform.localPosition,
                     rotation = entity.transform.localRotation,
                     localScale = entity.transform.localScale,
-                    segment = entity.modules.Length > 0 ? entity.client == client ? owner : agent : null,
+                    segment = entity.modules.Length > 0 ? entity.client == client ? (ArraySegment<byte>)owner : (ArraySegment<byte>)agent : null,
                 };
                 client.Send(message);
             }
