@@ -190,10 +190,11 @@ namespace Runtime
             transform.position = new Vector3(positionX, positionY) / FIX;
         }
 
-        protected float Dash()
+        protected int Dash()
         {
             var extents = Machine.collider.bounds.extents;
             var velocity = new Vector2(velocityX, velocityY);
+
             foreach (var contact in Machine.collider.Contacts(velocity))
             {
                 var bounds = contact.collider.bounds;
@@ -219,13 +220,13 @@ namespace Runtime
             var velocity = new Vector2(velocityX, velocityY);
             foreach (var contact in Machine.collider.Contacts(velocity))
             {
-                var bounds = contact.collider.bounds;
                 var normal = contact.normal;
+                var bounds = contact.collider.bounds;
                 if (Mathf.Abs(normal.y) < Mathf.Abs(normal.x))
                 {
                     var min = (int)((bounds.max.y - extents.y) * FIX);
                     var max = (int)((bounds.max.y + extents.y) * FIX);
-                    if (positionY < max && positionY > min)
+                    if (positionY > min && positionY < max)
                     {
                         positionY += Feature.JumpForce;
                         transform.position = new Vector3(positionX, positionY) / FIX;

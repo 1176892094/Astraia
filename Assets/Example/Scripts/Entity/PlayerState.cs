@@ -226,18 +226,18 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            var moveX = direction.x * Feature.DashSpeed;
-            var moveY = direction.y * Feature.DashSpeed;
+            velocityX = (int)(direction.x * Feature.DashSpeed);
+            velocityY = (int)(direction.y * Feature.DashSpeed);
 
             if (direction == Vector2.zero)
             {
-                moveX = Direction * Feature.DashSpeed;
+                velocityX = Direction * Feature.DashSpeed;
             }
             else if (direction.y < 0)
             {
                 if (isGround)
                 {
-                    moveX = Dash();
+                    velocityX = Dash();
                 }
             }
             else if (direction.y > 0)
@@ -248,8 +248,6 @@ namespace Runtime
                 }
             }
 
-            velocityX = (int)moveX;
-            velocityY = (int)moveY;
             Contact();
         }
 
