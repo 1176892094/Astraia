@@ -16,48 +16,19 @@ namespace Runtime
 {
     public class PlayerMachine : StateMachine<int, Player>
     {
+        public int velocityX;
+        public int velocityY;
+        public int positionX;
+        public int positionY;
+        
         public Collider2D collider;
-        public Rigidbody2D rigidbody;
         public SpriteRenderer renderer;
-
-        public float velocityX
-        {
-#if UNITY_6000_0_OR_NEWER
-            get => rigidbody.linearVelocityX;
-            set => rigidbody.linearVelocityX = value;
-#else
-            get => rigidbody.velocityX;
-            set => rigidbody.velocityX = value;
-#endif
-        }
-
-        public float velocityY
-        {
-#if UNITY_6000_0_OR_NEWER
-            get => rigidbody.linearVelocityY;
-            set => rigidbody.linearVelocityY = value;
-#else
-            get => rigidbody.velocityY;
-            set => rigidbody.velocityY = value;
-#endif
-        }
-
-        public Vector2 velocity
-        {
-#if UNITY_6000_0_OR_NEWER
-            get => rigidbody.linearVelocity;
-            set => rigidbody.linearVelocity = value;
-#else
-            get => rigidbody.velocity;
-            set => rigidbody.velocity = value;
-#endif
-        }
+        
 
         public override void Dequeue()
         {
             collider = owner.GetComponent<Collider2D>();
             renderer = owner.GetComponent<SpriteRenderer>();
-            rigidbody = owner.GetComponent<Rigidbody2D>();
         }
     }
 }

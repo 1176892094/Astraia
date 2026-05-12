@@ -39,7 +39,7 @@ namespace Runtime
         默认,
         跳跃 = 1 << 0,
         缓冲 = 1 << 1,
-        悬挂 = 1 << 2,
+        抓墙 = 1 << 2,
         攻击 = 1 << 3,
         地面 = 1 << 4,
         左墙 = 1 << 5,
@@ -78,11 +78,12 @@ namespace Runtime
 
     public static class Extensions
     {
-        private static readonly Enumerable<ContactPoint2D> contacts = new Enumerable<ContactPoint2D>(8);
+        private static readonly Enumerable<RaycastHit2D> contacts = new Enumerable<RaycastHit2D>(8);
 
-        public static Enumerable<ContactPoint2D> Contacts(this Rigidbody2D rigidbody, ContactFilter2D filter)
+        public static Enumerable<RaycastHit2D> Contacts(this Collider2D collider, Vector2 velocity)
         {
-            contacts.count = rigidbody.GetContacts(filter, contacts.items);
+            var bounds = collider.bounds;
+            contacts.count = Physics2D.BoxCast(bounds.center, bounds.size, 0, velocity.normalized, LayerConst.Ground, contacts.items, 0);
             return contacts;
         }
 

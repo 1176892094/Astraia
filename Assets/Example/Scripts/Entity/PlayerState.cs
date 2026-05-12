@@ -16,6 +16,7 @@ namespace Runtime
 {
     public abstract class PlayerState : State<Player>
     {
+        protected const float FIX = 200;
         protected bool isWalk => InputManager.MoveX != 0 || InputManager.MoveY != 0;
         protected bool isWall => State.HasFlag(StateType.左墙) || State.HasFlag(StateType.右墙);
         protected bool isGround => isWall || State.HasFlag(StateType.地面);
@@ -37,45 +38,59 @@ namespace Runtime
             set => owner.State = value;
         }
 
-        protected float velocityX
+        protected int velocityX
         {
             get => Machine.velocityX;
             set => Machine.velocityX = value;
         }
 
-        protected float velocityY
+        protected int velocityY
         {
             get => Machine.velocityY;
             set => Machine.velocityY = value;
         }
 
-        protected void Move(int moveX, float speed)
+        private int positionX
         {
-            if (moveX != 0)
-            {
-                Direction = moveX;
-                velocityX = Mathf.Lerp(velocityX, speed * moveX, Time.fixedDeltaTime * 10);
-            }
-            else
-            {
-                velocityX = Mathf.Abs(velocityX) > 0.01F ? Mathf.Lerp(velocityX, 0, Time.fixedDeltaTime * 5) : 0;
-            }
-
-            Contact();
-            Gravity();
+            get => Machine.positionX;
+            set => Machine.positionX = value;
         }
 
-        protected void Grab(int moveY, float speed)
+        private int positionY
         {
-            if (moveY != 0)
+            get => Machine.positionY;
+            set => Machine.positionY = value;
+        }
+
+        private int Lerp(float begin, float end, float delta)
+        {
+            return (int)Mathf.Lerp(begin, end, delta);
+        }
+
+        protected void Move(int speed)
+        {
+            var moveX = InputManager.MoveX;
+            if (moveX != 0)
             {
-                velocityY = Mathf.Lerp(velocityY, speed * moveY, Time.fixedDeltaTime * 10);
+                speed *= moveX;
+                Direction = moveX;
+                if (Mathf.Abs(velocityX) < Mathf.Abs(speed))
+                {
+                    velocityX = speed;
+                }
+
+                velocityX = Lerp(velocityX, speed, 0.2F);
+            }
+            else if (Mathf.Abs(velocityX) > 0.01F)
+            {
+                velocityX = Lerp(velocityX, 0, 0.2F);
             }
             else
             {
-                velocityY = 0;
+                velocityX = 0;
             }
 
+            Gravity();
             Contact();
         }
 
@@ -86,23 +101,30 @@ namespace Runtime
                 return;
             }
 
-            if (State.HasFlag(StateType.缓冲))
+            if (State.HasFlag(StateType.抓墙))
             {
-                velocityY = Mathf.Lerp(velocityY, Physics2D.gravity.y, Time.fixedDeltaTime);
+                velocityY = Lerp(velocityY, -10, 0.02F);
                 return;
             }
 
-            velocityY = Mathf.Lerp(velocityY, Physics2D.gravity.y, Time.fixedDeltaTime * 2);
+            if (State.HasFlag(StateType.缓冲))
+            {
+                velocityY = Lerp(velocityY, -20, 0.02F);
+                return;
+            }
+
+            velocityY = Lerp(velocityY, -20, 0.04F);
         }
 
         protected void Contact()
         {
-            State &= ~StateType.地面;
-            State &= ~StateType.左墙;
-            State &= ~StateType.右墙;
-            State &= ~StateType.头顶;
-            foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
+            State &= ~(StateType.地面 | StateType.左墙 | StateType.右墙 | StateType.头顶);
+
+            var extents = Machine.collider.bounds.extents;
+            var velocity = new Vector2(velocityX, velocityY);
+            foreach (var contact in Machine.collider.Contacts(velocity))
             {
+                var point = contact.point;
                 var normal = contact.normal;
                 if (Mathf.Abs(normal.y) > Mathf.Abs(normal.x))
                 {
@@ -119,10 +141,14 @@ namespace Runtime
                         }
 
                         State |= StateType.地面;
+                        velocityY = Mathf.Max(velocityY, 0);
+                        positionY = (int)((point.y + extents.y) * FIX);
                     }
                     else
                     {
                         State |= StateType.头顶;
+                        velocityY = Mathf.Min(velocityY, 0);
+                        positionY = (int)((point.y - extents.y) * FIX);
                     }
                 }
                 else
@@ -135,33 +161,39 @@ namespace Runtime
                     if (normal.x > 0)
                     {
                         State |= StateType.左墙;
+                        velocityX = Mathf.Max(velocityX, 0);
+                        positionX = (int)((point.x + extents.x) * FIX);
                     }
                     else
                     {
                         State |= StateType.右墙;
+                        velocityX = Mathf.Min(velocityX, 0);
+                        positionX = (int)((point.x - extents.x) * FIX);
                     }
                 }
             }
+
+            positionX += velocityX;
+            positionY += velocityY;
+            transform.position = new Vector3(positionX, positionY) / FIX;
         }
 
         protected float Dash()
         {
-            var position = transform.position;
             var extents = Machine.collider.bounds.extents;
-            foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
+            var velocity = new Vector2(velocityX, velocityY);
+            foreach (var contact in Machine.collider.Contacts(velocity))
             {
                 var bounds = contact.collider.bounds;
-                if (position.x > bounds.max.x - extents.x)
+                if (positionX > (int)((bounds.max.x - extents.x) * FIX))
                 {
-                    position.x = bounds.max.x + extents.x;
-                    transform.position = position;
+                    positionX = (int)((bounds.max.x + extents.x) * FIX);
                     return 0;
                 }
 
-                if (position.x < bounds.min.x + extents.x)
+                if (positionX < (int)((bounds.min.x + extents.x) * FIX))
                 {
-                    position.x = bounds.min.x - extents.x;
-                    transform.position = position;
+                    positionX = (int)((bounds.min.x - extents.x) * FIX);
                     return 0;
                 }
             }
@@ -173,7 +205,8 @@ namespace Runtime
         {
             var position = transform.position;
             var extents = Machine.collider.bounds.extents;
-            foreach (var contact in Machine.rigidbody.Contacts(LayerConst.Ground))
+            var velocity = new Vector2(velocityX, velocityY);
+            foreach (var contact in Machine.collider.Contacts(velocity))
             {
                 var bounds = contact.collider.bounds;
                 if (position.y > bounds.max.y - extents.y)
@@ -224,7 +257,7 @@ namespace Runtime
                 Machine.Switch(Animations.Walk);
             }
 
-            Move(InputManager.MoveX, Feature.MoveSpeed);
+            Move(Feature.MoveSpeed);
         }
 
         public override void OnExit()
@@ -259,7 +292,7 @@ namespace Runtime
             }
 
 
-            Move(InputManager.MoveX, Feature.MoveSpeed);
+            Move(Feature.MoveSpeed);
         }
 
         public override void OnExit()
@@ -280,12 +313,12 @@ namespace Runtime
             {
                 State |= StateType.蹬墙跳;
                 Direction = -owner.Sender.Direction;
-                Machine.velocityX = Direction * Feature.JumpForce / 2;
+                velocityX = Direction * Feature.JumpForce / 2;
             }
 
             Feature.JumpCount--;
             State |= StateType.跳跃;
-            Machine.velocityY = Mathf.Max(Machine.velocityY + Feature.JumpForce, Feature.JumpForce);
+            velocityY = Mathf.Max(Machine.velocityY + Feature.JumpForce, Feature.JumpForce);
         }
 
         public override void OnUpdate()
@@ -308,14 +341,14 @@ namespace Runtime
 
                     if (State.HasFlag(StateType.左墙))
                     {
-                        Machine.velocityX = Feature.JumpForce * 0.8f;
+                        velocityX = Feature.JumpForce;
                     }
                     else
                     {
-                        Machine.velocityX = -Feature.JumpForce * 0.8f;
+                        velocityX = -Feature.JumpForce;
                     }
 
-                    Machine.velocityY *= InputManager.MoveY >= 0 ? 1.2f : -1.2f;
+                    velocityY *= InputManager.MoveY >= 0 ? 1 : -1;
                 }
             }
 
@@ -357,7 +390,7 @@ namespace Runtime
             }
 
 
-            Move(InputManager.MoveX, Feature.MoveSpeed * 1.2F);
+            Move((int)(Feature.MoveSpeed * 1.2F));
         }
 
         public override void OnExit()
@@ -389,7 +422,7 @@ namespace Runtime
                 Machine.Switch(Animations.Idle);
             }
 
-            Move(InputManager.MoveX, Feature.MoveSpeed * 1.2F);
+            Move((int)(Feature.MoveSpeed * 1.2F));
         }
 
         public override void OnExit()
@@ -402,7 +435,7 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            State |= StateType.悬挂;
+            State |= StateType.抓墙;
             owner.Sender.SyncColorServerRpc(Color.cyan);
         }
 
@@ -420,12 +453,12 @@ namespace Runtime
                 return;
             }
 
-            Grab(InputManager.MoveY, Feature.MoveSpeed);
+            Move(Feature.MoveSpeed);
         }
 
         public override void OnExit()
         {
-            State &= ~StateType.悬挂;
+            State &= ~StateType.抓墙;
         }
     }
 
@@ -480,8 +513,8 @@ namespace Runtime
                 }
             }
 
-            velocityX = moveX;
-            velocityY = moveY;
+            velocityX = (int)moveX;
+            velocityY = (int)moveY;
         }
 
         public override void OnExit()
@@ -501,9 +534,9 @@ namespace Runtime
         {
             State |= StateType.冲刺跳;
             waitTime = Time.fixedTime + 0.1F;
-            Feature.DashStack += Feature.CrashSpeed / 4;
             moveX = Direction;
-            velocityX = Direction * (Feature.CrashSpeed + Feature.DashStack);
+            velocityX = Direction * (Feature.CrashSpeed + Feature.CrashSpeed * Feature.DashStack / 4);
+            Feature.DashStack++;
         }
 
         public override void OnUpdate()
@@ -547,7 +580,7 @@ namespace Runtime
         {
             waitTime = Time.fixedTime + 0.3f;
             owner.Sender.SyncColorServerRpc(Color.red);
-            State |= StateType.悬挂;
+            State |= StateType.抓墙;
         }
 
         public override void OnUpdate()
@@ -571,7 +604,7 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.悬挂;
+            State &= ~StateType.抓墙;
         }
     }
 }

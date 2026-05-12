@@ -19,16 +19,16 @@ namespace Runtime
     [Serializable]
     public class PlayerFeature : Blackboard<Label, Player>
     {
-        public float MoveSpeed
+        public int MoveSpeed
         {
-            get => GetFloat(Label.移动速度);
-            set => SetFloat(Label.移动速度, value);
+            get => GetInt(Label.移动速度);
+            set => SetInt(Label.移动速度, value);
         }
 
-        public float JumpForce
+        public int JumpForce
         {
-            get => GetFloat(Label.跳跃力度);
-            set => SetFloat(Label.跳跃力度, value);
+            get => GetInt(Label.跳跃力度);
+            set => SetInt(Label.跳跃力度, value);
         }
 
         public float JumpTimer
@@ -85,10 +85,10 @@ namespace Runtime
             set => SetFloat(Label.冲刺冷却, value);
         }
 
-        public float DashStack
+        public int DashStack
         {
-            get => GetFloat(Label.冲刺叠加);
-            set => SetFloat(Label.冲刺叠加, value);
+            get => GetInt(Label.冲刺叠加);
+            set => SetInt(Label.冲刺叠加, value);
         }
 
         public float ShadowIndex
@@ -97,7 +97,7 @@ namespace Runtime
             set => SetFloat(Label.玩家阴影, value);
         }
 
-        public float CrashSpeed => MoveSpeed * 2;
+        public int CrashSpeed => MoveSpeed * 2;
 
         public override void Dequeue()
         {
