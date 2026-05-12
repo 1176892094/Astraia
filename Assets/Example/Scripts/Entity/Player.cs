@@ -51,6 +51,7 @@ namespace Runtime
             if (isOwner)
             {
                 Machine.Update();
+                connection.Send(new InputMessage(objectId));
             }
         }
 
@@ -142,7 +143,16 @@ namespace Runtime
         [ServerRpc]
         public void LoadEffectServerRpc(Vector3 position)
         {
-          SpawnManager.Instance.LoadEffectClientRpc(position);
+            LoadEffectClientRpc(position);
+        }
+
+        [ClientRpc]
+        public async void LoadEffectClientRpc(Vector3 position)
+        {
+            var sprite = PoolManager.Show<SpriteRenderer>("Prefabs/Shadow", position);
+            sprite.color = new Color(0, 0, 0, 1);
+            await sprite.DOFade(0, 0.5f);
+            PoolManager.Hide(sprite);
         }
 
         public void OnStartAuthority()

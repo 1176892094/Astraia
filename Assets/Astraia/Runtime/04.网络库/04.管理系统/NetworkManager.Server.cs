@@ -22,7 +22,7 @@ namespace Astraia.Net
     {
         public static partial class Server
         {
-            internal static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
+            public static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
 
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
 

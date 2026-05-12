@@ -15,13 +15,12 @@ using Astraia.Core;
 using Astraia.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Object = UnityEngine.Object;
 
 
 namespace Runtime
 {
     [Serializable]
-    public class GameManager : Singleton<GameManager, Entity>, ISystem, IEvent<ServerReady>, IEvent<ServerConnect>
+    public class GameManager : Singleton<GameManager, Entity>, ISystem, IEvent<ServerReady>
     {
         [SerializeField] private Bounds bounds;
         [SerializeField] private Vector3 smooth;
@@ -66,15 +65,6 @@ namespace Runtime
             this.bounds = bounds;
         }
 
-        public void Execute(ServerConnect message)
-        {
-            if (NetworkManager.Server.connections == 1)
-            {
-                var obj = AssetManager.Load<GameObject>("Prefabs/10001");
-                NetworkManager.Server.Spawn(obj);
-            }
-        }
-
         public void Execute(ServerReady message)
         {
             var obj = AssetManager.Load<GameObject>("Prefabs/30001");
@@ -108,26 +98,6 @@ namespace Runtime
         public override void Enqueue()
         {
             inputAsset.Disable();
-        }
-    }
-
-    public class SpawnManager : NetworkModule
-    {
-        public static SpawnManager Instance;
-
-        public override void Dequeue()
-        {
-            Instance = this;
-            Object.DontDestroyOnLoad(gameObject);
-        }
-
-        [ClientRpc]
-        public async void LoadEffectClientRpc(Vector3 position)
-        {
-            var sprite = PoolManager.Show<SpriteRenderer>("Prefabs/Shadow", position);
-            sprite.color = new Color(0, 0, 0, 1);
-            await sprite.DOFade(0, 0.5f);
-            PoolManager.Hide(sprite);
         }
     }
 }
