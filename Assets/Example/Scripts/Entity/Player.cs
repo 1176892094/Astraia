@@ -51,7 +51,6 @@ namespace Runtime
             if (isOwner)
             {
                 Machine.Update();
-                connection.Send(new InputMessage(objectId));
             }
         }
 
