@@ -40,10 +40,10 @@ namespace Astraia.Core
             var canvas = Instance.canvas.gameObject.AddComponent<CanvasScaler>();
             canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            canvas.matchWidthOrHeight = 0;
-            canvas.referenceResolution = new Vector2(960, 540);
-            canvas.referencePixelsPerUnit = 16;
-            Object.DontDestroyOnLoad(Instance.canvas);
+            canvas.matchWidthOrHeight = 0.5F;
+            canvas.referenceResolution = new Vector2(1920, 1080);
+            canvas.referencePixelsPerUnit = 32;
+            Object.DontDestroyOnLoad(Instance.canvas);  
         }
 
         public static void SetCamera(Camera camera)
