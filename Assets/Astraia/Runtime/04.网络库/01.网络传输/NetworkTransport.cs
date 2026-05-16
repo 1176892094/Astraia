@@ -3,8 +3,8 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2024-11-29 13:11:20
-// # Recently: 2024-12-22 20:12:20
+// # History: 2024-12-21 23:12:50
+// # Recently: 2024-12-22 20:12:21
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
@@ -14,6 +14,135 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
+    internal sealed class NetworkTransport : Transport
+    {
+        public static Transport Instance;
+
+        private void Awake()
+        {
+            Instance = gameObject.AddComponent<GenericTransport>();
+        }
+
+        public override uint GetLength(int channel)
+        {
+            return Instance.GetLength(channel);
+        }
+
+        public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable)
+        {
+            if (NetworkManager.Saloon.players.TryGetValue(clientId, out var playerId))
+            {
+                using var writer = MemoryWriter.Pop();
+                writer.WriteByte((byte)Lobby.同步网络数据);
+                writer.WriteArraySegment(segment);
+                writer.WriteInt32(playerId);
+                Instance.SendToServer(writer);
+            }
+        }
+
+        public override void SendToServer(ArraySegment<byte> segment, int channel = Channel.Reliable)
+        {
+            using var writer = MemoryWriter.Pop();
+            writer.WriteByte((byte)Lobby.同步网络数据);
+            writer.WriteArraySegment(segment);
+            writer.WriteInt32(0);
+            Instance.SendToServer(writer);
+        }
+
+        public override void StartServer()
+        {
+            NetworkManager.Saloon.isServer = true;
+            using var writer = MemoryWriter.Pop();
+            writer.WriteByte((byte)Lobby.请求创建房间);
+            writer.WriteString(NetworkManager.Instance.roomName);
+            writer.WriteString(NetworkManager.Instance.roomData);
+            writer.WriteInt32(NetworkManager.Instance.maxPlayer);
+            writer.WriteByte((byte)NetworkManager.Instance.roomMode);
+            Instance.SendToServer(writer);
+        }
+
+        public override void StopServer()
+        {
+            if (NetworkManager.Saloon.isServer)
+            {
+                NetworkManager.Saloon.isServer = false;
+                using var writer = MemoryWriter.Pop();
+                writer.WriteByte((byte)Lobby.请求离开房间);
+                Instance.SendToServer(writer);
+            }
+        }
+
+        public override void Disconnect(int clientId)
+        {
+            if (NetworkManager.Saloon.players.TryGetValue(clientId, out var playerId))
+            {
+                using var writer = MemoryWriter.Pop();
+                writer.WriteByte((byte)Lobby.请求移除玩家);
+                writer.WriteInt32(playerId);
+                Instance.SendToServer(writer);
+            }
+        }
+
+        public override void StartClient()
+        {
+            NetworkManager.Saloon.isClient = true;
+            using var writer = MemoryWriter.Pop();
+            writer.WriteByte((byte)Lobby.请求加入房间);
+            writer.WriteString(Instance.address);
+            Instance.SendToServer(writer);
+        }
+
+        public override void StartClient(Uri uri)
+        {
+            NetworkManager.Saloon.isClient = true;
+            using var writer = MemoryWriter.Pop();
+            writer.WriteByte((byte)Lobby.请求加入房间);
+            writer.WriteString(uri != null ? uri.Host : Instance.address);
+            Instance.SendToServer(writer);
+        }
+
+        public override void StopClient()
+        {
+            if (NetworkManager.isSaloon)
+            {
+                NetworkManager.Saloon.isClient = false;
+                using var writer = MemoryWriter.Pop();
+                writer.WriteByte((byte)Lobby.请求离开房间);
+                Instance.SendToServer(writer);
+            }
+        }
+
+        public override void ClientEarlyUpdate()
+        {
+            Instance.ClientEarlyUpdate();
+        }
+
+        public override void ClientAfterUpdate()
+        {
+            Instance.ClientAfterUpdate();
+        }
+
+        public override void ServerEarlyUpdate()
+        {
+        }
+
+        public override void ServerAfterUpdate()
+        {
+        }
+    }
+
+    [Serializable]
+    public struct LobbyData
+    {
+        public int clientId;
+        public RoomMode roomMode;
+        public int maxCount;
+        public string roomData;
+        public string roomId;
+        public string roomName;
+        public int[] clients;
+    }
+
     internal abstract class Transport : MonoBehaviour
     {
         public string address = "localhost";
@@ -37,7 +166,7 @@ namespace Astraia.Net
         public abstract void ServerAfterUpdate();
     }
 
-    internal sealed class NetworkTransport : Transport
+    internal sealed class GenericTransport : Transport
     {
         private const uint MAX_MTU = 1200;
         private const uint TIME_OUT = 10000;

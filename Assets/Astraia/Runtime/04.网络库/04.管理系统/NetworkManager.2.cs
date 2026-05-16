@@ -43,13 +43,13 @@ namespace Astraia.Net
 
             public static bool isActive => state == State.Connected;
 
-            internal static void Start(int id)
+            internal static void Start(bool isHost)
             {
-                if (id == 0)
+                if (isHost)
                 {
                     AddMessage(true);
                     connection = new NetworkServer();
-                    Server.Connect(id);
+                    Server.Connect(0);
                     Connect();
                 }
                 else

@@ -19,8 +19,8 @@ namespace Astraia.Net
         public static NetworkObserver Instance;
 
         private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
-        private readonly HashSet<NetworkClient> indices = new HashSet<NetworkClient>();
-        private readonly HashSet<NetworkEntity> spawns = new HashSet<NetworkEntity>();
+        private readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
+        private readonly HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
         private readonly List<NetworkClient> copies = new List<NetworkClient>();
         private SpatialHash<NetworkClient> visible;
         private double waitTime;
@@ -37,10 +37,10 @@ namespace Astraia.Net
         private void OnDestroy()
         {
             copies.Clear();
-            spawns.Clear();
-            indices.Clear();
+            clients.Clear();
             visible.Clear();
             players.Clear();
+            entities.Clear();
         }
 
         private void OnDrawGizmos()
@@ -93,7 +93,7 @@ namespace Astraia.Net
                 if (waitTime < Time.unscaledTimeAsDouble)
                 {
                     waitTime = Time.unscaledTimeAsDouble + 0.2;
-                    foreach (var entity in spawns)
+                    foreach (var entity in entities)
                     {
                         Tick(entity);
                     }
@@ -103,14 +103,14 @@ namespace Astraia.Net
 
         public void Tick(NetworkEntity entity)
         {
-            visible.Query(entity.transform.position, extents, indices);
+            visible.Query(entity.transform.position, extents, clients);
 
             if (entity.client != null)
             {
-                indices.Add(entity.client);
+                clients.Add(entity.client);
             }
 
-            foreach (var client in indices)
+            foreach (var client in clients)
             {
                 if (client.isReady && !entity.clients.Contains(client))
                 {
@@ -123,7 +123,7 @@ namespace Astraia.Net
 
             foreach (var client in copies)
             {
-                if (!indices.Contains(client))
+                if (!clients.Contains(client))
                 {
                     entity.SubObserver(client);
                 }
@@ -144,17 +144,17 @@ namespace Astraia.Net
 
         public void Add(NetworkEntity entity)
         {
-            spawns.Add(entity);
+            entities.Add(entity);
         }
 
         public void Remove(NetworkEntity entity)
         {
-            spawns.Remove(entity);
+            entities.Remove(entity);
         }
 
         public void Clear()
         {
-            spawns.Clear();
+            entities.Clear();
         }
     }
 }
