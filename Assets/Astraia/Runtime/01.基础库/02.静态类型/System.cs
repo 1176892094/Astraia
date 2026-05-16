@@ -483,7 +483,6 @@ namespace Astraia
                     {
                         var context = await reason.GetContextAsync(); // 异步等待请求
                         _ = Task.Run(HttpRequest); // 每个请求单独处理
-                        return;
 
                         async Task HttpRequest()
                         {
