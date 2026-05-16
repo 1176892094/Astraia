@@ -10,86 +10,107 @@
 // *********************************************************************************
 
 using System.Collections.Generic;
-using Astraia.Core;
 using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkObserver : Singleton<NetworkObserver, Entity>, ISystem, IEvent<OnVisibleUpdate>, IEvent<ServerDisconnect>, IEvent<ServerObserver>
+    public class NetworkObserver : MonoBehaviour
     {
-        private readonly Dictionary<int, NetworkEntity> players = new Dictionary<int, NetworkEntity>();
-        private readonly HashSet<NetworkClient> items = new HashSet<NetworkClient>();
-        private readonly List<NetworkClient> nodes = new List<NetworkClient>();
-        private Vector2Int range = Vector2Int.one;
-        private Visible<NetworkClient> grids;
+        public static NetworkObserver Instance;
+
+        private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
+        private readonly HashSet<NetworkClient> indices = new HashSet<NetworkClient>();
+        private readonly HashSet<NetworkEntity> spawns = new HashSet<NetworkEntity>();
+        private readonly List<NetworkClient> copies = new List<NetworkClient>();
+        private SpatialHash<NetworkClient> visible;
         private double waitTime;
 
-        public void Execute(OnVisibleUpdate message)
+        [SerializeField] private Vector2Int extents = Vector2Int.one;
+        [SerializeField] private float cellSize = 1;
+
+        private void Awake()
         {
-            waitTime = 0;
-            range = new Vector2Int(message.x, message.y);
-            grids = new Visible<NetworkClient>(message.x, message.y, message.w, message.h);
+            Instance = this;
+            visible = new SpatialHash<NetworkClient>(cellSize);
         }
 
-        public void Execute(ServerDisconnect message)
+        private void OnDestroy()
         {
-            players.Remove(message.client);
+            copies.Clear();
+            spawns.Clear();
+            indices.Clear();
+            visible.Clear();
+            players.Clear();
         }
 
-        public void Execute(ServerObserver message)
+        private void OnDrawGizmos()
         {
-            players[message.entity.client.clientId] = message.entity;
-            grids.Add(message.entity.client, message.entity.transform.position);
-        }
-
-        public void Update()
-        {
-            if (NetworkManager.isServer && grids != null)
+            foreach (var player in players.Values)
             {
-                foreach (var player in players.Values)
-                {
-                    if (player)
-                    {
-                        grids.Update(player.client, player.transform.position);
-                    }
-                }
+                Gizmos.color = Color.cyan;
+                var pos = visible.WorldToNode(player.transform.position);
+                var min = pos - extents;
+                var max = pos + extents;
 
-                if (waitTime < Time.unscaledTimeAsDouble)
+                for (var x = min.x; x <= max.x; x++)
                 {
-                    waitTime = Time.unscaledTimeAsDouble + 0.5;
-                    foreach (var entity in NetworkManager.Server.spawns.Values)
+                    for (var y = min.y; y <= max.y; y++)
                     {
-                        if (entity.visible != Visible.Owner)
-                        {
-                            Tick(entity);
-                        }
+                        Gizmos.DrawWireCube(new Vector2(x + 0.5F, y + 0.5F) * cellSize, Vector2.one * cellSize);
                     }
                 }
             }
         }
 
-        public void Tick(NetworkEntity entity, NetworkClient client)
+        public void Register(NetworkEntity entity)
         {
-            if (players.TryGetValue(client.clientId, out var player) && player)
+            players[entity.client] = entity;
+            visible.Insert(entity.client, entity.transform.position);
+        }
+
+        public void UnRegister(NetworkClient client)
+        {
+            if (client != null)
             {
-                var node = grids.Position(entity.transform.position) - grids.Position(player.transform.position);
-                if (Mathf.Abs(node.x) <= range.x && Mathf.Abs(node.y) <= range.y)
+                players.Remove(client);
+                visible.Remove(client);
+                waitTime = Time.unscaledTimeAsDouble + 0.2;
+            }
+        }
+
+        public void LateUpdate()
+        {
+            if (NetworkManager.isServer)
+            {
+                foreach (var player in players.Values)
                 {
-                    entity.AddObserver(client);
+                    if (player)
+                    {
+                        visible.Update(player.client, player.transform.position);
+                    }
+                }
+
+                if (waitTime < Time.unscaledTimeAsDouble)
+                {
+                    waitTime = Time.unscaledTimeAsDouble + 0.2;
+                    foreach (var entity in spawns)
+                    {
+                        Tick(entity);
+                    }
                 }
             }
         }
 
         public void Tick(NetworkEntity entity)
         {
-            grids.Find(grids.Position(entity.transform.position), items);
+            visible.Query(entity.transform.position, extents, indices);
 
             if (entity.client != null)
             {
-                items.Add(entity.client);
+                indices.Add(entity.client);
             }
 
-            foreach (var client in items)
+            foreach (var client in indices)
             {
                 if (client.isReady && !entity.clients.Contains(client))
                 {
@@ -97,21 +118,43 @@ namespace Astraia.Net
                 }
             }
 
-            nodes.Clear();
-            foreach (var client in entity.clients)
-            {
-                nodes.Add(client);
-            }
+            copies.Clear();
+            copies.AddRange(entity.clients);
 
-            foreach (var client in nodes)
+            foreach (var client in copies)
             {
-                if (!items.Contains(client))
+                if (!indices.Contains(client))
                 {
                     entity.SubObserver(client);
                 }
             }
+        }
 
-            entity.gameObject.SetActive(items.Count > 0);
+        public void Tick(NetworkEntity entity, NetworkClient client)
+        {
+            if (players.TryGetValue(client, out var player) && player && entity != player)
+            {
+                var pos = visible.WorldToNode(entity.transform.position) - visible.WorldToNode(player.transform.position);
+                if (Mathf.Abs(pos.x) <= extents.x && Mathf.Abs(pos.y) <= extents.y)
+                {
+                    entity.AddObserver(client);
+                }
+            }
+        }
+
+        public void Add(NetworkEntity entity)
+        {
+            spawns.Add(entity);
+        }
+
+        public void Remove(NetworkEntity entity)
+        {
+            spawns.Remove(entity);
+        }
+
+        public void Clear()
+        {
+            spawns.Clear();
         }
     }
 }

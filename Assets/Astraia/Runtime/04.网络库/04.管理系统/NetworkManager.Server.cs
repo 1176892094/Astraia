@@ -15,7 +15,6 @@ using System.Linq;
 using Astraia.Core;
 using UnityEngine;
 
-
 namespace Astraia.Net
 {
     public partial class NetworkManager
@@ -137,22 +136,25 @@ namespace Astraia.Net
             {
                 client.isReady = true;
                 client.Send(new SpawnBeginMessage());
-                foreach (var entity in spawns.Values)
+                EventManager.Invoke(new ServerReady(client.clientId));
+                
+                if (NetworkObserver.Instance)
                 {
-                    if (entity.isActiveAndEnabled)
-                    {
-                        if (NetworkObserver.Instance && entity.visible == Visible.Observer)
-                        {
-                            NetworkObserver.Instance.Tick(entity, client);
-                        }
-                        else
-                        {
-                            entity.AddObserver(client);
-                        }
-                    }
+                    NetworkObserver.Instance.Clear();
                 }
 
-                EventManager.Invoke(new ServerReady(client.clientId));
+                foreach (var entity in spawns.Values)
+                {
+                    if (NetworkObserver.Instance && entity.visible == Visible.Observer)
+                    {
+                        NetworkObserver.Instance.Add(entity);
+                        NetworkObserver.Instance.Tick(entity, client);
+                    }
+                    else
+                    {
+                        entity.AddObserver(client);
+                    }
+                }
             }
 
             private static void EntityMessage(NetworkClient client, EntityMessage message)
@@ -333,6 +335,7 @@ namespace Astraia.Net
 
                 if (NetworkObserver.Instance && entity.visible == Visible.Observer)
                 {
+                    NetworkObserver.Instance.Add(entity);
                     NetworkObserver.Instance.Tick(entity);
                 }
                 else
@@ -389,6 +392,11 @@ namespace Astraia.Net
                     }
                     else
                     {
+                        if (NetworkObserver.Instance && entity.visible == Visible.Observer)
+                        {
+                            NetworkObserver.Instance.Remove(entity);
+                        }
+
                         entity.state |= NetworkEntity.State.Destroy;
                         UnityEngine.Object.Destroy(entity.gameObject);
                     }

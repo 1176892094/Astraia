@@ -34,8 +34,6 @@ namespace Astraia.Core
 
     public record ServerResponse(Uri uri) : IEvent;
 
-    public record ServerObserver(NetworkEntity entity) : IEvent;
-
     public record LobbyUpdate(LobbyData[] rooms) : IEvent;
 
     public record LobbyDisconnect : IEvent;

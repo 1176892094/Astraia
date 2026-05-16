@@ -8,80 +8,92 @@ namespace Astraia
         Transform transform { get; }
         GameObject gameObject { get; }
     }
+}
 
-    public sealed class Visible<T>
+namespace Astraia
+{
+    public class SpatialHash<T>
     {
-        private readonly Dictionary<Vector2Int, HashSet<T>> grids = new Dictionary<Vector2Int, HashSet<T>>();
-        private readonly Dictionary<T, Vector2Int> nodes = new Dictionary<T, Vector2Int>();
-        private readonly int rangeX;
-        private readonly int rangeY;
-        private readonly int scaleX;
-        private readonly int scaleY;
+        private readonly Dictionary<ulong, HashSet<T>> buckets = new Dictionary<ulong, HashSet<T>>();
+        private readonly Dictionary<T, ulong> objects = new Dictionary<T, ulong>();
+        private readonly float cellSize;
 
-        public Visible(int rangeX, int rangeY, int scaleX, int scaleY)
+        public SpatialHash(float cellSize)
         {
-            this.rangeX = rangeX;
-            this.rangeY = rangeY;
-            this.scaleX = scaleX;
-            this.scaleY = scaleY;
+            this.cellSize = cellSize;
         }
 
-        public void Add(T item, Vector2 position)
+        public void Insert(T item, Vector2 position)
         {
-            var node = Position(position);
-
-            if (!grids.TryGetValue(node, out var items))
+            var node = Hash(WorldToNode(position));
+            if (!buckets.TryGetValue(node, out var items))
             {
                 items = new HashSet<T>();
-                grids.Add(node, items);
+                buckets.Add(node, items);
             }
 
             items.Add(item);
-            nodes[item] = node;
+            objects[item] = node;
         }
 
         public void Remove(T item)
         {
-            if (nodes.TryGetValue(item, out var node))
+            if (objects.TryGetValue(item, out var node))
             {
-                if (grids.TryGetValue(node, out var items))
+                if (buckets.TryGetValue(node, out var items))
                 {
                     items.Remove(item);
+                    if (items.Count == 0)
+                    {
+                        buckets.Remove(node);
+                    }
                 }
 
-                nodes.Remove(item);
+                objects.Remove(item);
             }
         }
 
         public void Update(T item, Vector2 position)
         {
-            if (nodes.TryGetValue(item, out var oldNode))
+            if (objects.TryGetValue(item, out var oldNode))
             {
-                var newNode = Position(position);
+                var newNode = Hash(WorldToNode(position));
                 if (oldNode != newNode)
                 {
-                    grids[oldNode].Remove(item);
-                    if (!grids.TryGetValue(newNode, out var items))
+                    if (buckets.TryGetValue(oldNode, out var oldItems))
                     {
-                        items = new HashSet<T>();
-                        grids.Add(newNode, items);
+                        oldItems.Remove(item);
+                        if (oldItems.Count == 0)
+                        {
+                            buckets.Remove(oldNode);
+                        }
                     }
 
-                    items.Add(item);
-                    nodes[item] = newNode;
+                    if (!buckets.TryGetValue(newNode, out var newItems))
+                    {
+                        newItems = new HashSet<T>();
+                        buckets.Add(newNode, newItems);
+                    }
+
+                    newItems.Add(item);
+                    objects[item] = newNode;
                 }
             }
         }
 
-        public void Find(Vector2Int center, HashSet<T> items)
+        public void Query(Vector2 center, Vector2Int extents, HashSet<T> items)
         {
             items.Clear();
-            for (var x = -rangeX; x <= rangeX; x++)
+            var pos = WorldToNode(center);
+            var min = pos - extents;
+            var max = pos + extents;
+
+            for (var x = min.x; x <= max.x; x++)
             {
-                for (var y = -rangeY; y <= rangeY; y++)
+                for (var y = min.y; y <= max.y; y++)
                 {
-                    var node = center + new Vector2Int(x, y);
-                    if (grids.TryGetValue(node, out var copies))
+                    var node = Hash(new Vector2Int(x, y));
+                    if (buckets.TryGetValue(node, out var copies))
                     {
                         foreach (var item in copies)
                         {
@@ -92,15 +104,22 @@ namespace Astraia
             }
         }
 
-        public Vector2Int Position(Vector2 position)
+        public Vector2Int WorldToNode(Vector2 position)
         {
-            return new Vector2Int(Mathf.FloorToInt(position.x / scaleX), Mathf.FloorToInt(position.y / scaleY));
+            var x = Mathf.FloorToInt(position.x / cellSize);
+            var y = Mathf.FloorToInt(position.y / cellSize);
+            return new Vector2Int(x, y);
         }
 
         public void Clear()
         {
-            grids.Clear();
-            nodes.Clear();
+            buckets.Clear();
+            objects.Clear();
+        }
+
+        private static ulong Hash(Vector2Int grid)
+        {
+            return ((ulong)grid.x << 32) ^ (uint)grid.y;
         }
     }
 }

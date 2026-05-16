@@ -55,7 +55,6 @@ namespace Astraia.Net
 
         public bool isClient => (state & State.Client) != 0 && NetworkManager.isClient;
 
-
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -323,7 +322,6 @@ namespace Astraia.Net
 
             return NetworkManager.Client.spawns.GetValueOrDefault(objectId);
         }
-
 
         [Flags]
         internal enum State : byte

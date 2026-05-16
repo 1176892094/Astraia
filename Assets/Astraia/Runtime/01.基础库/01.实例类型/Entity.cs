@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Sirenix.OdinInspector;
 
 namespace Astraia
 {
@@ -632,18 +631,18 @@ namespace Astraia
 {
     internal static class TimeManager
     {
-        public static float Time;
+        public static float TimeStep;
         public static event Action OnUpdate;
 
         public static void Update(float value)
         {
-            Time = value;
+            TimeStep = value;
             OnUpdate?.Invoke();
         }
 
         public static void Dispose()
         {
-            Time = 0;
+            TimeStep = 0;
             OnUpdate = null;
         }
     }
@@ -814,7 +813,7 @@ namespace Astraia
     public abstract class StateMachine<TKey, T> : Acquire<T>, IModule
     {
         private readonly Dictionary<TKey, IState> states = new Dictionary<TKey, IState>();
-        [ShowInInspector]private IState state;
+        private IState state;
 
         public void Create<TState>(TKey key) where TState : IState
         {
@@ -1065,7 +1064,7 @@ namespace Astraia
             item.progress = 1;
             item.complete = 0;
             item.duration = duration;
-            item.nextTime = TimeManager.Time + duration;
+            item.nextTime = TimeManager.TimeStep + duration;
             item.onComplete = item.OnComplete;
             return item;
         }
@@ -1082,9 +1081,9 @@ namespace Astraia
 
         protected override void OnTick()
         {
-            if (nextTime < TimeManager.Time)
+            if (nextTime < TimeManager.TimeStep)
             {
-                nextTime = TimeManager.Time + duration;
+                nextTime = TimeManager.TimeStep + duration;
                 if (onUpdate != null)
                 {
                     onUpdate.Invoke();
@@ -1100,7 +1099,6 @@ namespace Astraia
             }
         }
 
-
         public Timer OnUpdate(Action onUpdate)
         {
             this.onUpdate += onUpdate;
@@ -1110,7 +1108,7 @@ namespace Astraia
         public Timer Set(float duration)
         {
             this.duration = duration;
-            nextTime = TimeManager.Time + duration;
+            nextTime = TimeManager.TimeStep + duration;
             return this;
         }
 
@@ -1141,7 +1139,7 @@ namespace Astraia
             item.progress = 0;
             item.complete = 0;
             item.duration = duration;
-            item.nextTime = TimeManager.Time;
+            item.nextTime = TimeManager.TimeStep;
             item.onComplete = item.OnComplete;
             return item;
         }
@@ -1158,9 +1156,9 @@ namespace Astraia
 
         protected override void OnTick()
         {
-            if (nextTime < TimeManager.Time)
+            if (nextTime < TimeManager.TimeStep)
             {
-                progress = (TimeManager.Time - nextTime) / duration;
+                progress = (TimeManager.TimeStep - nextTime) / duration;
                 if (progress > 1)
                 {
                     progress = 1;
