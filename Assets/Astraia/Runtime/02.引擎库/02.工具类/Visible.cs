@@ -3,15 +3,6 @@ using UnityEngine;
 
 namespace Astraia
 {
-    public interface IVisible
-    {
-        Transform transform { get; }
-        GameObject gameObject { get; }
-    }
-}
-
-namespace Astraia
-{
     public class SpatialHash<T>
     {
         private readonly Dictionary<ulong, HashSet<T>> buckets = new Dictionary<ulong, HashSet<T>>();
