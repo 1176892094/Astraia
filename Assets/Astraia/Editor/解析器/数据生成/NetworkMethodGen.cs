@@ -24,9 +24,9 @@ namespace Astraia.Editor
 
     internal static class NetworkMethodGen
     {
-        public static MethodDefinition ClientRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, CustomAttribute args, ref bool failed)
+        public static MethodDefinition ClientRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
-            var result = InvokeV1(Log, expand, method, ref failed);
+            var result = InvokeV1(Log, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
             NetworkModuleGen.WriterDequeue(worker, module);
             if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.ClientRpc, ref failed))
@@ -45,14 +45,14 @@ namespace Astraia.Editor
             return result;
         }
 
-        public static MethodDefinition ClientRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ClientRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
             var result = new MethodDefinition(method.GetName(Weaver.MED_INV), Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = result.Body.GetILProcessor();
             IsClientActive(worker, module, method.Name, nameof(InvokeMode.ClientRpc));
 
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Castclass, expand);
+            worker.Emit(OpCodes.Castclass, create);
 
             if (!ArgumentReader(worker, reader, Log, method, InvokeMode.ClientRpc, ref failed))
             {
@@ -62,13 +62,13 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
             NetworkModuleGen.AddParameters(module, result.Parameters);
-            expand.Methods.Add(result);
+            create.Methods.Add(result);
             return result;
         }
 
-        public static MethodDefinition ServerRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, CustomAttribute args, ref bool failed)
+        public static MethodDefinition ServerRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
-            var result = InvokeV1(Log, expand, method, ref failed);
+            var result = InvokeV1(Log, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
             NetworkModuleGen.WriterDequeue(worker, module);
             if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.ServerRpc, ref failed))
@@ -87,14 +87,14 @@ namespace Astraia.Editor
             return result;
         }
 
-        public static MethodDefinition ServerRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ServerRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
             var result = new MethodDefinition(method.GetName(Weaver.MED_INV), Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = result.Body.GetILProcessor();
             IsServerActive(worker, module, method.Name, nameof(InvokeMode.ServerRpc));
 
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Castclass, expand);
+            worker.Emit(OpCodes.Castclass, create);
 
             if (!ArgumentReader(worker, reader, Log, method, InvokeMode.ServerRpc, ref failed))
             {
@@ -104,13 +104,13 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
             NetworkModuleGen.AddParameters(module, result.Parameters);
-            expand.Methods.Add(result);
+            create.Methods.Add(result);
             return result;
         }
 
-        public static MethodDefinition TargetRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, CustomAttribute args, ref bool failed)
+        public static MethodDefinition TargetRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
-            var result = InvokeV1(Log, expand, method, ref failed);
+            var result = InvokeV1(Log, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
             NetworkModuleGen.WriterDequeue(worker, module);
             if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.TargetRpc, ref failed))
@@ -130,14 +130,14 @@ namespace Astraia.Editor
             return result;
         }
 
-        public static MethodDefinition TargetRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition expand, MethodDefinition method, MethodDefinition func, ref bool failed)
+        public static MethodDefinition TargetRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
             var result = new MethodDefinition(method.GetName(Weaver.MED_INV), Weaver.GEN_RPC, module.Import(typeof(void)));
             var worker = result.Body.GetILProcessor();
             IsClientActive(worker, module, method.Name, nameof(InvokeMode.TargetRpc));
 
             worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Castclass, expand);
+            worker.Emit(OpCodes.Castclass, create);
 
             if (IsNetworkClient(method))
             {
@@ -152,11 +152,11 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Callvirt, func);
             worker.Emit(OpCodes.Ret);
             NetworkModuleGen.AddParameters(module, result.Parameters);
-            expand.Methods.Add(result);
+            create.Methods.Add(result);
             return result;
         }
 
-        private static MethodDefinition InvokeV1(ILogPostProcessor debugger, TypeDefinition expand, MethodDefinition method, ref bool failed)
+        private static MethodDefinition InvokeV1(ILogPostProcessor debugger, TypeDefinition create, MethodDefinition method, ref bool failed)
         {
             var md = new MethodDefinition(method.GetName(Weaver.MED_RPC), method.Attributes, method.ReturnType)
             {
@@ -185,12 +185,12 @@ namespace Astraia.Editor
 
             method.CustomDebugInformations.Clear();
             (method.DebugInformation.Scope, md.DebugInformation.Scope) = (md.DebugInformation.Scope, method.DebugInformation.Scope);
-            expand.Methods.Add(md);
-            InvokeV2(debugger, expand, md, ref failed);
+            create.Methods.Add(md);
+            InvokeV2(debugger, create, md, ref failed);
             return md;
         }
 
-        private static void InvokeV2(ILogPostProcessor debugger, TypeDefinition expand, MethodDefinition method, ref bool failed)
+        private static void InvokeV2(ILogPostProcessor debugger, TypeDefinition create, MethodDefinition method, ref bool failed)
         {
             var fullName = method.Name;
             if (fullName.EndsWith(Weaver.MED_RPC))
@@ -203,7 +203,7 @@ namespace Astraia.Editor
                     {
                         if (result.GetName(string.Empty) == name)
                         {
-                            var md = expand.BaseType.Resolve().GetBaseMethod(fullName);
+                            var md = create.BaseType.Resolve().GetBaseMethod(fullName);
                             if (md == null)
                             {
                                 debugger.Error("找不到base方法: {0}".Format(fullName), method);

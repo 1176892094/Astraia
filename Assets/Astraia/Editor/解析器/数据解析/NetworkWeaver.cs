@@ -11,10 +11,12 @@
 
 using System;
 using System.Linq;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.IO;
 using Mono.Cecil;
 using Astraia.Net;
+using Unity.CompilationPipeline.Common.ILPostProcessing;
+using UnityEngine;
 
 namespace Astraia.Editor
 {
@@ -39,38 +41,60 @@ namespace Astraia.Editor
         public const Method GEN_DATA = Method.HideBySig | Method.Static | Method.SpecialName | Method.Private | Method.RTSpecialName;
         public const Member GEN_ATTR = Member.AutoClass | Member.Public | Member.Class | Member.AnsiClass | Member.Abstract | Member.Sealed | Member.BeforeFieldInit;
 
-        public bool Weave(AssemblyDefinition assembly, ILogPostProcessor debugger, IAssemblyResolver resolver, out bool modified)
+        public bool Weave(AssemblyDefinition assembly, ILogPostProcessor debugger, IAssemblyResolver resolver, ICompiledAssembly compiled, out bool modified)
         {
             modified = false;
             try
             {
+                var change = false;
                 var failed = false;
-                if (assembly.MainModule.GetTypes().Any(td => td.Namespace == GEN_TYPE && td.Name == GEN_FUN))
+                var module = new Module(assembly, debugger, ref failed);
+                var writer = (Writer)null;
+                var reader = (Reader)null;
+                var access = (SyncVarAccess)null;
+                var create = (TypeDefinition)null;
+
+                var success = compiled.Name == GEN_TYPE || compiled.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == GEN_TYPE);
+                if (success)
                 {
-                    return true;
+                    if (assembly.MainModule.Types.Any(td => td.Namespace == GEN_TYPE && td.Name == GEN_FUN))
+                    {
+                        success = false;
+                    }
+                    else
+                    {
+                        access = new SyncVarAccess();
+                        create = new TypeDefinition(GEN_TYPE, GEN_FUN, GEN_ATTR, module.Import<object>());
+                        writer = new Writer(assembly, module, create, debugger);
+                        reader = new Reader(assembly, module, create, debugger);
+                        change = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
+                    }
                 }
 
-                // var elapse = Stopwatch.StartNew();
-                var access = new SyncVarAccess();
-                var module = new Module(assembly, debugger, ref failed);
-                var expand = new TypeDefinition(GEN_TYPE, GEN_FUN, GEN_ATTR, module.Import<object>());
-                var writer = new Writer(assembly, module, expand, debugger);
-                var reader = new Reader(assembly, module, expand, debugger);
-                modified = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
-
                 var mainModule = assembly.MainModule;
-                foreach (var td in mainModule.Types.Where(td => td.IsSubclassOf<NetworkModule>()))
+                foreach (var td in mainModule.Types)
                 {
-                    var parent = td;
-                    while (parent != null)
+                    if (success)
                     {
-                        if (parent.Is<NetworkModule>())
+                        if (td.IsSubclassOf<NetworkModule>())
                         {
-                            break;
-                        }
+                            var parent = td;
+                            while (parent != null)
+                            {
+                                if (parent.Is<NetworkModule>())
+                                {
+                                    break;
+                                }
 
-                        modified |= new NetworkModuleGen(assembly, access, module, writer, reader, debugger, parent).Process(ref failed);
-                        parent = parent.GetBaseType();
+                                change |= new NetworkModuleGen(assembly, access, module, writer, reader, debugger, parent).Process(ref failed);
+                                parent = parent.GetBaseType();
+                            }
+                        }
+                    }
+
+                    if (td.IsSubclassOf<MonoBehaviour>())
+                    {
+                        modified |= CustomGenerator.Processed(td, module);
                     }
                 }
 
@@ -79,15 +103,14 @@ namespace Astraia.Editor
                     return false;
                 }
 
-                if (modified)
+                if (success && change)
                 {
                     SyncVarReplace.Process(mainModule, access);
-                    mainModule.Types.Add(expand);
-                    NetworkMemberGen.Processed(assembly, module, writer, reader, expand);
+                    mainModule.Types.Add(create);
+                    NetworkMemberGen.Processed(assembly, module, writer, reader, create);
                 }
 
-                // elapse.Stop();
-                // debugger.Warn("{0:F2}ms ".Color("G").Format(elapse.ElapsedMilliseconds / 1000F) + assembly.Name.Name);
+                modified |= change;
                 return true;
             }
             catch (Exception e)
@@ -103,6 +126,8 @@ namespace Astraia.Editor
         private readonly AssemblyDefinition assembly;
         public readonly TypeDefinition Initialized;
 
+        public readonly MethodReference Listen;
+        public readonly MethodReference Remove;
         public readonly MethodReference LogError;
         public readonly MethodReference SyncVarHook;
         public readonly MethodReference InvokeDelegate;
@@ -139,14 +164,16 @@ namespace Astraia.Editor
         public Module(AssemblyDefinition assembly, ILogPostProcessor debugger, ref bool failed)
         {
             this.assembly = assembly;
-            Initialized = Import<UnityEngine.RuntimeInitializeOnLoadMethodAttribute>().Resolve();
-            LogError = Common.GetMethod(Import<UnityEngine.Debug>(), assembly, OnLogError, debugger, ref failed);
+            Initialized = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
+            LogError = Common.GetMethod(Import<Debug>(), assembly, OnLogError, debugger, ref failed);
             SyncVarHook = Common.GetMethod(Import(typeof(Action<,>)), assembly, Weaver.GEN_CTOR, debugger, ref failed);
             InvokeDelegate = Common.GetMethod(Import<InvokeDelegate>(), assembly, Weaver.GEN_CTOR, debugger, ref failed);
             AddArraySegment = Common.GetMethod(Import(typeof(ArraySegment<>)), assembly, Weaver.GEN_CTOR, debugger, ref failed);
             GetTypeFromHandle = Common.GetMethod(Import<Type>(), assembly, "GetTypeFromHandle", debugger, ref failed);
             ReadNetworkModule = Common.GetMethod(Import(typeof(Net.Extensions)), assembly, ReadModule, debugger, ref failed);
 
+            Listen = Common.GetMethod(Import(typeof(EventManager)), assembly, "Listen", debugger, ref failed);
+            Remove = Common.GetMethod(Import(typeof(EventManager)), assembly, "Remove", debugger, ref failed);
             WriterDequeue = Common.GetMethod(Import<MemoryWriter>(), assembly, "Pop", debugger, ref failed);
             WriterEnqueue = Common.GetMethod(Import<MemoryWriter>(), assembly, "Push", debugger, ref failed);
             GetClientActive = Common.GetMethod(Import<NetworkManager>(), assembly, "get_isClient", debugger, ref failed);
@@ -481,6 +508,13 @@ namespace Astraia.Editor
             return tr;
         }
 
+        public static GenericInstanceMethod MakeGeneric(this MethodReference self, TypeReference tr)
+        {
+            var method = new GenericInstanceMethod(self);
+            method.GenericArguments.Add(tr);
+            return method;
+        }
+
         public static FieldReference MakeGeneric(this FieldReference self)
         {
             var tr = new GenericInstanceType(self.DeclaringType);
@@ -494,12 +528,7 @@ namespace Astraia.Editor
 
         public static MethodReference GenericInstance(this MethodReference self, ModuleDefinition md, GenericInstanceType tr)
         {
-            var mr = new MethodReference(self.Name, self.ReturnType, tr)
-            {
-                HasThis = self.HasThis,
-                ExplicitThis = self.ExplicitThis,
-                CallingConvention = self.CallingConvention
-            };
+            var mr = new MethodReference(self.Name, self.ReturnType, tr) { HasThis = self.HasThis, ExplicitThis = self.ExplicitThis, CallingConvention = self.CallingConvention };
 
             foreach (var param in self.Parameters)
             {

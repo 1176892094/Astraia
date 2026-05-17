@@ -30,7 +30,7 @@ namespace Astraia.Editor
             return ProcessProperty(assembly, assembly, writer, reader, ref failed);
         }
 
-        public static void Processed(AssemblyDefinition assembly, Module module, Writer writer, Reader reader, TypeDefinition expand)
+        public static void Processed(AssemblyDefinition assembly, Module module, Writer writer, Reader reader, TypeDefinition create)
         {
             var method = new MethodDefinition(nameof(Processed), MethodAttributes.Public | MethodAttributes.Static, module.Import(typeof(void)));
 
@@ -43,7 +43,7 @@ namespace Astraia.Editor
             writer.InitializeSetters(worker);
             reader.InitializeGetters(worker);
             worker.Emit(OpCodes.Ret);
-            expand.Methods.Add(method);
+            create.Methods.Add(method);
         }
 
         private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor debugger, Writer writer, Reader reader, ref bool failed)
@@ -161,14 +161,14 @@ namespace Astraia.Editor
     {
         protected readonly Dictionary<TypeReference, MethodReference> methods = new Dictionary<TypeReference, MethodReference>(new Comparer());
         protected readonly Module module;
-        protected readonly TypeDefinition expand;
+        protected readonly TypeDefinition create;
         protected readonly ILogPostProcessor debugger;
         protected readonly AssemblyDefinition assembly;
 
-        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition expand, ILogPostProcessor debugger)
+        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor debugger)
         {
             this.module = module;
-            this.expand = expand;
+            this.create = create;
             this.debugger = debugger;
             this.assembly = assembly;
         }
@@ -307,7 +307,7 @@ namespace Astraia.Editor
 
     internal class Writer : Stream
     {
-        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition expand, ILogPostProcessor debugger) : base(assembly, module, expand, debugger)
+        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor debugger) : base(assembly, module, create, debugger)
         {
         }
 
@@ -411,7 +411,7 @@ namespace Astraia.Editor
             md.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, tr));
             md.Body.InitLocals = true;
             Register(tr, md);
-            expand.Methods.Add(md);
+            create.Methods.Add(md);
             return md;
         }
 
@@ -435,7 +435,7 @@ namespace Astraia.Editor
 
     internal class Reader : Stream
     {
-        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition expand, ILogPostProcessor debugger) : base(assembly, module, expand, debugger)
+        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor debugger) : base(assembly, module, create, debugger)
         {
         }
 
@@ -558,7 +558,7 @@ namespace Astraia.Editor
             md.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             md.Body.InitLocals = true;
             Register(tr, md);
-            expand.Methods.Add(md);
+            create.Methods.Add(md);
             return md;
         }
 

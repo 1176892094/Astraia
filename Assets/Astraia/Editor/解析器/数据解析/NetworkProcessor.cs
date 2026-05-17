@@ -27,6 +27,8 @@ namespace Astraia.Editor
     {
         private static readonly HashSet<string> IgnoreAssemblies = new HashSet<string>()
         {
+            "Astraia.Run",
+            "Astraia.Editor",
             "Assembly-CSharp-firstpass",
             "Assembly-CSharp-Editor",
             "Assembly-CSharp-Editor-firstpass",
@@ -41,7 +43,7 @@ namespace Astraia.Editor
 
         private static bool FindReference(ICompiledAssembly compiledAssembly)
         {
-            var result = compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == Weaver.GEN_TYPE);
+            var result = compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) is "Astraia" or Weaver.GEN_TYPE);
             return result && !IgnoreAssemblies.Contains(compiledAssembly.Name);
         }
 
@@ -62,7 +64,7 @@ namespace Astraia.Editor
                 ReadingMode = ReadingMode.Immediate
             });
             resolver.SetAssemblyDefinitionForCompiledAssembly(assembly);
-            if (new Weaver().Weave(assembly, debugger, resolver, out var modified) && modified)
+            if (new Weaver().Weave(assembly, debugger, resolver, compiledAssembly, out var modified) && modified)
             {
                 var module = assembly.MainModule;
                 if (module.AssemblyReferences.Any(reference => reference.Name == assembly.Name.Name))

@@ -47,16 +47,6 @@ namespace Astraia.Net
             collection = gameObject.GetComponent<NetworkTransport>();
         }
 
-        private void OnEnable()
-        {
-            EventManager.Listen(this);
-        }
-
-        private void OnDisable()
-        {
-            EventManager.Remove(this);
-        }
-
         private void OnApplicationQuit()
         {
             if (isSaloon)
