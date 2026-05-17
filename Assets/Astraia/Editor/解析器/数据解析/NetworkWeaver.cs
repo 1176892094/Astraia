@@ -56,7 +56,7 @@ namespace Astraia.Editor
                 var expand = new TypeDefinition(GEN_TYPE, GEN_FUN, GEN_ATTR, module.Import<object>());
                 var writer = new Writer(assembly, module, expand, debugger);
                 var reader = new Reader(assembly, module, expand, debugger);
-                modified = NetworkMessageGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
+                modified = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
 
                 var mainModule = assembly.MainModule;
                 foreach (var td in mainModule.Types.Where(td => td.IsSubclassOf<NetworkModule>()))
@@ -83,7 +83,7 @@ namespace Astraia.Editor
                 {
                     SyncVarReplace.Process(mainModule, access);
                     mainModule.Types.Add(expand);
-                    NetworkMessageGen.Processed(assembly, module, writer, reader, expand);
+                    NetworkMemberGen.Processed(assembly, module, writer, reader, expand);
                 }
 
                 // elapse.Stop();

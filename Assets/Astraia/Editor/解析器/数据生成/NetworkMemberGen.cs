@@ -22,7 +22,7 @@ using Astraia.Net;
 
 namespace Astraia.Editor
 {
-    internal static class NetworkMessageGen
+    internal static class NetworkMemberGen
     {
         public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor debugger, Writer writer, Reader reader, ref bool failed)
         {
