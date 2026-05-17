@@ -126,7 +126,7 @@ namespace Astraia.Core
             result = new Dictionary<string, Bundle>();
             if (!string.IsNullOrEmpty(request))
             {
-                var verify = JsonUtility.FromJson<Verify>(request);
+                var verify = JsonManager.FromJson<Verify>(request);
                 foreach (var item in verify.bundles)
                 {
                     result.Add(item.name, item);

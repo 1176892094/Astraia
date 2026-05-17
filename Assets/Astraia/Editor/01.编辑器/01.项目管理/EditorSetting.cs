@@ -220,7 +220,7 @@ namespace Astraia
             if (File.Exists(GlobalSetting.RemoteAssetData))
             {
                 var readJson = await File.ReadAllTextAsync(GlobalSetting.RemoteAssetData);
-                items = JsonUtility.FromJson<Verify>(readJson).bundles.ToDictionary(d => d.name, d => d.code);
+                items = JsonManager.FromJson<Verify>(readJson).bundles.ToDictionary(d => d.name, d => d.code);
             }
 
             var files = folder.GetFiles();
@@ -252,7 +252,7 @@ namespace Astraia
                 Debug.Log("加密并更新文件: {0}".Color("G").Format(file.Name));
             }
 
-            await File.WriteAllTextAsync(GlobalSetting.RemoteAssetData, JsonUtility.ToJson(verify));
+            await File.WriteAllTextAsync(GlobalSetting.RemoteAssetData, JsonManager.ToJson(verify));
             watch.Stop();
             Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(watch.ElapsedMilliseconds / 1000F));
             AssetDatabase.Refresh();
