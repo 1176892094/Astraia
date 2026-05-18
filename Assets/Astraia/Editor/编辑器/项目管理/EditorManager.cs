@@ -32,12 +32,8 @@ namespace Astraia
 
         static EditorManager()
         {
-            Search.OnLoad -= Entity.LoadComponent;
-            Search.OnLoad += Entity.LoadComponent;
             Search.OnLoad -= EditorSetting.LoadWindows;
             Search.OnLoad += EditorSetting.LoadWindows;
-            Search.OnLoadComplete -= Entity.LoadComplete;
-            Search.OnLoadComplete += Entity.LoadComplete;
 
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
@@ -164,12 +160,7 @@ namespace Astraia
 
             if (items.TryGetValue(target, out var result))
             {
-                icon = new Texture2D(4, 4, TextureFormat.DXT5, false)
-                {
-                    wrapMode = TextureWrapMode.Clamp,
-                    filterMode = FilterMode.Bilinear,
-                    hideFlags = HideFlags.HideAndDontSave
-                };
+                icon = new Texture2D(4, 4, TextureFormat.DXT5, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, hideFlags = HideFlags.HideAndDontSave };
                 icon.LoadImage(Convert.FromBase64String(result));
             }
 

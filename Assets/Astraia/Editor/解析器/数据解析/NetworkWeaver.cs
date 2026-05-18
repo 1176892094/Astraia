@@ -69,6 +69,12 @@ namespace Astraia.Editor
                         reader = new Reader(assembly, module, create, debugger);
                         change = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
                     }
+
+                    debugger.Warn(assembly.Name.Name.Color("G"));
+                }
+                else
+                {
+                    debugger.Warn(assembly.Name.Name.Color("S"));
                 }
 
                 var mainModule = assembly.MainModule;

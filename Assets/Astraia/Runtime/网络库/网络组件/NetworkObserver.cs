@@ -70,12 +70,9 @@ namespace Astraia.Net
 
         public void UnRegister(NetworkClient client)
         {
-            if (client != null)
-            {
-                players.Remove(client);
-                visible.Remove(client);
-                waitTime = Time.unscaledTimeAsDouble + 0.2;
-            }
+            players.Remove(client);
+            visible.Remove(client);
+            waitTime = Time.unscaledTimeAsDouble + 0.2;
         }
 
         public void LateUpdate()

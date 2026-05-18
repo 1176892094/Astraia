@@ -18,7 +18,7 @@ using UnityEngine.UI;
 namespace Astraia.Core
 {
     [Serializable]
-    public abstract class UIPanel<T, TGrid> : UIPanel, IAcquire, IMove where TGrid : Component, IGrid<T>
+    public abstract class UIPanel<T, TGrid> : UIPanel, IMove where TGrid : Component, IGrid<T>
     {
         private TGrid[] grids;
         private IList<T> items;
@@ -42,19 +42,8 @@ namespace Astraia.Core
 
         private RectTransform content => scrollView.content;
 
-        void IAcquire.Acquire(object item)
+        protected virtual void Awake()
         {
-            owner = (Entity)item;
-            owner.Logic.OnHide += Unload;
-            owner.Logic.OnShow += AddListener;
-            owner.Logic.OnHide += RemoveListener;
-
-            if (GetType().GetAttribute(out UIMaskAttribute mask))
-            {
-                layer = mask.layer;
-                group = mask.group;
-            }
-
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
                 col = rect.col;
@@ -83,13 +72,14 @@ namespace Astraia.Core
             grids = new TGrid[col * row];
         }
 
-        private void AddListener()
+        protected virtual void OnEnable()
         {
             scrollView.onValueChanged.AddListener(OnScroll);
         }
 
-        private void RemoveListener()
+        protected virtual void OnDisable()
         {
+            Unload();
             scrollView.onValueChanged.RemoveListener(OnScroll);
         }
 

@@ -78,17 +78,12 @@ namespace Astraia.Net
             }
         }
 
-        public override void Dequeue()
+        private void Awake()
         {
             target = transform;
             position = target.position;
             rotation = target.rotation;
             mutation = target.localScale;
-        }
-
-        public override void Enqueue()
-        {
-            sendTime = double.MinValue;
         }
 
         public void Update()

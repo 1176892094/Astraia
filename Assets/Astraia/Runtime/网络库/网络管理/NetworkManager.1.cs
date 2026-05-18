@@ -136,8 +136,8 @@ namespace Astraia.Net
             {
                 client.isReady = true;
                 client.Send(new SpawnBeginMessage());
-                EventManager.Invoke(new ServerReady(client.clientId));
-                
+                EventManager.Invoke(new ServerReady(client));
+
                 if (NetworkObserver.Instance)
                 {
                     NetworkObserver.Instance.Clear();
@@ -225,8 +225,9 @@ namespace Astraia.Net
                 }
                 else
                 {
-                    clients.Add(id, new NetworkClient(id));
-                    EventManager.Invoke(new ServerConnect(id));
+                    var client = new NetworkClient(id);
+                    clients.Add(id, client);
+                    EventManager.Invoke(new ServerConnect(client));
                 }
             }
 
@@ -253,7 +254,7 @@ namespace Astraia.Net
                     }
 
                     client.ClearObserver();
-                    EventManager.Invoke(new ServerDisconnect(id));
+                    EventManager.Invoke(new ServerDisconnect(client));
                 }
             }
 

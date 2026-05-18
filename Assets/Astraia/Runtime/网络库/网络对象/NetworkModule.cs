@@ -9,7 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -19,7 +18,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public abstract class NetworkModule : Module<NetworkEntity>
+    public abstract class NetworkModule : MonoBehaviour
     {
         [HideInInspector] public SyncMode syncDirection;
 
@@ -30,6 +29,8 @@ namespace Astraia.Net
         private ulong syncVarHook;
 
         private double syncVarTime;
+        
+        public NetworkEntity owner;
 
         protected ulong syncVarDirty { get; set; }
 
@@ -174,10 +175,7 @@ namespace Astraia.Net
 
             var message = new ServerRpcMessage
             {
-                objectId = objectId,
-                moduleId = moduleId,
-                methodHash = (ushort)hash,
-                segment = writer,
+                objectId = objectId, moduleId = moduleId, methodHash = (ushort)hash, segment = writer,
             };
 
             NetworkManager.Client.connection.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
@@ -197,13 +195,7 @@ namespace Astraia.Net
                 return;
             }
 
-            var message = new ClientRpcMessage
-            {
-                objectId = objectId,
-                moduleId = moduleId,
-                methodHash = (ushort)hash,
-                segment = writer
-            };
+            var message = new ClientRpcMessage { objectId = objectId, moduleId = moduleId, methodHash = (ushort)hash, segment = writer };
 
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
@@ -239,13 +231,7 @@ namespace Astraia.Net
                 return;
             }
 
-            var message = new ClientRpcMessage
-            {
-                objectId = objectId,
-                moduleId = moduleId,
-                methodHash = (ushort)hash,
-                segment = writer
-            };
+            var message = new ClientRpcMessage { objectId = objectId, moduleId = moduleId, methodHash = (ushort)hash, segment = writer };
 
             client.Send(message, channel);
         }

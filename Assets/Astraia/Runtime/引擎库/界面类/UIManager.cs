@@ -43,7 +43,7 @@ namespace Astraia.Core
             canvas.matchWidthOrHeight = 0.5F;
             canvas.referenceResolution = new Vector2(1920, 1080);
             canvas.referencePixelsPerUnit = 32;
-            Object.DontDestroyOnLoad(Instance.canvas);  
+            Object.DontDestroyOnLoad(Instance.canvas);
         }
 
         public static void SetCamera(Camera camera)
@@ -61,10 +61,16 @@ namespace Astraia.Core
             }
 
             Initialized();
-            var asset = AssetManager.Load<GameObject>(path).GetOrAddComponent<Entity>();
+            var asset = AssetManager.Load<GameObject>(path);
             asset.gameObject.name = type.Name;
             asset.gameObject.SetActive(false);
-            var panel = asset.Logic.AddComponent<UIPanel>(type);
+            var panel = (UIPanel)asset.AddComponent(type);
+            if (type.GetAttribute(out UIMaskAttribute mask))
+            {
+                panel.layer = mask.layer;
+                panel.group = mask.group;
+            }
+
             SetLayer(panel.transform, panel.layer);
             panelData.Add(type, panel);
             return panel;

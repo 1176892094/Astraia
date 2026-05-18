@@ -198,16 +198,9 @@ namespace Astraia.Net
         private static IList<ModuleData> GetModuleData(NetworkEntity entity)
         {
             var copies = new List<ModuleData>();
-
-            if (entity.Logic != null)
+            foreach (var module in entity.modules)
             {
-                foreach (var module in entity.Logic.Modules)
-                {
-                    if (module is NetworkModule result)
-                    {
-                        copies.Add(new ModuleData(new GUIContent(result.GetType().FullName), result));
-                    }
-                }
+                copies.Add(new ModuleData(new GUIContent(module.GetType().FullName), module));
             }
 
             return copies;

@@ -339,7 +339,6 @@ namespace Astraia
         public const BindingFlags Instance = (BindingFlags)52;
 
         public static event Action<Type> OnLoad;
-        public static event Action OnLoadComplete;
 
         public static void LoadData(HashSet<string> assemblyList)
         {
@@ -357,8 +356,6 @@ namespace Astraia
                     }
                 }
             }
-
-            OnLoadComplete?.Invoke();
         }
 
         public static Assembly GetAssembly(string name)

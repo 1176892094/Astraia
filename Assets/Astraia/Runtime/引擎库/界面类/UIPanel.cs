@@ -11,29 +11,16 @@
 
 using System;
 using Astraia.Core;
+using UnityEngine;
 
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel : Module<Entity>, IAcquire, ISystem
+    public abstract class UIPanel : MonoBehaviour
     {
         public UIState state;
         internal int group;
         internal int layer;
-
-        void IAcquire.Acquire(object item)
-        {
-            owner = (Entity)item;
-            if (GetType().GetAttribute(out UIMaskAttribute mask))
-            {
-                layer = mask.layer;
-                group = mask.group;
-            }
-        }
-
-        public virtual void Update()
-        {
-        }
 
         public virtual void OnShow()
         {

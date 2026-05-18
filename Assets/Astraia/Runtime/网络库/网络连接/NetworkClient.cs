@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Astraia.Core;
-using UnityEngine;
 
 namespace Astraia.Net
 {
@@ -26,11 +25,6 @@ namespace Astraia.Net
         internal int clientId;
         internal bool isReady;
         internal HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
-
-        public NetworkClient()
-        {
-            clientId = 0;
-        }
 
         public NetworkClient(int clientId)
         {

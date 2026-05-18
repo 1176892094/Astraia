@@ -23,7 +23,7 @@ using UnityEditor.SceneManagement;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkEntity : Entity
+    public class NetworkEntity : MonoBehaviour
     {
         [HideInInspector] public uint objectId;
 
@@ -55,31 +55,22 @@ namespace Astraia.Net
 
         public bool isClient => (state & State.Client) != 0 && NetworkManager.isClient;
 
-        protected override void OnEnable()
+        protected virtual void Awake()
         {
-            base.OnEnable();
             if ((state & State.Awake) == 0)
             {
-                var copies = new List<NetworkModule>();
-                foreach (var module in Logic.Modules)
+                var components = GetComponentsInChildren<NetworkModule>();
+                for (byte i = 0; i < components.Length; ++i)
                 {
-                    if (module is NetworkModule result)
-                    {
-                        copies.Add(result);
-                    }
-                }
-
-                modules = copies.ToArray();
-                for (byte i = 0; i < modules.Length; ++i)
-                {
-                    modules[i].moduleId = i;
+                    components[i].owner = this;
+                    components[i].moduleId = i;
                 }
 
                 state |= State.Awake;
             }
         }
 
-        protected override void OnDestroy()
+        protected virtual void OnDestroy()
         {
             if (isClient)
             {
@@ -96,7 +87,6 @@ namespace Astraia.Net
             client = null;
             modules = null;
             ClearObserver();
-            base.OnDestroy();
         }
 
         public virtual void Reset()
@@ -220,7 +210,7 @@ namespace Astraia.Net
 
         private void ClearObserver()
         {
-            foreach (var item in clients.ToList())
+            foreach (var item in clients)
             {
                 item.entities.Remove(this);
             }
