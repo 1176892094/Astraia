@@ -94,7 +94,7 @@ namespace Astraia.Editor
 
                     if (td.IsSubclassOf<MonoBehaviour>())
                     {
-                        modified |= CustomGenerator.Processed(td, module);
+                        modified |= CustomGenerator.Processed(td, module, debugger);
                     }
                 }
 
@@ -128,6 +128,8 @@ namespace Astraia.Editor
 
         public readonly MethodReference Listen;
         public readonly MethodReference Remove;
+        public readonly MethodReference Inject;
+
         public readonly MethodReference LogError;
         public readonly MethodReference SyncVarHook;
         public readonly MethodReference InvokeDelegate;
@@ -172,8 +174,9 @@ namespace Astraia.Editor
             GetTypeFromHandle = Common.GetMethod(Import<Type>(), assembly, "GetTypeFromHandle", debugger, ref failed);
             ReadNetworkModule = Common.GetMethod(Import(typeof(Net.Extensions)), assembly, ReadModule, debugger, ref failed);
 
-            Listen = Common.GetMethod(Import(typeof(EventManager)), assembly, "Listen", debugger, ref failed);
-            Remove = Common.GetMethod(Import(typeof(EventManager)), assembly, "Remove", debugger, ref failed);
+            Listen = Common.GetMethod(Import(typeof(EventManager)), assembly, nameof(Listen), debugger, ref failed);
+            Remove = Common.GetMethod(Import(typeof(EventManager)), assembly, nameof(Remove), debugger, ref failed);
+            Inject = Common.GetMethod(Import(typeof(InjectManager)), assembly, nameof(Inject), debugger, ref failed);
             WriterDequeue = Common.GetMethod(Import<MemoryWriter>(), assembly, "Pop", debugger, ref failed);
             WriterEnqueue = Common.GetMethod(Import<MemoryWriter>(), assembly, "Push", debugger, ref failed);
             GetClientActive = Common.GetMethod(Import<NetworkManager>(), assembly, "get_isClient", debugger, ref failed);
