@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -21,7 +20,7 @@ namespace Astraia.Editor
             {
                 if (field.HasAttribute<InjectAttribute>())
                 {
-                    InjectField(GetOrAddMethod(td, "Awake", module), field, module);
+                    InjectField(GetOrAddMethod(td, "Awake", module), field, module.Inject.MakeGeneric(field.FieldType));
                     modified = true;
                 }
             }
@@ -52,35 +51,24 @@ namespace Astraia.Editor
             return modified;
         }
 
-        private static void InjectField(MethodDefinition md, FieldDefinition field, Module module)
+        private static void InjectField(MethodDefinition md, FieldDefinition field, MethodReference method)
         {
             var worker = md.Body.GetILProcessor();
             var firstInstruction = md.Body.Instructions[0];
-
             var name = char.ToUpper(field.Name[0]) + field.Name.Substring(1);
-            var instructions = new List<Instruction>
-            {
-                worker.Create(OpCodes.Ldarg_0),
-                worker.Create(OpCodes.Ldarg_0),
-                worker.Create(!string.IsNullOrEmpty(name) ? OpCodes.Ldstr : OpCodes.Ldnull, name),
-                worker.Create(OpCodes.Call, module.Inject.MakeGeneric(field.FieldType)),
-                worker.Create(OpCodes.Stfld, field)
-            };
-            foreach (var i in instructions)
-            {
-                worker.InsertBefore(firstInstruction, i);
-            }
+            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Ldarg_0));
+            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Ldarg_0));
+            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Ldstr, name));
+            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Call, method));
+            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Stfld, field));
         }
 
         private static void InjectEvent(MethodDefinition md, MethodReference method)
         {
             var worker = md.Body.GetILProcessor();
             var firstInstruction = md.Body.Instructions[0];
-            var instructions = new List<Instruction> { worker.Create(OpCodes.Ldarg_0), worker.Create(OpCodes.Call, method), };
-            foreach (var i in instructions)
-            {
-                worker.InsertBefore(firstInstruction, i);
-            }
+            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Ldarg_0));
+            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Call, method));
         }
 
         private static MethodDefinition GetOrAddMethod(TypeDefinition td, string name, Module module)
