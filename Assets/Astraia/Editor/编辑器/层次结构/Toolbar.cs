@@ -164,7 +164,6 @@ namespace Astraia
             }
         }
 
-
         public static void ActiveSceneChanged(Scene oldScene, Scene newScene)
         {
             MainToolbar.Refresh("Astraia/Scene Selector");

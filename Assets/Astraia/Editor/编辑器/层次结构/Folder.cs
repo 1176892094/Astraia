@@ -22,57 +22,54 @@ namespace Astraia
 
     internal static partial class Folder
     {
-        private static readonly Dictionary<string, string> icons = new()
+        private static readonly Dictionary<string, List<string>> items = new Dictionary<string, List<string>>();
+        private static readonly Dictionary<string, string> icons = new Dictionary<string, string>();
+        private static readonly List<string> sorts = new List<string>();
+
+        static Folder()
         {
-            { "Animations", "Animations" },
-            { "Audios", "Audios" },
-            { "Editor", "Editor" },
-            { "Lights", "Lights" },
-            { "Fonts", "Fonts" },
-            { "Materials", "Materials" },
-            { "Meshes", "Meshes" },
-            { "Physics", "Physics" },
-            { "Plugins", "Plugins" },
-            { "Prefabs", "Prefabs" },
-            { "Project", "Project" },
-            { "Resources", "Resources" },
-            { "Scenes", "Scenes" },
-            { "Scripts", "Scripts" },
-            { "Shaders", "Shaders" },
-            { "Terrains", "Terrains" },
-            { "Textures", "Textures" },
-            { "Android", "Android" },
-            { "iOS", "iOS" },
-            { "MacOS", "MacOS" },
-            { "WebGL", "WebGL" },
-            { "Windows", "Windows" },
+            sorts.Add("SceneAsset Icon");
+            sorts.Add("Prefab Icon");
+            sorts.Add("Mesh Icon");
+            sorts.Add("Material Icon");
+            sorts.Add("Texture Icon");
+            sorts.Add("cs Script Icon");
+            sorts.Add("Shader Icon");
+            sorts.Add("ComputeShader Icon");
+            sorts.Add("ShaderInclude Icon");
+            sorts.Add("ScriptableObject Icon");
 
-            { "Atlas", "Meshes" },
-            { "Models", "Meshes" },
-            { "Settings", "Project" },
-            { "DataTable", "Project" },
-            { "HotUpdate", "Scripts" },
-            { "Extensions", "Editor" },
-            { "Tilemaps", "Terrains" },
-            { "AssetBundles", "Resources" },
-            { "StreamingAssets", "Resources" },
-        };
-
-        private static readonly List<string> sorts = new List<string>
-        {
-            "SceneAsset Icon",
-            "Prefab Icon",
-            "Mesh Icon",
-            "Material Icon",
-            "Texture Icon",
-            "cs Script Icon",
-            "Shader Icon",
-            "ComputeShader Icon",
-            "ShaderInclude Icon",
-            "ScriptableObject Icon"
-        };
-
-        private static readonly Dictionary<string, List<string>> items = new();
+            icons["Animations"] = "Animations";
+            icons["Audios"] = "Audios";
+            icons["Editor"] = "Editor";
+            icons["Lights"] = "Lights";
+            icons["Fonts"] = "Fonts";
+            icons["Materials"] = "Materials";
+            icons["Meshes"] = "Meshes";
+            icons["Physics"] = "Physics";
+            icons["Plugins"] = "Plugins";
+            icons["Prefabs"] = "Prefabs";
+            icons["Project"] = "Project";
+            icons["Resources"] = "Resources";
+            icons["Scenes"] = "Scenes";
+            icons["Scripts"] = "Scripts";
+            icons["Shaders"] = "Shaders";
+            icons["Terrains"] = "Terrains";
+            icons["Textures"] = "Textures";
+            icons["Android"] = "Android";
+            icons["iOS"] = "iOS";
+            icons["MacOS"] = "MacOS";
+            icons["WebGL"] = "WebGL";
+            icons["Windows"] = "Windows";
+            icons["Atlas"] = "Meshes";
+            icons["Models"] = "Meshes";
+            icons["Settings"] = "Project";
+            icons["DataTable"] = "Project";
+            icons["HotUpdate"] = "Scripts";
+            icons["Tilemaps"] = "Terrains";
+            icons["AssetBundles"] = "Resources";
+            icons["StreamingAssets"] = "Resources";
+        }
 
 #if UNITY_6000_4_OR_NEWER
         public static void OnGUI(EntityId id, Rect rect)

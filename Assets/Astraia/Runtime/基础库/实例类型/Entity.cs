@@ -622,10 +622,6 @@ namespace Astraia
     public interface IEvent<in T> where T : IEvent
     {
         void Execute(T message);
-
-        void Listen() => EventManager.Listen(this);
-
-        void Remove() => EventManager.Remove(this);
     }
 }
 
@@ -652,153 +648,23 @@ namespace Astraia
 
 namespace Astraia
 {
-    public sealed class Logic
-    {
-        internal interface IInject
-        {
-            object Inject(object target);
-        }
-
-        private readonly Dictionary<Type, IModule> modules = new Dictionary<Type, IModule>();
-        private IInject inject;
-        public event Action OnShow;
-        public event Action OnHide;
-        public event Action OnFade;
-
-        public ICollection<IModule> Modules => modules.Values;
-
-        internal Logic(IInject inject, List<string> modules)
-        {
-            this.inject = inject;
-            foreach (var module in modules)
-            {
-                var result = Search.GetType(module);
-                if (result != null)
-                {
-                    GetComponent(result, result);
-                }
-            }
-
-            modules.Clear();
-        }
-
-        internal void Show()
-        {
-            OnShow?.Invoke();
-        }
-
-        internal void Hide()
-        {
-            OnHide?.Invoke();
-        }
-
-        internal void Clear()
-        {
-            OnFade?.Invoke();
-            OnFade = null;
-            OnShow = null;
-            OnHide = null;
-            inject = null;
-            modules.Clear();
-        }
-
-        public T AddComponent<T>() where T : IModule
-        {
-            return (T)GetComponent(typeof(T), typeof(T));
-        }
-
-        public T AddComponent<T>(Type result) where T : IModule
-        {
-            return (T)GetComponent(typeof(T), result);
-        }
-
-        public T GetComponent<T>() where T : IModule
-        {
-            return (T)modules.GetValueOrDefault(typeof(T));
-        }
-
-        internal IModule GetComponent(Type source, Type result)
-        {
-            if (!modules.TryGetValue(source, out var module))
-            {
-                module = HeapManager.Dequeue<IModule>(result);
-                modules.Add(source, module);
-                module.Acquire(inject.Inject(module));
-                module.Dequeue();
-                OnFade += () =>
-                {
-                    module.Enqueue();
-                    modules.Remove(source);
-                    HeapManager.Enqueue(module, result);
-                };
-
-                var events = module.GetType().GetInterfaces();
-                foreach (var @event in events)
-                {
-                    if (@event.IsGenericType && @event.GetGenericTypeDefinition() == typeof(IEvent<>))
-                    {
-                        var reason = typeof(IEvent<>).MakeGenericType(@event.GetGenericArguments());
-                        OnShow += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Listen", Search.Instance)!);
-                        OnHide += (Action)Delegate.CreateDelegate(typeof(Action), module, reason.GetMethod("Remove", Search.Instance)!);
-                    }
-                }
-
-                if (module is ISystem system)
-                {
-                    OnShow += system.AddEvent;
-                    OnHide += system.SubEvent;
-                }
-
-                if (module is IActive active)
-                {
-                    OnShow += active.OnShow;
-                    OnHide += active.OnHide;
-                }
-            }
-
-            return module;
-        }
-    }
-
-    public interface ISystem
-    {
-        void Update();
-        void AddEvent() => TimeManager.OnUpdate += Update;
-        void SubEvent() => TimeManager.OnUpdate -= Update;
-    }
-
-    public interface IActive
-    {
-        void OnShow();
-        void OnHide();
-    }
-
-    public interface IAcquire
+    public interface IState
     {
         void Acquire(object item);
-    }
-
-    public interface IState : IAcquire
-    {
         void OnEnter();
         void OnUpdate();
         void OnExit();
     }
 
-    public interface IModule : IAcquire
+    public abstract class State<T> : IState
     {
-        void Dequeue();
-        void Enqueue();
-    }
+        public T owner;
 
-    public abstract class Acquire<T> : IAcquire
-    {
-        [NonSerialized] public T owner;
-        void IAcquire.Acquire(object item) => owner = (T)item;
-    }
+        void IState.Acquire(object item)
+        {
+            owner = (T)item;
+        }
 
-    public abstract class State<T> : Acquire<T>, IState
-    {
         public virtual void OnEnter()
         {
         }
@@ -812,19 +678,19 @@ namespace Astraia
         }
     }
 
-    public abstract class StateMachine<TKey, T> : Acquire<T>, IModule
+    public sealed class StateMachine<T>
     {
-        private readonly Dictionary<TKey, IState> states = new Dictionary<TKey, IState>();
+        private readonly Dictionary<T, IState> states = new Dictionary<T, IState>();
         private IState state;
 
-        public void Create<TState>(TKey key) where TState : IState
+        public void Create<TState>(object owner, T key) where TState : IState
         {
             var item = HeapManager.Dequeue<IState>(typeof(TState));
             item.Acquire(owner);
             states[key] = item;
         }
 
-        public void Switch(TKey key)
+        public void Switch(T key)
         {
             state?.OnExit();
             states.TryGetValue(key, out state);
@@ -836,11 +702,7 @@ namespace Astraia
             state?.OnUpdate();
         }
 
-        public virtual void Dequeue()
-        {
-        }
-
-        public virtual void Enqueue()
+        public void Clear()
         {
             foreach (var item in states.Values)
             {
@@ -852,112 +714,83 @@ namespace Astraia
         }
     }
 
-    public abstract class Blackboard<TKey, T> : Acquire<T>, IModule
+    public sealed class Blackboard<T>
     {
-        private readonly Dictionary<TKey, int> properties = new Dictionary<TKey, int>();
-        private const int SCALE = 100;
+        private readonly Dictionary<T, int> properties = new Dictionary<T, int>();
 
-        public int GetInt(TKey key)
+        public int GetInt(T key)
         {
-            properties.TryAdd(key, 0);
-            return properties[key] / SCALE;
+            return properties[key] / 100;
         }
 
-        public void SetInt(TKey key, int value)
+        public void SetInt(T key, int value)
         {
-            properties[key] = value * SCALE;
+            properties[key] = value * 100;
         }
 
-        public void AddInt(TKey key, int value)
+        public void AddInt(T key, int value)
         {
-            properties.TryAdd(key, 0);
-            properties[key] += value * SCALE;
+            properties[key] += value * 100;
         }
 
-        public void SubInt(TKey key, int value)
+        public void SubInt(T key, int value)
         {
-            properties.TryAdd(key, 0);
-            properties[key] -= value * SCALE;
+            properties[key] -= value * 100;
         }
 
-        public float GetFloat(TKey key)
+        public float GetFloat(T key)
         {
-            properties.TryAdd(key, 0);
-            return properties[key] / (float)SCALE;
+            return properties[key] / 100F;
         }
 
-        public void SetFloat(TKey key, float value)
+        public void SetFloat(T key, float value)
         {
-            properties[key] = (int)Math.Round(value * SCALE);
+            properties[key] = (int)Math.Round(value * 100);
         }
 
-        public void AddFloat(TKey key, float value)
+        public void AddFloat(T key, float value)
         {
-            properties.TryAdd(key, 0);
-            properties[key] += (int)Math.Round(value * SCALE);
+            properties[key] += (int)Math.Round(value * 100);
         }
 
-        public void SubFloat(TKey key, float value)
+        public void SubFloat(T key, float value)
         {
-            properties.TryAdd(key, 0);
-            properties[key] -= (int)Math.Round(value * SCALE);
+            properties[key] -= (int)Math.Round(value * 100);
         }
 
-        public virtual void Dequeue()
-        {
-        }
-
-        public virtual void Enqueue()
+        public void Clear()
         {
             properties.Clear();
         }
     }
 
-    public class Dictionary<TKey> : IDisposable
+    public sealed class Dictionary<T>
     {
         private readonly Dictionary<Type, IDictionary> Items = new Dictionary<Type, IDictionary>();
 
-        public void Set<T>(TKey key, T value)
+        public void Set<TValue>(T key, TValue value)
         {
-            GetDict<T>()[key] = value;
+            if (!Items.TryGetValue(typeof(TValue), out var items))
+            {
+                items = new Dictionary<T, TValue>();
+                Items.Add(typeof(TValue), items);
+            }
+
+            ((Dictionary<T, TValue>)items)[key] = value;
         }
 
-        public T Get<T>(TKey key)
+        public bool TryGet<TValue>(T key, out TValue value)
         {
-            return GetDict<T>().GetValueOrDefault(key);
+            if (!Items.TryGetValue(typeof(TValue), out var items))
+            {
+                items = new Dictionary<T, TValue>();
+                Items.Add(typeof(TValue), items);
+            }
+
+            return ((Dictionary<T, TValue>)items).TryGetValue(key, out value);
         }
 
-        public void Add<T>(TKey key, T value)
-        {
-            GetDict<T>().Add(key, value);
-        }
-
-        public void Remove<T>(TKey key)
-        {
-            GetDict<T>().Remove(key);
-        }
-
-        public bool ContainsKey<T>(TKey key)
-        {
-            return GetDict<T>().ContainsKey(key);
-        }
-
-        public ICollection<TKey> GetKeys<T>()
-        {
-            return GetDict<T>().Keys;
-        }
-
-        public ICollection<T> GetValues<T>()
-        {
-            return GetDict<T>().Values;
-        }
-
-        public void Clear<T>()
-        {
-            GetDict<T>().Clear();
-        }
-
-        public void Dispose()
+        public void Clear()
         {
             foreach (var item in Items.Values)
             {
@@ -966,23 +799,12 @@ namespace Astraia
 
             Items.Clear();
         }
-
-        private Dictionary<TKey, T> GetDict<T>()
-        {
-            if (!Items.TryGetValue(typeof(T), out var items))
-            {
-                items = new Dictionary<TKey, T>();
-                Items.Add(typeof(T), items);
-            }
-
-            return (Dictionary<TKey, T>)items;
-        }
     }
 }
 
 namespace Astraia
 {
-    public abstract class Tick : ISystem, INotifyCompletion
+    public abstract class Tick : INotifyCompletion
     {
         public interface IAdaptor
         {
@@ -990,14 +812,14 @@ namespace Astraia
         }
 
         protected IAdaptor owner;
-        protected int complete;
+        protected short complete;
         protected float nextTime;
         protected float duration;
         protected Action onNext;
         protected Action onComplete;
-        public bool IsCompleted => complete > 0;
+        public bool IsCompleted => complete != 0;
 
-        void ISystem.Update()
+        protected void Update()
         {
             try
             {
@@ -1061,7 +883,7 @@ namespace Astraia
         internal static Timer Create(IAdaptor owner, float duration)
         {
             var item = HeapManager.Dequeue<Timer>();
-            ((ISystem)item).AddEvent();
+            TimeManager.OnUpdate += item.Update;
             item.owner = owner;
             item.progress = 1;
             item.complete = 0;
@@ -1077,7 +899,7 @@ namespace Astraia
             owner = null;
             onNext = null;
             onUpdate = null;
-            ((ISystem)this).SubEvent();
+            TimeManager.OnUpdate -= Update;
             HeapManager.Enqueue(this);
         }
 
@@ -1136,7 +958,7 @@ namespace Astraia
         internal static Tween Create(IAdaptor owner, float duration)
         {
             var item = HeapManager.Dequeue<Tween>();
-            ((ISystem)item).AddEvent();
+            TimeManager.OnUpdate += item.Update;
             item.owner = owner;
             item.progress = 0;
             item.complete = 0;
@@ -1152,7 +974,7 @@ namespace Astraia
             owner = null;
             onNext = null;
             onUpdate = null;
-            ((ISystem)this).SubEvent();
+            TimeManager.OnUpdate -= Update;
             HeapManager.Enqueue(this);
         }
 
@@ -1193,30 +1015,29 @@ namespace Astraia
         Failure
     }
 
-    public interface IRoot
+    public interface INode
     {
-        public int[] Item { get; }
+        BTState OnTick(Dictionary<int> root);
     }
 
-    public interface INode<in T> where T : IRoot
+    public readonly struct Sequence : INode
     {
-        BTState OnTick(T root);
-    }
-
-    public readonly struct Sequence<T> : INode<T> where T : IRoot
-    {
-        private readonly INode<T>[] Nodes;
+        private readonly INode[] Nodes;
         private readonly int Index;
 
-        public Sequence(int index, INode<T>[] nodes)
+        public Sequence(int index, INode[] nodes)
         {
             Index = index;
-            Nodes = nodes ?? Array.Empty<INode<T>>();
+            Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        BTState INode<T>.OnTick(T root)
+        BTState INode.OnTick(Dictionary<int> root)
         {
-            var reason = root.Item;
+            if (!root.TryGet(0, out int[] reason))
+            {
+                return BTState.Failure;
+            }
+
             while (reason[Index] < Nodes.Length)
             {
                 var result = Nodes[reason[Index]].OnTick(root);
@@ -1239,20 +1060,24 @@ namespace Astraia
         }
     }
 
-    public readonly struct Selector<T> : INode<T> where T : IRoot
+    public readonly struct Selector : INode
     {
-        private readonly INode<T>[] Nodes;
+        private readonly INode[] Nodes;
         private readonly int Index;
 
-        public Selector(int index, INode<T>[] nodes)
+        public Selector(int index, INode[] nodes)
         {
             Index = index;
-            Nodes = nodes ?? Array.Empty<INode<T>>();
+            Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        BTState INode<T>.OnTick(T root)
+        BTState INode.OnTick(Dictionary<int> root)
         {
-            var reason = root.Item;
+            if (!root.TryGet(0, out int[] reason))
+            {
+                return BTState.Failure;
+            }
+
             while (reason[Index] < Nodes.Length)
             {
                 var result = Nodes[reason[Index]].OnTick(root);
@@ -1275,18 +1100,18 @@ namespace Astraia
         }
     }
 
-    public readonly struct Parallel<T> : INode<T> where T : IRoot
+    public readonly struct Parallel : INode
     {
-        private readonly INode<T>[] Nodes;
+        private readonly INode[] Nodes;
         private readonly bool IsAny;
 
-        public Parallel(int index, INode<T>[] nodes)
+        public Parallel(int index, INode[] nodes)
         {
             IsAny = index != 0;
-            Nodes = nodes ?? Array.Empty<INode<T>>();
+            Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        BTState INode<T>.OnTick(T root)
+        BTState INode.OnTick(Dictionary<int> root)
         {
             var isAll = true;
             var isAny = false;
@@ -1334,20 +1159,24 @@ namespace Astraia
         }
     }
 
-    public readonly struct Actuator<T> : INode<T> where T : IRoot
+    public readonly struct Actuator : INode
     {
-        private readonly INode<T>[] Nodes;
+        private readonly INode[] Nodes;
         private readonly int Index;
 
-        public Actuator(int index, INode<T>[] nodes)
+        public Actuator(int index, INode[] nodes)
         {
             Index = index;
-            Nodes = nodes ?? Array.Empty<INode<T>>();
+            Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        BTState INode<T>.OnTick(T root)
+        BTState INode.OnTick(Dictionary<int> root)
         {
-            var reason = root.Item;
+            if (!root.TryGet(0, out int[] reason))
+            {
+                return BTState.Failure;
+            }
+
             if (reason[Index] == 0)
             {
                 reason[Index] = Seed.Next(Nodes.Length) + 1;
@@ -1364,22 +1193,26 @@ namespace Astraia
         }
     }
 
-    public readonly struct Repeater<T> : INode<T> where T : IRoot
+    public readonly struct Repeater : INode
     {
-        private readonly INode<T> Node;
+        private readonly INode Node;
         private readonly int Index;
         private readonly int Count;
 
-        public Repeater(int index, int count, INode<T> node)
+        public Repeater(int index, int count, INode node)
         {
             Node = node;
             Index = index;
             Count = count;
         }
 
-        BTState INode<T>.OnTick(T root)
+        BTState INode.OnTick(Dictionary<int> root)
         {
-            var reason = root.Item;
+            if (!root.TryGet(0, out int[] reason))
+            {
+                return BTState.Failure;
+            }
+
             var result = Node.OnTick(root);
             if (result == BTState.Running)
             {
@@ -1397,16 +1230,16 @@ namespace Astraia
         }
     }
 
-    public readonly struct Inverter<T> : INode<T> where T : IRoot
+    public readonly struct Inverter : INode
     {
-        private readonly INode<T> Node;
+        private readonly INode Node;
 
-        public Inverter(INode<T> node)
+        public Inverter(INode node)
         {
             Node = node;
         }
 
-        BTState INode<T>.OnTick(T root)
+        BTState INode.OnTick(Dictionary<int> root)
         {
             var result = Node.OnTick(root);
             if (result == BTState.Success)
@@ -1423,31 +1256,31 @@ namespace Astraia
         }
     }
 
-    public readonly struct Success<T> : INode<T> where T : IRoot
+    public readonly struct Success : INode
     {
-        private readonly INode<T> Node;
+        private readonly INode Node;
 
-        public Success(INode<T> node)
+        public Success(INode node)
         {
             Node = node;
         }
 
-        BTState INode<T>.OnTick(T root)
+        BTState INode.OnTick(Dictionary<int> root)
         {
             return Node.OnTick(root) == BTState.Running ? BTState.Running : BTState.Success;
         }
     }
 
-    public readonly struct Failure<T> : INode<T> where T : IRoot
+    public readonly struct Failure : INode
     {
-        private readonly INode<T> Node;
+        private readonly INode Node;
 
-        public Failure(INode<T> node)
+        public Failure(INode node)
         {
             Node = node;
         }
 
-        BTState INode<T>.OnTick(T root)
+        BTState INode.OnTick(Dictionary<int> root)
         {
             return Node.OnTick(root) == BTState.Running ? BTState.Running : BTState.Failure;
         }
@@ -1455,7 +1288,7 @@ namespace Astraia
 
     public static class Nodes
     {
-        public static INode<T> LoadNode<T>(Node node, Func<Node, string> func) where T : IRoot
+        public static INode LoadNode(Node node, Func<Node, string> func)
         {
             if (node.Name.IsNullOrEmpty())
             {
@@ -1463,55 +1296,55 @@ namespace Astraia
             }
 
             var root = Search.GetType(func.Invoke(node));
-            if (root == typeof(Sequence<>))
+            if (root == typeof(Sequence))
             {
-                return new Sequence<T>(node.Index, LoadNodes<T>(node, func));
+                return new Sequence(node.Index, LoadNodes(node, func));
             }
 
-            if (root == typeof(Selector<>))
+            if (root == typeof(Selector))
             {
-                return new Selector<T>(node.Index, LoadNodes<T>(node, func));
+                return new Selector(node.Index, LoadNodes(node, func));
             }
 
-            if (root == typeof(Parallel<>))
+            if (root == typeof(Parallel))
             {
-                return new Parallel<T>(int.Parse(node.Data), LoadNodes<T>(node, func));
+                return new Parallel(int.Parse(node.Data), LoadNodes(node, func));
             }
 
-            if (root == typeof(Actuator<>))
+            if (root == typeof(Actuator))
             {
-                return new Actuator<T>(node.Index, LoadNodes<T>(node, func));
+                return new Actuator(node.Index, LoadNodes(node, func));
             }
 
-            if (root == typeof(Repeater<>))
+            if (root == typeof(Repeater))
             {
-                return new Repeater<T>(node.Index, int.Parse(node.Data), LoadNode<T>(node.Nodes[0], func));
+                return new Repeater(node.Index, int.Parse(node.Data), LoadNode(node.Nodes[0], func));
             }
 
-            if (root == typeof(Inverter<>))
+            if (root == typeof(Inverter))
             {
-                return new Inverter<T>(LoadNode<T>(node.Nodes[0], func));
+                return new Inverter(LoadNode(node.Nodes[0], func));
             }
 
-            if (root == typeof(Success<>))
+            if (root == typeof(Success))
             {
-                return new Success<T>(LoadNode<T>(node.Nodes[0], func));
+                return new Success(LoadNode(node.Nodes[0], func));
             }
 
-            if (root == typeof(Failure<>))
+            if (root == typeof(Failure))
             {
-                return new Failure<T>(LoadNode<T>(node.Nodes[0], func));
+                return new Failure(LoadNode(node.Nodes[0], func));
             }
 
-            return (INode<T>)Activator.CreateInstance(root);
+            return (INode)Activator.CreateInstance(root);
         }
 
-        private static INode<T>[] LoadNodes<T>(Node node, Func<Node, string> func) where T : IRoot
+        private static INode[] LoadNodes(Node node, Func<Node, string> func)
         {
-            var nodes = new INode<T>[node.Nodes.Count];
+            var nodes = new INode[node.Nodes.Count];
             for (var i = 0; i < node.Nodes.Count; i++)
             {
-                nodes[i] = LoadNode<T>(node.Nodes[i], func);
+                nodes[i] = LoadNode(node.Nodes[i], func);
             }
 
             return nodes;

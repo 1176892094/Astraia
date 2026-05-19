@@ -86,10 +86,7 @@ namespace Astraia
 
         private static VisualElement InitInspector()
         {
-            var element = new VisualElement
-            {
-                name = "Astraia Settings",
-            };
+            var element = new VisualElement { name = "Astraia Settings", };
             InitTitle(element);
             InitTools(element);
             InitSettings(element);

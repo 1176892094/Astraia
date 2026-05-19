@@ -26,11 +26,7 @@ namespace Astraia
         private static void Copy(Component component)
         {
             Undo.RecordObject(component, string.Empty);
-            if (copiedData.ContainsKey(component))
-            {
-                copiedData.Remove(component);
-            }
-            else
+            if (!copiedData.Remove(component))
             {
                 copiedData.Add(component, GetData(component));
             }

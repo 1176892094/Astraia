@@ -30,7 +30,6 @@ namespace Astraia
 #else
         public static void OnGUI(int id, Rect rect)
 #endif
-
         {
             var target = (GameObject)EditorUtility.EntityIdToObject(id);
 
@@ -99,11 +98,7 @@ namespace Astraia
 
         private static void DrawTransform(Rect rect, GameObject target)
         {
-            var itemRect = new Rect(rect)
-            {
-                width = 16,
-                height = 16
-            };
+            var itemRect = new Rect(rect) { width = 16, height = 16 };
             itemRect.y += (16 - rect.height) / 2;
             GUI.DrawTexture(itemRect, DrawIcon(), ScaleMode.ScaleToFit);
 
@@ -175,7 +170,6 @@ namespace Astraia
                 return newIcon;
             }
         }
-
 
         private static void DrawTexCoords(Rect rect, GameObject target)
         {
@@ -272,7 +266,6 @@ namespace Astraia
                 GUI.DrawTexture(rect, EditorIcon.GetIcon(item), ScaleMode.ScaleToFit);
                 GUI.color = color;
             }
-
 
             if (isMouseDown)
             {

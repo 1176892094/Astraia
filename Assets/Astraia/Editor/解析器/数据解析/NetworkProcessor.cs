@@ -43,15 +43,18 @@ namespace Astraia.Editor
 
         private static bool FindReference(ICompiledAssembly compiledAssembly)
         {
-            var result = compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) is "Astraia" or Weaver.GEN_TYPE);
-            return result && !IgnoreAssemblies.Contains(compiledAssembly.Name);
+            if (!IgnoreAssemblies.Contains(compiledAssembly.Name) && !compiledAssembly.Name.StartsWith("Unity"))
+            {
+                return compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) is "Astraia" or Weaver.GEN_TYPE);
+            }
+
+            return false;
         }
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
         {
             var debugger = new LogPostProcessor();
             using var resolver = new AssemblyResolver(compiledAssembly, debugger);
-
             using var peData = new MemoryStream(compiledAssembly.InMemoryAssembly.PeData);
             using var pdbData = new MemoryStream(compiledAssembly.InMemoryAssembly.PdbData);
             using var assembly = AssemblyDefinition.ReadAssembly(peData, new ReaderParameters
@@ -75,12 +78,7 @@ namespace Astraia.Editor
 
                 using var peStream = new MemoryStream();
                 using var pdbStream = new MemoryStream();
-                assembly.Write(peStream, new WriterParameters
-                {
-                    SymbolStream = pdbStream,
-                    SymbolWriterProvider = new PortablePdbWriterProvider(),
-                    WriteSymbols = true
-                });
+                assembly.Write(peStream, new WriterParameters { SymbolStream = pdbStream, SymbolWriterProvider = new PortablePdbWriterProvider(), WriteSymbols = true });
                 return new ILPostProcessResult(new InMemoryAssembly(peStream.ToArray(), pdbStream.ToArray()), debugger.messages);
             }
 
@@ -119,12 +117,7 @@ namespace Astraia.Editor
             var source = reason.Split('\n');
             foreach (var result in source)
             {
-                messages.Add(new DiagnosticMessage
-                {
-                    DiagnosticType = mode,
-                    MessageData = result,
-                    File = string.Empty,
-                });
+                messages.Add(new DiagnosticMessage { DiagnosticType = mode, MessageData = result, File = string.Empty, });
             }
         }
     }
