@@ -71,11 +71,11 @@ namespace Astraia.Editor
                         change = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
                     }
 
-                    debugger.Warn(assembly.Name.Name.Color("G"));
+                    //      debugger.Warn(assembly.Name.Name.Color("G"));
                 }
                 else
                 {
-                    debugger.Warn(assembly.Name.Name.Color("S"));
+                    //       debugger.Warn(assembly.Name.Name.Color("S"));
                 }
 
                 var mainModule = assembly.MainModule;

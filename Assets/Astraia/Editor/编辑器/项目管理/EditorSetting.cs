@@ -52,12 +52,6 @@ namespace Astraia
             set => EditorPrefs.SetString(nameof(ExcelPathKey), value);
         }
 
-        [InitializeOnLoadMethod]
-        private static void LoadAssembly()
-        {
-            DataManager.LoadDataTable();
-        }
-
         public static void LoadWindows(Type result)
         {
             if (!result.IsAbstract && !result.IsGenericType)
@@ -116,6 +110,10 @@ namespace Astraia
                     EditorUtility.ClearProgressBar();
                 }
             }
+            else
+            {
+                EditorApplication.delayCall += DataManager.LoadDataTable;
+            }
         }
 
         [MenuItem("Tools/Astraia/框架配置窗口 _F1", priority = 2)]
@@ -137,10 +135,7 @@ namespace Astraia
             }
 
             menuTree.SortMenuItemsByName();
-            var menuItem = new OdinMenuItem(menuTree, nameof(GlobalSetting), GlobalSetting.Instance)
-            {
-                Icon = EditorIcons.UnityFolderIcon
-            };
+            var menuItem = new OdinMenuItem(menuTree, nameof(GlobalSetting), GlobalSetting.Instance) { Icon = EditorIcons.UnityFolderIcon };
             menuTree.MenuItems.Insert(0, menuItem);
             return menuTree;
         }
@@ -201,11 +196,7 @@ namespace Astraia
             {
                 if (assetBundleName != "unifiedraytracing")
                 {
-                    buildMap.Add(new AssetBundleBuild
-                    {
-                        assetBundleName = assetBundleName,
-                        assetNames = AssetDatabase.GetAssetPathsFromAssetBundle(assetBundleName)
-                    });
+                    buildMap.Add(new AssetBundleBuild { assetBundleName = assetBundleName, assetNames = AssetDatabase.GetAssetPathsFromAssetBundle(assetBundleName) });
                 }
             }
 

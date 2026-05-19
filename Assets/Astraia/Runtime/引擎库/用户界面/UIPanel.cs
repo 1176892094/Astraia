@@ -87,14 +87,10 @@ namespace Astraia
             cor = rotation ? col : row;
             roc = rotation ? row : col;
             grids = new TGrid[col * row];
-        }
-
-        protected virtual void OnEnable()
-        {
             scrollView.onValueChanged.AddListener(OnScroll);
         }
 
-        protected virtual void OnDisable()
+        private void OnDestroy()
         {
             Unload();
             scrollView.onValueChanged.RemoveListener(OnScroll);
@@ -123,6 +119,20 @@ namespace Astraia
                     Reload(min, max);
                 }
             }
+        }
+
+        public void SetItem(params T[] item)
+        {
+            Unload();
+            items = item ?? Array.Empty<T>();
+            var c = rotation ? Mathf.CeilToInt((float)items.Count / col) : row;
+            var r = rotation ? col : Mathf.CeilToInt((float)items.Count / row);
+            content.sizeDelta = new Vector2(r * width, c * height);
+
+            var pos = content.anchoredPosition;
+            var min = Mathf.Max(Mathf.FloorToInt(rotation ? pos.y / height : -pos.x / width) * cor, 0);
+            var max = Mathf.Min(min + roc * cor - 1, items.Count - 1);
+            Reload(min, max, selected);
         }
 
         public void SetItem(IList<T> item)
