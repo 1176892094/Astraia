@@ -24,7 +24,7 @@ namespace Astraia.Core
         public Canvas canvas;
 
         public AudioSource source;
-
+        
         public static long version;
 
         internal static int musicVolume;
@@ -40,55 +40,55 @@ namespace Astraia.Core
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, (string, string)> assetData = new Dictionary<string, (string, string)>();
+        internal static readonly IDictionary<string, (string, string)> assetData = new Dictionary<string, (string, string)>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, string> assetPath = new Dictionary<string, string>();
+        internal static readonly IDictionary<string, string> assetPath = new Dictionary<string, string>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, AssetBundle> assetPack = new Dictionary<string, AssetBundle>();
+        internal static readonly IDictionary<string, AssetBundle> assetPack = new Dictionary<string, AssetBundle>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, Task<AssetBundle>> assetTask = new Dictionary<string, Task<AssetBundle>>();
+        internal static readonly IDictionary<string, Task<AssetBundle>> assetTask = new Dictionary<string, Task<AssetBundle>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, IDataTable> dataTable = new Dictionary<Type, IDataTable>();
+        internal static readonly IDictionary<Type, IDataTable> dataTable = new Dictionary<Type, IDataTable>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, Dictionary<int, IData>> dataTable1 = new Dictionary<Type, Dictionary<int, IData>>();
+        internal static readonly IDictionary<Type, Dictionary<int, IData>> dataTable1 = new Dictionary<Type, Dictionary<int, IData>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, Dictionary<Enum, IData>> dataTable2 = new Dictionary<Type, Dictionary<Enum, IData>>();
+        internal static readonly IDictionary<Type, Dictionary<Enum, IData>> dataTable2 = new Dictionary<Type, Dictionary<Enum, IData>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, Dictionary<string, IData>> dataTable3 = new Dictionary<Type, Dictionary<string, IData>>();
+        internal static readonly IDictionary<Type, Dictionary<string, IData>> dataTable3 = new Dictionary<Type, Dictionary<string, IData>>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
+        internal static readonly IDictionary<string, IPool> poolData = new Dictionary<string, IPool>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<string, GameObject> poolRoot = new Dictionary<string, GameObject>();
+        internal static readonly IDictionary<string, GameObject> poolRoot = new Dictionary<string, GameObject>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<Type, UIPanel> panelData = new Dictionary<Type, UIPanel>();
+        internal static readonly IDictionary<Type, UIPanel> panelData = new Dictionary<Type, UIPanel>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<int, UIStack> stackData = new Dictionary<int, UIStack>();
+        internal static readonly IDictionary<int, UIStack> stackData = new Dictionary<int, UIStack>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
+        internal static readonly IDictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
 
         private void Awake()
         {
@@ -125,5 +125,6 @@ namespace Astraia.Core
             AudioManager.Dispose();
             GC.Collect();
         }
+
     }
 }

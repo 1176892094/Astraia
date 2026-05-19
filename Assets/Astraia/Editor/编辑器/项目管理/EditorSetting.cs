@@ -55,11 +55,6 @@ namespace Astraia
         [InitializeOnLoadMethod]
         private static void LoadAssembly()
         {
-            Search.LoadData(new HashSet<string>
-            {
-                "Astraia.Run",
-                "Astraia.Net"
-            });
             DataManager.LoadDataTable();
         }
 

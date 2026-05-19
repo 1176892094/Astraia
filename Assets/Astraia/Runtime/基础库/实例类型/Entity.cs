@@ -874,7 +874,6 @@ namespace Astraia
         }
     }
 
-    [Serializable]
     public sealed class Timer : Tick
     {
         private int progress;
@@ -949,7 +948,6 @@ namespace Astraia
         }
     }
 
-    [Serializable]
     public sealed class Tween : Tick
     {
         private float progress;

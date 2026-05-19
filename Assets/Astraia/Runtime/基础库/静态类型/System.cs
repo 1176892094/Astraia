@@ -340,14 +340,14 @@ namespace Astraia
 
         public static event Action<Type> OnLoad;
 
-        public static void LoadData(HashSet<string> assemblyList)
+        public static void LoadData(params string[] args)
         {
             var assemblyData = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblyData)
             {
                 var name = assembly.GetName().Name;
                 assemblies[name] = assembly;
-                if (assemblyList.Contains(name) || name.StartsWith("Assembly-CSharp"))
+                if (args.Contains(name) || name.StartsWith("Assembly-CSharp"))
                 {
                     foreach (var result in assembly.GetTypes())
                     {

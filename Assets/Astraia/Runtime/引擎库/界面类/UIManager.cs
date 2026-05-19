@@ -20,10 +20,6 @@ namespace Astraia.Core
 {
     using static GlobalManager;
 
-    public interface ITween
-    {
-    }
-
     public static class UIManager
     {
         private static bool initialized;
@@ -64,7 +60,7 @@ namespace Astraia.Core
             var asset = AssetManager.Load<GameObject>(path);
             asset.gameObject.name = type.Name;
             asset.gameObject.SetActive(false);
-            var panel = (UIPanel)asset.AddComponent(type);
+            var panel = asset.GetOrAddComponent<UIPanel>(type);
             if (type.GetAttribute(out UIMaskAttribute mask))
             {
                 panel.layer = mask.layer;
@@ -199,78 +195,6 @@ namespace Astraia.Core
             layerData.Clear();
             panelData.Clear();
             initialized = false;
-        }
-    }
-
-    public static class UIGroup
-    {
-        public static void Hide(int value)
-        {
-            if (stackData.TryGetValue(value, out var stack))
-            {
-                stack.Clear();
-            }
-        }
-
-        internal static void Show(UIPanel panel)
-        {
-            if (panel.group == 0)
-            {
-                SetActive(panel, true);
-                return;
-            }
-
-            if (!stackData.TryGetValue(panel.group, out var stack))
-            {
-                stack = new UIStack();
-                stackData.Add(panel.group, stack);
-            }
-
-            stack.Push(panel);
-        }
-
-        internal static void Hide(UIPanel panel)
-        {
-            if (panel.group == 0)
-            {
-                SetActive(panel, false);
-                return;
-            }
-
-            if (stackData.TryGetValue(panel.group, out var stack))
-            {
-                stack.Back(panel);
-            }
-        }
-
-        internal static void Destroy(UIPanel panel, Type type)
-        {
-            panel.gameObject.SetActive(false);
-            Object.Destroy(panel.gameObject);
-            panelData.Remove(type);
-        }
-
-        internal static void SetActive(UIPanel panel, bool state)
-        {
-            if (state != panel.gameObject.activeSelf)
-            {
-                if (state)
-                {
-                    panel.gameObject.SetActive(true);
-                    panel.OnShow();
-                    return;
-                }
-
-                if (panel is ITween)
-                {
-                    panel.OnHide();
-                }
-                else
-                {
-                    panel.OnHide();
-                    panel.gameObject.SetActive(false);
-                }
-            }
         }
     }
 }

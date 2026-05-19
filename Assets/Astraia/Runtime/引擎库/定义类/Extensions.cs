@@ -9,76 +9,12 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace Astraia
 {
-    public static class InjectManager
-    {
-        public static T Inject<T>(Component self, string name) where T : Component
-        {
-            var child = self.transform.GetChild(name);
-            if (child)
-            {
-                var component = child.GetComponent<T>();
-                switch (component)
-                {
-                    case Button button:
-                        button.onClick.AddListener(() => self.SendMessage(name));
-                        break;
-                    case Toggle toggle:
-                        toggle.onValueChanged.AddListener(value => self.SendMessage(name, value));
-                        break;
-                    case Slider slider:
-                        slider.onValueChanged.AddListener(value => self.SendMessage(name, value));
-                        break;
-                    case InputField inputField:
-                        inputField.onSubmit.AddListener(value => self.SendMessage(name, value));
-                        break;
-                    case ScrollRect scrollRect:
-                        scrollRect.onValueChanged.AddListener(value => self.SendMessage(name, value));
-                        break;
-                    case UIBehaviour:
-                        var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
-                        if (component.TryGetComponent(cacheType, out var result))
-                        {
-                            result.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => self.SendMessage(name, value));
-                        }
-
-                        break;
-                }
-
-                return component;
-            }
-
-            return self.GetComponent<T>();
-        }
-
-        private static Transform GetChild(this Transform parent, string name)
-        {
-            for (var i = 0; i < parent.childCount; i++)
-            {
-                var child = parent.GetChild(i);
-                if (child.name == name)
-                {
-                    return child;
-                }
-
-                var result = child.GetChild(name);
-                if (result)
-                {
-                    return result;
-                }
-            }
-
-            return null;
-        }
-    }
-
     public static class Extensions
     {
         private static readonly Dictionary<char, string> colors = new Dictionary<char, string>();
@@ -106,136 +42,10 @@ namespace Astraia
             return component ? component : self.AddComponent<T>();
         }
 
-        public static T GetOrAddComponent<T>(this Component self) where T : Component
+        public static T GetOrAddComponent<T>(this GameObject self, Type type) where T : Component
         {
-            var component = self.GetComponent<T>();
-            return component ? component : self.gameObject.AddComponent<T>();
-        }
-
-        public static Component Inject(this Component inject, object module)
-        {
-            var fields = module.GetType().GetFields(Search.Instance);
-            foreach (var field in fields)
-            {
-                if (!field.HasAttribute<InjectAttribute>())
-                {
-                    continue;
-                }
-
-                if (!field.FieldType.IsSubclassOf(typeof(Component)))
-                {
-                    continue;
-                }
-
-                if (!typeof(Transform).IsAssignableFrom(field.FieldType))
-                {
-                    var component = inject.GetComponent(field.FieldType);
-                    if (component)
-                    {
-                        field.SetValue(module, component);
-                        continue;
-                    }
-                }
-
-                var upper = char.ToUpper(field.Name[0]) + field.Name.Substring(1);
-                var child = inject.transform.GetChild(upper);
-                if (child)
-                {
-                    var component = child.GetComponent(field.FieldType);
-                    if (!component)
-                    {
-                        Log.Info("没有找到依赖注入的组件: {0} {1} != {2}".Format(field.FieldType, field.FieldType.Name, upper));
-                        continue;
-                    }
-
-                    field.SetValue(module, component);
-
-                    var method = module.GetType().GetMethod(upper, Search.Instance);
-                    if (method == null)
-                    {
-                        continue;
-                    }
-
-                    var cacheType = Search.GetType("UnityEngine.UI.Button,UnityEngine.UI");
-                    if (component.TryGetComponent(cacheType, out var button))
-                    {
-                        if (module is UIPanel panel)
-                        {
-                            button.GetValue<UnityEvent>("onClick").AddListener(() =>
-                            {
-                                if (panel.state != UIState.Freeze)
-                                {
-                                    module.Invoke(upper);
-                                }
-                            });
-                        }
-                        else
-                        {
-                            button.GetValue<UnityEvent>("onClick").AddListener(() => module.Invoke(upper));
-                        }
-                    }
-
-                    cacheType = Search.GetType("UnityEngine.UI.Toggle,UnityEngine.UI");
-                    if (component.TryGetComponent(cacheType, out var toggle))
-                    {
-                        if (module is UIPanel panel)
-                        {
-                            toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value =>
-                            {
-                                if (panel.state != UIState.Freeze)
-                                {
-                                    module.Invoke(upper, value);
-                                }
-                            });
-                        }
-                        else
-                        {
-                            toggle.GetValue<UnityEvent<bool>>("onValueChanged").AddListener(value => module.Invoke(upper, value));
-                        }
-                    }
-
-                    cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
-                    if (component.TryGetComponent(cacheType, out var inputField))
-                    {
-                        if (module is UIPanel panel)
-                        {
-                            inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
-                            {
-                                if (panel.state != UIState.Freeze)
-                                {
-                                    module.Invoke(upper, value);
-                                }
-                            });
-                        }
-                        else
-                        {
-                            inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => module.Invoke(upper, value));
-                        }
-                    }
-                }
-            }
-
-            return inject;
-        }
-
-        private static Transform GetChild(this Transform parent, string name)
-        {
-            for (var i = 0; i < parent.childCount; i++)
-            {
-                var child = parent.GetChild(i);
-                if (child.name == name)
-                {
-                    return child;
-                }
-
-                var result = child.GetChild(name);
-                if (result)
-                {
-                    return result;
-                }
-            }
-
-            return null;
+            var component = (T)self.GetComponent(type);
+            return component ? component : (T)self.AddComponent(type);
         }
 
         private readonly struct TickAdaptor : Tick.IAdaptor

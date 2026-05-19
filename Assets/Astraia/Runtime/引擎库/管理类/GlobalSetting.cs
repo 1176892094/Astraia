@@ -50,7 +50,7 @@ namespace Astraia
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowIf("AssetMode", AssetMode.Resource)] [ValueDropdown("UpdateEncryptGroup")]
 #endif
-        public byte EncryptKey = 1;
+        public int EncryptKey = 1;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowIf("AssetMode", AssetMode.Simulate)]
 #endif
