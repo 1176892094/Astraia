@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Astraia.Core
@@ -13,37 +12,127 @@ namespace Astraia.Core
             if (child)
             {
                 var component = child.GetComponent<T>();
-                switch (component)
+                if (Button(self, component, name))
                 {
-                    case Button button:
-                        button.onClick.AddListener(() => self.SendMessage(name));
-                        break;
-                    case Toggle toggle:
-                        toggle.onValueChanged.AddListener(value => self.SendMessage(name, value));
-                        break;
-                    case Slider slider:
-                        slider.onValueChanged.AddListener(value => self.SendMessage(name, value));
-                        break;
-                    case InputField inputField:
-                        inputField.onSubmit.AddListener(value => self.SendMessage(name, value));
-                        break;
-                    case ScrollRect scrollRect:
-                        scrollRect.onValueChanged.AddListener(value => self.SendMessage(name, value));
-                        break;
-                    case UIBehaviour:
-                        var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
-                        if (component.TryGetComponent(cacheType, out var result))
-                        {
-                            result.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => self.SendMessage(name, value));
-                        }
-
-                        break;
+                    return component;
                 }
 
+                if (Toggle(self, component, name))
+                {
+                    return component;
+                }
+
+                if (Slider(self, component, name))
+                {
+                    return component;
+                }
+
+                InputField(self, component, name);
                 return component;
             }
 
             return self.GetComponent<T>();
+        }
+
+        private static bool Button<T>(Component self, T component, string name) where T : Component
+        {
+            if (component.TryGetComponent(out Button button))
+            {
+                if (self is UIPanel panel)
+                {
+                    button.onClick.AddListener(() =>
+                    {
+                        if (panel.state != UIState.Freeze)
+                        {
+                            self.SendMessage(name);
+                        }
+                    });
+                }
+                else
+                {
+                    button.onClick.AddListener(() => self.SendMessage(name));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool Toggle<T>(Component self, T component, string name) where T : Component
+        {
+            if (component.TryGetComponent(out Toggle toggle))
+            {
+                if (self is UIPanel panel)
+                {
+                    toggle.onValueChanged.AddListener(value =>
+                    {
+                        if (panel.state != UIState.Freeze)
+                        {
+                            self.SendMessage(name, value);
+                        }
+                    });
+                }
+                else
+                {
+                    toggle.onValueChanged.AddListener(value => self.SendMessage(name, value));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool Slider<T>(Component self, T component, string name) where T : Component
+        {
+            if (component.TryGetComponent(out Slider slider))
+            {
+                if (self is UIPanel panel)
+                {
+                    slider.onValueChanged.AddListener(value =>
+                    {
+                        if (panel.state != UIState.Freeze)
+                        {
+                            self.SendMessage(name, value);
+                        }
+                    });
+                }
+                else
+                {
+                    slider.onValueChanged.AddListener(value => self.SendMessage(name, value));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool InputField<T>(Component self, T component, string name) where T : Component
+        {
+            var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
+            if (component.TryGetComponent(cacheType, out var inputField))
+            {
+                if (self is UIPanel panel)
+                {
+                    inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
+                    {
+                        if (panel.state != UIState.Freeze)
+                        {
+                            self.SendMessage(name, value);
+                        }
+                    });
+                }
+                else
+                {
+                    inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => self.SendMessage(name, value));
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private static Transform GetChild(this Transform parent, string name)
