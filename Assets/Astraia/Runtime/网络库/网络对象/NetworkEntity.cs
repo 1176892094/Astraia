@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Astraia.Core;
 using UnityEngine;
@@ -47,8 +46,6 @@ namespace Astraia.Net
 
         internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
 
-        public NetworkServer connection => NetworkManager.Client.connection;
-
         public bool isOwner => (state & State.Owner) != 0;
 
         public bool isServer => (state & State.Server) != 0 && NetworkManager.isServer;
@@ -57,16 +54,11 @@ namespace Astraia.Net
 
         protected virtual void Awake()
         {
-            if ((state & State.Awake) == 0)
+            var components = GetComponentsInChildren<NetworkModule>();
+            for (byte i = 0; i < components.Length; ++i)
             {
-                var components = GetComponentsInChildren<NetworkModule>();
-                for (byte i = 0; i < components.Length; ++i)
-                {
-                    components[i].owner = this;
-                    components[i].moduleId = i;
-                }
-
-                state |= State.Awake;
+                components[i].owner = this;
+                components[i].moduleId = i;
             }
         }
 
@@ -220,7 +212,7 @@ namespace Astraia.Net
 
         internal void OnStartClient()
         {
-            if ((state & State.Start) == 0)
+            if ((state & State.Verify) == 0)
             {
                 foreach (var module in modules)
                 {
@@ -230,13 +222,13 @@ namespace Astraia.Net
                     }
                 }
 
-                state |= State.Start;
+                state |= State.Verify;
             }
         }
 
         internal void OnStopClient()
         {
-            if ((state & State.Start) != 0)
+            if ((state & State.Verify) != 0)
             {
                 foreach (var module in modules)
                 {
@@ -246,7 +238,7 @@ namespace Astraia.Net
                     }
                 }
 
-                state &= ~State.Start;
+                state &= ~State.Verify;
             }
         }
 
@@ -274,7 +266,7 @@ namespace Astraia.Net
 
         internal void OnNotifyAuthority()
         {
-            if ((state & State.Authority) == 0 && isOwner)
+            if ((state & State.Modify) == 0 && isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -284,7 +276,7 @@ namespace Astraia.Net
                     }
                 }
             }
-            else if ((state & State.Authority) != 0 && !isOwner)
+            else if ((state & State.Modify) != 0 && !isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -295,7 +287,7 @@ namespace Astraia.Net
                 }
             }
 
-            state = isOwner ? state | State.Authority : state & ~State.Authority;
+            state = isOwner ? state | State.Modify : state & ~State.Modify;
         }
 
         public static implicit operator uint(NetworkEntity entity)
@@ -317,13 +309,12 @@ namespace Astraia.Net
         internal enum State : byte
         {
             None = 0,
-            Awake = 1 << 0,
-            Start = 1 << 1,
-            Owner = 1 << 2,
-            Client = 1 << 3,
-            Server = 1 << 4,
+            Owner = 1 << 0,
+            Client = 1 << 1,
+            Server = 1 << 2,
+            Modify = 1 << 3,
+            Verify = 1 << 4,
             Destroy = 1 << 5,
-            Authority = 1 << 6,
         }
     }
 }
