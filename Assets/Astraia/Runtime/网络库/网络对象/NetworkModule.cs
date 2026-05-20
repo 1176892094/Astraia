@@ -23,14 +23,14 @@ namespace Astraia.Net
         [HideInInspector] public SyncMode syncDirection;
 
         [HideInInspector] public float syncInterval;
+        
+        [HideInInspector] public NetworkEntity owner;
 
         internal byte moduleId;
 
         private ulong syncVarHook;
 
         private double syncVarTime;
-        
-        public NetworkEntity owner;
 
         protected ulong syncVarDirty { get; set; }
 
