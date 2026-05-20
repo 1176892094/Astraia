@@ -32,6 +32,11 @@ namespace Astraia
         public virtual void OnHide()
         {
         }
+
+        public virtual bool Interactive()
+        {
+            return state != UIState.Freeze;
+        }
     }
 
     [Serializable]
@@ -54,7 +59,7 @@ namespace Astraia
 
         public float width;
         public float height;
-        public Action<IGrid> OnMove;
+        public event Action<IGrid> OnMove;
         [Inject] public ScrollRect scrollView;
 
         private RectTransform content => scrollView.content;
@@ -87,16 +92,16 @@ namespace Astraia
             cor = rotation ? col : row;
             roc = rotation ? row : col;
             grids = new TGrid[col * row];
-            scrollView.onValueChanged.AddListener(OnScroll);
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
             Unload();
-            scrollView.onValueChanged.RemoveListener(OnScroll);
+            grids = null;
+            OnMove = null;
         }
 
-        private void OnScroll(Vector2 position)
+        private void ScrollView(Vector2 position)
         {
             if (items != null && items.Count != 0)
             {

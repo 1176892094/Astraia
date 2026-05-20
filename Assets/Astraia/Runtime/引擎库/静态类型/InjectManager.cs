@@ -27,6 +27,11 @@ namespace Astraia.Core
                     return component;
                 }
 
+                if (ScrollRect(self, component, name))
+                {
+                    return component;
+                }
+
                 InputField(self, component, name);
                 return component;
             }
@@ -42,7 +47,7 @@ namespace Astraia.Core
                 {
                     button.onClick.AddListener(() =>
                     {
-                        if (panel.state != UIState.Freeze)
+                        if (panel.Interactive())
                         {
                             self.SendMessage(name);
                         }
@@ -67,7 +72,7 @@ namespace Astraia.Core
                 {
                     toggle.onValueChanged.AddListener(value =>
                     {
-                        if (panel.state != UIState.Freeze)
+                        if (panel.Interactive())
                         {
                             self.SendMessage(name, value);
                         }
@@ -92,7 +97,7 @@ namespace Astraia.Core
                 {
                     slider.onValueChanged.AddListener(value =>
                     {
-                        if (panel.state != UIState.Freeze)
+                        if (panel.Interactive())
                         {
                             self.SendMessage(name, value);
                         }
@@ -101,6 +106,31 @@ namespace Astraia.Core
                 else
                 {
                     slider.onValueChanged.AddListener(value => self.SendMessage(name, value));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ScrollRect<T>(Component self, T component, string name) where T : Component
+        {
+            if (component.TryGetComponent(out ScrollRect scrollRect))
+            {
+                if (self is UIPanel panel)
+                {
+                    scrollRect.onValueChanged.AddListener(value =>
+                    {
+                        if (panel.Interactive())
+                        {
+                            self.SendMessage(name, value);
+                        }
+                    });
+                }
+                else
+                {
+                    scrollRect.onValueChanged.AddListener(value => self.SendMessage(name, value));
                 }
 
                 return true;
@@ -118,7 +148,7 @@ namespace Astraia.Core
                 {
                     inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                     {
-                        if (panel.state != UIState.Freeze)
+                        if (panel.Interactive())
                         {
                             self.SendMessage(name, value);
                         }
