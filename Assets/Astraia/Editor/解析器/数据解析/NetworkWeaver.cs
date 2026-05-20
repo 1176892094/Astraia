@@ -38,6 +38,7 @@ namespace Astraia.Editor
         public const Method GEN_RPC = Method.HideBySig | Method.Family | Method.Static;
         public const Method GEN_RAW = Method.HideBySig | Method.Public | Method.Static;
         public const Method GEN_VAR = Method.HideBySig | Method.Public | Method.Virtual;
+        public const Method GEN_VIT = Method.HideBySig | Method.Family | Method.Virtual;
         public const Method GEN_SYNC = Method.HideBySig | Method.Public | Method.SpecialName;
         public const Method GEN_DATA = Method.HideBySig | Method.Static | Method.SpecialName | Method.Private | Method.RTSpecialName;
         public const Member GEN_ATTR = Member.AutoClass | Member.Public | Member.Class | Member.AnsiClass | Member.Abstract | Member.Sealed | Member.BeforeFieldInit;
@@ -101,7 +102,7 @@ namespace Astraia.Editor
 
                     if (td.IsSubclassOf<MonoBehaviour>())
                     {
-                        modified |= CustomGenerator.Processed(td, module, debugger);
+                        modified |= CustomGenerator.Processed(assembly, td, module, debugger);
                     }
                 }
 

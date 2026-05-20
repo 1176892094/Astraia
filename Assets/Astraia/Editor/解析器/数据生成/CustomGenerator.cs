@@ -8,7 +8,7 @@ namespace Astraia.Editor
     {
         private const string GEN_FUN = "CustomProcessor";
 
-        public static bool Processed(TypeDefinition td, Module module, ILogPostProcessor debugger)
+        public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, ILogPostProcessor debugger)
         {
             if (td.Methods.Any(m => m.Name == GEN_FUN))
             {
@@ -20,21 +20,21 @@ namespace Astraia.Editor
             {
                 if (field.HasAttribute<InjectAttribute>())
                 {
-                    InjectField(GetOrAddMethod(td, "Awake", module), field, module.Inject.MakeGeneric(field.FieldType));
+                    InjectField(GetOrAddMethod(assembly, td, "Awake", module), field, module.Inject.MakeGeneric(field.FieldType));
                     modified = true;
                 }
             }
 
             foreach (var i in td.Interfaces)
             {
-                if (i.InterfaceType is GenericInstanceType genericType)
+                if (i.InterfaceType is GenericInstanceType generic)
                 {
-                    var elementType = genericType.ElementType.Resolve();
+                    var elementType = generic.ElementType.Resolve();
                     if (elementType.Is(typeof(IEvent<>)))
                     {
-                        var eventType = genericType.GenericArguments[0];
-                        InjectEvent(GetOrAddMethod(td, "OnEnable", module), module.Listen.MakeGeneric(eventType));
-                        InjectEvent(GetOrAddMethod(td, "OnDisable", module), module.Remove.MakeGeneric(eventType));
+                        var eventType = generic.GenericArguments[0];
+                        InjectEvent(GetOrAddMethod(assembly, td, "OnEnable", module), module.Listen.MakeGeneric(eventType));
+                        InjectEvent(GetOrAddMethod(assembly, td, "OnDisable", module), module.Remove.MakeGeneric(eventType));
                         modified = true;
                     }
                 }
@@ -71,7 +71,7 @@ namespace Astraia.Editor
             worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Call, method));
         }
 
-        private static MethodDefinition GetOrAddMethod(TypeDefinition td, string name, Module module)
+        private static MethodDefinition GetOrAddMethod(AssemblyDefinition assembly, TypeDefinition td, string name, Module module)
         {
             var existing = td.Methods.FirstOrDefault(m => m.Name == name && m.Parameters.Count == 0);
             if (existing != null)
@@ -79,13 +79,35 @@ namespace Astraia.Editor
                 return existing;
             }
 
-            var method = new MethodDefinition(name, Weaver.GEN_VAR, module.Import(typeof(void)));
-            var result = td.BaseType.Resolve().GetBaseMethod(name);
+            var method = new MethodDefinition(name, Weaver.GEN_VIT, module.Import(typeof(void)));
+            var parent = td.BaseType;
+
+            MethodReference methodRef = null;
+
+            if (parent is GenericInstanceType generic)
+            {
+                var resolvedType = generic.ElementType.Resolve();
+                var methodDef = resolvedType.GetBaseMethod(name);
+                if (methodDef != null && IsMethodAccessible(methodDef))
+                {
+                    methodRef = methodDef.GenericInstance(assembly.MainModule, generic);
+                }
+            }
+            else
+            {
+                var resolvedType = parent.Resolve();
+                var methodDef = resolvedType.GetBaseMethod(name);
+                if (methodDef != null && IsMethodAccessible(methodDef))
+                {
+                    methodRef = methodDef;
+                }
+            }
+
             var worker = method.Body.GetILProcessor();
-            if (result != null && IsMethodAccessible(result))
+            if (methodRef != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Call, result);
+                worker.Emit(OpCodes.Call, methodRef);
             }
 
             worker.Emit(OpCodes.Ret);
