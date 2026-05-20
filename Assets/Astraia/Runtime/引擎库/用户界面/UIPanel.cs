@@ -65,6 +65,7 @@ namespace Astraia
 
         protected virtual void Awake()
         {
+            scroll = this.Inject<ScrollRect>(nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
                 col = rect.col;
@@ -82,7 +83,6 @@ namespace Astraia
                 assetPath = GlobalSetting.Prefab.Format(path.asset);
             }
 
-            scroll = InjectManager.Inject<ScrollRect>(this, nameof(ScrollRect));
             content.pivot = Vector2.up;
             content.anchorMin = Vector2.up;
             content.anchorMax = Vector2.up;

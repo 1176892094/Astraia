@@ -6,7 +6,7 @@ namespace Astraia.Core
 {
     public static class InjectManager
     {
-        public static T Inject<T>(Component self, string name) where T : Component
+        public static T Inject<T>(this Component self, string name) where T : Component
         {
             var child = self.transform.GetChild(name);
             if (child)

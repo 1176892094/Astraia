@@ -56,8 +56,8 @@ TextAsset:
     System;\nusing UnityEngine;\nusing Astraia.Core;\n\nnamespace Astraia.Table\n{\n   
     internal class TemplateDataTable : DataTable<TemplateData> { }\n\n     [Serializable]\n   
     public struct TemplateData : IData\n    {\n //TODO:1\n        [HideInInspector,
-    SerializeField] private Bytes[] Bytes;\n        public TemplateData(Bytes[]
-    bytes) => Bytes = bytes;\n    }\n}"
+    SerializeField] private Bytes[] Bytes;\n        public TemplateData(Bytes[] bytes)
+    => Bytes = bytes;\n    }\n}"
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
