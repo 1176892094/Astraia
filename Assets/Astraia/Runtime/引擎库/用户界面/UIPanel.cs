@@ -59,10 +59,9 @@ namespace Astraia
 
         public float width;
         public float height;
-        public event Action<IGrid> OnMove;
-        [Inject] public ScrollRect scrollView;
-
-        private RectTransform content => scrollView.content;
+        public ScrollRect scroll;
+        public Action<IGrid> OnMove;
+        private RectTransform content => scroll.content;
 
         protected virtual void Awake()
         {
@@ -83,6 +82,7 @@ namespace Astraia
                 assetPath = GlobalSetting.Prefab.Format(path.asset);
             }
 
+            scroll = InjectManager.Inject<ScrollRect>(this, nameof(ScrollRect));
             content.pivot = Vector2.up;
             content.anchorMin = Vector2.up;
             content.anchorMax = Vector2.up;
@@ -94,11 +94,23 @@ namespace Astraia
             grids = new TGrid[col * row];
         }
 
-        protected virtual void OnDestroy()
+        protected virtual void OnEnable()
+        {
+            scroll.onValueChanged.AddListener(ScrollView);
+        }
+
+        protected virtual void OnDisable()
         {
             Unload();
+            scroll.onValueChanged.RemoveListener(ScrollView);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            items = null;
             grids = null;
             OnMove = null;
+            scroll = null;
         }
 
         private void ScrollView(Vector2 position)

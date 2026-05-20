@@ -27,11 +27,6 @@ namespace Astraia.Core
                     return component;
                 }
 
-                if (ScrollRect(self, component, name))
-                {
-                    return component;
-                }
-
                 InputField(self, component, name);
                 return component;
             }
@@ -106,31 +101,6 @@ namespace Astraia.Core
                 else
                 {
                     slider.onValueChanged.AddListener(value => self.SendMessage(name, value));
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool ScrollRect<T>(Component self, T component, string name) where T : Component
-        {
-            if (component.TryGetComponent(out ScrollRect scrollRect))
-            {
-                if (self is UIPanel panel)
-                {
-                    scrollRect.onValueChanged.AddListener(value =>
-                    {
-                        if (panel.Interactive())
-                        {
-                            self.SendMessage(name, value);
-                        }
-                    });
-                }
-                else
-                {
-                    scrollRect.onValueChanged.AddListener(value => self.SendMessage(name, value));
                 }
 
                 return true;
