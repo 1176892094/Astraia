@@ -54,11 +54,11 @@ namespace Astraia.Net
 
         protected virtual void Awake()
         {
-            var components = GetComponentsInChildren<NetworkModule>();
-            for (byte i = 0; i < components.Length; ++i)
+            modules = GetComponentsInChildren<NetworkModule>();
+            for (byte i = 0; i < modules.Length; ++i)
             {
-                components[i].owner = this;
-                components[i].moduleId = i;
+                modules[i].owner = this;
+                modules[i].moduleId = i;
             }
         }
 

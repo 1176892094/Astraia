@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 #if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -198,12 +199,17 @@ namespace Astraia.Net
         private static IList<ModuleData> GetModuleData(NetworkEntity entity)
         {
             var copies = new List<ModuleData>();
-            foreach (var module in entity.modules)
+            if (entity.modules != null)
             {
-                copies.Add(new ModuleData(new GUIContent(module.GetType().FullName), module));
+                foreach (var module in entity.modules)
+                {
+                    copies.Add(new ModuleData(new GUIContent(module.GetType().FullName), module));
+                }
+
+                return copies;
             }
 
-            return copies;
+            return Array.Empty<ModuleData>();
         }
 
         private static IList<EntityData> GetEntityData(NetworkEntity entity)
