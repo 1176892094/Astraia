@@ -17,8 +17,6 @@ namespace Astraia.Core
 
     public static class AudioManager
     {
-        private static AudioState audioState;
-
         public static int MusicVolume
         {
             get
@@ -28,9 +26,9 @@ namespace Astraia.Core
             }
             set
             {
-                if (Instance && Instance.source)
+                if (Instance && audioSource)
                 {
-                    Instance.source.volume = value * 0.01F;
+                    audioSource.volume = value * 0.01F;
                 }
 
                 musicVolume = value;
@@ -80,7 +78,7 @@ namespace Astraia.Core
 
         public static void Play(string name, AudioState state)
         {
-            if (!Instance || !Instance.source)
+            if (!Instance || !audioSource)
             {
                 return;
             }
@@ -89,17 +87,16 @@ namespace Astraia.Core
             {
                 case AudioState.Play:
                     var result = GlobalSetting.Audio.Format(name);
-                    var source = Instance.source;
-                    source.clip = AssetManager.Load<AudioClip>(result);
-                    source.loop = true;
-                    source.volume = musicVolume * 0.01F;
-                    source.Play();
+                    audioSource.clip = AssetManager.Load<AudioClip>(result);
+                    audioSource.loop = true;
+                    audioSource.volume = musicVolume * 0.01F;
+                    audioSource.Play();
                     break;
                 case AudioState.Pause:
-                    Instance.source.Pause();
+                    audioSource.Pause();
                     break;
                 case AudioState.Stop:
-                    Instance.source.Stop();
+                    audioSource.Stop();
                     break;
             }
         }

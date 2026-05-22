@@ -21,15 +21,17 @@ namespace Astraia.Core
     {
         public static GlobalManager Instance;
 
-        public Canvas canvas;
-
-        public AudioSource source;
-        
         public static long version;
+        
+        public static Canvas canvas;
+
+        public static AudioSource audioSource;
 
         internal static int musicVolume;
 
         internal static int audioVolume;
+        
+        internal static AudioState audioState;
 
         internal static AssetBundleManifest manifest;
 
@@ -125,6 +127,5 @@ namespace Astraia.Core
             AudioManager.Dispose();
             GC.Collect();
         }
-
     }
 }

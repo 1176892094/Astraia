@@ -55,7 +55,7 @@ namespace Astraia.Net
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Log.Warn("无法获取服务器列表: {0}:{1}", Transport.address, Transport.port);
+                    Log.Warn("无法获取服务器列表: {0}:{1}\n{2}", Transport.address, Transport.port, request.result);
                     return;
                 }
 

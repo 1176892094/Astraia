@@ -28,25 +28,25 @@ namespace Astraia.Core
         {
             if (initialized) return;
             initialized = true;
-            Instance.canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
-            Instance.canvas.sortingOrder = 20;
-            Instance.canvas.planeDistance = 20;
-            Instance.canvas.gameObject.layer = LayerMask.NameToLayer("UI");
-            Instance.canvas.gameObject.AddComponent<GraphicRaycaster>();
-            var canvas = Instance.canvas.gameObject.AddComponent<CanvasScaler>();
-            canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            canvas.matchWidthOrHeight = 0.5F;
-            canvas.referenceResolution = new Vector2(1920, 1080);
-            canvas.referencePixelsPerUnit = 32;
-            Object.DontDestroyOnLoad(Instance.canvas);
+            canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
+            canvas.sortingOrder = 20;
+            canvas.planeDistance = 20;
+            canvas.gameObject.layer = LayerMask.NameToLayer("UI");
+            canvas.gameObject.AddComponent<GraphicRaycaster>();
+            var scaler = canvas.gameObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = 0.5F;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.referencePixelsPerUnit = 32;
+            Object.DontDestroyOnLoad(canvas);
         }
 
         public static void SetCamera(Camera camera)
         {
             Initialized();
-            Instance.canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            Instance.canvas.worldCamera = camera;
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = camera;
         }
 
         private static UIPanel Load(string path, Type type)
@@ -165,7 +165,7 @@ namespace Astraia.Core
                 var format = "Pool - Canvas-{0}".Format(layer);
                 parent = new GameObject(format).AddComponent<RectTransform>();
                 parent.gameObject.layer = LayerMask.NameToLayer("UI");
-                SetTransform(parent, Instance.canvas.transform);
+                SetTransform(parent, canvas.transform);
                 parent.SetSiblingIndex(layerData.Keys.Count(key => key < layer));
                 layerData.Add(layer, parent);
             }

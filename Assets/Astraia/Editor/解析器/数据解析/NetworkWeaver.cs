@@ -13,11 +13,11 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
-using Astraia.Core;
 using Mono.Cecil;
 using Astraia.Net;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
 using UnityEngine;
+using InjectManager = Astraia.Core.Extensions;
 
 namespace Astraia.Editor
 {

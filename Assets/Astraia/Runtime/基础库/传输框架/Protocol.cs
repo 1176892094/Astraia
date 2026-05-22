@@ -19,6 +19,8 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using Event = Astraia.KcpClient.Event;
 
+// ReSharper disable All
+
 namespace Astraia
 {
     public static class Writer<T>

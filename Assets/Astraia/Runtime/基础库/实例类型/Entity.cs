@@ -714,7 +714,7 @@ namespace Astraia
         }
     }
 
-    public sealed class Blackboard<T>
+    public class Blackboard<T>
     {
         private readonly Dictionary<T, int> properties = new Dictionary<T, int>();
 
@@ -804,20 +804,20 @@ namespace Astraia
 
 namespace Astraia
 {
-    public abstract class Tick : INotifyCompletion
+    public abstract class Schedule : INotifyCompletion
     {
-        public interface IAdaptor
+        public interface ITick
         {
             bool isActive { get; }
         }
 
-        protected IAdaptor owner;
-        protected short complete;
-        protected float nextTime;
+        protected ITick owner;
+        protected short state;
+        protected float waitTime;
         protected float duration;
-        protected Action onNext;
+        protected Action onWaitable;
         protected Action onComplete;
-        public bool IsCompleted => complete != 0;
+        public bool IsCompleted => state != 0;
 
         protected void Update()
         {
@@ -825,7 +825,7 @@ namespace Astraia
             {
                 if (owner.isActive)
                 {
-                    OnTick();
+                    Tick();
                 }
                 else
                 {
@@ -835,78 +835,79 @@ namespace Astraia
             catch (Exception e)
             {
                 Break();
-                Log.Info("无法执行异步方法：\n{0}".Format(e));
+                Log.Info("打断异步方法：\n{0}".Format(e));
             }
         }
 
-        protected abstract void OnComplete();
-        protected abstract void OnTick();
+        protected abstract void Tick();
+        protected abstract void Release();
 
         public void Break()
         {
             onComplete.Invoke();
         }
 
-        public void OnComplete(Action onComplete)
+        public void OnComplete(Action complete)
         {
-            this.onComplete += onComplete;
+            onComplete += complete;
         }
 
         public bool GetResult()
         {
-            return complete == 2;
+            return state == 2;
         }
 
-        public Tick GetAwaiter()
+        public Schedule GetAwaiter()
         {
             return this;
         }
 
-        void INotifyCompletion.OnCompleted(Action onNext)
+        void INotifyCompletion.OnCompleted(Action waitable)
         {
-            if (!owner.isActive)
+            if (owner.isActive)
+            {
+                onWaitable = waitable;
+            }
+            else
             {
                 Break();
-                return;
             }
-
-            this.onNext = onNext;
         }
     }
 
-    public sealed class Timer : Tick
+    public sealed class Timer : Schedule
     {
         private int progress;
         private Action onUpdate;
 
-        internal static Timer Create(IAdaptor owner, float duration)
+        internal static Timer Create(ITick owner, float duration)
         {
             var item = HeapManager.Dequeue<Timer>();
             TimeManager.OnUpdate += item.Update;
             item.owner = owner;
             item.progress = 1;
-            item.complete = 0;
+            item.state = 0;
             item.duration = duration;
-            item.nextTime = TimeManager.TimeStep + duration;
-            item.onComplete = item.OnComplete;
+            item.waitTime = duration + TimeManager.TimeStep;
+            item.onComplete = item.Release;
             return item;
         }
 
-        protected override void OnComplete()
+        protected override void Release()
         {
-            complete = 1;
+            state = 1;
             owner = null;
-            onNext = null;
             onUpdate = null;
+            onWaitable = null;
             TimeManager.OnUpdate -= Update;
             HeapManager.Enqueue(this);
         }
 
-        protected override void OnTick()
+        protected override void Tick()
         {
-            if (nextTime < TimeManager.TimeStep)
+            if (waitTime < TimeManager.TimeStep)
             {
-                nextTime = TimeManager.TimeStep + duration;
+                waitTime = TimeManager.TimeStep + duration;
                 if (onUpdate != null)
                 {
                     onUpdate.Invoke();
@@ -915,72 +916,72 @@ namespace Astraia
                 progress--;
                 if (progress == 0)
                 {
-                    complete = 2;
-                    onComplete += onNext;
+                    state = 2;
+                    onComplete += onWaitable;
                     onComplete.Invoke();
                 }
             }
         }
 
-        public Timer OnUpdate(Action onUpdate)
+        public Timer OnUpdate(Action update)
         {
-            this.onUpdate += onUpdate;
+            onUpdate += update;
             return this;
         }
 
-        public Timer Set(float duration)
+        public Timer Set(float interval)
         {
-            this.duration = duration;
-            nextTime = TimeManager.TimeStep + duration;
+            duration = interval;
+            waitTime = interval + TimeManager.TimeStep;
             return this;
         }
 
-        public Timer Add(float duration)
+        public Timer Add(float interval)
         {
-            nextTime += duration;
+            waitTime += interval;
             return this;
         }
 
-        public Timer Loops(int progress = 0)
+        public Timer Loops(int count = 0)
         {
-            this.progress = progress;
+            progress = count;
             return this;
         }
     }
 
-    public sealed class Tween : Tick
+    public sealed class Tween : Schedule
     {
         private float progress;
         private Action<float> onUpdate;
 
-        internal static Tween Create(IAdaptor owner, float duration)
+        internal static Tween Create(ITick owner, float duration)
         {
             var item = HeapManager.Dequeue<Tween>();
             TimeManager.OnUpdate += item.Update;
             item.owner = owner;
             item.progress = 0;
-            item.complete = 0;
+            item.state = 0;
             item.duration = duration;
-            item.nextTime = TimeManager.TimeStep;
-            item.onComplete = item.OnComplete;
+            item.waitTime = TimeManager.TimeStep;
+            item.onComplete = item.Release;
             return item;
         }
 
-        protected override void OnComplete()
+        protected override void Release()
         {
-            complete = 1;
+            state = 1;
             owner = null;
-            onNext = null;
             onUpdate = null;
+            onWaitable = null;
             TimeManager.OnUpdate -= Update;
             HeapManager.Enqueue(this);
         }
 
-        protected override void OnTick()
+        protected override void Tick()
         {
-            if (nextTime < TimeManager.TimeStep)
+            if (waitTime < TimeManager.TimeStep)
             {
-                progress = (TimeManager.TimeStep - nextTime) / duration;
+                progress = (TimeManager.TimeStep - waitTime) / duration;
                 if (progress > 1)
                 {
                     progress = 1;
@@ -989,16 +990,16 @@ namespace Astraia
                 onUpdate.Invoke(progress);
                 if (progress >= 1)
                 {
-                    complete = 2;
-                    onComplete += onNext;
+                    state = 2;
+                    onComplete += onWaitable;
                     onComplete.Invoke();
                 }
             }
         }
 
-        public Tween OnUpdate(Action<float> onUpdate)
+        public Tween OnUpdate(Action<float> update)
         {
-            this.onUpdate += onUpdate;
+            onUpdate += update;
             return this;
         }
     }
@@ -1029,7 +1030,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        BTState INode.OnTick(Dictionary<int> root)
+        public BTState OnTick(Dictionary<int> root)
         {
             if (!root.TryGet(0, out int[] reason))
             {
@@ -1069,7 +1070,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        BTState INode.OnTick(Dictionary<int> root)
+        public BTState OnTick(Dictionary<int> root)
         {
             if (!root.TryGet(0, out int[] reason))
             {
@@ -1109,7 +1110,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        BTState INode.OnTick(Dictionary<int> root)
+        public BTState OnTick(Dictionary<int> root)
         {
             var isAll = true;
             var isAny = false;
@@ -1168,7 +1169,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        BTState INode.OnTick(Dictionary<int> root)
+        public BTState OnTick(Dictionary<int> root)
         {
             if (!root.TryGet(0, out int[] reason))
             {
@@ -1204,7 +1205,7 @@ namespace Astraia
             Count = count;
         }
 
-        BTState INode.OnTick(Dictionary<int> root)
+        public BTState OnTick(Dictionary<int> root)
         {
             if (!root.TryGet(0, out int[] reason))
             {
@@ -1237,7 +1238,7 @@ namespace Astraia
             Node = node;
         }
 
-        BTState INode.OnTick(Dictionary<int> root)
+        public BTState OnTick(Dictionary<int> root)
         {
             var result = Node.OnTick(root);
             if (result == BTState.Success)
@@ -1263,7 +1264,7 @@ namespace Astraia
             Node = node;
         }
 
-        BTState INode.OnTick(Dictionary<int> root)
+        public BTState OnTick(Dictionary<int> root)
         {
             return Node.OnTick(root) == BTState.Running ? BTState.Running : BTState.Success;
         }
@@ -1278,7 +1279,7 @@ namespace Astraia
             Node = node;
         }
 
-        BTState INode.OnTick(Dictionary<int> root)
+        public BTState OnTick(Dictionary<int> root)
         {
             return Node.OnTick(root) == BTState.Running ? BTState.Running : BTState.Failure;
         }
