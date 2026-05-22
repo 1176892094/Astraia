@@ -1,3 +1,4 @@
+using System.Linq;
 using Astraia;
 using UnityEngine;
 
@@ -5,12 +6,12 @@ namespace Runtime
 {
     public abstract class PlayerState : State<Player>
     {
-        protected const float FIX = 1000;
-        private bool isLeft => State.HasFlag(StateType.左墙) && InputManager.MoveX < 0;
-        private bool isRight => State.HasFlag(StateType.右墙) && InputManager.MoveX > 0;
+        protected const float FIX = 100;
+        private bool isLeft => State.HasFlag(State.左墙) && InputManager.MoveX < 0;
+        private bool isRight => State.HasFlag(State.右墙) && InputManager.MoveX > 0;
         protected bool isWalk => InputManager.MoveX != 0;
-        protected bool isWall => State.HasFlag(StateType.左墙) || State.HasFlag(StateType.右墙);
-        protected bool isGround => State.HasFlag(StateType.地面);
+        protected bool isWall => State.HasFlag(State.左墙) || State.HasFlag(State.右墙);
+        protected bool isGround => State.HasFlag(State.地面);
         protected bool isRoad => isWall || isGround;
         protected bool isGrab => (isLeft || isRight) && isFall;
         protected bool isFall => !isGround && velocityY < 0;
@@ -24,7 +25,7 @@ namespace Runtime
             set => owner.Sender.Direction = value;
         }
 
-        protected StateType State
+        protected State State
         {
             get => owner.State;
             set => owner.State = value;
@@ -108,80 +109,79 @@ namespace Runtime
 
         protected void Gravity()
         {
-            if (State.HasFlag(StateType.地面))
+            if (State.HasFlag(State.地面))
             {
                 return;
             }
 
-            if (State.HasFlag(StateType.攀爬))
+            if (State.HasFlag(State.攀爬))
             {
-                velocityY = Mathf.Max(velocityY - 2, -10);
+                velocityY = Mathf.Max(velocityY - 1, -10);
                 return;
             }
 
-            if (State.HasFlag(StateType.缓冲))
+            if (State.HasFlag(State.缓冲))
             {
-                velocityY = Mathf.Max(velocityY - 3, -90);
+                velocityY = Mathf.Max(velocityY - 1, -20);
                 return;
             }
 
-            velocityY = Mathf.Max(velocityY - 6, -90);
+            velocityY = Mathf.Max(velocityY - 2, -40);
         }
 
         protected void Contact()
         {
-            State &= ~(StateType.地面 | StateType.左墙 | StateType.右墙 | StateType.头顶);
+            State &= ~(State.地面 | State.左墙 | State.右墙 | State.头顶);
 
             var extents = Machine.collider.bounds.extents;
             var velocity = new Vector2(velocityX, velocityY);
+
             foreach (var contact in Machine.collider.Contacts(velocity))
             {
                 var point = contact.point;
                 var normal = contact.normal;
-                if (Mathf.Abs(normal.y) > Mathf.Abs(normal.x))
-                {
-                    if (normal.y > 0)
-                    {
-                        if (!State.HasFlag(StateType.跳跃))
-                        {
-                            Feature.JumpCount = 1;
-                        }
 
-                        if (!State.HasFlag(StateType.冲刺))
-                        {
-                            Feature.DashCount = 1;
-                        }
-
-                        State |= StateType.地面;
-                        velocityY = Mathf.Max(velocityY, 0);
-                        positionY = (int)((point.y + extents.y) * FIX);
-                    }
-                    else
-                    {
-                        State |= StateType.头顶;
-                        velocityY = Mathf.Min(velocityY, 0);
-                        positionY = (int)((point.y - extents.y) * FIX);
-                    }
-                }
-                else
+                if (normal.y > 0.5F)
                 {
-                    if (!State.HasFlag(StateType.跳跃))
+                    if (!State.HasFlag(State.跳跃))
                     {
                         Feature.JumpCount = 1;
                     }
 
-                    if (normal.x > 0)
+                    if (!State.HasFlag(State.冲刺))
                     {
-                        State |= StateType.左墙;
-                        velocityX = Mathf.Max(velocityX, 0);
-                        positionX = (int)((point.x + extents.x) * FIX);
+                        Feature.DashCount = 1;
                     }
-                    else
+
+                    State |= State.地面;
+                    velocityY = Mathf.Max(velocityY, 0);
+                    positionY = Mathf.RoundToInt((point.y + extents.y) * FIX);
+                }
+
+                if (normal.y < -0.5F)
+                {
+                    State |= State.头顶;
+                    velocityY = Mathf.Min(velocityY, 0);
+                    positionY = Mathf.RoundToInt((point.y - extents.y) * FIX);
+                }
+
+                if (normal.x > 0.5F)
+                {
+                    if (!State.HasFlag(State.跳跃))
                     {
-                        State |= StateType.右墙;
-                        velocityX = Mathf.Min(velocityX, 0);
-                        positionX = (int)((point.x - extents.x) * FIX);
+                        Feature.JumpCount = 1;
                     }
+
+                    State |= State.左墙;
+                    velocityX = Mathf.Max(velocityX, 0);
+                    positionX = Mathf.RoundToInt((point.x + extents.x) * FIX);
+                }
+
+                if (normal.x < -0.5F)
+                {
+                    State |= State.右墙;
+                    velocityX = Mathf.Min(velocityX, 0);
+                    positionX = Mathf.RoundToInt((point.x - extents.x) * FIX);
                 }
             }
 

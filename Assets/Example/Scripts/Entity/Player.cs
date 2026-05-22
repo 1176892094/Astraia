@@ -15,7 +15,7 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
-        public StateType State = StateType.默认;
+        public State State = State.默认;
         public PlayerInput Input;
         public PlayerSender Sender;
         public PlayerMachine Machine;

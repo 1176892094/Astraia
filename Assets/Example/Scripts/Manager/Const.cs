@@ -18,7 +18,7 @@ using UnityEngine.UI;
 namespace Runtime
 {
     [Flags]
-    public enum StateType
+    public enum State
     {
         默认,
         地面 = 1 << 0,
@@ -64,7 +64,14 @@ namespace Runtime
         public static Enumerable<RaycastHit2D> Contacts(this Collider2D collider, Vector2 velocity)
         {
             var bounds = collider.bounds;
-            contacts.count = Physics2D.BoxCast(bounds.center, bounds.size, 0, velocity.normalized, LayerConst.Ground, contacts.items, 0);
+            contacts.count = Physics2D.BoxCast(bounds.center, bounds.size, 0, velocity.normalized, LayerConst.Ground, contacts.items, velocity.magnitude / 100);
+            return contacts;
+        }
+
+        public static Enumerable<RaycastHit2D> Contacts(this Collider2D collider)
+        {
+            var bounds = collider.bounds;
+            contacts.count = Physics2D.BoxCast(bounds.center, bounds.size - Vector3.right * 0.02f, 0, Vector2.down, LayerConst.Ground, contacts.items, 0.02F);
             return contacts;
         }
 

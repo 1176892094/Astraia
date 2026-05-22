@@ -70,7 +70,6 @@ namespace Runtime
                 Machine.Switch(Animations.Idle);
             }
 
-
             Move(Feature.MoveSpeed);
         }
 
@@ -87,15 +86,15 @@ namespace Runtime
         public override void OnEnter()
         {
             Feature.JumpCount--;
-            State |= StateType.跳跃;
+            State |= State.跳跃;
             waitTime = Time.fixedTime + 0.1F;
             owner.Sender.SyncColorServerRpc(Color.yellow);
 
             if (isWall && !isGround)
             {
-                State |= StateType.侧跳;
+                State |= State.侧跳;
                 Direction = -Direction;
-                moveX = State.HasFlag(StateType.左墙) ? 1 : -1;
+                moveX = State.HasFlag(State.左墙) ? 1 : -1;
                 velocityX = moveX * Feature.JumpForce / 2;
             }
 
@@ -108,7 +107,7 @@ namespace Runtime
             {
                 if (InputManager.MoveY != 1)
                 {
-                    if (State.HasFlag(StateType.地面) && isWalk)
+                    if (State.HasFlag(State.地面) && isWalk)
                     {
                         Machine.Switch(Animations.Crash);
                         return;
@@ -140,7 +139,7 @@ namespace Runtime
             }
             else
             {
-                if (State.HasFlag(StateType.侧跳))
+                if (State.HasFlag(State.侧跳))
                 {
                     if (moveX != 0 && InputManager.MoveX == moveX)
                     {
@@ -163,8 +162,8 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.跳跃;
-            State &= ~StateType.侧跳;
+            State &= ~State.跳跃;
+            State &= ~State.侧跳;
         }
     }
 
@@ -172,7 +171,7 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            State |= StateType.下落;
+            State |= State.下落;
             owner.Sender.SyncColorServerRpc(Color.red);
         }
 
@@ -194,10 +193,9 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.下落;
+            State &= ~State.下落;
         }
     }
-
 
     public class PlayerDash : PlayerState
     {
@@ -206,7 +204,7 @@ namespace Runtime
         public override void OnEnter()
         {
             Feature.DashCount--;
-            State |= StateType.冲刺;
+            State |= State.冲刺;
             Feature.DashTimer = Time.fixedTime + 0.20F;
             owner.Sender.SyncColorServerRpc(Color.magenta);
             direction = InputManager.Direction.normalized;
@@ -220,7 +218,7 @@ namespace Runtime
                 return;
             }
 
-            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 0.4f)
+            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.2f)
             {
                 Feature.CrashPoint = transform.position;
                 owner.Sender.LoadEffectServerRpc(transform.position);
@@ -242,7 +240,7 @@ namespace Runtime
             }
             else if (direction.y > 0)
             {
-                if (State.HasFlag(StateType.头顶))
+                if (State.HasFlag(State.头顶))
                 {
                     Dash();
                 }
@@ -255,7 +253,7 @@ namespace Runtime
         {
             velocityX = 0;
             velocityY = 0;
-            State &= ~StateType.冲刺;
+            State &= ~State.冲刺;
         }
     }
 
@@ -263,7 +261,7 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            State |= StateType.攀爬;
+            State |= State.攀爬;
             owner.Sender.SyncColorServerRpc(Color.cyan);
         }
 
@@ -285,7 +283,7 @@ namespace Runtime
 
         public override void OnExit()
         {
-            State &= ~StateType.攀爬;
+            State &= ~State.攀爬;
         }
     }
 
@@ -296,7 +294,7 @@ namespace Runtime
 
         public override void OnEnter()
         {
-            State |= StateType.冲跳;
+            State |= State.冲跳;
             waitTime = Time.fixedTime + 0.1F;
             moveX = Direction;
             velocityX = Direction * (Feature.CrashSpeed + Feature.CrashSpeed * Feature.CrashCount / 4);
@@ -320,7 +318,7 @@ namespace Runtime
                 }
             }
 
-            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 0.4f)
+            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.2f)
             {
                 Feature.CrashPoint = transform.position;
                 owner.Sender.LoadEffectServerRpc(transform.position);
@@ -333,7 +331,7 @@ namespace Runtime
         public override void OnExit()
         {
             velocityX /= 2;
-            State &= ~StateType.冲跳;
+            State &= ~State.冲跳;
         }
     }
 }
