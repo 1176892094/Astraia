@@ -82,10 +82,10 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Xor32 SetBit(int shift, int bits, int value)
+        public void SetBit(int shift, int bits, int value)
         {
             var mask = ((1 << bits) - 1) << shift;
-            return (Value & ~mask) | ((value << shift) & mask);
+            Value = (Value & ~mask) | ((value << shift) & mask);
         }
     }
 
@@ -164,10 +164,10 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Xor64 SetBit(int shift, int bits, int value)
+        public void SetBit(int shift, int bits, int value)
         {
             var mask = ((1L << bits) - 1L) << shift;
-            return (Value & ~mask) | ((value << shift) & mask);
+            Value = (Value & ~mask) | ((value << shift) & mask);
         }
     }
 
@@ -678,7 +678,7 @@ namespace Astraia
         }
     }
 
-    public sealed class StateMachine<T>
+    public class StateMachine<T>
     {
         private readonly Dictionary<T, IState> states = new Dictionary<T, IState>();
         private IState state;
@@ -720,6 +720,7 @@ namespace Astraia
 
         public int GetInt(T key)
         {
+            properties.TryAdd(key, 0);
             return properties[key] / 100;
         }
 
@@ -730,16 +731,19 @@ namespace Astraia
 
         public void AddInt(T key, int value)
         {
+            properties.TryAdd(key, 0);
             properties[key] += value * 100;
         }
 
         public void SubInt(T key, int value)
         {
+            properties.TryAdd(key, 0);
             properties[key] -= value * 100;
         }
 
         public float GetFloat(T key)
         {
+            properties.TryAdd(key, 0);
             return properties[key] / 100F;
         }
 
@@ -750,11 +754,13 @@ namespace Astraia
 
         public void AddFloat(T key, float value)
         {
+            properties.TryAdd(key, 0);
             properties[key] += (int)Math.Round(value * 100);
         }
 
         public void SubFloat(T key, float value)
         {
+            properties.TryAdd(key, 0);
             properties[key] -= (int)Math.Round(value * 100);
         }
 

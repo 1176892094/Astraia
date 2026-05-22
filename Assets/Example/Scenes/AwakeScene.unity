@@ -266,7 +266,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 75954605}
-  - component: {fileID: 75954606}
+  - component: {fileID: 75954608}
   - component: {fileID: 75954607}
   m_Layer: 0
   m_Name: GameManager
@@ -292,21 +292,6 @@ Transform:
   - {fileID: 513527315}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &75954606
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 75954604}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e6fc4ddccc2b4d45821658f66d8f36e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.Entity
-  modules:
-  - Runtime.GameManager, Assembly-CSharp
-  - Runtime.InputManager, Assembly-CSharp
 --- !u!114 &75954607
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -319,8 +304,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e30cec0d1daa406e817e38155ebe06a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Run::Astraia.Core.GlobalManager
-  canvas: {fileID: 0}
-  source: {fileID: 0}
+--- !u!114 &75954608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 75954604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a512855b8e34eb485431c266203ddae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Runtime.GameManager
+  bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  smooth: {x: 0, y: 0, z: 0}
+  player: {fileID: 0}
+  mainCamera: {fileID: 0}
 --- !u!1 &379968780
 GameObject:
   m_ObjectHideFlags: 0
@@ -824,7 +825,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55c3b094877074c03a956c8a536c6a66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modules: []
   maxPlayer: 100
   roomGuid: 
   roomData: 

@@ -16,24 +16,25 @@ using Astraia.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-
 namespace Runtime
 {
     [Serializable]
-    public class GameManager : Singleton<GameManager, Entity>, ISystem, IEvent<ServerReady>
+    public class GameManager : MonoSingleton<GameManager>, IEvent<ServerReady>
     {
         [SerializeField] private Bounds bounds;
         [SerializeField] private Vector3 smooth;
         [SerializeField] private Transform player;
         [SerializeField] private Camera mainCamera;
 
-        public override void Dequeue()
+        protected override void Awake()
         {
+            base.Awake();
+            gameObject.AddComponent<InputManager>();
             mainCamera = Camera.main;
             Application.targetFrameRate = 60;
             UIManager.SetCamera(mainCamera);
             UIManager.Show<LoadPanel>();
-            owner.Wait(0.1F).OnComplete(() =>
+            transform.Wait(0.1F).OnComplete(() =>
             {
                 try
                 {
@@ -72,8 +73,23 @@ namespace Runtime
         }
     }
 
+    public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
+    {
+        public static T Instance;
+
+        protected virtual void Awake()
+        {
+            Instance = (T)this;
+        }
+
+        protected virtual void OnDestroy()
+        {
+            Instance = null;
+        }
+    }
+
     [Serializable]
-    public class InputManager : Singleton<InputManager, Entity>
+    public class InputManager : MonoSingleton<InputManager>
     {
         private static int moveX;
         private static int moveY;
@@ -88,15 +104,17 @@ namespace Runtime
         public static int MoveY => moveY != 0 ? moveY : Move.ReadValue<Vector2>().y > 0 ? 1 : Move.ReadValue<Vector2>().y < 0 ? -1 : 0;
         public static Vector2 Direction => new Vector2(MoveX, MoveY).normalized;
 
-        public override void Dequeue()
+        protected override void Awake()
         {
+            base.Awake();
             inputAsset = AssetManager.Load<InputActionAsset>("Settings/InputManager");
             inputAsset.Enable();
             inputAsset.LoadBindingOverridesFromJson(JsonManager.Load<string>(nameof(InputManager)));
         }
 
-        public override void Enqueue()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             inputAsset.Disable();
         }
     }

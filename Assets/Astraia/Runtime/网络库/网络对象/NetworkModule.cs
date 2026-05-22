@@ -20,11 +20,11 @@ namespace Astraia.Net
     [Serializable]
     public abstract class NetworkModule : MonoBehaviour
     {
-        [HideInInspector] public SyncMode syncDirection;
+        [HideInInspector] public float syncStep;
 
-        [HideInInspector] public float syncInterval;
-        
         [HideInInspector] public NetworkEntity owner;
+        
+        public SyncMode syncMode;
 
         internal byte moduleId;
 
@@ -48,22 +48,22 @@ namespace Astraia.Net
             {
                 if (isClient && isServer)
                 {
-                    return syncDirection == SyncMode.Server || isOwner;
+                    return syncMode == SyncMode.Server || isOwner;
                 }
 
                 if (isClient)
                 {
-                    return syncDirection == SyncMode.Client && isOwner;
+                    return syncMode == SyncMode.Client && isOwner;
                 }
 
-                return syncDirection == SyncMode.Server;
+                return syncMode == SyncMode.Server;
             }
         }
 
         public NetworkClient client => owner.client;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsDirty() => syncVarDirty != 0UL && Time.unscaledTimeAsDouble - syncVarTime >= syncInterval;
+        public bool IsDirty() => syncVarDirty != 0UL && Time.unscaledTimeAsDouble - syncVarTime >= syncStep;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void SetSyncVarDirty(ulong dirty) => syncVarDirty |= dirty;
