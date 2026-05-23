@@ -75,6 +75,55 @@ namespace Runtime
             return Hits;
         }
 
+        public static int DashCheck(this Collider2D collider, float distance)
+        {
+            var bounds = collider.bounds;
+            var origin1 = new Vector2(bounds.min.x, bounds.max.y);
+            var origin2 = new Vector2(bounds.max.x, bounds.max.y);
+            var state = 0;
+            if (Physics2D.Raycast(origin1, Vector2.up, LayerConst.Ground, Hits.items, distance) > 0)
+            {
+                state |= 1 << 0;
+            }
+
+            if (Physics2D.Raycast(origin2, Vector2.up, LayerConst.Ground, Hits.items, distance) > 0)
+            {
+                state |= 1 << 1;
+            }
+
+            return state;
+        }
+
+        public static int HoldCheck(this Collider2D collider, int direction, float distance)
+        {
+            var bounds = collider.bounds;
+            Vector2 origin1;
+            Vector2 origin2;
+            if (direction > 0)
+            {
+                origin1 = new Vector2(bounds.max.x, bounds.min.y + 0.02F);
+                origin2 = new Vector2(bounds.max.x, bounds.max.y - 0.02F);
+            }
+            else
+            {
+                origin1 = new Vector2(bounds.min.x, bounds.min.y + 0.02F);
+                origin2 = new Vector2(bounds.min.x, bounds.max.y - 0.02F);
+            }
+
+            var state = 0;
+            if (Physics2D.Raycast(origin1, Vector2.right * direction, LayerConst.Ground, Hits.items, distance) > 0)
+            {
+                state |= 1 << 0;
+            }
+
+            if (Physics2D.Raycast(origin2, Vector2.right * direction, LayerConst.Ground, Hits.items, distance) > 0)
+            {
+                state |= 1 << 1;
+            }
+
+            return state;
+        }
+
         public static Tween DOFade(this SpriteRenderer component, float endValue, float duration)
         {
             var color = component.color;
@@ -98,26 +147,6 @@ namespace Runtime
 
     public static class CameraUtils
     {
-        public static void Step(Camera camera, Bounds bounds)
-        {
-            var cam = camera.transform.parent;
-            var pos = cam.position;
-
-            var min = bounds.min;
-            var max = bounds.max;
-
-            var w = max.x - min.x;
-            var h = max.y - min.y;
-
-            var x = camera.orthographicSize;
-            var y = camera.orthographicSize * camera.aspect;
-
-            pos.x = w <= y * 2 ? bounds.center.x : Mathf.Clamp(pos.x, min.x + y, max.x - y);
-            pos.y = h <= x * 2 ? bounds.center.y : Mathf.Clamp(pos.y, min.y + x, max.y - x);
-
-            cam.position = pos;
-        }
-
         public static void Move(Camera camera, Transform target, ref Vector3 smooth, float speed)
         {
             var cam = camera.transform.parent;
@@ -136,6 +165,26 @@ namespace Runtime
             }
 
             cam.position = new Vector3(smoothPos.x, smoothPos.y, cam.position.z);
+        }
+
+        public static void Step(Camera camera, Bounds bounds)
+        {
+            var cam = camera.transform.parent;
+            var pos = cam.position;
+
+            var min = bounds.min;
+            var max = bounds.max;
+
+            var w = max.x - min.x;
+            var h = max.y - min.y;
+
+            var x = camera.orthographicSize;
+            var y = camera.orthographicSize * camera.aspect;
+
+            pos.x = w <= y * 2 ? bounds.center.x : Mathf.Clamp(pos.x, min.x + y, max.x - y);
+            pos.y = h <= x * 2 ? bounds.center.y : Mathf.Clamp(pos.y, min.y + x, max.y - x);
+
+            cam.position = pos;
         }
     }
 }

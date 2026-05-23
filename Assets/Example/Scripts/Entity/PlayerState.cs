@@ -1,334 +1,244 @@
-// // *********************************************************************************
-// // # Project: JFramework
-// // # Unity: 6000.3.5f1
-// // # Author: 云谷千羽
-// // # Version: 1.0.0
-// // # History: 2025-04-21 02:04:44
-// // # Recently: 2025-04-21 02:04:44
-// // # Copyright: 2024, 云谷千羽
-// // # Description: This is an automatically generated comment.
-// // *********************************************************************************
-
+using Astraia;
 using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerIdle : PlayerState
+    public abstract class PlayerState : State<Player>
     {
-        public override void OnEnter()
+        protected const float FIX = 200;
+        private bool isLeft => State.HasFlag(State.左墙) && InputManager.MoveX < 0;
+        private bool isRight => State.HasFlag(State.右墙) && InputManager.MoveX > 0;
+        protected bool isWalk => InputManager.MoveX != 0;
+        protected bool isWall => State.HasFlag(State.左墙) || State.HasFlag(State.右墙);
+        protected bool isGround => State.HasFlag(State.地面);
+        protected bool isRoad => isWall || isGround;
+        protected bool isGrab => (isLeft || isRight) && isFall;
+        protected bool isFall => !isGround && velocityY < 0;
+        protected Transform transform => owner.transform;
+        protected PlayerMachine Machine => owner.Machine;
+        protected PlayerFeature Feature => owner.Feature;
+
+        protected int Direction
         {
-            Feature.CrashCount = 0;
-            Feature.CrashPoint = Vector3.zero;
-            owner.Sender.SyncColorServerRpc(Color.white);
+            get => owner.Sender.Direction;
+            set => owner.Sender.Direction = value;
         }
 
-        public override void OnUpdate()
+        protected State State
         {
-            if (isFall)
-            {
-                Machine.Switch(Animations.Fall);
-                return;
-            }
-
-            if (isWalk)
-            {
-                Machine.Switch(Animations.Walk);
-            }
-
-            Move(Feature.MoveSpeed);
+            get => owner.State;
+            set => owner.State = value;
         }
 
-        public override void OnExit()
+        protected int velocityX
         {
-        }
-    }
-
-    public class PlayerWalk : PlayerState
-    {
-        public override void OnEnter()
-        {
-            owner.Sender.SyncColorServerRpc(Color.green);
+            get => Feature.VelocityX;
+            set => Feature.VelocityX = value;
         }
 
-        public override void OnUpdate()
+        protected int velocityY
         {
-            if (isGrab)
-            {
-                Machine.Switch(Animations.Grab);
-                return;
-            }
-
-            if (isFall)
-            {
-                Machine.Switch(Animations.Fall);
-                return;
-            }
-
-            if (!isWalk)
-            {
-                Machine.Switch(Animations.Idle);
-            }
-
-            Move(Feature.MoveSpeed);
+            get => Feature.VelocityY;
+            set => Feature.VelocityY = value;
         }
 
-        public override void OnExit()
+        protected int positionX
         {
-        }
-    }
-
-    public class PlayerJump : PlayerState
-    {
-        private int moveX;
-        private float waitTime;
-
-        public override void OnEnter()
-        {
-            Feature.JumpCount--;
-            State |= State.跳跃;
-            waitTime = Time.fixedTime + 0.1F;
-            owner.Sender.SyncColorServerRpc(Color.yellow);
-
-            if (isWall && !isGround)
-            {
-                State |= State.侧跳;
-                Direction = -Direction;
-                moveX = State.HasFlag(State.左墙) ? 1 : -1;
-                velocityX = moveX * Feature.JumpForce / 2;
-            }
-
-            velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
+            get => Feature.PositionX;
+            set => Feature.PositionX = value;
         }
 
-        public override void OnUpdate()
+        protected int positionY
         {
-            if (Feature.DashTimer > Time.fixedTime)
+            get => Feature.PositionY;
+            set => Feature.PositionY = value;
+        }
+
+        protected void Move(int moveSpeed, int percent = 0)
+        {
+            var moveX = InputManager.MoveX;
+            if (moveX != 0)
             {
-                if (InputManager.MoveY != 1)
+                moveSpeed = moveX * moveSpeed;
+                if (Direction != moveX || Mathf.Abs(velocityX) < Mathf.Abs(moveSpeed / 2))
                 {
-                    if (State.HasFlag(State.地面) && isWalk)
+                    Direction = moveX;
+                    velocityX = moveSpeed / 2;
+                }
+                else
+                {
+                    moveSpeed += moveSpeed * percent / 10;
+                    switch (velocityX)
                     {
-                        Machine.Switch(Animations.Crash);
-                        return;
+                        case > 0 when velocityX < moveSpeed:
+                            velocityX++;
+                            break;
+                        case < 0 when velocityX > moveSpeed:
+                            velocityX--;
+                            break;
+                        case < 0 when velocityX < moveSpeed:
+                            velocityX++;
+                            break;
+                        case > 0 when velocityX > moveSpeed:
+                            velocityX--;
+                            break;
                     }
                 }
-
-                Feature.DashTimer = Time.fixedTime;
-                velocityY += Feature.JumpForce * 2 / 10;
             }
-
-            if (waitTime < Time.fixedTime)
+            else if (velocityX != 0)
             {
-                if (isGrab)
+                switch (velocityX)
                 {
-                    Machine.Switch(Animations.Grab);
-                    return;
-                }
-
-                if (isFall)
-                {
-                    Machine.Switch(Animations.Fall);
-                }
-
-                if (isRoad)
-                {
-                    Machine.Switch(Animations.Idle);
-                    return;
+                    case > 0:
+                        velocityX = Mathf.Max(velocityX - 2, 0);
+                        break;
+                    case < 0:
+                        velocityX = Mathf.Min(velocityX + 2, 0);
+                        break;
                 }
             }
             else
             {
-                if (State.HasFlag(State.侧跳))
-                {
-                    if (moveX != 0 && InputManager.MoveX == moveX)
-                    {
-                        velocityX += moveX * 5;
-                    }
-                    else
-                    {
-                        velocityX += InputManager.MoveX;
-                    }
-
-                    Contact();
-                    return;
-                }
-            }
-
-            Move(Feature.MoveSpeed, 2);
-        }
-
-        public override void OnExit()
-        {
-            State &= ~State.跳跃;
-            State &= ~State.侧跳;
-        }
-    }
-
-    public class PlayerFall : PlayerState
-    {
-        public override void OnEnter()
-        {
-            State |= State.下落;
-            owner.Sender.SyncColorServerRpc(Color.red);
-        }
-
-        public override void OnUpdate()
-        {
-            if (isGrab)
-            {
-                Machine.Switch(Animations.Grab);
-                return;
-            }
-
-            if (isGround)
-            {
-                Machine.Switch(Animations.Idle);
-            }
-
-            Move(Feature.MoveSpeed, 2);
-        }
-
-        public override void OnExit()
-        {
-            State &= ~State.下落;
-        }
-    }
-
-    public class PlayerDash : PlayerState
-    {
-        private Vector2 direction;
-
-        public override void OnEnter()
-        {
-            Feature.DashCount--;
-            State |= State.冲刺;
-            Feature.DashTimer = Time.fixedTime + 0.20F;
-            owner.Sender.SyncColorServerRpc(Color.magenta);
-            direction = InputManager.Direction.normalized;
-        }
-
-        public override void OnUpdate()
-        {
-            if (Feature.DashTimer < Time.fixedTime)
-            {
-                Machine.Switch(Animations.Idle);
-                return;
-            }
-
-            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.25f)
-            {
-                Feature.CrashPoint = transform.position;
-                owner.Sender.LoadEffectServerRpc(transform.position);
-            }
-
-            velocityX = (int)(direction.x * Feature.DashSpeed);
-            velocityY = (int)(direction.y * Feature.DashSpeed);
-
-            if (direction == Vector2.zero)
-            {
-                velocityX = Direction * Feature.DashSpeed;
-            }
-            else if (direction.y < 0)
-            {
-                if (isGround)
-                {
-                    velocityX = Dash();
-                }
-            }
-            else if (direction.y > 0)
-            {
-                if (State.HasFlag(State.头顶))
-                {
-                    Dash();
-                }
-            }
-
-            Contact();
-        }
-
-        public override void OnExit()
-        {
-            velocityX = 0;
-            velocityY = 0;
-            State &= ~State.冲刺;
-        }
-    }
-
-    public class PlayerGrab : PlayerState
-    {
-        public override void OnEnter()
-        {
-            State |= State.攀爬;
-            owner.Sender.SyncColorServerRpc(Color.cyan);
-        }
-
-        public override void OnUpdate()
-        {
-            if (!isGrab)
-            {
-                Machine.Switch(Animations.Idle);
-                return;
-            }
-
-            if (Hold())
-            {
-                return;
-            }
-
-            Move(Feature.MoveSpeed);
-        }
-
-        public override void OnExit()
-        {
-            State &= ~State.攀爬;
-        }
-    }
-
-    public class PlayerCrash : PlayerState
-    {
-        private float waitTime;
-        private int moveX;
-
-        public override void OnEnter()
-        {
-            State |= State.冲跳;
-            waitTime = Time.fixedTime + 0.1F;
-            moveX = Direction;
-            velocityX = Direction * (Feature.CrashSpeed + Feature.CrashSpeed * Feature.CrashCount / 4);
-            Feature.CrashCount++;
-        }
-
-        public override void OnUpdate()
-        {
-            if (waitTime < Time.fixedTime)
-            {
-                if (isRoad)
-                {
-                    Machine.Switch(Animations.Idle);
-                    return;
-                }
-
-                if (InputManager.MoveX != 0 && moveX != InputManager.MoveX)
-                {
-                    Machine.Switch(Animations.Idle);
-                    return;
-                }
-            }
-
-            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.25f)
-            {
-                Feature.CrashPoint = transform.position;
-                owner.Sender.LoadEffectServerRpc(transform.position);
+                velocityX = 0;
             }
 
             Gravity();
             Contact();
         }
 
-        public override void OnExit()
+        protected void Gravity()
         {
-            velocityX /= 2;
-            State &= ~State.冲跳;
+            if (State.HasFlag(State.攀爬))
+            {
+                velocityY = Mathf.Max(velocityY - 1, -10);
+                return;
+            }
+
+            if (State.HasFlag(State.缓冲))
+            {
+                velocityY = Mathf.Max(velocityY - 3, -60);
+                return;
+            }
+
+            velocityY = Mathf.Max(velocityY - 6, -60);
+        }
+
+        protected void Contact()
+        {
+            State &= ~State.碰撞;
+            var extents = Machine.collider.bounds.extents;
+            var velocity1 = new Vector2(0, velocityY);
+            var velocity2 = new Vector2(velocityX, 0);
+            var velocity3 = new Vector2(velocityX, velocityY);
+            foreach (var hit in Machine.collider.Raycast(velocity1.normalized, extents.y + velocity1.magnitude / FIX))
+            {
+                CheckY(hit.point, hit.normal, extents);
+            }
+
+            foreach (var hit in Machine.collider.Raycast(velocity2.normalized, extents.y + velocity2.magnitude / FIX))
+            {
+                CheckX(hit.point, hit.normal, extents);
+            }
+
+            foreach (var hit in Machine.collider.Cast(velocity3.normalized, velocity3.magnitude / FIX))
+            {
+                CheckX(hit.point, hit.normal, extents);
+                CheckY(hit.point, hit.normal, extents);
+            }
+
+            positionX += velocityX;
+            positionY += velocityY;
+            transform.position = new Vector3(positionX, positionY) / FIX;
+        }
+
+        private void CheckX(Vector2 point, Vector2 normal, Vector2 extents)
+        {
+            if (normal.x >= 1f)
+            {
+                if (!State.HasFlag(State.跳跃))
+                {
+                    Feature.JumpCount = 1;
+                }
+
+                State |= State.左墙;
+                velocityX = Mathf.Max(velocityX, 0);
+                positionX = Mathf.RoundToInt((point.x + extents.x) * FIX);
+            }
+
+            if (normal.x <= -1f)
+            {
+                if (!State.HasFlag(State.跳跃))
+                {
+                    Feature.JumpCount = 1;
+                }
+
+                State |= State.右墙;
+                velocityX = Mathf.Min(velocityX, 0);
+                positionX = Mathf.RoundToInt((point.x - extents.x) * FIX);
+            }
+        }
+
+        private void CheckY(Vector2 point, Vector2 normal, Vector2 extents)
+        {
+            if (normal.y >= 1f)
+            {
+                if (!State.HasFlag(State.跳跃))
+                {
+                    Feature.JumpCount = 1;
+                }
+
+                if (!State.HasFlag(State.冲刺))
+                {
+                    Feature.DashCount = 1;
+                }
+
+                State |= State.地面;
+                velocityY = Mathf.Max(velocityY, 0);
+                positionY = Mathf.RoundToInt((point.y + extents.y) * FIX);
+            }
+
+            if (normal.y <= -1f)
+            {
+                State |= State.头顶;
+                velocityY = Mathf.Min(velocityY, 0);
+                positionY = Mathf.RoundToInt((point.y - extents.y) * FIX);
+            }
+        }
+
+        protected int Dash()
+        {
+            var extents = Machine.collider.bounds.extents;
+            var velocity = new Vector2(velocityX, velocityY);
+            var state = Machine.collider.DashCheck(velocity.magnitude / FIX);
+            var v1 = Mathf.RoundToInt(positionX / FIX) * FIX;
+            var v2 = Mathf.RoundToInt(extents.x * FIX);
+            switch (state)
+            {
+                case 1:
+                    positionX = (int)v1 + v2;
+                    positionX++;
+                    return 0;
+                case 2:
+                    positionX = (int)v1 - v2;
+                    positionX--;
+                    return 0;
+                default:
+                    return Direction * Feature.DashSpeed;
+            }
+        }
+
+        protected bool Hold()
+        {
+            var velocity = new Vector2(velocityX, velocityY);
+            var state = Machine.collider.HoldCheck(Direction, velocity.magnitude / FIX);
+            switch (state)
+            {
+                case 1:
+                    velocityY = Feature.MoveSpeed;
+                    return true;
+            }
+
+            return false;
         }
     }
 }

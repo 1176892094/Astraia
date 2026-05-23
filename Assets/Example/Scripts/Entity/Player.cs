@@ -73,21 +73,11 @@ namespace Runtime
 
         private void Awake()
         {
-            MoveSpeed = 10;
-            JumpForce = MoveSpeed * 5 / 2;
-            DashSpeed = MoveSpeed * 4;
-            CrashSpeed = MoveSpeed * 3;
+            MoveSpeed = 30;
+            JumpForce = MoveSpeed * 2;
+            DashSpeed = MoveSpeed * 3;
+            CrashSpeed = MoveSpeed * 2;
             PositionY = 100;
-        }
-
-        private void OnDrawGizmos()
-        {
-            var bounds = GetComponent<Collider2D>().bounds;
-            var origin = (Vector2)bounds.center;
-            var velocity = new Vector2(VelocityX, VelocityY);
-            var position = origin + velocity.normalized * velocity.magnitude / 100f;
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireCube(position, bounds.size);
         }
     }
 }
