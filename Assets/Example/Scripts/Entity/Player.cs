@@ -10,6 +10,7 @@
 // // *********************************************************************************
 
 using Astraia.Net;
+using UnityEngine;
 
 namespace Runtime
 {
@@ -43,6 +44,49 @@ namespace Runtime
             {
                 Machine.Tick();
             }
+        }
+    }
+
+    public class PlayerFeature : MonoBehaviour
+    {
+        public int MoveSpeed;
+        public int VelocityX;
+        public int VelocityY;
+        public int PositionX;
+        public int PositionY;
+
+        public int JumpForce;
+        public int JumpCount;
+        public float JumpInput;
+        public float JumpTimer;
+        public float JumpCD;
+
+        public int DashSpeed;
+        public int DashCount;
+        public float DashInput;
+        public float DashTimer;
+        public float DashCD;
+
+        public int CrashSpeed;
+        public int CrashCount;
+        public Vector3 CrashPoint;
+
+        private void Awake()
+        {
+            MoveSpeed = 10;
+            JumpForce = MoveSpeed * 5 / 2;
+            DashSpeed = MoveSpeed * 4;
+            CrashSpeed = MoveSpeed * 3;
+        }
+
+        private void OnDrawGizmos()
+        {
+            var bounds = GetComponent<Collider2D>().bounds;
+            var origin = (Vector2)bounds.center;
+            var velocity = new Vector2(VelocityX, VelocityY);
+            var position = origin + velocity.normalized * velocity.magnitude / 100f;
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireCube(position, bounds.size);
         }
     }
 }

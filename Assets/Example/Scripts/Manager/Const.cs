@@ -32,6 +32,7 @@ namespace Runtime
         冲刺 = 1 << 8,
         冲跳 = 1 << 9,
         侧跳 = 1 << 10,
+        碰撞 = 地面 | 左墙 | 右墙 | 头顶,
     }
 
     public static class LayerConst
@@ -61,9 +62,9 @@ namespace Runtime
     {
         private static readonly Enumerable<RaycastHit2D> Hits = new Enumerable<RaycastHit2D>(8);
 
-        public static Enumerable<RaycastHit2D> Contacts(this Collider2D collider, Vector2 velocity)
+        public static Enumerable<RaycastHit2D> Cast(this Collider2D collider, Vector2 direction, float distance)
         {
-            Hits.count = collider.Cast(velocity.normalized, LayerConst.Ground, Hits.items, velocity.magnitude / 100);
+            Hits.count = collider.Cast(direction, LayerConst.Ground, Hits.items, distance);
             return Hits;
         }
 
@@ -90,7 +91,7 @@ namespace Runtime
 
     public static class CameraUtils
     {
-        public static void Clamp(Camera camera, Bounds bounds)
+        public static void Step(Camera camera, Bounds bounds)
         {
             var cam = camera.transform.parent;
             var pos = cam.position;

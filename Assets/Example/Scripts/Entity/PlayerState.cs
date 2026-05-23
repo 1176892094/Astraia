@@ -9,7 +9,6 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using Astraia;
 using UnityEngine;
 
 namespace Runtime
@@ -218,7 +217,8 @@ namespace Runtime
                 return;
             }
 
-            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.2f)
+            Debug.Log(transform.position);
+            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.25f)
             {
                 Feature.CrashPoint = transform.position;
                 owner.Sender.LoadEffectServerRpc(transform.position);
@@ -318,7 +318,7 @@ namespace Runtime
                 }
             }
 
-            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.2f)
+            if (Vector3.Distance(transform.position, Feature.CrashPoint) >=  1.25f)
             {
                 Feature.CrashPoint = transform.position;
                 owner.Sender.LoadEffectServerRpc(transform.position);

@@ -52,7 +52,7 @@ namespace Runtime
             if (player)
             {
                 CameraUtils.Move(mainCamera, player, ref smooth, 0.3f);
-                CameraUtils.Clamp(mainCamera, bounds);
+                CameraUtils.Step(mainCamera, bounds);
             }
         }
 
@@ -109,7 +109,6 @@ namespace Runtime
             base.Awake();
             inputAsset = AssetManager.Load<InputActionAsset>("Settings/InputManager");
             inputAsset.Enable();
-            inputAsset.LoadBindingOverridesFromJson(JsonManager.Load<string>(nameof(InputManager)));
         }
 
         protected override void OnDestroy()

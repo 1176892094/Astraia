@@ -1,4 +1,3 @@
-using System.Linq;
 using Astraia;
 using UnityEngine;
 
@@ -131,15 +130,15 @@ namespace Runtime
 
         protected void Contact()
         {
-            State &= ~(State.地面 | State.左墙 | State.右墙 | State.头顶);
-
+            State &= ~State.碰撞;
             var extents = Machine.collider.bounds.extents;
             var velocity = new Vector2(velocityX, velocityY);
-
-            foreach (var contact in Machine.collider.Contacts(velocity))
+            var distance = velocity.magnitude / FIX;
+            var direction = velocity.normalized;
+            foreach (var hit in Machine.collider.Cast(direction, distance))
             {
-                var point = contact.point;
-                var normal = contact.normal;
+                var point = hit.point;
+                var normal = hit.normal;
 
                 if (normal.x > 0.5F)
                 {
@@ -194,10 +193,11 @@ namespace Runtime
         {
             var extents = Machine.collider.bounds.extents;
             var velocity = new Vector2(velocityX, velocityY);
-
-            foreach (var contact in Machine.collider.Contacts(velocity))
+            var distance = velocity.magnitude / FIX;
+            var direction = velocity.normalized;
+            foreach (var hit in Machine.collider.Cast(direction, distance))
             {
-                var bounds = contact.collider.bounds;
+                var bounds = hit.collider.bounds;
                 if (positionX > (int)((bounds.max.x - extents.x) * FIX))
                 {
                     positionX = (int)((bounds.max.x + extents.x) * FIX);
@@ -218,10 +218,12 @@ namespace Runtime
         {
             var extents = Machine.collider.bounds.extents;
             var velocity = new Vector2(velocityX, velocityY);
-            foreach (var contact in Machine.collider.Contacts(velocity))
+            var distance = velocity.magnitude / FIX;
+            var direction = velocity.normalized;
+            foreach (var hit in Machine.collider.Cast(direction, distance))
             {
-                var normal = contact.normal;
-                var bounds = contact.collider.bounds;
+                var normal = hit.normal;
+                var bounds = hit.collider.bounds;
                 if (Mathf.Abs(normal.y) < Mathf.Abs(normal.x))
                 {
                     var min = (int)((bounds.max.y - extents.y) * FIX);
