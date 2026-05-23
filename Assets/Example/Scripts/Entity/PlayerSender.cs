@@ -103,7 +103,7 @@ namespace Runtime
         {
             GameManager.Instance.SetPlayer(transform);
             GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(13, 6)));
-            owner.Input = gameObject.AddComponent<PlayerInput>();
+            owner.Action = gameObject.AddComponent<PlayerAction>();
             var machine = GetComponent<PlayerMachine>();
             machine.Create<PlayerIdle>(Animations.Idle);
             machine.Create<PlayerWalk>(Animations.Walk);

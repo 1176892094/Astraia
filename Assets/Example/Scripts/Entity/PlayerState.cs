@@ -5,7 +5,7 @@ namespace Runtime
 {
     public abstract class PlayerState : State<Player>
     {
-        protected const float FIX = 200;
+        private const float FIX = 200;
         private bool isLeft => State.HasFlag(State.左墙) && InputManager.MoveX < 0;
         private bool isRight => State.HasFlag(State.右墙) && InputManager.MoveX > 0;
         protected bool isWalk => InputManager.MoveX != 0;
@@ -42,13 +42,13 @@ namespace Runtime
             set => Feature.VelocityY = value;
         }
 
-        protected int positionX
+        private int positionX
         {
             get => Feature.PositionX;
             set => Feature.PositionX = value;
         }
 
-        protected int positionY
+        private int positionY
         {
             get => Feature.PositionY;
             set => Feature.PositionY = value;
@@ -103,7 +103,7 @@ namespace Runtime
             }
 
             Gravity();
-            Contact();
+            Collision();
         }
 
         protected void Gravity()
@@ -111,39 +111,41 @@ namespace Runtime
             if (State.HasFlag(State.攀爬))
             {
                 velocityY = Mathf.Max(velocityY - 1, -10);
-                return;
             }
-
-            if (State.HasFlag(State.缓冲))
+            else if (State.HasFlag(State.缓冲))
             {
                 velocityY = Mathf.Max(velocityY - 3, -60);
-                return;
             }
-
-            velocityY = Mathf.Max(velocityY - 6, -60);
+            else
+            {
+                velocityY = Mathf.Max(velocityY - 6, -60);
+            }
         }
 
-        protected void Contact()
+        protected void Collision()
         {
             State &= ~State.碰撞;
             var extents = Machine.collider.bounds.extents;
             var velocity1 = new Vector2(0, velocityY);
             var velocity2 = new Vector2(velocityX, 0);
             var velocity3 = new Vector2(velocityX, velocityY);
-            foreach (var hit in Machine.collider.Raycast(velocity1.normalized, extents.y + velocity1.magnitude / FIX))
+            foreach (var hit in Machine.collider.Raycast(velocity1.normalized, velocity1.magnitude / FIX + extents.y))
             {
                 CheckY(hit.point, hit.normal, extents);
+                break;
             }
 
-            foreach (var hit in Machine.collider.Raycast(velocity2.normalized, extents.y + velocity2.magnitude / FIX))
+            foreach (var hit in Machine.collider.Raycast(velocity2.normalized, velocity2.magnitude / FIX + extents.y))
             {
                 CheckX(hit.point, hit.normal, extents);
+                break;
             }
 
-            foreach (var hit in Machine.collider.Cast(velocity3.normalized, velocity3.magnitude / FIX))
+            foreach (var hit in Machine.collider.BoxCast(velocity3.normalized, velocity3.magnitude / FIX))
             {
-                CheckX(hit.point, hit.normal, extents);
                 CheckY(hit.point, hit.normal, extents);
+                CheckX(hit.point, hit.normal, extents);
+                break;
             }
 
             positionX += velocityX;
@@ -207,12 +209,10 @@ namespace Runtime
 
         protected int Dash()
         {
-            var extents = Machine.collider.bounds.extents;
             var velocity = new Vector2(velocityX, velocityY);
-            var state = Machine.collider.DashCheck(velocity.magnitude / FIX);
             var v1 = Mathf.RoundToInt(positionX / FIX) * FIX;
-            var v2 = Mathf.RoundToInt(extents.x * FIX);
-            switch (state)
+            var v2 = Mathf.RoundToInt(Machine.collider.bounds.extents.x * FIX);
+            switch (Machine.collider.DashCast(velocity.magnitude / FIX))
             {
                 case 1:
                     positionX = (int)v1 + v2;
@@ -230,15 +230,14 @@ namespace Runtime
         protected bool Hold()
         {
             var velocity = new Vector2(velocityX, velocityY);
-            var state = Machine.collider.HoldCheck(Direction, velocity.magnitude / FIX);
-            switch (state)
+            switch (Machine.collider.HoldCast(Direction, velocity.magnitude / FIX))
             {
                 case 1:
                     velocityY = Feature.MoveSpeed;
                     return true;
+                default:
+                    return false;
             }
-
-            return false;
         }
     }
 }

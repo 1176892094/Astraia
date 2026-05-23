@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: -2019758797744024140}
   - component: {fileID: 7699375650067373137}
   - component: {fileID: 7550050675008949436}
+  - component: {fileID: 4197132809623730638}
+  - component: {fileID: 5321873259087469274}
   - component: {fileID: -2648556453174666610}
   m_Layer: 7
   m_Name: 30001
@@ -99,10 +101,10 @@ MonoBehaviour:
   sceneId: 0
   visible: 0
   State: 0
-  Input: {fileID: 0}
-  Sender: {fileID: 0}
-  Machine: {fileID: 0}
-  Feature: {fileID: 0}
+  Action: {fileID: 0}
+  Sender: {fileID: 7550050675008949436}
+  Machine: {fileID: 5321873259087469274}
+  Feature: {fileID: 4197132809623730638}
 --- !u!114 &7550050675008949436
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -121,6 +123,50 @@ MonoBehaviour:
   color:
     serializedVersion: 2
     rgba: 4294967295
+--- !u!114 &4197132809623730638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4745370882994828325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cc627c0ef6c4412bda33b297385f39a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Runtime.PlayerFeature
+  MoveSpeed: 0
+  VelocityX: 0
+  VelocityY: 0
+  PositionX: 0
+  PositionY: 0
+  JumpForce: 0
+  JumpCount: 0
+  JumpInput: 0
+  JumpTimer: 0
+  JumpCD: 0
+  DashSpeed: 0
+  DashCount: 0
+  DashInput: 0
+  DashTimer: 0
+  DashCD: 0
+  CrashSpeed: 0
+  CrashCount: 0
+  CrashPoint: {x: 0, y: 0, z: 0}
+--- !u!114 &5321873259087469274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4745370882994828325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e445a539128546b8a0c4a7f3a9499519, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Runtime.PlayerMachine
+  collider: {fileID: 0}
+  renderer: {fileID: 0}
 --- !u!114 &-2648556453174666610
 MonoBehaviour:
   m_ObjectHideFlags: 0

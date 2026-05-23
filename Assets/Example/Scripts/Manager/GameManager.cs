@@ -14,7 +14,6 @@ using Astraia;
 using Astraia.Core;
 using Astraia.Net;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Runtime
 {
@@ -29,7 +28,6 @@ namespace Runtime
         protected override void Awake()
         {
             base.Awake();
-            gameObject.AddComponent<InputManager>();
             mainCamera = Camera.main;
             Application.targetFrameRate = 60;
             UIManager.SetCamera(mainCamera);
@@ -51,8 +49,8 @@ namespace Runtime
         {
             if (player)
             {
-                CameraUtils.Move(mainCamera, player, ref smooth, 0.3f);
-                CameraUtils.Step(mainCamera, bounds);
+                CameraModule.Move(mainCamera, player, ref smooth, 0.3f);
+                CameraModule.Step(mainCamera, bounds);
             }
         }
 
@@ -73,48 +71,46 @@ namespace Runtime
         }
     }
 
-    public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
+    public static class CameraModule
     {
-        public static T Instance;
-
-        protected virtual void Awake()
+        public static void Move(Camera camera, Transform target, ref Vector3 smooth, float speed)
         {
-            Instance = (T)this;
+            var cam = camera.transform.parent;
+            var targetPos = new Vector3(target.position.x, target.position.y, cam.position.z);
+            Vector3 smoothPos;
+            if (camera.targetTexture)
+            {
+                var pixelate = camera.orthographicSize * 2 / camera.targetTexture.height;
+                smoothPos = Vector3.Distance(target.position, cam.position) > pixelate ? Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed) : target.position;
+                smoothPos.x = Mathf.Round(smoothPos.x / pixelate) * pixelate;
+                smoothPos.y = Mathf.Round(smoothPos.y / pixelate) * pixelate;
+            }
+            else
+            {
+                smoothPos = Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed);
+            }
+
+            cam.position = new Vector3(smoothPos.x, smoothPos.y, cam.position.z);
         }
 
-        protected virtual void OnDestroy()
+        public static void Step(Camera camera, Bounds bounds)
         {
-            Instance = null;
-        }
-    }
+            var cam = camera.transform.parent;
+            var pos = cam.position;
 
-    [Serializable]
-    public class InputManager : MonoSingleton<InputManager>
-    {
-        private static int moveX;
-        private static int moveY;
-        private static InputActionAsset inputAsset;
-        public static InputAction Bag => inputAsset.FindAction(nameof(Bag));
-        public static InputAction Move => inputAsset.FindAction(nameof(Move));
-        public static InputAction Jump => inputAsset.FindAction(nameof(Jump));
-        public static InputAction Dash => inputAsset.FindAction(nameof(Dash));
-        public static InputAction Attack => inputAsset.FindAction(nameof(Attack));
-        public static InputAction Escape => inputAsset.FindAction(nameof(Escape));
-        public static int MoveX => moveX != 0 ? moveX : Move.ReadValue<Vector2>().x > 0 ? 1 : Move.ReadValue<Vector2>().x < 0 ? -1 : 0;
-        public static int MoveY => moveY != 0 ? moveY : Move.ReadValue<Vector2>().y > 0 ? 1 : Move.ReadValue<Vector2>().y < 0 ? -1 : 0;
-        public static Vector2 Direction => new Vector2(MoveX, MoveY).normalized;
+            var min = bounds.min;
+            var max = bounds.max;
 
-        protected override void Awake()
-        {
-            base.Awake();
-            inputAsset = AssetManager.Load<InputActionAsset>("Settings/InputManager");
-            inputAsset.Enable();
-        }
+            var w = max.x - min.x;
+            var h = max.y - min.y;
 
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-            inputAsset.Disable();
+            var x = camera.orthographicSize;
+            var y = camera.orthographicSize * camera.aspect;
+
+            pos.x = w <= y * 2 ? bounds.center.x : Mathf.Clamp(pos.x, min.x + y, max.x - y);
+            pos.y = h <= x * 2 ? bounds.center.y : Mathf.Clamp(pos.y, min.y + x, max.y - x);
+
+            cam.position = pos;
         }
     }
 }

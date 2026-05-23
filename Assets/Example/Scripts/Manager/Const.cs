@@ -10,31 +10,10 @@
 // // *********************************************************************************
 
 using System;
-using Astraia;
-using Astraia.Core;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Runtime
 {
-    [Flags]
-    public enum State
-    {
-        默认,
-        地面 = 1 << 0,
-        左墙 = 1 << 1,
-        右墙 = 1 << 2,
-        头顶 = 1 << 3,
-        跳跃 = 1 << 4,
-        缓冲 = 1 << 5,
-        攀爬 = 1 << 6,
-        下落 = 1 << 7,
-        冲刺 = 1 << 8,
-        冲跳 = 1 << 9,
-        侧跳 = 1 << 10,
-        碰撞 = 地面 | 左墙 | 右墙 | 头顶,
-    }
-
     public static class LayerConst
     {
         public static ContactFilter2D Ground;
@@ -58,133 +37,21 @@ namespace Runtime
         public static readonly int Crash = Animator.StringToHash(nameof(Crash));
     }
 
-    public static class Extensions
+    [Flags]
+    public enum State
     {
-        private static readonly Enumerable<RaycastHit2D> Hits = new Enumerable<RaycastHit2D>(8);
-
-        public static Enumerable<RaycastHit2D> Cast(this Collider2D collider, Vector2 direction, float distance)
-        {
-            Hits.count = collider.Cast(direction, LayerConst.Ground, Hits.items, distance);
-            return Hits;
-        }
-
-        public static Enumerable<RaycastHit2D> Raycast(this Collider2D collider, Vector2 direction, float distance)
-        {
-            Hits.count = collider.Raycast(direction, LayerConst.Ground, Hits.items, distance);
-            Debug.DrawLine(collider.bounds.center, collider.bounds.center + (Vector3)(direction.normalized * distance), Color.black);
-            return Hits;
-        }
-
-        public static int DashCheck(this Collider2D collider, float distance)
-        {
-            var bounds = collider.bounds;
-            var origin1 = new Vector2(bounds.min.x, bounds.max.y);
-            var origin2 = new Vector2(bounds.max.x, bounds.max.y);
-            var state = 0;
-            if (Physics2D.Raycast(origin1, Vector2.up, LayerConst.Ground, Hits.items, distance) > 0)
-            {
-                state |= 1 << 0;
-            }
-
-            if (Physics2D.Raycast(origin2, Vector2.up, LayerConst.Ground, Hits.items, distance) > 0)
-            {
-                state |= 1 << 1;
-            }
-
-            return state;
-        }
-
-        public static int HoldCheck(this Collider2D collider, int direction, float distance)
-        {
-            var bounds = collider.bounds;
-            Vector2 origin1;
-            Vector2 origin2;
-            if (direction > 0)
-            {
-                origin1 = new Vector2(bounds.max.x, bounds.min.y + 0.02F);
-                origin2 = new Vector2(bounds.max.x, bounds.max.y - 0.02F);
-            }
-            else
-            {
-                origin1 = new Vector2(bounds.min.x, bounds.min.y + 0.02F);
-                origin2 = new Vector2(bounds.min.x, bounds.max.y - 0.02F);
-            }
-
-            var state = 0;
-            if (Physics2D.Raycast(origin1, Vector2.right * direction, LayerConst.Ground, Hits.items, distance) > 0)
-            {
-                state |= 1 << 0;
-            }
-
-            if (Physics2D.Raycast(origin2, Vector2.right * direction, LayerConst.Ground, Hits.items, distance) > 0)
-            {
-                state |= 1 << 1;
-            }
-
-            return state;
-        }
-
-        public static Tween DOFade(this SpriteRenderer component, float endValue, float duration)
-        {
-            var color = component.color;
-            return component.Play(duration).OnUpdate(progress =>
-            {
-                var colorA = Mathf.Lerp(color.a, endValue, progress);
-                component.color = new Color(color.r, color.g, color.b, colorA);
-            });
-        }
-
-        public static Tween DOFade(this Graphic component, float endValue, float duration)
-        {
-            var color = component.color;
-            return component.Play(duration).OnUpdate(progress =>
-            {
-                var colorA = Mathf.Lerp(color.a, endValue, progress);
-                component.color = new Color(color.r, color.g, color.b, colorA);
-            });
-        }
-    }
-
-    public static class CameraUtils
-    {
-        public static void Move(Camera camera, Transform target, ref Vector3 smooth, float speed)
-        {
-            var cam = camera.transform.parent;
-            var targetPos = new Vector3(target.position.x, target.position.y, cam.position.z);
-            Vector3 smoothPos;
-            if (camera.targetTexture)
-            {
-                var pixelate = camera.orthographicSize * 2 / camera.targetTexture.height;
-                smoothPos = Vector3.Distance(target.position, cam.position) > pixelate ? Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed) : target.position;
-                smoothPos.x = Mathf.Round(smoothPos.x / pixelate) * pixelate;
-                smoothPos.y = Mathf.Round(smoothPos.y / pixelate) * pixelate;
-            }
-            else
-            {
-                smoothPos = Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed);
-            }
-
-            cam.position = new Vector3(smoothPos.x, smoothPos.y, cam.position.z);
-        }
-
-        public static void Step(Camera camera, Bounds bounds)
-        {
-            var cam = camera.transform.parent;
-            var pos = cam.position;
-
-            var min = bounds.min;
-            var max = bounds.max;
-
-            var w = max.x - min.x;
-            var h = max.y - min.y;
-
-            var x = camera.orthographicSize;
-            var y = camera.orthographicSize * camera.aspect;
-
-            pos.x = w <= y * 2 ? bounds.center.x : Mathf.Clamp(pos.x, min.x + y, max.x - y);
-            pos.y = h <= x * 2 ? bounds.center.y : Mathf.Clamp(pos.y, min.y + x, max.y - x);
-
-            cam.position = pos;
-        }
+        默认,
+        地面 = 1 << 0,
+        左墙 = 1 << 1,
+        右墙 = 1 << 2,
+        头顶 = 1 << 3,
+        跳跃 = 1 << 4,
+        缓冲 = 1 << 5,
+        攀爬 = 1 << 6,
+        下落 = 1 << 7,
+        冲刺 = 1 << 8,
+        冲跳 = 1 << 9,
+        侧跳 = 1 << 10,
+        碰撞 = 地面 | 左墙 | 右墙 | 头顶,
     }
 }

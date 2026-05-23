@@ -18,7 +18,7 @@ namespace Runtime
         public override void OnEnter()
         {
             Feature.CrashCount = 0;
-            Feature.CrashPoint = Vector3.zero;
+            Feature.CrashPoint = Vector3.down * 1000;
             owner.Sender.SyncColorServerRpc(Color.white);
         }
 
@@ -149,7 +149,7 @@ namespace Runtime
                         velocityX += InputManager.MoveX;
                     }
 
-                    Contact();
+                    Collision();
                     return;
                 }
             }
@@ -243,7 +243,7 @@ namespace Runtime
                 }
             }
 
-            Contact();
+            Collision();
         }
 
         public override void OnExit()
@@ -322,7 +322,7 @@ namespace Runtime
             }
 
             Gravity();
-            Contact();
+            Collision();
         }
 
         public override void OnExit()
