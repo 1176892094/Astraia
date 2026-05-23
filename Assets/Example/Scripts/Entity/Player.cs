@@ -77,6 +77,7 @@ namespace Runtime
             JumpForce = MoveSpeed * 5 / 2;
             DashSpeed = MoveSpeed * 4;
             CrashSpeed = MoveSpeed * 3;
+            PositionY = 100;
         }
 
         private void OnDrawGizmos()

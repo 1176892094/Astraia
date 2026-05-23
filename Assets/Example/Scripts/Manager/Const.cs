@@ -68,6 +68,13 @@ namespace Runtime
             return Hits;
         }
 
+        public static Enumerable<RaycastHit2D> Raycast(this Collider2D collider, Vector2 direction, float distance)
+        {
+            Hits.count = collider.Raycast(direction, LayerConst.Ground, Hits.items, distance);
+            Debug.DrawLine(collider.bounds.center, collider.bounds.center + (Vector3)(direction.normalized * distance), Color.black);
+            return Hits;
+        }
+
         public static Tween DOFade(this SpriteRenderer component, float endValue, float duration)
         {
             var color = component.color;

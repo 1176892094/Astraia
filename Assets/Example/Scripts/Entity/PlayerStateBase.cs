@@ -108,11 +108,6 @@ namespace Runtime
 
         protected void Gravity()
         {
-            if (State.HasFlag(State.地面))
-            {
-                return;
-            }
-
             if (State.HasFlag(State.攀爬))
             {
                 velocityY = Mathf.Max(velocityY - 1, -10);
@@ -132,56 +127,23 @@ namespace Runtime
         {
             State &= ~State.碰撞;
             var extents = Machine.collider.bounds.extents;
-            var velocity = new Vector2(velocityX, velocityY);
-            var distance = velocity.magnitude / FIX;
-            var direction = velocity.normalized;
-            foreach (var hit in Machine.collider.Cast(direction, distance))
+            var velocity1 = new Vector2(0, velocityY);
+            var velocity2 = new Vector2(velocityX, 0);
+            var velocity3 = new Vector2(velocityX, velocityY);
+            foreach (var hit in Machine.collider.Raycast(velocity1.normalized, extents.y + velocity1.magnitude / FIX))
             {
-                var point = hit.point;
-                var normal = hit.normal;
+                CheckY(hit.point, hit.normal, extents);
+            }
 
-                if (normal.x > 0.5F)
-                {
-                    if (!State.HasFlag(State.跳跃))
-                    {
-                        Feature.JumpCount = 1;
-                    }
+            foreach (var hit in Machine.collider.Raycast(velocity2.normalized, extents.y + velocity2.magnitude / FIX))
+            {
+                CheckX(hit.point, hit.normal, extents);
+            }
 
-                    State |= State.左墙;
-                    velocityX = Mathf.Max(velocityX, 0);
-                    positionX = Mathf.RoundToInt((point.x + extents.x) * FIX);
-                }
-
-                if (normal.x < -0.5F)
-                {
-                    State |= State.右墙;
-                    velocityX = Mathf.Min(velocityX, 0);
-                    positionX = Mathf.RoundToInt((point.x - extents.x) * FIX);
-                }
-
-                if (normal.y > 0.5F)
-                {
-                    if (!State.HasFlag(State.跳跃))
-                    {
-                        Feature.JumpCount = 1;
-                    }
-
-                    if (!State.HasFlag(State.冲刺))
-                    {
-                        Feature.DashCount = 1;
-                    }
-
-                    State |= State.地面;
-                    velocityY = Mathf.Max(velocityY, 0);
-                    positionY = Mathf.RoundToInt((point.y + extents.y) * FIX);
-                }
-
-                if (normal.y < -0.5F)
-                {
-                    State |= State.头顶;
-                    velocityY = Mathf.Min(velocityY, 0);
-                    positionY = Mathf.RoundToInt((point.y - extents.y) * FIX);
-                }
+            foreach (var hit in Machine.collider.Cast(velocity3.normalized, velocity3.magnitude / FIX))
+            {
+                CheckX(hit.point, hit.normal, extents);
+                CheckY(hit.point, hit.normal, extents);
             }
 
             positionX += velocityX;
@@ -189,53 +151,107 @@ namespace Runtime
             transform.position = new Vector3(positionX, positionY) / FIX;
         }
 
-        protected int Dash()
+        private void CheckX(Vector2 point, Vector2 normal, Vector2 extents)
         {
-            var extents = Machine.collider.bounds.extents;
-            var velocity = new Vector2(velocityX, velocityY);
-            var distance = velocity.magnitude / FIX;
-            var direction = velocity.normalized;
-            foreach (var hit in Machine.collider.Cast(direction, distance))
+            if (normal.x >= 0.1f)
             {
-                var bounds = hit.collider.bounds;
-                if (positionX > (int)((bounds.max.x - extents.x) * FIX))
+                if (!State.HasFlag(State.跳跃))
                 {
-                    positionX = (int)((bounds.max.x + extents.x) * FIX);
-                    return 0;
+                    Feature.JumpCount = 1;
                 }
 
-                if (positionX < (int)((bounds.min.x + extents.x) * FIX))
-                {
-                    positionX = (int)((bounds.min.x - extents.x) * FIX);
-                    return 0;
-                }
+                State |= State.左墙;
+                velocityX = Mathf.Max(velocityX, 0);
+                positionX = Mathf.RoundToInt((point.x + extents.x) * FIX);
             }
+
+            if (normal.x <= -0.1f)
+            {
+                if (!State.HasFlag(State.跳跃))
+                {
+                    Feature.JumpCount = 1;
+                }
+
+                State |= State.右墙;
+                velocityX = Mathf.Min(velocityX, 0);
+                positionX = Mathf.RoundToInt((point.x - extents.x) * FIX);
+            }
+        }
+
+        private void CheckY(Vector2 point, Vector2 normal, Vector2 extents)
+        {
+            if (normal.y >= 0.1f)
+            {
+                if (!State.HasFlag(State.跳跃))
+                {
+                    Feature.JumpCount = 1;
+                }
+
+                if (!State.HasFlag(State.冲刺))
+                {
+                    Feature.DashCount = 1;
+                }
+
+                State |= State.地面;
+                velocityY = Mathf.Max(velocityY, 0);
+                positionY = Mathf.RoundToInt((point.y + extents.y) * FIX);
+            }
+
+            if (normal.y <= -0.1f)
+            {
+                State |= State.头顶;
+                velocityY = Mathf.Min(velocityY, 0);
+                positionY = Mathf.RoundToInt((point.y - extents.y) * FIX);
+            }
+        }
+
+        protected int Dash()
+        {
+            // var extents = Machine.collider.bounds.extents;
+            // var velocity = new Vector2(velocityX, velocityY);
+            // var distance = velocity.magnitude / FIX;
+            // var direction = velocity.normalized;
+            // foreach (var hit in Machine.collider.Cast(direction, distance))
+            // {
+            //     var bounds = hit.collider.bounds;
+            //     if (positionX > (int)((bounds.max.x - extents.x) * FIX))
+            //     {
+            //         positionX = (int)((bounds.max.x + extents.x) * FIX);
+            //         return 0;
+            //     }
+            //
+            //     if (positionX < (int)((bounds.min.x + extents.x) * FIX))
+            //     {
+            //         positionX = (int)((bounds.min.x - extents.x) * FIX);
+            //         return 0;
+            //     }
+            // }
 
             return Direction * Feature.DashSpeed;
         }
 
         protected bool Hold()
         {
-            var extents = Machine.collider.bounds.extents;
-            var velocity = new Vector2(velocityX, velocityY);
-            var distance = velocity.magnitude / FIX;
-            var direction = velocity.normalized;
-            foreach (var hit in Machine.collider.Cast(direction, distance))
-            {
-                var normal = hit.normal;
-                var bounds = hit.collider.bounds;
-                if (Mathf.Abs(normal.y) < Mathf.Abs(normal.x))
-                {
-                    var min = (int)((bounds.max.y - extents.y) * FIX);
-                    var max = (int)((bounds.max.y + extents.y) * FIX);
-                    if (positionY > min && positionY < max)
-                    {
-                        positionY += Feature.JumpForce;
-                        transform.position = new Vector3(positionX, positionY) / FIX;
-                        return true;
-                    }
-                }
-            }
+            // var extents = Machine.collider.bounds.extents;
+            // var velocity = new Vector2(velocityX, velocityY);
+            // var distance = velocity.magnitude / FIX;
+            // var direction = velocity.normalized;
+            // foreach (var hit in Machine.collider.Cast(direction, distance))
+            // {
+            //     var normal = hit.normal;
+            //     var bounds = hit.collider.bounds;
+            //     if (Mathf.Abs(normal.y) < Mathf.Abs(normal.x))
+            //     {
+            //         var min = (int)((bounds.max.y - extents.y) * FIX);
+            //         var max = (int)((bounds.max.y + extents.y) * FIX);
+            //         if (positionY > min && positionY < max)
+            //         {
+            //             positionY += Feature.JumpForce;
+            //             transform.position = new Vector3(positionX, positionY) / FIX;
+            //             return true;
+            //         }
+            //     }
+            // }
 
             return false;
         }

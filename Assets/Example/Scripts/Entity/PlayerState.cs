@@ -149,9 +149,7 @@ namespace Runtime
                         velocityX += InputManager.MoveX;
                     }
 
-                    positionX += velocityX;
-                    positionY += velocityY;
-                    transform.position = new Vector3(positionX, positionY) / FIX;
+                    Contact();
                     return;
                 }
             }
@@ -217,7 +215,6 @@ namespace Runtime
                 return;
             }
 
-            Debug.Log(transform.position);
             if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.25f)
             {
                 Feature.CrashPoint = transform.position;
@@ -318,7 +315,7 @@ namespace Runtime
                 }
             }
 
-            if (Vector3.Distance(transform.position, Feature.CrashPoint) >=  1.25f)
+            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.25f)
             {
                 Feature.CrashPoint = transform.position;
                 owner.Sender.LoadEffectServerRpc(transform.position);
