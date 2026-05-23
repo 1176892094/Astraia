@@ -59,20 +59,12 @@ namespace Runtime
 
     public static class Extensions
     {
-        private static readonly Enumerable<RaycastHit2D> contacts = new Enumerable<RaycastHit2D>(8);
+        private static readonly Enumerable<RaycastHit2D> Hits = new Enumerable<RaycastHit2D>(8);
 
         public static Enumerable<RaycastHit2D> Contacts(this Collider2D collider, Vector2 velocity)
         {
-            var bounds = collider.bounds;
-            contacts.count = Physics2D.BoxCast(bounds.center, bounds.size, 0, velocity.normalized, LayerConst.Ground, contacts.items, velocity.magnitude / 100);
-            return contacts;
-        }
-
-        public static Enumerable<RaycastHit2D> Contacts(this Collider2D collider)
-        {
-            var bounds = collider.bounds;
-            contacts.count = Physics2D.BoxCast(bounds.center, bounds.size - Vector3.right * 0.02f, 0, Vector2.down, LayerConst.Ground, contacts.items, 0.02F);
-            return contacts;
+            Hits.count = collider.Cast(velocity.normalized, LayerConst.Ground, Hits.items, velocity.magnitude / 100);
+            return Hits;
         }
 
         public static Tween DOFade(this SpriteRenderer component, float endValue, float duration)

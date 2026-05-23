@@ -141,6 +141,25 @@ namespace Runtime
                 var point = contact.point;
                 var normal = contact.normal;
 
+                if (normal.x > 0.5F)
+                {
+                    if (!State.HasFlag(State.跳跃))
+                    {
+                        Feature.JumpCount = 1;
+                    }
+
+                    State |= State.左墙;
+                    velocityX = Mathf.Max(velocityX, 0);
+                    positionX = Mathf.RoundToInt((point.x + extents.x) * FIX);
+                }
+
+                if (normal.x < -0.5F)
+                {
+                    State |= State.右墙;
+                    velocityX = Mathf.Min(velocityX, 0);
+                    positionX = Mathf.RoundToInt((point.x - extents.x) * FIX);
+                }
+
                 if (normal.y > 0.5F)
                 {
                     if (!State.HasFlag(State.跳跃))
@@ -163,25 +182,6 @@ namespace Runtime
                     State |= State.头顶;
                     velocityY = Mathf.Min(velocityY, 0);
                     positionY = Mathf.RoundToInt((point.y - extents.y) * FIX);
-                }
-
-                if (normal.x > 0.5F)
-                {
-                    if (!State.HasFlag(State.跳跃))
-                    {
-                        Feature.JumpCount = 1;
-                    }
-
-                    State |= State.左墙;
-                    velocityX = Mathf.Max(velocityX, 0);
-                    positionX = Mathf.RoundToInt((point.x + extents.x) * FIX);
-                }
-
-                if (normal.x < -0.5F)
-                {
-                    State |= State.右墙;
-                    velocityX = Mathf.Min(velocityX, 0);
-                    positionX = Mathf.RoundToInt((point.x - extents.x) * FIX);
                 }
             }
 

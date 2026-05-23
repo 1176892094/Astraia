@@ -184,6 +184,23 @@ namespace Runtime
             DashSpeed = MoveSpeed * 4;
             CrashSpeed = MoveSpeed * 3;
         }
+
+        public void OnDrawGizmos()
+        {
+            var other = GetComponent<Collider2D>();
+            var bounds = other.bounds;
+            var velocity = new Vector2(VelocityX, VelocityY);
+            Vector2 origin = bounds.center;
+            Vector2 size = bounds.size;
+            var direction = velocity.normalized;
+            var distance = velocity.magnitude / 100f;
+            var endPosition = origin + direction * distance;
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireCube(endPosition, size);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(origin, endPosition);
+        }
     }
 
     public class PlayerInput : MonoBehaviour
