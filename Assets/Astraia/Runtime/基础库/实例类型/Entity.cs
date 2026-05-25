@@ -770,7 +770,7 @@ namespace Astraia
         }
     }
 
-    public sealed class Dictionary<T>
+    public class Dictionary<T>
     {
         private readonly Dictionary<Type, IDictionary> Items = new Dictionary<Type, IDictionary>();
 
@@ -783,6 +783,17 @@ namespace Astraia
             }
 
             ((Dictionary<T, TValue>)items)[key] = value;
+        }
+
+        public TValue Get<TValue>(T key)
+        {
+            if (!Items.TryGetValue(typeof(TValue), out var items))
+            {
+                items = new Dictionary<T, TValue>();
+                Items.Add(typeof(TValue), items);
+            }
+
+            return ((Dictionary<T, TValue>)items).GetValueOrDefault(key);
         }
 
         public bool TryGet<TValue>(T key, out TValue value)
@@ -810,7 +821,7 @@ namespace Astraia
 
 namespace Astraia
 {
-    public abstract class Schedule : INotifyCompletion
+    public abstract class Waiter : INotifyCompletion
     {
         public interface ITick
         {
@@ -863,7 +874,7 @@ namespace Astraia
             return state == 2;
         }
 
-        public Schedule GetAwaiter()
+        public Waiter GetAwaiter()
         {
             return this;
         }
@@ -881,7 +892,7 @@ namespace Astraia
         }
     }
 
-    public sealed class Timer : Schedule
+    public sealed class Timer : Waiter
     {
         private int progress;
         private Action onUpdate;
@@ -955,7 +966,7 @@ namespace Astraia
         }
     }
 
-    public sealed class Tween : Schedule
+    public sealed class Tween : Waiter
     {
         private float progress;
         private Action<float> onUpdate;
@@ -1020,29 +1031,30 @@ namespace Astraia
         Failure
     }
 
-    public interface INode
+    public interface IRoot
     {
-        BTState OnTick(Dictionary<int> root);
+        public int[] Items { get; }
     }
 
-    public readonly struct Sequence : INode
+    public interface INode<in T> where T : IRoot
     {
-        private readonly INode[] Nodes;
+        BTState OnTick(T root);
+    }
+
+    public readonly struct Sequence<T> : INode<T> where T : IRoot
+    {
+        private readonly INode<T>[] Nodes;
         private readonly int Index;
 
-        public Sequence(int index, INode[] nodes)
+        public Sequence(int index,INode<T>[] nodes)
         {
             Index = index;
-            Nodes = nodes ?? Array.Empty<INode>();
+            Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        public BTState OnTick(Dictionary<int> root)
+        public BTState OnTick(T root)
         {
-            if (!root.TryGet(0, out int[] reason))
-            {
-                return BTState.Failure;
-            }
-
+            var reason = root.Items;
             while (reason[Index] < Nodes.Length)
             {
                 var result = Nodes[reason[Index]].OnTick(root);
@@ -1065,24 +1077,20 @@ namespace Astraia
         }
     }
 
-    public readonly struct Selector : INode
+    public readonly struct Selector<T> : INode<T> where T : IRoot
     {
-        private readonly INode[] Nodes;
+        private readonly INode<T>[] Nodes;
         private readonly int Index;
 
-        public Selector(int index, INode[] nodes)
+        public Selector(int index, INode<T>[] nodes)
         {
             Index = index;
-            Nodes = nodes ?? Array.Empty<INode>();
+            Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        public BTState OnTick(Dictionary<int> root)
+        public BTState OnTick(T root)
         {
-            if (!root.TryGet(0, out int[] reason))
-            {
-                return BTState.Failure;
-            }
-
+            var reason = root.Items;
             while (reason[Index] < Nodes.Length)
             {
                 var result = Nodes[reason[Index]].OnTick(root);
@@ -1105,18 +1113,18 @@ namespace Astraia
         }
     }
 
-    public readonly struct Parallel : INode
+    public readonly struct Parallel<T> : INode<T> where T : IRoot
     {
-        private readonly INode[] Nodes;
+        private readonly INode<T>[] Nodes;
         private readonly bool IsAny;
 
-        public Parallel(int index, INode[] nodes)
+        public Parallel(int index, INode<T>[] nodes)
         {
             IsAny = index != 0;
-            Nodes = nodes ?? Array.Empty<INode>();
+            Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        public BTState OnTick(Dictionary<int> root)
+        public BTState OnTick(T root)
         {
             var isAll = true;
             var isAny = false;
@@ -1164,24 +1172,20 @@ namespace Astraia
         }
     }
 
-    public readonly struct Actuator : INode
+    public readonly struct Actuator<T> : INode<T> where T : IRoot
     {
-        private readonly INode[] Nodes;
+        private readonly INode<T>[] Nodes;
         private readonly int Index;
 
-        public Actuator(int index, INode[] nodes)
+        public Actuator(int index, INode<T>[] nodes)
         {
             Index = index;
-            Nodes = nodes ?? Array.Empty<INode>();
+            Nodes = nodes ?? Array.Empty<INode<T>>();
         }
 
-        public BTState OnTick(Dictionary<int> root)
+        public BTState OnTick(T root)
         {
-            if (!root.TryGet(0, out int[] reason))
-            {
-                return BTState.Failure;
-            }
-
+            var reason = root.Items;
             if (reason[Index] == 0)
             {
                 reason[Index] = Seed.Next(Nodes.Length) + 1;
@@ -1198,26 +1202,22 @@ namespace Astraia
         }
     }
 
-    public readonly struct Repeater : INode
+    public readonly struct Repeater<T> : INode<T> where T : IRoot
     {
-        private readonly INode Node;
+        private readonly INode<T> Node;
         private readonly int Index;
         private readonly int Count;
 
-        public Repeater(int index, int count, INode node)
+        public Repeater(int index, int count, INode<T> node)
         {
             Node = node;
             Index = index;
             Count = count;
         }
 
-        public BTState OnTick(Dictionary<int> root)
+        public BTState OnTick(T root)
         {
-            if (!root.TryGet(0, out int[] reason))
-            {
-                return BTState.Failure;
-            }
-
+            var reason = root.Items;
             var result = Node.OnTick(root);
             if (result == BTState.Running)
             {
@@ -1235,16 +1235,16 @@ namespace Astraia
         }
     }
 
-    public readonly struct Inverter : INode
+    public readonly struct Inverter<T> : INode<T> where T : IRoot
     {
-        private readonly INode Node;
+        private readonly INode<T> Node;
 
-        public Inverter(INode node)
+        public Inverter(INode<T> node)
         {
             Node = node;
         }
 
-        public BTState OnTick(Dictionary<int> root)
+        public BTState OnTick(T root)
         {
             var result = Node.OnTick(root);
             if (result == BTState.Success)
@@ -1261,31 +1261,31 @@ namespace Astraia
         }
     }
 
-    public readonly struct Success : INode
+    public readonly struct Success<T> : INode<T> where T : IRoot
     {
-        private readonly INode Node;
+        private readonly INode<T> Node;
 
-        public Success(INode node)
+        public Success(INode<T> node)
         {
             Node = node;
         }
 
-        public BTState OnTick(Dictionary<int> root)
+        public BTState OnTick(T root)
         {
             return Node.OnTick(root) == BTState.Running ? BTState.Running : BTState.Success;
         }
     }
 
-    public readonly struct Failure : INode
+    public readonly struct Failure<T> : INode<T> where T : IRoot
     {
-        private readonly INode Node;
+        private readonly INode<T> Node;
 
-        public Failure(INode node)
+        public Failure(INode<T> node)
         {
             Node = node;
         }
 
-        public BTState OnTick(Dictionary<int> root)
+        public BTState OnTick(T root)
         {
             return Node.OnTick(root) == BTState.Running ? BTState.Running : BTState.Failure;
         }
@@ -1293,7 +1293,7 @@ namespace Astraia
 
     public static class Nodes
     {
-        public static INode LoadNode(Node node, Func<Node, string> func)
+        public static INode<T> LoadNode<T>(Node node, Func<Node, string> func)  where T : IRoot
         {
             if (node.Name.IsNullOrEmpty())
             {
@@ -1301,55 +1301,55 @@ namespace Astraia
             }
 
             var root = Search.GetType(func.Invoke(node));
-            if (root == typeof(Sequence))
+            if (root == typeof(Sequence<>))
             {
-                return new Sequence(node.Index, LoadNodes(node, func));
+                return new Sequence<T>(node.Index, LoadNodes<T>(node, func));
             }
 
-            if (root == typeof(Selector))
+            if (root == typeof(Selector<>))
             {
-                return new Selector(node.Index, LoadNodes(node, func));
+                return new Selector<T>(node.Index, LoadNodes<T>(node, func));
             }
 
-            if (root == typeof(Parallel))
+            if (root == typeof(Parallel<>))
             {
-                return new Parallel(int.Parse(node.Data), LoadNodes(node, func));
+                return new Parallel<T>(int.Parse(node.Data), LoadNodes<T>(node, func));
             }
 
-            if (root == typeof(Actuator))
+            if (root == typeof(Actuator<>))
             {
-                return new Actuator(node.Index, LoadNodes(node, func));
+                return new Actuator<T>(node.Index, LoadNodes<T>(node, func));
             }
 
-            if (root == typeof(Repeater))
+            if (root == typeof(Repeater<>))
             {
-                return new Repeater(node.Index, int.Parse(node.Data), LoadNode(node.Nodes[0], func));
+                return new Repeater<T>(node.Index, int.Parse(node.Data), LoadNode<T>(node.Nodes[0], func));
             }
 
-            if (root == typeof(Inverter))
+            if (root == typeof(Inverter<>))
             {
-                return new Inverter(LoadNode(node.Nodes[0], func));
+                return new Inverter<T>(LoadNode<T>(node.Nodes[0], func));
             }
 
-            if (root == typeof(Success))
+            if (root == typeof(Success<>))
             {
-                return new Success(LoadNode(node.Nodes[0], func));
+                return new Success<T>(LoadNode<T>(node.Nodes[0], func));
             }
 
-            if (root == typeof(Failure))
+            if (root == typeof(Failure<>))
             {
-                return new Failure(LoadNode(node.Nodes[0], func));
+                return new Failure<T>(LoadNode<T>(node.Nodes[0], func));
             }
 
-            return (INode)Activator.CreateInstance(root);
+            return (INode<T>)Activator.CreateInstance(root);
         }
 
-        private static INode[] LoadNodes(Node node, Func<Node, string> func)
+        private static INode<T>[] LoadNodes<T>(Node node, Func<Node, string> func) where T: IRoot
         {
-            var nodes = new INode[node.Nodes.Count];
+            var nodes = new INode<T>[node.Nodes.Count];
             for (var i = 0; i < node.Nodes.Count; i++)
             {
-                nodes[i] = LoadNode(node.Nodes[i], func);
+                nodes[i] = LoadNode<T>(node.Nodes[i], func);
             }
 
             return nodes;

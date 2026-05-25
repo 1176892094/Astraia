@@ -202,7 +202,7 @@ namespace Astraia.Core
             return component ? component : (T)self.AddComponent(type);
         }
 
-        private readonly struct TickAdaptor : Schedule.ITick
+        private readonly struct TickAdaptor : Waiter.ITick
         {
             private readonly Component owner;
             public TickAdaptor(Component owner) => this.owner = owner;
