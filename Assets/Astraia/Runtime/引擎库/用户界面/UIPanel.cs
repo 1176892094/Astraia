@@ -21,7 +21,7 @@ namespace Astraia
     [Serializable]
     public abstract class UIPanel : MonoBehaviour
     {
-        public UIState state;
+        public UIState state = UIState.Common;
         internal int group;
         internal int layer;
 
