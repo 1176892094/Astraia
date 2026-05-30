@@ -464,10 +464,10 @@ namespace Astraia
             }
         }
 
-        public static void Start(int port, Func<HttpListenerRequest, HttpListenerResponse, Task> request)
+        public static void Start(string address, Func<HttpListenerRequest, HttpListenerResponse, Task> request)
         {
             var reason = new HttpListener();
-            reason.Prefixes.Add("http://*:{0}/".Format(port));
+            reason.Prefixes.Add(address);
             reason.Start();
             Task.Run(HttpThread);
             return;
