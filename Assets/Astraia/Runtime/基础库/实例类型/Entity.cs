@@ -491,12 +491,9 @@ namespace Astraia
             public void Push(T item)
             {
                 Enqueue++;
-                if (!unused.Contains(item))
-                {
-                    Acquire--;
-                    Release++;
-                    unused.Enqueue(item);
-                }
+                Acquire--;
+                Release++;
+                unused.Enqueue(item);
             }
 
             void IDisposable.Dispose()
