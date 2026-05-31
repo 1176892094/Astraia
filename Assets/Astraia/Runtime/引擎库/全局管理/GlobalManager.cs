@@ -22,7 +22,7 @@ namespace Astraia.Core
         public static GlobalManager Instance;
 
         public static Verify verify;
-        
+
         public static Canvas canvas;
 
         public static AudioSource source;
@@ -30,7 +30,7 @@ namespace Astraia.Core
         internal static int musicVolume;
 
         internal static int audioVolume;
-        
+
         internal static AudioState audioState;
 
         internal static AssetBundleManifest manifest;

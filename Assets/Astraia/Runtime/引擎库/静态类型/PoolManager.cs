@@ -39,11 +39,6 @@ namespace Astraia.Core
             return Show(path, parent, name).GetOrAddComponent<T>();
         }
 
-        public static T Show<T>(string path, params Type[] args) where T : Component
-        {
-            return Show(path, args).GetOrAddComponent<T>();
-        }
-
         public static GameObject Show(string path, Vector3 position)
         {
             if (!Instance) return null;
@@ -88,15 +83,6 @@ namespace Astraia.Core
             return item;
         }
 
-        public static GameObject Show(string path, params Type[] args)
-        {
-            if (!Instance) return null;
-            var item = LoadPool(path, args).Load();
-            item.transform.SetParent(null);
-            item.SetActive(true);
-            return item;
-        }
-
         public static void Hide(Component item)
         {
             if (!Instance || !item) return;
@@ -131,7 +117,7 @@ namespace Astraia.Core
         {
             if (!poolData.TryGetValue(path, out var pool))
             {
-                pool = new Pool(typeof(GameObject), path, AssetManager.Load<GameObject>);
+                pool = new Pool(typeof(GameObject), path);
                 poolData.Add(path, pool);
             }
 
@@ -142,19 +128,8 @@ namespace Astraia.Core
         {
             if (!poolData.TryGetValue(name, out var pool))
             {
-                pool = new Pool(typeof(GameObject), path, AssetManager.Load<GameObject>);
+                pool = new Pool(typeof(GameObject), path);
                 poolData.Add(name, pool);
-            }
-
-            return (Pool)pool;
-        }
-
-        private static Pool LoadPool(string path, params Type[] args)
-        {
-            if (!poolData.TryGetValue(path, out var pool))
-            {
-                pool = new Pool(args[0], path, item => new GameObject(item, args));
-                poolData.Add(path, pool);
             }
 
             return (Pool)pool;
@@ -174,14 +149,7 @@ namespace Astraia.Core
         [Serializable]
         private class Pool : IPool
         {
-            private readonly LinkedList<GameObject> cached = new LinkedList<GameObject>();
             private readonly Queue<GameObject> unused = new Queue<GameObject>();
-            private readonly Queue<float> record = new Queue<float>();
-            private int capacity;
-            private int threshold;
-            private float timestamp;
-            private Func<string, GameObject> OnCreate;
-
             public Type Type { get; private set; }
             public string Path { get; private set; }
             public int Acquire { get; private set; }
@@ -189,84 +157,37 @@ namespace Astraia.Core
             public int Dequeue { get; private set; }
             public int Enqueue { get; private set; }
 
-            public Pool(Type type, string path, Func<string, GameObject> onCreate)
+            public Pool(Type type, string path)
             {
                 Type = type;
                 Path = path;
-                OnCreate = onCreate;
-            }
-
-            public void Build(int capacity, int threshold, float timestamp)
-            {
-                this.capacity = capacity;
-                this.threshold = threshold;
-                this.timestamp = timestamp;
             }
 
             public GameObject Load()
             {
                 Dequeue++;
                 Acquire++;
-                GameObject item;
-                if (timestamp > 0)
+                if (unused.TryDequeue(out var item))
                 {
-                    var time = Time.time;
-                    while (record.Count > 0 && record.Peek() + timestamp < time)
-                    {
-                        record.Dequeue();
-                    }
-
-                    if (record.Count >= threshold && cached.Count > 0)
-                    {
-                        item = cached.Last.Value;
-                        cached.RemoveLast();
-                        Acquire--;
-                        if (item)
-                        {
-                            cached.AddFirst(item);
-                            return item;
-                        }
-                    }
-
-                    record.Enqueue(time);
-                }
-
-                if (capacity > 0)
-                {
-                    if (cached.Count >= capacity)
-                    {
-                        item = cached.Last.Value;
-                        cached.RemoveLast();
-                        Acquire--;
-                        if (item)
-                        {
-                            cached.AddFirst(item);
-                            return item;
-                        }
-                    }
-                }
-
-                if (unused.Count > 0)
-                {
-                    item = unused.Dequeue();
                     Release--;
                     if (item)
                     {
-                        cached.AddFirst(item);
                         return item;
                     }
+
+                    Dequeue++;
+                    Enqueue++;
                 }
 
-                item = OnCreate.Invoke(Path);
+                item = AssetManager.Load<GameObject>(Path);
                 item.name = Path;
-                cached.AddFirst(item);
                 return item;
             }
 
             public void Push(GameObject item)
             {
                 Enqueue++;
-                if (cached.Remove(item))
+                if (!unused.Contains(item))
                 {
                     Acquire--;
                     Release++;
@@ -276,7 +197,6 @@ namespace Astraia.Core
 
             void IDisposable.Dispose()
             {
-                cached.Clear();
                 unused.Clear();
             }
         }

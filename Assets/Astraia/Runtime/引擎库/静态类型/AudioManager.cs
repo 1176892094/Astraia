@@ -9,6 +9,8 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Astraia.Core
@@ -19,14 +21,10 @@ namespace Astraia.Core
     {
         public static int MusicVolume
         {
-            get
-            {
-                musicVolume = JsonManager.Load(nameof(MusicVolume), 100);
-                return musicVolume;
-            }
+            get => musicVolume = JsonManager.Load(nameof(MusicVolume), 100);
             set
             {
-                if (Instance && source)
+                if (source)
                 {
                     source.volume = value * 0.01F;
                 }
@@ -38,11 +36,7 @@ namespace Astraia.Core
 
         public static int AudioVolume
         {
-            get
-            {
-                audioVolume = JsonManager.Load(nameof(AudioVolume), 100);
-                return audioVolume;
-            }
+            get => audioVolume = JsonManager.Load(nameof(AudioVolume), 100);
             set
             {
                 foreach (var audio in audioLoop)
@@ -52,6 +46,28 @@ namespace Astraia.Core
 
                 audioVolume = value;
                 JsonManager.Save(audioVolume, nameof(AudioVolume));
+            }
+        }
+
+        public static AudioState AudioState
+        {
+            get => audioState;
+            set
+            {
+                switch (value)
+                {
+                    case AudioState.Play:
+                        foreach (var audio in audioLoop) audio.Play();
+                        break;
+                    case AudioState.Pause:
+                        foreach (var audio in audioLoop) audio.Pause();
+                        break;
+                    case AudioState.Stop:
+                        foreach (var audio in audioLoop) Stop(audio);
+                        break;
+                }
+
+                audioState = value;
             }
         }
 
@@ -76,90 +92,42 @@ namespace Astraia.Core
             }
         }
 
-        public static void Play(string name, AudioState state)
+        public static void Play(string name)
         {
-            if (!Instance || !source)
-            {
-                return;
-            }
-
-            switch (state)
-            {
-                case AudioState.Play:
-                    var result = GlobalSetting.AUDIOS.Format(name);
-                    source.clip = AssetManager.Load<AudioClip>(result);
-                    source.loop = true;
-                    source.volume = musicVolume * 0.01F;
-                    source.Play();
-                    break;
-                case AudioState.Pause:
-                    source.Pause();
-                    break;
-                case AudioState.Stop:
-                    source.Stop();
-                    break;
-            }
+            if (!source) return;
+            var result = GlobalSetting.AUDIOS.Format(name);
+            source.clip = AssetManager.Load<AudioClip>(result);
+            source.loop = true;
+            source.volume = musicVolume * 0.01F;
+            source.Play();
         }
 
-        public static AudioSource Play(string name, AudioMode mode = AudioMode.Once)
+        public static void Pause()
         {
-            if (!Instance)
-            {
-                return null;
-            }
+            if (!source) return;
+            source.Pause();
+        }
 
+        public static void Stop()
+        {
+            if (!source) return;
+            source.Stop();
+        }
+
+        public static AudioSource Load(string name, bool loop = false, float interval = 0)
+        {
             var result = GlobalSetting.AUDIOS.Format(name);
-            var source = PoolManager.Show<AudioSource>(result, typeof(AudioSource));
+            var source = PoolManager.Show(result, interval);
             source.clip = AssetManager.Load<AudioClip>(result);
-            source.loop = mode == AudioMode.Loop;
+            source.loop = loop;
             source.volume = audioVolume * 0.01F;
             source.Play();
             audioLoop.Add(source);
             return source;
         }
 
-        public static void Stop(AudioState state)
-        {
-            if (!Instance)
-            {
-                return;
-            }
-
-            switch (state)
-            {
-                case AudioState.Play:
-                    audioState = state;
-                    foreach (var audio in audioLoop)
-                    {
-                        audio.Play();
-                    }
-
-                    break;
-                case AudioState.Pause:
-                    audioState = state;
-                    foreach (var audio in audioLoop)
-                    {
-                        audio.Pause();
-                    }
-
-                    break;
-                case AudioState.Stop:
-                    foreach (var audio in audioLoop)
-                    {
-                        Stop(audio);
-                    }
-
-                    break;
-            }
-        }
-
         public static void Stop(AudioSource source)
         {
-            if (!Instance)
-            {
-                return;
-            }
-
             if (source)
             {
                 source.Stop();
@@ -173,6 +141,113 @@ namespace Astraia.Core
         {
             audioLoop.Clear();
             audioState = AudioState.Play;
+        }
+
+        private static class PoolManager
+        {
+            public static AudioSource Show(string path, float interval)
+            {
+                if (!Instance) return null;
+                var item = LoadPool(path).Load(interval);
+                item.transform.SetParent(null);
+                item.gameObject.SetActive(true);
+                return item;
+            }
+
+            public static void Hide(AudioSource item)
+            {
+                if (!Instance || !item) return;
+                if (!poolRoot.TryGetValue(item.name, out var pool))
+                {
+                    pool = new GameObject("Pool - {0}".Format(item.name));
+                    pool.transform.SetParent(Instance.transform);
+                    poolRoot.Add(item.name, pool);
+                }
+
+                item.gameObject.SetActive(false);
+                item.transform.SetParent(pool.transform);
+                LoadPool(item.name).Push(item);
+            }
+
+            private static Pool LoadPool(string path)
+            {
+                if (!poolData.TryGetValue(path, out var pool))
+                {
+                    pool = new Pool(typeof(GameObject), path);
+                    poolData.Add(path, pool);
+                }
+
+                return (Pool)pool;
+            }
+
+            [Serializable]
+            private class Pool : IPool
+            {
+                private readonly Queue<AudioSource> unused = new Queue<AudioSource>();
+                private float waitTime;
+                private AudioSource current;
+                public Type Type { get; private set; }
+                public string Path { get; private set; }
+                public int Acquire { get; private set; }
+                public int Release { get; private set; }
+                public int Dequeue { get; private set; }
+                public int Enqueue { get; private set; }
+
+                public Pool(Type type, string path)
+                {
+                    Type = type;
+                    Path = path;
+                }
+
+                public AudioSource Load(float interval)
+                {
+                    if (interval != 0)
+                    {
+                        if (waitTime > Time.time)
+                        {
+                            return current;
+                        }
+
+                        waitTime = Time.time + interval;
+                    }
+
+                    Dequeue++;
+                    Acquire++;
+                    if (unused.TryDequeue(out var item))
+                    {
+                        Release--;
+                        if (item)
+                        {
+                            current = item;
+                            return item;
+                        }
+
+                        Dequeue++;
+                        Enqueue++;
+                    }
+
+                    item = new GameObject(Path).AddComponent<AudioSource>();
+                    current = item;
+                    return item;
+                }
+
+                public void Push(AudioSource item)
+                {
+                    Enqueue++;
+                    if (!unused.Contains(item))
+                    {
+                        Acquire--;
+                        Release++;
+                        unused.Enqueue(item);
+                    }
+                }
+
+                void IDisposable.Dispose()
+                {
+                    current = null;
+                    unused.Clear();
+                }
+            }
         }
     }
 }

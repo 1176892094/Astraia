@@ -122,7 +122,7 @@ namespace Astraia.Core
             return false;
         }
 
-        private static bool InputField<T>(Component self, T component, string name) where T : Component
+        private static void InputField<T>(Component self, T component, string name) where T : Component
         {
             var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
             if (component.TryGetComponent(cacheType, out var inputField))
@@ -141,11 +141,7 @@ namespace Astraia.Core
                 {
                     inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => self.SendMessage(name, value));
                 }
-
-                return true;
             }
-
-            return false;
         }
 
         private static Transform GetChild(this Transform parent, string name)

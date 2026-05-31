@@ -54,10 +54,4 @@ namespace Astraia
         Pause,
         Stop,
     }
-
-    public enum AudioMode : byte
-    {
-        Once,
-        Loop
-    }
 }

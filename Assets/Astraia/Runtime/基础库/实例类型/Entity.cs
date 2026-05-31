@@ -458,9 +458,7 @@ namespace Astraia
 
         private class Pool<T> : IPool
         {
-            private readonly HashSet<T> cached = new HashSet<T>();
             private readonly Queue<T> unused = new Queue<T>();
-
             public Type Type { get; private set; }
             public string Path { get; private set; }
             public int Acquire { get; private set; }
@@ -478,11 +476,8 @@ namespace Astraia
             {
                 Dequeue++;
                 Acquire++;
-                T item;
-                if (unused.Count > 0)
+                if (unused.TryDequeue(out var item))
                 {
-                    item = unused.Dequeue();
-                    cached.Remove(item);
                     Release--;
                 }
                 else
@@ -496,7 +491,7 @@ namespace Astraia
             public void Push(T item)
             {
                 Enqueue++;
-                if (cached.Add(item))
+                if (!unused.Contains(item))
                 {
                     Acquire--;
                     Release++;
@@ -506,7 +501,6 @@ namespace Astraia
 
             void IDisposable.Dispose()
             {
-                cached.Clear();
                 unused.Clear();
             }
         }
@@ -571,7 +565,6 @@ namespace Astraia
 
         private class Pool<T> : IPool where T : IEvent
         {
-            private readonly HashSet<IEvent<T>> cached = new HashSet<IEvent<T>>();
             private event Action<T> OnExecute;
             public Type Type { get; private set; }
             public string Path { get; private set; }
@@ -588,22 +581,16 @@ namespace Astraia
 
             public void Listen(IEvent<T> obj)
             {
-                if (cached.Add(obj))
-                {
-                    Dequeue++;
-                    Acquire++;
-                    OnExecute += obj.Execute;
-                }
+                Dequeue++;
+                Acquire++;
+                OnExecute += obj.Execute;
             }
 
             public void Remove(IEvent<T> obj)
             {
-                if (cached.Remove(obj))
-                {
-                    Enqueue++;
-                    Acquire--;
-                    OnExecute -= obj.Execute;
-                }
+                Enqueue++;
+                Acquire--;
+                OnExecute -= obj.Execute;
             }
 
             public void Invoke(T message)
@@ -614,7 +601,6 @@ namespace Astraia
 
             void IDisposable.Dispose()
             {
-                cached.Clear();
                 OnExecute = null;
             }
         }
