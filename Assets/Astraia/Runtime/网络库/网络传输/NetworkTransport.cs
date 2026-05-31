@@ -136,6 +136,7 @@ namespace Astraia.Net
     {
         public int Host;
         public int Count;
+        public int Index;
         public RoomMode State;
         public string Id;
         public string Name;

@@ -38,7 +38,7 @@ namespace Astraia.Core
 
     public record LobbyDisconnect : IEvent;
 
-    public record LobbyCreateRoom(string room) : IEvent;
+    public record LobbyCreateRoom(int index, string room) : IEvent;
 
     public record PingUpdate(double pingTime) : IEvent;
 }

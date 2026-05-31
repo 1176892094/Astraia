@@ -118,8 +118,10 @@ namespace Astraia.Net
                     }
                     else if (opcode == Lobby.创建房间成功)
                     {
-                        NetworkTransport.Instance.address = reader.ReadString();
-                        EventManager.Invoke(new LobbyCreateRoom(NetworkTransport.Instance.address));
+                        var index = reader.ReadInt32();
+                        var address = reader.ReadString();
+                        NetworkTransport.Instance.address = address;
+                        EventManager.Invoke(new LobbyCreateRoom(index, address));
                     }
                     else if (opcode == Lobby.加入房间成功)
                     {
