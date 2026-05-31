@@ -5,8 +5,6 @@ using System.Runtime.CompilerServices;
 
 namespace Astraia
 {
-    public record OnVariableEvent : IEvent;
-
     [Serializable]
     public struct Xor32 : IEquatable<Xor32>
     {
@@ -23,7 +21,6 @@ namespace Astraia
                 var value = origin ^ offset;
                 if (buffer != ((offset >> 8) ^ value))
                 {
-                    EventManager.Invoke(new OnVariableEvent());
                     throw new InvalidOperationException();
                 }
 
@@ -105,7 +102,6 @@ namespace Astraia
                 var value = origin ^ offset;
                 if (buffer != ((offset >> 8) ^ value))
                 {
-                    EventManager.Invoke(new OnVariableEvent());
                     throw new InvalidOperationException();
                 }
 
@@ -190,7 +186,6 @@ namespace Astraia
 
                 if (buffer != GetHashCode())
                 {
-                    EventManager.Invoke(new OnVariableEvent());
                     throw new InvalidOperationException();
                 }
 
@@ -1046,7 +1041,7 @@ namespace Astraia
         private readonly INode<T>[] Nodes;
         private readonly int Index;
 
-        public Sequence(int index,INode<T>[] nodes)
+        public Sequence(int index, INode<T>[] nodes)
         {
             Index = index;
             Nodes = nodes ?? Array.Empty<INode<T>>();
@@ -1293,7 +1288,7 @@ namespace Astraia
 
     public static class Nodes
     {
-        public static INode<T> LoadNode<T>(Node node, Func<Node, string> func)  where T : IRoot
+        public static INode<T> LoadNode<T>(Node node, Func<Node, string> func) where T : IRoot
         {
             if (node.Name.IsNullOrEmpty())
             {
@@ -1344,7 +1339,7 @@ namespace Astraia
             return (INode<T>)Activator.CreateInstance(root);
         }
 
-        private static INode<T>[] LoadNodes<T>(Node node, Func<Node, string> func) where T: IRoot
+        private static INode<T>[] LoadNodes<T>(Node node, Func<Node, string> func) where T : IRoot
         {
             var nodes = new INode<T>[node.Nodes.Count];
             for (var i = 0; i < node.Nodes.Count; i++)
