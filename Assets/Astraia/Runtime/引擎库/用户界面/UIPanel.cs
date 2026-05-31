@@ -18,7 +18,6 @@ using UnityEngine.UI;
 
 namespace Astraia
 {
-    [Serializable]
     public abstract class UIPanel : MonoBehaviour
     {
         public UIState state = UIState.Common;
@@ -44,7 +43,6 @@ namespace Astraia
     {
         private TGrid[] grids;
         private IList<T> items;
-
         private int row;
         private int col;
         private int roc;
@@ -53,7 +51,6 @@ namespace Astraia
         private int maxIndex;
         private bool rotation;
         private bool selected;
-
         private string assetName;
         private string assetPath;
 
@@ -61,7 +58,6 @@ namespace Astraia
         public float height;
         public ScrollRect scroll;
         public Action<IGrid> OnMove;
-        private RectTransform content => scroll.content;
 
         protected virtual void Awake()
         {
@@ -83,9 +79,9 @@ namespace Astraia
                 assetPath = GlobalSetting.PREFAB.Format(path.asset);
             }
 
-            content.pivot = Vector2.up;
-            content.anchorMin = Vector2.up;
-            content.anchorMax = Vector2.up;
+            scroll.content.pivot = Vector2.up;
+            scroll.content.anchorMin = Vector2.up;
+            scroll.content.anchorMax = Vector2.up;
 
             col = rotation ? col : col + 1;
             row = rotation ? row + 1 : row;
@@ -117,7 +113,7 @@ namespace Astraia
         {
             if (items != null && items.Count != 0)
             {
-                var pos = content.anchoredPosition;
+                var pos = scroll.content.anchoredPosition;
                 var min = Mathf.Max(Mathf.FloorToInt(rotation ? pos.y / height : -pos.x / width) * cor, 0);
                 var max = Mathf.Min(min + roc * cor - 1, items.Count - 1);
 
@@ -144,9 +140,9 @@ namespace Astraia
             items = item ?? Array.Empty<T>();
             var c = rotation ? Mathf.CeilToInt((float)items.Count / col) : row;
             var r = rotation ? col : Mathf.CeilToInt((float)items.Count / row);
-            content.sizeDelta = new Vector2(r * width, c * height);
+            scroll.content.sizeDelta = new Vector2(r * width, c * height);
 
-            var pos = content.anchoredPosition;
+            var pos = scroll.content.anchoredPosition;
             var min = Mathf.Max(Mathf.FloorToInt(rotation ? pos.y / height : -pos.x / width) * cor, 0);
             var max = Mathf.Min(min + roc * cor - 1, items.Count - 1);
             Reload(min, max, selected);
@@ -158,9 +154,9 @@ namespace Astraia
             items = item ?? Array.Empty<T>();
             var c = rotation ? Mathf.CeilToInt((float)items.Count / col) : row;
             var r = rotation ? col : Mathf.CeilToInt((float)items.Count / row);
-            content.sizeDelta = new Vector2(r * width, c * height);
+            scroll.content.sizeDelta = new Vector2(r * width, c * height);
 
-            var pos = content.anchoredPosition;
+            var pos = scroll.content.anchoredPosition;
             var min = Mathf.Max(Mathf.FloorToInt(rotation ? pos.y / height : -pos.x / width) * cor, 0);
             var max = Mathf.Min(min + roc * cor - 1, items.Count - 1);
             Reload(min, max, selected);
@@ -208,7 +204,7 @@ namespace Astraia
                 return;
             }
 
-            grid = PoolManager.Show<TGrid>(assetPath, content, assetName);
+            grid = PoolManager.Show<TGrid>(assetPath, scroll.content, assetName);
             grids[index] = grid;
 
             if (grid.TryGetComponent(out RectTransform rect))
@@ -233,6 +229,7 @@ namespace Astraia
 
         public void Move(int index, MoveDirection move)
         {
+            var content = scroll.content;
             var pos = content.anchoredPosition;
             switch (move)
             {

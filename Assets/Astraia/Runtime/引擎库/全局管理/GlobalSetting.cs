@@ -49,9 +49,9 @@ namespace Astraia
 #endif
         public AssetMode AssetMode = AssetMode.Resource;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowIf("AssetMode", AssetMode.Resource)] [ValueDropdown("UpdateEncryptGroup")]
+        [ShowIf("AssetMode", AssetMode.Resource)] [ValueDropdown("UpdateEncryptKey")]
 #endif
-        public int EncryptKey = 1;
+        public int EncryptKey;
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [ShowIf("AssetMode", AssetMode.Simulate)]
 #endif
@@ -76,33 +76,31 @@ namespace Astraia
             Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
         }
 
-        private static readonly Dictionary<AssetData, TextAsset> assetData = new Dictionary<AssetData, TextAsset>();
+        private static readonly Dictionary<AssetData, TextAsset> TextAssets = new Dictionary<AssetData, TextAsset>();
 
         public static string LoadAsset(AssetData option)
         {
-            if (assetData.Count > 0)
+            if (TextAssets.Count <= 0)
             {
-                return assetData[option].text;
+                var items = Resources.LoadAll<TextAsset>(nameof(GlobalSetting));
+                for (var i = 0; i < items.Length; i++)
+                {
+                    TextAssets[(AssetData)i] = items[i];
+                }
             }
 
-            var items = Resources.LoadAll<TextAsset>(nameof(GlobalSetting));
-            for (int i = 0; i < items.Length; i++)
-            {
-                assetData.Add((AssetData)i, items[i]);
-            }
-
-            return assetData[option].text;
+            return TextAssets[option].text;
         }
 
 #if UNITY_EDITOR
-        public const string Scripts = "Assets/Scripts/程序集B";
-        public const string Assembly = Scripts + "/" + DEFINE + ".asmdef";
-        public const string EnumPath = Scripts + "/枚举类/{0}.cs";
-        public const string ItemPath = Scripts + "/结构体/{0}.cs";
-        public const string DataPath = Scripts + "/数据表/{0}DataTable.cs";
-        public const string EditTable = BUNDLE + "/" + SHEETS + "DataTable.asset";
-        public const string SheetData = "Astraia.Table.{0}Data," + DEFINE;
-        public const string SheetName = "Astraia.Table.{0}DataTable";
+        public const string SCRIPT = "Assets/Scripts/程序集B";
+        public const string TABLES = BUNDLE + "/" + SHEETS + "DataTable.asset";
+        public const string ASMDEF = SCRIPT + "/" + DEFINE + ".asmdef";
+        public const string PATH_A = SCRIPT + "/枚举类/{0}.cs";
+        public const string PATH_B = SCRIPT + "/结构体/{0}.cs";
+        public const string PATH_C = SCRIPT + "/数据表/{0}DataTable.cs";
+        public const string NAME_A = "Astraia.Table.{0}Data" + "," + DEFINE;
+        public const string NAME_B = "Astraia.Table.{0}DataTable";
 #if ODIN_INSPECTOR
         [EnumToggleButtons]
 #endif
@@ -116,7 +114,7 @@ namespace Astraia
 #endif
         public List<Object> ignoreAssets = new List<Object>();
 #if ODIN_INSPECTOR
-        [PropertyOrder(1)]
+        [HideInInspector]
 #endif
         public List<Object> cacheAssets = new List<Object>();
 #if ODIN_INSPECTOR
@@ -132,13 +130,7 @@ namespace Astraia
 #endif
         public static string RemoteAssetData => Path.Combine(RemoteAssetPath, VERIFY);
 #if ODIN_INSPECTOR
-        private IEnumerable<ValueDropdownItem<byte>> UpdateEncryptGroup()
-        {
-            for (byte i = 1; i <= EncryptGroup.Length; i++)
-            {
-                yield return new ValueDropdownItem<byte>(EncryptGroup[i - 1], i);
-            }
-        }
+        private IEnumerable<ValueDropdownItem<int>> UpdateEncryptKey => EncryptGroup.Select((item, i) => new ValueDropdownItem<int>(item, i));
 #endif
         public static void UpdateSceneSetting()
         {

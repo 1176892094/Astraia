@@ -54,7 +54,7 @@ namespace Astraia
 
                 Loaded = true;
                 var instance = false;
-                formItem.Add(GlobalSetting.Assembly, GlobalSetting.LoadAsset(AssetData.Assembly).Replace("REPLACE", GlobalSetting.DEFINE));
+                formItem.Add(GlobalSetting.ASMDEF, GlobalSetting.LoadAsset(AssetData.Assembly).Replace("REPLACE", GlobalSetting.DEFINE));
                 foreach (var item in formItem)
                 {
                     instance |= await Task.Run(() => WriteScripts(item.Key, item.Value));
@@ -182,7 +182,7 @@ namespace Astraia
 
             builder.Length = 0;
             HeapManager.Enqueue(builder);
-            return (GlobalSetting.DataPath.Format(className), scriptText);
+            return (GlobalSetting.PATH_C.Format(className), scriptText);
         }
 
         private static (string, string) WriteStruct(string className, string classType)
@@ -203,7 +203,7 @@ namespace Astraia
             scriptText = scriptText.Replace("//TODO:1", builder.ToString());
             builder.Length = 0;
             HeapManager.Enqueue(builder);
-            return (GlobalSetting.ItemPath.Format(className), scriptText);
+            return (GlobalSetting.PATH_B.Format(className), scriptText);
         }
 
         private static (string, string) WriteEnum(string className, IEnumerable<string> members, bool isFlags)
@@ -224,7 +224,7 @@ namespace Astraia
             scriptText = scriptText.Replace("//TODO:2", builder.ToString());
             builder.Length = 0;
             HeapManager.Enqueue(builder);
-            return (GlobalSetting.EnumPath.Format(className), scriptText);
+            return (GlobalSetting.PATH_A.Format(className), scriptText);
         }
 
         private static bool WriteScripts(string filePath, string fileData)

@@ -141,27 +141,27 @@ namespace Astraia
 
         private static async Task WriteAssets(string sheetName, List<string[]> scripts)
         {
-            var filePath = GlobalSetting.DataPath.Format(sheetName);
+            var filePath = GlobalSetting.PATH_C.Format(sheetName);
             if (!File.Exists(filePath))
             {
                 return;
             }
 
-            filePath = Path.GetDirectoryName(GlobalSetting.EditTable.Format(sheetName));
+            filePath = Path.GetDirectoryName(GlobalSetting.TABLES.Format(sheetName));
             if (!string.IsNullOrEmpty(filePath) && !Directory.Exists(filePath))
             {
                 Directory.CreateDirectory(filePath);
             }
 
-            filePath = GlobalSetting.EditTable.Format(sheetName);
+            filePath = GlobalSetting.TABLES.Format(sheetName);
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
             }
 
-            var fileData = (IDataTable)ScriptableObject.CreateInstance(GlobalSetting.SheetName.Format(sheetName));
+            var fileData = (IDataTable)ScriptableObject.CreateInstance(GlobalSetting.NAME_B.Format(sheetName));
             if (fileData == null) return;
-            var fileType = Search.GetType(GlobalSetting.SheetData.Format(sheetName));
+            var fileType = Search.GetType(GlobalSetting.NAME_A.Format(sheetName));
             await Task.Run(() =>
             {
                 foreach (var column in scripts)
