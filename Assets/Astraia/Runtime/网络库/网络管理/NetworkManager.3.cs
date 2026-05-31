@@ -71,8 +71,8 @@ namespace Astraia.Net
                 writer.WriteByte((byte)Lobby.更新房间数据);
                 writer.WriteString(Instance.roomName);
                 writer.WriteString(Instance.roomData);
-                writer.WriteByte((byte)roomMode);
                 writer.WriteInt32(Instance.maxPlayer);
+                writer.WriteInt32((byte)roomMode);
                 NetworkTransport.Instance.SendToServer(writer);
             }
 
@@ -119,7 +119,7 @@ namespace Astraia.Net
                     else if (opcode == Lobby.创建房间成功)
                     {
                         NetworkTransport.Instance.address = reader.ReadString();
-                        EventManager.Invoke(new LobbyCreateRoom(connection.address));
+                        EventManager.Invoke(new LobbyCreateRoom(NetworkTransport.Instance.address));
                     }
                     else if (opcode == Lobby.加入房间成功)
                     {

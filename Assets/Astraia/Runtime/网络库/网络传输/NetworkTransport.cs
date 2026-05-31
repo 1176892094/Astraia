@@ -34,8 +34,8 @@ namespace Astraia.Net
             {
                 using var writer = MemoryWriter.Pop();
                 writer.WriteByte((byte)Lobby.同步网络数据);
-                writer.WriteArraySegment(segment);
                 writer.WriteInt32(playerId);
+                writer.WriteArraySegment(segment);
                 Instance.SendToServer(writer);
             }
         }
@@ -44,8 +44,8 @@ namespace Astraia.Net
         {
             using var writer = MemoryWriter.Pop();
             writer.WriteByte((byte)Lobby.同步网络数据);
-            writer.WriteArraySegment(segment);
             writer.WriteInt32(0);
+            writer.WriteArraySegment(segment);
             Instance.SendToServer(writer);
         }
 
@@ -57,7 +57,7 @@ namespace Astraia.Net
             writer.WriteString(NetworkManager.Instance.roomName);
             writer.WriteString(NetworkManager.Instance.roomData);
             writer.WriteInt32(NetworkManager.Instance.maxPlayer);
-            writer.WriteByte((byte)NetworkManager.Instance.roomMode);
+            writer.WriteInt32((byte)NetworkManager.Instance.roomMode);
             Instance.SendToServer(writer);
         }
 
@@ -134,13 +134,13 @@ namespace Astraia.Net
     [Serializable]
     public struct LobbyData
     {
-        public int clientId;
-        public RoomMode roomMode;
-        public int maxCount;
-        public string roomData;
-        public string roomId;
-        public string roomName;
-        public int[] clients;
+        public int Host;
+        public int Count;
+        public RoomMode State;
+        public string Id;
+        public string Name;
+        public string Data;
+        public int[] Members;
     }
 
     internal abstract class Transport : MonoBehaviour
