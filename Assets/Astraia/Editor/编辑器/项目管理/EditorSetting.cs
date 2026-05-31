@@ -206,7 +206,7 @@ namespace Astraia
             if (File.Exists(GlobalSetting.RemoteAssetData))
             {
                 var readJson = await File.ReadAllTextAsync(GlobalSetting.RemoteAssetData);
-                items = JsonManager.FromJson<Verify>(readJson).bundles.ToDictionary(d => d.name, d => d.code);
+                items = JsonManager.FromJson<Verify>(readJson).Bundles.ToDictionary(d => d.Name, d => d.Code);
             }
 
             var files = folder.GetFiles();
@@ -221,7 +221,7 @@ namespace Astraia
                 var value = ComputeMD5(file.FullName);
                 if (items.TryGetValue(file.Name, out var item) && item == value)
                 {
-                    verify.bundles.Add(new Bundle(value, file.Name, (ulong)file.Length));
+                    verify.Bundles.Add(new Bundle(value, file.Name, file.Length));
                     Debug.Log("跳过未变更文件: {0}".Format(file.Name));
                     continue;
                 }
@@ -234,7 +234,7 @@ namespace Astraia
                 });
 
                 value = ComputeMD5(file.FullName);
-                verify.bundles.Add(new Bundle(value, file.Name, (ulong)file.Length));
+                verify.Bundles.Add(new Bundle(value, file.Name, file.Length));
                 Debug.Log("加密并更新文件: {0}".Color("G").Format(file.Name));
             }
 

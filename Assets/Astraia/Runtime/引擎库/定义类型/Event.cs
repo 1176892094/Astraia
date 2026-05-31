@@ -19,7 +19,7 @@ namespace System.Runtime.CompilerServices
 
 namespace Astraia.Core
 {
-    public record OnLoadBundle(ulong bytes) : IEvent;
+    public record OnLoadBundle(long bytes) : IEvent;
 
     public record OnBundleUpdate(string name, ulong bytes) : IEvent;
 

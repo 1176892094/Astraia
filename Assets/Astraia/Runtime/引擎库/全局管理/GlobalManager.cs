@@ -21,11 +21,11 @@ namespace Astraia.Core
     {
         public static GlobalManager Instance;
 
-        public static long version;
+        public static Verify verify;
         
         public static Canvas canvas;
 
-        public static AudioSource audioSource;
+        public static AudioSource source;
 
         internal static int musicVolume;
 

@@ -49,24 +49,24 @@ namespace Astraia.Core
             var isRemote = !string.IsNullOrEmpty(serverResult);
             if (isRemote)
             {
-                version = serverVerify.version;
-                if (streamVerify.version >= serverVerify.version)
+                verify = serverVerify;
+                if (streamVerify.Version >= serverVerify.Version)
                 {
                     serverData = streamData;
                     serverResult = streamResult;
                     isRemote = false;
-                    version = streamVerify.version;
+                    verify = streamVerify;
                 }
             }
             else
             {
-                version = clientVerify.version;
-                if (streamVerify.version > clientVerify.version)
+                verify = clientVerify;
+                if (streamVerify.Version > clientVerify.Version)
                 {
                     serverData = streamData;
                     serverResult = streamResult;
                     EventManager.Invoke(new OnBundleComplete(-1, "本地资源需要更新!"));
-                    version = streamVerify.version;
+                    verify = streamVerify;
                 }
                 else
                 {
@@ -80,7 +80,7 @@ namespace Astraia.Core
             {
                 if (clientData.TryGetValue(key, out var bundle))
                 {
-                    if (serverData[key] != bundle)
+                    if (!serverData[key].Equals(bundle))
                     {
                         names.Add(key);
                     }
@@ -93,12 +93,12 @@ namespace Astraia.Core
                 }
             }
 
-            var bytes = 0UL;
+            var bytes = 0L;
             foreach (var name in names)
             {
                 if (serverData.TryGetValue(name, out var value))
                 {
-                    bytes += value.size;
+                    bytes += value.Size;
                 }
             }
 
@@ -127,9 +127,9 @@ namespace Astraia.Core
             if (!string.IsNullOrEmpty(request))
             {
                 var verify = JsonManager.FromJson<Verify>(request);
-                foreach (var item in verify.bundles)
+                foreach (var item in verify.Bundles)
                 {
-                    result.Add(item.name, item);
+                    result.Add(item.Name, item);
                 }
 
                 return verify;
@@ -301,39 +301,35 @@ namespace Astraia.Core
     }
 
     [Serializable]
-    internal struct Verify
+    public struct Verify
     {
-        public long version;
-        public List<Bundle> bundles;
+        public long Version;
+        public List<Bundle> Bundles;
 
         public Verify(long version)
         {
-            this.version = version;
-            bundles = bundles = new List<Bundle>();
+            Version = version;
+            Bundles = new List<Bundle>();
         }
     }
 
     [Serializable]
-    internal struct Bundle : IEquatable<Bundle>
+    public struct Bundle : IEquatable<Bundle>
     {
-        public string code;
-        public string name;
-        public ulong size;
+        public long Size;
+        public string Code;
+        public string Name;
 
-        public Bundle(string code, string name, ulong size)
+        public Bundle(string code, string name, long size)
         {
-            this.code = code;
-            this.name = name;
-            this.size = size;
+            Code = code;
+            Name = name;
+            Size = size;
         }
-
-        public static bool operator ==(Bundle a, Bundle b) => a.code == b.code;
-
-        public static bool operator !=(Bundle a, Bundle b) => a.code != b.code;
 
         public bool Equals(Bundle other)
         {
-            return size == other.size && code == other.code && name == other.name;
+            return Code == other.Code;
         }
 
         public override bool Equals(object obj)
@@ -343,7 +339,7 @@ namespace Astraia.Core
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(code, name, size);
+            return HashCode.Combine(Code, Name, Size);
         }
     }
 }
