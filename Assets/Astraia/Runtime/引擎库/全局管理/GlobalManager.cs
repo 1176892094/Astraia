@@ -38,7 +38,7 @@ namespace Astraia.Core
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly List<AudioSource> audioLoop = new List<AudioSource>();
+        internal static readonly IList<AudioSource> audioLoop = new List<AudioSource>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif

@@ -54,7 +54,7 @@ namespace Astraia
 
                 Loaded = true;
                 var instance = false;
-                formItem.Add(GlobalSetting.Assembly, GlobalSetting.LoadAsset(AssetData.Assembly).Replace("REPLACE", GlobalSetting.Define));
+                formItem.Add(GlobalSetting.Assembly, GlobalSetting.LoadAsset(AssetData.Assembly).Replace("REPLACE", GlobalSetting.DEFINE));
                 foreach (var item in formItem)
                 {
                     instance |= await Task.Run(() => WriteScripts(item.Key, item.Value));

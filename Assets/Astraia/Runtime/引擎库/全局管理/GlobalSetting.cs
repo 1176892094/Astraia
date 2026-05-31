@@ -31,14 +31,15 @@ namespace Astraia
 
         public static GlobalSetting Instance => instance ??= Resources.Load<GlobalSetting>(nameof(GlobalSetting));
 
-        public const string Scene = "Scenes/{0}";
-        public const string Audio = "Audios/{0}";
-        public const string Table = "DataTable/{0}";
-        public const string Prefab = "Prefabs/{0}";
-        public const string Define = "HotUpdate.Data";
-        public const string Target = "{0}/AssetBundles";
-        public const string Verify = "AssetBundle.json";
-        public const string Bundle = "Assets/AssetBundles";
+        public const string SCENES = "Scenes/{0}";
+        public const string AUDIOS = "Audios/{0}";
+        public const string PREFAB = "Prefabs/{0}";
+        public const string SHEETS = "DataTable/{0}";
+        public const string TARGET = "{0}/AssetBundles";
+        public const string DEFINE = "HotUpdate.Data";
+        public const string VERIFY = "AssetBundle.json";
+        public const string BUNDLE = "Assets/AssetBundles";
+
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [EnumToggleButtons]
 #endif
@@ -55,34 +56,23 @@ namespace Astraia
         [ShowIf("AssetMode", AssetMode.Simulate)]
 #endif
         public string RemotePath = "https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main";
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [EnumToggleButtons]
-#endif
-        public InputMask InputMask = InputMask.Enable;
+
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [PropertyOrder(1)]
 #endif
         public string[] EncryptGroup;
 
-        public static string EditorPath => Target.Format(Path.GetDirectoryName(Application.dataPath));
-        public static string BundlePath => Target.Format(Application.persistentDataPath);
-        public static string TargetPath => Target.Format(Application.persistentDataPath) + "/{0}";
+        public static string EditorPath => TARGET.Format(Path.GetDirectoryName(Application.dataPath));
+        public static string BundlePath => TARGET.Format(Application.persistentDataPath);
+        public static string TargetPath => TARGET.Format(Application.persistentDataPath) + "/{0}";
         public static string ServerPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget + "/{0}");
         public static string ClientPath => Path.Combine(Application.streamingAssetsPath, Instance.BuildTarget + "/{0}");
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            for (byte i = 1; i < Instance.EncryptGroup.Length; i++)
-            {
-                Xor.LoadData(i, Instance.EncryptGroup[i]);
-            }
-
-            if (Instance.InputMask != InputMask.Disable)
-            {
-                Word.LoadData(LoadAsset(AssetData.Input));
-            }
-
+            Xor.LoadData(Instance.EncryptGroup);
+            Bad.LoadData(LoadAsset(AssetData.BadWord));
             Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
         }
 
@@ -106,12 +96,12 @@ namespace Astraia
 
 #if UNITY_EDITOR
         public const string Scripts = "Assets/Scripts/程序集B";
-        public const string Assembly = Scripts + "/" + Define + ".asmdef";
+        public const string Assembly = Scripts + "/" + DEFINE + ".asmdef";
         public const string EnumPath = Scripts + "/枚举类/{0}.cs";
         public const string ItemPath = Scripts + "/结构体/{0}.cs";
         public const string DataPath = Scripts + "/数据表/{0}DataTable.cs";
-        public const string EditTable = Bundle + "/" + Table + "DataTable.asset";
-        public const string SheetData = "Astraia.Table.{0}Data," + Define;
+        public const string EditTable = BUNDLE + "/" + SHEETS + "DataTable.asset";
+        public const string SheetData = "Astraia.Table.{0}Data," + DEFINE;
         public const string SheetName = "Astraia.Table.{0}DataTable";
 #if ODIN_INSPECTOR
         [EnumToggleButtons]
@@ -140,7 +130,7 @@ namespace Astraia
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string RemoteAssetData => Path.Combine(RemoteAssetPath, Verify);
+        public static string RemoteAssetData => Path.Combine(RemoteAssetPath, VERIFY);
 #if ODIN_INSPECTOR
         private IEnumerable<ValueDropdownItem<byte>> UpdateEncryptGroup()
         {

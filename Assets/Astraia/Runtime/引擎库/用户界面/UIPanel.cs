@@ -76,11 +76,11 @@ namespace Astraia
                 selected = rect.selected;
             }
 
-            assetName = GlobalSetting.Prefab.Format(typeof(TGrid).Name);
+            assetName = GlobalSetting.PREFAB.Format(typeof(TGrid).Name);
             assetPath = assetName;
             if (typeof(TGrid).GetAttribute(out UIPathAttribute path))
             {
-                assetPath = GlobalSetting.Prefab.Format(path.asset);
+                assetPath = GlobalSetting.PREFAB.Format(path.asset);
             }
 
             content.pivot = Vector2.up;

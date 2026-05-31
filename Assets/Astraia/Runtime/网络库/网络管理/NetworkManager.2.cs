@@ -357,7 +357,7 @@ namespace Astraia.Net
 
                 if (message.sceneId == 0)
                 {
-                    var prefab = AssetManager.Load<GameObject>(GlobalSetting.Prefab.Format(message.assetId));
+                    var prefab = AssetManager.Load<GameObject>(GlobalSetting.PREFAB.Format(message.assetId));
                     if (!prefab.TryGetComponent(out entity))
                     {
                         Log.Error("无法注册网络对象 {0} 没有网络对象组件。", prefab.name);

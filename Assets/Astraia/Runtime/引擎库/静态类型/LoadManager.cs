@@ -36,14 +36,14 @@ namespace Astraia.Core
                 Directory.CreateDirectory(GlobalSetting.BundlePath);
             }
 
-            var processingData = GlobalSetting.ServerPath.Format(GlobalSetting.Verify);
-            var persistentData = GlobalSetting.TargetPath.Format(GlobalSetting.Verify);
-            var streamingAsset = GlobalSetting.ClientPath.Format(GlobalSetting.Verify);
+            var processingData = GlobalSetting.ServerPath.Format(GlobalSetting.VERIFY);
+            var persistentData = GlobalSetting.TargetPath.Format(GlobalSetting.VERIFY);
+            var streamingAsset = GlobalSetting.ClientPath.Format(GlobalSetting.VERIFY);
             var streamResult = await LoadClientRequest(persistentData, streamingAsset, true);
             var streamVerify = LoadVerifyRequest(streamResult, out var streamData);
             var clientResult = await LoadClientRequest(persistentData, streamingAsset);
             var clientVerify = LoadVerifyRequest(clientResult, out var clientData);
-            var serverResult = await LoadServerRequest(processingData, GlobalSetting.Verify);
+            var serverResult = await LoadServerRequest(processingData, GlobalSetting.VERIFY);
 
             var serverVerify = LoadVerifyRequest(serverResult, out var serverData);
             var isRemote = !string.IsNullOrEmpty(serverResult);

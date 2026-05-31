@@ -123,15 +123,18 @@ namespace Astraia
         private const string NORMAL = "A1B2C3D4E5F6G7H8";
         private const ushort LENGTH = 0x0010;
 
-        public static void LoadData(int version, string value)
+        public static void LoadData(params string[] args)
         {
-            var item = Text.GetBytes(value);
-            if (item.Length != LENGTH)
+            for (int i = 0; i < args.Length; i++)
             {
-                Array.Resize(ref item, LENGTH);
-            }
+                var item = Text.GetBytes(args[i]);
+                if (item.Length != LENGTH)
+                {
+                    Array.Resize(ref item, LENGTH);
+                }
 
-            KeyMap[version] = item;
+                KeyMap[i + 1] = item;
+            }
         }
 
         public static unsafe byte[] Encrypt(byte[] data, int version = 0)
@@ -521,7 +524,7 @@ namespace Astraia
 
 namespace Astraia
 {
-    internal static class Word
+    internal static class Bad
     {
         private class Node
         {
@@ -999,7 +1002,7 @@ namespace Astraia
 
         public static string Mask(this string result, char mask = '*')
         {
-            return Word.Invoke(result, mask);
+            return Bad.Invoke(result, mask);
         }
 
         public static string Limit(this string result, int count)

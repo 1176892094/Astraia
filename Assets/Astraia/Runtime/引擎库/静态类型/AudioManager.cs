@@ -86,7 +86,7 @@ namespace Astraia.Core
             switch (state)
             {
                 case AudioState.Play:
-                    var result = GlobalSetting.Audio.Format(name);
+                    var result = GlobalSetting.AUDIOS.Format(name);
                     audioSource.clip = AssetManager.Load<AudioClip>(result);
                     audioSource.loop = true;
                     audioSource.volume = musicVolume * 0.01F;
@@ -108,7 +108,7 @@ namespace Astraia.Core
                 return null;
             }
 
-            var result = GlobalSetting.Audio.Format(name);
+            var result = GlobalSetting.AUDIOS.Format(name);
             var source = PoolManager.Show<AudioSource>(result, typeof(AudioSource));
             source.clip = AssetManager.Load<AudioClip>(result);
             source.loop = mode == AudioMode.Loop;

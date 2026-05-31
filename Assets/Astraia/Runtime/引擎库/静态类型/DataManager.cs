@@ -22,12 +22,12 @@ namespace Astraia.Core
     {
         public static void LoadDataTable()
         {
-            var assembly = Search.GetAssembly(GlobalSetting.Define);
+            var assembly = Search.GetAssembly(GlobalSetting.DEFINE);
             if (assembly != null)
             {
                 foreach (var assetName in assembly.GetTypes().Where(type => typeof(IDataTable).IsAssignableFrom(type)).Select(type => type.Name))
                 { 
-                    var dataTable = (IDataTable)AssetManager.Load<ScriptableObject>(GlobalSetting.Table.Format(assetName));
+                    var dataTable = (IDataTable)AssetManager.Load<ScriptableObject>(GlobalSetting.SHEETS.Format(assetName));
                     if (dataTable != null)
                     {
                         var properties = dataTable.Type.GetProperties(Search.Instance);

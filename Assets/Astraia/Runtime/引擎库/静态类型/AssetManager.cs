@@ -192,7 +192,7 @@ namespace Astraia.Core
             try
             {
                 if (!Instance) return;
-                var scene = LoadSceneAsset(GlobalSetting.Scene.Format(reason));
+                var scene = LoadSceneAsset(GlobalSetting.SCENES.Format(reason));
                 if (!string.IsNullOrEmpty(scene))
                 {
                     EventManager.Invoke(new OnLoadScene(reason));
