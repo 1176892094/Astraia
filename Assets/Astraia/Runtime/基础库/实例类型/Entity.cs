@@ -337,17 +337,23 @@ namespace Astraia
     [Serializable]
     public class Enumerable<T> : IEnumerable<T>
     {
-        public readonly T[] items;
-        public int count;
+        private readonly T[] Items;
+        public int Count;
 
         public Enumerable(int count)
         {
-            items = new T[count];
+            Items = new T[count];
+        }
+
+        public T this[int index]
+        {
+            get => Items[index];
+            set => Items[index] = value;
         }
 
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(items, count);
+            return new Enumerator(Items, Count);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -360,35 +366,39 @@ namespace Astraia
             return GetEnumerator();
         }
 
+        public static implicit operator T[](Enumerable<T> value)
+        {
+            return value.Items;
+        }
+
         public struct Enumerator : IEnumerator<T>
         {
-            private readonly T[] items;
-            private readonly int count;
-            private int index;
-            public T Current => items[index];
-            object IEnumerator.Current => items[index];
+            private readonly T[] Items;
+            private readonly int Count;
+            private int Index;
+            public T Current => Items[Index];
+            object IEnumerator.Current => Items[Index];
 
             public Enumerator(T[] items, int count)
             {
-                this.items = items;
-                this.count = count;
-                index = -1;
+                Index = -1;
+                Items = items;
+                Count = count;
             }
 
             public bool MoveNext()
             {
-                index++;
-                return index < count;
+                return ++Index < Count;
             }
 
             public void Reset()
             {
-                index = -1;
+                Index = -1;
             }
 
             public void Dispose()
             {
-                index = -1;
+                Index = -1;
             }
         }
     }
@@ -897,8 +907,8 @@ namespace Astraia
             var item = HeapManager.Dequeue<Timer>();
             TimeManager.OnUpdate += item.Update;
             item.owner = owner;
-            item.progress = 1;
             item.state = 0;
+            item.progress = 1;
             item.duration = duration;
             item.waitTime = duration + TimeManager.TimeStep;
             item.onComplete = item.Release;
@@ -971,8 +981,8 @@ namespace Astraia
             var item = HeapManager.Dequeue<Tween>();
             TimeManager.OnUpdate += item.Update;
             item.owner = owner;
-            item.progress = 0;
             item.state = 0;
+            item.progress = 0;
             item.duration = duration;
             item.waitTime = TimeManager.TimeStep;
             item.onComplete = item.Release;
