@@ -11,14 +11,14 @@ namespace Runtime
 
         public static Enumerable<RaycastHit2D> BoxCast(this Collider2D collider, Vector2 direction, float distance)
         {
-            Hits.count = collider.Cast(direction, LayerConst.Ground, Hits.items, distance);
+            Hits.Count = collider.Cast(direction, LayerConst.Ground, Hits, distance);
             return Hits;
         }
 
         public static Enumerable<RaycastHit2D> Raycast(this Collider2D collider, Vector2 direction, float distance)
         {
             Debug.DrawLine(collider.bounds.center, collider.bounds.center + (Vector3)(direction.normalized * distance), Color.blue);
-            Hits.count = collider.Raycast(direction, LayerConst.Ground, Hits.items, distance);
+            Hits.Count = collider.Raycast(direction, LayerConst.Ground, Hits, distance);
             return Hits;
         }
 
@@ -28,12 +28,12 @@ namespace Runtime
             var origin1 = new Vector2(bounds.min.x, bounds.max.y);
             var origin2 = new Vector2(bounds.max.x, bounds.max.y);
             var state = 0;
-            if (Physics2D.Raycast(origin1, Vector2.up, LayerConst.Ground, Hits.items, distance) > 0)
+            if (Physics2D.Raycast(origin1, Vector2.up, LayerConst.Ground, Hits, distance) > 0)
             {
                 state |= 1 << 0;
             }
 
-            if (Physics2D.Raycast(origin2, Vector2.up, LayerConst.Ground, Hits.items, distance) > 0)
+            if (Physics2D.Raycast(origin2, Vector2.up, LayerConst.Ground, Hits, distance) > 0)
             {
                 state |= 1 << 1;
             }
@@ -58,12 +58,12 @@ namespace Runtime
             }
 
             var state = 0;
-            if (Physics2D.Raycast(origin1, Vector2.right * direction, LayerConst.Ground, Hits.items, distance) > 0)
+            if (Physics2D.Raycast(origin1, Vector2.right * direction, LayerConst.Ground, Hits, distance) > 0)
             {
                 state |= 1 << 0;
             }
 
-            if (Physics2D.Raycast(origin2, Vector2.right * direction, LayerConst.Ground, Hits.items, distance) > 0)
+            if (Physics2D.Raycast(origin2, Vector2.right * direction, LayerConst.Ground, Hits, distance) > 0)
             {
                 state |= 1 << 1;
             }
