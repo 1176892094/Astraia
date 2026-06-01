@@ -186,6 +186,12 @@ namespace Astraia.Core
             return "<color={0}>{1}</color>".Format(colors.GetValueOrDefault(format[0], format), result);
         }
 
+        public static T GetOrAddComponent<T>(this Component self) where T : Component
+        {
+            var component = self.GetComponent<T>();
+            return component ? component : self.gameObject.AddComponent<T>();
+        }
+
         public static T GetOrAddComponent<T>(this GameObject self) where T : Component
         {
             var component = self.GetComponent<T>();

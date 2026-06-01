@@ -337,7 +337,7 @@ namespace Astraia
     [Serializable]
     public class Enumerable<T> : IEnumerable<T>
     {
-        private readonly T[] Items;
+        private T[] Items;
         public int Count;
 
         public Enumerable(int count)
@@ -349,6 +349,12 @@ namespace Astraia
         {
             get => Items[index];
             set => Items[index] = value;
+        }
+
+        public void Clear()
+        {
+            Count = 0;
+            Items = null;
         }
 
         public Enumerator GetEnumerator()
