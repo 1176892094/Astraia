@@ -3883,7 +3883,7 @@ Tilemap:
   m_Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
   m_Origin: {x: -19, y: -12, z: 0}
   m_Size: {x: 38, y: 23, z: 1}
-  m_TileAnchor: {x: 0, y: 0, z: 0}
+  m_TileAnchor: {x: 0.5, y: 0.5, z: 0}
   m_TileOrientation: 0
   m_TileOrientationMatrix:
     e00: 1

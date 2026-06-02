@@ -130,14 +130,7 @@ namespace Runtime
             var moveY = Math.Abs(velocityY);
 
             var collisions = Machine.GetContacts(owner.collision, moveX, moveY);
-            foreach (var machine in owner.collisions)
-            {
-                if (Machine != machine)
-                {
-                    collisions.Add(machine);
-                }
-            }
-
+        
             foreach (var collision in collisions)
             {
                 if (signX != 0)

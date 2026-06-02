@@ -98,7 +98,7 @@ namespace Runtime
             transform.position = new Vector2(PositionX, PositionY) / FIX;
         }
 
-        public List<Collision> GetContacts(Tilemap map,int velocityX,int velocityY)
+        public List<Collision> GetContacts(Tilemap collider, int velocityX, int velocityY)
         {
             const float factor = FIX;
 
@@ -113,9 +113,9 @@ namespace Runtime
                 for (var y = minY; y <= maxY; y++)
                 {
                     var point = new Vector3Int(x, y, 0);
-                    if (map.HasTile(point))
+                    if (collider.HasTile(point))
                     {
-                        var center = map.GetCellCenterWorld(point);
+                        var center = collider.GetCellCenterWorld(point);
                         var centerX = Mathf.RoundToInt(center.x * factor);
                         var centerY = Mathf.RoundToInt(center.y * factor);
                         collisions.Add(new Collision(new Vector2Int(centerX, centerY), Vector2Int.one * FIX));

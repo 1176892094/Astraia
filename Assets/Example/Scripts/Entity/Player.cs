@@ -23,8 +23,7 @@ namespace Runtime
         public PlayerMachine Machine;
 
         public Tilemap collision;
-        public List<Rigidbody> collisions = new List<Rigidbody>();
-
+  
         protected override void Awake()
         {
             base.Awake();
