@@ -14,56 +14,28 @@ namespace Runtime
 
         public int Direction
         {
-            get
-            {
-                if (transform.localScale.x > 0)
-                {
-                    return 1;
-                }
-
-                if (transform.localScale.x < 0)
-                {
-                    return -1;
-                }
-
-                return 0;
-            }
+            get => Math.Sign(transform.localScale.x);
             set
             {
-                if (value > 0 && Direction < 0)
+                if ((value > 0 && Direction < 0) || (value < 0 && Direction > 0))
                 {
                     if (isOwner)
                     {
-                        SetDirectionServerRpc(1);
+                        SetDirectionServerRpc(value);
                     }
                     else if (isServer)
                     {
-                        SetDirectionClientRpc(1);
+                        SetDirectionClientRpc(value);
                     }
 
-                    transform.localScale = new Vector3(1, 1, 1);
-                    return;
-                }
-
-                if (value < 0 && Direction > 0)
-                {
-                    if (isOwner)
-                    {
-                        SetDirectionServerRpc(-1);
-                    }
-                    else if (isServer)
-                    {
-                        SetDirectionClientRpc(-1);
-                    }
-
-                    transform.localScale = new Vector3(-1, 1, 1);
+                    transform.localScale = new Vector3(value, 1, 1);
                 }
             }
         }
 
         private void OnValueChanged(Color32 oldValue, Color32 newValue)
         {
-            GetComponent<PlayerMachine>().renderer.color = newValue;
+            GetComponentInChildren<SpriteRenderer>().color = newValue;
         }
 
         [ServerRpc]

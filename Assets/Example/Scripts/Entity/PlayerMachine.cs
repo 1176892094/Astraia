@@ -1,24 +1,21 @@
 using Astraia;
-using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerMachine : MonoBehaviour
+    public class PlayerMachine : Rigidbody
     {
         private readonly StateMachine<int> machine = new StateMachine<int>();
         private Player owner;
-        public new Collider2D collider;
-        public new SpriteRenderer renderer;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             owner = GetComponent<Player>();
-            collider = GetComponent<Collider2D>();
-            renderer = GetComponentInChildren<SpriteRenderer>();
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             machine.Clear();
         }
 

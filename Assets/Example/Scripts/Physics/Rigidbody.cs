@@ -3,59 +3,67 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-namespace Example.Scripts.Physics
+namespace Runtime
 {
     [Serializable]
     public class Rigidbody : MonoBehaviour
     {
         public const int FIX = 100;
 
-        public Vector2 Size = Vector2.one;
-        public Vector2Int Offset;
-        public Vector2Int Position;
-        public Vector2Int Velocity;
-        public List<Collision> Collisions = new List<Collision>();
-        public Vector2Int Range => new Vector2Int(Mathf.RoundToInt(Size.x * FIX), Mathf.RoundToInt(Size.y * FIX));
-        public Collision Bounds => new Collision(Position + Offset, Range);
+        public Vector2 size = Vector2.one;
+        public Vector2Int offset;
+        public Vector2Int position;
+        public Vector2Int velocity;
+        public List<Collision> collisions = new List<Collision>();
 
         public int PositionX
         {
-            get => Position.x;
-            set => Position.x = value;
+            get => position.x;
+            set => position.x = value;
         }
 
         public int PositionY
         {
-            get => Position.y;
-            set => Position.y = value;
+            get => position.y;
+            set => position.y = value;
         }
 
         public int VelocityX
         {
-            get => Velocity.x;
-            set => Velocity.x = value;
+            get => velocity.x;
+            set => velocity.x = value;
         }
 
         public int VelocityY
         {
-            get => Velocity.y;
-            set => Velocity.y = value;
+            get => velocity.y;
+            set => velocity.y = value;
         }
 
-        private void Awake()
+        public Collision Bounds
+        {
+            get
+            {
+                var sizeX = Mathf.RoundToInt(size.x * FIX);
+                var sizeY = Mathf.RoundToInt(size.y * FIX);
+                return new Collision(position + offset, new Vector2Int(sizeX, sizeY));
+            }
+        }
+
+        protected virtual void Awake()
         {
             MovePosition(transform.position);
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
-            Collisions.Clear();
+            collisions.Clear();
         }
 
         public void OnDrawGizmosSelected()
         {
-            Vector2 position = transform.position * FIX;
-            Gizmos.DrawWireCube((position + Offset) / FIX, Size);
+            Vector2 pos = transform.position * FIX;
+            Gizmos.DrawWireCube((pos + offset) / FIX, size);
         }
 
         public bool Contains(Vector2 point)
@@ -90,16 +98,16 @@ namespace Example.Scripts.Physics
             transform.position = new Vector2(PositionX, PositionY) / FIX;
         }
 
-        public List<Collision> GetContacts(Tilemap map)
+        public List<Collision> GetContacts(Tilemap map,int velocityX,int velocityY)
         {
             const float factor = FIX;
 
-            var minX = Mathf.FloorToInt(Bounds.MinX / factor);
-            var minY = Mathf.FloorToInt(Bounds.MinY / factor);
-            var maxX = Mathf.CeilToInt(Bounds.MaxX / factor);
-            var maxY = Mathf.CeilToInt(Bounds.MaxY / factor);
+            var minX = Mathf.FloorToInt((Bounds.MinX - velocityX) / factor);
+            var minY = Mathf.FloorToInt((Bounds.MinY - velocityY) / factor);
+            var maxX = Mathf.CeilToInt((Bounds.MaxX + velocityX) / factor);
+            var maxY = Mathf.CeilToInt((Bounds.MaxY + velocityY) / factor);
 
-            Collisions.Clear();
+            collisions.Clear();
             for (var x = minX; x <= maxX; x++)
             {
                 for (var y = minY; y <= maxY; y++)
@@ -110,12 +118,12 @@ namespace Example.Scripts.Physics
                         var center = map.GetCellCenterWorld(point);
                         var centerX = Mathf.RoundToInt(center.x * factor);
                         var centerY = Mathf.RoundToInt(center.y * factor);
-                        Collisions.Add(new Collision(new Vector2Int(centerX, centerY), Vector2Int.one * FIX));
+                        collisions.Add(new Collision(new Vector2Int(centerX, centerY), Vector2Int.one * FIX));
                     }
                 }
             }
 
-            return Collisions;
+            return collisions;
         }
 
         public static implicit operator Collision(Rigidbody rigidbody)
