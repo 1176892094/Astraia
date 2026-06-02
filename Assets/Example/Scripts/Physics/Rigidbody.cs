@@ -1,53 +1,51 @@
 using System;
-using System.Collections.Generic;
+using Astraia;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 namespace Runtime
 {
     [Serializable]
     public class Rigidbody : MonoBehaviour
     {
-        public const int FIX = 200;
+        private static readonly Enumerable<RaycastHit2D> Hits = new Enumerable<RaycastHit2D>(8);
+        public const float FIX = 250;
+        public const float PIX = 1 / 16F;
+        public Vector2Int Position;
+        public Vector2Int Velocity;
+        public Collider2D Collider;
+        private Bounds bounds => new Bounds(position + Collider.offset, Collider.bounds.size);
+        private Vector2 position => new Vector3(positionX, positionY) / FIX;
+        private Vector2 topLeft => new Vector2(minX, maxY);
+        private Vector2 topRight => new Vector2(maxX, maxY);
+        private Vector2 botLeft => new Vector2(minX, minY);
+        private Vector2 botRight => new Vector2(maxX, minY);
+        private float minX => bounds.center.x - bounds.extents.x;
+        private float minY => bounds.center.y - bounds.extents.y;
+        private float maxX => bounds.center.x + bounds.extents.x;
+        private float maxY => bounds.center.y + bounds.extents.y;
 
-        public Vector2 size = Vector2.one;
-        public Vector2Int offset;
-        public Vector2Int position;
-        public Vector2Int velocity;
-        public List<Collision> collisions = new List<Collision>();
-
-        public int PositionX
+        public int positionX
         {
-            get => position.x;
-            set => position.x = value;
+            get => Position.x;
+            set => Position.x = value;
         }
 
-        public int PositionY
+        public int positionY
         {
-            get => position.y;
-            set => position.y = value;
+            get => Position.y;
+            set => Position.y = value;
         }
 
-        public int VelocityX
+        public int velocityX
         {
-            get => velocity.x;
-            set => velocity.x = value;
+            get => Velocity.x;
+            set => Velocity.x = value;
         }
 
-        public int VelocityY
+        public int velocityY
         {
-            get => velocity.y;
-            set => velocity.y = value;
-        }
-
-        public Collision Bounds
-        {
-            get
-            {
-                var sizeX = Mathf.RoundToInt(size.x * FIX);
-                var sizeY = Mathf.RoundToInt(size.y * FIX);
-                return new Collision(position + offset, new Vector2Int(sizeX, sizeY));
-            }
+            get => Velocity.y;
+            set => Velocity.y = value;
         }
 
         protected virtual void Awake()
@@ -55,245 +53,67 @@ namespace Runtime
             MovePosition(transform.position);
         }
 
-        protected virtual void OnDestroy()
-        {
-            collisions.Clear();
-        }
-
-        public void OnDrawGizmosSelected()
-        {
-            Vector2 pos = transform.position * FIX;
-            Gizmos.DrawWireCube((pos + offset) / FIX, size);
-        }
-
-        public bool Contains(Vector2 point)
-        {
-            return Bounds.Contains(point);
-        }
-
-        public bool Overlap(Collision other)
-        {
-            return Bounds.Overlap(other);
-        }
-
-        public bool Overlap(Vector2 center, Vector2 size)
-        {
-            return Bounds.Overlap(center, size);
-        }
-
-        public int BoxCast(Collision target, Vector2 direction, int distance)
-        {
-            return Bounds.BoxCast(target, direction, distance);
-        }
-
         public void MovePosition()
         {
-            transform.position = new Vector2(PositionX, PositionY) / FIX;
+            var worldPos = position;
+            worldPos.x = Mathf.Round(worldPos.x / PIX) * PIX;
+            worldPos.y = Mathf.Round(worldPos.y / PIX) * PIX;
+            transform.position = worldPos;
         }
 
-        public void MovePosition(Vector2 position)
+        public void MovePosition(Vector2 worldPos)
         {
-            PositionX = Mathf.RoundToInt(position.x * FIX);
-            PositionY = Mathf.RoundToInt(position.y * FIX);
-            transform.position = new Vector2(PositionX, PositionY) / FIX;
+            positionX = Mathf.RoundToInt(worldPos.x * FIX);
+            positionY = Mathf.RoundToInt(worldPos.y * FIX);
+            MovePosition();
         }
 
-        public List<Collision> GetContacts(Tilemap collider, int velocityX, int velocityY)
+        public Enumerable<RaycastHit2D> Boxcast(Vector2 direction, float distance, ContactFilter2D layerMask)
         {
-            const float factor = FIX;
-
-            var minX = Mathf.FloorToInt((Bounds.MinX - velocityX) / factor);
-            var minY = Mathf.FloorToInt((Bounds.MinY - velocityY) / factor);
-            var maxX = Mathf.CeilToInt((Bounds.MaxX + velocityX) / factor);
-            var maxY = Mathf.CeilToInt((Bounds.MaxY + velocityY) / factor);
-
-            collisions.Clear();
-            for (var x = minX; x <= maxX; x++)
-            {
-                for (var y = minY; y <= maxY; y++)
-                {
-                    var point = new Vector3Int(x, y, 0);
-                    if (collider.HasTile(point))
-                    {
-                        var center = collider.GetCellCenterWorld(point);
-                        var centerX = Mathf.RoundToInt(center.x * factor);
-                        var centerY = Mathf.RoundToInt(center.y * factor);
-                        collisions.Add(new Collision(new Vector2Int(centerX, centerY), Vector2Int.one * FIX));
-                    }
-                }
-            }
-
-            return collisions;
+            Hits.Count = Physics2D.BoxCast(position + direction / FIX, bounds.size, 0, direction, layerMask, Hits, distance / FIX);
+            return Hits;
         }
 
-        public static implicit operator Collision(Rigidbody rigidbody)
+        public Enumerable<RaycastHit2D> Raycast(Vector2 direction, float distance, ContactFilter2D layerMask)
         {
-            return rigidbody.Bounds;
+            Hits.Count = Physics2D.Raycast(position, direction, layerMask, Hits, distance / FIX);
+            return Hits;
         }
 
-        [Serializable]
-        public struct Collision
+        public int OverlapUp()
         {
-            public int CenterX;
-            public int CenterY;
-            public int ExtentX;
-            public int ExtentY;
-            public int MinX => CenterX - ExtentX;
-            public int MinY => CenterY - ExtentY;
-            public int MaxX => CenterX + ExtentX;
-            public int MaxY => CenterY + ExtentY;
-            public Vector2Int Center => new Vector2Int(CenterX, CenterY);
-            public Vector2Int Extent => new Vector2Int(ExtentX, ExtentY);
-            public Vector2Int TopLeft => new Vector2Int(MinX, MaxY);
-            public Vector2Int TopRight => new Vector2Int(MaxX, MaxY);
-            public Vector2Int BottomLeft => new Vector2Int(MinX, MinY);
-            public Vector2Int BottomRight => new Vector2Int(MaxX, MinY);
+            return Overlap(topLeft, topRight, new Vector2(0, 0.1F));
+        }
 
-            public Collision(Vector2Int center, Vector2Int size)
+        public int OverlapDown()
+        {
+            return Overlap(botLeft, botRight, new Vector2(0, -0.1F));
+        }
+
+        public int OverlapLeft()
+        {
+            return Overlap(topLeft, botLeft, new Vector2(-0.1F, 0));
+        }
+
+        public int OverlapRight()
+        {
+            return Overlap(topRight, botRight, new Vector2(0.1F, 0));
+        }
+
+        private static int Overlap(Vector2 p1, Vector2 p2, Vector2 offset)
+        {
+            int state = 0;
+            if (Physics2D.OverlapPoint(p1 + offset))
             {
-                CenterX = center.x;
-                CenterY = center.y;
-                ExtentX = size.x / 2;
-                ExtentY = size.y / 2;
+                state |= 1;
             }
 
-            public bool Contains(Vector2 point)
+            if (Physics2D.OverlapPoint(p2 + offset))
             {
-                return point.x >= MinX && point.x <= MaxX && point.y >= MinY && point.y <= MaxY;
+                state |= 2;
             }
 
-            public bool Overlap(Collision other)
-            {
-                return MinX <= other.MaxX && MaxX >= other.MinX && MinY <= other.MaxY && MaxY >= other.MinY;
-            }
-
-            public bool Overlap(Vector2 center, Vector2 size)
-            {
-                var extentX = size.x / 2;
-                var extentY = size.y / 2;
-
-                var minX = center.x - extentX;
-                var minY = center.y - extentY;
-                var maxX = center.x + extentX;
-                var maxY = center.y + extentY;
-
-                return MinX <= maxX && MaxX >= minX && MinY <= maxY && MaxY >= minY;
-            }
-
-            public int BoxCast(Collision target, Vector2 direction, int distance)
-            {
-                var signX = Math.Sign(direction.x);
-                var signY = Math.Sign(direction.y);
-                var stepX = BoxCastX(target, signX);
-                var stepY = BoxCastY(target, signY);
-
-                if (stepX != -1 && stepY != -1)
-                {
-                    int steps = Math.Max(stepX, stepY);
-                    if (steps <= distance)
-                    {
-                        var offset = new Vector2Int(signX, signY) * steps;
-                        var origin = new Collision(Center + offset, Extent * 2);
-                        if (origin.Overlap(target))
-                        {
-                            return steps;
-                        }
-                    }
-                }
-
-                return -1;
-            }
-
-            private int BoxCastX(Collision target, int signX)
-            {
-                switch (signX)
-                {
-                    case >= 0 when MaxX < target.MinX: // 向右，自身在目标左侧
-                        return target.MinX - MaxX;
-                    case <= 0 when MinX > target.MaxX: // 向左，自身在目标右侧
-                        return MinX - target.MaxX;
-                    case >= 0 when MinX >= target.MaxX: // 向右，自身已在目标右侧
-                        return -1;
-                    case <= 0 when MaxX <= target.MinX: // 向左，自身已在目标左侧
-                        return -1;
-                    default:
-                        return 0;
-                }
-            }
-
-            private int BoxCastY(Collision target, int signY)
-            {
-                switch (signY)
-                {
-                    case > 0 when MaxY < target.MinY: // 向上，自身在目标下方
-                        return target.MinY - MaxY;
-                    case < 0 when MinY > target.MaxY: // 向下，自身在目标上方
-                        return MinY - target.MaxY;
-                    case >= 0 when MinY >= target.MaxY: // 向上，自身已在目标上侧
-                        return -1;
-                    case <= 0 when MaxY <= target.MinY: // 向下，自身已在目标下侧
-                        return -1;
-                    default:
-                        return 0;
-                }
-            }
-
-            public static bool Raycast(Collision collision, Vector2 origin, Vector2 direction, float maxDistance)
-            {
-                direction = direction.normalized;
-
-                var tMin = float.NegativeInfinity;
-                var tMax = float.PositiveInfinity;
-
-                if (Mathf.Approximately(direction.x, 0))
-                {
-                    if (origin.x < collision.MinX || origin.x > collision.MaxX)
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    var tx1 = (collision.MinX - origin.x) / direction.x;
-                    var tx2 = (collision.MaxX - origin.x) / direction.x;
-
-                    tMin = Mathf.Max(tMin, Mathf.Min(tx1, tx2));
-                    tMax = Mathf.Min(tMax, Mathf.Max(tx1, tx2));
-                }
-
-                if (Mathf.Approximately(direction.y, 0))
-                {
-                    if (origin.y < collision.MinY || origin.y > collision.MaxY)
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    var ty1 = (collision.MinY - origin.y) / direction.y;
-                    var ty2 = (collision.MaxY - origin.y) / direction.y;
-
-                    tMin = Mathf.Max(tMin, Mathf.Min(ty1, ty2));
-                    tMax = Mathf.Min(tMax, Mathf.Max(ty1, ty2));
-                }
-
-                if (tMax < 0)
-                {
-                    return false;
-                }
-
-                if (tMin > tMax)
-                {
-                    return false;
-                }
-
-                if (tMin < 0)
-                {
-                    tMin = 0;
-                }
-
-                return tMin <= maxDistance;
-            }
+            return state;
         }
     }
 }

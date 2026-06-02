@@ -1,3 +1,4 @@
+using System;
 using Astraia;
 
 namespace Runtime
@@ -13,9 +14,8 @@ namespace Runtime
             owner = GetComponent<Player>();
         }
 
-        protected override void OnDestroy()
+        private void OnDestroy()
         {
-            base.OnDestroy();
             machine.Clear();
         }
 

@@ -9,9 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System.Collections.Generic;
 using Astraia.Net;
-using UnityEngine.Tilemaps;
 
 namespace Runtime
 {
@@ -21,14 +19,6 @@ namespace Runtime
         public PlayerSender Sender;
         public PlayerFeature Feature;
         public PlayerMachine Machine;
-
-        public Tilemap collision;
-  
-        protected override void Awake()
-        {
-            base.Awake();
-            collision = FindFirstObjectByType<Tilemap>();
-        }
 
         private void Update()
         {

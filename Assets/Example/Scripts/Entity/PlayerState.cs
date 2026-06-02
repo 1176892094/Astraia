@@ -30,26 +30,26 @@ namespace Runtime
 
         protected int velocityX
         {
-            get => Machine.VelocityX;
-            set => Machine.VelocityX = value;
+            get => Machine.velocityX;
+            set => Machine.velocityX = value;
         }
 
         protected int velocityY
         {
-            get => Machine.VelocityY;
-            set => Machine.VelocityY = value;
+            get => Machine.velocityY;
+            set => Machine.velocityY = value;
         }
 
         private int positionX
         {
-            get => Machine.PositionX;
-            set => Machine.PositionX = value;
+            get => Machine.positionX;
+            set => Machine.positionX = value;
         }
 
         private int positionY
         {
-            get => Machine.PositionY;
-            set => Machine.PositionY = value;
+            get => Machine.positionY;
+            set => Machine.positionY = value;
         }
 
         protected void Move(int moveSpeed, int percent = 0)
@@ -101,7 +101,7 @@ namespace Runtime
             }
 
             Gravity();
-            Contact();
+            Collision();
         }
 
         protected void Gravity()
@@ -120,25 +120,24 @@ namespace Runtime
             }
         }
 
-        protected void Contact()
+        protected void Collision()
         {
             State &= ~State.碰撞;
+            MoveX(Math.Sign(velocityX), Math.Abs(velocityX));
+            MoveY(Math.Sign(velocityY), Math.Abs(velocityY));
+            Machine.MovePosition();
+        }
 
-            var signX = Math.Sign(velocityX);
-            var signY = Math.Sign(velocityY);
-            var moveX = Math.Abs(velocityX);
-            var moveY = Math.Abs(velocityY);
-
-            var collisions = Machine.GetContacts(owner.collision, moveX, moveY);
-        
-            foreach (var collision in collisions)
+        private void MoveX(int moveX, int distance)
+        {
+            if (moveX != 0)
             {
-                if (signX != 0)
+                foreach (var hit in Machine.Boxcast(new Vector2(moveX, 0), distance, LayerConst.Ground))
                 {
-                    var stepX = Machine.BoxCast(collision, new Vector2(signX, 0), moveX);
-                    if (stepX >= 0 && stepX <= moveX)
+                    var stepX = Mathf.RoundToInt(hit.distance * Rigidbody.FIX);
+                    if (stepX >= 0)
                     {
-                        if (signX > 0)
+                        if (moveX > 0)
                         {
                             if (!State.HasFlag(State.跳跃))
                             {
@@ -157,20 +156,24 @@ namespace Runtime
                             State |= State.左墙;
                         }
 
-                        velocityX = signX * stepX;
+                        velocityX = moveX * stepX;
                     }
                 }
             }
 
             positionX += velocityX;
-            foreach (var collision in collisions)
+        }
+
+        private void MoveY(int moveY, int distance)
+        {
+            if (moveY != 0)
             {
-                if (signY != 0)
+                foreach (var hit in Machine.Boxcast(new Vector2(0, moveY), distance, LayerConst.Ground))
                 {
-                    var stepY = Machine.BoxCast(collision, new Vector2(0, signY), moveY);
-                    if (stepY >= 0 && stepY <= moveY)
+                    var stepY = Mathf.RoundToInt(hit.distance * Rigidbody.FIX);
+                    if (stepY >= 0)
                     {
-                        if (signY > 0)
+                        if (moveY > 0)
                         {
                             State |= State.头顶;
                         }
@@ -189,33 +192,47 @@ namespace Runtime
                             State |= State.地面;
                         }
 
-                        velocityY = signY * stepY;
+                        velocityX = moveY * stepY;
                     }
                 }
             }
 
             positionY += velocityY;
-            Machine.MovePosition();
         }
 
         protected int Dash()
         {
-            // var velocity = new Vector2(velocityX, velocityY);
-            // var v1 = Mathf.RoundToInt(positionX / FIX) * FIX;
-            // var v2 = Mathf.RoundToInt(Machine.GetComponent<Collider>().bounds.extents.x * FIX);
-            // switch (Machine.GetComponent<Collider>().DashCast(velocity.magnitude / FIX))
+            // var collisions = Machine.GetContacts(owner.collision, velocityX, velocityY);
+            // var state = 0;
+            // foreach (var collision in collisions)
+            // {
+            //     if (!collision.Contains(Machine.Bounds.TopLeft))
+            //     {
+            //         state |= 1 << 0;
+            //         break;
+            //     }
+            // }
+            //
+            // foreach (var collision in collisions)
+            // {
+            //     if (!collision.Contains(Machine.Bounds.TopRight))
+            //     {
+            //         state |= 1 << 1;
+            //         break;
+            //     }
+            // }
+            //
+            // switch (state)
             // {
             //     case 1:
-            //         positionX = (int)v1 + v2;
-            //         positionX++;
-            //         return 0;
+            //         Debug.Log(1);
+            //         return -Feature.MoveSpeed;
             //     case 2:
-            //         positionX = (int)v1 - v2;
-            //         positionX--;
-            //         return 0;
-            //     default:
-            //         return Direction * Feature.DashSpeed;
+            //         Debug.Log(2);
+            //         return Feature.MoveSpeed;
+            //
             // }
+
             return Direction * Feature.DashSpeed;
         }
 

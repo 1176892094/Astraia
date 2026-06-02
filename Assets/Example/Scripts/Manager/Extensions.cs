@@ -22,18 +22,18 @@ namespace Runtime
             return Hits;
         }
 
-        public static int DashCast(this Collider2D collider, float distance)
+        public static int DashCast(this Collider2D collider)
         {
             var bounds = collider.bounds;
             var origin1 = new Vector2(bounds.min.x, bounds.max.y);
             var origin2 = new Vector2(bounds.max.x, bounds.max.y);
             var state = 0;
-            if (Physics2D.Raycast(origin1, Vector2.up, LayerConst.Ground, Hits, distance) > 0)
+            if (Physics2D.OverlapPoint(origin1 + Vector2.up * 0.5F))
             {
                 state |= 1 << 0;
             }
 
-            if (Physics2D.Raycast(origin2, Vector2.up, LayerConst.Ground, Hits, distance) > 0)
+            if (Physics2D.OverlapPoint(origin2 + Vector2.up * 0.5F))
             {
                 state |= 1 << 1;
             }
@@ -41,7 +41,7 @@ namespace Runtime
             return state;
         }
 
-        public static int HoldCast(this Collider2D collider, int direction, float distance)
+        public static int HoldCast(this Collider2D collider, int direction)
         {
             var bounds = collider.bounds;
             Vector2 origin1;
@@ -58,12 +58,12 @@ namespace Runtime
             }
 
             var state = 0;
-            if (Physics2D.Raycast(origin1, Vector2.right * direction, LayerConst.Ground, Hits, distance) > 0)
+            if (Physics2D.OverlapPoint(origin1 + Vector2.right * 0.5F * direction))
             {
                 state |= 1 << 0;
             }
 
-            if (Physics2D.Raycast(origin2, Vector2.right * direction, LayerConst.Ground, Hits, distance) > 0)
+            if (Physics2D.OverlapPoint(origin2 + Vector2.right * 0.5F * direction))
             {
                 state |= 1 << 1;
             }
