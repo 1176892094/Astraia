@@ -8,7 +8,7 @@ namespace Runtime
     [Serializable]
     public class Rigidbody : MonoBehaviour
     {
-        public const int FIX = 100;
+        public const int FIX = 200;
 
         public Vector2 size = Vector2.one;
         public Vector2Int offset;

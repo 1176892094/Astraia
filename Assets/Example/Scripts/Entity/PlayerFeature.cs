@@ -6,7 +6,7 @@ namespace Runtime
     public class PlayerFeature : MonoBehaviour
     {
         public State State = State.默认;
-        
+
         public int MoveSpeed;
 
         public int JumpForce;
@@ -27,7 +27,7 @@ namespace Runtime
 
         private void Awake()
         {
-            MoveSpeed = 20;
+            MoveSpeed = 30;
             JumpForce = MoveSpeed * 2;
             DashSpeed = MoveSpeed * 3;
             CrashSpeed = MoveSpeed * 2;

@@ -149,7 +149,7 @@ namespace Runtime
                         velocityX += InputManager.MoveX;
                     }
 
-                    Collision();
+                    Contact();
                     return;
                 }
             }
@@ -243,7 +243,7 @@ namespace Runtime
                 }
             }
 
-            Collision();
+            Contact();
         }
 
         public override void OnExit()
@@ -322,7 +322,7 @@ namespace Runtime
             }
 
             Gravity();
-            Collision();
+            Contact();
         }
 
         public override void OnExit()

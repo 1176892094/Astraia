@@ -6,13 +6,11 @@ namespace Runtime
 {
     public abstract class PlayerState : State<Player>
     {
-        private bool isLeft => State.HasFlag(State.左墙) && InputManager.MoveX < 0;
-        private bool isRight => State.HasFlag(State.右墙) && InputManager.MoveX > 0;
         protected bool isWalk => InputManager.MoveX != 0;
         protected bool isWall => State.HasFlag(State.左墙) || State.HasFlag(State.右墙);
         protected bool isGround => State.HasFlag(State.地面);
         protected bool isRoad => isWall || isGround;
-        protected bool isGrab => (isLeft || isRight) && isFall;
+        protected bool isGrab => isWall && isFall;
         protected bool isFall => !isGround && velocityY < 0;
         protected Transform transform => owner.transform;
         protected PlayerMachine Machine => owner.Machine;
@@ -103,7 +101,7 @@ namespace Runtime
             }
 
             Gravity();
-            Collision();
+            Contact();
         }
 
         protected void Gravity()
@@ -122,32 +120,32 @@ namespace Runtime
             }
         }
 
-        protected void Collision()
+        protected void Contact()
         {
             State &= ~State.碰撞;
 
-            var moveX = InputManager.MoveX;
-            var moveY = Math.Sign(velocityY);
-            var velX = Mathf.Abs(velocityX);
-            var velY = Mathf.Abs(velocityY);
+            var signX = Math.Sign(velocityX);
+            var signY = Math.Sign(velocityY);
+            var moveX = Math.Abs(velocityX);
+            var moveY = Math.Abs(velocityY);
 
-            var collisions = Machine.GetContacts(owner.collision, velX, velY);
-            foreach (var rigid in owner.collisions)
+            var collisions = Machine.GetContacts(owner.collision, moveX, moveY);
+            foreach (var machine in owner.collisions)
             {
-                if (Machine != rigid)
+                if (Machine != machine)
                 {
-                    collisions.Add(rigid);
+                    collisions.Add(machine);
                 }
             }
 
             foreach (var collision in collisions)
             {
-                if (moveX != 0)
+                if (signX != 0)
                 {
-                    var stepX = Machine.BoxCast(collision, new Vector2(moveX, 0), velX);
-                    if (stepX >= 0 && stepX <= velX)
+                    var stepX = Machine.BoxCast(collision, new Vector2(signX, 0), moveX);
+                    if (stepX >= 0 && stepX <= moveX)
                     {
-                        if (moveX > 0)
+                        if (signX > 0)
                         {
                             if (!State.HasFlag(State.跳跃))
                             {
@@ -166,7 +164,7 @@ namespace Runtime
                             State |= State.左墙;
                         }
 
-                        velocityX = moveX * stepX;
+                        velocityX = signX * stepX;
                     }
                 }
             }
@@ -174,12 +172,12 @@ namespace Runtime
             positionX += velocityX;
             foreach (var collision in collisions)
             {
-                if (moveY != 0)
+                if (signY != 0)
                 {
-                    var stepY = Machine.BoxCast(collision, new Vector2(0, moveY), velY);
-                    if (stepY >= 0 && stepY <= velY)
+                    var stepY = Machine.BoxCast(collision, new Vector2(0, signY), moveY);
+                    if (stepY >= 0 && stepY <= moveY)
                     {
-                        if (moveY > 0)
+                        if (signY > 0)
                         {
                             State |= State.头顶;
                         }
@@ -198,7 +196,7 @@ namespace Runtime
                             State |= State.地面;
                         }
 
-                        velocityY = moveY * stepY;
+                        velocityY = signY * stepY;
                     }
                 }
             }
