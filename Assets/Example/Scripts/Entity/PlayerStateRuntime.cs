@@ -89,11 +89,17 @@ namespace Runtime
             waitTime = Time.fixedTime + 0.1F;
             owner.Sender.SyncColorServerRpc(Color.yellow);
 
-            if (!isGround && Feature.WallTimer > Time.fixedTime)
+            if (!isGround && Feature.GrabTimer > Time.fixedTime)
             {
                 state |= State.侧跳;
-                direction = Feature.WallInput;
-                velocityX = Feature.WallInput * Feature.JumpForce / 2;
+                direction = Feature.GrabInput;
+                velocityX = Feature.GrabInput * Feature.JumpForce / 2;
+            }
+
+            if (Feature.GrabCD > Time.fixedTime)
+            {
+                velocityY = Feature.JumpForce;
+                return;
             }
 
             velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
@@ -131,15 +137,15 @@ namespace Runtime
                     return;
                 }
 
-                Feature.WallInput = InputManager.MoveX;
+                Feature.GrabInput = InputManager.MoveX;
             }
             else
             {
                 if (state.HasFlag(State.侧跳))
                 {
-                    if (InputManager.MoveX == Feature.WallInput)
+                    if (InputManager.MoveX == Feature.GrabInput)
                     {
-                        velocityX = Feature.WallForce * Feature.WallInput;
+                        velocityX = Feature.GrabForce * Feature.GrabInput;
                     }
 
                     Collision();
@@ -217,20 +223,31 @@ namespace Runtime
             velocityX = Mathf.RoundToInt(normalize.x * Feature.DashSpeed);
             velocityY = Mathf.RoundToInt(normalize.y * Feature.DashSpeed);
 
-            if (normalize != Vector2.zero)
+            if (normalize.y != 0)
             {
                 switch (normalize.y)
                 {
-                    case < 0 when isGround:
-                        velocityX = direction * Feature.DashSpeed;
+                    case < 0 when isGround && Machine.OverlapY(velocityY, out var output):
+                        velocityX = output;
                         break;
-                    case > 0 when isHead && Machine.Checked(Feature.MoveSpeed, out var output):
-                        var result = Math.Sign(output);
+                    case > 0 when isHead && Machine.OverlapY(velocityY, out var output):
+                        velocityX = output;
                         Feature.JumpCount = 1;
-                        Feature.WallInput = result;
+                        Feature.GrabInput = Math.Sign(output);
                         Feature.JumpTimer = Time.time + 0.1F;
-                        Feature.WallTimer = Time.fixedTime + 0.1F;
-                        velocityX = (int)(output * Rigidbody.FIX);
+                        Feature.GrabTimer = Time.fixedTime + 0.1F;
+                        break;
+                }
+            }
+            else if (normalize.x != 0)
+            {
+                switch (normalize.x)
+                {
+                    case < 0 when isWall && Machine.OverlapX(velocityX, out var output):
+                        velocityY = output;
+                        break;
+                    case > 0 when isWall && Machine.OverlapX(velocityX, out var output):
+                        velocityY = output;
                         break;
                 }
             }
@@ -260,7 +277,7 @@ namespace Runtime
 
         public override void OnUpdate()
         {
-            if (Machine.OverlapHold(Feature.MoveSpeed * InputManager.MoveX))
+            if (Machine.OverlapX(Feature.MoveSpeed * InputManager.MoveX, out _))
             {
                 velocityY = Feature.MoveSpeed;
                 Collision();
@@ -279,6 +296,7 @@ namespace Runtime
         public override void OnExit()
         {
             state &= ~State.攀爬;
+            Feature.GrabCD = Time.fixedTime + 0.1F;
         }
     }
 
@@ -319,7 +337,7 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            Gravity();
+            Gravitino();
             Collision();
         }
 

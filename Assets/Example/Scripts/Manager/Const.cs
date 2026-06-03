@@ -10,22 +10,22 @@
 // // *********************************************************************************
 
 using System;
+using Astraia;
+using Astraia.Core;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Runtime
 {
     public static class LayerConst
     {
         public static ContactFilter2D Ground;
-        public static ContactFilter2D Player;
 
         static LayerConst()
         {
             Ground = new ContactFilter2D();
             Ground.SetLayerMask(LayerMask.GetMask("Ground"));
             Ground.useTriggers = false;
-            Player = new ContactFilter2D();
-            Player.SetLayerMask(LayerMask.GetMask("Player"));
         }
     }
 
@@ -38,6 +38,29 @@ namespace Runtime
         public static readonly int Fall = Animator.StringToHash(nameof(Fall));
         public static readonly int Grab = Animator.StringToHash(nameof(Grab));
         public static readonly int Crash = Animator.StringToHash(nameof(Crash));
+    }
+
+    public static class Extensions
+    {
+        public static Tween DOFade(this SpriteRenderer component, float endValue, float duration)
+        {
+            var color = component.color;
+            return component.Play(duration).OnUpdate(progress =>
+            {
+                var colorA = Mathf.Lerp(color.a, endValue, progress);
+                component.color = new Color(color.r, color.g, color.b, colorA);
+            });
+        }
+
+        public static Tween DOFade(this Graphic component, float endValue, float duration)
+        {
+            var color = component.color;
+            return component.Play(duration).OnUpdate(progress =>
+            {
+                var colorA = Mathf.Lerp(color.a, endValue, progress);
+                component.color = new Color(color.r, color.g, color.b, colorA);
+            });
+        }
     }
 
     [Flags]

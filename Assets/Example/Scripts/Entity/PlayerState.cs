@@ -7,9 +7,9 @@ namespace Runtime
     public abstract class PlayerState : State<Player>
     {
         protected bool isCrash => InputManager.MoveY != 1 && InputManager.MoveX != 0;
-        protected bool isGround => (state & State.地面) != 0;
         protected bool isHead => (state & State.头顶) != 0;
         protected bool isWall => (state & State.墙面) != 0;
+        protected bool isGround => (state & State.地面) != 0;
         protected bool isCorner => isWall || isGround;
         protected bool isFall => !isGround && velocityY < 0;
         protected bool isGrab => isWall && isFall;
@@ -101,11 +101,11 @@ namespace Runtime
                 velocityX = 0;
             }
 
-            Gravity();
+            Gravitino();
             Collision();
         }
 
-        protected void Gravity()
+        protected void Gravitino()
         {
             if (state.HasFlag(State.攀爬))
             {
@@ -125,16 +125,19 @@ namespace Runtime
 
         protected void Collision()
         {
-            MoveY(Math.Sign(velocityY), Math.Abs(velocityY));
             MoveX(Math.Sign(velocityX), Math.Abs(velocityX));
-            Machine.MovePosition();
+            MoveY(Math.Sign(velocityY), Math.Abs(velocityY));
+            Machine.MovePosition(1 / 16F);
         }
 
         private void MoveX(int moveX, int distance)
         {
             if (moveX != 0)
             {
-                foreach (var hit in Machine.Boxcast(new Vector2(moveX, 0), distance, LayerConst.Ground))
+                positionX += moveX * Mathf.RoundToInt(Rigidbody.FIX / 100);
+                var hits = Machine.Boxcast(new Vector2(moveX, 0), distance, LayerConst.Ground);
+                positionX -= moveX * Mathf.RoundToInt(Rigidbody.FIX / 100);
+                foreach (var hit in hits)
                 {
                     var stepX = Mathf.RoundToInt(hit.distance * Rigidbody.FIX);
                     if (stepX >= 0)
@@ -158,8 +161,8 @@ namespace Runtime
                             state |= State.左墙;
                         }
 
-                        Feature.WallTimer = Time.fixedTime + 0.1F;
-                        Feature.WallInput = -moveX;
+                        Feature.GrabTimer = Time.fixedTime + 0.1F;
+                        Feature.GrabInput = -moveX;
                         velocityX = moveX * stepX;
                     }
                 }
@@ -172,7 +175,10 @@ namespace Runtime
         {
             if (moveY != 0)
             {
-                foreach (var hit in Machine.Boxcast(new Vector2(0, moveY), distance, LayerConst.Ground))
+                positionY += moveY * Mathf.RoundToInt(Rigidbody.FIX / 100);
+                var hits = Machine.Boxcast(new Vector2(0, moveY), distance, LayerConst.Ground);
+                positionY -= moveY * Mathf.RoundToInt(Rigidbody.FIX / 100);
+                foreach (var hit in hits)
                 {
                     var stepY = Mathf.RoundToInt(hit.distance * Rigidbody.FIX);
                     if (stepY >= 0)
@@ -203,6 +209,5 @@ namespace Runtime
 
             positionY += velocityY;
         }
-
     }
 }
