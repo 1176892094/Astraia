@@ -6,26 +6,27 @@ namespace Runtime
 {
     public abstract class PlayerState : State<Player>
     {
-        protected bool isWalk => InputManager.MoveX != 0;
-        protected bool isWall => State.HasFlag(State.左墙) || State.HasFlag(State.右墙);
-        protected bool isGround => State.HasFlag(State.地面);
-        protected bool isRoad => isWall || isGround;
-        protected bool isGrab => isWall && isFall;
+        protected bool isCrash => InputManager.MoveY != 1 && InputManager.MoveX != 0;
+        protected bool isGround => (state & State.地面) != 0;
+        protected bool isHead => (state & State.头顶) != 0;
+        protected bool isWall => (state & State.墙面) != 0;
+        protected bool isCorner => isWall || isGround;
         protected bool isFall => !isGround && velocityY < 0;
+        protected bool isGrab => isWall && isFall;
         protected Transform transform => owner.transform;
         protected PlayerMachine Machine => owner.Machine;
         protected PlayerFeature Feature => owner.Feature;
 
-        protected int Direction
-        {
-            get => owner.Sender.Direction;
-            set => owner.Sender.Direction = value;
-        }
-
-        protected State State
+        protected State state
         {
             get => Feature.State;
             set => Feature.State = value;
+        }
+
+        protected int direction
+        {
+            get => owner.Sender.Direction;
+            set => owner.Sender.Direction = value;
         }
 
         protected int velocityX
@@ -52,15 +53,15 @@ namespace Runtime
             set => Machine.positionY = value;
         }
 
-        protected void Move(int moveSpeed, int percent = 0)
+        protected void Move(int percent = 0)
         {
             var moveX = InputManager.MoveX;
             if (moveX != 0)
             {
-                moveSpeed = moveX * moveSpeed;
-                if (Direction != moveX || Mathf.Abs(velocityX) < Mathf.Abs(moveSpeed / 2))
+                var moveSpeed = moveX * Feature.MoveSpeed;
+                if (direction != moveX || Mathf.Abs(velocityX) < Mathf.Abs(moveSpeed / 2))
                 {
-                    Direction = moveX;
+                    direction = moveX;
                     velocityX = moveSpeed / 2;
                 }
                 else
@@ -106,11 +107,11 @@ namespace Runtime
 
         protected void Gravity()
         {
-            if (State.HasFlag(State.攀爬))
+            if (state.HasFlag(State.攀爬))
             {
                 velocityY = Mathf.Max(velocityY - 1, -10);
             }
-            else if (State.HasFlag(State.缓冲))
+            else if (state.HasFlag(State.缓冲))
             {
                 velocityY = Mathf.Max(velocityY - 3, -60);
             }
@@ -118,13 +119,14 @@ namespace Runtime
             {
                 velocityY = Mathf.Max(velocityY - 6, -60);
             }
+
+            state &= ~State.碰撞;
         }
 
         protected void Collision()
         {
-            State &= ~State.碰撞;
-            MoveX(Math.Sign(velocityX), Math.Abs(velocityX));
             MoveY(Math.Sign(velocityY), Math.Abs(velocityY));
+            MoveX(Math.Sign(velocityX), Math.Abs(velocityX));
             Machine.MovePosition();
         }
 
@@ -139,23 +141,25 @@ namespace Runtime
                     {
                         if (moveX > 0)
                         {
-                            if (!State.HasFlag(State.跳跃))
+                            if (!state.HasFlag(State.跳跃))
                             {
                                 Feature.JumpCount = 1;
                             }
 
-                            State |= State.右墙;
+                            state |= State.右墙;
                         }
                         else
                         {
-                            if (!State.HasFlag(State.跳跃))
+                            if (!state.HasFlag(State.跳跃))
                             {
                                 Feature.JumpCount = 1;
                             }
 
-                            State |= State.左墙;
+                            state |= State.左墙;
                         }
 
+                        Feature.WallTimer = Time.fixedTime + 0.1F;
+                        Feature.WallInput = -moveX;
                         velocityX = moveX * stepX;
                     }
                 }
@@ -175,24 +179,24 @@ namespace Runtime
                     {
                         if (moveY > 0)
                         {
-                            State |= State.头顶;
+                            state |= State.头顶;
                         }
                         else
                         {
-                            if (!State.HasFlag(State.跳跃))
+                            if (!state.HasFlag(State.跳跃))
                             {
                                 Feature.JumpCount = 1;
                             }
 
-                            if (!State.HasFlag(State.冲刺))
+                            if (!state.HasFlag(State.冲刺))
                             {
                                 Feature.DashCount = 1;
                             }
 
-                            State |= State.地面;
+                            state |= State.地面;
                         }
 
-                        velocityX = moveY * stepY;
+                        velocityY = moveY * stepY;
                     }
                 }
             }
@@ -200,54 +204,5 @@ namespace Runtime
             positionY += velocityY;
         }
 
-        protected int Dash()
-        {
-            // var collisions = Machine.GetContacts(owner.collision, velocityX, velocityY);
-            // var state = 0;
-            // foreach (var collision in collisions)
-            // {
-            //     if (!collision.Contains(Machine.Bounds.TopLeft))
-            //     {
-            //         state |= 1 << 0;
-            //         break;
-            //     }
-            // }
-            //
-            // foreach (var collision in collisions)
-            // {
-            //     if (!collision.Contains(Machine.Bounds.TopRight))
-            //     {
-            //         state |= 1 << 1;
-            //         break;
-            //     }
-            // }
-            //
-            // switch (state)
-            // {
-            //     case 1:
-            //         Debug.Log(1);
-            //         return -Feature.MoveSpeed;
-            //     case 2:
-            //         Debug.Log(2);
-            //         return Feature.MoveSpeed;
-            //
-            // }
-
-            return Direction * Feature.DashSpeed;
-        }
-
-        protected bool Hold()
-        {
-            // var velocity = new Vector2(velocityX, velocityY);
-            // switch (Machine.GetComponent<Collider>().HoldCast(Direction, velocity.magnitude / FIX))
-            // {
-            //     case 1:
-            //         velocityY = Feature.MoveSpeed;
-            //         return true;
-            //     default:
-            //         return false;
-            // }
-            return false;
-        }
     }
 }

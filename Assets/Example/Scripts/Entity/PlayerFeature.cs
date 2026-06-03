@@ -9,6 +9,11 @@ namespace Runtime
 
         public int MoveSpeed;
 
+        public int WallInput;
+        public int WallForce;
+        public float WallTimer;
+
+
         public int JumpForce;
         public int JumpCount;
         public float JumpInput;
@@ -28,6 +33,7 @@ namespace Runtime
         private void Awake()
         {
             MoveSpeed = 30;
+            WallForce = MoveSpeed * 3 / 2;
             JumpForce = MoveSpeed * 2;
             DashSpeed = MoveSpeed * 3;
             CrashSpeed = MoveSpeed * 2;
@@ -149,7 +155,7 @@ namespace Runtime
             {
                 return;
             }
-
+            
             Machine.Switch(Animations.Jump);
             Feature.JumpCD = Time.time + 0.3F;
         }

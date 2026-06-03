@@ -17,12 +17,15 @@ namespace Runtime
     public static class LayerConst
     {
         public static ContactFilter2D Ground;
+        public static ContactFilter2D Player;
 
         static LayerConst()
         {
             Ground = new ContactFilter2D();
             Ground.SetLayerMask(LayerMask.GetMask("Ground"));
             Ground.useTriggers = false;
+            Player = new ContactFilter2D();
+            Player.SetLayerMask(LayerMask.GetMask("Player"));
         }
     }
 
@@ -52,6 +55,7 @@ namespace Runtime
         冲刺 = 1 << 8,
         冲跳 = 1 << 9,
         侧跳 = 1 << 10,
+        墙面 = 左墙 | 右墙,
         碰撞 = 地面 | 左墙 | 右墙 | 头顶,
     }
 }

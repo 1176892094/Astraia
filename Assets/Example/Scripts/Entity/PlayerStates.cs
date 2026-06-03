@@ -9,6 +9,7 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
+using System;
 using UnityEngine;
 
 namespace Runtime
@@ -30,12 +31,12 @@ namespace Runtime
                 return;
             }
 
-            if (isWalk)
+            if (InputManager.MoveX != 0)
             {
                 Machine.Switch(Animations.Walk);
             }
 
-            Move(Feature.MoveSpeed);
+            Move();
         }
 
         public override void OnExit()
@@ -64,12 +65,12 @@ namespace Runtime
                 return;
             }
 
-            if (!isWalk)
+            if (InputManager.MoveX == 0)
             {
                 Machine.Switch(Animations.Idle);
             }
 
-            Move(Feature.MoveSpeed);
+            Move();
         }
 
         public override void OnExit()
@@ -79,22 +80,20 @@ namespace Runtime
 
     public class PlayerJump : PlayerState
     {
-        private int moveX;
         private float waitTime;
 
         public override void OnEnter()
         {
             Feature.JumpCount--;
-            State |= State.跳跃;
+            state |= State.跳跃;
             waitTime = Time.fixedTime + 0.1F;
             owner.Sender.SyncColorServerRpc(Color.yellow);
 
-            if (isWall && !isGround)
+            if (!isGround && Feature.WallTimer > Time.fixedTime)
             {
-                State |= State.侧跳;
-                Direction = -Direction;
-                moveX = State.HasFlag(State.左墙) ? 1 : -1;
-                velocityX = moveX * Feature.JumpForce / 2;
+                state |= State.侧跳;
+                direction = Feature.WallInput;
+                velocityX = Feature.WallInput * Feature.JumpForce / 2;
             }
 
             velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
@@ -104,17 +103,13 @@ namespace Runtime
         {
             if (Feature.DashTimer > Time.fixedTime)
             {
-                if (InputManager.MoveY != 1)
+                if (isGround && isCrash)
                 {
-                    if (State.HasFlag(State.地面) && isWalk)
-                    {
-                        Machine.Switch(Animations.Crash);
-                        return;
-                    }
+                    Machine.Switch(Animations.Crash);
+                    return;
                 }
 
                 Feature.DashTimer = Time.fixedTime;
-                velocityY += Feature.JumpForce * 2 / 10;
             }
 
             if (waitTime < Time.fixedTime)
@@ -130,23 +125,21 @@ namespace Runtime
                     Machine.Switch(Animations.Fall);
                 }
 
-                if (isRoad)
+                if (isCorner)
                 {
                     Machine.Switch(Animations.Idle);
                     return;
                 }
+
+                Feature.WallInput = InputManager.MoveX;
             }
             else
             {
-                if (State.HasFlag(State.侧跳))
+                if (state.HasFlag(State.侧跳))
                 {
-                    if (moveX != 0 && InputManager.MoveX == moveX)
+                    if (InputManager.MoveX == Feature.WallInput)
                     {
-                        velocityX += moveX * 5;
-                    }
-                    else
-                    {
-                        velocityX += InputManager.MoveX;
+                        velocityX = Feature.WallForce * Feature.WallInput;
                     }
 
                     Collision();
@@ -154,13 +147,13 @@ namespace Runtime
                 }
             }
 
-            Move(Feature.MoveSpeed, 2);
+            Move(2);
         }
 
         public override void OnExit()
         {
-            State &= ~State.跳跃;
-            State &= ~State.侧跳;
+            state &= ~State.跳跃;
+            state &= ~State.侧跳;
         }
     }
 
@@ -168,7 +161,7 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            State |= State.下落;
+            state |= State.下落;
             owner.Sender.SyncColorServerRpc(Color.red);
         }
 
@@ -185,26 +178,26 @@ namespace Runtime
                 Machine.Switch(Animations.Idle);
             }
 
-            Move(Feature.MoveSpeed, 2);
+            Move(2);
         }
 
         public override void OnExit()
         {
-            State &= ~State.下落;
+            state &= ~State.下落;
         }
     }
 
     public class PlayerDash : PlayerState
     {
-        private Vector2 direction;
+        private Vector2 normalize;
 
         public override void OnEnter()
         {
             Feature.DashCount--;
-            State |= State.冲刺;
-            Feature.DashTimer = Time.fixedTime + 0.20F;
+            state |= State.冲刺;
+            Feature.DashTimer = Time.fixedTime + 0.2F;
             owner.Sender.SyncColorServerRpc(Color.magenta);
-            direction = InputManager.Direction.normalized;
+            normalize = InputManager.Direction.normalized;
         }
 
         public override void OnUpdate()
@@ -221,26 +214,29 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            velocityX = (int)(direction.x * Feature.DashSpeed);
-            velocityY = (int)(direction.y * Feature.DashSpeed);
+            velocityX = Mathf.RoundToInt(normalize.x * Feature.DashSpeed);
+            velocityY = Mathf.RoundToInt(normalize.y * Feature.DashSpeed);
 
-            if (direction == Vector2.zero)
+            if (normalize != Vector2.zero)
             {
-                velocityX = Direction * Feature.DashSpeed;
-            }
-            else if (direction.y < 0)
-            {
-                if (isGround)
+                switch (normalize.y)
                 {
-                    velocityX = Dash();
+                    case < 0 when isGround:
+                        velocityX = direction * Feature.DashSpeed;
+                        break;
+                    case > 0 when isHead && Machine.Checked(Feature.MoveSpeed, out var output):
+                        var result = Math.Sign(output);
+                        Feature.JumpCount = 1;
+                        Feature.WallInput = result;
+                        Feature.JumpTimer = Time.time + 0.1F;
+                        Feature.WallTimer = Time.fixedTime + 0.1F;
+                        velocityX = (int)(output * Rigidbody.FIX);
+                        break;
                 }
             }
-            else if (direction.y > 0)
+            else
             {
-                if (State.HasFlag(State.头顶))
-                {
-                    Dash();
-                }
+                velocityX = direction * Feature.DashSpeed;
             }
 
             Collision();
@@ -250,7 +246,7 @@ namespace Runtime
         {
             velocityX = 0;
             velocityY = 0;
-            State &= ~State.冲刺;
+            state &= ~State.冲刺;
         }
     }
 
@@ -258,29 +254,31 @@ namespace Runtime
     {
         public override void OnEnter()
         {
-            State |= State.攀爬;
+            state |= State.攀爬;
             owner.Sender.SyncColorServerRpc(Color.cyan);
         }
 
         public override void OnUpdate()
         {
+            if (Machine.OverlapHold(Feature.MoveSpeed * InputManager.MoveX))
+            {
+                velocityY = Feature.MoveSpeed;
+                Collision();
+                return;
+            }
+
             if (!isGrab)
             {
                 Machine.Switch(Animations.Idle);
                 return;
             }
 
-            if (Hold())
-            {
-                return;
-            }
-
-            Move(Feature.MoveSpeed);
+            Move();
         }
 
         public override void OnExit()
         {
-            State &= ~State.攀爬;
+            state &= ~State.攀爬;
         }
     }
 
@@ -291,10 +289,10 @@ namespace Runtime
 
         public override void OnEnter()
         {
-            State |= State.冲跳;
+            state |= State.冲跳;
             waitTime = Time.fixedTime + 0.1F;
-            moveX = Direction;
-            velocityX = Direction * (Feature.CrashSpeed + Feature.CrashSpeed * Feature.CrashCount / 4);
+            moveX = direction;
+            velocityX = direction * (Feature.CrashSpeed + Feature.CrashSpeed * Feature.CrashCount / 4);
             Feature.CrashCount++;
         }
 
@@ -302,7 +300,7 @@ namespace Runtime
         {
             if (waitTime < Time.fixedTime)
             {
-                if (isRoad)
+                if (isCorner)
                 {
                     Machine.Switch(Animations.Idle);
                     return;
@@ -328,7 +326,7 @@ namespace Runtime
         public override void OnExit()
         {
             velocityX /= 2;
-            State &= ~State.冲跳;
+            state &= ~State.冲跳;
         }
     }
 }
