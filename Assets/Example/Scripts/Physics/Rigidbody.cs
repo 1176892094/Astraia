@@ -55,7 +55,7 @@ namespace Runtime
             MovePosition(transform.position);
         }
 
-        public void MovePosition(float pixelate = 1)
+        public void MovePosition(float pixelate = 1 / 16F)
         {
             var worldPos = position;
             worldPos.x = Mathf.Round(worldPos.x / pixelate) * pixelate;
@@ -63,7 +63,7 @@ namespace Runtime
             transform.position = worldPos;
         }
 
-        public void MovePosition(Vector2 worldPos, float pixelate = 1)
+        public void MovePosition(Vector2 worldPos, float pixelate = 1 / 16F)
         {
             positionX = Mathf.RoundToInt(worldPos.x * FIX);
             positionY = Mathf.RoundToInt(worldPos.y * FIX);
