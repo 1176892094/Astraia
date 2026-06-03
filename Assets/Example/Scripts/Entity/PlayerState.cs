@@ -127,7 +127,7 @@ namespace Runtime
         {
             MoveX(Math.Sign(velocityX), Math.Abs(velocityX));
             MoveY(Math.Sign(velocityY), Math.Abs(velocityY));
-            Machine.MovePosition(1 / 16F);
+            Machine.MovePosition();
         }
 
         private void MoveX(int moveX, int distance)

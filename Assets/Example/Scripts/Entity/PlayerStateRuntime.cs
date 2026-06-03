@@ -38,10 +38,6 @@ namespace Runtime
 
             Move();
         }
-
-        public override void OnExit()
-        {
-        }
     }
 
     public class PlayerWalk : PlayerState
@@ -195,7 +191,7 @@ namespace Runtime
 
     public class PlayerDash : PlayerState
     {
-        private Vector2 normalize;
+        private Vector2 velocity;
 
         public override void OnEnter()
         {
@@ -203,7 +199,7 @@ namespace Runtime
             state |= State.冲刺;
             Feature.DashTimer = Time.fixedTime + 0.2F;
             owner.Sender.SyncColorServerRpc(Color.magenta);
-            normalize = InputManager.Direction.normalized;
+            velocity = InputManager.Direction.normalized;
         }
 
         public override void OnUpdate()
@@ -220,12 +216,12 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
-            velocityX = Mathf.RoundToInt(normalize.x * Feature.DashSpeed);
-            velocityY = Mathf.RoundToInt(normalize.y * Feature.DashSpeed);
+            velocityX = Mathf.RoundToInt(velocity.x * Feature.DashSpeed);
+            velocityY = Mathf.RoundToInt(velocity.y * Feature.DashSpeed);
 
-            if (normalize.y != 0)
+            if (velocity.y != 0)
             {
-                switch (normalize.y)
+                switch (velocity.y)
                 {
                     case < 0 when isGround && Machine.OverlapY(velocityY, out var output):
                         velocityX = output;
@@ -239,9 +235,9 @@ namespace Runtime
                         break;
                 }
             }
-            else if (normalize.x != 0)
+            else if (velocity.x != 0)
             {
-                switch (normalize.x)
+                switch (velocity.x)
                 {
                     case < 0 when isWall && Machine.OverlapX(velocityX, out var output):
                         velocityY = output;
