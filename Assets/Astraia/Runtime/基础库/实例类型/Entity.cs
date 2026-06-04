@@ -1030,7 +1030,11 @@ namespace Astraia
         public int[] Items { get; }
     }
 
-    public interface INode<in T> where T : IRoot
+    public interface INode
+    {
+    }
+
+    public interface INode<in T> : INode where T : IRoot
     {
         BTState OnTick(T root);
     }
