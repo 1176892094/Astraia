@@ -91,16 +91,7 @@ namespace Astraia.Net
             writer.WriteString(Instance.address);
             Instance.SendToServer(writer);
         }
-
-        public override void StartClient(Uri uri)
-        {
-            NetworkManager.Saloon.isClient = true;
-            using var writer = MemoryWriter.Pop();
-            writer.WriteByte((byte)Lobby.请求加入房间);
-            writer.WriteString(uri != null ? uri.Host : Instance.address);
-            Instance.SendToServer(writer);
-        }
-
+        
         public override void StopClient()
         {
             if (NetworkManager.isSaloon)
@@ -159,7 +150,6 @@ namespace Astraia.Net
         public abstract void StopServer();
         public abstract void Disconnect(int clientId);
         public abstract void StartClient();
-        public abstract void StartClient(Uri uri);
         public abstract void StopClient();
         public abstract void ClientEarlyUpdate();
         public abstract void ClientAfterUpdate();
@@ -228,11 +218,6 @@ namespace Astraia.Net
         public override void StartClient()
         {
             kcpClient.Connect(address, port);
-        }
-
-        public override void StartClient(Uri uri)
-        {
-            kcpClient.Connect(uri.Host, (ushort)(uri.IsDefaultPort ? port : uri.Port));
         }
 
         public override void StopClient()

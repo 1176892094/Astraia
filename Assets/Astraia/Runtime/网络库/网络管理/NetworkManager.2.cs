@@ -61,14 +61,6 @@ namespace Astraia.Net
                 }
             }
 
-            internal static void Start(Uri uri)
-            {
-                AddMessage(false);
-                state = State.Connect;
-                connection = new NetworkServer();
-                Transport.StartClient(uri);
-            }
-
             private static void Load(string sceneName)
             {
                 if (!isLoadScene)

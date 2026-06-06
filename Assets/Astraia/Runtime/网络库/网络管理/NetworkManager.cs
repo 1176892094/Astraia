@@ -123,17 +123,6 @@ namespace Astraia.Net
             Client.Start(false);
         }
 
-        public static void StartClient(Uri uri)
-        {
-            if (isClient)
-            {
-                Log.Warn("客户端已经连接!");
-                return;
-            }
-
-            Client.Start(uri);
-        }
-
         public static void StopClient()
         {
             if (!isClient)
@@ -350,7 +339,7 @@ namespace Astraia.Net
             try
             {
                 using var writer = MemoryWriter.Pop();
-                writer.Invoke(new ResponseMessage(new UriBuilder { Scheme = "https", Host = Dns.GetHostName(), Port = Transport.port }.Uri));
+                writer.Invoke(new ResponseMessage(Transport.port));
                 ArraySegment<byte> segment = writer;
                 udpServer.Send(segment.Array!, segment.Count, endPoint);
             }
@@ -368,10 +357,8 @@ namespace Astraia.Net
                 {
                     var result = await udpClient.ReceiveAsync();
                     using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
-
-                    var endPoint = result.RemoteEndPoint;
                     var response = reader.Invoke<ResponseMessage>();
-                    EventManager.Invoke(new ServerResponse(new UriBuilder(response.uri) { Host = endPoint.Address.ToString() }.Uri));
+                    EventManager.Invoke(new ServerResponse(result.RemoteEndPoint.Address.ToString(), response.port));
                 }
                 catch (ObjectDisposedException)
                 {

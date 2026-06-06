@@ -102,7 +102,7 @@ namespace Astraia.Core
 
     internal struct ResponseMessage : IMessage
     {
-        public readonly Uri uri;
-        public ResponseMessage(Uri uri) => this.uri = uri;
+        public readonly ushort port;
+        public ResponseMessage(ushort port) => this.port = port;
     }
 }
