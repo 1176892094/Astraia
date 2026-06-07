@@ -94,7 +94,6 @@ namespace Astraia.Core
 
         private void Awake()
         {
-            Async.Time = 0;
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
@@ -123,6 +122,7 @@ namespace Astraia.Core
 
         private async void OnDestroy()
         {
+            Async.Time = 0;
             manifest = null;
             Instance = null;
             await Task.Yield();

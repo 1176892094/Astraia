@@ -17,8 +17,6 @@ using System.Net;
 using System.Diagnostics;
 using System.Net.Sockets;
 
-// ReSharper disable All
-
 namespace Astraia
 {
     internal class SEvent
@@ -361,7 +359,7 @@ namespace Astraia
                 return;
             }
 
-            var channel = segment.Array[segment.Offset];
+            var channel = segment.Array![segment.Offset];
             var newData = Common.Decode(segment.Array, segment.Offset + 1);
             if (state == State.连接成功 && newData != userData)
             {
@@ -398,7 +396,7 @@ namespace Astraia
             kcpSendBuffer[0] = (byte)message;
             if (segment.Count > 0)
             {
-                Buffer.BlockCopy(segment.Array, segment.Offset, kcpSendBuffer, 1, segment.Count);
+                Buffer.BlockCopy(segment.Array!, segment.Offset, kcpSendBuffer, 1, segment.Count);
             }
 
             if (kcp.Send(kcpSendBuffer, 0, segment.Count + 1) < 0)
@@ -419,7 +417,7 @@ namespace Astraia
             Common.Encode(rawSendBuffer, 1, userData);
             if (segment.Count > 0)
             {
-                Buffer.BlockCopy(segment.Array, segment.Offset, rawSendBuffer, 1 + 4, segment.Count);
+                Buffer.BlockCopy(segment.Array!, segment.Offset, rawSendBuffer, 1 + 4, segment.Count);
             }
 
             onEvent.Send(new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + 1 + 4));
@@ -743,7 +741,7 @@ namespace Astraia
                     {
                         if (socket.Poll(0, SelectMode.SelectWrite))
                         {
-                            socket.SendTo(segment.Array, segment.Offset, segment.Count, SocketFlags.None, result.endPoint);
+                            socket.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, result.endPoint);
                         }
                     }
                 }
@@ -957,7 +955,7 @@ namespace Astraia
                 {
                     if (socket.Poll(0, SelectMode.SelectWrite))
                     {
-                        socket.Send(segment.Array, segment.Offset, segment.Count, SocketFlags.None);
+                        socket.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
                     }
                 }
             }
@@ -1016,7 +1014,7 @@ namespace Astraia
     }
 
     [Serializable]
-    internal sealed class GenericTransport : Transport
+    internal sealed class KcpTransport : Transport
     {
         private const uint MAX_MTU = 1200;
         private const uint TIME_OUT = 10000;
@@ -1029,17 +1027,32 @@ namespace Astraia
         private KcpClient kcpClient;
         private KcpServer kcpServer;
 
-        public GenericTransport(bool isServer = false)
+        public KcpTransport(bool isServer = false)
         {
             var setting = new Setting(MAX_MTU, TIME_OUT, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
             kcpClient = new KcpClient(setting, client);
             kcpServer = new KcpServer(setting, server);
-            client.Error = OnError;
+            if (isServer)
+            {
+                server.Error = OnServerError;
+            }
+            else
+            {
+                client.Error = OnClientError;
+            }
         }
 
-        private static void OnError(Error error, string message)
+        private static void OnServerError(int clientId, Error error, string message)
         {
-            Log.Warn("{0}: {1}", error, message);
+            if (error != Error.解析失败 && error != Error.连接超时)
+            {
+                Log.Warn("客户端: {0}  错误代码: {1}\n{2}".Format(clientId, error, message));
+            }
+        }
+
+        private static void OnClientError(Error error, string message)
+        {
+            Log.Warn("错误代码: {0}\n{1}", error, message);
         }
 
         public override uint GetLength(int channel)

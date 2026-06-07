@@ -84,12 +84,12 @@ namespace Astraia
             grids = new TGrid[col * row];
         }
 
-        protected virtual void OnEnable()
+        public override void OnShow()
         {
             scroll.onValueChanged.AddListener(ScrollView);
         }
 
-        protected virtual void OnDisable()
+        public override void OnHide()
         {
             Unload();
             scroll.onValueChanged.RemoveListener(ScrollView);

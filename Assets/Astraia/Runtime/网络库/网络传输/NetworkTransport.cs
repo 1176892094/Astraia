@@ -18,6 +18,11 @@ namespace Astraia.Net
     {
         public static Transport Instance;
 
+        public NetworkTransport(Transport transport)
+        {
+            Instance = transport;
+        }
+
         public override uint GetLength(int channel)
         {
             return Instance.GetLength(channel);

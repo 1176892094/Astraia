@@ -323,23 +323,10 @@ MonoBehaviour:
   roomData: 
   roomName: 
   roomMode: 0
-  _connection:
-    rid: 915762514025775169
-  _collection:
-    rid: 915762514025775170
+  transports: []
   references:
     version: 2
-    RefIds:
-    - rid: 915762514025775169
-      type: {class: GenericTransport, ns: Astraia, asm: Astraia}
-      data:
-        address: localhost
-        port: 20974
-    - rid: 915762514025775170
-      type: {class: NetworkTransport, ns: Astraia.Net, asm: Astraia.Net}
-      data:
-        address: localhost
-        port: 20974
+    RefIds: []
 --- !u!4 &584064306
 Transform:
   m_ObjectHideFlags: 0
@@ -362,7 +349,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 584064303}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b7ebd91d087ac427bab9f4b472ebde57, type: 3}
   m_Name: 

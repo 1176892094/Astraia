@@ -39,17 +39,16 @@ namespace Astraia.Net
         public static bool isServer => Server.state != State.断开连接;
         public static bool isClient => Client.state != State.断开连接;
         public static bool isSaloon => Saloon.state != State.断开连接;
-        internal static Transport Transport => isRemote ? Instance.transports[1] : Instance.transports[0];
+        internal static Transport Transport => isRemote ? Instance.transports[2] : Instance.transports[0];
 
         private void Awake()
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
-            transports.Add(new GenericTransport());
-            transports.Add(new NetworkTransport());
-            transports.Add(new GenericTransport());
-            NetworkTransport.Instance = transports[2];
+            transports.Add(new KcpTransport());
+            transports.Add(new KcpTransport());
+            transports.Add(new NetworkTransport(transports[1]));
         }
 
         private void OnApplicationQuit()
@@ -70,6 +69,7 @@ namespace Astraia.Net
             }
 
             StopDiscovery();
+            transports.Clear();
         }
 
         public void Execute(OnSceneComplete message)

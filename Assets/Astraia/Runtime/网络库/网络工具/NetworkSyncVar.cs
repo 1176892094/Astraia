@@ -77,12 +77,14 @@ namespace Astraia.Net
                 {
                     if (modules[i].syncMode == SyncMode.Client)
                     {
-                        if (!modules[i].Deserialize(reader, false))
+                        if (modules[i].Deserialize(reader, false))
+                        {
+                            modules[i].SetSyncVarDirty(ulong.MaxValue);
+                        }
+                        else
                         {
                             return false;
                         }
-
-                        modules[i].SetSyncVarDirty(ulong.MaxValue);
                     }
                 }
             }
