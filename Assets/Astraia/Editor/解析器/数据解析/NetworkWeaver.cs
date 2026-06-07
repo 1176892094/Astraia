@@ -13,6 +13,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using Astraia.Core;
 using Mono.Cecil;
 using Astraia.Net;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
@@ -21,8 +22,8 @@ using InjectManager = Astraia.Core.Extensions;
 
 namespace Astraia.Editor
 {
-    using Member = TypeAttributes;
-    using Method = MethodAttributes;
+    using MR = TypeAttributes;
+    using MD = MethodAttributes;
 
     [Serializable]
     internal sealed class Weaver
@@ -35,15 +36,16 @@ namespace Astraia.Editor
         public const string MED_SER = "SerializeSyncVars";
         public const string MED_DES = "DeserializeSyncVars";
         public const string GEN_FUN = nameof(NetworkProcessor);
-        public const Method GEN_RPC = Method.HideBySig | Method.Family | Method.Static;
-        public const Method GEN_RAW = Method.HideBySig | Method.Public | Method.Static;
-        public const Method GEN_VAR = Method.HideBySig | Method.Public | Method.Virtual;
-        public const Method GEN_VIT = Method.HideBySig | Method.Family | Method.Virtual;
-        public const Method GEN_SYNC = Method.HideBySig | Method.Public | Method.SpecialName;
-        public const Method GEN_DATA = Method.HideBySig | Method.Static | Method.SpecialName | Method.Private | Method.RTSpecialName;
-        public const Member GEN_ATTR = Member.AutoClass | Member.Public | Member.Class | Member.AnsiClass | Member.Abstract | Member.Sealed | Member.BeforeFieldInit;
+        public const MD GEN_RPC = MD.HideBySig | MD.Family | MD.Static;
+        public const MD GEN_RAW = MD.HideBySig | MD.Public | MD.Static;
+        public const MD GEN_VAR = MD.HideBySig | MD.Public | MD.Virtual;
+        public const MD GEN_VIT = MD.HideBySig | MD.Family | MD.Virtual;
+        public const MD GEN_SYNC = MD.HideBySig | MD.Public | MD.SpecialName;
+        public const MD GEN_DATA = MD.HideBySig | MD.Static | MD.SpecialName | MD.Private | MD.RTSpecialName;
+        public const MR GEN_ATTR = MR.AutoClass | MR.Public | MR.Class | MR.AnsiClass | MR.Abstract | MR.Sealed | MR.BeforeFieldInit;
 
-        public bool Weave(AssemblyDefinition assembly, ILogPostProcessor debugger, IAssemblyResolver resolver, ICompiledAssembly compiled, out bool modified)
+        public bool Weave(AssemblyDefinition assembly, ILogPostProcessor debugger, IAssemblyResolver resolver, ICompiledAssembly compiled,
+            out bool modified)
         {
             modified = false;
             try
@@ -56,7 +58,8 @@ namespace Astraia.Editor
                 var access = (SyncVarAccess)null;
                 var create = (TypeDefinition)null;
 
-                var success = compiled.Name == GEN_TYPE || compiled.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == GEN_TYPE);
+                var success = compiled.Name == GEN_TYPE ||
+                              compiled.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == GEN_TYPE);
                 if (success)
                 {
                     if (assembly.MainModule.Types.Any(td => td.Namespace == GEN_TYPE && td.Name == GEN_FUN))
@@ -71,12 +74,6 @@ namespace Astraia.Editor
                         reader = new Reader(assembly, module, create, debugger);
                         change = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
                     }
-
-                    //      debugger.Warn(assembly.Name.Name.Color("G"));
-                }
-                else
-                {
-                    //       debugger.Warn(assembly.Name.Name.Color("S"));
                 }
 
                 var mainModule = assembly.MainModule;
@@ -100,7 +97,7 @@ namespace Astraia.Editor
                         }
                     }
 
-                    if (td.IsSubclassOf<MonoBehaviour>())
+                    if (td.HasInterface(typeof(IModule)))
                     {
                         modified |= CustomGenerator.Processed(assembly, td, module, debugger);
                     }
@@ -218,6 +215,11 @@ namespace Astraia.Editor
             return assembly.MainModule.ImportReference(t);
         }
 
+        public MethodReference Import(MethodReference t)
+        {
+            return assembly.MainModule.ImportReference(t);
+        }
+
         public TypeReference Import<T>()
         {
             return Import(typeof(T));
@@ -225,7 +227,8 @@ namespace Astraia.Editor
 
         private static bool OnLogError(MethodDefinition method)
         {
-            return method.Name == "LogError" && method.Parameters.Count == 1 && method.Parameters[0].ParameterType.FullName == typeof(object).FullName;
+            return method.Name == "LogError" && method.Parameters.Count == 1 &&
+                   method.Parameters[0].ParameterType.FullName == typeof(object).FullName;
         }
 
         private static bool ReadModule(MethodDefinition method)
@@ -251,7 +254,8 @@ namespace Astraia.Editor
             return tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
         }
 
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match, ILogPostProcessor Log, ref bool failure)
+        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match, ILogPostProcessor Log,
+            ref bool failure)
         {
             var mr = GetMethod(tr, ad, match);
             if (mr == null)
@@ -539,7 +543,10 @@ namespace Astraia.Editor
 
         public static MethodReference GenericInstance(this MethodReference self, ModuleDefinition md, GenericInstanceType tr)
         {
-            var mr = new MethodReference(self.Name, self.ReturnType, tr) { HasThis = self.HasThis, ExplicitThis = self.ExplicitThis, CallingConvention = self.CallingConvention };
+            var mr = new MethodReference(self.Name, self.ReturnType, tr)
+            {
+                HasThis = self.HasThis, ExplicitThis = self.ExplicitThis, CallingConvention = self.CallingConvention
+            };
 
             foreach (var param in self.Parameters)
             {

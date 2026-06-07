@@ -9,18 +9,19 @@ namespace Runtime
     public class LoadPanel : UIPanel, ITween
     {
         [Inject] private Image panel;
-
+        
+        
         public override async void OnShow()
         {
             await panel.DOFade(1, 0.25f);
             UIManager.Hide<LoadPanel>();
         }
-
-
+        
+        
         public override async void OnHide()
         {
             await panel.DOFade(0, 0.5f);
-            gameObject.SetActive(false);
+            owner.gameObject.SetActive(false);
             UIManager.Show<LabelPanel>();
         }
     }

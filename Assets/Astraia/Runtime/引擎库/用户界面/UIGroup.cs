@@ -52,30 +52,25 @@ namespace Astraia.Core
 
         internal static void Destroy(UIPanel panel, Type type)
         {
-            panel.gameObject.SetActive(false);
-            Object.Destroy(panel.gameObject);
+            panel.owner.gameObject.SetActive(false);
+            Object.Destroy(panel.owner.gameObject);
             panelData.Remove(type);
         }
 
         internal static void SetActive(UIPanel panel, bool state)
         {
-            if (state != panel.gameObject.activeSelf)
+            if (state != panel.owner.gameObject.activeSelf)
             {
                 if (state)
                 {
-                    panel.gameObject.SetActive(true);
-                    panel.OnShow();
+                    panel.owner.gameObject.SetActive(true);
+
                     return;
                 }
 
-                if (panel is ITween)
+                if (panel is not ITween)
                 {
-                    panel.OnHide();
-                }
-                else
-                {
-                    panel.OnHide();
-                    panel.gameObject.SetActive(false);
+                    panel.owner.gameObject.SetActive(false);
                 }
             }
         }

@@ -51,7 +51,7 @@ namespace Astraia.Core
         {
             if (component.TryGetComponent(out Button button))
             {
-                if (self is UIPanel panel)
+                if (self is Entity entity && entity.TryGetComponent<UIPanel>(0, out var panel))
                 {
                     button.onClick.AddListener(() =>
                     {
@@ -76,7 +76,7 @@ namespace Astraia.Core
         {
             if (component.TryGetComponent(out Toggle toggle))
             {
-                if (self is UIPanel panel)
+                if (self is Entity entity && entity.TryGetComponent<UIPanel>(0, out var panel))
                 {
                     toggle.onValueChanged.AddListener(value =>
                     {
@@ -101,7 +101,7 @@ namespace Astraia.Core
         {
             if (component.TryGetComponent(out Slider slider))
             {
-                if (self is UIPanel panel)
+                if (self is Entity entity && entity.TryGetComponent<UIPanel>(0, out var panel))
                 {
                     slider.onValueChanged.AddListener(value =>
                     {
@@ -127,7 +127,7 @@ namespace Astraia.Core
             var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
             if (component.TryGetComponent(cacheType, out var inputField))
             {
-                if (self is UIPanel panel)
+                if (self is Entity entity && entity.TryGetComponent<UIPanel>(0, out var panel))
                 {
                     inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                     {

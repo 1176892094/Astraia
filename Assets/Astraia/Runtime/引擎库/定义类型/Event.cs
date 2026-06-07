@@ -102,8 +102,4 @@ namespace Astraia.Core
     public struct OnDataComplete : IEvent
     {
     }
-
-
-
-
 }

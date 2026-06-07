@@ -18,7 +18,7 @@ using UnityEngine;
 namespace Runtime
 {
     [Serializable]
-    public class GameManager : Singleton<GameManager>, IEvent<ServerReady>
+    public class GameManager : Singleton<GameManager>, IEvent<ServerReady>, IEvent<OnEarlyUpdate>
     {
         [SerializeField] private Bounds bounds;
         [SerializeField] private Vector3 smooth;
@@ -31,7 +31,7 @@ namespace Runtime
             Application.targetFrameRate = 60;
             UIManager.SetCamera(mainCamera);
             UIManager.Show<LoadPanel>();
-           
+
             owner.transform.Wait(0.1F).OnComplete(() =>
             {
                 try
@@ -43,15 +43,6 @@ namespace Runtime
                     NetworkManager.StartClient();
                 }
             });
-        }
-
-        public void Update()
-        {
-            if (player)
-            {
-                CameraModule.Move(mainCamera, player, ref smooth, 0.3f);
-                CameraModule.Step(mainCamera, bounds);
-            }
         }
 
         public void SetPlayer(Transform player)
@@ -68,6 +59,15 @@ namespace Runtime
         {
             var obj = AssetManager.Load<GameObject>("Prefabs/30001");
             NetworkManager.Server.Spawn(obj, message.client);
+        }
+
+        public void Execute(OnEarlyUpdate message)
+        {
+            if (player)
+            {
+                CameraModule.Move(mainCamera, player, ref smooth, 0.3f);
+                CameraModule.Step(mainCamera, bounds);
+            }
         }
     }
 

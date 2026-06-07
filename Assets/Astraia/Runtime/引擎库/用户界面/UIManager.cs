@@ -60,14 +60,16 @@ namespace Astraia.Core
             var asset = AssetManager.Load<GameObject>(path);
             asset.gameObject.name = type.Name;
             asset.gameObject.SetActive(false);
-            var panel = asset.GetOrAddComponent<UIPanel>(type);
+            var owner = asset.GetOrAddComponent<Entity>();
+            var panel = (UIPanel)Activator.CreateInstance(type);
+            owner.modules.Add(panel);
             if (type.GetAttribute(out UIMaskAttribute mask))
             {
                 panel.layer = mask.layer;
                 panel.group = mask.group;
             }
 
-            SetLayer(panel.transform, panel.layer);
+            SetLayer(panel.owner.transform, panel.layer);
             panelData.Add(type, panel);
             return panel;
         }

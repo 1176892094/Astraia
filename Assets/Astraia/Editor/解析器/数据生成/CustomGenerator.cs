@@ -20,7 +20,7 @@ namespace Astraia.Editor
             {
                 if (field.HasAttribute<InjectAttribute>())
                 {
-                    InjectField(GetOrAddMethod(assembly, td, "Awake", module), field, module.Inject.MakeGeneric(field.FieldType));
+                    InjectField(GetOrAddMethod(assembly, td, "Dequeue", module), field, module.Inject.MakeGeneric(field.FieldType));
                     modified = true;
                 }
             }
@@ -33,8 +33,8 @@ namespace Astraia.Editor
                     if (elementType.Is(typeof(IEvent<>)))
                     {
                         var eventType = generic.GenericArguments[0];
-                        InjectEvent(GetOrAddMethod(assembly, td, "OnEnable", module), module.Listen.MakeGeneric(eventType));
-                        InjectEvent(GetOrAddMethod(assembly, td, "OnDisable", module), module.Remove.MakeGeneric(eventType));
+                        InjectEvent(GetOrAddMethod(assembly, td, "OnShow", module), module.Listen.MakeGeneric(eventType));
+                        InjectEvent(GetOrAddMethod(assembly, td, "OnHide", module), module.Remove.MakeGeneric(eventType));
                         modified = true;
                     }
                 }
@@ -79,7 +79,7 @@ namespace Astraia.Editor
                 return existing;
             }
 
-            var method = new MethodDefinition(name, Weaver.GEN_VIT, module.Import(typeof(void)));
+            var method = new MethodDefinition(name, Weaver.GEN_VAR, module.Import(typeof(void)));
             var parent = td.BaseType;
 
             MethodReference methodRef = null;
@@ -99,7 +99,7 @@ namespace Astraia.Editor
                 var methodDef = resolvedType.GetBaseMethod(name);
                 if (methodDef != null && IsMethodAccessible(methodDef))
                 {
-                    methodRef = methodDef;
+                    methodRef = module.Import(methodDef);
                 }
             }
 

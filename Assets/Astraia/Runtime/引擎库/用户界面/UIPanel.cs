@@ -18,17 +18,25 @@ using UnityEngine.UI;
 
 namespace Astraia
 {
-    public abstract class UIPanel : MonoBehaviour
+    public abstract class UIPanel : Module<Entity>
     {
         public UIState state = UIState.Common;
         internal int group;
         internal int layer;
 
-        public virtual void OnShow()
+        public override void Dequeue()
         {
         }
 
-        public virtual void OnHide()
+        public override void OnShow()
+        {
+        }
+
+        public override void OnHide()
+        {
+        }
+
+        public override void Enqueue()
         {
         }
 
@@ -61,7 +69,7 @@ namespace Astraia
 
         protected virtual void Awake()
         {
-            scroll = this.Inject<ScrollRect>(nameof(ScrollRect));
+            scroll = owner.Inject<ScrollRect>(nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
                 col = rect.col;

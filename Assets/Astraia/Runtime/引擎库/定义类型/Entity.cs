@@ -58,6 +58,12 @@ namespace Astraia.Core
         {
             return (T)modules[index];
         }
+
+        public bool TryGetComponent<T>(int index, out T module) where T : IModule
+        {
+            module = (T)modules[index];
+            return module != null;
+        }
     }
 
     public interface IModule
@@ -69,7 +75,7 @@ namespace Astraia.Core
         void OnHide();
     }
 
-    public abstract class Module<T> : IModule
+    public abstract class Module<T> : IModule where T : Component
     {
         [NonSerialized] public T owner;
 
@@ -92,6 +98,11 @@ namespace Astraia.Core
 
         public virtual void Enqueue()
         {
+        }
+
+        public static implicit operator Component(Module<T> module)
+        {
+            return module.owner;
         }
     }
 
