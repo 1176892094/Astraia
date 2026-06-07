@@ -1,9 +1,12 @@
+using System;
+using Astraia.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Runtime
 {
-    public class PlayerFeature : MonoBehaviour
+    [Serializable]
+    public class PlayerFeature : Module<Player>
     {
         public State State = State.默认;
 
@@ -30,7 +33,7 @@ namespace Runtime
         public int CrashCount;
         public Vector3 CrashPoint;
 
-        private void Awake()
+        public override void Dequeue()
         {
             MoveSpeed = 30;
             GrabForce = MoveSpeed * 3 / 2;
@@ -40,9 +43,9 @@ namespace Runtime
         }
     }
 
-    public class PlayerAction : MonoBehaviour
+    [Serializable]
+    public class PlayerAction : Module<Player>
     {
-        private Player owner;
         private PlayerFeature Feature => owner.Feature;
         private PlayerMachine Machine => owner.Machine;
 
@@ -52,19 +55,14 @@ namespace Runtime
             set => Feature.State = value;
         }
 
-        private void Awake()
-        {
-            owner = GetComponent<Player>();
-        }
-
-        private void OnEnable()
+        public override void Dequeue()
         {
             InputManager.Dash.performed += DashButton;
             InputManager.Jump.started += JumpButton;
             InputManager.Jump.canceled += FallButton;
         }
 
-        private void OnDisable()
+        public override void Enqueue()
         {
             InputManager.Dash.performed -= DashButton;
             InputManager.Jump.started -= JumpButton;

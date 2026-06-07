@@ -19,51 +19,51 @@ namespace Astraia.Core
 {
     public static partial class Extensions
     {
-        public static T Inject<T>(this Component self, string name) where T : Component
+        public static T Inject<T>(this Component owner, object obj, string name) where T : Component
         {
-            var child = self.transform.GetChild(name);
+            var child = owner.transform.GetChild(name);
             if (child)
             {
                 var component = child.GetComponent<T>();
-                if (Button(self, component, name))
+                if (Button(owner, obj, component, name))
                 {
                     return component;
                 }
 
-                if (Toggle(self, component, name))
+                if (Toggle(owner, obj, component, name))
                 {
                     return component;
                 }
 
-                if (Slider(self, component, name))
+                if (Slider(owner, obj, component, name))
                 {
                     return component;
                 }
 
-                InputField(self, component, name);
+                InputField(owner, obj, component, name);
                 return component;
             }
 
-            return self.GetComponent<T>();
+            return owner.GetComponent<T>();
         }
 
-        private static bool Button<T>(Component self, T component, string name) where T : Component
+        private static bool Button<T>(Component owner, object obj, T component, string name) where T : Component
         {
             if (component.TryGetComponent(out Button button))
             {
-                if (self is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
+                if (owner is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
                 {
                     button.onClick.AddListener(() =>
                     {
                         if (panel.Interactive())
                         {
-                            self.SendMessage(name);
+                            obj.Invoke(name);
                         }
                     });
                 }
                 else
                 {
-                    button.onClick.AddListener(() => self.SendMessage(name));
+                    button.onClick.AddListener(() => obj.Invoke(name));
                 }
 
                 return true;
@@ -72,23 +72,23 @@ namespace Astraia.Core
             return false;
         }
 
-        private static bool Toggle<T>(Component self, T component, string name) where T : Component
+        private static bool Toggle<T>(Component owner, object obj, T component, string name) where T : Component
         {
             if (component.TryGetComponent(out Toggle toggle))
             {
-                if (self is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
+                if (owner is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
                 {
                     toggle.onValueChanged.AddListener(value =>
                     {
                         if (panel.Interactive())
                         {
-                            self.SendMessage(name, value);
+                            obj.Invoke(name, value);
                         }
                     });
                 }
                 else
                 {
-                    toggle.onValueChanged.AddListener(value => self.SendMessage(name, value));
+                    toggle.onValueChanged.AddListener(value => obj.Invoke(name, value));
                 }
 
                 return true;
@@ -97,23 +97,23 @@ namespace Astraia.Core
             return false;
         }
 
-        private static bool Slider<T>(Component self, T component, string name) where T : Component
+        private static bool Slider<T>(Component owner, object obj, T component, string name) where T : Component
         {
             if (component.TryGetComponent(out Slider slider))
             {
-                if (self is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
+                if (owner is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
                 {
                     slider.onValueChanged.AddListener(value =>
                     {
                         if (panel.Interactive())
                         {
-                            self.SendMessage(name, value);
+                            obj.Invoke(name, value);
                         }
                     });
                 }
                 else
                 {
-                    slider.onValueChanged.AddListener(value => self.SendMessage(name, value));
+                    slider.onValueChanged.AddListener(value => obj.Invoke(name, value));
                 }
 
                 return true;
@@ -122,24 +122,24 @@ namespace Astraia.Core
             return false;
         }
 
-        private static void InputField<T>(Component self, T component, string name) where T : Component
+        private static void InputField<T>(Component owner, object obj, T component, string name) where T : Component
         {
             var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
             if (component.TryGetComponent(cacheType, out var inputField))
             {
-                if (self is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
+                if (owner is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
                 {
                     inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                     {
                         if (panel.Interactive())
                         {
-                            self.SendMessage(name, value);
+                            obj.Invoke(name, value);
                         }
                     });
                 }
                 else
                 {
-                    inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => self.SendMessage(name, value));
+                    inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => obj.Invoke(name, value));
                 }
             }
         }

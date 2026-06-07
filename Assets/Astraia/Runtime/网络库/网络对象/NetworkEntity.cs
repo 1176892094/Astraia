@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Astraia.Core;
 using UnityEngine;
@@ -22,7 +23,7 @@ using UnityEditor.SceneManagement;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkEntity : MonoBehaviour
+    public class NetworkEntity : Entity
     {
         [HideInInspector] public uint objectId;
 
@@ -52,17 +53,19 @@ namespace Astraia.Net
 
         public bool isClient => (state & State.Client) != 0 && NetworkManager.isClient;
 
-        protected virtual void Awake()
+        protected override void Awake()
         {
-            modules = GetComponentsInChildren<NetworkModule>();
+            modules = moduleList.OfType<NetworkModule>().ToArray();
             for (byte i = 0; i < modules.Length; ++i)
             {
                 modules[i].owner = this;
                 modules[i].moduleId = i;
             }
+
+            base.Awake();
         }
 
-        protected virtual void OnDestroy()
+        protected override void OnDestroy()
         {
             if (isClient)
             {
@@ -79,6 +82,7 @@ namespace Astraia.Net
             client = null;
             modules = null;
             ClearObserver();
+            base.OnDestroy();
         }
 
         public virtual void Reset()

@@ -78,9 +78,9 @@ namespace Astraia.Net
             }
         }
 
-        private void Awake()
+        public override void Dequeue()
         {
-            target = transform;
+            target = owner.transform;
             position = target.position;
             rotation = target.rotation;
             mutation = target.localScale;

@@ -178,13 +178,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 301d9c4c40ae43f99e86e1e61ae9d56c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Run::Astraia.Core.Entity
-  modules:
-  - rid: 915762507204788279
-  - rid: 915762507204788280
+  moduleList:
+  - rid: 915762514025775160
+  - rid: 915762514025775161
   references:
     version: 2
     RefIds:
-    - rid: 915762507204788279
+    - rid: 915762514025775160
       type: {class: GameManager, ns: Runtime, asm: Assembly-CSharp}
       data:
         bounds:
@@ -193,7 +193,7 @@ MonoBehaviour:
         smooth: {x: 0, y: 0, z: 0}
         player: {fileID: 0}
         mainCamera: {fileID: 0}
-    - rid: 915762507204788280
+    - rid: 915762514025775161
       type: {class: InputManager, ns: Runtime, asm: Assembly-CSharp}
       data: 
 --- !u!1 &513527312

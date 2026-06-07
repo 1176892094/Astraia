@@ -1,11 +1,12 @@
 using System;
 using Astraia;
+using Astraia.Core;
 using UnityEngine;
 
 namespace Runtime
 {
     [Serializable]
-    public class Rigidbody : MonoBehaviour
+    public class Rigidbody : Module<Player>
     {
         private static readonly Enumerable<RaycastHit2D> Hits = new Enumerable<RaycastHit2D>(8);
 
@@ -50,9 +51,9 @@ namespace Runtime
             set => Velocity.y = value;
         }
 
-        protected virtual void Awake()
+        public override void Dequeue()
         {
-            MovePosition(transform.position);
+            MovePosition(owner.transform.position);
         }
 
         public void MovePosition(float pixelate = 1 / 16F)
@@ -60,7 +61,7 @@ namespace Runtime
             var worldPos = position;
             worldPos.x = Mathf.Round(worldPos.x / pixelate) * pixelate;
             worldPos.y = Mathf.Round(worldPos.y / pixelate) * pixelate;
-            transform.position = worldPos;
+            owner.transform.position = worldPos;
         }
 
         public void MovePosition(Vector2 worldPos, float pixelate = 1 / 16F)

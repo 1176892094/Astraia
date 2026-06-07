@@ -18,15 +18,15 @@ namespace Astraia.Editor
 
             var m1 = assembly.MainModule.ImportReference(typeof(Module<>));
             var m2 = assembly.MainModule.ImportReference(typeof(Module<>).GetField(nameof(Module<object>.owner)));
-            var m4 = assembly.MainModule.ImportReference(GetOwnerFieldActualType(td));
-            var m5 = m2.GenericField(assembly.MainModule, m1.MakeGeneric(m4));
+            var m3 = assembly.MainModule.ImportReference(GetOwnerFieldActualType(td));
+            var m4 = m2.GenericField(assembly.MainModule, m1.MakeGeneric(m3));
 
             var modified = false;
             foreach (var f in td.Fields)
             {
                 if (f.HasAttribute<InjectAttribute>())
                 {
-                    InjectField(GetMethod(td, module, module.Dequeue), module.Inject.MakeGeneric(f.FieldType), f, m5);
+                    InjectField(GetMethod(td, module, module.Dequeue), module.Inject.MakeGeneric(f.FieldType), f, m4);
                     modified = true;
                 }
             }
@@ -87,6 +87,7 @@ namespace Astraia.Editor
             worker.InsertBefore(target, worker.Create(OpCodes.Ldarg_0));
             worker.InsertBefore(target, worker.Create(OpCodes.Ldarg_0));
             worker.InsertBefore(target, worker.Create(OpCodes.Ldfld, owner));
+            worker.InsertBefore(target, worker.Create(OpCodes.Ldarg_0));
             worker.InsertBefore(target, worker.Create(OpCodes.Ldstr, char.ToUpper(field.Name[0]) + field.Name.Substring(1)));
             worker.InsertBefore(target, worker.Create(OpCodes.Call, method));
             worker.InsertBefore(target, worker.Create(OpCodes.Stfld, field));

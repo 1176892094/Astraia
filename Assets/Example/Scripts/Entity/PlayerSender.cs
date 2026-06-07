@@ -14,7 +14,7 @@ namespace Runtime
 
         public int Direction
         {
-            get => Math.Sign(transform.localScale.x);
+            get => Math.Sign(owner.transform.localScale.x);
             set
             {
                 if ((value > 0 && Direction < 0) || (value < 0 && Direction > 0))
@@ -28,14 +28,14 @@ namespace Runtime
                         SetDirectionClientRpc(value);
                     }
 
-                    transform.localScale = new Vector3(value, 1, 1);
+                    owner.transform.localScale = new Vector3(value, 1, 1);
                 }
             }
         }
 
         private void OnValueChanged(Color32 oldValue, Color32 newValue)
         {
-            GetComponentInChildren<SpriteRenderer>().color = newValue;
+            owner.GetComponentInChildren<SpriteRenderer>().color = newValue;
         }
 
         [ServerRpc]
@@ -53,7 +53,7 @@ namespace Runtime
         [ClientRpc(Channel.Reliable | Channel.IgnoreOwner)]
         private void SetDirectionClientRpc(int direction)
         {
-            transform.localScale = new Vector3(direction, 1, 1);
+            owner.transform.localScale = new Vector3(direction, 1, 1);
         }
 
         [ServerRpc]
@@ -73,18 +73,17 @@ namespace Runtime
 
         public void OnStartAuthority()
         {
-            GameManager.Instance.SetPlayer(transform);
+            GameManager.Instance.SetPlayer(owner.transform);
             GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(13, 6)));
-            owner.Action = gameObject.AddComponent<PlayerAction>();
-            var machine = GetComponent<PlayerMachine>();
-            machine.Create<PlayerIdle>(Animations.Idle);
-            machine.Create<PlayerWalk>(Animations.Walk);
-            machine.Create<PlayerJump>(Animations.Jump);
-            machine.Create<PlayerFall>(Animations.Fall);
-            machine.Create<PlayerGrab>(Animations.Grab);
-            machine.Create<PlayerDash>(Animations.Dash);
-            machine.Create<PlayerCrash>(Animations.Crash);
-            machine.Switch(Animations.Idle);
+            owner.AddComponent<PlayerAction>().Dequeue();
+            owner.Machine.Create<PlayerIdle>(Animations.Idle);
+            owner.Machine.Create<PlayerWalk>(Animations.Walk);
+            owner.Machine.Create<PlayerJump>(Animations.Jump);
+            owner.Machine.Create<PlayerFall>(Animations.Fall);
+            owner.Machine.Create<PlayerGrab>(Animations.Grab);
+            owner.Machine.Create<PlayerDash>(Animations.Dash);
+            owner.Machine.Create<PlayerCrash>(Animations.Crash);
+            owner.Machine.Switch(Animations.Idle);
         }
     }
 }

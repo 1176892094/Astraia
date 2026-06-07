@@ -55,7 +55,7 @@ namespace Astraia
 
         protected virtual void Awake()
         {
-            scroll = owner.Inject<ScrollRect>(nameof(ScrollRect));
+            scroll = owner.Inject<ScrollRect>(this, nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
                 col = rect.col;

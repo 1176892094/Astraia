@@ -15,10 +15,10 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
-        public PlayerAction Action;
-        public PlayerSender Sender;
-        public PlayerFeature Feature;
-        public PlayerMachine Machine;
+        public PlayerAction Action => GetComponent<PlayerAction>(4);
+        public PlayerSender Sender => GetComponent<PlayerSender>(1);
+        public PlayerFeature Feature => GetComponent<PlayerFeature>(0);
+        public PlayerMachine Machine => GetComponent<PlayerMachine>(2);
 
         private void Update()
         {

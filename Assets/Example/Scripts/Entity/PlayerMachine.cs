@@ -1,19 +1,14 @@
+using System;
 using Astraia;
 
 namespace Runtime
 {
+    [Serializable]
     public class PlayerMachine : Rigidbody
     {
         private readonly StateMachine<int> machine = new StateMachine<int>();
-        private Player owner;
 
-        protected override void Awake()
-        {
-            base.Awake();
-            owner = GetComponent<Player>();
-        }
-
-        private void OnDestroy()
+        public override void Enqueue()
         {
             machine.Clear();
         }

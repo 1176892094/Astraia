@@ -18,11 +18,9 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public abstract class NetworkModule : MonoBehaviour
+    public abstract class NetworkModule : Module<NetworkEntity>
     {
         [HideInInspector] public float syncStep;
-
-        [HideInInspector] public NetworkEntity owner;
         
         public SyncMode syncMode;
 
@@ -404,13 +402,13 @@ namespace Astraia.Net
         {
             uint newValue = 0;
             byte newIndex = 0;
-            if (entity)
+            if (entity.owner)
             {
                 newValue = entity.objectId;
                 newIndex = entity.moduleId;
                 if (newValue == 0)
                 {
-                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.gameObject.name);
+                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", entity.owner.gameObject.name);
                 }
             }
 
@@ -480,13 +478,13 @@ namespace Astraia.Net
 
             uint newValue = 0;
             byte newIndex = 0;
-            if (value)
+            if (value.owner)
             {
                 newValue = value.objectId;
                 newIndex = value.moduleId;
                 if (newValue == 0)
                 {
-                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.gameObject.name);
+                    Log.Warn("设置网络变量的对象未初始化。对象名称: {0}", value.owner.gameObject.name);
                 }
             }
 

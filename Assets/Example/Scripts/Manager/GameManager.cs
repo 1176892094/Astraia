@@ -76,22 +76,11 @@ namespace Runtime
         public static void Move(Camera camera, Transform target, ref Vector3 smooth, float speed)
         {
             var cam = camera.transform.parent;
+            var pixelate = camera.orthographicSize * 2 / (480 / camera.aspect);
             var targetPos = new Vector3(target.position.x, target.position.y, cam.position.z);
-            Vector3 smoothPos;
-            if (camera.targetTexture)
-            {
-                var pixelate = camera.orthographicSize * 2 / camera.targetTexture.height;
-                smoothPos = Vector3.Distance(target.position, cam.position) > pixelate
-                    ? Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed)
-                    : target.position;
-                smoothPos.x = Mathf.Round(smoothPos.x / pixelate) * pixelate;
-                smoothPos.y = Mathf.Round(smoothPos.y / pixelate) * pixelate;
-            }
-            else
-            {
-                smoothPos = Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed);
-            }
-
+            var smoothPos = Vector3.Distance(target.position, cam.position) > pixelate ? Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed) : target.position;
+            smoothPos.x = Mathf.Round(smoothPos.x / pixelate) * pixelate;
+            smoothPos.y = Mathf.Round(smoothPos.y / pixelate) * pixelate;
             cam.position = new Vector3(smoothPos.x, smoothPos.y, cam.position.z);
         }
 
