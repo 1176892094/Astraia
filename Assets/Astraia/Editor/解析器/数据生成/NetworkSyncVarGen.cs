@@ -184,7 +184,7 @@ namespace Astraia.Editor
 
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string name, FieldReference obj)
         {
-            var getter = new MethodDefinition("get_{0}Var".Format(name), Weaver.GEN_SYNC, fd.FieldType);
+            var getter = new MethodDefinition("get_{0}Var".Format(name), Weaver.GEN_S2, fd.FieldType);
             var worker = getter.Body.GetILProcessor();
             var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeGeneric() : fd;
 
@@ -233,7 +233,7 @@ namespace Astraia.Editor
 
         private MethodDefinition GenerateSyncVarSetter(FieldDefinition fd, string name, FieldReference obj, TypeDefinition td, long dirtyBit, ref bool failed)
         {
-            var setter = new MethodDefinition("set_{0}Var".Format(name), Weaver.GEN_SYNC, module.Import(typeof(void)));
+            var setter = new MethodDefinition("set_{0}Var".Format(name), Weaver.GEN_S2, module.Import(typeof(void)));
             var worker = setter.Body.GetILProcessor();
             var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeGeneric() : fd;
 
@@ -313,7 +313,7 @@ namespace Astraia.Editor
 
         private static void ProcessMethod(MethodDefinition md, SyncVarAccess access)
         {
-            if (md.Name == ".cctor" || md.Name == Weaver.GEN_FUN || md.Name.StartsWith(Weaver.MED_INV))
+            if (md.Name == ".cctor" || md.Name == Weaver.MED_T1 || md.Name.StartsWith(Weaver.MED_V2))
             {
                 return;
             }
@@ -355,7 +355,7 @@ namespace Astraia.Editor
 
         private static void ProcessSetter(MethodDefinition md, Instruction i, FieldDefinition opcode, SyncVarAccess access)
         {
-            if (md.Name == Weaver.GEN_CTOR)
+            if (md.Name == Weaver.MED_C1)
             {
                 return;
             }
@@ -369,7 +369,7 @@ namespace Astraia.Editor
 
         private static void ProcessGetter(MethodDefinition md, Instruction i, FieldDefinition opcode, SyncVarAccess access)
         {
-            if (md.Name == Weaver.GEN_CTOR)
+            if (md.Name == Weaver.MED_C1)
             {
                 return;
             }
@@ -383,7 +383,7 @@ namespace Astraia.Editor
 
         private static int ProcessAddress(MethodDefinition md, Instruction instr, FieldDefinition opcode, SyncVarAccess access, int index)
         {
-            if (md.Name == Weaver.GEN_CTOR)
+            if (md.Name == Weaver.MED_C1)
             {
                 return 1;
             }

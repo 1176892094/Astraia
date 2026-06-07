@@ -364,15 +364,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Astraia.Run::Astraia.Core.Entity
   modules:
-  - rid: 915762507204788278
+  - rid: 915762512605478964
   references:
     version: 2
     RefIds:
-    - rid: 915762507204788278
+    - rid: 915762512605478964
       type: {class: PlayerModule, ns: Example.Scripts, asm: Assembly-CSharp}
-      data:
-        Id: 0
-        Name: 
+      data: {}
 --- !u!1 &1521847866
 GameObject:
   m_ObjectHideFlags: 0

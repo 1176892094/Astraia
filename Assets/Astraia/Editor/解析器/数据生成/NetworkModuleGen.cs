@@ -51,12 +51,12 @@ namespace Astraia.Editor
 
         public bool Process(ref bool failed)
         {
-            if (create.GetMethod(Weaver.GEN_FUN) != null)
+            if (create.GetMethod(Weaver.MED_T1) != null)
             {
                 return false;
             }
 
-            var method = new MethodDefinition(Weaver.GEN_FUN, MethodAttributes.Private, module.Import(typeof(void)));
+            var method = new MethodDefinition(Weaver.MED_T1, MethodAttributes.Private, module.Import(typeof(void)));
             var worker = method.Body.GetILProcessor();
             worker.Emit(OpCodes.Ret);
             create.Methods.Add(method);
@@ -237,11 +237,11 @@ namespace Astraia.Editor
                 return;
             }
 
-            var cctor = create.GetMethod(Weaver.GEN_CCTOR);
+            var cctor = create.GetMethod(Weaver.MED_C2);
             var empty = cctor == null;
             if (empty)
             {
-                cctor = new MethodDefinition(Weaver.GEN_CCTOR, Weaver.GEN_DATA, module.Import(typeof(void)));
+                cctor = new MethodDefinition(Weaver.MED_C2, Weaver.GEN_C2, module.Import(typeof(void)));
             }
             else
             {
@@ -309,16 +309,16 @@ namespace Astraia.Editor
 
         private void SerializeSyncVars(ref bool failed)
         {
-            if (create.GetMethod(Weaver.MED_SER) != null) return;
+            if (create.GetMethod(Weaver.MED_S1) != null) return;
             if (syncVars.Count == 0) return;
 
-            var method = new MethodDefinition(Weaver.MED_SER, Weaver.GEN_VAR, module.Import(typeof(void)));
+            var method = new MethodDefinition(Weaver.MED_S1, Weaver.GEN_S1, module.Import(typeof(void)));
             method.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
             method.Parameters.Add(new ParameterDefinition("isInit", ParameterAttributes.None, module.Import<bool>()));
             var worker = method.Body.GetILProcessor();
 
             method.Body.InitLocals = true;
-            var reason = Common.GetMethod(create.BaseType, assembly, Weaver.MED_SER);
+            var reason = Common.GetMethod(create.BaseType, assembly, Weaver.MED_S1);
             if (reason != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -396,19 +396,19 @@ namespace Astraia.Editor
 
         private void DeserializeSyncVars(ref bool failed)
         {
-            if (create.GetMethod(Weaver.MED_DES) != null || syncVars.Count == 0)
+            if (create.GetMethod(Weaver.MED_S2) != null || syncVars.Count == 0)
             {
                 return;
             }
 
-            var method = new MethodDefinition(Weaver.MED_DES, Weaver.GEN_VAR, module.Import(typeof(void)));
+            var method = new MethodDefinition(Weaver.MED_S2, Weaver.GEN_S1, module.Import(typeof(void)));
             method.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             method.Parameters.Add(new ParameterDefinition("isInit", ParameterAttributes.None, module.Import<bool>()));
             var worker = method.Body.GetILProcessor();
 
             method.Body.InitLocals = true;
             method.Body.Variables.Add(new VariableDefinition(module.Import<long>()));
-            var reason = Common.GetMethod(create.BaseType, assembly, Weaver.MED_DES);
+            var reason = Common.GetMethod(create.BaseType, assembly, Weaver.MED_S2);
             if (reason != null)
             {
                 worker.Append(worker.Create(OpCodes.Ldarg_0));

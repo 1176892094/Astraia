@@ -39,14 +39,14 @@ namespace Astraia.Editor
 
         public override bool WillProcess(ICompiledAssembly compiledAssembly)
         {
-            return compiledAssembly.Name == Weaver.GEN_TYPE || FindReference(compiledAssembly);
+            return compiledAssembly.Name == Weaver.WEAVER || FindReference(compiledAssembly);
         }
 
         private static bool FindReference(ICompiledAssembly compiledAssembly)
         {
             if (!IgnoreAssemblies.Contains(compiledAssembly.Name) && !compiledAssembly.Name.StartsWith("Unity"))
             {
-                return compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) is "Astraia" or Weaver.GEN_TYPE);
+                return compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) is "Astraia" or Weaver.WEAVER);
             }
 
             return false;

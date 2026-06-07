@@ -48,7 +48,7 @@ namespace Astraia.Editor
 
         private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor debugger, Writer writer, Reader reader, ref bool failed)
         {
-            var ar = assembly.MainModule.AssemblyReferences.FirstOrDefault(reference => reference.Name == Weaver.GEN_TYPE);
+            var ar = assembly.MainModule.AssemblyReferences.FirstOrDefault(reference => reference.Name == Weaver.WEAVER);
             if (ar != null)
             {
                 var ad = resolver.Resolve(ar);
@@ -341,7 +341,7 @@ namespace Astraia.Editor
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Common.GetMethod(extensions, assembly, "Write" + name, debugger, ref failed);
+            var mr = extensions.GetMethod(assembly, "Write" + name, debugger, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -406,7 +406,7 @@ namespace Astraia.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition("Write{0}".Format(NetworkMessage.Id(tr.FullName)), Weaver.GEN_RAW, module.Import(typeof(void)));
+            var md = new MethodDefinition("Write{0}".Format(NetworkMessage.Id(tr.FullName)), Weaver.GEN_V2, module.Import(typeof(void)));
             md.Parameters.Add(new ParameterDefinition("writer", ParameterAttributes.None, module.Import<MemoryWriter>()));
             md.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, tr));
             md.Body.InitLocals = true;
@@ -554,7 +554,7 @@ namespace Astraia.Editor
 
         private MethodDefinition AddMethod(TypeReference tr)
         {
-            var md = new MethodDefinition("Read{0}".Format(NetworkMessage.Id(tr.FullName)), Weaver.GEN_RAW, tr);
+            var md = new MethodDefinition("Read{0}".Format(NetworkMessage.Id(tr.FullName)), Weaver.GEN_V2, tr);
             md.Parameters.Add(new ParameterDefinition("reader", ParameterAttributes.None, module.Import<MemoryReader>()));
             md.Body.InitLocals = true;
             Register(tr, md);

@@ -22,30 +22,28 @@ using InjectManager = Astraia.Core.Extensions;
 
 namespace Astraia.Editor
 {
-    using MR = TypeAttributes;
-    using MD = MethodAttributes;
+    using TA = TypeAttributes;
+    using MA = MethodAttributes;
 
     [Serializable]
     internal sealed class Weaver
     {
-        public const string GEN_TYPE = "Astraia.Net";
-        public const string GEN_CTOR = ".ctor";
-        public const string GEN_CCTOR = ".cctor";
-        public const string MED_RPC = "V1";
-        public const string MED_INV = "V2";
-        public const string MED_SER = "SerializeSyncVars";
-        public const string MED_DES = "DeserializeSyncVars";
-        public const string GEN_FUN = nameof(NetworkProcessor);
-        public const MD GEN_RPC = MD.HideBySig | MD.Family | MD.Static;
-        public const MD GEN_RAW = MD.HideBySig | MD.Public | MD.Static;
-        public const MD GEN_VAR = MD.HideBySig | MD.Public | MD.Virtual;
-        public const MD GEN_VIT = MD.HideBySig | MD.Family | MD.Virtual;
-        public const MD GEN_SYNC = MD.HideBySig | MD.Public | MD.SpecialName;
-        public const MD GEN_DATA = MD.HideBySig | MD.Static | MD.SpecialName | MD.Private | MD.RTSpecialName;
-        public const MR GEN_ATTR = MR.AutoClass | MR.Public | MR.Class | MR.AnsiClass | MR.Abstract | MR.Sealed | MR.BeforeFieldInit;
+        public const string WEAVER = "Astraia.Net";
+        public const string MED_V1 = "V1";
+        public const string MED_V2 = "V2";
+        public const string MED_C1 = ".ctor";
+        public const string MED_C2 = ".cctor";
+        public const string MED_S1 = "SerializeSyncVars";
+        public const string MED_S2 = "DeserializeSyncVars";
+        public const string MED_T1 = nameof(NetworkProcessor);
+        public const MA GEN_V1 = MA.HideBySig | MA.Family | MA.Static;
+        public const MA GEN_V2 = MA.HideBySig | MA.Public | MA.Static;
+        public const MA GEN_S1 = MA.HideBySig | MA.Public | MA.Virtual;
+        public const MA GEN_S2 = MA.HideBySig | MA.Public | MA.SpecialName;
+        public const MA GEN_C2 = MA.HideBySig | MA.Static | MA.SpecialName | MA.Private | MA.RTSpecialName;
+        public const TA GEN_T1 = TA.AutoClass | TA.Public | TA.Class | TA.AnsiClass | TA.Abstract | TA.Sealed | TA.BeforeFieldInit;
 
-        public bool Weave(AssemblyDefinition assembly, ILogPostProcessor debugger, IAssemblyResolver resolver, ICompiledAssembly compiled,
-            out bool modified)
+        public bool Weave(AssemblyDefinition assembly, ILogPostProcessor debugger, IAssemblyResolver resolver, ICompiledAssembly compiled, out bool modified)
         {
             modified = false;
             try
@@ -58,18 +56,17 @@ namespace Astraia.Editor
                 var access = (SyncVarAccess)null;
                 var create = (TypeDefinition)null;
 
-                var success = compiled.Name == GEN_TYPE ||
-                              compiled.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == GEN_TYPE);
+                var success = compiled.Name == WEAVER || compiled.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == WEAVER);
                 if (success)
                 {
-                    if (assembly.MainModule.Types.Any(td => td.Namespace == GEN_TYPE && td.Name == GEN_FUN))
+                    if (assembly.MainModule.Types.Any(td => td.Namespace == WEAVER && td.Name == MED_T1))
                     {
                         success = false;
                     }
                     else
                     {
                         access = new SyncVarAccess();
-                        create = new TypeDefinition(GEN_TYPE, GEN_FUN, GEN_ATTR, module.Import<object>());
+                        create = new TypeDefinition(WEAVER, MED_T1, GEN_T1, module.Import<object>());
                         writer = new Writer(assembly, module, create, debugger);
                         reader = new Reader(assembly, module, create, debugger);
                         change = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
@@ -131,6 +128,12 @@ namespace Astraia.Editor
         private readonly AssemblyDefinition assembly;
         public readonly TypeDefinition Initialized;
 
+        public readonly MethodReference OnShow;
+        public readonly MethodReference OnHide;
+        public readonly MethodReference Dequeue;
+        public readonly MethodReference Enqueue;
+        public readonly MemberReference ModuleGeneric;
+
         public readonly MethodReference Listen;
         public readonly MethodReference Remove;
         public readonly MethodReference Inject;
@@ -168,54 +171,54 @@ namespace Astraia.Editor
         public readonly MethodReference SendTargetRpcInternal;
         public readonly MethodReference SendClientRpcInternal;
 
-        public Module(AssemblyDefinition assembly, ILogPostProcessor debugger, ref bool failed)
+        public Module(AssemblyDefinition assembly, ILogPostProcessor Log, ref bool failed)
         {
             this.assembly = assembly;
             Initialized = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
-            LogError = Common.GetMethod(Import<Debug>(), assembly, OnLogError, debugger, ref failed);
-            SyncVarHook = Common.GetMethod(Import(typeof(Action<,>)), assembly, Weaver.GEN_CTOR, debugger, ref failed);
-            InvokeDelegate = Common.GetMethod(Import<InvokeDelegate>(), assembly, Weaver.GEN_CTOR, debugger, ref failed);
-            AddArraySegment = Common.GetMethod(Import(typeof(ArraySegment<>)), assembly, Weaver.GEN_CTOR, debugger, ref failed);
-            GetTypeFromHandle = Common.GetMethod(Import<Type>(), assembly, "GetTypeFromHandle", debugger, ref failed);
-            ReadNetworkModule = Common.GetMethod(Import(typeof(Net.Extensions)), assembly, ReadModule, debugger, ref failed);
+            LogError = Import<Debug>().GetMethod(assembly, OnLogError, Log, ref failed);
+            SyncVarHook = Import(typeof(Action<,>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
+            InvokeDelegate = Import<InvokeDelegate>().GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
+            AddArraySegment = Import(typeof(ArraySegment<>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
+            GetTypeFromHandle = Import<Type>().GetMethod(assembly, "GetTypeFromHandle", Log, ref failed);
+            ReadNetworkModule = Import(typeof(Net.Extensions)).GetMethod(assembly, ReadModule, Log, ref failed);
 
-            Listen = Common.GetMethod(Import(typeof(EventManager)), assembly, nameof(Listen), debugger, ref failed);
-            Remove = Common.GetMethod(Import(typeof(EventManager)), assembly, nameof(Remove), debugger, ref failed);
-            Inject = Common.GetMethod(Import(typeof(InjectManager)), assembly, nameof(Inject), debugger, ref failed);
-            WriterDequeue = Common.GetMethod(Import<MemoryWriter>(), assembly, "Pop", debugger, ref failed);
-            WriterEnqueue = Common.GetMethod(Import<MemoryWriter>(), assembly, "Push", debugger, ref failed);
-            GetClientActive = Common.GetMethod(Import<NetworkManager>(), assembly, "get_isClient", debugger, ref failed);
-            GetServerActive = Common.GetMethod(Import<NetworkManager>(), assembly, "get_isServer", debugger, ref failed);
-            RegisterServerRpc = Common.GetMethod(Import(typeof(NetworkAttribute)), assembly, nameof(RegisterServerRpc), debugger, ref failed);
-            RegisterClientRpc = Common.GetMethod(Import(typeof(NetworkAttribute)), assembly, nameof(RegisterClientRpc), debugger, ref failed);
+            OnShow = Import(typeof(Core.Module)).GetMethod(assembly, nameof(OnShow), Log, ref failed);
+            OnHide = Import(typeof(Core.Module)).GetMethod(assembly, nameof(OnHide), Log, ref failed);
+            Dequeue = Import(typeof(Core.Module)).GetMethod(assembly, nameof(Dequeue), Log, ref failed);
+            Enqueue = Import(typeof(Core.Module)).GetMethod(assembly, nameof(Enqueue), Log, ref failed);
 
-            var NetworkModuleType = Import<NetworkModule>();
-            SyncVarDirty = Common.GetProperty(NetworkModuleType, assembly, "syncVarDirty");
-            SyncVarGetterGeneral = Common.GetMethod(NetworkModuleType, assembly, nameof(SyncVarGetterGeneral), debugger, ref failed);
-            SyncVarGetterGameObject = Common.GetMethod(NetworkModuleType, assembly, nameof(SyncVarGetterGameObject), debugger, ref failed);
-            SyncVarGetterNetworkEntity = Common.GetMethod(NetworkModuleType, assembly, nameof(SyncVarGetterNetworkEntity), debugger, ref failed);
-            SyncVarGetterNetworkModule = Common.GetMethod(NetworkModuleType, assembly, nameof(SyncVarGetterNetworkModule), debugger, ref failed);
+            Listen = Import(typeof(EventManager)).GetMethod(assembly, nameof(Listen), Log, ref failed);
+            Remove = Import(typeof(EventManager)).GetMethod(assembly, nameof(Remove), Log, ref failed);
+            Inject = Import(typeof(InjectManager)).GetMethod(assembly, nameof(Inject), Log, ref failed);
+            WriterDequeue = Import<MemoryWriter>().GetMethod(assembly, "Pop", Log, ref failed);
+            WriterEnqueue = Import<MemoryWriter>().GetMethod(assembly, "Push", Log, ref failed);
+            GetClientActive = Import<NetworkManager>().GetMethod(assembly, "get_isClient", Log, ref failed);
+            GetServerActive = Import<NetworkManager>().GetMethod(assembly, "get_isServer", Log, ref failed);
+            RegisterServerRpc = Import(typeof(NetworkAttribute)).GetMethod(assembly, nameof(RegisterServerRpc), Log, ref failed);
+            RegisterClientRpc = Import(typeof(NetworkAttribute)).GetMethod(assembly, nameof(RegisterClientRpc), Log, ref failed);
 
-            SyncVarSetterGeneral = Common.GetMethod(NetworkModuleType, assembly, nameof(SyncVarSetterGeneral), debugger, ref failed);
-            SyncVarSetterGameObject = Common.GetMethod(NetworkModuleType, assembly, nameof(SyncVarSetterGameObject), debugger, ref failed);
-            SyncVarSetterNetworkEntity = Common.GetMethod(NetworkModuleType, assembly, nameof(SyncVarSetterNetworkEntity), debugger, ref failed);
-            SyncVarSetterNetworkModule = Common.GetMethod(NetworkModuleType, assembly, nameof(SyncVarSetterNetworkModule), debugger, ref failed);
+            var module = Import<NetworkModule>();
+            SyncVarDirty = module.GetProperty(assembly, "syncVarDirty");
+            SyncVarGetterGeneral = module.GetMethod(assembly, nameof(SyncVarGetterGeneral), Log, ref failed);
+            SyncVarGetterGameObject = module.GetMethod(assembly, nameof(SyncVarGetterGameObject), Log, ref failed);
+            SyncVarGetterNetworkEntity = module.GetMethod(assembly, nameof(SyncVarGetterNetworkEntity), Log, ref failed);
+            SyncVarGetterNetworkModule = module.GetMethod(assembly, nameof(SyncVarGetterNetworkModule), Log, ref failed);
 
-            GetSyncVarGameObject = Common.GetMethod(NetworkModuleType, assembly, nameof(GetSyncVarGameObject), debugger, ref failed);
-            GetSyncVarNetworkEntity = Common.GetMethod(NetworkModuleType, assembly, nameof(GetSyncVarNetworkEntity), debugger, ref failed);
-            GetSyncVarNetworkModule = Common.GetMethod(NetworkModuleType, assembly, nameof(GetSyncVarNetworkModule), debugger, ref failed);
+            SyncVarSetterGeneral = module.GetMethod(assembly, nameof(SyncVarSetterGeneral), Log, ref failed);
+            SyncVarSetterGameObject = module.GetMethod(assembly, nameof(SyncVarSetterGameObject), Log, ref failed);
+            SyncVarSetterNetworkEntity = module.GetMethod(assembly, nameof(SyncVarSetterNetworkEntity), Log, ref failed);
+            SyncVarSetterNetworkModule = module.GetMethod(assembly, nameof(SyncVarSetterNetworkModule), Log, ref failed);
 
-            SendServerRpcInternal = Common.GetMethod(NetworkModuleType, assembly, nameof(SendServerRpcInternal), debugger, ref failed);
-            SendClientRpcInternal = Common.GetMethod(NetworkModuleType, assembly, nameof(SendClientRpcInternal), debugger, ref failed);
-            SendTargetRpcInternal = Common.GetMethod(NetworkModuleType, assembly, nameof(SendTargetRpcInternal), debugger, ref failed);
+            GetSyncVarGameObject = module.GetMethod(assembly, nameof(GetSyncVarGameObject), Log, ref failed);
+            GetSyncVarNetworkEntity = module.GetMethod(assembly, nameof(GetSyncVarNetworkEntity), Log, ref failed);
+            GetSyncVarNetworkModule = module.GetMethod(assembly, nameof(GetSyncVarNetworkModule), Log, ref failed);
+
+            SendServerRpcInternal = module.GetMethod(assembly, nameof(SendServerRpcInternal), Log, ref failed);
+            SendClientRpcInternal = module.GetMethod(assembly, nameof(SendClientRpcInternal), Log, ref failed);
+            SendTargetRpcInternal = module.GetMethod(assembly, nameof(SendTargetRpcInternal), Log, ref failed);
         }
 
         public TypeReference Import(Type t)
-        {
-            return assembly.MainModule.ImportReference(t);
-        }
-
-        public MethodReference Import(MethodReference t)
         {
             return assembly.MainModule.ImportReference(t);
         }
@@ -225,10 +228,9 @@ namespace Astraia.Editor
             return Import(typeof(T));
         }
 
-        private static bool OnLogError(MethodDefinition method)
+        private static bool OnLogError(MethodDefinition md)
         {
-            return method.Name == "LogError" && method.Parameters.Count == 1 &&
-                   method.Parameters[0].ParameterType.FullName == typeof(object).FullName;
+            return md.Name == "LogError" && md.Parameters.Count == 1 && md.Parameters[0].ParameterType.FullName == typeof(object).FullName;
         }
 
         private static bool ReadModule(MethodDefinition method)
@@ -239,41 +241,40 @@ namespace Astraia.Editor
 
     internal static class Common
     {
-        public static MethodReference GetProperty(TypeReference tr, AssemblyDefinition ad, string name)
+        public static MethodReference GetProperty(this TypeReference tr, AssemblyDefinition ad, string name)
         {
             return tr.Resolve().Properties.Where(pd => pd.Name == name).Select(pd => ad.MainModule.ImportReference(pd.GetMethod)).FirstOrDefault();
         }
 
         public static MethodDefinition GetConstructor(TypeReference tr)
         {
-            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Weaver.GEN_CTOR && md.Resolve().IsPublic && md.Parameters.Count == 0);
+            return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Weaver.MED_C1 && md.Resolve().IsPublic && md.Parameters.Count == 0);
         }
 
-        private static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match)
+        private static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match)
         {
             return tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
         }
 
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match, ILogPostProcessor Log,
-            ref bool failure)
+        public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match, ILogPostProcessor Log, ref bool failed)
         {
-            var mr = GetMethod(tr, ad, match);
+            var mr = tr.GetMethod(ad, match);
             if (mr == null)
             {
                 Log.Error("在类型 {0} 中没有找到方法".Format(tr), tr);
-                failure = true;
+                failed = true;
             }
 
             return mr;
         }
 
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, string name, ILogPostProcessor Log, ref bool failure)
+        public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, string name, ILogPostProcessor Log, ref bool failed)
         {
-            var mr = GetMethod(tr, ad, method => method.Name == name);
+            var mr = tr.GetMethod(ad, method => method.Name == name);
             if (mr == null)
             {
                 Log.Error("在类型 {0} 中没有找到名称 {1} 的方法".Format(tr, name), tr);
-                failure = true;
+                failed = true;
             }
 
             return mr;
@@ -543,10 +544,7 @@ namespace Astraia.Editor
 
         public static MethodReference GenericInstance(this MethodReference self, ModuleDefinition md, GenericInstanceType tr)
         {
-            var mr = new MethodReference(self.Name, self.ReturnType, tr)
-            {
-                HasThis = self.HasThis, ExplicitThis = self.ExplicitThis, CallingConvention = self.CallingConvention
-            };
+            var mr = new MethodReference(self.Name, self.ReturnType, tr) { HasThis = self.HasThis, ExplicitThis = self.ExplicitThis, CallingConvention = self.CallingConvention };
 
             foreach (var param in self.Parameters)
             {

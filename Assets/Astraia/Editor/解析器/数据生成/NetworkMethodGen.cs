@@ -47,7 +47,7 @@ namespace Astraia.Editor
 
         public static MethodDefinition ClientRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
-            var result = new MethodDefinition(method.GetName(Weaver.MED_INV), Weaver.GEN_RPC, module.Import(typeof(void)));
+            var result = new MethodDefinition(method.GetName(Weaver.MED_V2), Weaver.GEN_V1, module.Import(typeof(void)));
             var worker = result.Body.GetILProcessor();
             IsClientActive(worker, module, method.Name, nameof(InvokeMode.ClientRpc));
 
@@ -89,7 +89,7 @@ namespace Astraia.Editor
 
         public static MethodDefinition ServerRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
-            var result = new MethodDefinition(method.GetName(Weaver.MED_INV), Weaver.GEN_RPC, module.Import(typeof(void)));
+            var result = new MethodDefinition(method.GetName(Weaver.MED_V2), Weaver.GEN_V1, module.Import(typeof(void)));
             var worker = result.Body.GetILProcessor();
             IsServerActive(worker, module, method.Name, nameof(InvokeMode.ServerRpc));
 
@@ -132,7 +132,7 @@ namespace Astraia.Editor
 
         public static MethodDefinition TargetRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
-            var result = new MethodDefinition(method.GetName(Weaver.MED_INV), Weaver.GEN_RPC, module.Import(typeof(void)));
+            var result = new MethodDefinition(method.GetName(Weaver.MED_V2), Weaver.GEN_V1, module.Import(typeof(void)));
             var worker = result.Body.GetILProcessor();
             IsClientActive(worker, module, method.Name, nameof(InvokeMode.TargetRpc));
 
@@ -158,7 +158,7 @@ namespace Astraia.Editor
 
         private static MethodDefinition InvokeV1(ILogPostProcessor debugger, TypeDefinition create, MethodDefinition method, ref bool failed)
         {
-            var md = new MethodDefinition(method.GetName(Weaver.MED_RPC), method.Attributes, method.ReturnType)
+            var md = new MethodDefinition(method.GetName(Weaver.MED_V1), method.Attributes, method.ReturnType)
             {
                 IsPublic = false,
                 IsFamily = true
@@ -193,9 +193,9 @@ namespace Astraia.Editor
         private static void InvokeV2(ILogPostProcessor debugger, TypeDefinition create, MethodDefinition method, ref bool failed)
         {
             var fullName = method.Name;
-            if (fullName.EndsWith(Weaver.MED_RPC))
+            if (fullName.EndsWith(Weaver.MED_V1))
             {
-                var name = method.Name.Substring(Weaver.MED_RPC.Length);
+                var name = method.Name.Substring(Weaver.MED_V1.Length);
 
                 foreach (var instruction in method.Body.Instructions)
                 {

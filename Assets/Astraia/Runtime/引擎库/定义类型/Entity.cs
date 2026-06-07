@@ -75,15 +75,8 @@ namespace Astraia.Core
         void OnHide();
     }
 
-    public abstract class Module<T> : IModule where T : Component
+    public abstract class Module
     {
-        [NonSerialized] public T owner;
-
-        void IModule.Acquire(object owner)
-        {
-            this.owner = (T)owner;
-        }
-
         public virtual void Dequeue()
         {
         }
@@ -99,10 +92,15 @@ namespace Astraia.Core
         public virtual void Enqueue()
         {
         }
+    }
 
-        public static implicit operator Component(Module<T> module)
+    public abstract class Module<T> : Module, IModule
+    {
+        [NonSerialized] public T owner;
+
+        void IModule.Acquire(object owner)
         {
-            return module.owner;
+            this.owner = (T)owner;
         }
     }
 

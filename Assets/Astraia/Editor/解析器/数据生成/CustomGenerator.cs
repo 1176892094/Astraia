@@ -1,6 +1,7 @@
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Astraia.Core;
 
 namespace Astraia.Editor
 {
@@ -8,19 +9,24 @@ namespace Astraia.Editor
     {
         private const string GEN_FUN = "CustomProcessor";
 
-        public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, ILogPostProcessor debugger)
+        public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, ILogPostProcessor Log)
         {
             if (td.Methods.Any(m => m.Name == GEN_FUN))
             {
                 return false;
             }
 
+            var m1 = assembly.MainModule.ImportReference(typeof(Module<>));
+            var m2 = assembly.MainModule.ImportReference(typeof(Module<>).GetField(nameof(Module<object>.owner)));
+            var m4 = assembly.MainModule.ImportReference(GetOwnerFieldActualType(td));
+            var m5 = m2.GenericField(assembly.MainModule, m1.MakeGeneric(m4));
+
             var modified = false;
-            foreach (var field in td.Fields)
+            foreach (var f in td.Fields)
             {
-                if (field.HasAttribute<InjectAttribute>())
+                if (f.HasAttribute<InjectAttribute>())
                 {
-                    InjectField(GetOrAddMethod(assembly, td, "Dequeue", module), field, module.Inject.MakeGeneric(field.FieldType));
+                    InjectField(GetMethod(td, module, module.Dequeue), module.Inject.MakeGeneric(f.FieldType), f, m5);
                     modified = true;
                 }
             }
@@ -33,8 +39,8 @@ namespace Astraia.Editor
                     if (elementType.Is(typeof(IEvent<>)))
                     {
                         var eventType = generic.GenericArguments[0];
-                        InjectEvent(GetOrAddMethod(assembly, td, "OnShow", module), module.Listen.MakeGeneric(eventType));
-                        InjectEvent(GetOrAddMethod(assembly, td, "OnHide", module), module.Remove.MakeGeneric(eventType));
+                        InjectEvent(GetMethod(td, module, module.OnShow), module.Listen.MakeGeneric(eventType));
+                        InjectEvent(GetMethod(td, module, module.OnHide), module.Remove.MakeGeneric(eventType));
                         modified = true;
                     }
                 }
@@ -51,73 +57,63 @@ namespace Astraia.Editor
             return modified;
         }
 
-        private static void InjectField(MethodDefinition md, FieldDefinition field, MethodReference method)
+        public static TypeReference GetOwnerFieldActualType(TypeDefinition concreteType)
+        {
+            TypeReference current = concreteType;
+
+            while (current != null)
+            {
+                var currentTypeDef = current.Resolve();
+                if (currentTypeDef == null)
+                {
+                    break;
+                }
+
+                if (currentTypeDef.BaseType.Is(typeof(Module<>)) && currentTypeDef.BaseType is GenericInstanceType genericBase)
+                {
+                    return genericBase.GenericArguments[0];
+                }
+
+                current = currentTypeDef.BaseType;
+            }
+
+            return null;
+        }
+
+        private static void InjectField(MethodDefinition md, MethodReference method, FieldDefinition field, FieldReference owner)
         {
             var worker = md.Body.GetILProcessor();
-            var firstInstruction = md.Body.Instructions[0];
-            var name = char.ToUpper(field.Name[0]) + field.Name.Substring(1);
-            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Ldarg_0));
-            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Ldarg_0));
-            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Ldstr, name));
-            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Call, method));
-            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Stfld, field));
+            var target = md.Body.Instructions[0];
+            worker.InsertBefore(target, worker.Create(OpCodes.Ldarg_0));
+            worker.InsertBefore(target, worker.Create(OpCodes.Ldarg_0));
+            worker.InsertBefore(target, worker.Create(OpCodes.Ldfld, owner));
+            worker.InsertBefore(target, worker.Create(OpCodes.Ldstr, char.ToUpper(field.Name[0]) + field.Name.Substring(1)));
+            worker.InsertBefore(target, worker.Create(OpCodes.Call, method));
+            worker.InsertBefore(target, worker.Create(OpCodes.Stfld, field));
         }
 
         private static void InjectEvent(MethodDefinition md, MethodReference method)
         {
             var worker = md.Body.GetILProcessor();
-            var firstInstruction = md.Body.Instructions[0];
-            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Ldarg_0));
-            worker.InsertBefore(firstInstruction, worker.Create(OpCodes.Call, method));
+            var target = md.Body.Instructions[0];
+            worker.InsertBefore(target, worker.Create(OpCodes.Ldarg_0));
+            worker.InsertBefore(target, worker.Create(OpCodes.Call, method));
         }
 
-        private static MethodDefinition GetOrAddMethod(AssemblyDefinition assembly, TypeDefinition td, string name, Module module)
+        private static MethodDefinition GetMethod(TypeDefinition td, Module module, MethodReference md)
         {
-            var existing = td.Methods.FirstOrDefault(m => m.Name == name && m.Parameters.Count == 0);
-            if (existing != null)
+            var method = td.Methods.FirstOrDefault(m => m.Name == md.Name && m.Parameters.Count == 0);
+            if (method == null)
             {
-                return existing;
-            }
-
-            var method = new MethodDefinition(name, Weaver.GEN_VAR, module.Import(typeof(void)));
-            var parent = td.BaseType;
-
-            MethodReference methodRef = null;
-
-            if (parent is GenericInstanceType generic)
-            {
-                var resolvedType = generic.ElementType.Resolve();
-                var methodDef = resolvedType.GetBaseMethod(name);
-                if (methodDef != null && IsMethodAccessible(methodDef))
-                {
-                    methodRef = methodDef.GenericInstance(assembly.MainModule, generic);
-                }
-            }
-            else
-            {
-                var resolvedType = parent.Resolve();
-                var methodDef = resolvedType.GetBaseMethod(name);
-                if (methodDef != null && IsMethodAccessible(methodDef))
-                {
-                    methodRef = module.Import(methodDef);
-                }
-            }
-
-            var worker = method.Body.GetILProcessor();
-            if (methodRef != null)
-            {
+                method = new MethodDefinition(md.Name, Weaver.GEN_S1, module.Import(typeof(void)));
+                var worker = method.Body.GetILProcessor();
                 worker.Emit(OpCodes.Ldarg_0);
-                worker.Emit(OpCodes.Call, methodRef);
+                worker.Emit(OpCodes.Call, md);
+                worker.Emit(OpCodes.Ret);
+                td.Methods.Add(method);
             }
 
-            worker.Emit(OpCodes.Ret);
-            td.Methods.Add(method);
             return method;
-        }
-
-        private static bool IsMethodAccessible(MethodDefinition method)
-        {
-            return method.IsPublic || method.IsFamily || method.IsFamilyOrAssembly || method.IsFamilyAndAssembly;
         }
     }
 }

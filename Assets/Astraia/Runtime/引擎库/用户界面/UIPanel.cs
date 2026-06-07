@@ -24,22 +24,6 @@ namespace Astraia
         internal int group;
         internal int layer;
 
-        public override void Dequeue()
-        {
-        }
-
-        public override void OnShow()
-        {
-        }
-
-        public override void OnHide()
-        {
-        }
-
-        public override void Enqueue()
-        {
-        }
-
         public virtual bool Interactive()
         {
             return state != UIState.Freeze;

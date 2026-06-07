@@ -1,5 +1,6 @@
 using Astraia;
 using Astraia.Core;
+using UnityEngine;
 using UnityEngine.UI;
 using Text = UnityEngine.UI.Text;
 
@@ -9,15 +10,13 @@ namespace Runtime
     public class LoadPanel : UIPanel, ITween
     {
         [Inject] private Image panel;
-        
-        
+
         public override async void OnShow()
         {
             await panel.DOFade(1, 0.25f);
             UIManager.Hide<LoadPanel>();
         }
-        
-        
+
         public override async void OnHide()
         {
             await panel.DOFade(0, 0.5f);
@@ -33,6 +32,7 @@ namespace Runtime
         [Inject] private Button prevButton;
         [Inject] private Button nextButton;
 
+    
         public override void OnShow()
         {
             message.text = "1.点击调试器\n2.找到Network面板\n3.房主启动 Host 模式\n4.房员启动 Client 模式";

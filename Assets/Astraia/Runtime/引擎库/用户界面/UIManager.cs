@@ -69,8 +69,10 @@ namespace Astraia.Core
                 panel.group = mask.group;
             }
 
+            owner.gameObject.SetActive(true);
             SetLayer(panel.owner.transform, panel.layer);
             panelData.Add(type, panel);
+
             return panel;
         }
 

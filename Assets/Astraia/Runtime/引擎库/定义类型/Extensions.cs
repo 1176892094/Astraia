@@ -21,6 +21,7 @@ namespace Astraia.Core
     {
         public static T Inject<T>(this Component self, string name) where T : Component
         {
+            Debug.Log(self);
             var child = self.transform.GetChild(name);
             if (child)
             {
