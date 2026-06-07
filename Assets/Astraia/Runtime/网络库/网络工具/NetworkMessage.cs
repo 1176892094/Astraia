@@ -44,7 +44,7 @@ namespace Astraia.Net
 
         public static void Add(Action<T> onReceive)
         {
-            NetworkMessage.client[Id] = (client, reader, channel) =>
+            NetworkMessage.client[Id] = (client, reader, pass) =>
             {
                 try
                 {
@@ -59,7 +59,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
+                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, pass, e);
                     client.Disconnect();
                 }
             };
@@ -67,7 +67,7 @@ namespace Astraia.Net
 
         public static void Add(Action<NetworkClient, T> onReceive)
         {
-            NetworkMessage.server[Id] = (client, reader, channel) =>
+            NetworkMessage.server[Id] = (client, reader, pass) =>
             {
                 try
                 {
@@ -82,7 +82,7 @@ namespace Astraia.Net
                 }
                 catch (Exception e)
                 {
-                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
+                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, pass, e);
                     client.Disconnect();
                 }
             };
@@ -90,7 +90,7 @@ namespace Astraia.Net
 
         public static void Add(Action<NetworkClient, T, int> onReceive)
         {
-            NetworkMessage.server[Id] = (client, reader, channel) =>
+            NetworkMessage.server[Id] = (client, reader, pass) =>
             {
                 try
                 {
@@ -101,11 +101,11 @@ namespace Astraia.Net
                         Debugger.OnData(message, reader.position - position);
                     }
 
-                    onReceive.Invoke(client, message, channel);
+                    onReceive.Invoke(client, message, pass);
                 }
                 catch (Exception e)
                 {
-                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, channel, e);
+                    Log.Error("{0} 调用失败。传输通道: {1}\n{2}", typeof(T).Name, pass, e);
                     client.Disconnect();
                 }
             };

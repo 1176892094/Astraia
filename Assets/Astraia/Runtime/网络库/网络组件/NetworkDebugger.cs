@@ -1011,7 +1011,7 @@ namespace Astraia.Net
             Send.client.Add(segment.Count);
         }
 
-        private static void OnClientReceive(ArraySegment<byte> segment, int channel)
+        private static void OnClientReceive(ArraySegment<byte> segment, int pass)
         {
             Data.client.Add(segment.Count);
         }
@@ -1021,7 +1021,7 @@ namespace Astraia.Net
             Send.server.Add(segment.Count);
         }
 
-        private static void OnServerReceive(int clientId, ArraySegment<byte> segment, int channel)
+        private static void OnServerReceive(int clientId, ArraySegment<byte> segment, int pass)
         {
             Data.server.Add(segment.Count);
         }

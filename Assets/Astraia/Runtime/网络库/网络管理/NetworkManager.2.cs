@@ -198,7 +198,7 @@ namespace Astraia.Net
                 EventManager.Invoke(new ClientDisconnect());
             }
 
-            internal static void Receive(ArraySegment<byte> segment, int channel)
+            internal static void Receive(ArraySegment<byte> segment, int pass)
             {
                 if (connection == null)
                 {
@@ -231,7 +231,7 @@ namespace Astraia.Net
                         return;
                     }
 
-                    onMessage.Invoke(null, reader, channel);
+                    onMessage.Invoke(null, reader, pass);
                 }
 
                 if (!isLoadScene && connection.reader.Count > 0)

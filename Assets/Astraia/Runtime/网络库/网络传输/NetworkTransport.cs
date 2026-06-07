@@ -23,12 +23,12 @@ namespace Astraia.Net
             Instance = transport;
         }
 
-        public override uint GetLength(int channel)
+        public override uint GetLength(int pass)
         {
-            return Instance.GetLength(channel);
+            return Instance.GetLength(pass);
         }
 
-        public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Pass.KCP)
+        public override void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP)
         {
             if (NetworkManager.Saloon.players.TryGetValue(clientId, out var playerId))
             {
@@ -40,7 +40,7 @@ namespace Astraia.Net
             }
         }
 
-        public override void SendToServer(ArraySegment<byte> segment, int channel = Pass.KCP)
+        public override void SendToServer(ArraySegment<byte> segment, int pass = Pass.KCP)
         {
             using var writer = MemoryWriter.Pop();
             writer.WriteByte((byte)Lobby.同步网络数据);

@@ -359,7 +359,7 @@ namespace Astraia
                 return;
             }
 
-            var channel = segment.Array![segment.Offset];
+            var pass = segment.Array![segment.Offset];
             var newData = Common.Decode(segment.Array, segment.Offset + 1);
             if (state == State.连接成功 && newData != userData)
             {
@@ -368,14 +368,14 @@ namespace Astraia
             }
 
             var message = new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4);
-            if (channel == Pass.KCP)
+            if (pass == Pass.KCP)
             {
                 if (kcp.Input(message.Array, message.Offset, message.Count) != 0)
                 {
                     Log.Warn("{0}发送可靠消息失败。消息大小: {1}", userName, message.Count - 1);
                 }
             }
-            else if (channel == Pass.UDP)
+            else if (pass == Pass.UDP)
             {
                 if (state == State.连接成功)
                 {
@@ -423,7 +423,7 @@ namespace Astraia
             onEvent.Send(new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + 1 + 4));
         }
 
-        public void SendData(ArraySegment<byte> segment, int channel)
+        public void SendData(ArraySegment<byte> segment, int pass)
         {
             if (segment.Count == 0)
             {
@@ -432,7 +432,7 @@ namespace Astraia
                 return;
             }
 
-            switch (channel)
+            switch (pass)
             {
                 case Pass.KCP:
                     SendReliable(Opcode.数据, segment);
@@ -654,11 +654,11 @@ namespace Astraia
             Common.Blocked(socket);
         }
 
-        public void Send(int id, ArraySegment<byte> segment, int channel)
+        public void Send(int id, ArraySegment<byte> segment, int pass)
         {
             if (clients.TryGetValue(id, out var client))
             {
-                client.kcpPeer.SendData(segment, channel);
+                client.kcpPeer.SendData(segment, pass);
             }
         }
 
@@ -728,9 +728,9 @@ namespace Astraia
                 onEvent.Error?.Invoke(id, error, reason);
             }
 
-            void OnReceive(ArraySegment<byte> message, int channel)
+            void OnReceive(ArraySegment<byte> message, int pass)
             {
-                onEvent.Receive.Invoke(id, message, channel);
+                onEvent.Receive.Invoke(id, message, pass);
             }
 
             void OnSend(ArraySegment<byte> segment)
@@ -860,11 +860,11 @@ namespace Astraia
             }
         }
 
-        public void Send(ArraySegment<byte> segment, int channel)
+        public void Send(ArraySegment<byte> segment, int pass)
         {
             if (state != State.断开连接)
             {
-                kcpPeer.SendData(segment, channel);
+                kcpPeer.SendData(segment, pass);
             }
         }
 
@@ -942,9 +942,9 @@ namespace Astraia
             onEvent.Error?.Invoke(error, message);
         }
 
-        private void OnReceive(ArraySegment<byte> segment, int channel)
+        private void OnReceive(ArraySegment<byte> segment, int pass)
         {
-            onEvent.Receive.Invoke(segment, channel);
+            onEvent.Receive.Invoke(segment, pass);
         }
 
         private void OnSend(ArraySegment<byte> segment)
@@ -999,9 +999,9 @@ namespace Astraia
         public readonly CEvent client = new CEvent();
         public readonly SEvent server = new SEvent();
 
-        public abstract uint GetLength(int channel);
-        public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Pass.KCP);
-        public abstract void SendToServer(ArraySegment<byte> segment, int channel = Pass.KCP);
+        public abstract uint GetLength(int pass);
+        public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP);
+        public abstract void SendToServer(ArraySegment<byte> segment, int pass = Pass.KCP);
         public abstract void StartServer();
         public abstract void StopServer();
         public abstract void Disconnect(int clientId);
@@ -1055,20 +1055,20 @@ namespace Astraia
             Log.Warn("错误代码: {0}\n{1}", error, message);
         }
 
-        public override uint GetLength(int channel)
+        public override uint GetLength(int pass)
         {
-            return channel == Pass.KCP ? KcpPeer.KcpLength(MAX_MTU, RECEIVE_WIN) : KcpPeer.UdpLength(MAX_MTU);
+            return pass == Pass.KCP ? KcpPeer.KcpLength(MAX_MTU, RECEIVE_WIN) : KcpPeer.UdpLength(MAX_MTU);
         }
 
-        public override void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Pass.KCP)
+        public override void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP)
         {
-            kcpServer.Send(clientId, segment, channel);
+            kcpServer.Send(clientId, segment, pass);
             server.Send?.Invoke(clientId, segment);
         }
 
-        public override void SendToServer(ArraySegment<byte> segment, int channel = Pass.KCP)
+        public override void SendToServer(ArraySegment<byte> segment, int pass = Pass.KCP)
         {
-            kcpClient.Send(segment, channel);
+            kcpClient.Send(segment, pass);
             client.Send?.Invoke(segment);
         }
 

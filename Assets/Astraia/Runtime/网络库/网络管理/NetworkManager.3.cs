@@ -98,7 +98,7 @@ namespace Astraia.Net
                 isRemote = false;
             }
 
-            private static void Receive(ArraySegment<byte> segment, int channel)
+            private static void Receive(ArraySegment<byte> segment, int pass)
             {
                 try
                 {
@@ -155,13 +155,13 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt32();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
-                                Transport.server.Receive(playerId, message, channel);
+                                Transport.server.Receive(playerId, message, pass);
                             }
                         }
 
                         if (isClient)
                         {
-                            Transport.client.Receive(message, channel);
+                            Transport.client.Receive(message, pass);
                         }
                     }
                     else if (opcode == Lobby.断开玩家连接)

@@ -185,11 +185,11 @@ namespace Astraia.Net
                 }
             }
 
-            private static void ServerRpcMessage(NetworkClient client, ServerRpcMessage message, int channel)
+            private static void ServerRpcMessage(NetworkClient client, ServerRpcMessage message, int pass)
             {
                 if (!client.isReady)
                 {
-                    if (channel != Pass.KCP) return;
+                    if (pass != Pass.KCP) return;
                     Log.Warn("无法为客户端 {0} 进行远程调用，未准备就绪。", client.clientId);
                     return;
                 }
@@ -258,7 +258,7 @@ namespace Astraia.Net
                 }
             }
 
-            internal static void Receive(int id, ArraySegment<byte> segment, int channel)
+            internal static void Receive(int id, ArraySegment<byte> segment, int pass)
             {
                 if (!clients.TryGetValue(id, out var client))
                 {
@@ -291,7 +291,7 @@ namespace Astraia.Net
                         return;
                     }
 
-                    onMessage.Invoke(client, reader, channel);
+                    onMessage.Invoke(client, reader, pass);
                 }
 
                 if (!isLoadScene && client.reader.Count > 0)

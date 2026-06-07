@@ -13,31 +13,31 @@ using System;
 
 namespace Astraia.Net
 {
-    [AttributeUsage(AttributeTargets.Method)]
-    public class ClientRpcAttribute : Attribute
-    {
-        private int channel;
-        public ClientRpcAttribute(int channel = Pass.KCP) => this.channel = channel;
-    }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public class ServerRpcAttribute : Attribute
-    {
-        private int channel;
-        public ServerRpcAttribute(int channel = Pass.KCP) => this.channel = channel;
-    }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public class TargetRpcAttribute : Attribute
-    {
-        private int channel;
-        public TargetRpcAttribute(int channel = Pass.KCP) => this.channel = channel;
-    }
-
     [AttributeUsage(AttributeTargets.Field)]
     public class SyncVarAttribute : Attribute
     {
         private string func;
         public SyncVarAttribute(string func = null) => this.func = func;
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ClientRpcAttribute : Attribute
+    {
+        private int pass;
+        public ClientRpcAttribute(int pass = Pass.KCP) => this.pass = pass;
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ServerRpcAttribute : Attribute
+    {
+        private int pass;
+        public ServerRpcAttribute(int pass = Pass.KCP) => this.pass = pass;
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class TargetRpcAttribute : Attribute
+    {
+        private int pass;
+        public TargetRpcAttribute(int pass = Pass.KCP) => this.pass = pass;
     }
 }

@@ -20,22 +20,22 @@ namespace Astraia.Net
     {
         private static readonly Dictionary<ushort, InvokeData> messages = new Dictionary<ushort, InvokeData>();
 
-        public static void RegisterServerRpc(Type component, int channel, string name, InvokeDelegate func)
+        public static void RegisterServerRpc(Type component, int pass, string name, InvokeDelegate func)
         {
-            AddInvoke(component, channel, name, InvokeMode.ServerRpc, func);
+            AddInvoke(component, pass, name, InvokeMode.ServerRpc, func);
         }
 
-        public static void RegisterClientRpc(Type component, int channel, string name, InvokeDelegate func)
+        public static void RegisterClientRpc(Type component, int pass, string name, InvokeDelegate func)
         {
-            AddInvoke(component, channel, name, InvokeMode.ClientRpc, func);
+            AddInvoke(component, pass, name, InvokeMode.ClientRpc, func);
         }
 
-        private static void AddInvoke(Type component, int channel, string name, InvokeMode mode, InvokeDelegate func)
+        private static void AddInvoke(Type component, int pass, string name, InvokeMode mode, InvokeDelegate func)
         {
             var id = (ushort)(NetworkMessage.Id(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
             {
-                message = new InvokeData(mode, func, component, channel);
+                message = new InvokeData(mode, func, component, pass);
                 messages[id] = message;
             }
 
@@ -49,7 +49,7 @@ namespace Astraia.Net
         {
             if (messages.TryGetValue(id, out var message))
             {
-                return (message.channel & Pass.ANY) == 0 && message.mode == InvokeMode.ServerRpc;
+                return (message.pass & Pass.ANY) == 0 && message.mode == InvokeMode.ServerRpc;
             }
 
             return false;
@@ -91,14 +91,14 @@ namespace Astraia.Net
             public readonly InvokeMode mode;
             public readonly InvokeDelegate func;
             public readonly Type component;
-            public readonly int channel;
+            public readonly int pass;
 
-            public InvokeData(InvokeMode mode, InvokeDelegate func, Type component, int channel)
+            public InvokeData(InvokeMode mode, InvokeDelegate func, Type component, int pass)
             {
                 this.mode = mode;
                 this.func = func;
                 this.component = component;
-                this.channel = channel;
+                this.pass = pass;
             }
         }
     }

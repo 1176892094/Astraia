@@ -145,7 +145,7 @@ namespace Astraia.Net
         {
         }
 
-        protected void SendServerRpcInternal(string name, int hash, MemoryWriter writer, int channel)
+        protected void SendServerRpcInternal(string name, int hash, MemoryWriter writer, int pass)
         {
             if (!NetworkManager.isClient)
             {
@@ -159,7 +159,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if ((channel & Pass.ANY) == 0 && !isOwner)
+            if ((pass & Pass.ANY) == 0 && !isOwner)
             {
                 Debug.LogWarning("调用 {0} 但是客户端没有对象权限。对象名称：{1}".Format(name, owner.name), owner);
                 return;
@@ -176,10 +176,10 @@ namespace Astraia.Net
                 objectId = objectId, moduleId = moduleId, methodHash = (ushort)hash, segment = writer,
             };
 
-            NetworkManager.Client.connection.Send(message, (channel & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
+            NetworkManager.Client.connection.Send(message, (pass & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
         }
 
-        protected void SendClientRpcInternal(string name, int hash, MemoryWriter writer, int channel)
+        protected void SendClientRpcInternal(string name, int hash, MemoryWriter writer, int pass)
         {
             if (!NetworkManager.isServer)
             {
@@ -200,14 +200,14 @@ namespace Astraia.Net
 
             foreach (var result in owner.clients)
             {
-                if (result.isReady && ((channel & Pass.ANY) == 0 || result != client))
+                if (result.isReady && ((pass & Pass.ANY) == 0 || result != client))
                 {
-                    result.Send(message, (channel & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
+                    result.Send(message, (pass & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
                 }
             }
         }
 
-        protected void SendTargetRpcInternal(NetworkClient client, string name, int hash, MemoryWriter writer, int channel)
+        protected void SendTargetRpcInternal(NetworkClient client, string name, int hash, MemoryWriter writer, int pass)
         {
             if (!NetworkManager.isServer)
             {
@@ -231,7 +231,7 @@ namespace Astraia.Net
 
             var message = new ClientRpcMessage { objectId = objectId, moduleId = moduleId, methodHash = (ushort)hash, segment = writer };
 
-            client.Send(message, channel);
+            client.Send(message, pass);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -37,13 +37,13 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, int channel = Pass.KCP) where T : struct, IMessage
+        public void Send<T>(T message, int pass = Pass.KCP) where T : struct, IMessage
         {
             using var writer = MemoryWriter.Pop();
             writer.WriteUInt16(NetworkMessage<T>.Id);
             writer.Invoke(message);
 
-            if (writer.position > NetworkManager.Transport.GetLength(channel))
+            if (writer.position > NetworkManager.Transport.GetLength(pass))
             {
                 Log.Error("发送消息大小过大！消息大小: {0}", writer.position);
                 return;
@@ -54,16 +54,16 @@ namespace Astraia.Net
                 Debugger.OnSend(message, writer.position);
             }
 
-            AddMessage(writer, channel);
+            AddMessage(writer, pass);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void AddMessage(MemoryWriter writer, int channel)
+        internal void AddMessage(MemoryWriter writer, int pass)
         {
-            if (!packets.TryGetValue(channel, out var batch))
+            if (!packets.TryGetValue(pass, out var batch))
             {
-                batch = new WriterQueue(NetworkManager.Transport.GetLength(channel));
-                packets[channel] = batch;
+                batch = new WriterQueue(NetworkManager.Transport.GetLength(pass));
+                packets[pass] = batch;
             }
 
             batch.AddMessage(writer);
