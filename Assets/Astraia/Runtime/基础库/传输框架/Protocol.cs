@@ -13,497 +13,36 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
 using System.Net;
 using System.Diagnostics;
 using System.Net.Sockets;
-using Event = Astraia.KcpClient.Event;
 
 // ReSharper disable All
 
 namespace Astraia
 {
-    public static class Writer<T>
+    internal class SEvent
     {
-        public static Action<MemoryWriter, T> writer;
+        public Action<int> Connect;
+        public Action<int> Disconnect;
+        public Action<int, Error, string> Error;
+        public Action<int, ArraySegment<byte>> Send;
+        public Action<int, ArraySegment<byte>, int> Receive;
     }
 
-    public static class Reader<T>
+    internal class CEvent
     {
-        public static Func<MemoryReader, T> reader;
-    }
-}
-
-namespace Astraia
-{
-    public class MemoryWriter : IDisposable
-    {
-        public byte[] buffer = new byte[1500];
-        public int position;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write<T>(T value) where T : unmanaged
-        {
-            Resize(position + sizeof(T));
-            fixed (byte* ptr = &buffer[position])
-            {
-                *(T*)ptr = value;
-            }
-
-            position += sizeof(T);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteNullable<T>(T? value) where T : unmanaged
-        {
-            if (!value.HasValue)
-            {
-                Write((byte)0);
-                return;
-            }
-
-            Write((byte)1);
-            Write(value.Value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Invoke<T>(T value)
-        {
-            Writer<T>.writer?.Invoke(this, value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Reset()
-        {
-            position = 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MemoryWriter Pop()
-        {
-            var writer = HeapManager.Dequeue<MemoryWriter>();
-            writer.Reset();
-            return writer;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(MemoryWriter writer)
-        {
-            HeapManager.Enqueue(writer);
-        }
-
-        public override string ToString()
-        {
-            return BitConverter.ToString(buffer, 0, position);
-        }
-
-        void IDisposable.Dispose()
-        {
-            HeapManager.Enqueue(this);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Resize(int length)
-        {
-            if (buffer.Length < length)
-            {
-                Array.Resize(ref buffer, Math.Max(length, buffer.Length * 2));
-            }
-        }
-
-        public void WriteBytes(byte[] segment, int offset, int count)
-        {
-            Resize(position + count);
-            Buffer.BlockCopy(segment, offset, buffer, position, count);
-            position += count;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ArraySegment<byte>(MemoryWriter writer)
-        {
-            return new ArraySegment<byte>(writer.buffer, 0, writer.position);
-        }
-    }
-}
-
-namespace Astraia
-{
-    public class MemoryReader : IDisposable
-    {
-        public ArraySegment<byte> buffer;
-        public int position;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe T Read<T>() where T : unmanaged
-        {
-            T value;
-            fixed (byte* ptr = &buffer.Array[buffer.Offset + position])
-            {
-                value = *(T*)ptr;
-            }
-
-            position += sizeof(T);
-            return value;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? ReadNullable<T>() where T : unmanaged
-        {
-            return Read<byte>() != 0 ? Read<T>() : default(T?);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Invoke<T>()
-        {
-            return Reader<T>.reader != null ? Reader<T>.reader.Invoke(this) : default;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Reset(ArraySegment<byte> segment)
-        {
-            buffer = segment;
-            position = 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MemoryReader Pop(ArraySegment<byte> segment)
-        {
-            var reader = HeapManager.Dequeue<MemoryReader>();
-            reader.Reset(segment);
-            return reader;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Push(MemoryReader reader)
-        {
-            HeapManager.Enqueue(reader);
-        }
-
-        public override string ToString()
-        {
-            return BitConverter.ToString(buffer.Array, buffer.Offset, buffer.Count);
-        }
-
-        void IDisposable.Dispose()
-        {
-            HeapManager.Enqueue(this);
-        }
-
-        public byte[] ReadBytes(byte[] bytes, int count)
-        {
-            if (buffer.Count - position < count)
-            {
-                throw new OverflowException("读取器剩余容量不够!");
-            }
-
-            Buffer.BlockCopy(buffer.Array, buffer.Offset + position, bytes, 0, count);
-            position += count;
-            return bytes;
-        }
-
-        public ArraySegment<byte> ReadArraySegment(int count)
-        {
-            if (buffer.Count - position < count)
-            {
-                throw new OverflowException("读取器剩余容量不够!");
-            }
-
-            var segment = new ArraySegment<byte>(buffer.Array, buffer.Offset + position, count);
-            position += count;
-            return segment;
-        }
-    }
-}
-
-namespace Astraia
-{
-    internal static class Compress
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Invoke(ulong value)
-        {
-            if (value == 0)
-            {
-                return 1;
-            }
-
-            var count = 0;
-            while (value > 0)
-            {
-                count++;
-                value >>= 7;
-            }
-
-            return count;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void EncodeUInt64(MemoryWriter writer, ulong value)
-        {
-            while (value >= 0x80)
-            {
-                writer.Write((byte)((value & 0x7F) | 0x80));
-                value >>= 7;
-            }
-
-            writer.Write((byte)value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong DecodeUInt64(MemoryReader reader)
-        {
-            var shift = 0;
-            var value = 0UL;
-            while (true)
-            {
-                var bit = reader.Read<byte>();
-                value |= (ulong)(bit & 0x7F) << shift;
-                if ((bit & 0x80) == 0)
-                {
-                    break;
-                }
-
-                shift += 7;
-            }
-
-            return value;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong ZigZagEncode(long n)
-        {
-            return (ulong)((n << 1) ^ (n >> 63));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long ZigZagDecode(ulong n)
-        {
-            return (long)((n >> 1) ^ (ulong)-(long)(n & 1));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void EncodeUInt32(MemoryWriter writer, uint value)
-        {
-            while (value >= 0x80)
-            {
-                writer.Write((byte)((value & 0x7F) | 0x80));
-                value >>= 7;
-            }
-
-            writer.Write((byte)value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint DecodeUInt32(MemoryReader reader)
-        {
-            var shift = 0;
-            var value = 0U;
-            while (true)
-            {
-                var bit = reader.Read<byte>();
-                value |= (uint)(bit & 0x7F) << shift;
-                if ((bit & 0x80) == 0)
-                {
-                    break;
-                }
-
-                shift += 7;
-            }
-
-            return value;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint ZigZagEncode(int n)
-        {
-            return (uint)((n << 1) ^ (n >> 31));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ZigZagDecode(uint n)
-        {
-            return (int)((n >> 1) ^ -(int)(n & 1));
-        }
-    }
-}
-
-namespace Astraia
-{
-    internal class WriterQueue
-    {
-        private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
-        private readonly uint maxLength;
-        private MemoryWriter writer;
-
-        public WriterQueue(uint maxLength)
-        {
-            this.maxLength = maxLength;
-        }
-
-        public void AddMessage(ArraySegment<byte> segment)
-        {
-            var length = Compress.Invoke((ulong)segment.Count);
-            if (writer != null && writer.position + length + segment.Count > maxLength)
-            {
-                writers.Enqueue(writer);
-                writer = null;
-            }
-
-            writer ??= MemoryWriter.Pop();
-            Compress.EncodeUInt64(writer, (ulong)segment.Count);
-            writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
-        }
-
-        public bool GetBatch(MemoryWriter result)
-        {
-            if (writers.Count > 0)
-            {
-                var target = writers.Dequeue();
-                if (result.position != 0)
-                {
-                    throw new ArgumentException("拷贝目标不是空的！");
-                }
-
-                ArraySegment<byte> segment = target;
-                result.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                MemoryWriter.Push(target);
-                return true;
-            }
-
-            if (writer != null)
-            {
-                if (result.position != 0)
-                {
-                    throw new ArgumentException("拷贝目标不是空的！");
-                }
-
-                ArraySegment<byte> segment = writer;
-                result.WriteBytes(segment.Array, segment.Offset, segment.Count);
-                MemoryWriter.Push(writer);
-                writer = null;
-                return true;
-            }
-
-            return false;
-        }
-    }
-}
-
-namespace Astraia
-{
-    internal class ReaderQueue
-    {
-        private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
-        private readonly MemoryReader reader = new MemoryReader();
-        public int Count => writers.Count;
-
-        public bool AddBatch(ArraySegment<byte> segment)
-        {
-            if (segment.Count < sizeof(ushort))
-            {
-                return false;
-            }
-
-            var writer = MemoryWriter.Pop();
-            writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
-            if (writers.Count == 0)
-            {
-                reader.Reset(writer);
-            }
-
-            writers.Enqueue(writer);
-            return true;
-        }
-
-        public bool GetMessage(out ArraySegment<byte> segment)
-        {
-            segment = default;
-            if (writers.Count == 0)
-            {
-                return false;
-            }
-
-            if (reader.buffer.Count == 0)
-            {
-                return false;
-            }
-
-            if (reader.buffer.Count - reader.position == 0)
-            {
-                var writer = writers.Dequeue();
-                MemoryWriter.Push(writer);
-                if (writers.Count > 0)
-                {
-                    reader.Reset(writers.Peek());
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            if (reader.buffer.Count - reader.position == 0)
-            {
-                return false;
-            }
-
-            var length = (int)Compress.DecodeUInt64(reader);
-
-            if (reader.buffer.Count - reader.position < length)
-            {
-                return false;
-            }
-
-            segment = reader.ReadArraySegment(length);
-            return true;
-        }
-    }
-}
-
-namespace Astraia
-{
-    internal static class Channel
-    {
-        public const byte Reliable = 1 << 0;
-        public const byte Unreliable = 1 << 1;
+        public Action Connect;
+        public Action Disconnect;
+        public Action<Error, string> Error;
+        public Action<ArraySegment<byte>> Send;
+        public Action<ArraySegment<byte>, int> Receive;
     }
 
-    internal static class Common
+    internal static class Pass
     {
-        public static void Encode(byte[] p, int offset, uint value)
-        {
-            p[0 + offset] = (byte)(value >> 0);
-            p[1 + offset] = (byte)(value >> 8);
-            p[2 + offset] = (byte)(value >> 16);
-            p[3 + offset] = (byte)(value >> 24);
-        }
-
-        public static uint Decode(byte[] p, int offset)
-        {
-            uint result = 0;
-            result |= p[0 + offset];
-            result |= (uint)(p[1 + offset] << 8);
-            result |= (uint)(p[2 + offset] << 16);
-            result |= (uint)(p[3 + offset] << 24);
-            return result;
-        }
-
-        public static void Blocked(Socket socket, int buffer = 1024 * 1024 * 7)
-        {
-            socket.Blocking = false;
-            var sendBuffer = socket.SendBufferSize;
-            var receiveBuffer = socket.ReceiveBufferSize;
-            try
-            {
-                socket.SendBufferSize = buffer;
-                socket.ReceiveBufferSize = buffer;
-            }
-            catch (SocketException)
-            {
-                Log.Info("发送缓冲: {0} => {1} : {2:F}", buffer, sendBuffer, sendBuffer / buffer);
-                Log.Info("接收缓冲: {0} => {1} : {2:F}", buffer, receiveBuffer, receiveBuffer / buffer);
-            }
-        }
+        public const byte KCP = 1 << 0;
+        public const byte UDP = 1 << 1;
     }
 
     internal enum Error : byte
@@ -515,6 +54,13 @@ namespace Astraia
         无效发送 = 5,
         连接关闭 = 6,
         未知异常 = 7
+    }
+
+    internal enum State : byte
+    {
+        正在连接 = 0,
+        连接成功 = 1,
+        断开连接 = 2
     }
 
     internal enum Lobby : byte
@@ -532,13 +78,6 @@ namespace Astraia
         断开玩家连接 = 11,
         更新房间数据 = 12,
         同步网络数据 = 13,
-    }
-
-    internal enum State : byte
-    {
-        正在连接 = 0,
-        连接成功 = 1,
-        断开连接 = 2
     }
 
     internal enum Opcode : byte
@@ -562,16 +101,8 @@ namespace Astraia
         public readonly bool DualMode;
         public readonly bool Congestion;
 
-        public Setting(
-            uint MaxUnit = Kcp.IKCP_MTU_DEF,
-            uint Timeout = 10000,
-            uint Interval = 10,
-            uint DeadLink = Kcp.IKCP_DEADLINK,
-            uint FastResend = 0,
-            uint SendWindow = Kcp.IKCP_WND_SND,
-            uint ReceiveWindow = Kcp.IKCP_WND_RCV,
-            bool NoDelay = true,
-            bool DualMode = true,
+        public Setting(uint MaxUnit = Kcp.IKCP_MTU_DEF, uint Timeout = 10000, uint Interval = 10, uint DeadLink = Kcp.IKCP_DEADLINK,
+            uint FastResend = 0, uint SendWindow = Kcp.IKCP_WND_SND, uint ReceiveWindow = Kcp.IKCP_WND_RCV, bool NoDelay = true, bool DualMode = true,
             bool Congestion = false)
         {
             this.MaxUnit = MaxUnit;
@@ -586,10 +117,7 @@ namespace Astraia
             this.Congestion = Congestion;
         }
     }
-}
 
-namespace Astraia
-{
     internal sealed unsafe class Protocol : IDisposable
     {
         private byte[] buffer;
@@ -689,10 +217,45 @@ namespace Astraia
 
         ~Protocol() => Dispose();
     }
-}
 
-namespace Astraia
-{
+    internal static class Common
+    {
+        public static void Encode(byte[] p, int offset, uint value)
+        {
+            p[0 + offset] = (byte)(value >> 0);
+            p[1 + offset] = (byte)(value >> 8);
+            p[2 + offset] = (byte)(value >> 16);
+            p[3 + offset] = (byte)(value >> 24);
+        }
+
+        public static uint Decode(byte[] p, int offset)
+        {
+            uint result = 0;
+            result |= p[0 + offset];
+            result |= (uint)(p[1 + offset] << 8);
+            result |= (uint)(p[2 + offset] << 16);
+            result |= (uint)(p[3 + offset] << 24);
+            return result;
+        }
+
+        public static void Blocked(Socket socket, int buffer = 1024 * 1024 * 7)
+        {
+            socket.Blocking = false;
+            var sendBuffer = socket.SendBufferSize;
+            var receiveBuffer = socket.ReceiveBufferSize;
+            try
+            {
+                socket.SendBufferSize = buffer;
+                socket.ReceiveBufferSize = buffer;
+            }
+            catch (SocketException)
+            {
+                Log.Info("发送缓冲: {0} => {1} : {2:F}", buffer, sendBuffer, sendBuffer / buffer);
+                Log.Info("接收缓冲: {0} => {1} : {2:F}", buffer, receiveBuffer, receiveBuffer / buffer);
+            }
+        }
+    }
+
     internal sealed class KcpPeer
     {
         private const int PING_INTERVAL = 1000;
@@ -704,16 +267,16 @@ namespace Astraia
         private readonly uint udpLength;
         private readonly string userName;
         private readonly Stopwatch watch = new Stopwatch();
-        private readonly Event onEvent;
-        private uint overTime;
+        private readonly CEvent onEvent;
+        private uint exitTime;
         private uint pingTime;
-        private uint prevTime;
+        private uint waitTime;
         private uint userData;
         private Protocol kcp;
         private State state;
         private uint Time => (uint)watch.ElapsedMilliseconds;
 
-        public KcpPeer(Setting setting, Event onEvent, string userName, uint userData = 0)
+        public KcpPeer(Setting setting, CEvent onEvent, string userName, uint userData = 0)
         {
             Rebuild(setting);
             this.onEvent = onEvent;
@@ -730,8 +293,8 @@ namespace Astraia
         {
             userData = 0;
             pingTime = 0;
-            prevTime = 0;
-            overTime = setting.Timeout;
+            waitTime = 0;
+            exitTime = setting.Timeout;
             kcp = new Protocol(0, SendReliable);
             kcp.SetData(setting.MaxUnit - METADATA_SIZE, setting.DeadLink);
             kcp.SetDelay(setting.NoDelay, setting.Interval, setting.FastResend, !setting.Congestion);
@@ -742,7 +305,7 @@ namespace Astraia
 
         private void SendReliable(byte[] bytes, int count)
         {
-            rawSendBuffer[0] = Channel.Reliable;
+            rawSendBuffer[0] = Pass.KCP;
             Common.Encode(rawSendBuffer, 1, userData);
             Buffer.BlockCopy(bytes, 0, rawSendBuffer, 1 + 4, count);
             onEvent.Send(new ArraySegment<byte>(rawSendBuffer, 0, count + 1 + 4));
@@ -789,7 +352,7 @@ namespace Astraia
 
             message = (Opcode)kcpDataBuffer[0];
             segment = new ArraySegment<byte>(kcpDataBuffer, 1, count - 1);
-            prevTime = Time;
+            waitTime = Time;
             return true;
         }
 
@@ -809,19 +372,19 @@ namespace Astraia
             }
 
             var message = new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4);
-            if (channel == Channel.Reliable)
+            if (channel == Pass.KCP)
             {
                 if (kcp.Input(message.Array, message.Offset, message.Count) != 0)
                 {
                     Log.Warn("{0}发送可靠消息失败。消息大小: {1}", userName, message.Count - 1);
                 }
             }
-            else if (channel == Channel.Unreliable)
+            else if (channel == Pass.UDP)
             {
                 if (state == State.连接成功)
                 {
-                    onEvent.Receive(message, Channel.Unreliable);
-                    prevTime = Time;
+                    onEvent.Receive(message, Pass.UDP);
+                    waitTime = Time;
                 }
             }
         }
@@ -854,7 +417,7 @@ namespace Astraia
                 return;
             }
 
-            rawSendBuffer[0] = Channel.Unreliable;
+            rawSendBuffer[0] = Pass.UDP;
             Common.Encode(rawSendBuffer, 1, userData);
             if (segment.Count > 0)
             {
@@ -875,10 +438,10 @@ namespace Astraia
 
             switch (channel)
             {
-                case Channel.Reliable:
+                case Pass.KCP:
                     SendReliable(Opcode.数据, segment);
                     break;
-                case Channel.Unreliable:
+                case Pass.UDP:
                     SendUnreliable(segment);
                     break;
             }
@@ -901,9 +464,9 @@ namespace Astraia
 
         private void BeforeReceive(uint sinceTime)
         {
-            if (sinceTime >= prevTime + overTime)
+            if (sinceTime >= waitTime + exitTime)
             {
-                onEvent.Error(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, overTime / 1000));
+                onEvent.Error(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, exitTime / 1000));
                 Disconnect();
             }
 
@@ -970,7 +533,7 @@ namespace Astraia
                         Disconnect();
                         break;
                     case Opcode.数据:
-                        onEvent.Receive(segment, Channel.Reliable);
+                        onEvent.Receive(segment, Pass.KCP);
                         break;
                     case Opcode.断连:
                         Disconnect();
@@ -1036,30 +599,19 @@ namespace Astraia
             }
         }
     }
-}
 
-namespace Astraia
-{
     internal sealed class KcpServer
     {
-        public class Event
-        {
-            public Action<int> Connect;
-            public Action<int> Disconnect;
-            public Action<int, Error, string> Error;
-            public Action<int, ArraySegment<byte>> Send;
-            public Action<int, ArraySegment<byte>, int> Receive;
-        }
-
         private readonly Dictionary<int, KcpClient> clients = new Dictionary<int, KcpClient>();
         private readonly HashSet<int> removes = new HashSet<int>();
         private readonly byte[] buffer;
-        private readonly Event onEvent;
+        private readonly SEvent onEvent;
         private readonly Setting setting;
+
         private Socket socket;
         private EndPoint endPoint;
 
-        public KcpServer(Setting setting, Event onEvent)
+        public KcpServer(Setting setting, SEvent onEvent)
         {
             this.setting = setting;
             this.onEvent = onEvent;
@@ -1151,7 +703,7 @@ namespace Astraia
 
         private KcpClient Register(int id)
         {
-            var newEvent = new Astraia.KcpClient.Event();
+            var newEvent = new CEvent();
             var client = new KcpClient(new KcpPeer(setting, newEvent, "服务器"), endPoint);
             newEvent.Connect = OnConnect;
             newEvent.Disconnect = OnDisconnect;
@@ -1263,30 +815,18 @@ namespace Astraia
             }
         }
     }
-}
 
-namespace Astraia
-{
     internal sealed class KcpClient
     {
-        public class Event
-        {
-            public Action Connect;
-            public Action Disconnect;
-            public Action<Error, string> Error;
-            public Action<ArraySegment<byte>> Send;
-            public Action<ArraySegment<byte>, int> Receive;
-        }
-
         private readonly byte[] buffer;
-        private readonly Event onEvent;
+        private readonly CEvent onEvent;
         private readonly Setting setting;
         private State state;
         private Socket socket;
         private KcpPeer kcpPeer;
         private EndPoint endPoint;
 
-        public KcpClient(Setting setting, Event onEvent)
+        public KcpClient(Setting setting, CEvent onEvent)
         {
             this.setting = setting;
             this.onEvent = onEvent;
@@ -1370,7 +910,7 @@ namespace Astraia
         {
             if (kcpPeer == null)
             {
-                var newEvent = new Event();
+                var newEvent = new CEvent();
                 kcpPeer = new KcpPeer(setting, newEvent, "客户端");
                 newEvent.Connect = OnConnect;
                 newEvent.Disconnect = OnDisconnect;

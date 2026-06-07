@@ -300,6 +300,7 @@ GameObject:
   - component: {fileID: 584064306}
   - component: {fileID: 584064304}
   - component: {fileID: 584064307}
+  - component: {fileID: 584064308}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -351,6 +352,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7ebd91d087ac427bab9f4b472ebde57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Log::Astraia.Core.DebugManager
+--- !u!114 &584064308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 584064303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ead4da7db5cd4f339ba4413df664a9ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Example.Scripts.Test
+  Modules:
+  - rid: 915762507204788274
+  references:
+    version: 2
+    RefIds:
+    - rid: 915762507204788274
+      type: {class: PlayerModule, ns: Example.Scripts, asm: Assembly-CSharp}
+      data:
+        Name: 123
 --- !u!1 &1521847866
 GameObject:
   m_ObjectHideFlags: 0

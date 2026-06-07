@@ -140,8 +140,8 @@ namespace Astraia.Net
         public string address = "localhost";
         public ushort port = 20974;
 
-        public readonly KcpClient.Event client = new KcpClient.Event();
-        public readonly KcpServer.Event server = new KcpServer.Event();
+        public readonly CEvent client = new CEvent();
+        public readonly SEvent server = new SEvent();
 
         public abstract uint GetLength(int channel);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int channel = Channel.Reliable);

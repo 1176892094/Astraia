@@ -21,7 +21,6 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Reflection.Emit;
 
 namespace Astraia
 {
@@ -855,6 +854,445 @@ namespace Astraia
         internal static T Invoke<T>(this object target, string name, params object[] args)
         {
             return (T)Emit.Invoke(target, name, args);
+        }
+    }
+}
+
+namespace Astraia
+{
+    internal static class Compress
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Invoke(ulong value)
+        {
+            if (value == 0)
+            {
+                return 1;
+            }
+
+            var count = 0;
+            while (value > 0)
+            {
+                count++;
+                value >>= 7;
+            }
+
+            return count;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void EncodeUInt64(MemoryWriter writer, ulong value)
+        {
+            while (value >= 0x80)
+            {
+                writer.Write((byte)((value & 0x7F) | 0x80));
+                value >>= 7;
+            }
+
+            writer.Write((byte)value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong DecodeUInt64(MemoryReader reader)
+        {
+            var shift = 0;
+            var value = 0UL;
+            while (true)
+            {
+                var bit = reader.Read<byte>();
+                value |= (ulong)(bit & 0x7F) << shift;
+                if ((bit & 0x80) == 0)
+                {
+                    break;
+                }
+
+                shift += 7;
+            }
+
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong ZigZagEncode(long n)
+        {
+            return (ulong)((n << 1) ^ (n >> 63));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long ZigZagDecode(ulong n)
+        {
+            return (long)((n >> 1) ^ (ulong)-(long)(n & 1));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void EncodeUInt32(MemoryWriter writer, uint value)
+        {
+            while (value >= 0x80)
+            {
+                writer.Write((byte)((value & 0x7F) | 0x80));
+                value >>= 7;
+            }
+
+            writer.Write((byte)value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint DecodeUInt32(MemoryReader reader)
+        {
+            var shift = 0;
+            var value = 0U;
+            while (true)
+            {
+                var bit = reader.Read<byte>();
+                value |= (uint)(bit & 0x7F) << shift;
+                if ((bit & 0x80) == 0)
+                {
+                    break;
+                }
+
+                shift += 7;
+            }
+
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint ZigZagEncode(int n)
+        {
+            return (uint)((n << 1) ^ (n >> 31));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ZigZagDecode(uint n)
+        {
+            return (int)((n >> 1) ^ -(int)(n & 1));
+        }
+    }
+}
+
+namespace Astraia
+{
+    public static class Writer<T>
+    {
+        public static Action<MemoryWriter, T> writer;
+    }
+
+    public static class Reader<T>
+    {
+        public static Func<MemoryReader, T> reader;
+    }
+}
+
+namespace Astraia
+{
+    public class MemoryWriter : IDisposable
+    {
+        public byte[] buffer = new byte[1500];
+        public int position;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void Write<T>(T value) where T : unmanaged
+        {
+            Resize(position + sizeof(T));
+            fixed (byte* ptr = &buffer[position])
+            {
+                *(T*)ptr = value;
+            }
+
+            position += sizeof(T);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteNullable<T>(T? value) where T : unmanaged
+        {
+            if (!value.HasValue)
+            {
+                Write((byte)0);
+                return;
+            }
+
+            Write((byte)1);
+            Write(value.Value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Invoke<T>(T value)
+        {
+            Writer<T>.writer?.Invoke(this, value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reset()
+        {
+            position = 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MemoryWriter Pop()
+        {
+            var writer = HeapManager.Dequeue<MemoryWriter>();
+            writer.Reset();
+            return writer;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Push(MemoryWriter writer)
+        {
+            HeapManager.Enqueue(writer);
+        }
+
+        public override string ToString()
+        {
+            return BitConverter.ToString(buffer, 0, position);
+        }
+
+        void IDisposable.Dispose()
+        {
+            HeapManager.Enqueue(this);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Resize(int length)
+        {
+            if (buffer.Length < length)
+            {
+                Array.Resize(ref buffer, Math.Max(length, buffer.Length * 2));
+            }
+        }
+
+        public void WriteBytes(byte[] segment, int offset, int count)
+        {
+            Resize(position + count);
+            Buffer.BlockCopy(segment, offset, buffer, position, count);
+            position += count;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator ArraySegment<byte>(MemoryWriter writer)
+        {
+            return new ArraySegment<byte>(writer.buffer, 0, writer.position);
+        }
+    }
+}
+
+namespace Astraia
+{
+    public class MemoryReader : IDisposable
+    {
+        public ArraySegment<byte> buffer;
+        public int position;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe T Read<T>() where T : unmanaged
+        {
+            T value;
+            fixed (byte* ptr = &buffer.Array![buffer.Offset + position])
+            {
+                value = *(T*)ptr;
+            }
+
+            position += sizeof(T);
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T? ReadNullable<T>() where T : unmanaged
+        {
+            return Read<byte>() != 0 ? Read<T>() : default(T?);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Invoke<T>()
+        {
+            return Reader<T>.reader != null ? Reader<T>.reader.Invoke(this) : default;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reset(ArraySegment<byte> segment)
+        {
+            buffer = segment;
+            position = 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MemoryReader Pop(ArraySegment<byte> segment)
+        {
+            var reader = HeapManager.Dequeue<MemoryReader>();
+            reader.Reset(segment);
+            return reader;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Push(MemoryReader reader)
+        {
+            HeapManager.Enqueue(reader);
+        }
+
+        public override string ToString()
+        {
+            return BitConverter.ToString(buffer.Array!, buffer.Offset, buffer.Count);
+        }
+
+        void IDisposable.Dispose()
+        {
+            HeapManager.Enqueue(this);
+        }
+
+        public byte[] ReadBytes(byte[] bytes, int count)
+        {
+            if (buffer.Count - position < count)
+            {
+                throw new OverflowException("读取器剩余容量不够!");
+            }
+
+            Buffer.BlockCopy(buffer.Array!, buffer.Offset + position, bytes, 0, count);
+            position += count;
+            return bytes;
+        }
+
+        public ArraySegment<byte> ReadArraySegment(int count)
+        {
+            if (buffer.Count - position < count)
+            {
+                throw new OverflowException("读取器剩余容量不够!");
+            }
+
+            var segment = new ArraySegment<byte>(buffer.Array!, buffer.Offset + position, count);
+            position += count;
+            return segment;
+        }
+    }
+}
+
+namespace Astraia
+{
+    internal class WriterQueue
+    {
+        private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
+        private readonly uint maxLength;
+        private MemoryWriter writer;
+
+        public WriterQueue(uint maxLength)
+        {
+            this.maxLength = maxLength;
+        }
+
+        public void AddMessage(ArraySegment<byte> segment)
+        {
+            var length = Compress.Invoke((ulong)segment.Count);
+            if (writer != null && writer.position + length + segment.Count > maxLength)
+            {
+                writers.Enqueue(writer);
+                writer = null;
+            }
+
+            writer ??= MemoryWriter.Pop();
+            Compress.EncodeUInt64(writer, (ulong)segment.Count);
+            writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
+        }
+
+        public bool GetBatch(MemoryWriter result)
+        {
+            if (writers.Count > 0)
+            {
+                var target = writers.Dequeue();
+                if (result.position != 0)
+                {
+                    throw new ArgumentException("拷贝目标不是空的！");
+                }
+
+                ArraySegment<byte> segment = target;
+                result.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                MemoryWriter.Push(target);
+                return true;
+            }
+
+            if (writer != null)
+            {
+                if (result.position != 0)
+                {
+                    throw new ArgumentException("拷贝目标不是空的！");
+                }
+
+                ArraySegment<byte> segment = writer;
+                result.WriteBytes(segment.Array, segment.Offset, segment.Count);
+                MemoryWriter.Push(writer);
+                writer = null;
+                return true;
+            }
+
+            return false;
+        }
+    }
+}
+
+namespace Astraia
+{
+    internal class ReaderQueue
+    {
+        private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
+        private readonly MemoryReader reader = new MemoryReader();
+        public int Count => writers.Count;
+
+        public bool AddBatch(ArraySegment<byte> segment)
+        {
+            if (segment.Count < sizeof(ushort))
+            {
+                return false;
+            }
+
+            var writer = MemoryWriter.Pop();
+            writer.WriteBytes(segment.Array, segment.Offset, segment.Count);
+            if (writers.Count == 0)
+            {
+                reader.Reset(writer);
+            }
+
+            writers.Enqueue(writer);
+            return true;
+        }
+
+        public bool GetMessage(out ArraySegment<byte> segment)
+        {
+            segment = default;
+            if (writers.Count == 0)
+            {
+                return false;
+            }
+
+            if (reader.buffer.Count == 0)
+            {
+                return false;
+            }
+
+            if (reader.buffer.Count - reader.position == 0)
+            {
+                var writer = writers.Dequeue();
+                MemoryWriter.Push(writer);
+                if (writers.Count > 0)
+                {
+                    reader.Reset(writers.Peek());
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            if (reader.buffer.Count - reader.position == 0)
+            {
+                return false;
+            }
+
+            var length = (int)Compress.DecodeUInt64(reader);
+
+            if (reader.buffer.Count - reader.position < length)
+            {
+                return false;
+            }
+
+            segment = reader.ReadArraySegment(length);
+            return true;
         }
     }
 }
