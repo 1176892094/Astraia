@@ -43,20 +43,19 @@ namespace Astraia.Editor
         public const MA GEN_C2 = MA.HideBySig | MA.Static | MA.SpecialName | MA.Private | MA.RTSpecialName;
         public const TA GEN_T1 = TA.AutoClass | TA.Public | TA.Class | TA.AnsiClass | TA.Abstract | TA.Sealed | TA.BeforeFieldInit;
 
-        public bool Weave(AssemblyDefinition assembly, ILogPostProcessor debugger, IAssemblyResolver resolver, ICompiledAssembly compiled, out bool modified)
+        public bool Weave(AssemblyDefinition assembly, ILogPostProcessor Log, IAssemblyResolver resolver, bool success, out bool modified)
         {
             modified = false;
             try
             {
                 var change = false;
                 var failed = false;
-                var module = new Module(assembly, debugger, ref failed);
+                var module = new Module(assembly, Log, ref failed);
                 var writer = (Writer)null;
                 var reader = (Reader)null;
                 var access = (SyncVarAccess)null;
                 var create = (TypeDefinition)null;
 
-                var success = compiled.Name == WEAVER || compiled.References.Any(reference => Path.GetFileNameWithoutExtension(reference) == WEAVER);
                 if (success)
                 {
                     if (assembly.MainModule.Types.Any(td => td.Namespace == WEAVER && td.Name == MED_T1))
@@ -67,9 +66,9 @@ namespace Astraia.Editor
                     {
                         access = new SyncVarAccess();
                         create = new TypeDefinition(WEAVER, MED_T1, GEN_T1, module.Import<object>());
-                        writer = new Writer(assembly, module, create, debugger);
-                        reader = new Reader(assembly, module, create, debugger);
-                        change = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
+                        writer = new Writer(assembly, module, create, Log);
+                        reader = new Reader(assembly, module, create, Log);
+                        change = NetworkMemberGen.Process(assembly, resolver, Log, writer, reader, ref failed);
                     }
                 }
 
@@ -88,7 +87,7 @@ namespace Astraia.Editor
                                     break;
                                 }
 
-                                change |= new NetworkModuleGen(assembly, access, module, writer, reader, debugger, parent).Process(ref failed);
+                                change |= new NetworkModuleGen(assembly, access, module, writer, reader, Log, parent).Process(ref failed);
                                 parent = parent.GetBaseType();
                             }
                         }
@@ -96,7 +95,7 @@ namespace Astraia.Editor
 
                     if (td.HasInterface(typeof(IModule)))
                     {
-                        modified |= CustomGenerator.Processed(assembly, td, module, debugger);
+                        modified |= CustomGenerator.Processed(assembly, td, module, Log);
                     }
                 }
 
@@ -117,7 +116,7 @@ namespace Astraia.Editor
             }
             catch (Exception e)
             {
-                debugger.Error(e.ToString());
+                Log.Error(e.ToString());
                 return false;
             }
         }

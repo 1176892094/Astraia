@@ -1,3 +1,4 @@
+using System;
 using Astraia;
 using Astraia.Core;
 using UnityEngine;
@@ -6,7 +7,7 @@ using Text = UnityEngine.UI.Text;
 
 namespace Runtime
 {
-    [UIMask(2)]
+    [UIMask(2)] [Serializable]
     public class LoadPanel : UIPanel, ITween
     {
         [Inject] private Image panel;
@@ -25,14 +26,13 @@ namespace Runtime
         }
     }
 
-    [UIMask(1)]
+    [UIMask(1)] [Serializable]
     public class LabelPanel : UIPanel
     {
         [Inject] private Text message;
         [Inject] private Button prevButton;
         [Inject] private Button nextButton;
 
-    
         public override void OnShow()
         {
             message.text = "1.点击调试器\n2.找到Network面板\n3.房主启动 Host 模式\n4.房员启动 Client 模式";

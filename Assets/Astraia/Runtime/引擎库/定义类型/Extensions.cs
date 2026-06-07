@@ -21,7 +21,6 @@ namespace Astraia.Core
     {
         public static T Inject<T>(this Component self, string name) where T : Component
         {
-            Debug.Log(self);
             var child = self.transform.GetChild(name);
             if (child)
             {
@@ -52,7 +51,7 @@ namespace Astraia.Core
         {
             if (component.TryGetComponent(out Button button))
             {
-                if (self is Entity entity && entity.TryGetComponent<UIPanel>(0, out var panel))
+                if (self is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
                 {
                     button.onClick.AddListener(() =>
                     {
@@ -77,7 +76,7 @@ namespace Astraia.Core
         {
             if (component.TryGetComponent(out Toggle toggle))
             {
-                if (self is Entity entity && entity.TryGetComponent<UIPanel>(0, out var panel))
+                if (self is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
                 {
                     toggle.onValueChanged.AddListener(value =>
                     {
@@ -102,7 +101,7 @@ namespace Astraia.Core
         {
             if (component.TryGetComponent(out Slider slider))
             {
-                if (self is Entity entity && entity.TryGetComponent<UIPanel>(0, out var panel))
+                if (self is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
                 {
                     slider.onValueChanged.AddListener(value =>
                     {
@@ -128,7 +127,7 @@ namespace Astraia.Core
             var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
             if (component.TryGetComponent(cacheType, out var inputField))
             {
-                if (self is Entity entity && entity.TryGetComponent<UIPanel>(0, out var panel))
+                if (self is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
                 {
                     inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                     {

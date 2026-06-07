@@ -18,9 +18,11 @@ using UnityEngine.UI;
 
 namespace Astraia
 {
+    [Serializable]
     public abstract class UIPanel : Module<Entity>
     {
         public UIState state = UIState.Common;
+
         internal int group;
         internal int layer;
 

@@ -24,10 +24,10 @@ namespace Astraia.Editor
 {
     internal static class NetworkMemberGen
     {
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor debugger, Writer writer, Reader reader, ref bool failed)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
         {
-            ProcessAssembly(assembly, resolver, debugger, writer, reader, ref failed);
-            return ProcessProperty(assembly, assembly, writer, reader, ref failed);
+            ProcessAssembly(assembly, resolver, Log, writer, reader, ref failed);
+            return ProcessProperty(assembly, assembly, Log, writer, reader, ref failed);
         }
 
         public static void Processed(AssemblyDefinition assembly, Module module, Writer writer, Reader reader, TypeDefinition create)
@@ -46,48 +46,48 @@ namespace Astraia.Editor
             create.Methods.Add(method);
         }
 
-        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor debugger, Writer writer, Reader reader, ref bool failed)
+        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
         {
-            var ar = assembly.MainModule.AssemblyReferences.FirstOrDefault(reference => reference.Name == Weaver.WEAVER);
-            if (ar != null)
+            var ar = assembly.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == Weaver.WEAVER);
+            if (ar == null)
             {
-                var ad = resolver.Resolve(ar);
-                if (ad != null)
-                {
-                    ProcessProperty(assembly, ad, writer, reader, ref failed);
-                }
-                else
-                {
-                    debugger.Error("自动生成网络代码失败: {0}".Format(ar));
-                }
+                Log.Error("没有找到 Astraia.Net 程序集");
             }
             else
             {
-                debugger.Error("注册程序集 Astraia.Net.dll 失败");
+                var network = resolver.Resolve(ar);
+                if (network == null)
+                {
+                    Log.Error("网络程序集解析失败: {0}".Format(ar));
+                }
+                else
+                {
+                    ProcessProperty(assembly, network, Log, writer, reader, ref failed);
+                }
             }
         }
 
-        private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition ad, Writer writer, Reader reader, ref bool failed)
+        private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition network, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
         {
             var modified = false;
-            foreach (var definition in ad.MainModule.Types.Where(td => td.IsAbstract && td.IsSealed))
+            foreach (var td in network.MainModule.Types.Where(td => td.IsAbstract && td.IsSealed))
             {
-                modified |= ProcessSetter(assembly, definition, writer);
-                modified |= ProcessGetter(assembly, definition, reader);
+                modified |= ProcessWriter(assembly.MainModule, td, writer);
+                modified |= ProcessReader(assembly.MainModule, td, reader);
             }
 
-            foreach (var definition in ad.MainModule.Types)
+            foreach (var td in network.MainModule.Types)
             {
-                modified |= ProcessMessage(assembly.MainModule, writer, reader, definition, ref failed);
+                modified |= ProcessMessage(assembly.MainModule, td, writer, reader, ref failed);
             }
 
             return modified;
         }
 
-        private static bool ProcessSetter(AssemblyDefinition assembly, TypeDefinition definition, Writer writer)
+        private static bool ProcessWriter(ModuleDefinition module, TypeDefinition td, Writer writer)
         {
             var modified = false;
-            foreach (var md in definition.Methods)
+            foreach (var md in td.Methods)
             {
                 if (md.Parameters.Count != 2)
                     continue;
@@ -104,17 +104,17 @@ namespace Astraia.Editor
                 if (md.HasGenericParameters)
                     continue;
 
-                writer.Register(md.Parameters[1].ParameterType, assembly.MainModule.ImportReference(md));
+                writer.Register(md.Parameters[1].ParameterType, module.ImportReference(md));
                 modified = true;
             }
 
             return modified;
         }
 
-        private static bool ProcessGetter(AssemblyDefinition assembly, TypeDefinition definition, Reader reader)
+        private static bool ProcessReader(ModuleDefinition module, TypeDefinition td, Reader reader)
         {
             var modified = false;
-            foreach (var md in definition.Methods)
+            foreach (var md in td.Methods)
             {
                 if (md.Parameters.Count != 1)
                     continue;
@@ -131,26 +131,26 @@ namespace Astraia.Editor
                 if (md.HasGenericParameters)
                     continue;
 
-                reader.Register(md.ReturnType, assembly.MainModule.ImportReference(md));
+                reader.Register(md.ReturnType, module.ImportReference(md));
                 modified = true;
             }
 
             return modified;
         }
 
-        private static bool ProcessMessage(ModuleDefinition module, Writer writer, Reader reader, TypeDefinition definition, ref bool failed)
+        private static bool ProcessMessage(ModuleDefinition module, TypeDefinition td, Writer writer, Reader reader, ref bool failed)
         {
             var modified = false;
-            if (!definition.IsAbstract && !definition.IsInterface && definition.HasInterface(typeof(IMessage)))
+            if (!td.IsAbstract && !td.IsInterface && td.HasInterface(typeof(IMessage)))
             {
-                reader.GetFunction(module.ImportReference(definition), ref failed);
-                writer.GetFunction(module.ImportReference(definition), ref failed);
+                reader.GetFunction(module.ImportReference(td), ref failed);
+                writer.GetFunction(module.ImportReference(td), ref failed);
                 modified = true;
             }
 
-            foreach (var nested in definition.NestedTypes)
+            foreach (var nested in td.NestedTypes) //嵌套类型
             {
-                modified |= ProcessMessage(module, writer, reader, nested, ref failed);
+                modified |= ProcessMessage(module, nested, writer, reader, ref failed);
             }
 
             return modified;
@@ -162,14 +162,14 @@ namespace Astraia.Editor
         protected readonly Dictionary<TypeReference, MethodReference> methods = new Dictionary<TypeReference, MethodReference>(new Comparer());
         protected readonly Module module;
         protected readonly TypeDefinition create;
-        protected readonly ILogPostProcessor debugger;
+        protected readonly ILogPostProcessor Log;
         protected readonly AssemblyDefinition assembly;
 
-        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor debugger)
+        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor Log)
         {
+            this.Log = Log;
             this.module = module;
             this.create = create;
-            this.debugger = debugger;
             this.assembly = assembly;
         }
 
@@ -177,20 +177,13 @@ namespace Astraia.Editor
         {
             if (!methods.TryGetValue(tr, out var method) || method.FullName == mr.FullName)
             {
-                var imported = assembly.MainModule.ImportReference(tr);
-                methods[imported] = mr;
+                methods[assembly.MainModule.ImportReference(tr)] = mr;
             }
         }
 
         public MethodReference GetFunction(TypeReference tr, ref bool failed)
         {
-            if (methods.TryGetValue(tr, out var mr))
-            {
-                return mr;
-            }
-
-            var reference = assembly.MainModule.ImportReference(tr);
-            return Process(reference, ref failed);
+            return methods.TryGetValue(tr, out var mr) ? mr : Process(assembly.MainModule.ImportReference(tr), ref failed);
         }
 
         private MethodReference Process(TypeReference tr, ref bool failed)
@@ -199,7 +192,7 @@ namespace Astraia.Editor
             {
                 if (tr is ArrayType array && array.Rank > 1)
                 {
-                    debugger.Error("无法为多维数组 {0} 生成代码".Format(tr.Name), tr);
+                    Log.Error("无法为多维数组 {0} 生成代码".Format(tr.Name), tr);
                     failed = true;
                     return null;
                 }
@@ -210,14 +203,14 @@ namespace Astraia.Editor
             var td = tr.Resolve();
             if (td == null)
             {
-                debugger.Error("无法为空类型 {0} 生成代码".Format(tr.Name), tr);
+                Log.Error("无法为空类型 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.IsByReference) // ref and out
             {
-                debugger.Error("无法为引用 {0} 生成代码".Format(tr.Name), tr);
+                Log.Error("无法为引用 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
@@ -249,35 +242,35 @@ namespace Astraia.Editor
 
             if (td.IsSubclassOf<Component>())
             {
-                debugger.Error("无法为组件 {0} 生成代码".Format(tr.Name), tr);
+                Log.Error("无法为组件 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.Is<Object>())
             {
-                debugger.Error("无法为对象 {0} 生成代码".Format(tr.Name), tr);
+                Log.Error("无法为对象 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.HasGenericParameters)
             {
-                debugger.Error("无法为泛型参数 {0} 生成代码".Format(tr.Name), tr);
+                Log.Error("无法为泛型参数 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsInterface)
             {
-                debugger.Error("无法为接口 {0} 生成代码".Format(tr.Name), tr);
+                Log.Error("无法为接口 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsAbstract)
             {
-                debugger.Error("无法为抽象或泛型 {0} 生成代码".Format(tr.Name), tr);
+                Log.Error("无法为抽象或泛型 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
@@ -335,13 +328,13 @@ namespace Astraia.Editor
 
             if (func == null)
             {
-                debugger.Error("无法为 {0} 生成代码".Format(tr.Name), tr);
+                Log.Error("无法为 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return md;
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = extensions.GetMethod(assembly, "Write" + name, debugger, ref failed);
+            var mr = extensions.GetMethod(assembly, "Write" + name, Log, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -470,13 +463,13 @@ namespace Astraia.Editor
 
             if (func == null)
             {
-                debugger.Error("无法为 {0} 生成代码".Format(tr.Name), tr);
+                Log.Error("无法为 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return md;
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Common.GetMethod(extensions, assembly, "Read" + name, debugger, ref failed);
+            var mr = Common.GetMethod(extensions, assembly, "Read" + name, Log, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -514,7 +507,7 @@ namespace Astraia.Editor
                 var ctor = Common.GetConstructor(tr);
                 if (ctor == null)
                 {
-                    debugger.Error("{0} 不能被反序列化，因为它没有默认的构造函数".Format(tr.Name), tr);
+                    Log.Error("{0} 不能被反序列化，因为它没有默认的构造函数".Format(tr.Name), tr);
                     failed = true;
                 }
                 else
@@ -540,7 +533,7 @@ namespace Astraia.Editor
                 }
                 else
                 {
-                    debugger.Error("{0} 有不受支持的类型".Format(field.Name), field);
+                    Log.Error("{0} 有不受支持的类型".Format(field.Name), field);
                     failed = true;
                 }
 

@@ -39,23 +39,28 @@ namespace Astraia.Editor
 
         public override bool WillProcess(ICompiledAssembly compiledAssembly)
         {
-            return compiledAssembly.Name == Weaver.WEAVER || FindReference(compiledAssembly);
-        }
-
-        private static bool FindReference(ICompiledAssembly compiledAssembly)
-        {
-            if (!IgnoreAssemblies.Contains(compiledAssembly.Name) && !compiledAssembly.Name.StartsWith("Unity"))
+            if (compiledAssembly.Name == Weaver.WEAVER)
             {
-                return compiledAssembly.References.Any(reference => Path.GetFileNameWithoutExtension(reference) is "Astraia" or Weaver.WEAVER);
+                return true;
             }
 
-            return false;
+            if (compiledAssembly.Name.StartsWith("Unity"))
+            {
+                return false;
+            }
+
+            if (IgnoreAssemblies.Contains(compiledAssembly.Name))
+            {
+                return false;
+            }
+
+            return compiledAssembly.References.Any(r => Path.GetFileNameWithoutExtension(r).StartsWith("Astraia"));
         }
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
         {
-            var debugger = new LogPostProcessor();
-            using var resolver = new AssemblyResolver(compiledAssembly, debugger);
+            var Log = new LogPostProcessor();
+            using var resolver = new AssemblyResolver(compiledAssembly, Log);
             using var peData = new MemoryStream(compiledAssembly.InMemoryAssembly.PeData);
             using var pdbData = new MemoryStream(compiledAssembly.InMemoryAssembly.PdbData);
             using var assembly = AssemblyDefinition.ReadAssembly(peData, new ReaderParameters
@@ -68,7 +73,8 @@ namespace Astraia.Editor
                 ReadingMode = ReadingMode.Immediate
             });
             resolver.SetAssemblyDefinitionForCompiledAssembly(assembly);
-            if (new Weaver().Weave(assembly, debugger, resolver, compiledAssembly, out var modified) && modified)
+            var network = compiledAssembly.Name == Weaver.WEAVER || compiledAssembly.References.Any(r => Path.GetFileNameWithoutExtension(r) == Weaver.WEAVER);
+            if (new Weaver().Weave(assembly, Log, resolver, network, out var modified) && modified)
             {
                 var module = assembly.MainModule;
                 if (module.AssemblyReferences.Any(reference => reference.Name == assembly.Name.Name))
@@ -79,11 +85,16 @@ namespace Astraia.Editor
 
                 using var peStream = new MemoryStream();
                 using var pdbStream = new MemoryStream();
-                assembly.Write(peStream, new WriterParameters { SymbolStream = pdbStream, SymbolWriterProvider = new PortablePdbWriterProvider(), WriteSymbols = true });
-                return new ILPostProcessResult(new InMemoryAssembly(peStream.ToArray(), pdbStream.ToArray()), debugger.messages);
+                assembly.Write(peStream, new WriterParameters
+                {
+                    SymbolStream = pdbStream, 
+                    SymbolWriterProvider = new PortablePdbWriterProvider(), 
+                    WriteSymbols = true
+                });
+                return new ILPostProcessResult(new InMemoryAssembly(peStream.ToArray(), pdbStream.ToArray()), Log.messages);
             }
 
-            return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, debugger.messages);
+            return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, Log.messages);
         }
     }
 

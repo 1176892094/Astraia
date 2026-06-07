@@ -94,6 +94,7 @@ namespace Astraia.Core
 
         private void Awake()
         {
+            Async.Time = 0;
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }

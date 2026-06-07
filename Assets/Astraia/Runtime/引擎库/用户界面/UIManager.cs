@@ -49,30 +49,27 @@ namespace Astraia.Core
             canvas.worldCamera = camera;
         }
 
-        private static UIPanel Load(string path, Type type)
+        private static UIPanel Load(string path, Type item)
         {
-            if (type.GetAttribute(out UIPathAttribute item))
+            if (item.GetAttribute(out UIPathAttribute page))
             {
-                path = GlobalSetting.PREFAB.Format(item.asset);
+                path = GlobalSetting.PREFAB.Format(page.asset);
             }
 
             Initialized();
             var asset = AssetManager.Load<GameObject>(path);
-            asset.gameObject.name = type.Name;
+            asset.gameObject.name = item.Name;
             asset.gameObject.SetActive(false);
-            var owner = asset.GetOrAddComponent<Entity>();
-            var panel = (UIPanel)Activator.CreateInstance(type);
-            owner.modules.Add(panel);
-            if (type.GetAttribute(out UIMaskAttribute mask))
+            var owner = asset.AddComponent<Entity>();
+            var panel = owner.AddComponent<UIPanel>(item);
+            if (item.GetAttribute(out UIMaskAttribute mask))
             {
                 panel.layer = mask.layer;
                 panel.group = mask.group;
             }
 
-            owner.gameObject.SetActive(true);
-            SetLayer(panel.owner.transform, panel.layer);
-            panelData.Add(type, panel);
-
+            panel.SetLayer(panel.layer);
+            panelData.Add(item, panel);
             return panel;
         }
 
@@ -161,7 +158,7 @@ namespace Astraia.Core
             }
         }
 
-        public static void SetLayer(Transform panel, int layer)
+        public static void SetLayer(this UIPanel panel, int layer)
         {
             if (!Instance) return;
             if (!layerData.TryGetValue(layer, out var parent))
@@ -174,7 +171,7 @@ namespace Astraia.Core
                 layerData.Add(layer, parent);
             }
 
-            SetTransform(panel.GetComponent<RectTransform>(), parent);
+            SetTransform(panel.owner.GetComponent<RectTransform>(), parent);
         }
 
         private static void SetTransform(RectTransform rect, Transform parent)

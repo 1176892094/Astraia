@@ -64,12 +64,17 @@ namespace Astraia.Core
                 if (state)
                 {
                     panel.owner.gameObject.SetActive(true);
-
+                    panel.OnShow();
                     return;
                 }
 
-                if (panel is not ITween)
+                if (panel is ITween)
                 {
+                    panel.OnHide();
+                }
+                else
+                {
+                    panel.OnHide();
                     panel.owner.gameObject.SetActive(false);
                 }
             }

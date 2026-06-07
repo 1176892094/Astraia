@@ -25,7 +25,10 @@ namespace Astraia.Core
         {
             foreach (var module in modules)
             {
-                module.OnShow();
+                if (module is not UIPanel)
+                {
+                    module.OnShow();
+                }
             }
         }
 
@@ -33,7 +36,10 @@ namespace Astraia.Core
         {
             foreach (var module in modules)
             {
-                module.OnHide();
+                if (module is not UIPanel)
+                {
+                    module.OnHide();
+                }
             }
         }
 
@@ -50,6 +56,15 @@ namespace Astraia.Core
         public T AddComponent<T>() where T : IModule
         {
             var module = Activator.CreateInstance<T>();
+            module.Acquire(this);
+            modules.Add(module);
+            return module;
+        }
+
+        public T AddComponent<T>(Type item) where T : IModule
+        {
+            var module = (T)Activator.CreateInstance(item);
+            module.Acquire(this);
             modules.Add(module);
             return module;
         }
