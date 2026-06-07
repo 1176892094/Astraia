@@ -12,11 +12,8 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.IO;
-using Astraia.Core;
 using Mono.Cecil;
 using Astraia.Net;
-using Unity.CompilationPipeline.Common.ILPostProcessing;
 using UnityEngine;
 using InjectManager = Astraia.Core.Extensions;
 
@@ -181,10 +178,10 @@ namespace Astraia.Editor
             GetTypeFromHandle = Import<Type>().GetMethod(assembly, "GetTypeFromHandle", Log, ref failed);
             ReadNetworkModule = Import(typeof(Net.Extensions)).GetMethod(assembly, ReadModule, Log, ref failed);
 
-            OnShow = Import(typeof(Core.Module)).GetMethod(assembly, nameof(OnShow), Log, ref failed);
-            OnHide = Import(typeof(Core.Module)).GetMethod(assembly, nameof(OnHide), Log, ref failed);
-            Dequeue = Import(typeof(Core.Module)).GetMethod(assembly, nameof(Dequeue), Log, ref failed);
-            Enqueue = Import(typeof(Core.Module)).GetMethod(assembly, nameof(Enqueue), Log, ref failed);
+            OnShow = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(OnShow), Log, ref failed);
+            OnHide = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(OnHide), Log, ref failed);
+            Dequeue = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(Dequeue), Log, ref failed);
+            Enqueue = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(Enqueue), Log, ref failed);
 
             Listen = Import(typeof(EventManager)).GetMethod(assembly, nameof(Listen), Log, ref failed);
             Remove = Import(typeof(EventManager)).GetMethod(assembly, nameof(Remove), Log, ref failed);

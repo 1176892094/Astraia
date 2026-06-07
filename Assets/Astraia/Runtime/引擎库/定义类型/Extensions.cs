@@ -25,33 +25,33 @@ namespace Astraia.Core
             if (child)
             {
                 var component = child.GetComponent<T>();
-                if (Button(owner, obj, component, name))
+                if (Button(obj, component, name))
                 {
                     return component;
                 }
 
-                if (Toggle(owner, obj, component, name))
+                if (Toggle(obj, component, name))
                 {
                     return component;
                 }
 
-                if (Slider(owner, obj, component, name))
+                if (Slider(obj, component, name))
                 {
                     return component;
                 }
 
-                InputField(owner, obj, component, name);
+                InputField(obj, component, name);
                 return component;
             }
 
             return owner.GetComponent<T>();
         }
 
-        private static bool Button<T>(Component owner, object obj, T component, string name) where T : Component
+        private static bool Button<T>(object obj, T component, string name) where T : Component
         {
             if (component.TryGetComponent(out Button button))
             {
-                if (owner is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
+                if (obj is UIPanel panel)
                 {
                     button.onClick.AddListener(() =>
                     {
@@ -72,11 +72,11 @@ namespace Astraia.Core
             return false;
         }
 
-        private static bool Toggle<T>(Component owner, object obj, T component, string name) where T : Component
+        private static bool Toggle<T>(object obj, T component, string name) where T : Component
         {
             if (component.TryGetComponent(out Toggle toggle))
             {
-                if (owner is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
+                if (obj is UIPanel panel)
                 {
                     toggle.onValueChanged.AddListener(value =>
                     {
@@ -97,11 +97,11 @@ namespace Astraia.Core
             return false;
         }
 
-        private static bool Slider<T>(Component owner, object obj, T component, string name) where T : Component
+        private static bool Slider<T>(object obj, T component, string name) where T : Component
         {
             if (component.TryGetComponent(out Slider slider))
             {
-                if (owner is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
+                if (obj is UIPanel panel)
                 {
                     slider.onValueChanged.AddListener(value =>
                     {
@@ -122,12 +122,12 @@ namespace Astraia.Core
             return false;
         }
 
-        private static void InputField<T>(Component owner, object obj, T component, string name) where T : Component
+        private static void InputField<T>(object obj, T component, string name) where T : Component
         {
             var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
             if (component.TryGetComponent(cacheType, out var inputField))
             {
-                if (owner is Entity entity && entity.TryGetComponent(0, out UIPanel panel))
+                if (obj is UIPanel panel)
                 {
                     inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                     {

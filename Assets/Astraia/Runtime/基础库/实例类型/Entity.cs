@@ -609,6 +609,44 @@ namespace Astraia
         }
     }
 
+    public interface IModule
+    {
+        void Acquire(object owner);
+        void Dequeue();
+        void Enqueue();
+        void OnShow();
+        void OnHide();
+    }
+
+    public abstract class Module
+    {
+        public virtual void Dequeue()
+        {
+        }
+
+        public virtual void OnShow()
+        {
+        }
+
+        public virtual void OnHide()
+        {
+        }
+
+        public virtual void Enqueue()
+        {
+        }
+    }
+
+    public abstract class Module<T> : Module, IModule
+    {
+        [NonSerialized] public T owner;
+
+        void IModule.Acquire(object owner)
+        {
+            this.owner = (T)owner;
+        }
+    }
+
     public interface IState
     {
         void Acquire(object item);

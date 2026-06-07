@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Astraia.Core
 {
+    [Serializable]
     public class Entity : MonoBehaviour
     {
         [SerializeReference] public List<IModule> moduleList = new List<IModule>();
@@ -56,66 +57,22 @@ namespace Astraia.Core
         public T AddComponent<T>() where T : IModule
         {
             var module = Activator.CreateInstance<T>();
-            module.Acquire(this);
             moduleList.Add(module);
+            module.Acquire(this);
             return module;
         }
 
         public T AddComponent<T>(Type item) where T : IModule
         {
             var module = (T)Activator.CreateInstance(item);
-            module.Acquire(this);
             moduleList.Add(module);
+            module.Acquire(this);
             return module;
         }
 
         public T GetComponent<T>(int index) where T : IModule
         {
             return (T)moduleList[index];
-        }
-
-        public bool TryGetComponent<T>(int index, out T module) where T : IModule
-        {
-            module = (T)moduleList[index];
-            return module != null;
-        }
-    }
-
-    public interface IModule
-    {
-        void Acquire(object owner);
-        void Dequeue();
-        void Enqueue();
-        void OnShow();
-        void OnHide();
-    }
-
-    public abstract class Module
-    {
-        public virtual void Dequeue()
-        {
-        }
-
-        public virtual void OnShow()
-        {
-        }
-
-        public virtual void OnHide()
-        {
-        }
-
-        public virtual void Enqueue()
-        {
-        }
-    }
-
-    public abstract class Module<T> : Module, IModule
-    {
-        [NonSerialized] public T owner;
-
-        void IModule.Acquire(object owner)
-        {
-            this.owner = (T)owner;
         }
     }
 

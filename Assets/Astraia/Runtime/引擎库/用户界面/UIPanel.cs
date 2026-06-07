@@ -53,7 +53,7 @@ namespace Astraia
         public ScrollRect scroll;
         public Action<IGrid> OnMove;
 
-        protected virtual void Awake()
+        public override void Dequeue()
         {
             scroll = owner.Inject<ScrollRect>(this, nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
@@ -95,7 +95,7 @@ namespace Astraia
             scroll.onValueChanged.RemoveListener(ScrollView);
         }
 
-        protected virtual void OnDestroy()
+        public override void Enqueue()
         {
             items = null;
             grids = null;

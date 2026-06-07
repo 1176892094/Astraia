@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using Astraia.Core;
@@ -23,8 +24,6 @@ namespace Astraia.Net
         public static NetworkManager Instance;
         private static UdpClient udpClient;
         private static UdpClient udpServer;
-        private static Transport connection;
-        private static Transport collection;
         private static bool isRemote;
 
         public int maxPlayer = 100;
@@ -32,19 +31,25 @@ namespace Astraia.Net
         public string roomData;
         public string roomName;
         public RoomMode roomMode;
+
+        [SerializeReference]
+        private List<Transport> transports = new List<Transport>();
+
         public static bool isHost => isServer && isClient;
-        public static bool isSaloon => Saloon.state != State.断开连接;
         public static bool isServer => Server.state != State.断开连接;
         public static bool isClient => Client.state != State.断开连接;
-        internal static Transport Transport => isRemote ? collection : connection;
+        public static bool isSaloon => Saloon.state != State.断开连接;
+        internal static Transport Transport => isRemote ? Instance.transports[1] : Instance.transports[0];
 
         private void Awake()
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
-            connection = gameObject.AddComponent<GenericTransport>();
-            collection = gameObject.GetComponent<NetworkTransport>();
+            transports.Add(new GenericTransport());
+            transports.Add(new NetworkTransport());
+            transports.Add(new GenericTransport());
+            NetworkTransport.Instance = transports[2];
         }
 
         private void OnApplicationQuit()

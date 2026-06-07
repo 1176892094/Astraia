@@ -317,12 +317,29 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55c3b094877074c03a956c8a536c6a66, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkManager
   maxPlayer: 100
   roomGuid: 
   roomData: 
   roomName: 
   roomMode: 0
+  _connection:
+    rid: 915762514025775169
+  _collection:
+    rid: 915762514025775170
+  references:
+    version: 2
+    RefIds:
+    - rid: 915762514025775169
+      type: {class: GenericTransport, ns: Astraia, asm: Astraia}
+      data:
+        address: localhost
+        port: 20974
+    - rid: 915762514025775170
+      type: {class: NetworkTransport, ns: Astraia.Net, asm: Astraia.Net}
+      data:
+        address: localhost
+        port: 20974
 --- !u!4 &584064306
 Transform:
   m_ObjectHideFlags: 0

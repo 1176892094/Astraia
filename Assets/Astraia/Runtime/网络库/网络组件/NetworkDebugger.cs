@@ -359,8 +359,8 @@ namespace Astraia.Net
             {
                 GUILayout.BeginHorizontal();
                 var ping = (int)Math.Min(NetworkManager.Client.pingTime * 1000, 999);
-                var peer = NetworkManager.Transport ? NetworkManager.Transport.address : "127.0.0.1";
-                var port = NetworkManager.Transport ? NetworkManager.Transport.port : (ushort)20974;
+                var peer = NetworkManager.Transport != null ? NetworkManager.Transport.address : "127.0.0.1";
+                var port = NetworkManager.Transport!= null ? NetworkManager.Transport.port : (ushort)20974;
                 GUILayout.Label("{0} : {1}".Format(peer, port), "Button", GUILayout.Width((ScreenX - 20) / 2), GUILayout.Height(30));
                 GUILayout.Label(NetworkManager.isClient ? "Ping: {0} ms".Format(ping) : "Client is not active!", "Button", GUILayout.Height(30));
                 GUILayout.EndHorizontal();
@@ -991,7 +991,7 @@ namespace Astraia.Net
 
         public static void Enable()
         {
-            if (NetworkManager.Transport)
+            if (NetworkManager.Transport!= null)
             {
                 NetworkManager.Transport.client.Send -= OnClientSend;
                 NetworkManager.Transport.server.Send -= OnServerSend;
