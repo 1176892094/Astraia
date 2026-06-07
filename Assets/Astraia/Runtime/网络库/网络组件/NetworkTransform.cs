@@ -154,7 +154,7 @@ namespace Astraia.Net
             if ((option & Option.Mutation) != 0) mutation = reader.ReadVector3();
         }
 
-        [ServerRpc(Channel.Unreliable)]
+        [ServerRpc(Pass.UDP)]
         private void SendToServerRpc(Vector3? position, Quaternion? rotation, Vector3? mutation)
         {
             if (syncMode == SyncMode.Client && !isClient)
@@ -167,7 +167,7 @@ namespace Astraia.Net
             SendToClientRpc(position, rotation, mutation);
         }
 
-        [ClientRpc(Channel.Unreliable)]
+        [ClientRpc(Pass.UDP)]
         private void SendToClientRpc(Vector3? position, Quaternion? rotation, Vector3? mutation)
         {
             if ((syncMode == SyncMode.Server && !isServer) || (syncMode == SyncMode.Client && !isOwner))

@@ -45,7 +45,7 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, int channel = Channel.Reliable) where T : struct, IMessage
+        public void Send<T>(T message, int channel = Pass.KCP) where T : struct, IMessage
         {
             using var writer = MemoryWriter.Pop();
             writer.WriteUInt16(NetworkMessage<T>.Id);
@@ -81,7 +81,7 @@ namespace Astraia.Net
                 using var target = MemoryWriter.Pop();
                 if (batch.GetBatch(target))
                 {
-                    NetworkManager.Client.Receive(target, Channel.Reliable);
+                    NetworkManager.Client.Receive(target, Pass.KCP);
                 }
             }
         }

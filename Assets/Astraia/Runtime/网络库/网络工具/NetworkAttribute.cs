@@ -49,7 +49,7 @@ namespace Astraia.Net
         {
             if (messages.TryGetValue(id, out var message))
             {
-                return (message.channel & Channel.IgnoreOwner) == 0 && message.mode == InvokeMode.ServerRpc;
+                return (message.channel & Pass.ANY) == 0 && message.mode == InvokeMode.ServerRpc;
             }
 
             return false;

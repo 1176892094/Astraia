@@ -50,7 +50,7 @@ namespace Runtime
             SetDirectionClientRpc(direction);
         }
 
-        [ClientRpc(Channel.Reliable | Channel.IgnoreOwner)]
+        [ClientRpc(Pass.KCP | Pass.ANY)]
         private void SetDirectionClientRpc(int direction)
         {
             owner.transform.localScale = new Vector3(direction, 1, 1);

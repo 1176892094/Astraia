@@ -1029,7 +1029,7 @@ namespace Astraia
         private KcpClient kcpClient;
         private KcpServer kcpServer;
 
-        private void Awake()
+        public GenericTransport(bool isServer = false)
         {
             var setting = new Setting(MAX_MTU, TIME_OUT, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
             kcpClient = new KcpClient(setting, client);

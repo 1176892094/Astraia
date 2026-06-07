@@ -159,7 +159,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if ((channel & Channel.IgnoreOwner) == 0 && !isOwner)
+            if ((channel & Pass.ANY) == 0 && !isOwner)
             {
                 Debug.LogWarning("调用 {0} 但是客户端没有对象权限。对象名称：{1}".Format(name, owner.name), owner);
                 return;
@@ -176,7 +176,7 @@ namespace Astraia.Net
                 objectId = objectId, moduleId = moduleId, methodHash = (ushort)hash, segment = writer,
             };
 
-            NetworkManager.Client.connection.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
+            NetworkManager.Client.connection.Send(message, (channel & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
         }
 
         protected void SendClientRpcInternal(string name, int hash, MemoryWriter writer, int channel)
@@ -200,9 +200,9 @@ namespace Astraia.Net
 
             foreach (var result in owner.clients)
             {
-                if (result.isReady && ((channel & Channel.IgnoreOwner) == 0 || result != client))
+                if (result.isReady && ((channel & Pass.ANY) == 0 || result != client))
                 {
-                    result.Send(message, (channel & Channel.Reliable) != 0 ? Channel.Reliable : Channel.Unreliable);
+                    result.Send(message, (channel & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
                 }
             }
         }

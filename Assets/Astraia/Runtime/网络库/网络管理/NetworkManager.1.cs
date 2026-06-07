@@ -129,7 +129,7 @@ namespace Astraia.Net
 
             private static void PongMessage(NetworkClient client, PongMessage message)
             {
-                client.Send(new PingMessage(message.clientTime), Channel.Unreliable);
+                client.Send(new PingMessage(message.clientTime), Pass.UDP);
             }
 
             private static void ReadyMessage(NetworkClient client, ReadyMessage message)
@@ -189,7 +189,7 @@ namespace Astraia.Net
             {
                 if (!client.isReady)
                 {
-                    if (channel != Channel.Reliable) return;
+                    if (channel != Pass.KCP) return;
                     Log.Warn("无法为客户端 {0} 进行远程调用，未准备就绪。", client.clientId);
                     return;
                 }
@@ -393,7 +393,7 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        if (NetworkObserver.Instance && entity.visible == Visible.Observer)
+                        if (NetworkObserver.Instance && entity.visible != Visible.Owner)
                         {
                             NetworkObserver.Instance.Remove(entity);
                         }

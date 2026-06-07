@@ -17,21 +17,21 @@ namespace Astraia.Net
     public class ClientRpcAttribute : Attribute
     {
         private int channel;
-        public ClientRpcAttribute(int channel = Channel.Reliable) => this.channel = channel;
+        public ClientRpcAttribute(int channel = Pass.KCP) => this.channel = channel;
     }
 
     [AttributeUsage(AttributeTargets.Method)]
     public class ServerRpcAttribute : Attribute
     {
         private int channel;
-        public ServerRpcAttribute(int channel = Channel.Reliable) => this.channel = channel;
+        public ServerRpcAttribute(int channel = Pass.KCP) => this.channel = channel;
     }
 
     [AttributeUsage(AttributeTargets.Method)]
     public class TargetRpcAttribute : Attribute
     {
         private int channel;
-        public TargetRpcAttribute(int channel = Channel.Reliable) => this.channel = channel;
+        public TargetRpcAttribute(int channel = Pass.KCP) => this.channel = channel;
     }
 
     [AttributeUsage(AttributeTargets.Field)]

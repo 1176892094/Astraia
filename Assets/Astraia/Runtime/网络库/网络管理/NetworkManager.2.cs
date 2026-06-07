@@ -408,7 +408,7 @@ namespace Astraia.Net
                             if (pongTime < Time.unscaledTimeAsDouble - 2)
                             {
                                 pongTime = Time.unscaledTimeAsDouble;
-                                connection.Send(new PongMessage(pongTime), Channel.Unreliable);
+                                connection.Send(new PongMessage(pongTime), Pass.UDP);
                             }
 
                             connection.Update();
