@@ -25,21 +25,15 @@ namespace Astraia.Net
         锁定,
     }
 
-    public enum SyncMode : byte
+    internal enum SyncMode : byte
     {
         服务器,
         客户端
     }
 
-    public enum Visible : byte
+    internal enum HookMode : byte
     {
-        所有者,
-        观察者,
-    }
-
-    internal enum InvokeMode : byte
-    {
-        ServerRpc,
-        ClientRpc,
+        服务器,
+        客户端
     }
 }

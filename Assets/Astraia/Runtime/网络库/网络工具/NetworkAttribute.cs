@@ -22,15 +22,15 @@ namespace Astraia.Net
 
         public static void RegisterServerRpc(Type component, int pass, string name, InvokeDelegate func)
         {
-            AddInvoke(component, pass, name, InvokeMode.ServerRpc, func);
+            AddInvoke(component, pass, name, HookMode.服务器, func);
         }
 
         public static void RegisterClientRpc(Type component, int pass, string name, InvokeDelegate func)
         {
-            AddInvoke(component, pass, name, InvokeMode.ClientRpc, func);
+            AddInvoke(component, pass, name, HookMode.客户端, func);
         }
 
-        private static void AddInvoke(Type component, int pass, string name, InvokeMode mode, InvokeDelegate func)
+        private static void AddInvoke(Type component, int pass, string name, HookMode mode, InvokeDelegate func)
         {
             var id = (ushort)(NetworkMessage.Id(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
@@ -49,7 +49,7 @@ namespace Astraia.Net
         {
             if (messages.TryGetValue(id, out var message))
             {
-                return (message.pass & Pass.ANY) == 0 && message.mode == InvokeMode.ServerRpc;
+                return (message.pass & Pass.ANY) == 0 && message.mode == HookMode.服务器;
             }
 
             return false;
@@ -65,7 +65,7 @@ namespace Astraia.Net
             return null;
         }
 
-        internal static bool Invoke(ushort id, InvokeMode mode, NetworkClient client, MemoryReader reader, NetworkModule component)
+        internal static bool Invoke(ushort id, HookMode mode, NetworkClient client, MemoryReader reader, NetworkModule component)
         {
             if (messages.TryGetValue(id, out var message))
             {
@@ -88,12 +88,12 @@ namespace Astraia.Net
 
         private struct InvokeData
         {
-            public readonly InvokeMode mode;
+            public readonly HookMode mode;
             public readonly InvokeDelegate func;
             public readonly Type component;
             public readonly int pass;
 
-            public InvokeData(InvokeMode mode, InvokeDelegate func, Type component, int pass)
+            public InvokeData(HookMode mode, InvokeDelegate func, Type component, int pass)
             {
                 this.mode = mode;
                 this.func = func;

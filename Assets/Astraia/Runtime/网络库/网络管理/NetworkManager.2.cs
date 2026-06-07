@@ -153,7 +153,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     using var reader = MemoryReader.Pop(message.segment);
-                    entity.InvokeMessage(message.moduleId, message.methodHash, InvokeMode.ClientRpc, reader);
+                    entity.InvokeMessage(message.moduleId, message.methodHash, HookMode.客户端, reader);
                 }
             }
 
@@ -282,8 +282,8 @@ namespace Astraia.Net
                     entity.transform.localPosition = message.position;
                     entity.transform.localRotation = Quaternion.Euler(message.rotation);
                     entity.transform.localScale = message.mutation;
-                    entity.state = message.isOwner ? entity.state | NetworkEntity.State.Owner : entity.state & ~NetworkEntity.State.Owner;
-                    entity.state |= NetworkEntity.State.Client;
+                    entity.state = message.isOwner ? entity.state | NetworkEntity.State.所有者 : entity.state & ~NetworkEntity.State.所有者;
+                    entity.state |= NetworkEntity.State.客户端;
 
                     if (message.segment.Count > 0)
                     {
@@ -303,7 +303,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.state &= ~NetworkEntity.State.Owner;
+                    entity.state &= ~NetworkEntity.State.所有者;
                     entity.OnNotifyAuthority();
                     entity.gameObject.SetActive(false);
                     if (!isServer)
@@ -320,7 +320,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.state &= ~NetworkEntity.State.Owner;
+                    entity.state &= ~NetworkEntity.State.所有者;
                     entity.OnNotifyAuthority();
                     if (!isServer)
                     {
@@ -331,7 +331,7 @@ namespace Astraia.Net
                         }
                         else
                         {
-                            entity.state |= NetworkEntity.State.Destroy;
+                            entity.state |= NetworkEntity.State.销毁;
                             Destroy(entity.gameObject);
                         }
                     }

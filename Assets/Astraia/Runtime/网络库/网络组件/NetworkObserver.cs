@@ -9,15 +9,16 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
+using Astraia.Core;
 using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkObserver : MonoBehaviour
+    [Serializable]
+    public class NetworkObserver : Singleton<NetworkObserver>
     {
-        public static NetworkObserver Instance;
-
         private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
         private readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
         private readonly HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
@@ -28,13 +29,12 @@ namespace Astraia.Net
         [SerializeField] private Vector2Int extents = Vector2Int.one;
         [SerializeField] private float cellSize = 1;
 
-        private void Awake()
+        public override void Dequeue()
         {
-            Instance = this;
             visible = new SpatialHash<NetworkClient>(cellSize);
         }
 
-        private void OnDestroy()
+        public override void Enqueue()
         {
             copies.Clear();
             clients.Clear();

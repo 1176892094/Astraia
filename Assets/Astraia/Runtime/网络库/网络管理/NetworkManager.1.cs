@@ -138,14 +138,14 @@ namespace Astraia.Net
                 client.Send(new SpawnBeginMessage());
                 EventManager.Invoke(new ServerReady(client));
 
-                if (NetworkObserver.Instance)
+                if (NetworkObserver.Instance != null)
                 {
                     NetworkObserver.Instance.Clear();
                 }
 
                 foreach (var entity in spawns.Values)
                 {
-                    if (NetworkObserver.Instance && entity.visible == Visible.观察者)
+                    if (NetworkObserver.Instance != null && !entity.visible)
                     {
                         NetworkObserver.Instance.Add(entity);
                         NetworkObserver.Instance.Tick(entity, client);
@@ -207,7 +207,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                entity.InvokeMessage(message.moduleId, message.methodHash, InvokeMode.ServerRpc, reader, client);
+                entity.InvokeMessage(message.moduleId, message.methodHash, HookMode.服务器, reader, client);
             }
         }
 
@@ -324,9 +324,9 @@ namespace Astraia.Net
                 }
 
                 entity.client = client;
-                entity.state = client?.clientId == 0 ? entity.state | NetworkEntity.State.Owner : entity.state & ~NetworkEntity.State.Owner;
-                entity.state = isServer ? entity.state | NetworkEntity.State.Server : entity.state & ~NetworkEntity.State.Server;
-                entity.state = isClient ? entity.state | NetworkEntity.State.Client : entity.state & ~NetworkEntity.State.Client;
+                entity.state = client?.clientId == 0 ? entity.state | NetworkEntity.State.所有者 : entity.state & ~NetworkEntity.State.所有者;
+                entity.state = isServer ? entity.state | NetworkEntity.State.服务器 : entity.state & ~NetworkEntity.State.服务器;
+                entity.state = isClient ? entity.state | NetworkEntity.State.客户端 : entity.state & ~NetworkEntity.State.客户端;
                 if (entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
@@ -334,7 +334,7 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (NetworkObserver.Instance && entity.visible == Visible.观察者)
+                if (NetworkObserver.Instance != null && !entity.visible )
                 {
                     NetworkObserver.Instance.Add(entity);
                     NetworkObserver.Instance.Tick(entity);
@@ -354,11 +354,11 @@ namespace Astraia.Net
             internal static void SpawnMessage(NetworkEntity entity, NetworkClient client)
             {
                 using var owner = MemoryWriter.Pop();
-                using var agent = MemoryWriter.Pop();
+                using var other = MemoryWriter.Pop();
 
                 if (entity.modules.Length > 0)
                 {
-                    NetworkSyncVar.ServerSerialize(entity.modules, owner, agent, true);
+                    NetworkSyncVar.ServerSerialize(entity.modules, owner, other, true);
                 }
 
                 var message = new SpawnMessage
@@ -370,7 +370,7 @@ namespace Astraia.Net
                     mutation = entity.transform.localScale,
                     position = entity.transform.localPosition,
                     rotation = entity.transform.localRotation.eulerAngles,
-                    segment = entity.modules.Length > 0 ? entity.client == client ? (ArraySegment<byte>)owner : (ArraySegment<byte>)agent : null,
+                    segment = entity.modules.Length > 0 ? entity.client == client ? (ArraySegment<byte>)owner : (ArraySegment<byte>)other : null,
                 };
                 client.Send(message);
             }
@@ -393,12 +393,12 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        if (NetworkObserver.Instance && entity.visible != Visible.所有者)
+                        if (NetworkObserver.Instance != null && !entity.visible)
                         {
                             NetworkObserver.Instance.Remove(entity);
                         }
 
-                        entity.state |= NetworkEntity.State.Destroy;
+                        entity.state |= NetworkEntity.State.销毁;
                         UnityEngine.Object.Destroy(entity.gameObject);
                     }
                 }
@@ -427,8 +427,8 @@ namespace Astraia.Net
                                     {
                                         entity.count = Time.frameCount;
                                         entity.owner.position = 0;
-                                        entity.agent.position = 0;
-                                        NetworkSyncVar.ServerSerialize(entity.modules, entity.owner, entity.agent);
+                                        entity.other.position = 0;
+                                        NetworkSyncVar.ServerSerialize(entity.modules, entity.owner, entity.other);
                                         entity.ClearDirty(true);
                                     }
 
@@ -441,9 +441,9 @@ namespace Astraia.Net
                                     }
                                     else
                                     {
-                                        if (entity.agent.position > 0)
+                                        if (entity.other.position > 0)
                                         {
-                                            client.Send(new EntityMessage(entity.objectId, entity.agent));
+                                            client.Send(new EntityMessage(entity.objectId, entity.other));
                                         }
                                     }
                                 }

@@ -53,7 +53,7 @@ MonoBehaviour:
   objectId: 0
   assetId: 30001
   sceneId: 0
-  visible: 0
+  visible: 1
   references:
     version: 2
     RefIds:
@@ -82,16 +82,16 @@ MonoBehaviour:
     - rid: 915762514025775163
       type: {class: PlayerSender, ns: Runtime, asm: Assembly-CSharp}
       data:
-        syncStep: 0
         syncMode: 0
+        syncStep: 0
         color:
           serializedVersion: 2
           rgba: 0
     - rid: 915762514025775164
       type: {class: NetworkTransform, ns: Astraia.Net, asm: Astraia.Net}
       data:
-        syncStep: 0
         syncMode: 1
+        syncStep: 0
         target: {fileID: 7478125468919891840}
         option: 1
         positionPerceive: 0.01

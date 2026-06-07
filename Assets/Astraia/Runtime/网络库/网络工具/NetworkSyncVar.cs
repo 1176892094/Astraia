@@ -15,7 +15,7 @@ namespace Astraia.Net
 {
     public static class NetworkSyncVar
     {
-        internal static void ServerSerialize(NetworkModule[] modules, MemoryWriter owner, MemoryWriter agent, bool isInit = false)
+        internal static void ServerSerialize(NetworkModule[] modules, MemoryWriter owner, MemoryWriter other, bool isInit = false)
         {
             var mask = ServerDirtyMasks(modules, isInit);
             if (mask.owner != 0)
@@ -23,18 +23,18 @@ namespace Astraia.Net
                 Compress.EncodeUInt64(owner, mask.owner);
             }
 
-            if (mask.agent != 0)
+            if (mask.other != 0)
             {
-                Compress.EncodeUInt64(agent, mask.agent);
+                Compress.EncodeUInt64(other, mask.other);
             }
 
-            if ((mask.owner | mask.agent) != 0)
+            if ((mask.owner | mask.other) != 0)
             {
                 for (var i = 0; i < modules.Length; ++i)
                 {
                     var ownerDirty = IsDirty(mask.owner, i);
-                    var agentDirty = IsDirty(mask.agent, i);
-                    if (ownerDirty || agentDirty)
+                    var otherDirty = IsDirty(mask.other, i);
+                    if (ownerDirty || otherDirty)
                     {
                         using var writer = MemoryWriter.Pop();
                         modules[i].Serialize(writer, isInit);
@@ -43,9 +43,9 @@ namespace Astraia.Net
                             owner.WriteBytes(writer.buffer, 0, writer.position);
                         }
 
-                        if (agentDirty)
+                        if (otherDirty)
                         {
-                            agent.WriteBytes(writer.buffer, 0, writer.position);
+                            other.WriteBytes(writer.buffer, 0, writer.position);
                         }
                     }
                 }
@@ -110,10 +110,10 @@ namespace Astraia.Net
             return (mask & (ulong)(1 << index)) != 0;
         }
 
-        private static (ulong owner, ulong agent) ServerDirtyMasks(NetworkModule[] modules, bool isInit)
+        private static (ulong owner, ulong other) ServerDirtyMasks(NetworkModule[] modules, bool isInit)
         {
             var owner = 0UL;
-            var agent = 0UL;
+            var other = 0UL;
             for (var i = 0; i < modules.Length; ++i)
             {
                 if (isInit || (modules[i].syncMode == SyncMode.服务器 && modules[i].IsDirty()))
@@ -123,11 +123,11 @@ namespace Astraia.Net
 
                 if (isInit || modules[i].IsDirty())
                 {
-                    agent |= 1U << i;
+                    other |= 1U << i;
                 }
             }
 
-            return (owner, agent);
+            return (owner, other);
         }
 
         private static ulong ClientDirtyMask(NetworkModule[] modules, bool isOwner)

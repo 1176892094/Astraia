@@ -16,28 +16,32 @@ namespace Astraia.Net
     [AttributeUsage(AttributeTargets.Field)]
     public class SyncVarAttribute : Attribute
     {
-        private string func;
-        public SyncVarAttribute(string func = null) => this.func = func;
+        public SyncVarAttribute(string func = null)
+        {
+        }
     }
 
     [AttributeUsage(AttributeTargets.Method)]
     public class ClientRpcAttribute : Attribute
     {
-        private int pass;
-        public ClientRpcAttribute(int pass = Pass.KCP) => this.pass = pass;
+        public ClientRpcAttribute(int pass = Pass.KCP)
+        {
+        }
     }
 
     [AttributeUsage(AttributeTargets.Method)]
     public class ServerRpcAttribute : Attribute
     {
-        private int pass;
-        public ServerRpcAttribute(int pass = Pass.KCP) => this.pass = pass;
+        public ServerRpcAttribute(int pass = Pass.KCP)
+        {
+        }
     }
 
     [AttributeUsage(AttributeTargets.Method)]
     public class TargetRpcAttribute : Attribute
     {
-        private int pass;
-        public TargetRpcAttribute(int pass = Pass.KCP) => this.pass = pass;
+        public TargetRpcAttribute(int pass = Pass.KCP)
+        {
+        }
     }
 }

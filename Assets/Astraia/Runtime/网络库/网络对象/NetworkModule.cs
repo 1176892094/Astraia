@@ -20,9 +20,9 @@ namespace Astraia.Net
     [Serializable]
     public abstract class NetworkModule : Module<NetworkEntity>
     {
-        [HideInInspector] public float syncStep;
-        
-        public SyncMode syncMode;
+        [SerializeField] internal SyncMode syncMode;
+
+        [SerializeField] internal float syncStep;
 
         internal byte moduleId;
 

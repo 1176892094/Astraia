@@ -19,11 +19,10 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public sealed partial class NetworkManager : MonoBehaviour, IEvent<OnSceneComplete>
+    public sealed partial class NetworkManager : Entity, IEvent<OnSceneComplete>
     {
         public static NetworkManager Instance;
-        private static UdpClient udpClient;
-        private static UdpClient udpServer;
+
         private static bool isRemote;
 
         public int maxPlayer = 100;
@@ -41,8 +40,9 @@ namespace Astraia.Net
         public static bool isSaloon => Saloon.state != State.断开连接;
         internal static Transport Transport => isRemote ? Instance.transports[2] : Instance.transports[0];
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
@@ -68,7 +68,6 @@ namespace Astraia.Net
                 StopServer();
             }
 
-            StopDiscovery();
             transports.Clear();
         }
 
@@ -255,142 +254,5 @@ namespace Astraia.Net
             NetworkTransport.Instance.address = address;
             Client.Start(false);
         }
-
-        public static void StartDiscovery()
-        {
-            StopDiscovery();
-            if (isServer)
-            {
-                udpServer = new UdpClient(47777) { EnableBroadcast = true, MulticastLoopback = false };
-#if UNITY_ANDROID
-                MulticastLock(true);
-#endif
-                ServerReceive();
-            }
-            else
-            {
-                udpClient = new UdpClient(0) { EnableBroadcast = true, MulticastLoopback = false };
-                ClientReceive();
-                ClientSend();
-            }
-        }
-
-        public static void StopDiscovery()
-        {
-#if UNITY_ANDROID
-            MulticastLock(false);
-#endif
-            udpServer?.Close();
-            udpClient?.Close();
-            udpServer = null;
-            udpClient = null;
-        }
-
-        private static void ClientSend()
-        {
-            try
-            {
-                var address = IPAddress.Broadcast.ToString();
-                var endPoint = new IPEndPoint(IPAddress.Broadcast, 47777);
-                if (!string.IsNullOrWhiteSpace(address))
-                {
-                    endPoint = new IPEndPoint(IPAddress.Parse(address), 47777);
-                }
-
-                using var writer = MemoryWriter.Pop();
-                writer.Invoke(new RequestMessage());
-                ArraySegment<byte> segment = writer;
-                udpClient.Send(segment.Array!, segment.Count, endPoint);
-            }
-            catch (SocketException)
-            {
-            }
-            catch (Exception e)
-            {
-                Log.Error(e);
-            }
-        }
-
-        private static async void ServerReceive()
-        {
-            while (udpServer != null)
-            {
-                try
-                {
-                    var result = await udpServer.ReceiveAsync();
-                    using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
-                    reader.Invoke<RequestMessage>();
-                    ServerSend(result.RemoteEndPoint);
-                }
-                catch (ObjectDisposedException)
-                {
-                    return;
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e);
-                }
-            }
-        }
-
-        private static void ServerSend(IPEndPoint endPoint)
-        {
-            try
-            {
-                using var writer = MemoryWriter.Pop();
-                writer.Invoke(new ResponseMessage(Transport.port));
-                ArraySegment<byte> segment = writer;
-                udpServer.Send(segment.Array!, segment.Count, endPoint);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e);
-            }
-        }
-
-        private static async void ClientReceive()
-        {
-            while (udpClient != null)
-            {
-                try
-                {
-                    var result = await udpClient.ReceiveAsync();
-                    using var reader = MemoryReader.Pop(new ArraySegment<byte>(result.Buffer));
-                    var response = reader.Invoke<ResponseMessage>();
-                    EventManager.Invoke(new ServerResponse(result.RemoteEndPoint.Address.ToString(), response.port));
-                }
-                catch (ObjectDisposedException)
-                {
-                    return;
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e);
-                }
-            }
-        }
-#if UNITY_ANDROID
-        private static bool multicast;
-        private static AndroidJavaObject multicastLock;
-
-        private static void MulticastLock(bool enabled)
-        {
-            if (enabled)
-            {
-                if (multicast) return;
-                using var activity = new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity");
-                using var wifiManager = activity.Call<AndroidJavaObject>("getSystemService", "wifi");
-                multicastLock = wifiManager.Call<AndroidJavaObject>("createMulticastLock", "lock");
-                multicastLock.Call("acquire");
-                multicast = true;
-            }
-            else
-            {
-                if (!multicast) return;
-                multicastLock?.Call("release");
-                multicast = false;
-            }
-        }
-#endif
     }
 }
