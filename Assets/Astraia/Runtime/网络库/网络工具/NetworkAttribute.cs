@@ -47,7 +47,7 @@ namespace Astraia.Net
 
         internal static bool HasInvoke(ushort id)
         {
-            if (messages.TryGetValue(id, out var message) && message != null)
+            if (messages.TryGetValue(id, out var message))
             {
                 return (message.channel & Channel.IgnoreOwner) == 0 && message.mode == InvokeMode.ServerRpc;
             }
@@ -57,7 +57,7 @@ namespace Astraia.Net
 
         internal static InvokeDelegate GetInvoke(ushort id)
         {
-            if (messages.TryGetValue(id, out var message) && message != null)
+            if (messages.TryGetValue(id, out var message))
             {
                 return message.func;
             }
@@ -67,7 +67,7 @@ namespace Astraia.Net
 
         internal static bool Invoke(ushort id, InvokeMode mode, NetworkClient client, MemoryReader reader, NetworkModule component)
         {
-            if (messages.TryGetValue(id, out var message) && message != null)
+            if (messages.TryGetValue(id, out var message))
             {
                 if (message.mode != mode)
                 {
@@ -86,6 +86,20 @@ namespace Astraia.Net
             return false;
         }
 
-        private record InvokeData(InvokeMode mode, InvokeDelegate func, Type component, int channel);
+        private struct InvokeData
+        {
+            public readonly InvokeMode mode;
+            public readonly InvokeDelegate func;
+            public readonly Type component;
+            public readonly int channel;
+
+            public InvokeData(InvokeMode mode, InvokeDelegate func, Type component, int channel)
+            {
+                this.mode = mode;
+                this.func = func;
+                this.component = component;
+                this.channel = channel;
+            }
+        }
     }
 }

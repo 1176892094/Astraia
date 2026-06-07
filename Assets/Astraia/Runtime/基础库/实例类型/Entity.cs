@@ -330,10 +330,7 @@ namespace Astraia
             }
         }
     }
-}
 
-namespace Astraia
-{
     [Serializable]
     public class Enumerable<T> : IEnumerable<T>
     {
@@ -408,10 +405,17 @@ namespace Astraia
             }
         }
     }
-}
 
-namespace Astraia
-{
+    internal interface IPool : IDisposable
+    {
+        public Type Type { get; }
+        public string Path { get; }
+        public int Acquire { get; }
+        public int Release { get; }
+        public int Dequeue { get; }
+        public int Enqueue { get; }
+    }
+
     public static class HeapManager
     {
         internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
@@ -509,43 +513,39 @@ namespace Astraia
         }
     }
 
-    internal interface IPool : IDisposable
+    public interface IEvent
     {
-        public Type Type { get; }
-        public string Path { get; }
-        public int Acquire { get; }
-        public int Release { get; }
-        public int Dequeue { get; }
-        public int Enqueue { get; }
     }
-}
 
-namespace Astraia
-{
+    public interface IEvent<in T> where T : struct, IEvent
+    {
+        void Execute(T message);
+    }
+
     public static class EventManager
     {
         internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Listen<T>(IEvent<T> data) where T : IEvent
+        public static void Listen<T>(IEvent<T> data) where T : struct, IEvent
         {
             LoadPool<T>().Listen(data);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Remove<T>(IEvent<T> data) where T : IEvent
+        public static void Remove<T>(IEvent<T> data) where T : struct, IEvent
         {
             LoadPool<T>().Remove(data);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Invoke<T>(T data) where T : IEvent
+        public static void Invoke<T>(T data) where T : struct, IEvent
         {
             LoadPool<T>().Invoke(data);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Pool<T> LoadPool<T>() where T : IEvent
+        private static Pool<T> LoadPool<T>() where T : struct, IEvent
         {
             if (!poolData.TryGetValue(typeof(T), out var pool))
             {
@@ -566,7 +566,7 @@ namespace Astraia
             poolData.Clear();
         }
 
-        private class Pool<T> : IPool where T : IEvent
+        private class Pool<T> : IPool where T : struct, IEvent
         {
             private event Action<T> OnExecute;
             public Type Type { get; private set; }
@@ -609,39 +609,6 @@ namespace Astraia
         }
     }
 
-    public interface IEvent
-    {
-    }
-
-    public interface IEvent<in T> where T : IEvent
-    {
-        void Execute(T message);
-    }
-}
-
-namespace Astraia
-{
-    internal static class TimeManager
-    {
-        public static float TimeStep;
-        public static event Action OnUpdate;
-
-        public static void Update(float value)
-        {
-            TimeStep = value;
-            OnUpdate?.Invoke();
-        }
-
-        public static void Dispose()
-        {
-            TimeStep = 0;
-            OnUpdate = null;
-        }
-    }
-}
-
-namespace Astraia
-{
     public interface IState
     {
         void Acquire(object item);
@@ -652,7 +619,7 @@ namespace Astraia
 
     public abstract class State<T> : IState
     {
-        public T owner;
+        protected T owner;
 
         void IState.Acquire(object item)
         {
@@ -672,22 +639,22 @@ namespace Astraia
         }
     }
 
-    public class StateMachine<T>
+    [Serializable]
+    public class StateMachine<T> : Dictionary<T, IState>
     {
-        private readonly Dictionary<T, IState> states = new Dictionary<T, IState>();
         private IState state;
 
         public void Create<TState>(object owner, T key) where TState : IState
         {
             var item = HeapManager.Dequeue<IState>(typeof(TState));
             item.Acquire(owner);
-            states[key] = item;
+            Add(key, item);
         }
 
         public void Switch(T key)
         {
             state?.OnExit();
-            states.TryGetValue(key, out state);
+            TryGetValue(key, out state);
             state?.OnEnter();
         }
 
@@ -696,84 +663,77 @@ namespace Astraia
             state?.OnUpdate();
         }
 
-        public void Clear()
+        public void Dispose()
         {
-            foreach (var item in states.Values)
+            foreach (var item in Values)
             {
                 HeapManager.Enqueue(item, item.GetType());
             }
 
+            Clear();
             state = null;
-            states.Clear();
         }
     }
 
-    public class Blackboard<T>
+    [Serializable]
+    public class Blackboard<T> : Dictionary<T, int>
     {
-        private readonly Dictionary<T, int> properties = new Dictionary<T, int>();
-
         public int GetInt(T key)
         {
-            properties.TryAdd(key, 0);
-            return properties[key] / 100;
+            TryAdd(key, 0);
+            return this[key] / 100;
         }
 
         public void SetInt(T key, int value)
         {
-            properties[key] = value * 100;
+            this[key] = value * 100;
         }
 
         public void AddInt(T key, int value)
         {
-            properties.TryAdd(key, 0);
-            properties[key] += value * 100;
+            TryAdd(key, 0);
+            this[key] += value * 100;
         }
 
         public void SubInt(T key, int value)
         {
-            properties.TryAdd(key, 0);
-            properties[key] -= value * 100;
+            TryAdd(key, 0);
+            this[key] -= value * 100;
         }
 
         public float GetFloat(T key)
         {
-            properties.TryAdd(key, 0);
-            return properties[key] / 100F;
+            TryAdd(key, 0);
+            return this[key] / 100F;
         }
 
         public void SetFloat(T key, float value)
         {
-            properties[key] = (int)Math.Round(value * 100);
+            this[key] = (int)Math.Round(value * 100);
         }
 
         public void AddFloat(T key, float value)
         {
-            properties.TryAdd(key, 0);
-            properties[key] += (int)Math.Round(value * 100);
+            TryAdd(key, 0);
+            this[key] += (int)Math.Round(value * 100);
         }
 
         public void SubFloat(T key, float value)
         {
-            properties.TryAdd(key, 0);
-            properties[key] -= (int)Math.Round(value * 100);
-        }
-
-        public void Clear()
-        {
-            properties.Clear();
+            TryAdd(key, 0);
+            this[key] -= (int)Math.Round(value * 100);
         }
     }
 
-    public class Dictionary<T>
+    [Serializable]
+    public class Dictionary<T> : Dictionary<Type, IDictionary>
     {
-        private readonly Dictionary<Type, IDictionary> Items = new Dictionary<Type, IDictionary>();
-
         public void Set<TValue>(T key, TValue value)
         {
-            if (!Items.TryGetValue(typeof(TValue), out var items))
+            if (!TryGetValue(typeof(TValue), out var items))
             {
                 items = new Dictionary<T, TValue>();
-                Items.Add(typeof(TValue), items);
+                Add(typeof(TValue), items);
             }
 
             ((Dictionary<T, TValue>)items)[key] = value;
@@ -781,10 +741,10 @@ namespace Astraia
 
         public TValue Get<TValue>(T key)
         {
-            if (!Items.TryGetValue(typeof(TValue), out var items))
+            if (!TryGetValue(typeof(TValue), out var items))
             {
                 items = new Dictionary<T, TValue>();
-                Items.Add(typeof(TValue), items);
+                Add(typeof(TValue), items);
             }
 
             return ((Dictionary<T, TValue>)items).GetValueOrDefault(key);
@@ -792,37 +752,38 @@ namespace Astraia
 
         public bool TryGet<TValue>(T key, out TValue value)
         {
-            if (!Items.TryGetValue(typeof(TValue), out var items))
+            if (!TryGetValue(typeof(TValue), out var items))
             {
                 items = new Dictionary<T, TValue>();
-                Items.Add(typeof(TValue), items);
+                Add(typeof(TValue), items);
             }
 
             return ((Dictionary<T, TValue>)items).TryGetValue(key, out value);
         }
-
-        public void Clear()
-        {
-            foreach (var item in Items.Values)
-            {
-                item.Clear();
-            }
-
-            Items.Clear();
-        }
     }
-}
 
-namespace Astraia
-{
-    public abstract class Waiter : INotifyCompletion
+    internal interface IAsync
     {
-        public interface ITick
-        {
-            bool isActive { get; }
-        }
+        bool isActive { get; }
+    }
 
-        protected ITick owner;
+    public struct OnEarlyUpdate : IEvent
+    {
+    }
+
+    public struct OnAfterUpdate : IEvent
+    {
+    }
+
+    public struct OnFixedUpdate : IEvent
+    {
+    }
+
+    public abstract class Async : INotifyCompletion, IEvent<OnEarlyUpdate>
+    {
+        internal static float Time;
+        internal IAsync owner;
+
         protected short state;
         protected float waitTime;
         protected float duration;
@@ -830,13 +791,13 @@ namespace Astraia
         protected Action onComplete;
         public bool IsCompleted => state != 0;
 
-        protected void Update()
+        void IEvent<OnEarlyUpdate>.Execute(OnEarlyUpdate message)
         {
             try
             {
                 if (owner.isActive)
                 {
-                    Tick();
+                    Update();
                 }
                 else
                 {
@@ -850,8 +811,7 @@ namespace Astraia
             }
         }
 
-        protected abstract void Tick();
-        protected abstract void Release();
+        protected abstract void Update();
 
         public void Break()
         {
@@ -868,7 +828,7 @@ namespace Astraia
             return state == 2;
         }
 
-        public Waiter GetAwaiter()
+        public Async GetAwaiter()
         {
             return this;
         }
@@ -886,39 +846,39 @@ namespace Astraia
         }
     }
 
-    public sealed class Timer : Waiter
+    public sealed class Timer : Async
     {
         private int progress;
         private Action onUpdate;
 
-        internal static Timer Create(ITick owner, float duration)
+        internal static Timer Create(IAsync owner, float duration)
         {
             var item = HeapManager.Dequeue<Timer>();
-            TimeManager.OnUpdate += item.Update;
+            EventManager.Listen(item);
             item.owner = owner;
             item.state = 0;
             item.progress = 1;
             item.duration = duration;
-            item.waitTime = duration + TimeManager.TimeStep;
+            item.waitTime = duration + Time;
             item.onComplete = item.Release;
             return item;
         }
 
-        protected override void Release()
+        private void Release()
         {
             state = 1;
             owner = null;
             onUpdate = null;
             onWaitable = null;
-            TimeManager.OnUpdate -= Update;
+            EventManager.Remove(this);
             HeapManager.Enqueue(this);
         }
 
-        protected override void Tick()
+        protected override void Update()
         {
-            if (waitTime < TimeManager.TimeStep)
+            if (waitTime < Time)
             {
-                waitTime = TimeManager.TimeStep + duration;
+                waitTime = Time + duration;
                 if (onUpdate != null)
                 {
                     onUpdate.Invoke();
@@ -943,7 +903,7 @@ namespace Astraia
         public Timer Set(float interval)
         {
             duration = interval;
-            waitTime = interval + TimeManager.TimeStep;
+            waitTime = interval + Time;
             return this;
         }
 
@@ -960,39 +920,39 @@ namespace Astraia
         }
     }
 
-    public sealed class Tween : Waiter
+    public sealed class Tween : Async
     {
         private float progress;
         private Action<float> onUpdate;
 
-        internal static Tween Create(ITick owner, float duration)
+        internal static Tween Create(IAsync owner, float duration)
         {
             var item = HeapManager.Dequeue<Tween>();
-            TimeManager.OnUpdate += item.Update;
+            EventManager.Listen(item);
             item.owner = owner;
             item.state = 0;
             item.progress = 0;
             item.duration = duration;
-            item.waitTime = TimeManager.TimeStep;
+            item.waitTime = Time;
             item.onComplete = item.Release;
             return item;
         }
 
-        protected override void Release()
+        private void Release()
         {
             state = 1;
             owner = null;
             onUpdate = null;
             onWaitable = null;
-            TimeManager.OnUpdate -= Update;
+            EventManager.Remove(this);
             HeapManager.Enqueue(this);
         }
 
-        protected override void Tick()
+        protected override void Update()
         {
-            if (waitTime < TimeManager.TimeStep)
+            if (waitTime < Time)
             {
-                progress = (TimeManager.TimeStep - waitTime) / duration;
+                progress = (Time - waitTime) / duration;
                 if (progress > 1)
                 {
                     progress = 1;
@@ -1014,10 +974,7 @@ namespace Astraia
             return this;
         }
     }
-}
 
-namespace Astraia
-{
     public enum BTState
     {
         Running,

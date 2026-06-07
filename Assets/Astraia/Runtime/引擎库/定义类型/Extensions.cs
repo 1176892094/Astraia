@@ -204,21 +204,21 @@ namespace Astraia.Core
             return component ? component : (T)self.AddComponent(type);
         }
 
-        private readonly struct TickAdaptor : Waiter.ITick
+        private readonly struct AsyncAdaptor : IAsync
         {
             private readonly Component owner;
-            public TickAdaptor(Component owner) => this.owner = owner;
+            public AsyncAdaptor(Component owner) => this.owner = owner;
             public bool isActive => owner.gameObject && owner.gameObject.activeInHierarchy;
         }
 
         public static Timer Wait(this Component current, float duration = 0)
         {
-            return Timer.Create(new TickAdaptor(current), duration);
+            return Timer.Create(new AsyncAdaptor(current), duration);
         }
 
         public static Tween Play(this Component current, float duration)
         {
-            return Tween.Create(new TickAdaptor(current), duration);
+            return Tween.Create(new AsyncAdaptor(current), duration);
         }
 
         public static Tween DOMoveX(this Transform transform, float endValue, float duration)

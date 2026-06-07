@@ -105,12 +105,19 @@ namespace Astraia.Core
 
         private void Update()
         {
-            TimeManager.Update(Time.time);
+            Async.Time = Time.time;
+            EventManager.Invoke(new OnEarlyUpdate());
         }
 
         private void LateUpdate()
         {
             AudioManager.Update();
+            EventManager.Invoke(new OnAfterUpdate());
+        }
+
+        private void FixedUpdate()
+        {
+            EventManager.Invoke(new OnFixedUpdate());
         }
 
         private async void OnDestroy()
@@ -119,7 +126,6 @@ namespace Astraia.Core
             Instance = null;
             await Task.Yield();
             UIManager.Dispose();
-            TimeManager.Dispose();
             PoolManager.Dispose();
             HeapManager.Dispose();
             AssetManager.Dispose();

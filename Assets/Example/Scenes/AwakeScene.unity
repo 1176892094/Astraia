@@ -129,7 +129,6 @@ GameObject:
   m_Component:
   - component: {fileID: 75954605}
   - component: {fileID: 75954608}
-  - component: {fileID: 75954609}
   - component: {fileID: 75954607}
   m_Layer: 0
   m_Name: GameManager
@@ -176,27 +175,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 75954604}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a512855b8e34eb485431c266203ddae, type: 3}
+  m_Script: {fileID: 11500000, guid: 301d9c4c40ae43f99e86e1e61ae9d56c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Runtime.GameManager
-  bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  smooth: {x: 0, y: 0, z: 0}
-  player: {fileID: 0}
-  mainCamera: {fileID: 0}
---- !u!114 &75954609
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 75954604}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d94b321e427045cba50f8d14b392f2f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Runtime.InputManager
+  m_EditorClassIdentifier: Astraia.Run::Astraia.Core.Entity
+  modules:
+  - rid: 915762507204788279
+  - rid: 915762507204788280
+  references:
+    version: 2
+    RefIds:
+    - rid: 915762507204788279
+      type: {class: GameManager, ns: Runtime, asm: Assembly-CSharp}
+      data:
+        bounds:
+          m_Center: {x: 0, y: 0, z: 0}
+          m_Extent: {x: 0, y: 0, z: 0}
+        smooth: {x: 0, y: 0, z: 0}
+        player: {fileID: 0}
+        mainCamera: {fileID: 0}
+    - rid: 915762507204788280
+      type: {class: InputManager, ns: Runtime, asm: Assembly-CSharp}
+      data: 
 --- !u!1 &513527312
 GameObject:
   m_ObjectHideFlags: 0
@@ -361,18 +360,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 584064303}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ead4da7db5cd4f339ba4413df664a9ab, type: 3}
+  m_Script: {fileID: 11500000, guid: 301d9c4c40ae43f99e86e1e61ae9d56c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Example.Scripts.Test
-  Modules:
-  - rid: 915762507204788274
+  m_EditorClassIdentifier: Astraia.Run::Astraia.Core.Entity
+  modules:
+  - rid: 915762507204788278
   references:
     version: 2
     RefIds:
-    - rid: 915762507204788274
+    - rid: 915762507204788278
       type: {class: PlayerModule, ns: Example.Scripts, asm: Assembly-CSharp}
       data:
-        Name: 123
+        Id: 0
+        Name: 
 --- !u!1 &1521847866
 GameObject:
   m_ObjectHideFlags: 0

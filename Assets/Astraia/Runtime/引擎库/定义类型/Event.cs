@@ -9,34 +9,101 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-
-namespace System.Runtime.CompilerServices
-{
-    public static class IsExternalInit
-    {
-    }
-}
-
 namespace Astraia.Core
 {
-    public record OnLoadBundle(long bytes) : IEvent;
+    public struct OnLoadBundle : IEvent
+    {
+        public long bytes;
 
-    public record OnBundleUpdate(string name, ulong bytes) : IEvent;
+        public OnLoadBundle(long bytes)
+        {
+            this.bytes = bytes;
+        }
+    }
 
-    public record OnBundleComplete(int status, string message) : IEvent;
+    public struct OnBundleUpdate : IEvent
+    {
+        public string name;
+        public ulong bytes;
 
-    public record OnLoadAsset(string[] names) : IEvent;
+        public OnBundleUpdate(string name, ulong bytes)
+        {
+            this.name = name;
+            this.bytes = bytes;
+        }
+    }
 
-    public record OnAssetUpdate(string name) : IEvent;
+    public struct OnBundleComplete : IEvent
+    {
+        public int status;
+        public string message;
 
-    public record OnAssetComplete : IEvent;
+        public OnBundleComplete(int status, string message)
+        {
+            this.status = status;
+            this.message = message;
+        }
+    }
 
-    public record OnLoadScene(string name) : IEvent;
+    public struct OnLoadAsset : IEvent
+    {
+        public string[] names;
 
-    public record OnSceneUpdate(float progress) : IEvent;
+        public OnLoadAsset(string[] names)
+        {
+            this.names = names;
+        }
+    }
 
-    public record OnSceneComplete(string sceneName) : IEvent;
+    public struct OnAssetUpdate : IEvent
+    {
+        public string name;
 
-    public record OnDataComplete : IEvent;
+        public OnAssetUpdate(string name)
+        {
+            this.name = name;
+        }
+    }
+
+    public struct OnAssetComplete : IEvent
+    {
+    }
+
+    public struct OnLoadScene : IEvent
+    {
+        public string name;
+
+        public OnLoadScene(string name)
+        {
+            this.name = name;
+        }
+    }
+
+    public struct OnSceneUpdate : IEvent
+    {
+        public readonly float progress;
+
+        public OnSceneUpdate(float progress)
+        {
+            this.progress = progress;
+        }
+    }
+
+    public readonly struct OnSceneComplete : IEvent
+    {
+        public readonly string sceneName;
+
+        public OnSceneComplete(string sceneName)
+        {
+            this.sceneName = sceneName;
+        }
+    }
+
+    public struct OnDataComplete : IEvent
+    {
+    }
+
+
+
 
 }

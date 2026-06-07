@@ -18,21 +18,21 @@ using UnityEngine;
 namespace Runtime
 {
     [Serializable]
-    public class GameManager : MonoSingleton<GameManager>, IEvent<ServerReady>
+    public class GameManager : Singleton<GameManager>, IEvent<ServerReady>
     {
         [SerializeField] private Bounds bounds;
         [SerializeField] private Vector3 smooth;
         [SerializeField] private Transform player;
         [SerializeField] private Camera mainCamera;
 
-        protected override void Awake()
+        public override void Dequeue()
         {
-            base.Awake();
             mainCamera = Camera.main;
             Application.targetFrameRate = 60;
             UIManager.SetCamera(mainCamera);
             UIManager.Show<LoadPanel>();
-            transform.Wait(0.1F).OnComplete(() =>
+           
+            owner.transform.Wait(0.1F).OnComplete(() =>
             {
                 try
                 {
@@ -81,7 +81,9 @@ namespace Runtime
             if (camera.targetTexture)
             {
                 var pixelate = camera.orthographicSize * 2 / camera.targetTexture.height;
-                smoothPos = Vector3.Distance(target.position, cam.position) > pixelate ? Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed) : target.position;
+                smoothPos = Vector3.Distance(target.position, cam.position) > pixelate
+                    ? Vector3.SmoothDamp(cam.position, targetPos, ref smooth, speed)
+                    : target.position;
                 smoothPos.x = Mathf.Round(smoothPos.x / pixelate) * pixelate;
                 smoothPos.y = Mathf.Round(smoothPos.y / pixelate) * pixelate;
             }

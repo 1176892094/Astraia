@@ -112,10 +112,7 @@ namespace Astraia
             onError(format.Format(arg1, arg2, arg3, arg4));
         }
     }
-}
 
-namespace Astraia
-{
     public static class Xor
     {
         private static readonly Dictionary<int, byte[]> KeyMap = new Dictionary<int, byte[]>();
@@ -187,10 +184,7 @@ namespace Astraia
             return buffer;
         }
     }
-}
 
-namespace Astraia
-{
     public static class Zip
     {
         public static string Compress(string data)
@@ -215,10 +209,7 @@ namespace Astraia
             return Text.GetString(output.GetBuffer(), 0, (int)output.Length);
         }
     }
-}
 
-namespace Astraia
-{
     public static class Seed
     {
         private static readonly Random random = new Random(Environment.TickCount);
@@ -255,10 +246,7 @@ namespace Astraia
             random.NextBytes(bytes);
         }
     }
-}
 
-namespace Astraia
-{
     public static class Text
     {
         [ThreadStatic] private static UTF8Encoding encoding;
@@ -290,10 +278,7 @@ namespace Astraia
             return Encoding.GetMaxByteCount(count);
         }
     }
-}
 
-namespace Astraia
-{
     internal static class String
     {
         [ThreadStatic] private static StringBuilder stringBuilder;
@@ -328,10 +313,7 @@ namespace Astraia
             return StringBuilder.ToString();
         }
     }
-}
 
-namespace Astraia
-{
     public static class Search
     {
         private static readonly Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
@@ -423,10 +405,7 @@ namespace Astraia
             return result;
         }
     }
-}
 
-namespace Astraia
-{
     public static class Host
     {
         public static string Ip()
@@ -519,10 +498,7 @@ namespace Astraia
             }
         }
     }
-}
 
-namespace Astraia
-{
     internal static class Bad
     {
         private class Node
@@ -581,10 +557,7 @@ namespace Astraia
             return new string(chars);
         }
     }
-}
 
-namespace Astraia
-{
     internal static class Emit
     {
         private static readonly Dictionary<Type, Dictionary<string, FieldInfo>> fieldData = new();
@@ -719,10 +692,7 @@ namespace Astraia
             return result;
         }
     }
-}
 
-namespace Astraia
-{
     public static class Extensions
     {
         public static string Format<T>(this string format, T arg1)
@@ -856,10 +826,7 @@ namespace Astraia
             return (T)Emit.Invoke(target, name, args);
         }
     }
-}
 
-namespace Astraia
-{
     internal static class Compress
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -968,10 +935,7 @@ namespace Astraia
             return (int)((n >> 1) ^ -(int)(n & 1));
         }
     }
-}
 
-namespace Astraia
-{
     public static class Writer<T>
     {
         public static Action<MemoryWriter, T> writer;
@@ -981,10 +945,7 @@ namespace Astraia
     {
         public static Func<MemoryReader, T> reader;
     }
-}
 
-namespace Astraia
-{
     public class MemoryWriter : IDisposable
     {
         public byte[] buffer = new byte[1500];
@@ -1073,10 +1034,7 @@ namespace Astraia
             return new ArraySegment<byte>(writer.buffer, 0, writer.position);
         }
     }
-}
 
-namespace Astraia
-{
     public class MemoryReader : IDisposable
     {
         public ArraySegment<byte> buffer;
@@ -1162,10 +1120,7 @@ namespace Astraia
             return segment;
         }
     }
-}
 
-namespace Astraia
-{
     internal class WriterQueue
     {
         private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
@@ -1224,10 +1179,7 @@ namespace Astraia
             return false;
         }
     }
-}
 
-namespace Astraia
-{
     internal class ReaderQueue
     {
         private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();

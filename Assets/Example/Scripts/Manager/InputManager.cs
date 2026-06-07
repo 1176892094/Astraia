@@ -5,23 +5,8 @@ using UnityEngine.InputSystem;
 
 namespace Runtime
 {
-    public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
-    {
-        public static T Instance;
-
-        protected virtual void Awake()
-        {
-            Instance = (T)this;
-        }
-
-        protected virtual void OnDestroy()
-        {
-            Instance = null;
-        }
-    }
-
     [Serializable]
-    public class InputManager : MonoSingleton<InputManager>
+    public class InputManager : Singleton<InputManager>
     {
         private static int moveX;
         private static int moveY;
@@ -36,16 +21,14 @@ namespace Runtime
         public static int MoveY => moveY != 0 ? moveY : Move.ReadValue<Vector2>().y > 0 ? 1 : Move.ReadValue<Vector2>().y < 0 ? -1 : 0;
         public static Vector2 Direction => new Vector2(MoveX, MoveY).normalized;
 
-        protected override void Awake()
+        public override void Dequeue()
         {
-            base.Awake();
             inputAsset = AssetManager.Load<InputActionAsset>("Settings/InputManager");
             inputAsset.Enable();
         }
 
-        protected override void OnDestroy()
+        public override void Enqueue()
         {
-            base.OnDestroy();
             inputAsset.Disable();
         }
     }
