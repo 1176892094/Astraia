@@ -280,8 +280,8 @@ namespace Astraia.Net
                 {
                     entity.objectId = message.objectId;
                     entity.transform.localPosition = message.position;
-                    entity.transform.localRotation = message.rotation;
-                    entity.transform.localScale = message.localScale;
+                    entity.transform.localRotation = Quaternion.Euler(message.rotation);
+                    entity.transform.localScale = message.mutation;
                     entity.state = message.isOwner ? entity.state | NetworkEntity.State.Owner : entity.state & ~NetworkEntity.State.Owner;
                     entity.state |= NetworkEntity.State.Client;
 

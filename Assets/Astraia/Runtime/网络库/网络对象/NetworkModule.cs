@@ -46,15 +46,15 @@ namespace Astraia.Net
             {
                 if (isClient && isServer)
                 {
-                    return syncMode == SyncMode.Server || isOwner;
+                    return syncMode == SyncMode.服务器 || isOwner;
                 }
 
                 if (isClient)
                 {
-                    return syncMode == SyncMode.Client && isOwner;
+                    return syncMode == SyncMode.客户端 && isOwner;
                 }
 
-                return syncMode == SyncMode.Server;
+                return syncMode == SyncMode.服务器;
             }
         }
 
@@ -171,11 +171,7 @@ namespace Astraia.Net
                 return;
             }
 
-            var message = new ServerRpcMessage
-            {
-                objectId = objectId, moduleId = moduleId, methodHash = (ushort)hash, segment = writer,
-            };
-
+            var message = new ServerRpcMessage(objectId, moduleId, (ushort)hash, writer);
             NetworkManager.Client.connection.Send(message, (pass & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
         }
 
@@ -193,8 +189,7 @@ namespace Astraia.Net
                 return;
             }
 
-            var message = new ClientRpcMessage { objectId = objectId, moduleId = moduleId, methodHash = (ushort)hash, segment = writer };
-
+            var message = new ClientRpcMessage(objectId, moduleId, (ushort)hash, writer);
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 
@@ -229,8 +224,7 @@ namespace Astraia.Net
                 return;
             }
 
-            var message = new ClientRpcMessage { objectId = objectId, moduleId = moduleId, methodHash = (ushort)hash, segment = writer };
-
+            var message = new ClientRpcMessage(objectId, moduleId, (ushort)hash, writer);
             client.Send(message, pass);
         }
 

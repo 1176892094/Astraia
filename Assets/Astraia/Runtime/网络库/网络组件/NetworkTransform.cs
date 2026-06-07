@@ -157,7 +157,7 @@ namespace Astraia.Net
         [ServerRpc(Pass.UDP)]
         private void SendToServerRpc(Vector3? position, Quaternion? rotation, Vector3? mutation)
         {
-            if (syncMode == SyncMode.Client && !isClient)
+            if (syncMode == SyncMode.客户端 && !isClient)
             {
                 if (position != null) this.position = position.Value;
                 if (rotation != null) this.rotation = rotation.Value;
@@ -170,7 +170,7 @@ namespace Astraia.Net
         [ClientRpc(Pass.UDP)]
         private void SendToClientRpc(Vector3? position, Quaternion? rotation, Vector3? mutation)
         {
-            if ((syncMode == SyncMode.Server && !isServer) || (syncMode == SyncMode.Client && !isOwner))
+            if ((syncMode == SyncMode.服务器 && !isServer) || (syncMode == SyncMode.客户端 && !isOwner))
             {
                 if (position != null) this.position = position.Value;
                 if (rotation != null) this.rotation = rotation.Value;

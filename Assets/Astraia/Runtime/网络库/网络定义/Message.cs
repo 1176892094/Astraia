@@ -40,20 +40,36 @@ namespace Astraia.Core
         public PingMessage(double clientTime) => this.clientTime = clientTime;
     }
 
-    internal struct ServerRpcMessage : IMessage
+    internal readonly struct ServerRpcMessage : IMessage
     {
-        public uint objectId;
-        public byte moduleId;
-        public ushort methodHash;
-        public ArraySegment<byte> segment;
+        public readonly uint objectId;
+        public readonly byte moduleId;
+        public readonly ushort methodHash;
+        public readonly ArraySegment<byte> segment;
+
+        public ServerRpcMessage(uint objectId, byte moduleId, ushort methodHash, ArraySegment<byte> segment)
+        {
+            this.objectId = objectId;
+            this.moduleId = moduleId;
+            this.methodHash = methodHash;
+            this.segment = segment;
+        }
     }
 
-    internal struct ClientRpcMessage : IMessage
+    internal readonly struct ClientRpcMessage : IMessage
     {
-        public uint objectId;
-        public byte moduleId;
-        public ushort methodHash;
-        public ArraySegment<byte> segment;
+        public readonly uint objectId;
+        public readonly byte moduleId;
+        public readonly ushort methodHash;
+        public readonly ArraySegment<byte> segment;
+
+        public ClientRpcMessage(uint objectId, byte moduleId, ushort methodHash, ArraySegment<byte> segment)
+        {
+            this.objectId = objectId;
+            this.moduleId = moduleId;
+            this.methodHash = methodHash;
+            this.segment = segment;
+        }
     }
 
     internal struct SpawnMessage : IMessage
@@ -62,9 +78,9 @@ namespace Astraia.Core
         public uint assetId;
         public uint sceneId;
         public uint objectId;
+        public Vector3 mutation;
         public Vector3 position;
-        public Quaternion rotation;
-        public Vector3 localScale;
+        public Vector3 rotation;
         public ArraySegment<byte> segment;
     }
 

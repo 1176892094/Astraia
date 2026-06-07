@@ -75,7 +75,7 @@ namespace Astraia.Net
             {
                 if (IsDirty(mask, i))
                 {
-                    if (modules[i].syncMode == SyncMode.Client)
+                    if (modules[i].syncMode == SyncMode.客户端)
                     {
                         if (modules[i].Deserialize(reader, false))
                         {
@@ -116,7 +116,7 @@ namespace Astraia.Net
             var agent = 0UL;
             for (var i = 0; i < modules.Length; ++i)
             {
-                if (isInit || (modules[i].syncMode == SyncMode.Server && modules[i].IsDirty()))
+                if (isInit || (modules[i].syncMode == SyncMode.服务器 && modules[i].IsDirty()))
                 {
                     owner |= 1U << i;
                 }
@@ -135,7 +135,7 @@ namespace Astraia.Net
             var mask = 0UL;
             for (var i = 0; i < modules.Length; ++i)
             {
-                if (isOwner && modules[i].syncMode == SyncMode.Client)
+                if (isOwner && modules[i].syncMode == SyncMode.客户端)
                 {
                     if (modules[i].IsDirty())
                     {

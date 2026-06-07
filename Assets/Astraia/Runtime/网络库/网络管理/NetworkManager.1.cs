@@ -145,7 +145,7 @@ namespace Astraia.Net
 
                 foreach (var entity in spawns.Values)
                 {
-                    if (NetworkObserver.Instance && entity.visible == Visible.Observer)
+                    if (NetworkObserver.Instance && entity.visible == Visible.观察者)
                     {
                         NetworkObserver.Instance.Add(entity);
                         NetworkObserver.Instance.Tick(entity, client);
@@ -334,7 +334,7 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (NetworkObserver.Instance && entity.visible == Visible.Observer)
+                if (NetworkObserver.Instance && entity.visible == Visible.观察者)
                 {
                     NetworkObserver.Instance.Add(entity);
                     NetworkObserver.Instance.Tick(entity);
@@ -367,9 +367,9 @@ namespace Astraia.Net
                     assetId = entity.assetId,
                     sceneId = entity.sceneId,
                     objectId = entity.objectId,
+                    mutation = entity.transform.localScale,
                     position = entity.transform.localPosition,
-                    rotation = entity.transform.localRotation,
-                    localScale = entity.transform.localScale,
+                    rotation = entity.transform.localRotation.eulerAngles,
                     segment = entity.modules.Length > 0 ? entity.client == client ? (ArraySegment<byte>)owner : (ArraySegment<byte>)agent : null,
                 };
                 client.Send(message);
@@ -393,7 +393,7 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        if (NetworkObserver.Instance && entity.visible != Visible.Owner)
+                        if (NetworkObserver.Instance && entity.visible != Visible.所有者)
                         {
                             NetworkObserver.Instance.Remove(entity);
                         }

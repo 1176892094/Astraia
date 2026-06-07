@@ -20,26 +20,26 @@ namespace Astraia.Net
 
     public enum RoomMode : byte
     {
-        Public,
-        Private,
-        Locked,
+        公开,
+        私有,
+        锁定,
     }
 
     public enum SyncMode : byte
     {
-        Server,
-        Client
+        服务器,
+        客户端
+    }
+
+    public enum Visible : byte
+    {
+        所有者,
+        观察者,
     }
 
     internal enum InvokeMode : byte
     {
         ServerRpc,
         ClientRpc,
-    }
-
-    public enum Visible : byte
-    {
-        Owner,
-        Observer,
     }
 }
