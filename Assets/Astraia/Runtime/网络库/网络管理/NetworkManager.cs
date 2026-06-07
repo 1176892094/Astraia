@@ -285,12 +285,6 @@ namespace Astraia.Net
         {
             try
             {
-                if (Client.isActive)
-                {
-                    StopDiscovery();
-                    return;
-                }
-
                 var address = IPAddress.Broadcast.ToString();
                 var endPoint = new IPEndPoint(IPAddress.Broadcast, 47777);
                 if (!string.IsNullOrWhiteSpace(address))
