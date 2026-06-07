@@ -33,9 +33,9 @@ namespace Astraia.Net
         public string roomName;
         public RoomMode roomMode;
         public static bool isHost => isServer && isClient;
-        public static bool isSaloon => Saloon.state != State.Disconnect;
-        public static bool isServer => Server.state != State.Disconnect;
-        public static bool isClient => Client.state != State.Disconnect;
+        public static bool isSaloon => Saloon.state != State.断开连接;
+        public static bool isServer => Server.state != State.断开连接;
+        public static bool isClient => Client.state != State.断开连接;
         internal static Transport Transport => isRemote ? collection : connection;
 
         private void Awake()

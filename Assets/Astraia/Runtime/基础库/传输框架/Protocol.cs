@@ -536,17 +536,17 @@ namespace Astraia
 
     internal enum State : byte
     {
-        Connect = 0,
-        Connected = 1,
-        Disconnect = 2
+        正在连接 = 0,
+        连接成功 = 1,
+        断开连接 = 2
     }
 
     internal enum Opcode : byte
     {
-        Connect = 1,
-        Ping = 2,
-        Data = 3,
-        Disconnect = 4
+        握手 = 1,
+        心跳 = 2,
+        数据 = 3,
+        断连 = 4
     }
 
     internal readonly struct Setting
@@ -736,7 +736,7 @@ namespace Astraia
             kcp.SetData(setting.MaxUnit - METADATA_SIZE, setting.DeadLink);
             kcp.SetDelay(setting.NoDelay, setting.Interval, setting.FastResend, !setting.Congestion);
             kcp.SetWindow(setting.SendWindow, setting.ReceiveWindow);
-            state = State.Connect;
+            state = State.正在连接;
             watch.Restart();
         }
 
@@ -760,13 +760,13 @@ namespace Astraia
 
         public void Handshake()
         {
-            SendReliable(Opcode.Connect, new ArraySegment<byte>(BitConverter.GetBytes(userData)));
+            SendReliable(Opcode.握手, new ArraySegment<byte>(BitConverter.GetBytes(userData)));
         }
 
         private bool TryReceive(out Opcode message, out ArraySegment<byte> segment)
         {
             segment = default;
-            message = Opcode.Disconnect;
+            message = Opcode.断连;
             var count = kcp.PeekSize();
             if (count <= 0)
             {
@@ -802,7 +802,7 @@ namespace Astraia
 
             var channel = segment.Array[segment.Offset];
             var newData = Common.Decode(segment.Array, segment.Offset + 1);
-            if (state == State.Connected && newData != userData)
+            if (state == State.连接成功 && newData != userData)
             {
                 Log.Warn("{0}数据校验失败。旧: {1} 新: {2}", userName, userData, newData);
                 return;
@@ -818,7 +818,7 @@ namespace Astraia
             }
             else if (channel == Channel.Unreliable)
             {
-                if (state == State.Connected)
+                if (state == State.连接成功)
                 {
                     onEvent.Receive(message, Channel.Unreliable);
                     prevTime = Time;
@@ -876,7 +876,7 @@ namespace Astraia
             switch (channel)
             {
                 case Channel.Reliable:
-                    SendReliable(Opcode.Data, segment);
+                    SendReliable(Opcode.数据, segment);
                     break;
                 case Channel.Unreliable:
                     SendUnreliable(segment);
@@ -886,15 +886,15 @@ namespace Astraia
 
         public void Disconnect()
         {
-            if (state == State.Disconnect) return;
+            if (state == State.断开连接) return;
             try
             {
-                SendReliable(Opcode.Disconnect);
+                SendReliable(Opcode.断连);
                 kcp.Flush();
             }
             finally
             {
-                state = State.Disconnect;
+                state = State.断开连接;
                 onEvent.Disconnect();
             }
         }
@@ -915,7 +915,7 @@ namespace Astraia
 
             if (sinceTime >= pingTime + PING_INTERVAL)
             {
-                SendReliable(Opcode.Ping);
+                SendReliable(Opcode.心跳);
                 pingTime = sinceTime;
             }
 
@@ -934,20 +934,20 @@ namespace Astraia
             {
                 switch (message)
                 {
-                    case Opcode.Connect when segment.Count != 4:
+                    case Opcode.握手 when segment.Count != 4:
                         onEvent.Error(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));
                         Disconnect();
                         return;
-                    case Opcode.Connect:
-                        state = State.Connected;
+                    case Opcode.握手:
+                        state = State.连接成功;
                         userData = Common.Decode(segment.Array, segment.Offset);
                         onEvent.Connect();
                         break;
-                    case Opcode.Data:
+                    case Opcode.数据:
                         onEvent.Error(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));
                         Disconnect();
                         break;
-                    case Opcode.Disconnect:
+                    case Opcode.断连:
                         Disconnect();
                         break;
                 }
@@ -961,18 +961,18 @@ namespace Astraia
             {
                 switch (message)
                 {
-                    case Opcode.Connect:
+                    case Opcode.握手:
                         onEvent.Error(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));
                         Disconnect();
                         break;
-                    case Opcode.Data when segment.Count == 0:
+                    case Opcode.数据 when segment.Count == 0:
                         onEvent.Error(Error.无效接收, "{0}收到无效的网络消息。消息类型: {1}".Format(userName, message));
                         Disconnect();
                         break;
-                    case Opcode.Data:
+                    case Opcode.数据:
                         onEvent.Receive(segment, Channel.Reliable);
                         break;
-                    case Opcode.Disconnect:
+                    case Opcode.断连:
                         Disconnect();
                         break;
                 }
@@ -985,10 +985,10 @@ namespace Astraia
             {
                 switch (state)
                 {
-                    case State.Connect:
+                    case State.正在连接:
                         UpdateConnect();
                         break;
-                    case State.Connected:
+                    case State.连接成功:
                         UpdateConnected();
                         break;
                 }
@@ -1014,7 +1014,7 @@ namespace Astraia
         {
             try
             {
-                if (state != State.Disconnect)
+                if (state != State.断开连接)
                 {
                     kcp.Update(Time);
                 }
@@ -1291,14 +1291,14 @@ namespace Astraia
             this.setting = setting;
             this.onEvent = onEvent;
             buffer = new byte[setting.MaxUnit];
-            state = State.Disconnect;
+            state = State.断开连接;
         }
 
         public void Connect(string address, ushort port)
         {
             try
             {
-                if (state != State.Disconnect)
+                if (state != State.断开连接)
                 {
                     Log.Warn("客户端已经连接!");
                     return;
@@ -1308,7 +1308,7 @@ namespace Astraia
                 if (addresses.Length >= 1)
                 {
                     Register(setting);
-                    state = State.Connect;
+                    state = State.正在连接;
                     endPoint = new IPEndPoint(addresses[0], port);
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     Common.Blocked(socket);
@@ -1326,7 +1326,7 @@ namespace Astraia
 
         public void Send(ArraySegment<byte> segment, int channel)
         {
-            if (state != State.Disconnect)
+            if (state != State.断开连接)
             {
                 kcpPeer.SendData(segment, channel);
             }
@@ -1360,7 +1360,7 @@ namespace Astraia
 
         public void Disconnect()
         {
-            if (state != State.Disconnect)
+            if (state != State.断开连接)
             {
                 kcpPeer.Disconnect();
             }
@@ -1387,14 +1387,14 @@ namespace Astraia
         private void OnConnect()
         {
             Log.Info("客户端连接成功。");
-            state = State.Connected;
+            state = State.连接成功;
             onEvent.Connect.Invoke();
         }
 
         private void OnDisconnect()
         {
             Log.Info("客户端断开连接。");
-            state = State.Disconnect;
+            state = State.断开连接;
             socket.Close();
             socket = null;
             endPoint = null;
@@ -1434,7 +1434,7 @@ namespace Astraia
 
         public void EarlyUpdate()
         {
-            if (state != State.Disconnect)
+            if (state != State.断开连接)
             {
                 while (TryReceive(out var segment))
                 {
@@ -1447,7 +1447,7 @@ namespace Astraia
 
         public void AfterUpdate()
         {
-            if (state != State.Disconnect)
+            if (state != State.断开连接)
             {
                 kcpPeer.AfterUpdate();
             }

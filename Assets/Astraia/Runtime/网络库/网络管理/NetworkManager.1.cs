@@ -27,7 +27,7 @@ namespace Astraia.Net
 
             private static readonly List<NetworkClient> copies = new List<NetworkClient>();
 
-            internal static State state = State.Disconnect;
+            internal static State state = State.断开连接;
 
             private static bool isLoadScene;
 
@@ -44,7 +44,7 @@ namespace Astraia.Net
                     Transport.StartServer();
                 }
 
-                state = State.Connected;
+                state = State.连接成功;
                 AddMessage();
                 SpawnObjects();
             }
@@ -58,7 +58,7 @@ namespace Astraia.Net
                     Disconnect(client.clientId);
                 }
 
-                state = State.Disconnect;
+                state = State.断开连接;
                 Transport.StopServer();
                 sendTime = 0;
                 objectId = 0;

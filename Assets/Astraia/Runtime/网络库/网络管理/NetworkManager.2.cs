@@ -27,7 +27,7 @@ namespace Astraia.Net
 
             private static readonly Dictionary<uint, NetworkEntity> copies = new Dictionary<uint, NetworkEntity>();
 
-            internal static State state = State.Disconnect;
+            internal static State state = State.断开连接;
 
             private static bool isLoadScene;
 
@@ -41,7 +41,7 @@ namespace Astraia.Net
 
             public static bool isReady => connection.isReady;
 
-            public static bool isActive => state == State.Connected;
+            public static bool isActive => state == State.连接成功;
 
             internal static void Start(bool isHost)
             {
@@ -55,7 +55,7 @@ namespace Astraia.Net
                 else
                 {
                     AddMessage(false);
-                    state = State.Connect;
+                    state = State.正在连接;
                     connection = new NetworkServer();
                     Transport.StartClient();
                 }
@@ -171,7 +171,7 @@ namespace Astraia.Net
         {
             private static void Connect()
             {
-                state = State.Connected;
+                state = State.连接成功;
                 connection.isReady = true;
                 connection.Send(new ReadyMessage());
                 EventManager.Invoke(new ClientConnect());
@@ -186,7 +186,7 @@ namespace Astraia.Net
                     DestroyMessage(new DestroyMessage(entity.objectId));
                 }
 
-                state = State.Disconnect;
+                state = State.断开连接;
                 connection.Disconnect();
                 sendTime = 0;
                 pongTime = 0;

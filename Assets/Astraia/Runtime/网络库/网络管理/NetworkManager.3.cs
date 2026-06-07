@@ -26,14 +26,14 @@ namespace Astraia.Net
 
             internal static readonly Dictionary<int, int> players = new Dictionary<int, int>();
 
-            internal static State state = State.Disconnect;
+            internal static State state = State.断开连接;
 
             private static int objectId;
 
             internal static bool isClient;
 
             internal static bool isServer;
-            internal static bool isActive => state == State.Connected;
+            internal static bool isActive => state == State.连接成功;
 
             internal static void Start()
             {
@@ -78,7 +78,7 @@ namespace Astraia.Net
 
             private static void Connect()
             {
-                state = State.Connect;
+                state = State.正在连接;
             }
 
             internal static void Disconnect()
@@ -90,7 +90,7 @@ namespace Astraia.Net
                     players.Clear();
                     isServer = false;
                     isClient = false;
-                    state = State.Disconnect;
+                    state = State.断开连接;
                     NetworkTransport.Instance.StopClient();
                     EventManager.Invoke(new LobbyDisconnect());
                 }
@@ -113,7 +113,7 @@ namespace Astraia.Net
                     }
                     else if (opcode == Lobby.进入大厅成功)
                     {
-                        state = State.Connected;
+                        state = State.连接成功;
                         Update();
                     }
                     else if (opcode == Lobby.创建房间成功)
