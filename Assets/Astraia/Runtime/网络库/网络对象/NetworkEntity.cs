@@ -25,18 +25,6 @@ namespace Astraia.Net
     [Serializable]
     public class NetworkEntity : Entity
     {
-        [Flags]
-        internal enum State : byte
-        {
-            默认 = 0,
-            所有者 = 1 << 0,
-            客户端 = 1 << 1,
-            服务器 = 1 << 2,
-            权限 = 1 << 3,
-            活跃 = 1 << 4,
-            销毁 = 1 << 5,
-        }
-
         [HideInInspector] public uint objectId;
 
         [HideInInspector] public uint assetId;
@@ -279,6 +267,18 @@ namespace Astraia.Net
             }
 
             return NetworkManager.Client.spawns.GetValueOrDefault(objectId);
+        }
+
+        [Flags]
+        internal enum State : byte
+        {
+            默认 = 0,
+            所有者 = 1 << 0,
+            客户端 = 1 << 1,
+            服务器 = 1 << 2,
+            权限 = 1 << 3,
+            活跃 = 1 << 4,
+            销毁 = 1 << 5,
         }
     }
 }

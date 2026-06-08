@@ -53,7 +53,7 @@ namespace Astraia.Net
         {
             players.Remove(client);
             visible.Remove(client);
-            waitTime = NetworkManager.sinceTime + 0.2;
+            waitTime = NetworkManager.syncTime + 0.2;
         }
 
         public void Execute(OnAfterUpdate message)
@@ -68,9 +68,9 @@ namespace Astraia.Net
                     }
                 }
 
-                if (waitTime < NetworkManager.sinceTime)
+                if (waitTime < NetworkManager.syncTime)
                 {
-                    waitTime = NetworkManager.sinceTime + 0.2;
+                    waitTime = NetworkManager.syncTime + 0.2;
                     foreach (var entity in entities)
                     {
                         Tick(entity);

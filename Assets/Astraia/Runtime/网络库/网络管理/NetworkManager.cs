@@ -36,7 +36,7 @@ namespace Astraia.Net
         public static bool isServer => Server.state != State.断开连接;
         public static bool isClient => Client.state != State.断开连接;
         public static bool isSaloon => Saloon.state != State.断开连接;
-        internal static double sinceTime => Time.unscaledTimeAsDouble;
+        internal static double syncTime => Time.unscaledTimeAsDouble;
         internal static Transport Transport => isRemote ? Instance.transports[2] : Instance.transports[0];
 
         protected override void Awake()

@@ -80,9 +80,9 @@ namespace Astraia.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool Tick(ref double sendTime)
         {
-            if (sendTime < NetworkManager.sinceTime - SEND_RATE)
+            if (sendTime < NetworkManager.syncTime - SEND_RATE)
             {
-                sendTime = (long)(NetworkManager.sinceTime/ SEND_RATE) * SEND_RATE;
+                sendTime = (long)(NetworkManager.syncTime/ SEND_RATE) * SEND_RATE;
                 return true;
             }
 

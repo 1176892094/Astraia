@@ -115,11 +115,11 @@ namespace Astraia.Net
             {
                 if (pingTime <= 0)
                 {
-                    pingTime = sinceTime - message.clientTime;
+                    pingTime = syncTime - message.clientTime;
                 }
                 else
                 {
-                    pingTime += 2.0 / (6 + 1) * (sinceTime - message.clientTime - pingTime);
+                    pingTime += 2.0 / (6 + 1) * (syncTime - message.clientTime - pingTime);
                 }
 
                 EventManager.Invoke(new PingUpdate(pingTime));
@@ -405,9 +405,9 @@ namespace Astraia.Net
                     {
                         if (isActive)
                         {
-                            if (pongTime < sinceTime - 2)
+                            if (pongTime < syncTime - 2)
                             {
-                                pongTime = sinceTime;
+                                pongTime = syncTime;
                                 connection.Send(new PongMessage(pongTime), Pass.UDP);
                             }
 

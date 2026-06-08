@@ -330,7 +330,7 @@ MonoBehaviour:
     - rid: 915762514025775319
       type: {class: NetworkObserver, ns: Astraia.Net, asm: Astraia.Net}
       data:
-        extents: {x: 4, y: 2}
+        extents: {x: 2, y: 1}
         cellSize: 4
     - rid: 915762514025775320
       type: {class: NetworkDiscovery, ns: Astraia.Net, asm: Astraia.Net}
