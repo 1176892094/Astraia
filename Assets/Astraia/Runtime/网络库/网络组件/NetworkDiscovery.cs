@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    internal class NetworkDiscovery : Singleton<NetworkDiscovery>
+    public class NetworkDiscovery : Singleton<NetworkDiscovery>
     {
         [SerializeField] private string address;
         [SerializeField] private ushort port = 47777;

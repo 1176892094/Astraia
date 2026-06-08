@@ -14,7 +14,7 @@ namespace Astraia
                 return;
             }
 
-            if (current.owner)
+            if (current != null && current.owner)
             {
                 UIGroup.SetActive(current, false);
                 reverse = current;

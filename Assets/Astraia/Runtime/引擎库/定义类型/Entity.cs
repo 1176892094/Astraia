@@ -26,10 +26,7 @@ namespace Astraia.Core
         {
             foreach (var module in moduleList)
             {
-                if (module is not UIPanel)
-                {
-                    module.OnShow();
-                }
+                module.OnShow();
             }
         }
 
@@ -37,10 +34,7 @@ namespace Astraia.Core
         {
             foreach (var module in moduleList)
             {
-                if (module is not UIPanel)
-                {
-                    module.OnHide();
-                }
+                module.OnHide();
             }
         }
 

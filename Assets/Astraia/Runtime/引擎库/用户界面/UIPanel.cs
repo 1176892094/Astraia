@@ -19,7 +19,7 @@ using UnityEngine.UI;
 namespace Astraia
 {
     [Serializable]
-    public abstract class UIPanel : Module<Entity>
+    public abstract class UIPanel : Module<Entity>, IModule
     {
         public UIState state = UIState.Common;
 
@@ -30,10 +30,18 @@ namespace Astraia
         {
             return state != UIState.Freeze;
         }
+
+        void IModule.OnShow()
+        {
+        }
+
+        void IModule.OnHide()
+        {
+        }
     }
 
     [Serializable]
-    public abstract class UIPanel<T, TGrid> : UIPanel, IMove where TGrid : Component, IGrid<T>
+    public abstract class UIPanel<T, TGrid> : UIPanel, IModule, IMove where TGrid : Component, IGrid<T>
     {
         private TGrid[] grids;
         private IList<T> items;
@@ -53,7 +61,7 @@ namespace Astraia
         public ScrollRect scroll;
         public Action<IGrid> OnMove;
 
-        public override void Dequeue()
+        void IModule.Dequeue()
         {
             scroll = owner.Inject<ScrollRect>(this, nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
@@ -82,21 +90,23 @@ namespace Astraia
             cor = rotation ? col : row;
             roc = rotation ? row : col;
             grids = new TGrid[col * row];
+            Dequeue();
         }
 
-        public override void OnShow()
+        void IModule.OnShow()
         {
             scroll.onValueChanged.AddListener(ScrollView);
         }
 
-        public override void OnHide()
+        void IModule.OnHide()
         {
             Unload();
             scroll.onValueChanged.RemoveListener(ScrollView);
         }
 
-        public override void Enqueue()
+        void IModule.Enqueue()
         {
+            Enqueue();
             items = null;
             grids = null;
             OnMove = null;

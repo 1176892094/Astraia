@@ -52,18 +52,19 @@ namespace Astraia.Core
 
         internal static void Destroy(UIPanel panel, Type type)
         {
-            panel.owner.gameObject.SetActive(false);
+            SetActive(panel, false);
             Object.Destroy(panel.owner.gameObject);
             panelData.Remove(type);
         }
 
         internal static void SetActive(UIPanel panel, bool state)
         {
-            if (state != panel.owner.gameObject.activeSelf)
+            var owner = panel.owner.gameObject;
+            if (state != owner.activeSelf)
             {
                 if (state)
                 {
-                    panel.owner.gameObject.SetActive(true);
+                    owner.SetActive(true);
                     panel.OnShow();
                     return;
                 }
@@ -75,7 +76,7 @@ namespace Astraia.Core
                 else
                 {
                     panel.OnHide();
-                    panel.owner.gameObject.SetActive(false);
+                    owner.SetActive(false);
                 }
             }
         }

@@ -9,6 +9,8 @@ namespace Astraia.Net
     {
         private static readonly Dictionary<NetworkEntity, HashSet<NetworkClient>> clientDict = new Dictionary<NetworkEntity, HashSet<NetworkClient>>();
         private static readonly Dictionary<NetworkClient, HashSet<NetworkEntity>> entityDict = new Dictionary<NetworkClient, HashSet<NetworkEntity>>();
+        private static readonly HashSet<NetworkClient> Empty1 = new HashSet<NetworkClient>();
+        private static readonly HashSet<NetworkEntity> Empty2 = new HashSet<NetworkEntity>();
 
         public static void Add(this NetworkEntity entity, NetworkClient client)
         {
@@ -99,12 +101,12 @@ namespace Astraia.Net
 
         public static HashSet<NetworkClient> Clients(this NetworkEntity entity)
         {
-            return clientDict.GetValueOrDefault(entity);
+            return clientDict.GetValueOrDefault(entity, Empty1);
         }
 
-        public static HashSet<NetworkEntity> Entities(this NetworkClient entity)
+        public static HashSet<NetworkEntity> Entities(this NetworkClient client)
         {
-            return entityDict.GetValueOrDefault(entity);
+            return entityDict.GetValueOrDefault(client, Empty2);
         }
     }
 }
