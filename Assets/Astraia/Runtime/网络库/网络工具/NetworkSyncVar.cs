@@ -15,25 +15,45 @@ namespace Astraia.Net
 {
     public static class NetworkSyncVar
     {
-        internal static void ServerSerialize(NetworkModule[] modules, MemoryWriter owner, MemoryWriter other, bool isInit = false)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsDirty(ulong mask, int index)
         {
-            var mask = ServerDirtyMasks(modules, isInit);
-            if (mask.owner != 0)
+            return (mask & (ulong)(1 << index)) != 0;
+        }
+
+        internal static void ServerSend(NetworkModule[] modules, MemoryWriter owner, MemoryWriter other, bool isInit = false)
+        {
+            var ownerMask = 0UL;
+            var otherMask = 0UL;
+            for (var i = 0; i < modules.Length; ++i)
             {
-                Compress.EncodeUInt64(owner, mask.owner);
+                if (isInit || (modules[i].syncMode == SyncMode.服务器 && modules[i].IsDirty()))
+                {
+                    ownerMask |= 1UL << i;
+                }
+
+                if (isInit || modules[i].IsDirty())
+                {
+                    otherMask |= 1UL << i;
+                }
             }
 
-            if (mask.other != 0)
+            if (ownerMask != 0)
             {
-                Compress.EncodeUInt64(other, mask.other);
+                Compress.EncodeUInt64(owner, ownerMask);
             }
 
-            if ((mask.owner | mask.other) != 0)
+            if (otherMask != 0)
+            {
+                Compress.EncodeUInt64(other, otherMask);
+            }
+
+            if ((ownerMask | otherMask) != 0)
             {
                 for (var i = 0; i < modules.Length; ++i)
                 {
-                    var ownerDirty = IsDirty(mask.owner, i);
-                    var otherDirty = IsDirty(mask.other, i);
+                    var ownerDirty = IsDirty(ownerMask, i);
+                    var otherDirty = IsDirty(otherMask, i);
                     if (ownerDirty || otherDirty)
                     {
                         using var writer = MemoryWriter.Pop();
@@ -52,15 +72,35 @@ namespace Astraia.Net
             }
         }
 
-        internal static void ClientSerialize(NetworkModule[] modules, MemoryWriter writer, bool isOwner)
+        internal static void ClientReceive(NetworkModule[] modules, MemoryReader reader, bool isInit = false)
         {
-            var mask = ClientDirtyMask(modules, isOwner);
-            if (mask != 0)
+            var mask = Compress.DecodeUInt64(reader);
+            for (var i = 0; i < modules.Length; ++i)
             {
-                Compress.EncodeUInt64(writer, mask);
+                if (IsDirty(mask, i))
+                {
+                    modules[i].Deserialize(reader, isInit);
+                }
+            }
+        }
+
+        internal static void ClientSend(NetworkModule[] modules, MemoryWriter writer, bool isOwner)
+        {
+            var ownerMask = 0UL;
+            for (var i = 0; i < modules.Length; ++i)
+            {
+                if (isOwner && modules[i].syncMode == SyncMode.客户端 && modules[i].IsDirty())
+                {
+                    ownerMask |= 1UL << i;
+                }
+            }
+
+            if (ownerMask != 0)
+            {
+                Compress.EncodeUInt64(writer, ownerMask);
                 for (var i = 0; i < modules.Length; ++i)
                 {
-                    if (IsDirty(mask, i))
+                    if (IsDirty(ownerMask, i))
                     {
                         modules[i].Serialize(writer, false);
                     }
@@ -68,7 +108,7 @@ namespace Astraia.Net
             }
         }
 
-        internal static bool ServerDeserialize(NetworkModule[] modules, MemoryReader reader)
+        internal static bool ServerReceive(NetworkModule[] modules, MemoryReader reader)
         {
             var mask = Compress.DecodeUInt64(reader);
             for (var i = 0; i < modules.Length; ++i)
@@ -90,61 +130,6 @@ namespace Astraia.Net
             }
 
             return true;
-        }
-
-        internal static void ClientDeserialize(NetworkModule[] modules, MemoryReader reader, bool isInit = false)
-        {
-            var mask = Compress.DecodeUInt64(reader);
-            for (var i = 0; i < modules.Length; ++i)
-            {
-                if (IsDirty(mask, i))
-                {
-                    modules[i].Deserialize(reader, isInit);
-                }
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsDirty(ulong mask, int index)
-        {
-            return (mask & (ulong)(1 << index)) != 0;
-        }
-
-        private static (ulong owner, ulong other) ServerDirtyMasks(NetworkModule[] modules, bool isInit)
-        {
-            var owner = 0UL;
-            var other = 0UL;
-            for (var i = 0; i < modules.Length; ++i)
-            {
-                if (isInit || (modules[i].syncMode == SyncMode.服务器 && modules[i].IsDirty()))
-                {
-                    owner |= 1U << i;
-                }
-
-                if (isInit || modules[i].IsDirty())
-                {
-                    other |= 1U << i;
-                }
-            }
-
-            return (owner, other);
-        }
-
-        private static ulong ClientDirtyMask(NetworkModule[] modules, bool isOwner)
-        {
-            var mask = 0UL;
-            for (var i = 0; i < modules.Length; ++i)
-            {
-                if (isOwner && modules[i].syncMode == SyncMode.客户端)
-                {
-                    if (modules[i].IsDirty())
-                    {
-                        mask |= 1U << i;
-                    }
-                }
-            }
-
-            return mask;
         }
     }
 }

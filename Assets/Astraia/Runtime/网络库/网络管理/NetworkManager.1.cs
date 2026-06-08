@@ -178,7 +178,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                if (!NetworkSyncVar.ServerDeserialize(entity.modules, reader))
+                if (!NetworkSyncVar.ServerReceive(entity.modules, reader))
                 {
                     Log.Warn("无法为客户端 {0} 反序列化网络对象: {1}", client.clientId, message.objectId);
                     client.Disconnect();
@@ -404,7 +404,7 @@ namespace Astraia.Net
                                         entity.count = Time.frameCount;
                                         entity.owner.position = 0;
                                         entity.other.position = 0;
-                                        NetworkSyncVar.ServerSerialize(entity.modules, entity.owner, entity.other);
+                                        NetworkSyncVar.ServerSend(entity.modules, entity.owner, entity.other);
                                         entity.ClearDirty(true);
                                     }
 

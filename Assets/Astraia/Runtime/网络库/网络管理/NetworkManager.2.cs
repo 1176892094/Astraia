@@ -145,7 +145,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                NetworkSyncVar.ClientDeserialize(entity.modules, reader);
+                NetworkSyncVar.ClientReceive(entity.modules, reader);
             }
 
             private static void ClientRpcMessage(ClientRpcMessage message)
@@ -288,7 +288,7 @@ namespace Astraia.Net
                     if (message.segment.Count > 0)
                     {
                         using var reader = MemoryReader.Pop(message.segment);
-                        NetworkSyncVar.ClientDeserialize(entity.modules, reader, true);
+                        NetworkSyncVar.ClientReceive(entity.modules, reader, true);
                     }
 
                     spawns[message.objectId] = entity;
@@ -385,7 +385,7 @@ namespace Astraia.Net
                         foreach (var entity in spawns.Values)
                         {
                             using var writer = MemoryWriter.Pop();
-                            NetworkSyncVar.ClientSerialize(entity.modules, writer, entity.isOwner);
+                            NetworkSyncVar.ClientSend(entity.modules, writer, entity.isOwner);
                             if (writer.position > 0)
                             {
                                 connection.Send(new EntityMessage(entity.objectId, writer));
