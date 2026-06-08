@@ -36,7 +36,6 @@ namespace Astraia.Editor
         private readonly List<(MethodDefinition, int)> targetV1List = new List<(MethodDefinition, int)>();
         private readonly List<MethodDefinition> targetV2List = new List<MethodDefinition>();
 
-
         public NetworkModuleGen(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader, ILogPostProcessor debugger, TypeDefinition create)
         {
             this.create = create;
@@ -209,21 +208,21 @@ namespace Astraia.Editor
             names.Add(md.Name);
             if (mode == InvokeMode.ServerRpc)
             {
-                serverV1List.Add((md, (int)source.GetArgument()));
+                serverV1List.Add((md, source.GetArgument<int>()));
                 var funcV1 = NetworkMethodGen.ServerRpcV1(module, writer, debugger, create, md, source, ref failed);
                 var funcV2 = NetworkMethodGen.ServerRpcV2(module, reader, debugger, create, md, funcV1, ref failed);
                 if (funcV2 != null) serverV2List.Add(funcV2);
             }
             else if (mode == InvokeMode.ClientRpc)
             {
-                clientV1List.Add((md, (int)source.GetArgument()));
+                clientV1List.Add((md, source.GetArgument<int>()));
                 var funcV1 = NetworkMethodGen.ClientRpcV1(module, writer, debugger, create, md, source, ref failed);
                 var funcV2 = NetworkMethodGen.ClientRpcV2(module, reader, debugger, create, md, funcV1, ref failed);
                 if (funcV2 != null) clientV2List.Add(funcV2);
             }
             else if (mode == InvokeMode.TargetRpc)
             {
-                targetV1List.Add((md, (int)source.GetArgument()));
+                targetV1List.Add((md, source.GetArgument<int>()));
                 var funcV1 = NetworkMethodGen.TargetRpcV1(module, writer, debugger, create, md, source, ref failed);
                 var funcV2 = NetworkMethodGen.TargetRpcV2(module, reader, debugger, create, md, funcV1, ref failed);
                 if (funcV2 != null) targetV2List.Add(funcV2);
@@ -277,7 +276,6 @@ namespace Astraia.Editor
 
             create.Attributes &= ~TypeAttributes.BeforeFieldInit;
         }
-
 
         private static bool EndInstruction(MethodDefinition md)
         {

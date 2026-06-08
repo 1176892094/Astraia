@@ -38,7 +38,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldstr, method.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, (int)args.GetArgument());
+            worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
             worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
             NetworkModuleGen.WriterEnqueue(worker, module);
             worker.Emit(OpCodes.Ret);
@@ -80,7 +80,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldstr, method.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, (int)args.GetArgument());
+            worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
             worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
             NetworkModuleGen.WriterEnqueue(worker, module);
             worker.Emit(OpCodes.Ret);
@@ -123,7 +123,7 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldstr, method.FullName);
             worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
             worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, (int)args.GetArgument());
+            worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
             worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
             NetworkModuleGen.WriterEnqueue(worker, module);
             worker.Emit(OpCodes.Ret);
@@ -158,11 +158,7 @@ namespace Astraia.Editor
 
         private static MethodDefinition InvokeV1(ILogPostProcessor debugger, TypeDefinition create, MethodDefinition method, ref bool failed)
         {
-            var md = new MethodDefinition(method.GetName(Weaver.MED_V1), method.Attributes, method.ReturnType)
-            {
-                IsPublic = false,
-                IsFamily = true
-            };
+            var md = new MethodDefinition(method.GetName(Weaver.MED_V1), method.Attributes, method.ReturnType) { IsPublic = false, IsFamily = true };
 
             foreach (var pd in method.Parameters)
             {

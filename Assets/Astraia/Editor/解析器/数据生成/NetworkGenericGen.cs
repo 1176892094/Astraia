@@ -6,11 +6,9 @@ namespace Astraia.Editor
 {
     internal static class EntityGenerator
     {
-        private const string GEN_FUN = "CustomProcessor";
-
         public static bool Processed(TypeDefinition td, Module module)
         {
-            if (td.Methods.Any(m => m.Name == GEN_FUN))
+            if (td.Methods.Any(m => m.Name == Weaver.MED_T1))
             {
                 return false;
             }
@@ -42,7 +40,7 @@ namespace Astraia.Editor
 
             if (modified)
             {
-                var method = new MethodDefinition(GEN_FUN, MethodAttributes.Private, module.Import(typeof(void)));
+                var method = new MethodDefinition(Weaver.MED_T1, MethodAttributes.Private, module.Import(typeof(void)));
                 var worker = method.Body.GetILProcessor();
                 worker.Emit(OpCodes.Ret);
                 td.Methods.Add(method);
@@ -90,11 +88,9 @@ namespace Astraia.Editor
 
     internal static class ModuleGenerator
     {
-        private const string GEN_FUN = "CustomProcessor";
-
         public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, ILogPostProcessor Log)
         {
-            if (td.Methods.Any(m => m.Name == GEN_FUN))
+            if (td.Methods.Any(m => m.Name == Weaver.MED_T1))
             {
                 return false;
             }
@@ -127,7 +123,7 @@ namespace Astraia.Editor
 
             if (modified)
             {
-                var method = new MethodDefinition(GEN_FUN, MethodAttributes.Private, module.Import(typeof(void)));
+                var method = new MethodDefinition(Weaver.MED_T1, MethodAttributes.Private, module.Import(typeof(void)));
                 var worker = method.Body.GetILProcessor();
                 worker.Emit(OpCodes.Ret);
                 td.Methods.Add(method);

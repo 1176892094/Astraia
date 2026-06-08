@@ -69,7 +69,7 @@ namespace Astraia.Editor
 
         public MethodDefinition GetFunc(TypeDefinition td, FieldDefinition syncVar, ref bool failed)
         {
-            var name = (string)syncVar.GetAttribute<SyncVarAttribute>().GetArgument();
+            var name = syncVar.GetAttribute<SyncVarAttribute>().GetArgument<string>();
             if (name != null)
             {
                 var methods = td.GetMethods(name);

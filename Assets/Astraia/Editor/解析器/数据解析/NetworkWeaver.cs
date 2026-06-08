@@ -32,6 +32,7 @@ namespace Astraia.Editor
         public const string MED_C2 = ".cctor";
         public const string MED_S1 = "SerializeSyncVars";
         public const string MED_S2 = "DeserializeSyncVars";
+        public const string MED_T2 = nameof(EntityGenerator);
         public const string MED_T1 = nameof(NetworkProcessor);
         public const MA GEN_V1 = MA.HideBySig | MA.Family | MA.Static;
         public const MA GEN_V2 = MA.HideBySig | MA.Public | MA.Static;
@@ -359,9 +360,9 @@ namespace Astraia.Editor
 
     internal static class Extensions
     {
-        public static object GetArgument(this ICustomAttribute self)
+        public static T GetArgument<T>(this ICustomAttribute self)
         {
-            return self.ConstructorArguments[0].Value;
+            return (T)self.ConstructorArguments[0].Value;
         }
 
         public static string GetName(this MethodDefinition self, string name)
@@ -377,6 +378,11 @@ namespace Astraia.Editor
         public static bool Is<T>(this TypeReference self)
         {
             return self.Is(typeof(T));
+        }
+
+        public static bool IsSubclassOf<T>(this TypeReference self)
+        {
+            return self.IsSubclassOf(typeof(T));
         }
 
         public static bool IsSubclassOf(this TypeReference self, Type t)
@@ -399,11 +405,6 @@ namespace Astraia.Editor
             }
 
             return tr.CanResolve() && tr.Resolve().IsSubclassOf(t);
-        }
-
-        public static bool IsSubclassOf<T>(this TypeReference self)
-        {
-            return self.IsSubclassOf(typeof(T));
         }
 
         private static bool CanResolve(this TypeReference self)
