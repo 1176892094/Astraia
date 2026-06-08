@@ -81,6 +81,18 @@ namespace Astraia.Net
             }
         }
 
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            EventManager.Listen(this);
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            EventManager.Remove(this);
+        }
+
         private void OnApplicationQuit()
         {
             if (isSaloon)
