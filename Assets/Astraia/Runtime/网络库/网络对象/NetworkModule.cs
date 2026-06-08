@@ -17,6 +17,17 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
+    public abstract class NetworkSingleton<T> : NetworkModule, IModule where T : NetworkSingleton<T>
+    {
+        public static T Instance;
+
+        void IModule.Acquire(object owner)
+        {
+            Instance = (T)this;
+            this.owner = (NetworkEntity)owner;
+        }
+    }
+
     [Serializable]
     public abstract class NetworkModule : Module<NetworkEntity>
     {
