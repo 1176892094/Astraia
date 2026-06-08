@@ -21,9 +21,9 @@ namespace Astraia.Net
     {
         public static partial class Client
         {
-            private static readonly Dictionary<uint, NetworkEntity> scenes = new Dictionary<uint, NetworkEntity>();
-
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
+            
+            private static readonly Dictionary<uint, NetworkEntity> scenes = new Dictionary<uint, NetworkEntity>();
 
             private static readonly Dictionary<uint, NetworkEntity> copies = new Dictionary<uint, NetworkEntity>();
 

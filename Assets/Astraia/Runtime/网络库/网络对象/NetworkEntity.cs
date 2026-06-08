@@ -31,7 +31,7 @@ namespace Astraia.Net
 
         [HideInInspector] public uint sceneId;
 
-        public bool visible = true;
+        [SerializeField] internal bool visible = true;
 
         internal int count;
 

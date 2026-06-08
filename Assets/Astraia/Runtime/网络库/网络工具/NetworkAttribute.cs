@@ -49,7 +49,7 @@ namespace Astraia.Net
         {
             if (messages.TryGetValue(id, out var message))
             {
-                return (message.pass & Pass.ANY) == 0 && message.mode == HookMode.服务器;
+                return (message.pass & Pass.EXT) == 0 && message.mode == HookMode.服务器;
             }
 
             return false;

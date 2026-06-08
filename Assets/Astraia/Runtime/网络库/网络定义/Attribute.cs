@@ -44,4 +44,30 @@ namespace Astraia.Net
         {
         }
     }
+
+    public static class Pass
+    {
+        public const byte KCP = 1 << 0;
+        public const byte UDP = 1 << 1;
+        public const byte EXT = 1 << 2;
+    }
+
+    public enum RoomMode : byte
+    {
+        公开,
+        私有,
+        锁定,
+    }
+
+    internal enum SyncMode : byte
+    {
+        服务器,
+        客户端
+    }
+
+    internal enum HookMode : byte
+    {
+        服务器,
+        客户端
+    }
 }

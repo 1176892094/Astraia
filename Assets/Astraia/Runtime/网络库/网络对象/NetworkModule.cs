@@ -173,7 +173,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if ((pass & Pass.ANY) == 0 && !isOwner)
+            if ((pass & Pass.EXT) == 0 && !isOwner)
             {
                 Debug.LogWarning("调用 {0} 但是客户端没有对象权限。对象名称：{1}".Format(name, owner.name), owner);
                 return;
@@ -209,7 +209,7 @@ namespace Astraia.Net
 
             foreach (var result in owner.Clients())
             {
-                if (result.isReady && ((pass & Pass.ANY) == 0 || result != client))
+                if (result.isReady && ((pass & Pass.EXT) == 0 || result != client))
                 {
                     result.Send(message, (pass & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
                 }
