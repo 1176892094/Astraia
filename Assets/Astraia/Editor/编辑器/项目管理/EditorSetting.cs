@@ -147,7 +147,7 @@ namespace Astraia
                 GUILayout.BeginHorizontal();
                 var value = ValueEntry.SmartValue;
 
-                GUILayout.Label(label, GUILayout.Width(EditorGUIUtility.labelWidth - 4));
+                EditorGUILayout.LabelField(label, GUILayout.Width(EditorGUIUtility.labelWidth));
 
                 var color = GUI.backgroundColor;
                 GUI.backgroundColor = value ? Color.green : color * 0.8f;

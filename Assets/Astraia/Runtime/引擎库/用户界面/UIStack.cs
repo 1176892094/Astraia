@@ -37,7 +37,7 @@ namespace Astraia
             }
 
             var forward = current;
-            if (current.owner)
+            if (current != null && current.owner)
             {
                 UIGroup.SetActive(current, false);
             }
@@ -49,7 +49,7 @@ namespace Astraia
 
         public void Clear()
         {
-            if (current.owner)
+            if (current != null && current.owner)
             {
                 UIGroup.SetActive(current, false);
             }

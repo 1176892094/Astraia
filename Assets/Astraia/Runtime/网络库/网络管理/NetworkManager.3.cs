@@ -11,9 +11,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using Astraia.Core;
-using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Astraia.Net
 {
@@ -25,7 +24,7 @@ namespace Astraia.Net
             internal static readonly Dictionary<int, int> clients = new Dictionary<int, int>();
 
             internal static readonly Dictionary<int, int> players = new Dictionary<int, int>();
-
+          
             internal static State state = State.断开连接;
 
             private static int objectId;
@@ -34,7 +33,7 @@ namespace Astraia.Net
 
             internal static bool isServer;
             internal static bool isActive => state == State.连接成功;
-
+          
             internal static void Start()
             {
                 isRemote = true;
@@ -51,15 +50,8 @@ namespace Astraia.Net
 
             internal static async void Update()
             {
-                using var request = UnityWebRequest.Get("http://{0}:{1}/api/compressed/servers".Format(kcp.address, kcp.port));
-                await request.SendWebRequest();
-                if (request.result != UnityWebRequest.Result.Success)
-                {
-                    Log.Warn("无法获取服务器列表: {0}:{1}\n{2}", kcp.address, kcp.port, request.result);
-                    return;
-                }
-
-                var rooms = Zip.Decompress(request.downloadHandler.text);
+                var texts = await Host.Http.GetStringAsync("http://{0}:{1}/api/compressed/servers".Format(kcp.address, kcp.port));
+                var rooms = Zip.Decompress(texts);
                 var jsons = JsonManager.FromJson<LobbyData[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
                 Log.Info("房间信息: {0}", rooms);
