@@ -34,7 +34,7 @@ namespace Astraia.Net
             private static uint objectId;
 
             private static double sendTime;
-            private static bool isReady => clients.Values.All(connection => connection.isReady);
+            public static bool isReady => clients.Values.All(connection => connection.isReady);
             public static int connections => clients.Count;
 
             internal static void Start(bool isHost)
@@ -136,7 +136,7 @@ namespace Astraia.Net
             {
                 client.isReady = true;
                 client.Send(new SpawnBeginMessage());
-                EventManager.Invoke(new ServerReady(client, isReady));
+                EventManager.Invoke(new ServerReady(client));
 
                 if (NetworkObserver.Instance != null)
                 {

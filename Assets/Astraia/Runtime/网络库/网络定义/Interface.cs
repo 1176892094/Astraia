@@ -66,12 +66,10 @@ namespace Astraia.Core
     public readonly struct ServerReady : IEvent
     {
         public readonly NetworkClient client;
-        public readonly bool isReady;
 
-        public ServerReady(NetworkClient client, bool isReady)
+        public ServerReady(NetworkClient client)
         {
             this.client = client;
-            this.isReady = isReady;
         }
     }
 

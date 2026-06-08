@@ -72,7 +72,7 @@ namespace Astraia.Core
 
         public T GetComponent<T>(int index) where T : IModule
         {
-            return (T)moduleList[index];
+            return index < moduleList.Count ? (T)moduleList[index] : default;
         }
     }
 
