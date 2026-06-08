@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Astraia.Core;
 
 namespace Astraia.Net
@@ -9,8 +8,8 @@ namespace Astraia.Net
     {
         private static readonly Dictionary<NetworkEntity, HashSet<NetworkClient>> clientDict = new Dictionary<NetworkEntity, HashSet<NetworkClient>>();
         private static readonly Dictionary<NetworkClient, HashSet<NetworkEntity>> entityDict = new Dictionary<NetworkClient, HashSet<NetworkEntity>>();
-        private static readonly HashSet<NetworkClient> Empty1 = new HashSet<NetworkClient>();
-        private static readonly HashSet<NetworkEntity> Empty2 = new HashSet<NetworkEntity>();
+        private static readonly HashSet<NetworkClient> Empty = new HashSet<NetworkClient>();
+        private static readonly HashSet<NetworkEntity> Cache = new HashSet<NetworkEntity>();
 
         public static void Add(this NetworkEntity entity, NetworkClient client)
         {
@@ -82,8 +81,15 @@ namespace Astraia.Net
         {
             if (entityDict.Remove(client, out var entities))
             {
-                var copies = entities.Where(entity => entity).ToList();
-                foreach (var entity in copies)
+                foreach (var entity in entities)
+                {
+                    if (entity)
+                    {
+                        Cache.Add(entity);
+                    }
+                }
+
+                foreach (var entity in Cache)
                 {
                     var clients = entity.Clients();
                     if (clients.Remove(client))
@@ -96,17 +102,19 @@ namespace Astraia.Net
                         entities.Remove(entity);
                     }
                 }
+
+                Cache.Clear();
             }
         }
 
         public static HashSet<NetworkClient> Clients(this NetworkEntity entity)
         {
-            return clientDict.GetValueOrDefault(entity, Empty1);
+            return clientDict.GetValueOrDefault(entity, Empty);
         }
 
         public static HashSet<NetworkEntity> Entities(this NetworkClient client)
         {
-            return entityDict.GetValueOrDefault(client, Empty2);
+            return entityDict.GetValueOrDefault(client, Cache);
         }
     }
 }
