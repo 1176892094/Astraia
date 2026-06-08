@@ -12,10 +12,10 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Astraia.Core;
 using Mono.Cecil;
 using Astraia.Net;
 using UnityEngine;
-using InjectManager = Astraia.Core.Extensions;
 
 namespace Astraia.Editor
 {
@@ -90,9 +90,14 @@ namespace Astraia.Editor
                         }
                     }
 
+                    if (td.IsSubclassOf(typeof(Entity)))
+                    {
+                        modified |= EntityGenerator.Processed(td, module);
+                    }
+
                     if (td.IsSubclassOf(typeof(Module<>)))
                     {
-                        modified |= CustomGenerator.Processed(assembly, td, module, Log);
+                        modified |= ModuleGenerator.Processed(assembly, td, module, Log);
                     }
                 }
 
@@ -123,6 +128,10 @@ namespace Astraia.Editor
     {
         private readonly AssemblyDefinition assembly;
         public readonly TypeDefinition Initialized;
+
+        public readonly MethodReference Awake;
+        public readonly MethodReference OnEnable;
+        public readonly MethodReference OnDisable;
 
         public readonly MethodReference OnShow;
         public readonly MethodReference OnHide;
@@ -178,6 +187,10 @@ namespace Astraia.Editor
             GetTypeFromHandle = Import<Type>().GetMethod(assembly, "GetTypeFromHandle", Log, ref failed);
             ReadNetworkModule = Import(typeof(Net.Extensions)).GetMethod(assembly, ReadModule, Log, ref failed);
 
+            Awake = Import(typeof(Entity)).GetMethod(assembly, nameof(Awake), Log, ref failed);
+            OnEnable = Import(typeof(Entity)).GetMethod(assembly, nameof(OnEnable), Log, ref failed);
+            OnDisable = Import(typeof(Entity)).GetMethod(assembly, nameof(OnDisable), Log, ref failed);
+
             OnShow = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(OnShow), Log, ref failed);
             OnHide = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(OnHide), Log, ref failed);
             Dequeue = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(Dequeue), Log, ref failed);
@@ -185,7 +198,8 @@ namespace Astraia.Editor
 
             Listen = Import(typeof(EventManager)).GetMethod(assembly, nameof(Listen), Log, ref failed);
             Remove = Import(typeof(EventManager)).GetMethod(assembly, nameof(Remove), Log, ref failed);
-            Inject = Import(typeof(InjectManager)).GetMethod(assembly, nameof(Inject), Log, ref failed);
+            Inject = Import(typeof(Astraia.Core.Extensions)).GetMethod(assembly, nameof(Inject), Log, ref failed);
+
             WriterDequeue = Import<MemoryWriter>().GetMethod(assembly, "Pop", Log, ref failed);
             WriterEnqueue = Import<MemoryWriter>().GetMethod(assembly, "Push", Log, ref failed);
             GetClientActive = Import<NetworkManager>().GetMethod(assembly, "get_isClient", Log, ref failed);
@@ -229,9 +243,9 @@ namespace Astraia.Editor
             return md.Name == "LogError" && md.Parameters.Count == 1 && md.Parameters[0].ParameterType.FullName == typeof(object).FullName;
         }
 
-        private static bool ReadModule(MethodDefinition method)
+        private static bool ReadModule(MethodDefinition md)
         {
-            return method.Name == nameof(Net.Extensions.ReadNetworkModule) && method.HasGenericParameters;
+            return md.Name == nameof(Net.Extensions.ReadNetworkModule) && md.HasGenericParameters;
         }
     }
 

@@ -643,7 +643,7 @@ namespace Astraia
 
     public abstract class Module<T> : Module, IModule
     {
-        [NonSerialized] public T owner;
+        public T owner { get; internal set; }
 
         void IModule.Acquire(object owner)
         {
@@ -661,7 +661,7 @@ namespace Astraia
 
     public abstract class State<T> : IState
     {
-        protected T owner;
+        protected T owner { get; private set; }
 
         void IState.Acquire(object item)
         {
