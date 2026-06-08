@@ -187,9 +187,6 @@ MonoBehaviour:
     - rid: 915762514025775160
       type: {class: GameManager, ns: Runtime, asm: Assembly-CSharp}
       data:
-        bounds:
-          m_Center: {x: 0, y: 0, z: 0}
-          m_Extent: {x: 0, y: 0, z: 0}
         smooth: {x: 0, y: 0, z: 0}
         player: {fileID: 0}
         mainCamera: {fileID: 0}
@@ -319,8 +316,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkManager
   moduleList:
-  - rid: 915762514025775320
   - rid: 915762514025775319
+  - rid: 915762514025775320
   maxPlayer: 100
   roomGuid: 
   roomData: 
@@ -337,7 +334,9 @@ MonoBehaviour:
         cellSize: 4
     - rid: 915762514025775320
       type: {class: NetworkDiscovery, ns: Astraia.Net, asm: Astraia.Net}
-      data: 
+      data:
+        address: 255.255.255.255
+        port: 47777
 --- !u!4 &584064306
 Transform:
   m_ObjectHideFlags: 0

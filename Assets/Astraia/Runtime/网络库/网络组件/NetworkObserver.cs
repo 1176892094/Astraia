@@ -107,22 +107,23 @@ namespace Astraia.Net
                 clients.Add(entity.client);
             }
 
+            var copied = entity.Clients();
             foreach (var client in clients)
             {
-                if (client.isReady && !entity.clients.Contains(client))
+                if (client.isReady && !copied.Contains(client))
                 {
-                    entity.AddObserver(client);
+                    entity.Add(client);
                 }
             }
 
             copies.Clear();
-            copies.AddRange(entity.clients);
+            copies.AddRange(copied);
 
             foreach (var client in copies)
             {
                 if (!clients.Contains(client))
                 {
-                    entity.SubObserver(client);
+                    entity.Remove(client);
                 }
             }
         }
@@ -134,7 +135,7 @@ namespace Astraia.Net
                 var pos = visible.WorldToNode(entity.transform.position) - visible.WorldToNode(player.transform.position);
                 if (Mathf.Abs(pos.x) <= extents.x && Mathf.Abs(pos.y) <= extents.y)
                 {
-                    entity.AddObserver(client);
+                    entity.Add(client);
                 }
             }
         }

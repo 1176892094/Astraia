@@ -77,8 +77,8 @@ namespace Astraia.Net
                         isLoadScene = true;
                         foreach (var client in clients.Values)
                         {
+                            client.Clear();
                             client.isReady = false;
-                            client.ClearObserver();
                             client.Send(new SceneMessage(sceneName));
                         }
 
@@ -152,7 +152,7 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        entity.AddObserver(client);
+                        entity.Add(client);
                     }
                 }
             }
@@ -253,7 +253,7 @@ namespace Astraia.Net
                         }
                     }
 
-                    client.ClearObserver();
+                    client.Clear();
                     EventManager.Invoke(new ServerDisconnect(client));
                 }
             }
@@ -334,7 +334,7 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (NetworkObserver.Instance != null && !entity.visible )
+                if (NetworkObserver.Instance != null && !entity.visible)
                 {
                     NetworkObserver.Instance.Add(entity);
                     NetworkObserver.Instance.Tick(entity);
@@ -345,34 +345,10 @@ namespace Astraia.Net
                     {
                         if (result.isReady)
                         {
-                            entity.AddObserver(result);
+                            entity.Add(result);
                         }
                     }
                 }
-            }
-
-            internal static void SpawnMessage(NetworkEntity entity, NetworkClient client)
-            {
-                using var owner = MemoryWriter.Pop();
-                using var other = MemoryWriter.Pop();
-
-                if (entity.modules.Length > 0)
-                {
-                    NetworkSyncVar.ServerSerialize(entity.modules, owner, other, true);
-                }
-
-                var message = new SpawnMessage
-                {
-                    isOwner = entity.client == client,
-                    assetId = entity.assetId,
-                    sceneId = entity.sceneId,
-                    objectId = entity.objectId,
-                    mutation = entity.transform.localScale,
-                    position = entity.transform.localPosition,
-                    rotation = entity.transform.localRotation.eulerAngles,
-                    segment = entity.modules.Length > 0 ? entity.client == client ? (ArraySegment<byte>)owner : (ArraySegment<byte>)other : null,
-                };
-                client.Send(message);
             }
 
             public static void Destroy(GameObject obj)
@@ -380,7 +356,7 @@ namespace Astraia.Net
                 if (obj.TryGetComponent(out NetworkEntity entity))
                 {
                     spawns.Remove(entity.objectId);
-                    foreach (var client in entity.clients)
+                    foreach (var client in entity.Clients())
                     {
                         client.Send(new DestroyMessage(entity.objectId));
                     }
@@ -419,7 +395,7 @@ namespace Astraia.Net
                     {
                         if (client.isReady)
                         {
-                            foreach (var entity in client.entities)
+                            foreach (var entity in client.Entities())
                             {
                                 if (entity)
                                 {

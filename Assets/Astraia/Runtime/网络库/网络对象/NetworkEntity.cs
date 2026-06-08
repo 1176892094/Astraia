@@ -57,8 +57,6 @@ namespace Astraia.Net
 
         internal MemoryWriter other = new MemoryWriter();
 
-        internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
-
         public bool isOwner => (state & State.所有者) != 0;
 
         public bool isServer => (state & State.服务器) != 0 && NetworkManager.isServer;
@@ -89,23 +87,23 @@ namespace Astraia.Net
                 NetworkManager.Server.Destroy(gameObject);
             }
 
+            this.Clear();
             owner = null;
             other = null;
             client = null;
             modules = null;
-            ClearObserver();
             base.OnDestroy();
         }
 
         public virtual void Reset()
         {
+            this.Clear();
             objectId = 0;
             client = null;
             owner.position = 0;
             other.position = 0;
             state = State.默认;
             state = State.默认;
-            ClearObserver();
         }
 
 #if UNITY_EDITOR
@@ -186,44 +184,6 @@ namespace Astraia.Net
                     module.ClearDirty();
                 }
             }
-        }
-
-        internal void AddObserver(NetworkClient client)
-        {
-            if (clients.Add(client))
-            {
-                if (clients.Count == 1)
-                {
-                    ClearDirty(true);
-                }
-
-                client.entities.Add(this);
-                NetworkManager.Server.SpawnMessage(this, client);
-            }
-        }
-
-        internal void SubObserver(NetworkClient client)
-        {
-            if (clients.Remove(client))
-            {
-                if (clients.Count == 0)
-                {
-                    ClearDirty(true);
-                }
-
-                client.entities.Remove(this);
-                client.Send(new DespawnMessage(objectId));
-            }
-        }
-
-        private void ClearObserver()
-        {
-            foreach (var item in clients)
-            {
-                item.entities.Remove(this);
-            }
-
-            clients.Clear();
         }
 
         internal void OnStartClient()

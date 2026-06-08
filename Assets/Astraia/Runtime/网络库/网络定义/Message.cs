@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using Astraia.Net;
 using UnityEngine;
 
 namespace Astraia.Core
@@ -72,16 +73,28 @@ namespace Astraia.Core
         }
     }
 
-    internal struct SpawnMessage : IMessage
+    internal readonly struct SpawnMessage : IMessage
     {
-        public bool isOwner;
-        public uint assetId;
-        public uint sceneId;
-        public uint objectId;
-        public Vector3 mutation;
-        public Vector3 position;
-        public Vector3 rotation;
-        public ArraySegment<byte> segment;
+        public readonly bool isOwner;
+        public readonly uint assetId;
+        public readonly uint sceneId;
+        public readonly uint objectId;
+        public readonly Vector3 mutation;
+        public readonly Vector3 position;
+        public readonly Vector3 rotation;
+        public readonly ArraySegment<byte> segment;
+
+        public SpawnMessage(NetworkEntity entity, NetworkClient client, ArraySegment<byte> message)
+        {
+            isOwner = entity.client == client;
+            assetId = entity.assetId;
+            sceneId = entity.sceneId;
+            objectId = entity.objectId;
+            mutation = entity.transform.localScale;
+            position = entity.transform.localPosition;
+            rotation = entity.transform.localRotation.eulerAngles;
+            segment = message;
+        }
     }
 
     internal struct SpawnBeginMessage : IMessage
