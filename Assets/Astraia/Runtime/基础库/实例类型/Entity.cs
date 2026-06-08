@@ -618,8 +618,12 @@ namespace Astraia
         void OnHide();
     }
 
-    public abstract class Module
+    public abstract class Module : IModule
     {
+        void IModule.Acquire(object owner)
+        {
+        }
+
         public virtual void Dequeue()
         {
         }
@@ -816,7 +820,7 @@ namespace Astraia
     public struct OnFixedUpdate : IEvent
     {
     }
-    
+
     public struct OnGizmoUpdate : IEvent
     {
     }

@@ -57,7 +57,7 @@ namespace Astraia.Net
                     AddMessage(false);
                     state = State.正在连接;
                     connection = new NetworkServer();
-                    Transport.StartClient();
+                    kcp.StartClient();
                 }
             }
 
@@ -93,12 +93,12 @@ namespace Astraia.Net
             {
                 if (!isHost)
                 {
-                    Transport.client.Connect -= Connect;
-                    Transport.client.Disconnect -= Disconnect;
-                    Transport.client.Receive -= Receive;
-                    Transport.client.Connect += Connect;
-                    Transport.client.Disconnect += Disconnect;
-                    Transport.client.Receive += Receive;
+                    kcp.cEvent.Connect -= Connect;
+                    kcp.cEvent.Disconnect -= Disconnect;
+                    kcp.cEvent.Receive -= Receive;
+                    kcp.cEvent.Connect += Connect;
+                    kcp.cEvent.Disconnect += Disconnect;
+                    kcp.cEvent.Receive += Receive;
                 }
 
                 NetworkMessage<PingMessage>.Add(PingMessage);
@@ -373,7 +373,7 @@ namespace Astraia.Net
 
             internal static void EarlyUpdate()
             {
-                Transport?.ClientEarlyUpdate();
+                kcp?.ClientEarlyUpdate();
             }
 
             internal static void AfterUpdate()
@@ -416,7 +416,7 @@ namespace Astraia.Net
                     }
                 }
 
-                Transport?.ClientAfterUpdate();
+                kcp?.ClientAfterUpdate();
             }
         }
     }

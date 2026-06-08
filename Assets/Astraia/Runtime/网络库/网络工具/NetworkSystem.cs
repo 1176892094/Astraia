@@ -53,11 +53,7 @@ namespace Astraia.Net
 
                 var oldLength = playerLoop.subSystemList?.Length ?? 0;
                 Array.Resize(ref playerLoop.subSystemList, oldLength + 1);
-                playerLoop.subSystemList[oldLength] = new PlayerLoopSystem
-                {
-                    type = typeof(NetworkManager),
-                    updateDelegate = function
-                };
+                playerLoop.subSystemList[oldLength] = new PlayerLoopSystem { type = typeof(NetworkManager), updateDelegate = function };
                 return true;
             }
 
@@ -75,14 +71,14 @@ namespace Astraia.Net
             return false;
         }
 
-        private const double SEND_RATE = 1.0 / 30;
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool Tick(ref double sendTime)
         {
-            if (sendTime < NetworkManager.syncTime - SEND_RATE)
+            var syncTime = NetworkManager.syncTime;
+            var syncRate = NetworkManager.syncRate;
+            if (sendTime < syncTime - syncRate)
             {
-                sendTime = (long)(NetworkManager.syncTime/ SEND_RATE) * SEND_RATE;
+                sendTime = (long)(syncTime / syncRate) * syncRate;
                 return true;
             }
 

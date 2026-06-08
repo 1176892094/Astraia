@@ -100,7 +100,7 @@ namespace Astraia.Net
             try
             {
                 using var writer = MemoryWriter.Pop();
-                writer.Invoke(new ResponseMessage(NetworkManager.Transport.port));
+                writer.Invoke(new ResponseMessage(NetworkManager.kcp.port));
                 ArraySegment<byte> segment = writer;
                 udpServer.Send(segment.Array!, segment.Count, endPoint);
             }

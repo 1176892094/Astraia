@@ -50,7 +50,7 @@ namespace Runtime
             SetDirectionClientRpc(direction);
         }
 
-        [ClientRpc(Pass.KCP | Pass.EXT)]
+        [ClientRpc(Pass.KCP | Pass.ANY)]
         private void SetDirectionClientRpc(int direction)
         {
             owner.transform.localScale = new Vector3(direction, 1, 1);

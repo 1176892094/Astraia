@@ -49,14 +49,7 @@ namespace Astraia.Net
     {
         public const byte KCP = 1 << 0;
         public const byte UDP = 1 << 1;
-        public const byte EXT = 1 << 2;
-    }
-
-    public enum RoomMode : byte
-    {
-        公开,
-        私有,
-        锁定,
+        public const byte ANY = 1 << 2;
     }
 
     internal enum SyncMode : byte

@@ -991,13 +991,13 @@ namespace Astraia
     }
 
     [Serializable]
-    internal abstract class Transport
+    internal abstract class Transport : Module
     {
         public string address = "localhost";
         public ushort port = 20974;
 
-        public readonly CEvent client = new CEvent();
-        public readonly SEvent server = new SEvent();
+        public readonly CEvent cEvent = new CEvent();
+        public readonly SEvent sEvent = new SEvent();
 
         public abstract uint GetLength(int pass);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP);
@@ -1014,7 +1014,7 @@ namespace Astraia
     }
 
     [Serializable]
-    internal sealed class KcpTransport : Transport
+    internal sealed class NetworkTransport : Transport, IModule
     {
         private const uint MAX_MTU = 1200;
         private const uint TIME_OUT = 10000;
@@ -1027,18 +1027,18 @@ namespace Astraia
         private KcpClient kcpClient;
         private KcpServer kcpServer;
 
-        public KcpTransport(bool isServer = false)
+        void IModule.Acquire(object owner)
         {
             var setting = new Setting(MAX_MTU, TIME_OUT, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
-            kcpClient = new KcpClient(setting, client);
-            kcpServer = new KcpServer(setting, server);
-            if (isServer)
+            kcpClient = new KcpClient(setting, cEvent);
+            kcpServer = new KcpServer(setting, sEvent);
+            if (owner is true)
             {
-                server.Error = OnServerError;
+                sEvent.Error = OnServerError;
             }
             else
             {
-                client.Error = OnClientError;
+                cEvent.Error = OnClientError;
             }
         }
 
@@ -1063,13 +1063,13 @@ namespace Astraia
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP)
         {
             kcpServer.Send(clientId, segment, pass);
-            server.Send?.Invoke(clientId, segment);
+            sEvent.Send?.Invoke(clientId, segment);
         }
 
         public override void SendToServer(ArraySegment<byte> segment, int pass = Pass.KCP)
         {
             kcpClient.Send(segment, pass);
-            client.Send?.Invoke(segment);
+            cEvent.Send?.Invoke(segment);
         }
 
         public override void StartServer()

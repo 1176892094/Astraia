@@ -41,7 +41,7 @@ namespace Astraia.Net
             {
                 if (isHost)
                 {
-                    Transport.StartServer();
+                    kcp.StartServer();
                 }
 
                 state = State.连接成功;
@@ -59,7 +59,7 @@ namespace Astraia.Net
                 }
 
                 state = State.断开连接;
-                Transport.StopServer();
+                kcp.StopServer();
                 sendTime = 0;
                 objectId = 0;
                 spawns.Clear();
@@ -115,12 +115,12 @@ namespace Astraia.Net
         {
             private static void AddMessage()
             {
-                Transport.server.Connect -= Connect;
-                Transport.server.Disconnect -= Disconnect;
-                Transport.server.Receive -= Receive;
-                Transport.server.Connect += Connect;
-                Transport.server.Disconnect += Disconnect;
-                Transport.server.Receive += Receive;
+                kcp.sEvent.Connect -= Connect;
+                kcp.sEvent.Disconnect -= Disconnect;
+                kcp.sEvent.Receive -= Receive;
+                kcp.sEvent.Connect += Connect;
+                kcp.sEvent.Disconnect += Disconnect;
+                kcp.sEvent.Receive += Receive;
                 NetworkMessage<PongMessage>.Add(PongMessage);
                 NetworkMessage<ReadyMessage>.Add(ReadyMessage);
                 NetworkMessage<EntityMessage>.Add(EntityMessage);
@@ -217,11 +217,11 @@ namespace Astraia.Net
             {
                 if (clients.Count >= Instance.maxPlayer)
                 {
-                    Transport.Disconnect(id);
+                    kcp.Disconnect(id);
                 }
                 else if (clients.ContainsKey(id))
                 {
-                    Transport.Disconnect(id);
+                    kcp.Disconnect(id);
                 }
                 else
                 {
@@ -382,7 +382,7 @@ namespace Astraia.Net
 
             internal static void EarlyUpdate()
             {
-                Transport?.ServerEarlyUpdate();
+                kcp?.ServerEarlyUpdate();
             }
 
             internal static void AfterUpdate()
@@ -430,7 +430,7 @@ namespace Astraia.Net
                     }
                 }
 
-                Transport?.ServerAfterUpdate();
+                kcp?.ServerAfterUpdate();
             }
         }
     }

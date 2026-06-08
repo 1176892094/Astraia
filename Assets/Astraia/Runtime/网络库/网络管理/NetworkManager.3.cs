@@ -38,24 +38,24 @@ namespace Astraia.Net
             internal static void Start()
             {
                 isRemote = true;
-                NetworkTransport.Instance.client.Connect -= Connect;
-                NetworkTransport.Instance.client.Disconnect -= Disconnect;
-                NetworkTransport.Instance.client.Receive -= Receive;
-                NetworkTransport.Instance.client.Connect += Connect;
-                NetworkTransport.Instance.client.Disconnect += Disconnect;
-                NetworkTransport.Instance.client.Receive += Receive;
-                NetworkTransport.Instance.port = Transport.port;
-                NetworkTransport.Instance.address = Transport.address;
-                NetworkTransport.Instance.StartClient();
+                NetworkAuthority.Instance.cEvent.Connect -= Connect;
+                NetworkAuthority.Instance.cEvent.Disconnect -= Disconnect;
+                NetworkAuthority.Instance.cEvent.Receive -= Receive;
+                NetworkAuthority.Instance.cEvent.Connect += Connect;
+                NetworkAuthority.Instance.cEvent.Disconnect += Disconnect;
+                NetworkAuthority.Instance.cEvent.Receive += Receive;
+                NetworkAuthority.Instance.port = kcp.port;
+                NetworkAuthority.Instance.address = kcp.address;
+                NetworkAuthority.Instance.StartClient();
             }
 
             internal static async void Update()
             {
-                using var request = UnityWebRequest.Get("http://{0}:{1}/api/compressed/servers".Format(Transport.address, Transport.port));
+                using var request = UnityWebRequest.Get("http://{0}:{1}/api/compressed/servers".Format(kcp.address, kcp.port));
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Log.Warn("无法获取服务器列表: {0}:{1}\n{2}", Transport.address, Transport.port, request.result);
+                    Log.Warn("无法获取服务器列表: {0}:{1}\n{2}", kcp.address, kcp.port, request.result);
                     return;
                 }
 
@@ -73,7 +73,7 @@ namespace Astraia.Net
                 writer.WriteString(Instance.roomData);
                 writer.WriteInt32(Instance.maxPlayer);
                 writer.WriteInt32((byte)roomMode);
-                NetworkTransport.Instance.SendToServer(writer);
+                NetworkAuthority.Instance.SendToServer(writer);
             }
 
             private static void Connect()
@@ -91,7 +91,7 @@ namespace Astraia.Net
                     isServer = false;
                     isClient = false;
                     state = State.断开连接;
-                    NetworkTransport.Instance.StopClient();
+                    NetworkAuthority.Instance.StopClient();
                     EventManager.Invoke(new LobbyDisconnect());
                 }
 
@@ -109,7 +109,7 @@ namespace Astraia.Net
                         using var writer = MemoryWriter.Pop();
                         writer.WriteByte((byte)Lobby.请求进入大厅);
                         writer.WriteString(Instance.roomGuid);
-                        NetworkTransport.Instance.SendToServer(writer);
+                        NetworkAuthority.Instance.SendToServer(writer);
                     }
                     else if (opcode == Lobby.进入大厅成功)
                     {
@@ -120,7 +120,7 @@ namespace Astraia.Net
                     {
                         var index = reader.ReadInt32();
                         var address = reader.ReadString();
-                        NetworkTransport.Instance.address = address;
+                        NetworkAuthority.Instance.address = address;
                         EventManager.Invoke(new LobbyCreateRoom(index, address));
                     }
                     else if (opcode == Lobby.加入房间成功)
@@ -131,12 +131,12 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt32();
                             clients.Add(clientId, objectId);
                             players.Add(objectId, clientId);
-                            Transport.server.Connect(objectId);
+                            kcp.sEvent.Connect(objectId);
                         }
 
                         if (isClient)
                         {
-                            Transport.client.Connect();
+                            kcp.cEvent.Connect();
                         }
                     }
                     else if (opcode == Lobby.离开房间成功)
@@ -144,7 +144,7 @@ namespace Astraia.Net
                         if (isClient)
                         {
                             isClient = false;
-                            Transport.client.Disconnect();
+                            kcp.cEvent.Disconnect();
                         }
                     }
                     else if (opcode == Lobby.同步网络数据)
@@ -155,13 +155,13 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt32();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
-                                Transport.server.Receive(playerId, message, pass);
+                                kcp.sEvent.Receive(playerId, message, pass);
                             }
                         }
 
                         if (isClient)
                         {
-                            Transport.client.Receive(message, pass);
+                            kcp.cEvent.Receive(message, pass);
                         }
                     }
                     else if (opcode == Lobby.断开玩家连接)
@@ -171,7 +171,7 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt32();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
-                                Transport.server.Disconnect(playerId);
+                                kcp.sEvent.Disconnect(playerId);
                                 clients.Remove(clientId);
                                 players.Remove(playerId);
                             }

@@ -359,8 +359,8 @@ namespace Astraia.Net
             {
                 GUILayout.BeginHorizontal();
                 var ping = (int)Math.Min(NetworkManager.Client.pingTime * 1000, 999);
-                var peer = NetworkManager.Transport != null ? NetworkManager.Transport.address : "127.0.0.1";
-                var port = NetworkManager.Transport!= null ? NetworkManager.Transport.port : (ushort)20974;
+                var peer = NetworkManager.kcp != null ? NetworkManager.kcp.address : "127.0.0.1";
+                var port = NetworkManager.kcp!= null ? NetworkManager.kcp.port : (ushort)20974;
                 GUILayout.Label("{0} : {1}".Format(peer, port), "Button", GUILayout.Width((ScreenX - 20) / 2), GUILayout.Height(30));
                 GUILayout.Label(NetworkManager.isClient ? "Ping: {0} ms".Format(ping) : "Client is not active!", "Button", GUILayout.Height(30));
                 GUILayout.EndHorizontal();
@@ -991,16 +991,16 @@ namespace Astraia.Net
 
         public static void Enable()
         {
-            if (NetworkManager.Transport!= null)
+            if (NetworkManager.kcp!= null)
             {
-                NetworkManager.Transport.client.Send -= OnClientSend;
-                NetworkManager.Transport.server.Send -= OnServerSend;
-                NetworkManager.Transport.client.Receive -= OnClientReceive;
-                NetworkManager.Transport.server.Receive -= OnServerReceive;
-                NetworkManager.Transport.client.Send += OnClientSend;
-                NetworkManager.Transport.server.Send += OnServerSend;
-                NetworkManager.Transport.client.Receive += OnClientReceive;
-                NetworkManager.Transport.server.Receive += OnServerReceive;
+                NetworkManager.kcp.cEvent.Send -= OnClientSend;
+                NetworkManager.kcp.sEvent.Send -= OnServerSend;
+                NetworkManager.kcp.cEvent.Receive -= OnClientReceive;
+                NetworkManager.kcp.sEvent.Receive -= OnServerReceive;
+                NetworkManager.kcp.cEvent.Send += OnClientSend;
+                NetworkManager.kcp.sEvent.Send += OnServerSend;
+                NetworkManager.kcp.cEvent.Receive += OnClientReceive;
+                NetworkManager.kcp.sEvent.Receive += OnServerReceive;
             }
 
             isActive = true;
@@ -1144,10 +1144,10 @@ namespace Astraia.Net
         {
             public Type Type { get; set; }
             public string Path { get; set; }
-            public int Acquire { get; set; }
-            public int Release { get; set; }
-            public int Dequeue { get; set; }
-            public int Enqueue { get; set; }
+            public int Acquire { get; private set; }
+            public int Release { get; private set; }
+            public int Dequeue { get; private set; }
+            public int Enqueue { get; private set; }
 
             public Pool(Type type = null)
             {

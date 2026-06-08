@@ -14,14 +14,9 @@ using System;
 namespace Astraia.Net
 {
     [Serializable]
-    internal sealed class NetworkTransport : Transport
+    internal sealed class NetworkAuthority : Transport
     {
         public static Transport Instance;
-
-        public NetworkTransport(Transport transport)
-        {
-            Instance = transport;
-        }
 
         public override uint GetLength(int pass)
         {
@@ -133,5 +128,12 @@ namespace Astraia.Net
         public string Name;
         public string Data;
         public int[] Members;
+    }
+
+    public enum RoomMode : byte
+    {
+        公开,
+        私有,
+        锁定,
     }
 }

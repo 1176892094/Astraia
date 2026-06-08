@@ -90,7 +90,7 @@ namespace Astraia.Editor
                         }
                     }
 
-                    if (td.HasInterface(typeof(IModule)))
+                    if (td.IsSubclassOf(typeof(Module<>)))
                     {
                         modified |= CustomGenerator.Processed(assembly, td, module, Log);
                     }
@@ -365,7 +365,7 @@ namespace Astraia.Editor
             return self.Is(typeof(T));
         }
 
-        private static bool IsSubclassOf(this TypeReference self, Type t)
+        public static bool IsSubclassOf(this TypeReference self, Type t)
         {
             var td = self.Resolve();
             if (!td.IsClass)

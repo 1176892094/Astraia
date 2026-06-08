@@ -315,28 +315,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55c3b094877074c03a956c8a536c6a66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkManager
-  moduleList:
-  - rid: 915762514025775319
-  - rid: 915762514025775320
+  moduleList: []
+  sendRate: 30
   maxPlayer: 100
   roomGuid: 
   roomData: 
   roomName: 
   roomMode: 0
-  transports: []
   references:
     version: 2
-    RefIds:
-    - rid: 915762514025775319
-      type: {class: NetworkObserver, ns: Astraia.Net, asm: Astraia.Net}
-      data:
-        extents: {x: 2, y: 1}
-        cellSize: 4
-    - rid: 915762514025775320
-      type: {class: NetworkDiscovery, ns: Astraia.Net, asm: Astraia.Net}
-      data:
-        address: 255.255.255.255
-        port: 47777
+    RefIds: []
 --- !u!4 &584064306
 Transform:
   m_ObjectHideFlags: 0
