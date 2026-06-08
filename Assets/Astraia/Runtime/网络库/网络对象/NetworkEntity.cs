@@ -88,10 +88,9 @@ namespace Astraia.Net
             this.Clear();
             objectId = 0;
             client = null;
+            state = State.默认;
             owner.position = 0;
             other.position = 0;
-            state = State.默认;
-            state = State.默认;
         }
 
 #if UNITY_EDITOR
