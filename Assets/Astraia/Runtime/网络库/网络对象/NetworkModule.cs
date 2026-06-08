@@ -61,7 +61,7 @@ namespace Astraia.Net
         public NetworkClient client => owner.client;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsDirty() => syncVarDirty != 0UL && Time.unscaledTimeAsDouble - syncVarTime >= syncStep;
+        public bool IsDirty() => syncVarDirty != 0UL && NetworkManager.sinceTime - syncVarTime >= syncStep;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void SetSyncVarDirty(ulong dirty) => syncVarDirty |= dirty;
@@ -73,7 +73,7 @@ namespace Astraia.Net
         public void ClearDirty()
         {
             syncVarDirty = 0UL;
-            syncVarTime = Time.unscaledTimeAsDouble;
+            syncVarTime = NetworkManager.sinceTime;
         }
 
         internal void Serialize(MemoryWriter writer, bool isInit)

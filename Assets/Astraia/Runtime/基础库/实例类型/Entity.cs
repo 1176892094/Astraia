@@ -816,6 +816,10 @@ namespace Astraia
     public struct OnFixedUpdate : IEvent
     {
     }
+    
+    public struct OnGizmoUpdate : IEvent
+    {
+    }
 
     public abstract class Async : INotifyCompletion, IEvent<OnEarlyUpdate>
     {

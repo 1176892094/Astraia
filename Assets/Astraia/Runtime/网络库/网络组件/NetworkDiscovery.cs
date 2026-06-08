@@ -2,12 +2,15 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using Astraia.Core;
+using UnityEngine;
 
 namespace Astraia.Net
 {
     [Serializable]
     internal class NetworkDiscovery : Singleton<NetworkDiscovery>
     {
+        [SerializeField] private string address;
+        [SerializeField] private ushort port = 47777;
         private UdpClient udpClient;
         private UdpClient udpServer;
 
@@ -21,7 +24,7 @@ namespace Astraia.Net
             StopDiscovery();
             if (NetworkManager.isServer)
             {
-                udpServer = new UdpClient(47777) { EnableBroadcast = true, MulticastLoopback = false };
+                udpServer = new UdpClient(port) { EnableBroadcast = true, MulticastLoopback = false };
 #if UNITY_ANDROID
                 MulticastLock(true);
 #endif
@@ -50,11 +53,10 @@ namespace Astraia.Net
         {
             try
             {
-                var address = IPAddress.Broadcast.ToString();
-                var endPoint = new IPEndPoint(IPAddress.Broadcast, 47777);
+                var endPoint = new IPEndPoint(IPAddress.Broadcast, port);
                 if (!string.IsNullOrWhiteSpace(address))
                 {
-                    endPoint = new IPEndPoint(IPAddress.Parse(address), 47777);
+                    endPoint = new IPEndPoint(IPAddress.Parse(address), port);
                 }
 
                 using var writer = MemoryWriter.Pop();

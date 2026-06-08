@@ -120,6 +120,11 @@ namespace Astraia.Core
             EventManager.Invoke(new OnFixedUpdate());
         }
 
+        private void OnDrawGizmos()
+        {
+            EventManager.Invoke(new OnGizmoUpdate());
+        }
+
         private async void OnDestroy()
         {
             Async.Time = 0;

@@ -319,8 +319,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkManager
   moduleList:
-  - rid: 915762514025775319
   - rid: 915762514025775320
+  - rid: 915762514025775319
   maxPlayer: 100
   roomGuid: 
   roomData: 
@@ -333,8 +333,8 @@ MonoBehaviour:
     - rid: 915762514025775319
       type: {class: NetworkObserver, ns: Astraia.Net, asm: Astraia.Net}
       data:
-        extents: {x: 1, y: 1}
-        cellSize: 1
+        extents: {x: 4, y: 2}
+        cellSize: 4
     - rid: 915762514025775320
       type: {class: NetworkDiscovery, ns: Astraia.Net, asm: Astraia.Net}
       data: 

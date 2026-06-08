@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkObserver : Singleton<NetworkObserver>
+    public class NetworkObserver : Singleton<NetworkObserver>, IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
     {
         private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
         private readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
@@ -43,7 +43,43 @@ namespace Astraia.Net
             entities.Clear();
         }
 
-        private void OnDrawGizmos()
+        public void Register(NetworkEntity entity)
+        {
+            players[entity.client] = entity;
+            visible.Insert(entity.client, entity.transform.position);
+        }
+
+        public void UnRegister(NetworkClient client)
+        {
+            players.Remove(client);
+            visible.Remove(client);
+            waitTime = NetworkManager.sinceTime + 0.2;
+        }
+
+        public void Execute(OnAfterUpdate message)
+        {
+            if (NetworkManager.isServer)
+            {
+                foreach (var player in players.Values)
+                {
+                    if (player)
+                    {
+                        visible.Update(player.client, player.transform.position);
+                    }
+                }
+
+                if (waitTime < NetworkManager.sinceTime)
+                {
+                    waitTime = NetworkManager.sinceTime + 0.2;
+                    foreach (var entity in entities)
+                    {
+                        Tick(entity);
+                    }
+                }
+            }
+        }
+
+        public void Execute(OnGizmoUpdate message)
         {
             foreach (var player in players.Values)
             {
@@ -57,42 +93,6 @@ namespace Astraia.Net
                     for (var y = min.y; y <= max.y; y++)
                     {
                         Gizmos.DrawWireCube(new Vector2(x + 0.5F, y + 0.5F) * cellSize, Vector2.one * cellSize);
-                    }
-                }
-            }
-        }
-
-        public void Register(NetworkEntity entity)
-        {
-            players[entity.client] = entity;
-            visible.Insert(entity.client, entity.transform.position);
-        }
-
-        public void UnRegister(NetworkClient client)
-        {
-            players.Remove(client);
-            visible.Remove(client);
-            waitTime = Time.unscaledTimeAsDouble + 0.2;
-        }
-
-        public void LateUpdate()
-        {
-            if (NetworkManager.isServer)
-            {
-                foreach (var player in players.Values)
-                {
-                    if (player)
-                    {
-                        visible.Update(player.client, player.transform.position);
-                    }
-                }
-
-                if (waitTime < Time.unscaledTimeAsDouble)
-                {
-                    waitTime = Time.unscaledTimeAsDouble + 0.2;
-                    foreach (var entity in entities)
-                    {
-                        Tick(entity);
                     }
                 }
             }

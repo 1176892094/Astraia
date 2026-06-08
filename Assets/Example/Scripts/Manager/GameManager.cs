@@ -20,7 +20,7 @@ namespace Runtime
     [Serializable]
     public class GameManager : Singleton<GameManager>, IEvent<ServerReady>, IEvent<OnEarlyUpdate>
     {
-        [SerializeField] private Bounds bounds;
+        private Bounds bounds;
         [SerializeField] private Vector3 smooth;
         [SerializeField] private Transform player;
         [SerializeField] private Camera mainCamera;
@@ -59,6 +59,7 @@ namespace Runtime
         {
             var obj = AssetManager.Load<GameObject>("Prefabs/30001");
             NetworkManager.Server.Spawn(obj, message.client);
+            NetworkObserver.Instance.Register(obj.GetComponent<NetworkEntity>());
         }
 
         public void Execute(OnEarlyUpdate message)
