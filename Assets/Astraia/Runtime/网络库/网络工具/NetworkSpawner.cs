@@ -38,15 +38,8 @@ namespace Astraia.Net
                 ArraySegment<byte> segment = default;
                 if (entity.modules.Length > 0)
                 {
-                    NetworkSyncVar.ServerSend(entity.modules, owner, other, true);
-                    if (entity.client == client)
-                    {
-                        segment = (ArraySegment<byte>)owner;
-                    }
-                    else
-                    {
-                        segment = (ArraySegment<byte>)other;
-                    }
+                    entity.modules.ServerSend(owner, other, true);
+                    segment = (ArraySegment<byte>)(entity.client == client ? owner : other);
                 }
 
                 client.Send(new SpawnMessage(entity, client, segment));

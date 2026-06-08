@@ -159,7 +159,7 @@ namespace Astraia.Net
         {
         }
 
-        protected void SendServerRpcInternal(string name, int hash, MemoryWriter writer, int pass)
+        protected void SendServerRpcInternal(string name, int method, MemoryWriter writer, int pass)
         {
             if (!NetworkManager.isClient)
             {
@@ -185,11 +185,11 @@ namespace Astraia.Net
                 return;
             }
 
-            var message = new ServerRpcMessage(objectId, moduleId, (ushort)hash, writer);
+            var message = new ServerRpcMessage(objectId, moduleId, (ushort)method, writer);
             NetworkManager.Client.connection.Send(message, (pass & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
         }
 
-        protected void SendClientRpcInternal(string name, int hash, MemoryWriter writer, int pass)
+        protected void SendClientRpcInternal(string name, int method, MemoryWriter writer, int pass)
         {
             if (!NetworkManager.isServer)
             {
@@ -203,7 +203,7 @@ namespace Astraia.Net
                 return;
             }
 
-            var message = new ClientRpcMessage(objectId, moduleId, (ushort)hash, writer);
+            var message = new ClientRpcMessage(objectId, moduleId, (ushort)method, writer);
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 

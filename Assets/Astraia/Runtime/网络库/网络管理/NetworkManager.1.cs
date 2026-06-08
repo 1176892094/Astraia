@@ -178,7 +178,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                if (!NetworkSyncVar.ServerReceive(entity.modules, reader))
+                if (!entity.modules.ServerReceive(reader))
                 {
                     Log.Warn("无法为客户端 {0} 反序列化网络对象: {1}", client.clientId, message.objectId);
                     client.Disconnect();
@@ -200,14 +200,14 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (NetworkAttribute.HasHook(message.methodHash) && entity.client != client)
+                if (NetworkAttribute.HasHook(message.methodId) && entity.client != client)
                 {
                     Log.Warn("无法为客户端 {0} 进行远程调用，未通过验证 {1}。", client.clientId, message.objectId);
                     return;
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                entity.InvokeMessage(message.moduleId, message.methodHash, HookMode.服务器, reader, client);
+                entity.InvokeMessage(message.moduleId, message.methodId, HookMode.服务器, reader, client);
             }
         }
 
@@ -404,7 +404,7 @@ namespace Astraia.Net
                                         entity.count = Time.frameCount;
                                         entity.owner.position = 0;
                                         entity.other.position = 0;
-                                        NetworkSyncVar.ServerSend(entity.modules, entity.owner, entity.other);
+                                        entity.modules.ServerSend(entity.owner, entity.other);
                                         entity.ClearDirty(true);
                                     }
 

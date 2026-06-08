@@ -45,14 +45,14 @@ namespace Astraia.Core
     {
         public readonly uint objectId;
         public readonly byte moduleId;
-        public readonly ushort methodHash;
+        public readonly ushort methodId;
         public readonly ArraySegment<byte> segment;
 
-        public ServerRpcMessage(uint objectId, byte moduleId, ushort methodHash, ArraySegment<byte> segment)
+        public ServerRpcMessage(uint objectId, byte moduleId, ushort methodId, ArraySegment<byte> segment)
         {
             this.objectId = objectId;
             this.moduleId = moduleId;
-            this.methodHash = methodHash;
+            this.methodId = methodId;
             this.segment = segment;
         }
     }
@@ -61,14 +61,14 @@ namespace Astraia.Core
     {
         public readonly uint objectId;
         public readonly byte moduleId;
-        public readonly ushort methodHash;
+        public readonly ushort methodId;
         public readonly ArraySegment<byte> segment;
 
-        public ClientRpcMessage(uint objectId, byte moduleId, ushort methodHash, ArraySegment<byte> segment)
+        public ClientRpcMessage(uint objectId, byte moduleId, ushort methodId, ArraySegment<byte> segment)
         {
             this.objectId = objectId;
             this.moduleId = moduleId;
-            this.methodHash = methodHash;
+            this.methodId = methodId;
             this.segment = segment;
         }
     }

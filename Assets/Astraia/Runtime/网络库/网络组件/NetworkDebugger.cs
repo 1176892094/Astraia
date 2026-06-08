@@ -1089,12 +1089,12 @@ namespace Astraia.Net
                 switch (message)
                 {
                     case ServerRpcMessage serverRpc:
-                        reason = serverRpc.methodHash;
-                        result *= serverRpc.methodHash;
+                        reason = serverRpc.methodId;
+                        result *= serverRpc.methodId;
                         break;
                     case ClientRpcMessage clientRpc:
-                        reason = clientRpc.methodHash;
-                        result *= clientRpc.methodHash;
+                        reason = clientRpc.methodId;
+                        result *= clientRpc.methodId;
                         break;
                 }
 

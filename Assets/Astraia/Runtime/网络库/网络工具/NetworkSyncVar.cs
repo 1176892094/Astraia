@@ -13,7 +13,7 @@ using System.Runtime.CompilerServices;
 
 namespace Astraia.Net
 {
-    public static class NetworkSyncVar
+    internal static class NetworkSyncVar
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsDirty(ulong mask, int index)
@@ -21,7 +21,7 @@ namespace Astraia.Net
             return (mask & (ulong)(1 << index)) != 0;
         }
 
-        internal static void ServerSend(NetworkModule[] modules, MemoryWriter owner, MemoryWriter other, bool isInit = false)
+        public static void ServerSend(this NetworkModule[] modules, MemoryWriter owner, MemoryWriter other, bool isInit = false)
         {
             var ownerMask = 0UL;
             var otherMask = 0UL;
@@ -72,7 +72,7 @@ namespace Astraia.Net
             }
         }
 
-        internal static void ClientReceive(NetworkModule[] modules, MemoryReader reader, bool isInit = false)
+        public static void ClientReceive(this NetworkModule[] modules, MemoryReader reader, bool isInit = false)
         {
             var mask = Compress.DecodeUInt64(reader);
             for (var i = 0; i < modules.Length; ++i)
@@ -84,7 +84,7 @@ namespace Astraia.Net
             }
         }
 
-        internal static void ClientSend(NetworkModule[] modules, MemoryWriter writer, bool isOwner)
+        public static void ClientSend(this NetworkModule[] modules, MemoryWriter writer, bool isOwner)
         {
             var ownerMask = 0UL;
             for (var i = 0; i < modules.Length; ++i)
@@ -108,7 +108,7 @@ namespace Astraia.Net
             }
         }
 
-        internal static bool ServerReceive(NetworkModule[] modules, MemoryReader reader)
+        public static bool ServerReceive(this NetworkModule[] modules, MemoryReader reader)
         {
             var mask = Compress.DecodeUInt64(reader);
             for (var i = 0; i < modules.Length; ++i)

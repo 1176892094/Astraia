@@ -22,7 +22,7 @@ namespace Astraia.Net
         public static partial class Client
         {
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
-            
+
             private static readonly Dictionary<uint, NetworkEntity> scenes = new Dictionary<uint, NetworkEntity>();
 
             private static readonly Dictionary<uint, NetworkEntity> copies = new Dictionary<uint, NetworkEntity>();
@@ -145,7 +145,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                NetworkSyncVar.ClientReceive(entity.modules, reader);
+                entity.modules.ClientReceive(reader);
             }
 
             private static void ClientRpcMessage(ClientRpcMessage message)
@@ -153,7 +153,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     using var reader = MemoryReader.Pop(message.segment);
-                    entity.InvokeMessage(message.moduleId, message.methodHash, HookMode.客户端, reader);
+                    entity.InvokeMessage(message.moduleId, message.methodId, HookMode.客户端, reader);
                 }
             }
 
@@ -288,7 +288,7 @@ namespace Astraia.Net
                     if (message.segment.Count > 0)
                     {
                         using var reader = MemoryReader.Pop(message.segment);
-                        NetworkSyncVar.ClientReceive(entity.modules, reader, true);
+                        entity.modules.ClientReceive(reader, true);
                     }
 
                     spawns[message.objectId] = entity;
@@ -385,7 +385,7 @@ namespace Astraia.Net
                         foreach (var entity in spawns.Values)
                         {
                             using var writer = MemoryWriter.Pop();
-                            NetworkSyncVar.ClientSend(entity.modules, writer, entity.isOwner);
+                            entity.modules.ClientSend(writer, entity.isOwner);
                             if (writer.position > 0)
                             {
                                 connection.Send(new EntityMessage(entity.objectId, writer));
