@@ -150,11 +150,14 @@ namespace Astraia.Net
 
             private static void ClientRpcMessage(ClientRpcMessage message)
             {
-                if (spawns.TryGetValue(message.objectId, out var entity))
+                if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    using var reader = MemoryReader.Pop(message.segment);
-                    entity.InvokeMessage(message.moduleId, message.methodId, HookMode.客户端, reader);
+                    Log.Warn("无法进行远程调用，未找到对象 {0}。", message.objectId);
+                    return;
                 }
+
+                using var reader = MemoryReader.Pop(message.segment);
+                entity.InvokeMessage(message.moduleId, message.methodId, HookMode.客户端, reader);
             }
 
             private static void SceneMessage(SceneMessage message)

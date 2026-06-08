@@ -22,7 +22,7 @@ namespace Astraia.Net
         public static partial class Server
         {
             internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
-            
+
             public static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
 
             private static readonly List<NetworkClient> copies = new List<NetworkClient>();
@@ -34,7 +34,7 @@ namespace Astraia.Net
             private static uint objectId;
 
             private static double sendTime;
-            public static bool isReady => clients.Values.All(connection => connection.isReady);
+            private static bool isReady => clients.Values.All(connection => connection.isReady);
             public static int connections => clients.Count;
 
             internal static void Start(bool isHost)
@@ -136,7 +136,7 @@ namespace Astraia.Net
             {
                 client.isReady = true;
                 client.Send(new SpawnBeginMessage());
-                EventManager.Invoke(new ServerReady(client));
+                EventManager.Invoke(new ServerReady(client, isReady));
 
                 if (NetworkObserver.Instance != null)
                 {
@@ -202,7 +202,7 @@ namespace Astraia.Net
 
                 if (NetworkAttribute.HasHook(message.methodId) && entity.client != client)
                 {
-                    Log.Warn("无法为客户端 {0} 进行远程调用，未通过验证 {1}。", client.clientId, message.objectId);
+                    Log.Warn("无法为客户端 {0} 进行远程调用，对象无权限 {1}。", client.clientId, message.objectId);
                     return;
                 }
 
