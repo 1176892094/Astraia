@@ -86,7 +86,7 @@ namespace Astraia.Core
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly IDictionary<int, UIStack> stackData = new Dictionary<int, UIStack>();
+        internal static readonly IDictionary<int, UIQueue> stackData = new Dictionary<int, UIQueue>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif

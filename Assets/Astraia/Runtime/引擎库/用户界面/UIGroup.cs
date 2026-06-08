@@ -29,7 +29,7 @@ namespace Astraia.Core
 
             if (!stackData.TryGetValue(panel.group, out var stack))
             {
-                stack = new UIStack();
+                stack = new UIQueue();
                 stackData.Add(panel.group, stack);
             }
 

@@ -2,7 +2,7 @@ using Astraia.Core;
 
 namespace Astraia
 {
-    internal sealed class UIStack
+    internal sealed class UIQueue
     {
         private UIPanel current;
         private UIPanel reverse;

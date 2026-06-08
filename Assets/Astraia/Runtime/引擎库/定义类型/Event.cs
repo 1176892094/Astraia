@@ -11,9 +11,9 @@
 
 namespace Astraia.Core
 {
-    public struct OnLoadBundle : IEvent
+    public readonly struct OnLoadBundle : IEvent
     {
-        public long bytes;
+        public readonly long bytes;
 
         public OnLoadBundle(long bytes)
         {
@@ -21,10 +21,10 @@ namespace Astraia.Core
         }
     }
 
-    public struct OnBundleUpdate : IEvent
+    public readonly struct OnBundleUpdate : IEvent
     {
-        public string name;
-        public ulong bytes;
+        public readonly string name;
+        public readonly ulong bytes;
 
         public OnBundleUpdate(string name, ulong bytes)
         {
@@ -33,10 +33,10 @@ namespace Astraia.Core
         }
     }
 
-    public struct OnBundleComplete : IEvent
+    public readonly struct OnBundleComplete : IEvent
     {
-        public int status;
-        public string message;
+        public readonly int status;
+        public readonly string message;
 
         public OnBundleComplete(int status, string message)
         {
@@ -45,9 +45,9 @@ namespace Astraia.Core
         }
     }
 
-    public struct OnLoadAsset : IEvent
+    public readonly struct OnLoadAsset : IEvent
     {
-        public string[] names;
+        public readonly string[] names;
 
         public OnLoadAsset(string[] names)
         {
@@ -55,9 +55,9 @@ namespace Astraia.Core
         }
     }
 
-    public struct OnAssetUpdate : IEvent
+    public readonly struct OnAssetUpdate : IEvent
     {
-        public string name;
+        public readonly string name;
 
         public OnAssetUpdate(string name)
         {
@@ -65,13 +65,13 @@ namespace Astraia.Core
         }
     }
 
-    public struct OnAssetComplete : IEvent
+    public readonly struct OnAssetComplete : IEvent
     {
     }
 
-    public struct OnLoadScene : IEvent
+    public readonly struct OnLoadScene : IEvent
     {
-        public string name;
+        public readonly string name;
 
         public OnLoadScene(string name)
         {
@@ -79,7 +79,7 @@ namespace Astraia.Core
         }
     }
 
-    public struct OnSceneUpdate : IEvent
+    public readonly struct OnSceneUpdate : IEvent
     {
         public readonly float progress;
 
@@ -99,7 +99,7 @@ namespace Astraia.Core
         }
     }
 
-    public struct OnDataComplete : IEvent
+    public readonly struct OnDataComplete : IEvent
     {
     }
 }
