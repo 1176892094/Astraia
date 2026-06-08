@@ -59,7 +59,6 @@ namespace Runtime
         {
             var obj = AssetManager.Load<GameObject>("Prefabs/30001");
             NetworkManager.Server.Spawn(obj, message.client);
-            NetworkObserver.Instance.Register(obj.GetComponent<NetworkEntity>());
         }
 
         public void Execute(OnEarlyUpdate message)

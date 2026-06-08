@@ -14,38 +14,36 @@ using System.Collections.Generic;
 
 namespace Astraia.Net
 {
-    public delegate void InvokeDelegate(NetworkModule component, MemoryReader reader, NetworkClient client);
-
     public static class NetworkAttribute
     {
-        private static readonly Dictionary<ushort, InvokeData> messages = new Dictionary<ushort, InvokeData>();
+        private static readonly Dictionary<ushort, HookData> messages = new Dictionary<ushort, HookData>();
 
-        public static void RegisterServerRpc(Type component, int pass, string name, InvokeDelegate func)
+        public static void RegisterServerRpc(Type module, int pass, string name, HookFunc func)
         {
-            AddInvoke(component, pass, name, HookMode.服务器, func);
+            AddHook(module, pass, name, HookMode.服务器, func);
         }
 
-        public static void RegisterClientRpc(Type component, int pass, string name, InvokeDelegate func)
+        public static void RegisterClientRpc(Type module, int pass, string name, HookFunc func)
         {
-            AddInvoke(component, pass, name, HookMode.客户端, func);
+            AddHook(module, pass, name, HookMode.客户端, func);
         }
 
-        private static void AddInvoke(Type component, int pass, string name, HookMode mode, InvokeDelegate func)
+        private static void AddHook(Type module, int pass, string name, HookMode mode, HookFunc func)
         {
             var id = (ushort)(NetworkMessage.Id(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
             {
-                message = new InvokeData(mode, func, component, pass);
+                message = new HookData(pass, mode, func, module);
                 messages[id] = message;
             }
 
-            if (message.mode != mode || message.component != component || message.func != func)
+            if (message.mode != mode || message.module != module || message.func != func)
             {
-                Log.Error("远程调用 [{0} {1}] 与 [{2} {3}] 冲突。", component, func.Method.Name, message.component, message.func.Method.Name);
+                Log.Error("远程调用 [{0} {1}] 与 [{2} {3}] 冲突。", module, func.Method.Name, message.module, message.func.Method.Name);
             }
         }
 
-        internal static bool HasInvoke(ushort id)
+        internal static bool HasHook(ushort id)
         {
             if (messages.TryGetValue(id, out var message))
             {
@@ -55,7 +53,7 @@ namespace Astraia.Net
             return false;
         }
 
-        internal static InvokeDelegate GetInvoke(ushort id)
+        internal static HookFunc GetHook(ushort id)
         {
             if (messages.TryGetValue(id, out var message))
             {
@@ -74,7 +72,7 @@ namespace Astraia.Net
                     return false;
                 }
 
-                if (!message.component.IsInstanceOfType(component)) // 判断是否是 NetworkModule 的实例或派生类型的实例
+                if (!message.module.IsInstanceOfType(component)) // 判断是否是 NetworkModule 的实例或派生类型的实例
                 {
                     return false;
                 }
@@ -86,20 +84,22 @@ namespace Astraia.Net
             return false;
         }
 
-        private struct InvokeData
+        private struct HookData
         {
-            public readonly HookMode mode;
-            public readonly InvokeDelegate func;
-            public readonly Type component;
             public readonly int pass;
+            public readonly Type module;
+            public readonly HookMode mode;
+            public readonly HookFunc func;
 
-            public InvokeData(HookMode mode, InvokeDelegate func, Type component, int pass)
+            public HookData(int pass, HookMode mode, HookFunc func, Type module)
             {
+                this.pass = pass;
                 this.mode = mode;
                 this.func = func;
-                this.component = component;
-                this.pass = pass;
+                this.module = module;
             }
         }
     }
+
+    public delegate void HookFunc(NetworkModule module, MemoryReader reader, NetworkClient client);
 }

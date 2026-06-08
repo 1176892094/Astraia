@@ -1104,7 +1104,7 @@ namespace Astraia.Net
                     messages[result] = item;
                     if (reason != -1)
                     {
-                        var method = NetworkAttribute.GetInvoke((ushort)reason);
+                        var method = NetworkAttribute.GetHook((ushort)reason);
                         if (method != null)
                         {
                             var name = method.Method.Name.EndsWith("V2") ? method.Method.Name[..^2] : method.Method.Name;

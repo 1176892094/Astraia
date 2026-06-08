@@ -173,7 +173,7 @@ namespace Astraia.Editor
             Initialized = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
             LogError = Import<Debug>().GetMethod(assembly, OnLogError, Log, ref failed);
             SyncVarHook = Import(typeof(Action<,>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
-            InvokeDelegate = Import<InvokeDelegate>().GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
+            InvokeDelegate = Import<HookFunc>().GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             AddArraySegment = Import(typeof(ArraySegment<>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             GetTypeFromHandle = Import<Type>().GetMethod(assembly, "GetTypeFromHandle", Log, ref failed);
             ReadNetworkModule = Import(typeof(Net.Extensions)).GetMethod(assembly, ReadModule, Log, ref failed);

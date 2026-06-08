@@ -200,7 +200,7 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (NetworkAttribute.HasInvoke(message.methodHash) && entity.client != client)
+                if (NetworkAttribute.HasHook(message.methodHash) && entity.client != client)
                 {
                     Log.Warn("无法为客户端 {0} 进行远程调用，未通过验证 {1}。", client.clientId, message.objectId);
                     return;
