@@ -91,7 +91,7 @@ namespace Astraia.Editor
                         }
                     }
 
-                    if (td.IsSubclassOf(typeof(Entity)))
+                    if (td.IsSubclassOf(typeof(Inject)))
                     {
                         modified |= EntityGenerator.Processed(td, module);
                     }
@@ -181,6 +181,7 @@ namespace Astraia.Editor
         {
             this.assembly = assembly;
             Initialized = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
+        
             LogError = Import<Debug>().GetMethod(assembly, OnLogError, Log, ref failed);
             SyncVarHook = Import(typeof(Action<,>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             InvokeDelegate = Import<HookFunc>().GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
@@ -188,9 +189,9 @@ namespace Astraia.Editor
             GetTypeFromHandle = Import<Type>().GetMethod(assembly, "GetTypeFromHandle", Log, ref failed);
             ReadNetworkModule = Import(typeof(Net.Extensions)).GetMethod(assembly, ReadModule, Log, ref failed);
 
-            Awake = Import(typeof(Entity)).GetMethod(assembly, nameof(Awake), Log, ref failed);
-            OnEnable = Import(typeof(Entity)).GetMethod(assembly, nameof(OnEnable), Log, ref failed);
-            OnDisable = Import(typeof(Entity)).GetMethod(assembly, nameof(OnDisable), Log, ref failed);
+            Awake = Import(typeof(Inject)).GetMethod(assembly, nameof(Awake), Log, ref failed);
+            OnEnable = Import(typeof(Inject)).GetMethod(assembly, nameof(OnEnable), Log, ref failed);
+            OnDisable = Import(typeof(Inject)).GetMethod(assembly, nameof(OnDisable), Log, ref failed);
 
             OnShow = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(OnShow), Log, ref failed);
             OnHide = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(OnHide), Log, ref failed);

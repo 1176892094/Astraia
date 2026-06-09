@@ -5,11 +5,11 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public class Entity : MonoBehaviour
+    public class Entity : Inject
     {
         [SerializeReference] public List<IModule> moduleList = new List<IModule>();
 
-        protected virtual void Awake()
+        protected override void Awake()
         {
             foreach (var module in moduleList)
             {
@@ -22,7 +22,7 @@ namespace Astraia
             }
         }
 
-        protected virtual void OnEnable()
+        protected override void OnEnable()
         {
             foreach (var module in moduleList)
             {
@@ -30,7 +30,7 @@ namespace Astraia
             }
         }
 
-        protected virtual void OnDisable()
+        protected override void OnDisable()
         {
             foreach (var module in moduleList)
             {
@@ -38,7 +38,7 @@ namespace Astraia
             }
         }
 
-        protected virtual void OnDestroy()
+        protected override void OnDestroy()
         {
             foreach (var module in moduleList)
             {
@@ -67,6 +67,25 @@ namespace Astraia
         public T GetComponent<T>(int index) where T : IModule
         {
             return index < moduleList.Count ? (T)moduleList[index] : default;
+        }
+    }
+
+    public abstract class Inject : MonoBehaviour
+    {
+        protected virtual void Awake()
+        {
+        }
+
+        protected virtual void OnEnable()
+        {
+        }
+
+        protected virtual void OnDisable()
+        {
+        }
+
+        protected virtual void OnDestroy()
+        {
         }
     }
 

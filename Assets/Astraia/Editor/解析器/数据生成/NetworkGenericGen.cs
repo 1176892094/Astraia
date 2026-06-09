@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -95,8 +96,16 @@ namespace Astraia.Editor
                 return false;
             }
 
-            var verified = Common.GetMethod(td, assembly, "get_owner");
             var modified = false;
+
+            if ((td.Attributes & TypeAttributes.Serializable) == 0)
+            {
+                td.Attributes |= TypeAttributes.Serializable;
+                modified = true;
+            }
+
+            var verified = Common.GetMethod(td, assembly, "get_owner");
+
             foreach (var f in td.Fields)
             {
                 if (f.HasAttribute<InjectAttribute>())
