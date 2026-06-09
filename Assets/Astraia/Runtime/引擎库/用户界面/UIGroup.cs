@@ -13,9 +13,9 @@ namespace Astraia.Core
     {
         public static void Hide(int value)
         {
-            if (stackData.TryGetValue(value, out var stack))
+            if (queueData.TryGetValue(value, out var queue))
             {
-                stack.Clear();
+                queue.Hide();
             }
         }
 
@@ -23,41 +23,41 @@ namespace Astraia.Core
         {
             if (panel.group == 0)
             {
-                SetActive(panel, true);
+                Modified(panel, true);
                 return;
             }
 
-            if (!stackData.TryGetValue(panel.group, out var stack))
+            if (!queueData.TryGetValue(panel.group, out var queue))
             {
-                stack = new UIQueue();
-                stackData.Add(panel.group, stack);
+                queue = new UIQueue();
+                queueData.Add(panel.group, queue);
             }
 
-            stack.Push(panel);
+            queue.Push(panel);
         }
 
         internal static void Hide(UIPanel panel)
         {
             if (panel.group == 0)
             {
-                SetActive(panel, false);
+                Modified(panel, false);
                 return;
             }
 
-            if (stackData.TryGetValue(panel.group, out var stack))
+            if (queueData.TryGetValue(panel.group, out var queue))
             {
-                stack.Back(panel);
+                queue.Back(panel);
             }
         }
 
         internal static void Destroy(UIPanel panel, Type type)
         {
-            SetActive(panel, false);
+            Modified(panel, false);
             Object.Destroy(panel.owner.gameObject);
             panelData.Remove(type);
         }
 
-        internal static void SetActive(UIPanel panel, bool state)
+        internal static void Modified(UIPanel panel, bool state)
         {
             var owner = panel.owner.gameObject;
             if (state != owner.activeSelf)
@@ -66,10 +66,8 @@ namespace Astraia.Core
                 {
                     owner.SetActive(true);
                     panel.OnShow();
-                    return;
                 }
-
-                if (panel is ITween)
+                else if (panel is ITween)
                 {
                     panel.OnHide();
                 }

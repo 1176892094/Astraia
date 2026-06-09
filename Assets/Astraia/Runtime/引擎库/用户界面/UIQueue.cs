@@ -16,12 +16,12 @@ namespace Astraia
 
             if (current != null && current.owner)
             {
-                UIGroup.SetActive(current, false);
+                UIGroup.Modified(current, false);
                 reverse = current;
             }
 
             current = panel;
-            UIGroup.SetActive(current, true);
+            UIGroup.Modified(current, true);
         }
 
         public void Back(UIPanel panel)
@@ -39,19 +39,19 @@ namespace Astraia
             var forward = current;
             if (current != null && current.owner)
             {
-                UIGroup.SetActive(current, false);
+                UIGroup.Modified(current, false);
             }
 
             current = reverse;
             reverse = forward;
-            UIGroup.SetActive(current, true);
+            UIGroup.Modified(current, true);
         }
 
-        public void Clear()
+        public void Hide()
         {
             if (current != null && current.owner)
             {
-                UIGroup.SetActive(current, false);
+                UIGroup.Modified(current, false);
             }
 
             reverse = null;

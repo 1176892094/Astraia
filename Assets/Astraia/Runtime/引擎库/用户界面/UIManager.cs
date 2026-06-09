@@ -28,18 +28,21 @@ namespace Astraia.Core
         {
             if (initialized) return;
             initialized = true;
-            canvas = new GameObject(nameof(UIManager)).AddComponent<Canvas>();
+            var prefab = new GameObject(nameof(UIManager));
+            canvas = prefab.AddComponent<Canvas>();
             canvas.sortingOrder = 20;
             canvas.planeDistance = 20;
             canvas.gameObject.layer = LayerMask.NameToLayer("UI");
-            canvas.gameObject.AddComponent<GraphicRaycaster>();
-            var scaler = canvas.gameObject.AddComponent<CanvasScaler>();
+            var scaler = prefab.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 0.5F;
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.referencePixelsPerUnit = 32;
-            Object.DontDestroyOnLoad(canvas);
+            var graphs = prefab.AddComponent<GraphicRaycaster>();
+            graphs.blockingMask = 1 << prefab.layer;
+            graphs.ignoreReversedGraphics = false;
+            Object.DontDestroyOnLoad(prefab);
         }
 
         public static void SetCamera(Camera camera)
@@ -187,12 +190,7 @@ namespace Astraia.Core
 
         internal static void Dispose()
         {
-            foreach (var stack in stackData.Values)
-            {
-                stack.Clear();
-            }
-
-            stackData.Clear();
+            queueData.Clear();
             layerData.Clear();
             panelData.Clear();
             initialized = false;

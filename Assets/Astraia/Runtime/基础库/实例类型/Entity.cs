@@ -653,7 +653,7 @@ namespace Astraia
 
     public interface IState
     {
-        void Acquire(object item);
+        void Acquire(object owner);
         void OnEnter();
         void OnUpdate();
         void OnExit();
@@ -663,9 +663,9 @@ namespace Astraia
     {
         protected T owner { get; private set; }
 
-        void IState.Acquire(object item)
+        void IState.Acquire(object owner)
         {
-            owner = (T)item;
+            this.owner = (T)owner;
         }
 
         public virtual void OnEnter()
