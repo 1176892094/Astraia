@@ -215,7 +215,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldfld, obj);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, fr);
-                worker.Emit(OpCodes.Call, module.GetSyncVarNetworkModule.GenericInstance(assembly.MainModule, fd.FieldType));
+                worker.Emit(OpCodes.Call, module.GetSyncVarNetworkModule.MakeGeneric(assembly.MainModule, fd.FieldType));
                 worker.Emit(OpCodes.Ret);
             }
             else
@@ -271,11 +271,11 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, obj);
-                worker.Emit(OpCodes.Call, module.SyncVarSetterNetworkModule.GenericInstance(assembly.MainModule, fd.FieldType));
+                worker.Emit(OpCodes.Call, module.SyncVarSetterNetworkModule.MakeGeneric(assembly.MainModule, fd.FieldType));
             }
             else
             {
-                worker.Emit(OpCodes.Call, module.SyncVarSetterGeneral.GenericInstance(assembly.MainModule, fd.FieldType));
+                worker.Emit(OpCodes.Call, module.SyncVarSetterGeneral.MakeGeneric(assembly.MainModule, fd.FieldType));
             }
 
             worker.Append(nop);

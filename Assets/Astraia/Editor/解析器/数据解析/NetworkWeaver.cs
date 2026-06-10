@@ -12,7 +12,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using Astraia.Core;
 using Mono.Cecil;
 using Astraia.Net;
 using UnityEngine;
@@ -93,7 +92,7 @@ namespace Astraia.Editor
 
                     if (td.IsSubclassOf(typeof(Inject)))
                     {
-                        modified |= EntityGenerator.Processed(td, module);
+                        modified |= EntityGenerator.Processed(assembly, td, module);
                     }
 
                     if (td.IsSubclassOf(typeof(Module<>)))
@@ -130,14 +129,6 @@ namespace Astraia.Editor
         private readonly AssemblyDefinition assembly;
         public readonly TypeDefinition Initialized;
 
-        public readonly MethodReference Awake;
-        public readonly MethodReference OnEnable;
-        public readonly MethodReference OnDisable;
-
-        public readonly MethodReference OnShow;
-        public readonly MethodReference OnHide;
-        public readonly MethodReference Dequeue;
-        public readonly MethodReference Enqueue;
         public readonly MemberReference ModuleGeneric;
 
         public readonly MethodReference Listen;
@@ -181,22 +172,13 @@ namespace Astraia.Editor
         {
             this.assembly = assembly;
             Initialized = Import<RuntimeInitializeOnLoadMethodAttribute>().Resolve();
-        
+
             LogError = Import<Debug>().GetMethod(assembly, OnLogError, Log, ref failed);
             SyncVarHook = Import(typeof(Action<,>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             InvokeDelegate = Import<HookFunc>().GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             AddArraySegment = Import(typeof(ArraySegment<>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             GetTypeFromHandle = Import<Type>().GetMethod(assembly, "GetTypeFromHandle", Log, ref failed);
             ReadNetworkModule = Import(typeof(Net.Extensions)).GetMethod(assembly, ReadModule, Log, ref failed);
-
-            Awake = Import(typeof(Inject)).GetMethod(assembly, nameof(Awake), Log, ref failed);
-            OnEnable = Import(typeof(Inject)).GetMethod(assembly, nameof(OnEnable), Log, ref failed);
-            OnDisable = Import(typeof(Inject)).GetMethod(assembly, nameof(OnDisable), Log, ref failed);
-
-            OnShow = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(OnShow), Log, ref failed);
-            OnHide = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(OnHide), Log, ref failed);
-            Dequeue = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(Dequeue), Log, ref failed);
-            Enqueue = Import(typeof(Astraia.Module)).GetMethod(assembly, nameof(Enqueue), Log, ref failed);
 
             Listen = Import(typeof(EventManager)).GetMethod(assembly, nameof(Listen), Log, ref failed);
             Remove = Import(typeof(EventManager)).GetMethod(assembly, nameof(Remove), Log, ref failed);
@@ -292,7 +274,7 @@ namespace Astraia.Editor
             return mr;
         }
 
-        public static MethodReference GetMethod(TypeReference tr, AssemblyDefinition ad, string name)
+        public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, string name)
         {
             while (tr != null)
             {
@@ -536,13 +518,6 @@ namespace Astraia.Editor
             return tr;
         }
 
-        public static GenericInstanceMethod MakeGeneric(this MethodReference self, TypeReference tr)
-        {
-            var method = new GenericInstanceMethod(self);
-            method.GenericArguments.Add(tr);
-            return method;
-        }
-
         public static FieldReference MakeGeneric(this FieldReference self)
         {
             var tr = new GenericInstanceType(self.DeclaringType);
@@ -554,9 +529,19 @@ namespace Astraia.Editor
             return new FieldReference(self.Name, self.FieldType, tr);
         }
 
+        public static MethodReference MakeGeneric(this MethodReference self, ModuleDefinition md, TypeReference tr)
+        {
+            var method = new GenericInstanceMethod(self);
+            method.GenericArguments.Add(tr);
+            return md.ImportReference(method);
+        }
+
         public static MethodReference GenericInstance(this MethodReference self, ModuleDefinition md, GenericInstanceType tr)
         {
-            var mr = new MethodReference(self.Name, self.ReturnType, tr) { HasThis = self.HasThis, ExplicitThis = self.ExplicitThis, CallingConvention = self.CallingConvention };
+            var mr = new MethodReference(self.Name, self.ReturnType, tr);
+            mr.HasThis = self.HasThis;
+            mr.ExplicitThis = self.ExplicitThis;
+            mr.CallingConvention = self.CallingConvention;
 
             foreach (var param in self.Parameters)
             {
@@ -569,13 +554,6 @@ namespace Astraia.Editor
             }
 
             return md.ImportReference(mr);
-        }
-
-        public static MethodReference GenericInstance(this MethodReference self, ModuleDefinition md, TypeReference tr)
-        {
-            var method = new GenericInstanceMethod(self);
-            method.GenericArguments.Add(tr);
-            return md.ImportReference(method);
         }
     }
 }

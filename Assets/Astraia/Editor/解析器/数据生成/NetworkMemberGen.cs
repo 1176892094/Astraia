@@ -469,7 +469,7 @@ namespace Astraia.Editor
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
-            var mr = Common.GetMethod(extensions, assembly, "Read" + name, Log, ref failed);
+            var mr = extensions.GetMethod(assembly, "Read" + name, Log, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -482,7 +482,7 @@ namespace Astraia.Editor
 
         protected override MethodReference AddNetworkModule(TypeReference tr)
         {
-            var mr = module.ReadNetworkModule.GenericInstance(assembly.MainModule, tr);
+            var mr = module.ReadNetworkModule.MakeGeneric(assembly.MainModule, tr);
             Register(tr, mr);
             return mr;
         }

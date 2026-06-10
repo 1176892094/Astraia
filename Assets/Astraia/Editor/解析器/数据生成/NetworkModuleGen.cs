@@ -316,7 +316,7 @@ namespace Astraia.Editor
             var worker = method.Body.GetILProcessor();
 
             method.Body.InitLocals = true;
-            var reason = Common.GetMethod(create.BaseType, assembly, Weaver.MED_S1);
+            var reason = create.BaseType.GetMethod(assembly, Weaver.MED_S1);
             if (reason != null)
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -406,7 +406,7 @@ namespace Astraia.Editor
 
             method.Body.InitLocals = true;
             method.Body.Variables.Add(new VariableDefinition(module.Import<long>()));
-            var reason = Common.GetMethod(create.BaseType, assembly, Weaver.MED_S2);
+            var reason = create.BaseType.GetMethod(assembly, Weaver.MED_S2);
             if (reason != null)
             {
                 worker.Append(worker.Create(OpCodes.Ldarg_0));
@@ -484,7 +484,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldflda, objectId);
-                var getFunc = module.SyncVarGetterNetworkModule.GenericInstance(assembly.MainModule, syncVar.FieldType);
+                var getFunc = module.SyncVarGetterNetworkModule.MakeGeneric(assembly.MainModule, syncVar.FieldType);
                 worker.Emit(OpCodes.Call, getFunc);
             }
             else
@@ -499,7 +499,7 @@ namespace Astraia.Editor
 
                 worker.Emit(OpCodes.Ldarg_1);
                 worker.Emit(OpCodes.Call, func);
-                worker.Emit(OpCodes.Call, module.SyncVarGetterGeneral.GenericInstance(assembly.MainModule, syncVar.FieldType));
+                worker.Emit(OpCodes.Call, module.SyncVarGetterGeneral.MakeGeneric(assembly.MainModule, syncVar.FieldType));
             }
         }
     }
