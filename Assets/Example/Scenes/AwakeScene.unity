@@ -180,7 +180,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Astraia.Run::Astraia.Core.Entity
   moduleList:
   - rid: 915762514025775160
-  - rid: 915762514025775161
+  - rid: 915762560310968369
   references:
     version: 2
     RefIds:
@@ -190,7 +190,7 @@ MonoBehaviour:
         smooth: {x: 0, y: 0, z: 0}
         player: {fileID: 0}
         mainCamera: {fileID: 0}
-    - rid: 915762514025775161
+    - rid: 915762560310968369
       type: {class: InputManager, ns: Runtime, asm: Assembly-CSharp}
       data: 
 --- !u!1 &513527312

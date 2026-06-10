@@ -1033,10 +1033,11 @@ namespace Astraia
         BTState OnTick(int index, Dictionary<int> root);
     }
 
-    public readonly struct Sequence : INode
+    [Serializable]
+    public struct Sequence : INode
     {
-        private readonly INode[] Nodes;
-        private readonly int Index;
+        private INode[] Nodes;
+        private int Index;
 
         public Sequence(int index, INode[] nodes)
         {
@@ -1069,10 +1070,11 @@ namespace Astraia
         }
     }
 
-    public readonly struct Selector : INode
+    [Serializable]
+    public struct Selector : INode
     {
-        private readonly INode[] Nodes;
-        private readonly int Index;
+        private INode[] Nodes;
+        private int Index;
 
         public Selector(int index, INode[] nodes)
         {
@@ -1105,10 +1107,11 @@ namespace Astraia
         }
     }
 
-    public readonly struct Parallel : INode
+    [Serializable]
+    public struct Parallel : INode
     {
-        private readonly INode[] Nodes;
-        private readonly bool IsAny;
+        private INode[] Nodes;
+        private bool IsAny;
 
         public Parallel(int index, INode[] nodes)
         {
@@ -1156,10 +1159,11 @@ namespace Astraia
         }
     }
 
-    public readonly struct Actuator : INode
+    [Serializable]
+    public struct Actuator : INode
     {
-        private readonly INode[] Nodes;
-        private readonly int Index;
+        private INode[] Nodes;
+        private int Index;
 
         public Actuator(int index, INode[] nodes)
         {
@@ -1186,11 +1190,12 @@ namespace Astraia
         }
     }
 
-    public readonly struct Repeater : INode
+    [Serializable]
+    public struct Repeater : INode
     {
-        private readonly INode Node;
-        private readonly int Index;
-        private readonly int Count;
+        private INode Node;
+        private int Index;
+        private int Count;
 
         public Repeater(int index, int count, INode node)
         {
@@ -1219,9 +1224,10 @@ namespace Astraia
         }
     }
 
-    public readonly struct Inverter : INode
+    [Serializable]
+    public struct Inverter : INode
     {
-        private readonly INode Node;
+        private INode Node;
 
         public Inverter(INode node)
         {
@@ -1245,9 +1251,10 @@ namespace Astraia
         }
     }
 
-    public readonly struct Success : INode
+    [Serializable]
+    public struct Success : INode
     {
-        private readonly INode Node;
+        private INode Node;
 
         public Success(INode node)
         {
@@ -1260,9 +1267,10 @@ namespace Astraia
         }
     }
 
-    public readonly struct Failure : INode
+    [Serializable]
+    public struct Failure : INode
     {
-        private readonly INode Node;
+        private INode Node;
 
         public Failure(INode node)
         {
@@ -1404,7 +1412,7 @@ namespace Astraia
                 {
                     depth--;
                 }
-                else if (depth == 0 && c == '，')
+                else if (depth == 0 && c == ',')
                 {
                     result.Add(reason.Substring(index, i - index).Trim());
                     index = i + 1;

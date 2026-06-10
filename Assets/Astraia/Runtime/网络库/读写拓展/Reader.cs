@@ -161,6 +161,11 @@ namespace Astraia.Net
             return reader.ReadNetworkModule() as T;
         }
 
+        public static T ReadNetworkEntity<T>(this MemoryReader reader) where T : NetworkEntity
+        {
+            return reader.ReadNetworkEntity() as T;
+        }
+
         public static NetworkVariable ReadNetworkVariable(this MemoryReader reader)
         {
             var objectId = reader.ReadUInt32();
