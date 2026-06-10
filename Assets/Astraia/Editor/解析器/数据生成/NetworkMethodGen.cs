@@ -29,20 +29,20 @@ namespace Astraia.Editor
             var result = InvokeV1(Log, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
             NetworkModuleGen.WriterDequeue(worker, module);
-            if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.ClientRpc, ref failed))
+            if (ArgumentWriter(worker, writer, Log, method, InvokeMode.ClientRpc, ref failed))
             {
-                return null;
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldstr, method.FullName);
+                worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
+                worker.Emit(OpCodes.Ldloc_0);
+                worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
+                worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
+                NetworkModuleGen.WriterEnqueue(worker, module);
+                worker.Emit(OpCodes.Ret);
+                return result;
             }
 
-            worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Ldstr, method.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
-            worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
-            worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
-            NetworkModuleGen.WriterEnqueue(worker, module);
-            worker.Emit(OpCodes.Ret);
-            return result;
+            return null;
         }
 
         public static MethodDefinition ClientRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
@@ -54,16 +54,16 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, create);
 
-            if (!ArgumentReader(worker, reader, Log, method, InvokeMode.ClientRpc, ref failed))
+            if (ArgumentReader(worker, reader, Log, method, InvokeMode.ClientRpc, ref failed))
             {
-                return null;
+                worker.Emit(OpCodes.Callvirt, func);
+                worker.Emit(OpCodes.Ret);
+                NetworkModuleGen.AddParameters(module, result.Parameters);
+                create.Methods.Add(result);
+                return result;
             }
 
-            worker.Emit(OpCodes.Callvirt, func);
-            worker.Emit(OpCodes.Ret);
-            NetworkModuleGen.AddParameters(module, result.Parameters);
-            create.Methods.Add(result);
-            return result;
+            return null;
         }
 
         public static MethodDefinition ServerRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
@@ -71,20 +71,20 @@ namespace Astraia.Editor
             var result = InvokeV1(Log, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
             NetworkModuleGen.WriterDequeue(worker, module);
-            if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.ServerRpc, ref failed))
+            if (ArgumentWriter(worker, writer, Log, method, InvokeMode.ServerRpc, ref failed))
             {
-                return null;
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(OpCodes.Ldstr, method.FullName);
+                worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
+                worker.Emit(OpCodes.Ldloc_0);
+                worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
+                worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
+                NetworkModuleGen.WriterEnqueue(worker, module);
+                worker.Emit(OpCodes.Ret);
+                return result;
             }
 
-            worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(OpCodes.Ldstr, method.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
-            worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
-            worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
-            NetworkModuleGen.WriterEnqueue(worker, module);
-            worker.Emit(OpCodes.Ret);
-            return result;
+            return null;
         }
 
         public static MethodDefinition ServerRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
@@ -96,16 +96,16 @@ namespace Astraia.Editor
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, create);
 
-            if (!ArgumentReader(worker, reader, Log, method, InvokeMode.ServerRpc, ref failed))
+            if (ArgumentReader(worker, reader, Log, method, InvokeMode.ServerRpc, ref failed))
             {
-                return null;
+                worker.Emit(OpCodes.Callvirt, func);
+                worker.Emit(OpCodes.Ret);
+                NetworkModuleGen.AddParameters(module, result.Parameters);
+                create.Methods.Add(result);
+                return result;
             }
 
-            worker.Emit(OpCodes.Callvirt, func);
-            worker.Emit(OpCodes.Ret);
-            NetworkModuleGen.AddParameters(module, result.Parameters);
-            create.Methods.Add(result);
-            return result;
+            return null;
         }
 
         public static MethodDefinition TargetRpcV1(Module module, Writer writer, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
@@ -113,21 +113,21 @@ namespace Astraia.Editor
             var result = InvokeV1(Log, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
             NetworkModuleGen.WriterDequeue(worker, module);
-            if (!ArgumentWriter(worker, writer, Log, method, InvokeMode.TargetRpc, ref failed))
+            if (ArgumentWriter(worker, writer, Log, method, InvokeMode.TargetRpc, ref failed))
             {
-                return null;
+                worker.Emit(OpCodes.Ldarg_0);
+                worker.Emit(IsNetworkClient(method) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
+                worker.Emit(OpCodes.Ldstr, method.FullName);
+                worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
+                worker.Emit(OpCodes.Ldloc_0);
+                worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
+                worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
+                NetworkModuleGen.WriterEnqueue(worker, module);
+                worker.Emit(OpCodes.Ret);
+                return result;
             }
 
-            worker.Emit(OpCodes.Ldarg_0);
-            worker.Emit(IsNetworkClient(method) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
-            worker.Emit(OpCodes.Ldstr, method.FullName);
-            worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
-            worker.Emit(OpCodes.Ldloc_0);
-            worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
-            worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
-            NetworkModuleGen.WriterEnqueue(worker, module);
-            worker.Emit(OpCodes.Ret);
-            return result;
+            return null;
         }
 
         public static MethodDefinition TargetRpcV2(Module module, Reader reader, ILogPostProcessor Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
@@ -144,21 +144,23 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldnull);
             }
 
-            if (!ArgumentReader(worker, reader, Log, method, InvokeMode.TargetRpc, ref failed))
+            if (ArgumentReader(worker, reader, Log, method, InvokeMode.TargetRpc, ref failed))
             {
-                return null;
+                worker.Emit(OpCodes.Callvirt, func);
+                worker.Emit(OpCodes.Ret);
+                NetworkModuleGen.AddParameters(module, result.Parameters);
+                create.Methods.Add(result);
+                return result;
             }
 
-            worker.Emit(OpCodes.Callvirt, func);
-            worker.Emit(OpCodes.Ret);
-            NetworkModuleGen.AddParameters(module, result.Parameters);
-            create.Methods.Add(result);
-            return result;
+            return null;
         }
 
         private static MethodDefinition InvokeV1(ILogPostProcessor debugger, TypeDefinition create, MethodDefinition method, ref bool failed)
         {
-            var md = new MethodDefinition(method.GetName(Weaver.MED_V1), method.Attributes, method.ReturnType) { IsPublic = false, IsFamily = true };
+            var md = new MethodDefinition(method.GetName(Weaver.MED_V1), method.Attributes, method.ReturnType);
+            md.IsPublic = false;
+            md.IsFamily = true;
 
             foreach (var pd in method.Parameters)
             {
@@ -221,11 +223,11 @@ namespace Astraia.Editor
             }
         }
 
-        private static bool ArgumentWriter(ILProcessor worker, Writer writer, ILogPostProcessor Log, MethodDefinition method, InvokeMode mode, ref bool failed)
+        private static bool ArgumentWriter(ILProcessor worker, Writer writer, ILogPostProcessor Log, MethodDefinition md, InvokeMode mode, ref bool failed)
         {
             var counter = 1;
-            var skipped = mode == InvokeMode.TargetRpc && IsNetworkClient(method);
-            foreach (var pd in method.Parameters)
+            var skipped = mode == InvokeMode.TargetRpc && IsNetworkClient(md);
+            foreach (var pd in md.Parameters)
             {
                 if (counter == 1 && skipped)
                 {
@@ -236,7 +238,7 @@ namespace Astraia.Editor
                 var func = writer.GetFunction(pd.ParameterType, ref failed);
                 if (func == null)
                 {
-                    Log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(method.Name, pd, pd.ParameterType), method);
+                    Log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(md.Name, pd, pd.ParameterType), md);
                     failed = true;
                     return false;
                 }
@@ -250,11 +252,11 @@ namespace Astraia.Editor
             return true;
         }
 
-        private static bool ArgumentReader(ILProcessor worker, Reader reader, ILogPostProcessor Log, MethodDefinition method, InvokeMode mode, ref bool failed)
+        private static bool ArgumentReader(ILProcessor worker, Reader reader, ILogPostProcessor Log, MethodDefinition md, InvokeMode mode, ref bool failed)
         {
             var counter = 1;
-            var skipped = mode == InvokeMode.TargetRpc && IsNetworkClient(method);
-            foreach (var pd in method.Parameters)
+            var skipped = mode == InvokeMode.TargetRpc && IsNetworkClient(md);
+            foreach (var pd in md.Parameters)
             {
                 if (counter == 1 && skipped)
                 {
@@ -265,7 +267,7 @@ namespace Astraia.Editor
                 var func = reader.GetFunction(pd.ParameterType, ref failed);
                 if (func == null)
                 {
-                    Log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(method.Name, pd, pd.ParameterType), method);
+                    Log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(md.Name, pd, pd.ParameterType), md);
                     failed = true;
                     return false;
                 }

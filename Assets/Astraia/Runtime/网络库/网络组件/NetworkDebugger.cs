@@ -19,7 +19,7 @@ using Astraia.Core;
 namespace Astraia.Net
 {
     [DefaultExecutionOrder(-100)]
-    public sealed class NetworkDebugger : MonoBehaviour
+    internal sealed class NetworkDebugger : MonoBehaviour
     {
         private static readonly Dictionary<Window, IWindow> Windows = new Dictionary<Window, IWindow>();
         private static readonly Dictionary<LogType, Log> Logs = new Dictionary<LogType, Log>();
