@@ -1354,7 +1354,7 @@ namespace Astraia
                 return default;
             }
 
-            var index = reason.IndexOf('(');
+            var index = FindFirstBracket(reason);
             if (index < 0)
             {
                 return new Node(reason, i++);
@@ -1375,11 +1375,11 @@ namespace Astraia
             var count = index;
             while (count < reason.Length)
             {
-                if (reason[count] == '(')
+                if (IsLeftBracket(reason[count]))
                 {
                     depth++;
                 }
-                else if (reason[count] == ')')
+                else if (IsRightBracket(reason[count]))
                 {
                     depth--;
                 }
@@ -1404,15 +1404,15 @@ namespace Astraia
             for (var i = 0; i < reason.Length; i++)
             {
                 var c = reason[i];
-                if (c == '(')
+                if (IsLeftBracket(c))
                 {
                     depth++;
                 }
-                else if (c == ')')
+                else if (IsRightBracket(c))
                 {
                     depth--;
                 }
-                else if (depth == 0 && c == ',')
+                else if (depth == 0 && IsSeparator(c))
                 {
                     result.Add(reason.Substring(index, i - index).Trim());
                     index = i + 1;
@@ -1433,7 +1433,7 @@ namespace Astraia
 
             public Node(string name, int index)
             {
-                var i = name.IndexOf(':');
+                var i = FindColon(name);
                 if (i < 0)
                 {
                     Name = name;
@@ -1448,6 +1448,43 @@ namespace Astraia
                 Index = index;
                 Nodes = new List<Node>();
             }
+        }
+
+        private static int FindFirstBracket(string text)
+        {
+            var englishIndex = text.IndexOf('(');
+            var chineseIndex = text.IndexOf('（');
+
+            if (englishIndex < 0) return chineseIndex;
+            if (chineseIndex < 0) return englishIndex;
+
+            return Math.Min(englishIndex, chineseIndex);
+        }
+
+        private static int FindColon(string text)
+        {
+            var englishIndex = text.IndexOf(':');
+            var chineseIndex = text.IndexOf('：');
+
+            if (englishIndex < 0) return chineseIndex;
+            if (chineseIndex < 0) return englishIndex;
+
+            return Math.Min(englishIndex, chineseIndex);
+        }
+
+        private static bool IsLeftBracket(char c)
+        {
+            return c is '(' or '（';
+        }
+
+        private static bool IsRightBracket(char c)
+        {
+            return c is ')' or '）';
+        }
+
+        private static bool IsSeparator(char c)
+        {
+            return c is ',' or '，';
         }
     }
 }
