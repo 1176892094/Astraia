@@ -81,8 +81,7 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetBit(int shift, int bits, int value)
         {
-            var mask = ((1 << bits) - 1) << shift;
-            Value = (Value & ~mask) | ((value << shift) & mask);
+            Value = (Value & ~((1 << bits) - 1 << shift)) | ((value & (1 << bits) - 1) << shift);
         }
     }
 
@@ -162,8 +161,7 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetBit(int shift, int bits, int value)
         {
-            var mask = ((1L << bits) - 1L) << shift;
-            Value = (Value & ~mask) | ((value << shift) & mask);
+            Value = (Value & ~((1L << bits) - 1 << shift)) | ((value & (1L << bits) - 1) << shift);
         }
     }
 

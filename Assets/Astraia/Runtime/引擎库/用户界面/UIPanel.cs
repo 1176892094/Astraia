@@ -155,16 +155,7 @@ namespace Astraia
 
         public void SetItem(params T[] item)
         {
-            Unload();
-            items = item ?? Array.Empty<T>();
-            var c = rotation ? Mathf.CeilToInt((float)items.Count / col) : row;
-            var r = rotation ? col : Mathf.CeilToInt((float)items.Count / row);
-            scroll.content.sizeDelta = new Vector2(r * width, c * height);
-
-            var pos = scroll.content.anchoredPosition;
-            var min = Mathf.Max(Mathf.FloorToInt(rotation ? pos.y / height : -pos.x / width) * cor, 0);
-            var max = Mathf.Min(min + roc * cor - 1, items.Count - 1);
-            Reload(min, max, selected);
+            SetItem((IList<T>)item);
         }
 
         public void SetItem(IList<T> item)
