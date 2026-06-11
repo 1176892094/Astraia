@@ -38,6 +38,11 @@ namespace Astraia
         void IModule.OnHide()
         {
         }
+
+        public static implicit operator bool(UIPanel panel)
+        {
+            return panel != null && panel.owner && panel.owner.isActiveAndEnabled;
+        }
     }
 
     [Serializable]
@@ -72,6 +77,16 @@ namespace Astraia
                 height = rect.height;
                 rotation = rect.rotation;
                 selected = rect.selected;
+                if (scroll.viewport)
+                {
+                    scroll.viewport.anchorMin = Vector2.zero;
+                    scroll.viewport.anchorMax = Vector2.one;
+                    scroll.viewport.offsetMin = new Vector2(rect.offset, rect.offset);
+                    scroll.viewport.offsetMax = new Vector2(-rect.offset, -rect.offset);
+                }
+
+                scroll.vertical = rotation;
+                scroll.horizontal = !rotation;
             }
 
             assetName = GlobalSetting.PREFAB.Format(typeof(TGrid).Name);
