@@ -246,6 +246,59 @@ namespace Astraia
         {
             random.NextBytes(bytes);
         }
+
+        private static class Enum<T> where T : unmanaged, Enum
+        {
+            public static readonly T[] Values;
+            static Enum() => Values = (T[])Enum.GetValues(typeof(T));
+        }
+
+        public static T Next<T>(T minValue, T maxValue) where T : unmanaged, Enum
+        {
+            return Enum<T>.Values[Next(minValue.ToInt(), maxValue.ToInt() + 1)];
+        }
+
+        public static T Next<T>(T maxValue) where T : unmanaged, Enum
+        {
+            return Enum<T>.Values[Next(maxValue.ToInt() + 1)];
+        }
+
+        public static T Next<T>() where T : unmanaged, Enum
+        {
+            return Enum<T>.Values[Next(Enum<T>.Values.Length)];
+        }
+
+        public static T[] Array<T>() where T : unmanaged, Enum
+        {
+            return Enum<T>.Values;
+        }
+
+        public static int Count<T>() where T : unmanaged, Enum
+        {
+            return Enum<T>.Values.Length;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe T ToEnum<T>(this int value) where T : unmanaged, Enum
+        {
+            if (sizeof(T) == sizeof(int))
+            {
+                return *(T*)&value;
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe int ToInt<T>(this T value) where T : unmanaged, Enum
+        {
+            if (sizeof(T) == sizeof(int))
+            {
+                return *(int*)&value;
+            }
+
+            throw new InvalidOperationException();
+        }
     }
 
     public static class Text
