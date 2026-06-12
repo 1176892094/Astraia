@@ -720,8 +720,8 @@ namespace Astraia
     {
         public int GetInt(T key)
         {
-            TryAdd(key, 0);
-            return this[key] / 100;
+            TryGetValue(key, out var value);
+            return value / 100;
         }
 
         public void SetInt(T key, int value)
@@ -731,20 +731,20 @@ namespace Astraia
 
         public void AddInt(T key, int value)
         {
-            TryAdd(key, 0);
-            this[key] += value * 100;
+            TryGetValue(key, out var v);
+            this[key] = v + value * 100;
         }
 
         public void SubInt(T key, int value)
         {
-            TryAdd(key, 0);
-            this[key] -= value * 100;
+            TryGetValue(key, out var v);
+            this[key] = v - value * 100;
         }
 
         public float GetFloat(T key)
         {
-            TryAdd(key, 0);
-            return this[key] / 100F;
+            TryGetValue(key, out var value);
+            return value / 100F;
         }
 
         public void SetFloat(T key, float value)
@@ -754,14 +754,14 @@ namespace Astraia
 
         public void AddFloat(T key, float value)
         {
-            TryAdd(key, 0);
-            this[key] += (int)Math.Round(value * 100);
+            TryGetValue(key, out var v);
+            this[key] = v + (int)Math.Round(value * 100);
         }
 
         public void SubFloat(T key, float value)
         {
-            TryAdd(key, 0);
-            this[key] -= (int)Math.Round(value * 100);
+            TryGetValue(key, out var v);
+            this[key] = v - (int)Math.Round(value * 100);
         }
     }
 

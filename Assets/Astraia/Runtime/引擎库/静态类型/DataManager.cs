@@ -26,7 +26,7 @@ namespace Astraia.Core
             if (assembly != null)
             {
                 foreach (var assetName in assembly.GetTypes().Where(type => typeof(IDataTable).IsAssignableFrom(type)).Select(type => type.Name))
-                { 
+                {
                     var dataTable = (IDataTable)AssetManager.Load<ScriptableObject>(GlobalSetting.SHEETS.Format(assetName));
                     if (dataTable != null)
                     {
@@ -34,7 +34,7 @@ namespace Astraia.Core
                         foreach (var property in properties)
                         {
                             if (property.HasAttribute<PrimaryAttribute>())
-                            {           
+                            {
                                 dataTable.AddData(property.Name, property.PropertyType);
                             }
                         }
