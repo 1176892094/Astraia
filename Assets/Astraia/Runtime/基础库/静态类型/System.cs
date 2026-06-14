@@ -255,17 +255,17 @@ namespace Astraia
 
         public static T Next<T>(T minValue, T maxValue) where T : unmanaged, Enum
         {
-            return Enum<T>.Values[Next(minValue.ToInt(), maxValue.ToInt() + 1)];
+            return Next(minValue.ToInt(), maxValue.ToInt() + 1).ToEnum<T>();
         }
 
         public static T Next<T>(T maxValue) where T : unmanaged, Enum
         {
-            return Enum<T>.Values[Next(maxValue.ToInt() + 1)];
+            return Next(maxValue.ToInt() + 1).ToEnum<T>();
         }
 
         public static T Next<T>() where T : unmanaged, Enum
         {
-            return Enum<T>.Values[Next(Enum<T>.Values.Length)];
+            return Next(Enum<T>.Values.Length).ToEnum<T>();
         }
 
         public static T[] Array<T>() where T : unmanaged, Enum
