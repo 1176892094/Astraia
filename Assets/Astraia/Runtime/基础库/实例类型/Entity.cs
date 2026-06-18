@@ -616,6 +616,7 @@ namespace Astraia
         void OnHide();
     }
 
+    [Serializable]
     public abstract class Module : IModule
     {
         void IModule.Acquire(object owner)
@@ -639,6 +640,7 @@ namespace Astraia
         }
     }
 
+    [Serializable]
     public abstract class Module<T> : Module, IModule
     {
         public T owner { get; internal set; }

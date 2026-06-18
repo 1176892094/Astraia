@@ -89,6 +89,7 @@ namespace Astraia
         }
     }
 
+    [Serializable]
     public abstract class Singleton<T> : Module<Entity>, IModule where T : Singleton<T>
     {
         public static T Instance;

@@ -82,11 +82,10 @@ namespace Astraia
             }
         }
 
-        [Serializable]
         public class ComponentData
         {
-            public Dictionary<string, object> properties = new();
-            public Component component;
+            public readonly Dictionary<string, object> properties = new();
+            public readonly Component component;
 
             public ComponentData(Component component)
             {
