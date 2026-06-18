@@ -9,6 +9,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 89041
   packageName: Odin Inspector and Serializer
-  packageVersion: 4.0.1.2
+  packageVersion: 4.0.2.0
   assetPath: Assets/Plugins/Sirenix/Assemblies/Sirenix.Reflection.Editor.pdb
-  uploadId: 835510
+  uploadId: 925668

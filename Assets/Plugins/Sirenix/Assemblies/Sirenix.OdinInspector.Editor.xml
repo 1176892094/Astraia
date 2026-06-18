@@ -276,7 +276,12 @@
         </member>
         <member name="P:Sirenix.OdinInspector.Editor.GeneralDrawerConfig.ShowPrefabModifiedValueBar">
             <summary>
-            Specify whether or not the warning for properties that do not support prefab modifications should be shown in the inspector.
+            Specify whether or not a blue bar should be drawn next to modified prefab values.
+            </summary>
+        </member>
+        <member name="P:Sirenix.OdinInspector.Editor.GeneralDrawerConfig.UseUnityContextMenuForModifications">
+            <summary>
+            Specify whether or not the Unity context menu options should be included when showing the context menu for a Unity-serialized value that has prefab modifications.
             </summary>
         </member>
         <member name="P:Sirenix.OdinInspector.Editor.GeneralDrawerConfig.MaxRecursiveDrawDepth">
@@ -1045,72 +1050,6 @@
         <member name="T:Sirenix.OdinInspector.Editor.Internal.OdinInternalEditorFields">
             <summary> Temporary. </summary>
             <warning>This implementation <b>will</b> get refactored.</warning>
-        </member>
-        <member name="M:Sirenix.OdinInspector.Editor.Internal.OdinInternalEditorFields.UnityObjectField(UnityEngine.Rect,UnityEngine.GUIContent,UnityEngine.Object,System.Type,System.Boolean,System.Boolean,Sirenix.OdinInspector.Editor.InspectorProperty)">
-            <summary>
-            Draws a regular Unity ObjectField, but supports labels being nulls, and also adds a small button that will open the object in a new inspector window.
-            </summary>
-            <param name="position">Position and size of the field.</param>
-            <param name="label">The label to use, or null if no label should be used.</param>
-            <param name="value">The Unity object.</param>
-            <param name="objectType">The Unity object type. This supports inheritance.</param>
-            <param name="allowSceneObjects">Whether to allow scene objects.</param>
-            <param name="readOnly">Determines if the Field is read-only.</param>
-            <param name="property">Will be used for setting and updating the value, this provides a more consistent way to the handle changes.</param>
-            <remarks>If a property is assigned through the parameters, the return value should not be used for setting the <see cref="T:Sirenix.OdinInspector.Editor.PropertyValueEntry`1"/>, the drawer will handle that.</remarks>
-        </member>
-        <member name="M:Sirenix.OdinInspector.Editor.Internal.OdinInternalEditorFields.UnityObjectField(System.Object,System.Int32,UnityEngine.Rect,UnityEngine.GUIContent,UnityEngine.Object,System.Type,System.Boolean,System.Boolean,Sirenix.OdinInspector.Editor.InspectorProperty)">
-            <summary>
-            Draws a regular Unity ObjectField, but supports labels being nulls, and also adds a small button that will open the object in a new inspector window.
-            </summary>
-            <param name="position">Position and size of the field.</param>
-            <param name="label">The label to use, or null if no label should be used.</param>
-            <param name="value">The Unity object.</param>
-            <param name="objectType">The Unity object type. This supports inheritance.</param>
-            <param name="allowSceneObjects">Whether to allow scene objects.</param>
-            <param name="readOnly">Determines if the Field is read-only.</param>
-            <param name="property">Will be used for setting and updating the value, this provides a more consistent way to the handle changes.</param>
-            <remarks>If a property is assigned through the parameters, the return value should not be used for setting the <see cref="T:Sirenix.OdinInspector.Editor.PropertyValueEntry`1"/>, the drawer will handle that.</remarks>
-        </member>
-        <member name="M:Sirenix.OdinInspector.Editor.Internal.OdinInternalEditorFields.PolymorphicObjectField(UnityEngine.Rect,System.Int32,System.Boolean,UnityEngine.GUIContent,System.Object,System.Type,System.Type,System.Boolean,System.Boolean,Sirenix.OdinInspector.Editor.InspectorProperty,System.Boolean,System.Boolean,System.String)">
-            <summary>
-            TODO
-            </summary>
-            <param name="position"></param>
-            <param name="id"></param>
-            <param name="hasKeyboardFocus"></param>
-            <param name="label"></param>
-            <param name="value"></param>
-            <param name="valueType"></param>
-            <param name="baseType"></param>
-            <param name="allowSceneObjects"></param>
-            <param name="disallowNullValues"></param>
-            <param name="property"></param>
-            <param name="readOnly"></param>
-            <param name="showBaseType"></param>
-            <param name="title"></param>
-            <returns></returns>
-            <remarks>If a property is assigned through the parameters, the return value should not be used for setting the <see cref="T:Sirenix.OdinInspector.Editor.PropertyValueEntry`1"/>, the drawer will handle that.</remarks>
-        </member>
-        <member name="M:Sirenix.OdinInspector.Editor.Internal.OdinInternalEditorFields.PolymorphicObjectField(System.Object,System.Int32,UnityEngine.Rect,System.Int32,System.Boolean,UnityEngine.GUIContent,System.Object,System.Type,System.Type,System.Boolean,System.Boolean,Sirenix.OdinInspector.Editor.InspectorProperty,System.Boolean,System.Boolean,System.String)">
-            <summary>
-            TODO
-            </summary>
-            <param name="position"></param>
-            <param name="id"></param>
-            <param name="hasKeyboardFocus"></param>
-            <param name="label"></param>
-            <param name="value"></param>
-            <param name="valueType"></param>
-            <param name="baseType"></param>
-            <param name="allowSceneObjects"></param>
-            <param name="disallowNullValues"></param>
-            <param name="property"></param>
-            <param name="readOnly"></param>
-            <param name="showBaseType"></param>
-            <param name="title"></param>
-            <returns></returns>
-            <remarks>If a property is assigned through the parameters, the return value should not be used for setting the <see cref="T:Sirenix.OdinInspector.Editor.PropertyValueEntry`1"/>, the drawer will handle that.</remarks>
         </member>
         <member name="T:Sirenix.OdinInspector.Editor.Internal.OdinObjectSelectorIds">
             <summary>
@@ -2846,6 +2785,11 @@
             Whether this value entry has been changed from its prefab counterpart.
             </summary>
         </member>
+        <member name="P:Sirenix.OdinInspector.Editor.IPropertyValueEntry.ChildValueChangedFromPrefab">
+            <summary>
+            Whether a child of this value entry has been changed from its prefab counterpart.
+            </summary>
+        </member>
         <member name="P:Sirenix.OdinInspector.Editor.IPropertyValueEntry.ListLengthChangedFromPrefab">
             <summary>
             Whether this value entry has had its list length changed from its prefab counterpart.
@@ -3444,6 +3388,11 @@
             Whether this value entry has been changed from its prefab counterpart.
             </summary>
         </member>
+        <member name="P:Sirenix.OdinInspector.Editor.PropertyValueEntry.ChildValueChangedFromPrefab">
+            <summary>
+            Whether a child of this value entry has been changed from its prefab counterpart.
+            </summary>
+        </member>
         <member name="P:Sirenix.OdinInspector.Editor.PropertyValueEntry.ListLengthChangedFromPrefab">
             <summary>
             Whether this value entry has had its list length changed from its prefab counterpart.
@@ -3775,6 +3724,11 @@
             Whether this value entry has been changed from its prefab counterpart.
             </summary>
         </member>
+        <member name="P:Sirenix.OdinInspector.Editor.PropertyValueEntryAlias.ChildValueChangedFromPrefab">
+            <summary>
+            Whether a child of this value entry has been changed from its prefab counterpart.
+            </summary>
+        </member>
         <member name="P:Sirenix.OdinInspector.Editor.PropertyValueEntryAlias.ListLengthChangedFromPrefab">
             <summary>
             Whether this value entry has had its list length changed from its prefab counterpart.
@@ -3937,6 +3891,11 @@
         <member name="P:Sirenix.OdinInspector.Editor.PropertyValueEntryAlias`2.ValueChangedFromPrefab">
             <summary>
             Whether this value entry has been changed from its prefab counterpart.
+            </summary>
+        </member>
+        <member name="P:Sirenix.OdinInspector.Editor.PropertyValueEntryAlias`2.ChildValueChangedFromPrefab">
+            <summary>
+            Whether a child of this value entry has been changed from its prefab counterpart.
             </summary>
         </member>
         <member name="P:Sirenix.OdinInspector.Editor.PropertyValueEntryAlias`2.ListLengthChangedFromPrefab">
@@ -4539,6 +4498,16 @@
             <seealso cref="T:Sirenix.OdinInspector.GUIColorAttribute"/>
         </member>
         <member name="M:Sirenix.OdinInspector.Editor.Drawers.HideLabelAttributeDrawer.DrawPropertyLayout(UnityEngine.GUIContent)">
+            <summary>
+            Draws the property.
+            </summary>
+        </member>
+        <member name="T:Sirenix.OdinInspector.Editor.Drawers.ImageAttributeDrawer">
+            <summary>
+            Draws properties marked with <see cref="T:Sirenix.OdinInspector.ImageAttribute"/> as an image directly in the inspector.
+            </summary>
+        </member>
+        <member name="M:Sirenix.OdinInspector.Editor.Drawers.ImageAttributeDrawer.DrawPropertyLayout(UnityEngine.GUIContent)">
             <summary>
             Draws the property.
             </summary>
