@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using Astraia.Core;
 using UnityEngine;
 
 namespace Astraia.Net
