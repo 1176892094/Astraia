@@ -208,7 +208,7 @@ namespace Astraia.Core
         {
             private readonly Component owner;
             public AsyncAdaptor(Component owner) => this.owner = owner;
-            public bool isActive => owner.gameObject && owner.gameObject.activeInHierarchy;
+            public bool isActive => owner && owner.gameObject && owner.gameObject.activeInHierarchy;
         }
 
         public static Timer Wait(this Component current, float duration = 0)

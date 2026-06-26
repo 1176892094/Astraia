@@ -80,18 +80,21 @@ namespace Astraia.Net
 
         public void Execute(OnGizmoUpdate message)
         {
+            Gizmos.color = Color.cyan;
             foreach (var player in players.Values)
             {
-                Gizmos.color = Color.cyan;
-                var pos = visible.WorldToNode(player.transform.position);
-                var min = pos - extents;
-                var max = pos + extents;
-
-                for (var x = min.x; x <= max.x; x++)
+                if (player)
                 {
-                    for (var y = min.y; y <= max.y; y++)
+                    var pos = visible.WorldToNode(player.transform.position);
+                    var min = pos - extents;
+                    var max = pos + extents;
+
+                    for (var x = min.x; x <= max.x; x++)
                     {
-                        Gizmos.DrawWireCube(new Vector2(x + 0.5F, y + 0.5F) * cellSize, Vector2.one * cellSize);
+                        for (var y = min.y; y <= max.y; y++)
+                        {
+                            Gizmos.DrawWireCube(new Vector2(x + 0.5F, y + 0.5F) * cellSize, Vector2.one * cellSize);
+                        }
                     }
                 }
             }

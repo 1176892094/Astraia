@@ -9,18 +9,16 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Astraia.Core;
 
 namespace Astraia.Net
 {
-    [Serializable]
     public sealed class NetworkServer
     {
-        private Dictionary<int, WriterQueue> packets = new Dictionary<int, WriterQueue>();
-        internal ReaderQueue reader = new ReaderQueue();
+        private readonly Dictionary<int, WriterQueue> packets = new Dictionary<int, WriterQueue>();
+        internal readonly ReaderQueue reader = new ReaderQueue();
         internal bool isReady;
 
         internal void Update()
