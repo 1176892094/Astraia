@@ -173,7 +173,7 @@ namespace Astraia.Core
         {
             colors['R'] = "#FF0000";
             colors['G'] = "#00FF00";
-            colors['B'] = "#0000FF";
+            colors['B'] = "#AAAAFF";
             colors['Y'] = "#FFFF00";
             colors['O'] = "#FFAA00";
             colors['S'] = "#00FFFF";

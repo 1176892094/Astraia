@@ -45,6 +45,8 @@ namespace Astraia.Net
 
         public uint objectId => owner.objectId;
 
+        public bool isReady => owner.isReady;
+        
         public bool isOwner => owner.isOwner;
 
         public bool isServer => owner.isServer;
@@ -178,7 +180,7 @@ namespace Astraia.Net
                 return;
             }
 
-            if (!NetworkManager.Client.isReady)
+            if (!isReady)
             {
                 Debug.LogWarning("调用 {0} 但是客户端没有准备就绪的。对象名称：{1}".Format(name, owner.name), owner);
                 return;

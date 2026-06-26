@@ -92,7 +92,7 @@ namespace Astraia.Net
             {
                 SyncPosition();
             }
-            else if (isClient && !isVerify && NetworkManager.Client.isReady)
+            else if (isClient && !isVerify && isReady)
             {
                 SyncPosition();
             }
@@ -104,7 +104,7 @@ namespace Astraia.Net
             {
                 SendToClientRpc(positionCache, rotationCache, mutationCache);
             }
-            else if (isClient && isVerify && NetworkManager.Client.isReady && isModify)
+            else if (isClient && isVerify && isReady && isModify)
             {
                 SendToServerRpc(positionCache, rotationCache, mutationCache);
             }

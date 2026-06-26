@@ -47,6 +47,8 @@ namespace Astraia.Net
 
         internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
 
+        public bool isReady => NetworkManager.Client.isReady;
+
         public bool isOwner => (state & State.所有者) != 0;
 
         public bool isServer => (state & State.服务器) != 0 && NetworkManager.isServer;
