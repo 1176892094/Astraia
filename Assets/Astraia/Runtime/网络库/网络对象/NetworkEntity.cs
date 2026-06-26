@@ -45,6 +45,8 @@ namespace Astraia.Net
 
         internal MemoryWriter other = new MemoryWriter();
 
+        internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
+
         public bool isOwner => (state & State.所有者) != 0;
 
         public bool isServer => (state & State.服务器) != 0 && NetworkManager.isServer;
@@ -75,22 +77,22 @@ namespace Astraia.Net
                 NetworkManager.Server.Destroy(gameObject);
             }
 
-            this.Clear();
             owner = null;
             other = null;
             client = null;
             modules = null;
+            NetworkSpawner.Clear(this);
             base.OnDestroy();
         }
 
         public virtual void Reset()
         {
-            this.Clear();
             objectId = 0;
             client = null;
             state = State.默认;
             owner.position = 0;
             other.position = 0;
+            NetworkSpawner.Clear(this);
         }
 
 #if UNITY_EDITOR

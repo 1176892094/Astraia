@@ -218,7 +218,7 @@ namespace Astraia.Net
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 
-            foreach (var result in owner.Clients())
+            foreach (var result in owner.clients)
             {
                 if (result.isReady && ((pass & Pass.ANY) == 0 || result != client))
                 {

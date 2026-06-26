@@ -77,7 +77,7 @@ namespace Astraia.Net
                         isLoadScene = true;
                         foreach (var client in clients.Values)
                         {
-                            client.Clear();
+                            NetworkSpawner.Clear(client);
                             client.isReady = false;
                             client.Send(new SceneMessage(sceneName));
                         }
@@ -152,7 +152,7 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        entity.Add(client);
+                        NetworkSpawner.Add(entity, client);
                     }
                 }
             }
@@ -253,7 +253,7 @@ namespace Astraia.Net
                         }
                     }
 
-                    client.Clear();
+                    NetworkSpawner.Clear(client);
                     EventManager.Invoke(new ServerDisconnect(client));
                 }
             }
@@ -345,7 +345,7 @@ namespace Astraia.Net
                     {
                         if (result.isReady)
                         {
-                            entity.Add(result);
+                            NetworkSpawner.Add(entity, result);
                         }
                     }
                 }
@@ -356,7 +356,7 @@ namespace Astraia.Net
                 if (obj.TryGetComponent(out NetworkEntity entity))
                 {
                     spawns.Remove(entity.objectId);
-                    foreach (var client in entity.Clients())
+                    foreach (var client in entity.clients)
                     {
                         client.Send(new DestroyMessage(entity.objectId));
                     }
@@ -395,7 +395,7 @@ namespace Astraia.Net
                     {
                         if (client.isReady)
                         {
-                            foreach (var entity in client.Entities())
+                            foreach (var entity in client.entities)
                             {
                                 if (entity)
                                 {

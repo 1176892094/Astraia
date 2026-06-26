@@ -18,6 +18,7 @@ namespace Astraia.Net
     public sealed class NetworkClient
     {
         private readonly Dictionary<int, WriterQueue> packets = new Dictionary<int, WriterQueue>();
+        internal readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
         internal readonly ReaderQueue reader = new ReaderQueue();
         internal readonly int clientId;
         internal bool isReady;
