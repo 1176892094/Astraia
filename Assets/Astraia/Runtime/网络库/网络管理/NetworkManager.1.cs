@@ -96,6 +96,11 @@ namespace Astraia.Net
 
             private static void SpawnObjects()
             {
+                if (NetworkObserver.Instance != null)
+                {
+                    NetworkObserver.Instance.Enqueue();
+                }
+
 #if UNITY_6000_4_OR_NEWER
                 var entities = FindObjectsByType<NetworkEntity>();
 #else

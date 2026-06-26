@@ -70,6 +70,7 @@ namespace Astraia.Net
                 if (waitTime < NetworkManager.syncTime)
                 {
                     waitTime = NetworkManager.syncTime + 0.2;
+
                     foreach (var entity in entities)
                     {
                         Tick(entity);
@@ -109,12 +110,12 @@ namespace Astraia.Net
                 clients.Add(entity.client);
             }
 
-            var copied = entity.Clients();
+            var copied = entity.clients;
             foreach (var client in clients)
             {
                 if (client.isReady && !copied.Contains(client))
                 {
-                    entity.Add(client);
+                    NetworkSpawner.Add(entity, client);
                 }
             }
 
@@ -125,7 +126,7 @@ namespace Astraia.Net
             {
                 if (!clients.Contains(client))
                 {
-                    entity.Remove(client);
+                    NetworkSpawner.Remove(entity, client);
                 }
             }
         }
@@ -137,7 +138,11 @@ namespace Astraia.Net
                 var pos = visible.WorldToNode(entity.transform.position) - visible.WorldToNode(player.transform.position);
                 if (Mathf.Abs(pos.x) <= extents.x && Mathf.Abs(pos.y) <= extents.y)
                 {
-                    entity.Add(client);
+                    NetworkSpawner.Add(entity, client);
+                }
+                else
+                {
+                    entity.gameObject.SetActive(false);
                 }
             }
         }

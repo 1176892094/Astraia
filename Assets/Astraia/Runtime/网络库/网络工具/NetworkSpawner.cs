@@ -1,38 +1,20 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using Astraia.Core;
 
 namespace Astraia.Net
 {
     internal static class NetworkSpawner
     {
-        private static readonly Dictionary<NetworkEntity, HashSet<NetworkClient>> clientDict = new Dictionary<NetworkEntity, HashSet<NetworkClient>>();
-        private static readonly Dictionary<NetworkClient, HashSet<NetworkEntity>> entityDict = new Dictionary<NetworkClient, HashSet<NetworkEntity>>();
-        private static readonly HashSet<NetworkClient> Empty = new HashSet<NetworkClient>();
-        private static readonly HashSet<NetworkEntity> Cache = new HashSet<NetworkEntity>();
-
-        public static void Add(this NetworkEntity entity, NetworkClient client)
+        public static void Add(NetworkEntity entity, NetworkClient client)
         {
-            if (!clientDict.TryGetValue(entity, out var clients))
-            {
-                clients = new HashSet<NetworkClient>();
-                clientDict[entity] = clients;
-            }
-
+            var clients = entity.clients;
             if (clients.Add(client))
             {
                 if (clients.Count == 1)
                 {
                     entity.ClearDirty(true);
                 }
-
-                if (!entityDict.TryGetValue(client, out var entities))
-                {
-                    entities = new HashSet<NetworkEntity>();
-                    entityDict[client] = entities;
-                }
-
-                entities.Add(entity);
 
                 using var owner = MemoryWriter.Pop();
                 using var other = MemoryWriter.Pop();
@@ -43,14 +25,43 @@ namespace Astraia.Net
                     segment = (ArraySegment<byte>)(entity.client == client ? owner : other);
                 }
 
+                client.entities.Add(entity);
                 client.Send(new SpawnMessage(entity, client, segment));
             }
         }
 
-        public static void Remove(this NetworkEntity entity, NetworkClient client)
+        public static void Remove(NetworkEntity entity, NetworkClient client)
         {
-            if (clientDict.TryGetValue(entity, out var clients))
+            var clients = entity.clients;
+            if (clients.Remove(client))
             {
+                if (clients.Count == 0)
+                {
+                    entity.ClearDirty(true);
+                }
+
+                client.entities.Remove(entity);
+                client.Send(new DespawnMessage(entity.objectId));
+            }
+        }
+
+        public static void Clear(NetworkEntity entity)
+        {
+            var clients = entity.clients;
+            foreach (var client in clients)
+            {
+                client.entities.Remove(entity);
+            }
+
+            clients.Clear();
+        }
+
+        public static void Clear(NetworkClient client)
+        {
+            var entities = client.entities;
+            foreach (var entity in entities.ToList())
+            {
+                var clients = entity.clients;
                 if (clients.Remove(client))
                 {
                     if (clients.Count == 0)
@@ -58,63 +69,9 @@ namespace Astraia.Net
                         entity.ClearDirty(true);
                     }
 
-                    client.Entities().Remove(entity);
-                    client.Send(new DespawnMessage(entity.objectId));
+                    entities.Remove(entity);
                 }
             }
-        }
-
-        public static void Clear(this NetworkEntity entity)
-        {
-            if (clientDict.Remove(entity, out var clients))
-            {
-                foreach (var client in clients)
-                {
-                    client.Entities().Remove(entity);
-                }
-
-                clients.Clear();
-            }
-        }
-
-        public static void Clear(this NetworkClient client)
-        {
-            if (entityDict.Remove(client, out var entities))
-            {
-                foreach (var entity in entities)
-                {
-                    if (entity)
-                    {
-                        Cache.Add(entity);
-                    }
-                }
-
-                foreach (var entity in Cache)
-                {
-                    var clients = entity.Clients();
-                    if (clients.Remove(client))
-                    {
-                        if (clients.Count == 0)
-                        {
-                            entity.ClearDirty(true);
-                        }
-
-                        entities.Remove(entity);
-                    }
-                }
-
-                Cache.Clear();
-            }
-        }
-
-        public static HashSet<NetworkClient> Clients(this NetworkEntity entity)
-        {
-            return clientDict.GetValueOrDefault(entity, Empty);
-        }
-
-        public static HashSet<NetworkEntity> Entities(this NetworkClient client)
-        {
-            return entityDict.GetValueOrDefault(client, Cache);
         }
     }
 }
