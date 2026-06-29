@@ -17,7 +17,7 @@ using UnityEngine.PlayerLoop;
 
 namespace Astraia.Net
 {
-    internal static class NetworkSystem
+    public static class NetworkSystem
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
@@ -72,7 +72,7 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool Tick(ref double sendTime)
+        public static bool Tick(ref double sendTime)
         {
             var syncTime = NetworkManager.syncTime;
             var syncRate = NetworkManager.syncRate;
