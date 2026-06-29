@@ -690,7 +690,7 @@ namespace Astraia
         {
             var item = HeapManager.Dequeue<IState>(typeof(TState));
             item.Acquire(owner);
-            Add(key, item);
+            this[key] = item;
         }
 
         public void Switch(T key)
