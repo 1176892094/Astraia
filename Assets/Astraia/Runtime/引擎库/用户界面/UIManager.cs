@@ -65,13 +65,14 @@ namespace Astraia.Core
             asset.gameObject.SetActive(false);
             var owner = asset.AddComponent<Entity>();
             var panel = owner.AddComponent<UIPanel>(item);
+            var graph = owner.GetComponent<RectTransform>();
             if (item.GetAttribute(out UIMaskAttribute mask))
             {
                 panel.layer = mask.layer;
                 panel.group = mask.group;
             }
 
-            panel.SetLayer(panel.layer);
+            SetTransform(graph, GetLayer(panel.layer));
             panelData.Add(item, panel);
             return panel;
         }
@@ -161,9 +162,9 @@ namespace Astraia.Core
             }
         }
 
-        public static void SetLayer(this UIPanel panel, int layer)
+        public static RectTransform GetLayer(int layer)
         {
-            if (!Instance) return;
+            if (!Instance) return null;
             if (!layerData.TryGetValue(layer, out var parent))
             {
                 var format = "Pool - Canvas-{0}".Format(layer);
@@ -174,7 +175,7 @@ namespace Astraia.Core
                 layerData.Add(layer, parent);
             }
 
-            SetTransform(panel.owner.GetComponent<RectTransform>(), parent);
+            return parent;
         }
 
         private static void SetTransform(RectTransform rect, Transform parent)
