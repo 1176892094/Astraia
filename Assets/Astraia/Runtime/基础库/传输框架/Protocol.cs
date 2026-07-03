@@ -1027,12 +1027,12 @@ namespace Astraia
         private KcpClient kcpClient;
         private KcpServer kcpServer;
 
-        void IModule.Acquire(object owner)
+        void IModule.Acquire(object isServer)
         {
             var setting = new Setting(MAX_MTU, TIME_OUT, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
             kcpClient = new KcpClient(setting, cEvent);
             kcpServer = new KcpServer(setting, sEvent);
-            if (owner is true)
+            if (isServer is true)
             {
                 sEvent.Error = OnServerError;
             }

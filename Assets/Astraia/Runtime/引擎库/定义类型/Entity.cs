@@ -202,17 +202,13 @@ namespace Astraia
 
         public void Clear()
         {
-            Reset();
-            buckets.Clear();
-            objects.Clear();
-        }
-
-        public void Reset()
-        {
             foreach (var bucket in buckets.Values)
             {
                 bucket.Clear();
             }
+
+            buckets.Clear();
+            objects.Clear();
         }
 
         private static ulong Hash(Vector2Int grid)
