@@ -10,6 +10,7 @@
 // *********************************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,6 +18,10 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Astraia.Core
 {
@@ -69,16 +74,14 @@ namespace Astraia.Core
             T asset;
             if (GlobalSetting.Instance.AssetMode != AssetMode.Resource && Application.isPlaying)
             {
-                var item = LoadAssetData(reason);
-                assetPack.TryGetValue(item.Key, out var result);
-                asset = Actuator.LoadAt<T>(item.Value, result);
+                asset = LoadFirst<T>(LoadAssetData(reason));
             }
             else
             {
-                asset = Simulate.LoadAt<T>(reason);
+                asset = LoadThird<T>(LoadAssetData(reason));
             }
 
-            asset ??= Resource.LoadAt<T>(reason);
+            asset ??= LoadSecond<T>(reason);
             return asset;
         }
 
@@ -87,25 +90,33 @@ namespace Astraia.Core
             T[] asset;
             if (GlobalSetting.Instance.AssetMode != AssetMode.Resource && Application.isPlaying)
             {
-                var item = LoadAssetData(reason);
-                assetPack.TryGetValue(item.Key, out var result);
-                asset = Actuator.LoadBy<T>(item.Value, result);
+                asset = LoadFirstAll<T>(LoadAssetData(reason));
             }
             else
             {
-                asset = Simulate.LoadBy<T>(reason);
+                asset = LoadThirdAll<T>(LoadAssetData(reason));
             }
 
-            asset ??= Resource.LoadBy<T>(reason);
+            asset ??= LoadSecondAll<T>(reason);
             return asset;
         }
 
-        private static (string Key, string Value) LoadAssetData(string reason)
+        private static AssetData LoadAssetData(string reason)
         {
             if (!assetData.TryGetValue(reason, out var asset))
             {
                 var index = reason.LastIndexOf('/');
-                asset = index < 0 ? (null, reason) : (reason.Substring(0, index).ToLower(), reason.Substring(index + 1));
+                asset = new AssetData();
+                if (index < 0)
+                {
+                    asset.Name = reason;
+                }
+                else
+                {
+                    asset.Path = reason.Substring(0, index).ToLower();
+                    asset.Name = reason.Substring(index + 1);
+                }
+
                 assetData.Add(reason, asset);
             }
 
@@ -223,12 +234,12 @@ namespace Astraia.Core
             if (GlobalSetting.Instance.AssetMode != AssetMode.Resource)
             {
                 var item = LoadAssetData(reason);
-                if (assetPack.TryGetValue(item.Key, out var result))
+                if (assetPack.TryGetValue(item.Path, out var result))
                 {
                     var scenes = result.GetAllScenePaths();
                     foreach (var scene in scenes)
                     {
-                        if (scene == item.Value)
+                        if (scene == item.Name)
                         {
                             return scene;
                         }
@@ -247,65 +258,51 @@ namespace Astraia.Core
             AssetBundle.UnloadAllAssetBundles(true);
         }
 
-        private static class Actuator
+        private static T Instantiate<T>(T asset) where T : Object
         {
-            public static T LoadAt<T>(string reason, AssetBundle bundle) where T : Object
-            {
-                if (bundle == null) return null;
-                var asset = bundle.LoadAsset<T>(reason);
-                return asset is GameObject ? Object.Instantiate(asset) : asset;
-            }
-
-            public static T[] LoadBy<T>(string reason, AssetBundle bundle) where T : Object
-            {
-                return bundle.LoadAssetWithSubAssets<T>(reason);
-            }
+            return asset is GameObject ? Object.Instantiate(asset) : asset;
         }
 
-        private static class Resource
+        private static T LoadFirst<T>(AssetData reason) where T : Object
         {
-            public static T LoadAt<T>(string reason) where T : Object
-            {
-                var asset = Resources.Load<T>(reason);
-                return asset is GameObject ? Object.Instantiate(asset) : asset;
-            }
-
-            public static T[] LoadBy<T>(string reason) where T : Object
-            {
-                return Resources.LoadAll<T>(reason);
-            }
+            return Instantiate(assetPack.GetValueOrDefault(reason.Path)?.LoadAsset<T>(reason.Name));
         }
 
-        private static class Simulate
+        private static T[] LoadFirstAll<T>(AssetData reason) where T : Object
         {
-            public static T LoadAt<T>(string reason) where T : Object
-            {
+            return assetPack.GetValueOrDefault(reason.Path)?.LoadAssetWithSubAssets<T>(reason.Name);
+        }
+
+        private static T LoadSecond<T>(string reason) where T : Object
+        {
+            return Instantiate(Resources.Load<T>(reason));
+        }
+
+        private static T[] LoadSecondAll<T>(string reason) where T : Object
+        {
+            return Resources.LoadAll<T>(reason);
+        }
+
+        private static T LoadThird<T>(AssetData reason) where T : Object
+        {
 #if UNITY_EDITOR
-                if (assetPath.TryGetValue(reason, out var result))
-                {
-                    var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(result);
-                    return asset is GameObject ? Object.Instantiate(asset) : asset;
-                }
-
-                return null;
-#else
-                return null;
-#endif
-            }
-
-            public static T[] LoadBy<T>(string reason) where T : Object
+            foreach (var result in AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(reason.Path, reason.Name))
             {
-#if UNITY_EDITOR
-                if (assetPath.TryGetValue(reason, out var result))
-                {
-                    return UnityEditor.AssetDatabase.LoadAllAssetRepresentationsAtPath(result).Cast<T>().ToArray();
-                }
-
-                return null;
-#else
-                return null;
-#endif
+                return Instantiate(AssetDatabase.LoadAssetAtPath<T>(result));
             }
+#endif
+            return null;
+        }
+
+        private static T[] LoadThirdAll<T>(AssetData reason) where T : Object
+        {
+#if UNITY_EDITOR
+            foreach (var path in AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(reason.Path, reason.Name))
+            {
+                return AssetDatabase.LoadAllAssetRepresentationsAtPath(path).Cast<T>().ToArray();
+            }
+#endif
+            return null;
         }
     }
 }

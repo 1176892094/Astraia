@@ -354,28 +354,6 @@ namespace Astraia
                 }
             }
         }
-
-        [InitializeOnLoadMethod]
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static void RuntimeInitializeOnLoad()
-        {
-            var assetBundles = AssetDatabase.GetAllAssetBundleNames();
-            foreach (var assetBundle in assetBundles)
-            {
-                var assetPaths = AssetDatabase.GetAssetPathsFromAssetBundle(assetBundle);
-                foreach (var path in assetPaths)
-                {
-                    var split = path.Substring(offset).TrimStart('/');
-                    var index = split.IndexOf('/');
-                    if (index >= 0)
-                    {
-                        var folder = split.Substring(0, index);
-                        var result = Path.GetFileNameWithoutExtension(path);
-                        GlobalManager.assetPath["{0}/{1}".Format(folder, result)] = path;
-                    }
-                }
-            }
-        }
     }
 
     public abstract class EditorSingleton<T> : ScriptableObject where T : EditorSingleton<T>

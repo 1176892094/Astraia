@@ -42,15 +42,11 @@ namespace Astraia.Core
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly IDictionary<string, (string, string)> assetData = new Dictionary<string, (string, string)>();
+        internal static readonly IDictionary<string, AssetData> assetData = new Dictionary<string, AssetData>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
-        internal static readonly IDictionary<string, string> assetPath = new Dictionary<string, string>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<string, AssetBundle> assetPack = new Dictionary<string, AssetBundle>();
+        internal static readonly Dictionary<string, AssetBundle> assetPack = new Dictionary<string, AssetBundle>();
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [Sirenix.OdinInspector.ShowInInspector]
 #endif
@@ -138,6 +134,12 @@ namespace Astraia.Core
             EventManager.Dispose();
             AudioManager.Dispose();
             GC.Collect();
+        }
+
+        public struct AssetData
+        {
+            public string Name;
+            public string Path;
         }
     }
 }
