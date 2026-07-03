@@ -18,9 +18,6 @@ using Object = UnityEngine.Object;
 #if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
 #endif
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Astraia
 {
@@ -45,7 +42,7 @@ namespace Astraia
 #endif
         public AssetPlatform BuildTarget = AssetPlatform.StandaloneWindows;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [EnumToggleButtons] [OnValueChanged("UpdateSceneSetting")]
+        [EnumToggleButtons]
 #endif
         public AssetMode AssetMode = AssetMode.Resource;
 #if UNITY_EDITOR && ODIN_INSPECTOR
@@ -108,10 +105,6 @@ namespace Astraia
 #if ODIN_INSPECTOR
         [PropertyOrder(1)]
 #endif
-        public List<Object> sceneAssets = new List<Object>();
-#if ODIN_INSPECTOR
-        [PropertyOrder(1)]
-#endif
         public List<Object> ignoreAssets = new List<Object>();
 #if ODIN_INSPECTOR
         [HideInInspector]
@@ -132,27 +125,6 @@ namespace Astraia
 #if ODIN_INSPECTOR
         private IEnumerable<ValueDropdownItem<int>> UpdateEncryptKey => EncryptGroup.Select((item, i) => new ValueDropdownItem<int>(item, i));
 #endif
-        public static void UpdateSceneSetting()
-        {
-            var assets = EditorBuildSettings.scenes.Select(scene => scene.path).ToHashSet();
-            foreach (var sceneAsset in Instance.sceneAssets)
-            {
-                var scenePath = AssetDatabase.GetAssetPath(sceneAsset);
-                if (assets.Contains(scenePath))
-                {
-                    if (Instance.AssetMode == AssetMode.Resource) continue;
-                    var scenes = EditorBuildSettings.scenes.Where(scene => scene.path != scenePath);
-                    EditorBuildSettings.scenes = scenes.ToArray();
-                }
-                else
-                {
-                    if (Instance.AssetMode != AssetMode.Resource) continue;
-                    var scenes = EditorBuildSettings.scenes.ToList();
-                    scenes.Add(new EditorBuildSettingsScene(scenePath, true));
-                    EditorBuildSettings.scenes = scenes.ToArray();
-                }
-            }
-        }
 #endif
     }
 }

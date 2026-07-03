@@ -18,9 +18,10 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
-
 #if UNITY_EDITOR
+using System.Runtime.CompilerServices;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 #endif
 
 namespace Astraia.Core
@@ -29,6 +30,8 @@ namespace Astraia.Core
 
     public static class AssetManager
     {
+        private static bool isActive => GlobalSetting.Instance.AssetMode != AssetMode.Resource && Application.isPlaying;
+
         public static T Load<T>(string reason) where T : Object
         {
             try
@@ -71,34 +74,30 @@ namespace Astraia.Core
 
         private static T LoadAsset<T>(string reason) where T : Object
         {
-            T asset;
-            if (GlobalSetting.Instance.AssetMode != AssetMode.Resource && Application.isPlaying)
+            if (isActive)
             {
-                asset = LoadFirst<T>(LoadAssetData(reason));
+                var asset = LoadFirst<T>(LoadAssetData(reason));
+                return asset ?? LoadSecond<T>(reason);
             }
             else
             {
-                asset = LoadThird<T>(LoadAssetData(reason));
+                var asset = LoadThird<T>(LoadAssetData(reason));
+                return asset ?? LoadSecond<T>(reason);
             }
-
-            asset ??= LoadSecond<T>(reason);
-            return asset;
         }
 
         private static T[] LoadAssetAll<T>(string reason) where T : Object
         {
-            T[] asset;
-            if (GlobalSetting.Instance.AssetMode != AssetMode.Resource && Application.isPlaying)
+            if (isActive)
             {
-                asset = LoadFirstAll<T>(LoadAssetData(reason));
+                var asset = LoadFirstAll<T>(LoadAssetData(reason));
+                return asset ?? LoadSecondAll<T>(reason);
             }
             else
             {
-                asset = LoadThirdAll<T>(LoadAssetData(reason));
+                var asset = LoadThirdAll<T>(LoadAssetData(reason));
+                return asset ?? LoadSecondAll<T>(reason);
             }
-
-            asset ??= LoadSecondAll<T>(reason);
-            return asset;
         }
 
         private static AssetData LoadAssetData(string reason)
@@ -126,7 +125,11 @@ namespace Astraia.Core
         public static async void LoadAssetBundle()
         {
             var platform = await LoadAssetBundle(GlobalSetting.Instance.BuildTarget.ToString());
-            manifest ??= platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
+            if (manifest == null)
+            {
+                manifest = platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
+            }
+
             EventManager.Invoke(new OnLoadAsset(manifest.GetAllAssetBundles()));
 
             var bundles = manifest.GetAllAssetBundles();
@@ -202,26 +205,18 @@ namespace Astraia.Core
         {
             try
             {
-                if (!Instance) return;
-                var scene = LoadSceneAsset(GlobalSetting.SCENES.Format(reason));
-                if (!string.IsNullOrEmpty(scene))
+                if (Instance)
                 {
                     EventManager.Invoke(new OnLoadScene(reason));
-                    var request = SceneManager.LoadSceneAsync(reason, LoadSceneMode.Single);
-                    if (request != null)
+                    var request = LoadSceneAsset(GlobalSetting.SCENES.Format(reason));
+                    while (!request.isDone && Instance)
                     {
-                        while (!request.isDone && Instance)
-                        {
-                            EventManager.Invoke(new OnSceneUpdate(request.progress));
-                            await Task.Yield();
-                        }
+                        EventManager.Invoke(new OnSceneUpdate(request.progress));
+                        await Task.Yield();
                     }
 
                     EventManager.Invoke(new OnSceneComplete(reason));
-                    return;
                 }
-
-                Log.Warn("加载资源 {0} 为空!".Format(reason));
             }
             catch (Exception e)
             {
@@ -229,25 +224,28 @@ namespace Astraia.Core
             }
         }
 
-        private static string LoadSceneAsset(string reason)
+        private static AsyncOperation LoadSceneAsset(string reason)
         {
-            if (GlobalSetting.Instance.AssetMode != AssetMode.Resource)
+            var item = LoadAssetData(reason);
+            if (isActive)
             {
-                var item = LoadAssetData(reason);
-                if (assetPack.TryGetValue(item.Path, out var result))
-                {
-                    var scenes = result.GetAllScenePaths();
-                    foreach (var scene in scenes)
-                    {
-                        if (scene == item.Name)
-                        {
-                            return scene;
-                        }
-                    }
-                }
+                var sceneData = assetPack.GetValueOrDefault(item.Path);
+                var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(scene => scene == item.Name);
+                return SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
             }
-
-            return reason.Substring(reason.LastIndexOf('/') + 1);
+            else
+            {
+#if UNITY_EDITOR
+                var sceneData = LoadThird<SceneAsset>(item);
+                if (sceneData)
+                {
+                    var scenePath = AssetDatabase.GetAssetPath(sceneData);
+                    return EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Single));
+                }
+#endif
+                var sceneName = reason.Substring(reason.LastIndexOf('/') + 1);
+                return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+            }
         }
 
         internal static void Dispose()
@@ -297,9 +295,10 @@ namespace Astraia.Core
         private static T[] LoadThirdAll<T>(AssetData reason) where T : Object
         {
 #if UNITY_EDITOR
-            foreach (var path in AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(reason.Path, reason.Name))
+            foreach (var result in AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(reason.Path, reason.Name))
             {
-                return AssetDatabase.LoadAllAssetRepresentationsAtPath(path).Cast<T>().ToArray();
+                var source = AssetDatabase.LoadAllAssetRepresentationsAtPath(result);
+                return Unsafe.As<Object[], T[]>(ref source);
             }
 #endif
             return null;

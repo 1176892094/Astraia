@@ -1359,9 +1359,9 @@ namespace Astraia
             Marshal.FreeHGlobal((nint)memory);
         }
 
-        public static void memcpy(void* dst, void* src, nuint length)
+        public static void memcpy(void* dst, void* src, nuint size)
         {
-            Buffer.MemoryCopy(src, dst, length, length);
+            Unsafe.CopyBlockUnaligned(dst, src, (uint)size);
         }
 
         [Conditional("DEBUG")]
