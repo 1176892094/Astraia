@@ -19,19 +19,15 @@ namespace Astraia.Net
     public class NetworkObserver : Singleton<NetworkObserver>, IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
     {
         private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
+        private readonly SpatialHash<NetworkClient> visible = new SpatialHash<NetworkClient>();
         private readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
         private readonly HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
         private readonly List<NetworkClient> copies = new List<NetworkClient>();
-        private SpatialHash<NetworkClient> visible;
+
         private double waitTime;
 
         [SerializeField] private Vector2Int extents = Vector2Int.one;
         [SerializeField] private float cellSize = 1;
-
-        public override void Dequeue()
-        {
-            visible = new SpatialHash<NetworkClient>(cellSize);
-        }
 
         public override void Enqueue()
         {
@@ -45,7 +41,7 @@ namespace Astraia.Net
         public void Register(NetworkEntity entity)
         {
             players[entity.client] = entity;
-            visible.Insert(entity.client, entity.transform.position);
+            visible.Insert(entity.client, WorldToNode(entity.transform.position));
         }
 
         public void UnRegister(NetworkClient client)
@@ -63,7 +59,7 @@ namespace Astraia.Net
                 {
                     if (player)
                     {
-                        visible.Update(player.client, player.transform.position);
+                        visible.Update(player.client, WorldToNode(player.transform.position));
                     }
                 }
 
@@ -86,13 +82,15 @@ namespace Astraia.Net
             {
                 if (player)
                 {
-                    var pos = visible.WorldToNode(player.transform.position);
-                    var min = pos - extents;
-                    var max = pos + extents;
+                    var center = WorldToNode(player.transform.position);
+                    var minX = center.x - extents.x;
+                    var maxX = center.x + extents.x;
+                    var minY = center.y - extents.y;
+                    var maxY = center.y + extents.y;
 
-                    for (var x = min.x; x <= max.x; x++)
+                    for (var x = minX; x <= maxX; x++)
                     {
-                        for (var y = min.y; y <= max.y; y++)
+                        for (var y = minY; y <= maxY; y++)
                         {
                             Gizmos.DrawWireCube(new Vector2(x + 0.5F, y + 0.5F) * cellSize, Vector2.one * cellSize);
                         }
@@ -103,7 +101,7 @@ namespace Astraia.Net
 
         public void Tick(NetworkEntity entity)
         {
-            visible.Query(entity.transform.position, extents, clients);
+            visible.Query(WorldToNode(entity.transform.position), extents.x, extents.y, clients);
 
             if (entity.client != null)
             {
@@ -135,7 +133,7 @@ namespace Astraia.Net
         {
             if (players.TryGetValue(client, out var player) && player && entity != player)
             {
-                var pos = visible.WorldToNode(entity.transform.position) - visible.WorldToNode(player.transform.position);
+                var pos = WorldToNode(entity.transform.position) - WorldToNode(player.transform.position);
                 if (Mathf.Abs(pos.x) <= extents.x && Mathf.Abs(pos.y) <= extents.y)
                 {
                     NetworkSpawner.Add(entity, client);
@@ -145,6 +143,13 @@ namespace Astraia.Net
                     entity.gameObject.SetActive(false);
                 }
             }
+        }
+
+        public Position WorldToNode(Vector2 position)
+        {
+            var x = Mathf.FloorToInt(position.x / cellSize);
+            var y = Mathf.FloorToInt(position.y / cellSize);
+            return new Position(x, y);
         }
 
         public void Add(NetworkEntity entity)

@@ -1,8 +1,133 @@
 using System;
 using System.Collections.Generic;
 
-namespace Astraia.Core
+namespace Astraia
 {
+    [Serializable]
+    public struct Position
+    {
+        public int x;
+        public int y;
+
+        public Position(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+
+        public static Position operator +(Position a, Position b)
+        {
+            return new Position(a.x + b.x, a.y + b.y);
+        }
+
+        public static Position operator -(Position a, Position b)
+        {
+            return new Position(a.x - b.x, a.y - b.y);
+        }
+
+        public ulong Hash => ((ulong)x << 32) ^ (ulong)y;
+    }
+
+    [Serializable]
+    public sealed class SpatialHash<T>
+    {
+        private readonly Dictionary<ulong, HashSet<T>> buckets = new Dictionary<ulong, HashSet<T>>();
+        private readonly Dictionary<T, ulong> objects = new Dictionary<T, ulong>();
+
+        public void Insert(T item, Position center)
+        {
+            var node = center.Hash;
+            if (!buckets.TryGetValue(node, out var items))
+            {
+                items = new HashSet<T>();
+                buckets.Add(node, items);
+            }
+
+            items.Add(item);
+            objects[item] = node;
+        }
+
+        public void Remove(T item)
+        {
+            if (objects.TryGetValue(item, out var node))
+            {
+                if (buckets.TryGetValue(node, out var items))
+                {
+                    items.Remove(item);
+                    if (items.Count == 0)
+                    {
+                        buckets.Remove(node);
+                    }
+                }
+
+                objects.Remove(item);
+            }
+        }
+
+        public void Update(T item, Position center)
+        {
+            if (objects.TryGetValue(item, out var oldNode))
+            {
+                var newNode = center.Hash;
+                if (oldNode != newNode)
+                {
+                    if (buckets.TryGetValue(oldNode, out var oldItems))
+                    {
+                        oldItems.Remove(item);
+                        if (oldItems.Count == 0)
+                        {
+                            buckets.Remove(oldNode);
+                        }
+                    }
+
+                    if (!buckets.TryGetValue(newNode, out var newItems))
+                    {
+                        newItems = new HashSet<T>();
+                        buckets.Add(newNode, newItems);
+                    }
+
+                    newItems.Add(item);
+                    objects[item] = newNode;
+                }
+            }
+        }
+
+        public void Query(Position center, int extentX, int extentY, HashSet<T> items)
+        {
+            items.Clear();
+            var minX = center.x - extentX;
+            var maxX = center.x + extentX;
+            var minY = center.y - extentY;
+            var maxY = center.y + extentY;
+
+            for (var x = minX; x <= maxX; x++)
+            {
+                for (var y = minY; y <= maxY; y++)
+                {
+                    var node = new Position(x, y).Hash;
+                    if (buckets.TryGetValue(node, out var copies))
+                    {
+                        foreach (var item in copies)
+                        {
+                            items.Add(item);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Clear()
+        {
+            foreach (var bucket in buckets.Values)
+            {
+                bucket.Clear();
+            }
+
+            buckets.Clear();
+            objects.Clear();
+        }
+    }
+
     [Serializable]
     public abstract class PathFinding
     {
@@ -45,35 +170,17 @@ namespace Astraia.Core
             return x >= 0 && y >= 0 && x < width && y < height;
         }
 
-        public readonly struct Node
+        protected readonly struct Grid
         {
-            public readonly int X;
-            public readonly int Y;
-
-            public Node(int x, int y)
-            {
-                X = x;
-                Y = y;
-            }
-
-            public Node(Grid grid)
-            {
-                X = grid.X;
-                Y = grid.Y;
-            }
-        }
-
-        public readonly struct Grid
-        {
-            public readonly int X;
-            public readonly int Y;
-            public readonly int Cost;
+            public readonly int x;
+            public readonly int y;
+            public readonly int cost;
 
             public Grid(int x, int y, int cost)
             {
-                X = x;
-                Y = y;
-                Cost = cost;
+                this.x = x;
+                this.y = y;
+                this.cost = cost;
             }
         }
 
@@ -172,7 +279,7 @@ namespace Astraia.Core
         private bool[] walkable;
 
         private MinHeap opened;
-        private List<Node> copied = new();
+        private List<Position> copied = new();
 
         public AStar(int width, int height, bool[] map) : base(width, height)
         {
@@ -184,7 +291,7 @@ namespace Astraia.Core
             opened = new MinHeap(fScore);
         }
 
-        public IList<Node> FindPath(int sx, int sy, int ex, int ey)
+        public IList<Position> Rebuild(int sx, int sy, int ex, int ey)
         {
             for (var i = 0; i < gScore.Length; i++)
             {
@@ -223,8 +330,8 @@ namespace Astraia.Core
 
                 foreach (var n in Neighbors)
                 {
-                    var nx = cx + n.X;
-                    var ny = cy + n.Y;
+                    var nx = cx + n.x;
+                    var ny = cy + n.y;
 
                     if (Contains(nx, ny))
                     {
@@ -235,7 +342,7 @@ namespace Astraia.Core
                             continue;
                         }
 
-                        if (n.Cost == 14)
+                        if (n.cost == 14)
                         {
                             var wx = Index(cx, ny);
                             var wy = Index(nx, cy);
@@ -246,7 +353,7 @@ namespace Astraia.Core
                             }
                         }
 
-                        var gCost = gScore[i] + n.Cost;
+                        var gCost = gScore[i] + n.cost;
                         if (gCost < gScore[j])
                         {
                             parent[j] = i;
@@ -258,7 +365,7 @@ namespace Astraia.Core
                 }
             }
 
-            return Array.Empty<Node>();
+            return Array.Empty<Position>();
         }
 
         private int Heuristic(int a, int b)
@@ -278,13 +385,13 @@ namespace Astraia.Core
             return 14 * min + 10 * (max - min);
         }
 
-        private List<Node> Reconstruct(int e)
+        private List<Position> Reconstruct(int e)
         {
             copied.Clear();
 
             while (e != -1)
             {
-                copied.Add(new Node(e % width, e / width));
+                copied.Add(new Position(e % width, e / width));
                 e = parent[e];
             }
 
@@ -340,18 +447,18 @@ namespace Astraia.Core
             }
         }
 
-        private bool CanMove(int cx, int cy, Grid n)
+        private bool CanMove(int x, int y, Grid g)
         {
-            return n.Cost != 14 || costs[Index(cx, cy + n.Y)] < INF && costs[Index(cx + n.X, cy)] < INF;
+            return g.cost != 14 || costs[Index(x, y + g.y)] < INF && costs[Index(x + g.x, y)] < INF;
         }
 
-        public void Rebuild(IList<Node> points)
+        public void Rebuild(IList<Position> points)
         {
             BuildIntegration(points);
             BuildFlowField();
         }
 
-        private void BuildIntegration(IList<Node> points)
+        private void BuildIntegration(IList<Position> points)
         {
             for (var i = 0; i < steps.Length; i++)
             {
@@ -361,9 +468,9 @@ namespace Astraia.Core
             opened.Clear();
             foreach (var p in points)
             {
-                if (Contains(p.X, p.Y))
+                if (Contains(p.x, p.y))
                 {
-                    var i = Index(p.X, p.Y);
+                    var i = Index(p.x, p.y);
                     steps[i] = 0;
                     opened.Enqueue(i);
                 }
@@ -380,8 +487,8 @@ namespace Astraia.Core
 
                 foreach (var n in Neighbors)
                 {
-                    var nx = cx + n.X;
-                    var ny = cy + n.Y;
+                    var nx = cx + n.x;
+                    var ny = cy + n.y;
 
                     if (Contains(nx, ny) && CanMove(cx, cy, n))
                     {
@@ -389,7 +496,7 @@ namespace Astraia.Core
 
                         if (costs[j] < INF)
                         {
-                            var cost = step + n.Cost + costs[j] * 10;
+                            var cost = step + n.cost + costs[j] * 10;
                             if (cost < steps[j])
                             {
                                 steps[j] = cost;
@@ -420,8 +527,8 @@ namespace Astraia.Core
                 for (var k = 0; k < Neighbors.Length; k++)
                 {
                     var n = Neighbors[k];
-                    var nx = cx + n.X;
-                    var ny = cy + n.Y;
+                    var nx = cx + n.x;
+                    var ny = cy + n.y;
 
                     if (Contains(nx, ny) && CanMove(cx, cy, n))
                     {
@@ -439,10 +546,10 @@ namespace Astraia.Core
             }
         }
 
-        public Node GetDirection(Node d)
+        public Position GetDirection(Position d)
         {
-            var cx = d.X;
-            var cy = d.Y;
+            var cx = d.x;
+            var cy = d.y;
 
             if (!Contains(cx, cy))
             {
@@ -453,7 +560,8 @@ namespace Astraia.Core
 
             if (nodes[i] != -1)
             {
-                return new Node(Neighbors[nodes[i]]);
+                var neighbor = Neighbors[nodes[i]];
+                return new Position(neighbor.x, neighbor.y);
             }
 
             var best = -1;
@@ -462,8 +570,8 @@ namespace Astraia.Core
             for (var k = 0; k < Neighbors.Length; k++)
             {
                 var n = Neighbors[k];
-                var nx = cx + n.X;
-                var ny = cy + n.Y;
+                var nx = cx + n.x;
+                var ny = cy + n.y;
 
                 if (Contains(nx, ny) && CanMove(cx, cy, n))
                 {
@@ -479,7 +587,8 @@ namespace Astraia.Core
 
             if (best != -1)
             {
-                return new Node(Neighbors[best]);
+                var neighbor = Neighbors[best];
+                return new Position(neighbor.x, neighbor.y);
             }
 
             return default;
