@@ -47,7 +47,7 @@ namespace Astraia.Core
 
         public static T Get<T>(int key) where T : IData
         {
-            if (dataTable1.TryGetValue(typeof(T), out var data))
+            if (DataTable1.TryGetValue(typeof(T), out var data))
             {
                 if (data.TryGetValue(key, out var result))
                 {
@@ -60,7 +60,7 @@ namespace Astraia.Core
 
         public static T Get<T>(Enum key) where T : IData
         {
-            if (dataTable2.TryGetValue(typeof(T), out var data))
+            if (DataTable2.TryGetValue(typeof(T), out var data))
             {
                 if (data.TryGetValue(key, out var result))
                 {
@@ -73,7 +73,7 @@ namespace Astraia.Core
 
         public static T Get<T>(string key) where T : IData
         {
-            if (dataTable3.TryGetValue(typeof(T), out var data))
+            if (DataTable3.TryGetValue(typeof(T), out var data))
             {
                 if (data.TryGetValue(key, out var result))
                 {
@@ -86,14 +86,14 @@ namespace Astraia.Core
 
         public static List<T> GetTable<T>() where T : IData
         {
-            return (DataTable<T>)dataTable[typeof(T)];
+            return (DataTable<T>)DataTable[typeof(T)];
         }
 
         public static void Dispose()
         {
-            dataTable1.Clear();
-            dataTable2.Clear();
-            dataTable3.Clear();
+            DataTable1.Clear();
+            DataTable2.Clear();
+            DataTable3.Clear();
         }
     }
 
@@ -269,27 +269,27 @@ namespace Astraia.Core
         {
             if (type == typeof(int))
             {
-                if (!dataTable1.ContainsKey(typeof(TData)))
+                if (!DataTable1.ContainsKey(typeof(TData)))
                 {
-                    dataTable1[typeof(TData)] = GetData<int>(name);
+                    DataTable1[typeof(TData)] = GetData<int>(name);
                 }
             }
             else if (type.IsEnum)
             {
-                if (!dataTable2.ContainsKey(typeof(TData)))
+                if (!DataTable2.ContainsKey(typeof(TData)))
                 {
-                    dataTable2[typeof(TData)] = GetData<Enum>(name);
+                    DataTable2[typeof(TData)] = GetData<Enum>(name);
                 }
             }
             else if (type == typeof(string))
             {
-                if (!dataTable3.ContainsKey(typeof(TData)))
+                if (!DataTable3.ContainsKey(typeof(TData)))
                 {
-                    dataTable3[typeof(TData)] = GetData<string>(name);
+                    DataTable3[typeof(TData)] = GetData<string>(name);
                 }
             }
 
-            dataTable[typeof(TData)] = this;
+            DataTable[typeof(TData)] = this;
         }
 
         private Dictionary<TKey, IData> GetData<TKey>(string name)

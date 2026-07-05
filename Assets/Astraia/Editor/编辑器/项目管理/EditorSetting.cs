@@ -206,11 +206,11 @@ namespace Astraia
             if (File.Exists(GlobalSetting.RemoteAssetData))
             {
                 var readJson = await File.ReadAllTextAsync(GlobalSetting.RemoteAssetData);
-                items = JsonManager.FromJson<Verify>(readJson).Bundles.ToDictionary(d => d.Name, d => d.Code);
+                items = JsonManager.FromJson<Package>(readJson).Bundles.ToDictionary(d => d.Name, d => d.Code);
             }
 
             var files = folder.GetFiles();
-            var verify = new Verify(DateTime.Now.Ticks / TimeSpan.TicksPerSecond);
+            var verify = new Package(DateTime.Now.Ticks);
             foreach (var file in files)
             {
                 if (file.Extension != "")

@@ -40,33 +40,33 @@ namespace Astraia.Core
             var persistentData = GlobalSetting.TargetPath.Format(GlobalSetting.VERIFY);
             var streamingAsset = GlobalSetting.ClientPath.Format(GlobalSetting.VERIFY);
             var streamResult = await LoadClientRequest(persistentData, streamingAsset, true);
-            var streamVerify = LoadVerifyRequest(streamResult, out var streamData);
+            var streamPacket = LoadVerifyRequest(streamResult, out var streamData);
             var clientResult = await LoadClientRequest(persistentData, streamingAsset);
-            var clientVerify = LoadVerifyRequest(clientResult, out var clientData);
+            var clientPacket = LoadVerifyRequest(clientResult, out var clientData);
             var serverResult = await LoadServerRequest(processingData, GlobalSetting.VERIFY);
+            var serverPacket = LoadVerifyRequest(serverResult, out var serverData);
 
-            var serverVerify = LoadVerifyRequest(serverResult, out var serverData);
             var isRemote = !string.IsNullOrEmpty(serverResult);
             if (isRemote)
             {
-                verify = serverVerify;
-                if (streamVerify.Version >= serverVerify.Version)
+                GlobalManager.Package = serverPacket;
+                if (streamPacket.Version >= serverPacket.Version)
                 {
                     serverData = streamData;
                     serverResult = streamResult;
                     isRemote = false;
-                    verify = streamVerify;
+                    GlobalManager.Package = streamPacket;
                 }
             }
             else
             {
-                verify = clientVerify;
-                if (streamVerify.Version > clientVerify.Version)
+                GlobalManager.Package = clientPacket;
+                if (streamPacket.Version > clientPacket.Version)
                 {
                     serverData = streamData;
                     serverResult = streamResult;
                     EventManager.Invoke(new OnBundleComplete(-1, "本地资源需要更新!"));
-                    verify = streamVerify;
+                    GlobalManager.Package = streamPacket;
                 }
                 else
                 {
@@ -121,12 +121,12 @@ namespace Astraia.Core
             EventManager.Invoke(new OnBundleComplete(1, success ? "更新完成!" : "更新失败!"));
         }
 
-        private static Verify LoadVerifyRequest(string request, out Dictionary<string, Bundle> result)
+        private static Package LoadVerifyRequest(string request, out Dictionary<string, Bundle> result)
         {
             result = new Dictionary<string, Bundle>();
             if (!string.IsNullOrEmpty(request))
             {
-                var verify = JsonManager.FromJson<Verify>(request);
+                var verify = JsonManager.FromJson<Package>(request);
                 foreach (var item in verify.Bundles)
                 {
                     result.Add(item.Name, item);
@@ -301,12 +301,12 @@ namespace Astraia.Core
     }
 
     [Serializable]
-    public struct Verify
+    public struct Package
     {
-        public long Version;
         public List<Bundle> Bundles;
+        public long Version;
 
-        public Verify(long version)
+        public Package(long version)
         {
             Version = version;
             Bundles = new List<Bundle>();

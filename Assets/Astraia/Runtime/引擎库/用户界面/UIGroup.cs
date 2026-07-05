@@ -13,7 +13,7 @@ namespace Astraia.Core
     {
         public static void Hide(int value)
         {
-            if (queueData.TryGetValue(value, out var queue))
+            if (QueueData.TryGetValue(value, out var queue))
             {
                 queue.Hide();
             }
@@ -27,10 +27,10 @@ namespace Astraia.Core
                 return;
             }
 
-            if (!queueData.TryGetValue(panel.group, out var queue))
+            if (!QueueData.TryGetValue(panel.group, out var queue))
             {
                 queue = new UIQueue();
-                queueData.Add(panel.group, queue);
+                QueueData.Add(panel.group, queue);
             }
 
             queue.Push(panel);
@@ -44,7 +44,7 @@ namespace Astraia.Core
                 return;
             }
 
-            if (queueData.TryGetValue(panel.group, out var queue))
+            if (QueueData.TryGetValue(panel.group, out var queue))
             {
                 queue.Back(panel);
             }
@@ -54,7 +54,7 @@ namespace Astraia.Core
         {
             Modified(panel, false);
             Object.Destroy(panel.owner.gameObject);
-            panelData.Remove(type);
+            PanelData.Remove(type);
         }
 
         internal static void Modified(UIPanel panel, bool state)

@@ -21,72 +21,72 @@ namespace Astraia.Core
     {
         public static int MusicVolume
         {
-            get => musicVolume = JsonManager.Load(nameof(MusicVolume), 100);
+            get => GlobalManager.MusicVolume = JsonManager.Load(nameof(MusicVolume), 100);
             set
             {
-                if (source)
+                if (Source)
                 {
-                    source.volume = value * 0.01F;
+                    Source.volume = value * 0.01F;
                 }
 
-                musicVolume = value;
-                JsonManager.Save(musicVolume, nameof(MusicVolume));
+                GlobalManager.MusicVolume = value;
+                JsonManager.Save(GlobalManager.MusicVolume, nameof(MusicVolume));
             }
         }
 
         public static int AudioVolume
         {
-            get => audioVolume = JsonManager.Load(nameof(AudioVolume), 100);
+            get => GlobalManager.AudioVolume = JsonManager.Load(nameof(AudioVolume), 100);
             set
             {
-                foreach (var audio in audioLoop)
+                foreach (var audio in AudioData)
                 {
                     audio.volume = value * 0.01F;
                 }
 
-                audioVolume = value;
-                JsonManager.Save(audioVolume, nameof(AudioVolume));
+                GlobalManager.AudioVolume = value;
+                JsonManager.Save(GlobalManager.AudioVolume, nameof(AudioVolume));
             }
         }
 
         public static AudioState AudioState
         {
-            get => audioState;
+            get => GlobalManager.AudioState;
             set
             {
                 switch (value)
                 {
                     case AudioState.Play:
-                        foreach (var audio in audioLoop) audio.Play();
+                        foreach (var audio in AudioData) audio.Play();
                         break;
                     case AudioState.Pause:
-                        foreach (var audio in audioLoop) audio.Pause();
+                        foreach (var audio in AudioData) audio.Pause();
                         break;
                     case AudioState.Stop:
-                        foreach (var audio in audioLoop) Stop(audio);
+                        foreach (var audio in AudioData) Stop(audio);
                         break;
                 }
 
-                audioState = value;
+                GlobalManager.AudioState = value;
             }
         }
 
         internal static void Update()
         {
-            if (audioState == AudioState.Play)
+            if (GlobalManager.AudioState == AudioState.Play)
             {
-                for (var i = audioLoop.Count - 1; i >= 0; i--)
+                for (var i = AudioData.Count - 1; i >= 0; i--)
                 {
-                    if (audioLoop[i])
+                    if (AudioData[i])
                     {
-                        if (!audioLoop[i].isPlaying)
+                        if (!AudioData[i].isPlaying)
                         {
-                            Stop(audioLoop[i]);
+                            Stop(AudioData[i]);
                         }
                     }
                     else
                     {
-                        Stop(audioLoop[i]);
+                        Stop(AudioData[i]);
                     }
                 }
             }
@@ -94,24 +94,24 @@ namespace Astraia.Core
 
         public static void Play(string name)
         {
-            if (!source) return;
+            if (!Source) return;
             var result = GlobalSetting.AUDIOS.Format(name);
-            source.clip = AssetManager.Load<AudioClip>(result);
-            source.loop = true;
-            source.volume = musicVolume * 0.01F;
-            source.Play();
+            Source.clip = AssetManager.Load<AudioClip>(result);
+            Source.loop = true;
+            Source.volume = GlobalManager.MusicVolume * 0.01F;
+            Source.Play();
         }
 
         public static void Pause()
         {
-            if (!source) return;
-            source.Pause();
+            if (!Source) return;
+            Source.Pause();
         }
 
         public static void Stop()
         {
-            if (!source) return;
-            source.Stop();
+            if (!Source) return;
+            Source.Stop();
         }
 
         public static AudioSource Load(string name, bool loop = false, float interval = 0)
@@ -120,9 +120,9 @@ namespace Astraia.Core
             var source = PoolManager.Show(result, interval);
             source.clip = AssetManager.Load<AudioClip>(result);
             source.loop = loop;
-            source.volume = audioVolume * 0.01F;
+            source.volume = GlobalManager.AudioVolume * 0.01F;
             source.Play();
-            audioLoop.Add(source);
+            AudioData.Add(source);
             return source;
         }
 
@@ -134,13 +134,13 @@ namespace Astraia.Core
                 PoolManager.Hide(source);
             }
 
-            audioLoop.Remove(source);
+            AudioData.Remove(source);
         }
 
         internal static void Dispose()
         {
-            audioLoop.Clear();
-            audioState = AudioState.Play;
+            AudioData.Clear();
+            GlobalManager.AudioState = AudioState.Play;
         }
 
         private static class PoolManager
@@ -157,24 +157,24 @@ namespace Astraia.Core
             public static void Hide(AudioSource item)
             {
                 if (!Instance || !item) return;
-                if (!poolRoot.TryGetValue(item.name, out var pool))
+                if (!PoolRoot.TryGetValue(item.name, out var pool))
                 {
-                    pool = new GameObject("Pool - {0}".Format(item.name));
-                    pool.transform.SetParent(Instance.transform);
-                    poolRoot.Add(item.name, pool);
+                    pool = new GameObject("Pool - {0}".Format(item.name)).transform;
+                    pool.SetParent(Instance.transform);
+                    PoolRoot.Add(item.name, pool);
                 }
 
                 item.gameObject.SetActive(false);
-                item.transform.SetParent(pool.transform);
+                item.transform.SetParent(pool);
                 LoadPool(item.name).Push(item);
             }
 
             private static Pool LoadPool(string path)
             {
-                if (!poolData.TryGetValue(path, out var pool))
+                if (!PoolData.TryGetValue(path, out var pool))
                 {
                     pool = new Pool(typeof(GameObject), path);
-                    poolData.Add(path, pool);
+                    PoolData.Add(path, pool);
                 }
 
                 return (Pool)pool;

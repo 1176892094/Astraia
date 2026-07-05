@@ -29,27 +29,27 @@ namespace Astraia.Core
             if (initialized) return;
             initialized = true;
             var prefab = new GameObject(nameof(UIManager));
-            canvas = prefab.AddComponent<Canvas>();
-            canvas.sortingOrder = 20;
-            canvas.planeDistance = 20;
-            canvas.gameObject.layer = LayerMask.NameToLayer("UI");
-            var scaler = prefab.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = 0.5F;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.referencePixelsPerUnit = 32;
-            var graphs = prefab.AddComponent<GraphicRaycaster>();
-            graphs.blockingMask = 1 << prefab.layer;
-            graphs.ignoreReversedGraphics = false;
+            Canvas = prefab.AddComponent<Canvas>();
+            Canvas.sortingOrder = 20;
+            Canvas.planeDistance = 20;
+            Canvas.gameObject.layer = LayerMask.NameToLayer("UI");
+            var canvas = prefab.AddComponent<CanvasScaler>();
+            canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            canvas.matchWidthOrHeight = 0.5F;
+            canvas.referenceResolution = new Vector2(1920, 1080);
+            canvas.referencePixelsPerUnit = 32;
+            var caster = prefab.AddComponent<GraphicRaycaster>();
+            caster.blockingMask = 1 << prefab.layer;
+            caster.ignoreReversedGraphics = false;
             Object.DontDestroyOnLoad(prefab);
         }
 
         public static void SetCamera(Camera camera)
         {
             Initialized();
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            canvas.worldCamera = camera;
+            Canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            Canvas.worldCamera = camera;
         }
 
         private static UIPanel Load(string path, Type item)
@@ -73,14 +73,14 @@ namespace Astraia.Core
             }
 
             SetTransform(graph, GetLayer(panel.layer));
-            panelData.Add(item, panel);
+            PanelData.Add(item, panel);
             return panel;
         }
 
         public static T Show<T>() where T : UIPanel
         {
             if (!Instance) return null;
-            if (!panelData.TryGetValue(typeof(T), out var panel))
+            if (!PanelData.TryGetValue(typeof(T), out var panel))
             {
                 panel = Load(GlobalSetting.PREFAB.Format(typeof(T).Name), typeof(T));
             }
@@ -92,7 +92,7 @@ namespace Astraia.Core
         public static void Hide<T>() where T : UIPanel
         {
             if (!Instance) return;
-            if (panelData.TryGetValue(typeof(T), out var panel))
+            if (PanelData.TryGetValue(typeof(T), out var panel))
             {
                 UIGroup.Hide(panel);
             }
@@ -100,13 +100,13 @@ namespace Astraia.Core
 
         public static T Find<T>() where T : UIPanel
         {
-            return panelData.TryGetValue(typeof(T), out var panel) ? (T)panel : null;
+            return PanelData.TryGetValue(typeof(T), out var panel) ? (T)panel : null;
         }
 
         public static void Destroy<T>()
         {
             if (!Instance) return;
-            if (panelData.TryGetValue(typeof(T), out var panel))
+            if (PanelData.TryGetValue(typeof(T), out var panel))
             {
                 UIGroup.Destroy(panel, typeof(T));
             }
@@ -115,7 +115,7 @@ namespace Astraia.Core
         public static UIPanel Show(Type type)
         {
             if (!Instance) return null;
-            if (!panelData.TryGetValue(type, out var panel))
+            if (!PanelData.TryGetValue(type, out var panel))
             {
                 panel = Load(GlobalSetting.PREFAB.Format(type.Name), type);
             }
@@ -127,7 +127,7 @@ namespace Astraia.Core
         public static void Hide(Type type)
         {
             if (!Instance) return;
-            if (panelData.TryGetValue(type, out var panel))
+            if (PanelData.TryGetValue(type, out var panel))
             {
                 UIGroup.Hide(panel);
             }
@@ -135,13 +135,13 @@ namespace Astraia.Core
 
         public static UIPanel Find(Type type)
         {
-            return type != null ? panelData.TryGetValue(type, out var panel) ? panel : null : null;
+            return type != null ? PanelData.GetValueOrDefault(type) : null;
         }
 
         public static void Destroy(Type type)
         {
             if (!Instance) return;
-            if (panelData.TryGetValue(type, out var panel))
+            if (PanelData.TryGetValue(type, out var panel))
             {
                 UIGroup.Destroy(panel, type);
             }
@@ -149,10 +149,10 @@ namespace Astraia.Core
 
         public static void Destroy()
         {
-            var copies = new List<Type>(panelData.Keys);
+            var copies = new List<Type>(PanelData.Keys);
             foreach (var result in copies)
             {
-                if (panelData.TryGetValue(result, out var panel))
+                if (PanelData.TryGetValue(result, out var panel))
                 {
                     if (panel.state != UIState.Stable)
                     {
@@ -165,14 +165,14 @@ namespace Astraia.Core
         public static RectTransform GetLayer(int layer)
         {
             if (!Instance) return null;
-            if (!layerData.TryGetValue(layer, out var parent))
+            if (!LayerData.TryGetValue(layer, out var parent))
             {
                 var format = "Pool - Canvas-{0}".Format(layer);
                 parent = new GameObject(format).AddComponent<RectTransform>();
                 parent.gameObject.layer = LayerMask.NameToLayer("UI");
-                SetTransform(parent, canvas.transform);
-                parent.SetSiblingIndex(layerData.Keys.Count(key => key < layer));
-                layerData.Add(layer, parent);
+                SetTransform(parent, Canvas.transform);
+                parent.SetSiblingIndex(LayerData.Keys.Count(key => key < layer));
+                LayerData.Add(layer, parent);
             }
 
             return parent;
@@ -191,9 +191,9 @@ namespace Astraia.Core
 
         internal static void Dispose()
         {
-            queueData.Clear();
-            layerData.Clear();
-            panelData.Clear();
+            QueueData.Clear();
+            LayerData.Clear();
+            PanelData.Clear();
             initialized = false;
         }
     }

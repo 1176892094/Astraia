@@ -20,73 +20,28 @@ namespace Astraia.Core
     public sealed class GlobalManager : MonoBehaviour
     {
         public static GlobalManager Instance;
+        public static Canvas Canvas;
+        public static Package Package;
+        public static AudioSource Source;
 
-        public static Verify verify;
+        internal static int MusicVolume;
+        internal static int AudioVolume;
+        internal static AudioState AudioState;
+        internal static AssetBundleManifest Manifest;
 
-        public static Canvas canvas;
-
-        public static AudioSource source;
-
-        internal static int musicVolume;
-
-        internal static int audioVolume;
-
-        internal static AudioState audioState;
-
-        internal static AssetBundleManifest manifest;
-
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IList<AudioSource> audioLoop = new List<AudioSource>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<string, AssetData> assetData = new Dictionary<string, AssetData>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly Dictionary<string, AssetBundle> assetPack = new Dictionary<string, AssetBundle>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<string, Task<AssetBundle>> assetTask = new Dictionary<string, Task<AssetBundle>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<Type, IDataTable> dataTable = new Dictionary<Type, IDataTable>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<Type, Dictionary<int, IData>> dataTable1 = new Dictionary<Type, Dictionary<int, IData>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<Type, Dictionary<Enum, IData>> dataTable2 = new Dictionary<Type, Dictionary<Enum, IData>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<Type, Dictionary<string, IData>> dataTable3 = new Dictionary<Type, Dictionary<string, IData>>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<string, IPool> poolData = new Dictionary<string, IPool>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<string, GameObject> poolRoot = new Dictionary<string, GameObject>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<Type, UIPanel> panelData = new Dictionary<Type, UIPanel>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<int, UIQueue> queueData = new Dictionary<int, UIQueue>();
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [Sirenix.OdinInspector.ShowInInspector]
-#endif
-        internal static readonly IDictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
+        internal static readonly List<AudioSource> AudioData = new List<AudioSource>();
+        internal static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
+        internal static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
+        internal static readonly Dictionary<string, Task<AssetBundle>> AssetTask = new Dictionary<string, Task<AssetBundle>>();
+        internal static readonly Dictionary<string, IPool> PoolData = new Dictionary<string, IPool>();
+        internal static readonly Dictionary<string, Transform> PoolRoot = new Dictionary<string, Transform>();
+        internal static readonly Dictionary<Type, IDataTable> DataTable = new Dictionary<Type, IDataTable>();
+        internal static readonly Dictionary<Type, Dictionary<int, IData>> DataTable1 = new Dictionary<Type, Dictionary<int, IData>>();
+        internal static readonly Dictionary<Type, Dictionary<Enum, IData>> DataTable2 = new Dictionary<Type, Dictionary<Enum, IData>>();
+        internal static readonly Dictionary<Type, Dictionary<string, IData>> DataTable3 = new Dictionary<Type, Dictionary<string, IData>>();
+        internal static readonly Dictionary<Type, UIPanel> PanelData = new Dictionary<Type, UIPanel>();
+        internal static readonly Dictionary<int, UIQueue> QueueData = new Dictionary<int, UIQueue>();
+        internal static readonly Dictionary<int, RectTransform> LayerData = new Dictionary<int, RectTransform>();
 
         private void Awake()
         {
@@ -96,6 +51,7 @@ namespace Astraia.Core
 
         private void Start()
         {
+            Async.Time = 0;
             LoadManager.Update();
         }
 
@@ -123,8 +79,7 @@ namespace Astraia.Core
 
         private async void OnDestroy()
         {
-            Async.Time = 0;
-            manifest = null;
+            Manifest = null;
             Instance = null;
             await Task.Yield();
             UIManager.Dispose();

@@ -86,39 +86,39 @@ namespace Astraia.Core
         public static void Hide(Component item)
         {
             if (!Instance || !item) return;
-            if (!poolRoot.TryGetValue(item.name, out var pool))
+            if (!PoolRoot.TryGetValue(item.name, out var pool))
             {
-                pool = new GameObject("Pool - {0}".Format(item.name));
-                pool.transform.SetParent(Instance.transform);
-                poolRoot.Add(item.name, pool);
+                pool = new GameObject("Pool - {0}".Format(item.name)).transform;
+                pool.SetParent(Instance.transform);
+                PoolRoot.Add(item.name, pool);
             }
 
             item.gameObject.SetActive(false);
-            item.transform.SetParent(pool.transform);
+            item.transform.SetParent(pool);
             LoadPool(item.name).Push(item.gameObject);
         }
 
         public static void Hide(GameObject item)
         {
             if (!Instance || !item) return;
-            if (!poolRoot.TryGetValue(item.name, out var pool))
+            if (!PoolRoot.TryGetValue(item.name, out var pool))
             {
-                pool = new GameObject("Pool - {0}".Format(item.name));
-                pool.transform.SetParent(Instance.transform);
-                poolRoot.Add(item.name, pool);
+                pool = new GameObject("Pool - {0}".Format(item.name)).transform;
+                pool.SetParent(Instance.transform);
+                PoolRoot.Add(item.name, pool);
             }
 
             item.SetActive(false);
-            item.transform.SetParent(pool.transform);
+            item.transform.SetParent(pool);
             LoadPool(item.name).Push(item);
         }
 
         private static Pool LoadPool(string path)
         {
-            if (!poolData.TryGetValue(path, out var pool))
+            if (!PoolData.TryGetValue(path, out var pool))
             {
                 pool = new Pool(typeof(GameObject), path);
-                poolData.Add(path, pool);
+                PoolData.Add(path, pool);
             }
 
             return (Pool)pool;
@@ -126,10 +126,10 @@ namespace Astraia.Core
 
         private static Pool LoadPool(string path, string name)
         {
-            if (!poolData.TryGetValue(name, out var pool))
+            if (!PoolData.TryGetValue(name, out var pool))
             {
                 pool = new Pool(typeof(GameObject), path);
-                poolData.Add(name, pool);
+                PoolData.Add(name, pool);
             }
 
             return (Pool)pool;
@@ -137,13 +137,13 @@ namespace Astraia.Core
 
         internal static void Dispose()
         {
-            foreach (var item in poolData.Values)
+            foreach (var item in PoolData.Values)
             {
                 item.Dispose();
             }
 
-            poolData.Clear();
-            poolRoot.Clear();
+            PoolData.Clear();
+            PoolRoot.Clear();
         }
 
         [Serializable]

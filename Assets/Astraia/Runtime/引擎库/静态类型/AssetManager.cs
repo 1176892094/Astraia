@@ -18,8 +18,8 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
-#if UNITY_EDITOR
 using System.Runtime.CompilerServices;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
@@ -102,7 +102,7 @@ namespace Astraia.Core
 
         private static AssetData LoadAssetData(string reason)
         {
-            if (!assetData.TryGetValue(reason, out var asset))
+            if (!AssetPath.TryGetValue(reason, out var asset))
             {
                 var index = reason.LastIndexOf('/');
                 asset = new AssetData();
@@ -116,7 +116,7 @@ namespace Astraia.Core
                     asset.Name = reason.Substring(index + 1);
                 }
 
-                assetData.Add(reason, asset);
+                AssetPath.Add(reason, asset);
             }
 
             return asset;
@@ -125,20 +125,20 @@ namespace Astraia.Core
         public static async void LoadAssetBundle()
         {
             var platform = await LoadAssetBundle(GlobalSetting.Instance.BuildTarget.ToString());
-            if (manifest == null)
+            if (Manifest == null)
             {
-                manifest = platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
+                Manifest = platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
             }
 
-            EventManager.Invoke(new OnLoadAsset(manifest.GetAllAssetBundles()));
+            EventManager.Invoke(new OnLoadAsset(Manifest.GetAllAssetBundles()));
 
-            var bundles = manifest.GetAllAssetBundles();
+            var bundles = Manifest.GetAllAssetBundles();
             foreach (var bundle in bundles)
             {
                 _ = LoadAssetBundle(bundle);
             }
 
-            await Task.WhenAll(assetTask.Values);
+            await Task.WhenAll(AssetTask.Values);
             EventManager.Invoke(new OnAssetComplete());
         }
 
@@ -149,28 +149,28 @@ namespace Astraia.Core
                 return null;
             }
 
-            if (assetPack.TryGetValue(reason, out var bundle))
+            if (AssetPack.TryGetValue(reason, out var bundle))
             {
                 return bundle;
             }
 
-            if (assetTask.TryGetValue(reason, out var request))
+            if (AssetTask.TryGetValue(reason, out var request))
             {
                 return await request;
             }
 
             request = LoadRequest(GlobalSetting.TargetPath.Format(reason), GlobalSetting.ClientPath.Format(reason));
-            assetTask.Add(reason, request);
+            AssetTask.Add(reason, request);
             try
             {
                 bundle = await request;
-                assetPack.Add(reason, bundle);
+                AssetPack.Add(reason, bundle);
                 EventManager.Invoke(new OnAssetUpdate(reason));
                 return bundle;
             }
             finally
             {
-                assetTask.Remove(reason);
+                AssetTask.Remove(reason);
             }
         }
 
@@ -229,7 +229,7 @@ namespace Astraia.Core
             var item = LoadAssetData(reason);
             if (isActive)
             {
-                var sceneData = assetPack.GetValueOrDefault(item.Path);
+                var sceneData = AssetPack.GetValueOrDefault(item.Path);
                 var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(scene => scene == item.Name);
                 return SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
             }
@@ -250,9 +250,9 @@ namespace Astraia.Core
 
         internal static void Dispose()
         {
-            assetData.Clear();
-            assetTask.Clear();
-            assetPack.Clear();
+            AssetPath.Clear();
+            AssetTask.Clear();
+            AssetPack.Clear();
             AssetBundle.UnloadAllAssetBundles(true);
         }
 
@@ -263,12 +263,12 @@ namespace Astraia.Core
 
         private static T LoadFirst<T>(AssetData reason) where T : Object
         {
-            return Instantiate(assetPack.GetValueOrDefault(reason.Path)?.LoadAsset<T>(reason.Name));
+            return Instantiate(AssetPack.GetValueOrDefault(reason.Path)?.LoadAsset<T>(reason.Name));
         }
 
         private static T[] LoadFirstAll<T>(AssetData reason) where T : Object
         {
-            return assetPack.GetValueOrDefault(reason.Path)?.LoadAssetWithSubAssets<T>(reason.Name);
+            return AssetPack.GetValueOrDefault(reason.Path)?.LoadAssetWithSubAssets<T>(reason.Name);
         }
 
         private static T LoadSecond<T>(string reason) where T : Object
