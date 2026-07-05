@@ -16,10 +16,13 @@ using UnityEngine;
 
 namespace Astraia.Core
 {
-    using static GlobalManager;
-
     public static class DataManager
     {
+        internal static readonly Dictionary<Type, IDataTable> DataTable = new Dictionary<Type, IDataTable>();
+        internal static readonly Dictionary<Type, Dictionary<int, IData>> DataTable1 = new Dictionary<Type, Dictionary<int, IData>>();
+        internal static readonly Dictionary<Type, Dictionary<Enum, IData>> DataTable2 = new Dictionary<Type, Dictionary<Enum, IData>>();
+        internal static readonly Dictionary<Type, Dictionary<string, IData>> DataTable3 = new Dictionary<Type, Dictionary<string, IData>>();
+
         public static void LoadDataTable()
         {
             var assembly = Search.GetAssembly(GlobalSetting.DEFINE);
@@ -269,27 +272,27 @@ namespace Astraia.Core
         {
             if (type == typeof(int))
             {
-                if (!DataTable1.ContainsKey(typeof(TData)))
+                if (!DataManager.DataTable1.ContainsKey(typeof(TData)))
                 {
-                    DataTable1[typeof(TData)] = GetData<int>(name);
+                    DataManager.DataTable1[typeof(TData)] = GetData<int>(name);
                 }
             }
             else if (type.IsEnum)
             {
-                if (!DataTable2.ContainsKey(typeof(TData)))
+                if (!DataManager.DataTable2.ContainsKey(typeof(TData)))
                 {
-                    DataTable2[typeof(TData)] = GetData<Enum>(name);
+                    DataManager.DataTable2[typeof(TData)] = GetData<Enum>(name);
                 }
             }
             else if (type == typeof(string))
             {
-                if (!DataTable3.ContainsKey(typeof(TData)))
+                if (!DataManager.DataTable3.ContainsKey(typeof(TData)))
                 {
-                    DataTable3[typeof(TData)] = GetData<string>(name);
+                    DataManager.DataTable3[typeof(TData)] = GetData<string>(name);
                 }
             }
 
-            DataTable[typeof(TData)] = this;
+            DataManager.DataTable[typeof(TData)] = this;
         }
 
         private Dictionary<TKey, IData> GetData<TKey>(string name)

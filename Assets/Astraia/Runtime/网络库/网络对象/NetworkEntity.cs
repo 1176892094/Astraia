@@ -55,7 +55,7 @@ namespace Astraia.Net
 
         public bool isClient => (state & State.客户端) != 0 && NetworkManager.isClient;
 
-        protected override void Awake()
+        protected override void OnEnable()
         {
             modules = moduleList.OfType<NetworkModule>().ToArray();
             for (byte i = 0; i < modules.Length; ++i)
@@ -64,7 +64,7 @@ namespace Astraia.Net
                 modules[i].moduleId = i;
             }
 
-            base.Awake();
+            base.OnEnable();
         }
 
         protected override void OnDestroy()

@@ -10,7 +10,6 @@
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Astraia.Core
@@ -18,19 +17,11 @@ namespace Astraia.Core
     [DefaultExecutionOrder(-100)]
     public sealed class GlobalManager : Entity
     {
-        internal static readonly Dictionary<Type, IDataTable> DataTable = new Dictionary<Type, IDataTable>();
-        internal static readonly Dictionary<Type, Dictionary<int, IData>> DataTable1 = new Dictionary<Type, Dictionary<int, IData>>();
-        internal static readonly Dictionary<Type, Dictionary<Enum, IData>> DataTable2 = new Dictionary<Type, Dictionary<Enum, IData>>();
-        internal static readonly Dictionary<Type, Dictionary<string, IData>> DataTable3 = new Dictionary<Type, Dictionary<string, IData>>();
-
-        public static GlobalManager Instance;
         public static Package Package;
 
         protected override void Awake()
         {
-            Instance = this;
             DontDestroyOnLoad(gameObject);
-            base.Awake();
         }
 
         private void Start()
@@ -63,7 +54,6 @@ namespace Astraia.Core
 
         protected override void OnDestroy()
         {
-            Instance = null;
             base.OnDestroy();
             HeapManager.Dispose();
             EventManager.Dispose();

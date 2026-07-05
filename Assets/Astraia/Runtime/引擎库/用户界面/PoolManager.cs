@@ -20,7 +20,7 @@ namespace Astraia.Core
     {
         private Dictionary<string, Transform> rootData = new Dictionary<string, Transform>();
         private Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
-
+        [SerializeField] private Transform parent;
         internal ICollection<IPool> Values => poolData.Values;
 
         public override void Enqueue()
@@ -167,7 +167,7 @@ namespace Astraia.Core
             if (!rootData.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(item.name)).transform;
-                pool.SetParent(owner.transform);
+                pool.SetParent(parent);
                 rootData.Add(item.name, pool);
             }
 
@@ -182,7 +182,7 @@ namespace Astraia.Core
             if (!rootData.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(item.name)).transform;
-                pool.SetParent(owner.transform);
+                pool.SetParent(parent);
                 rootData.Add(item.name, pool);
             }
 

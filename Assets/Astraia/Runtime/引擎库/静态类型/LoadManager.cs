@@ -18,13 +18,10 @@ using UnityEngine.Networking;
 
 namespace Astraia.Core
 {
-    using static GlobalManager;
-
-    internal static class LoadManager
+    internal class LoadManager : Singleton<LoadManager>
     {
         public static async void Update()
         {
-            if (!Instance) return;
             if (!GlobalSetting.Instance.BuildLoader)
             {
                 EventManager.Invoke(new OnBundleComplete(0, "启动本地资源加载。"));
@@ -234,7 +231,7 @@ namespace Astraia.Core
             using (var request = UnityWebRequest.Get(uri))
             {
                 var result = request.SendWebRequest();
-                while (!result.isDone && Instance)
+                while (!result.isDone && Instance != null)
                 {
                     EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
                     await Task.Yield();

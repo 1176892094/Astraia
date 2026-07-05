@@ -7,23 +7,28 @@ namespace Astraia
     [Serializable]
     public class Entity : Inject
     {
-        [SerializeReference] public List<IModule> moduleList = new List<IModule>();
+        [SerializeReference]
+        public List<IModule> moduleList = new List<IModule>();
 
-        protected override void Awake()
-        {
-            foreach (var module in moduleList)
-            {
-                module.Acquire(this);
-            }
-
-            foreach (var module in moduleList)
-            {
-                module.Dequeue();
-            }
-        }
+        private bool initialized;
 
         protected override void OnEnable()
         {
+            if (!initialized)
+            {
+                foreach (var module in moduleList)
+                {
+                    module.Acquire(this);
+                }
+
+                foreach (var module in moduleList)
+                {
+                    module.Dequeue();
+                }
+
+                initialized = true;
+            }
+
             foreach (var module in moduleList)
             {
                 module.OnShow();

@@ -29,7 +29,6 @@ namespace Astraia
         Icons,
     }
 
-
     internal enum BuildMode : byte
     {
         AssetBundlePath,
@@ -42,5 +41,4 @@ namespace Astraia
         Freeze,
         Stable,
     }
-
 }
