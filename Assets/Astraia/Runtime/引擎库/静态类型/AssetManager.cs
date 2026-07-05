@@ -26,11 +26,28 @@ using UnityEditor.SceneManagement;
 
 namespace Astraia.Core
 {
-    using static GlobalManager;
-
-    public static class AssetManager
+    [Serializable]
+    public class AssetManager : Singleton<AssetManager>
     {
-        private static bool isActive => GlobalSetting.Instance.AssetMode != AssetMode.Resource && Application.isPlaying;
+        public struct AssetData
+        {
+            public string Name;
+            public string Path;
+        }
+
+        internal static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
+        internal static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
+        internal static readonly Dictionary<string, Task<AssetBundle>> AssetTask = new Dictionary<string, Task<AssetBundle>>();
+        internal static AssetBundleManifest Manifest;
+
+        public override void Enqueue()
+        {
+            Instance = null;
+            AssetPath.Clear();
+            AssetTask.Clear();
+            AssetPack.Clear();
+            AssetBundle.UnloadAllAssetBundles(true);
+        }
 
         public static T Load<T>(string reason) where T : Object
         {
@@ -74,7 +91,7 @@ namespace Astraia.Core
 
         private static T LoadAsset<T>(string reason) where T : Object
         {
-            if (isActive)
+            if (GlobalSetting.Instance.BuildLoader && Application.isPlaying)
             {
                 var asset = LoadFirst<T>(LoadAssetData(reason));
                 return asset ?? LoadSecond<T>(reason);
@@ -88,7 +105,7 @@ namespace Astraia.Core
 
         private static T[] LoadAssetAll<T>(string reason) where T : Object
         {
-            if (isActive)
+            if (GlobalSetting.Instance.BuildLoader && Application.isPlaying)
             {
                 var asset = LoadFirstAll<T>(LoadAssetData(reason));
                 return asset ?? LoadSecondAll<T>(reason);
@@ -193,7 +210,7 @@ namespace Astraia.Core
             }
 
             var result = AssetBundle.LoadFromMemoryAsync(bytes);
-            while (!result.isDone && Instance)
+            while (!result.isDone && Instance != null)
             {
                 await Task.Yield();
             }
@@ -205,11 +222,11 @@ namespace Astraia.Core
         {
             try
             {
-                if (Instance)
+                if (Instance != null)
                 {
                     EventManager.Invoke(new OnLoadScene(reason));
                     var request = LoadSceneAsset(GlobalSetting.SCENES.Format(reason));
-                    while (!request.isDone && Instance)
+                    while (!request.isDone && Instance != null)
                     {
                         EventManager.Invoke(new OnSceneUpdate(request.progress));
                         await Task.Yield();
@@ -227,7 +244,7 @@ namespace Astraia.Core
         private static AsyncOperation LoadSceneAsset(string reason)
         {
             var item = LoadAssetData(reason);
-            if (isActive)
+            if (GlobalSetting.Instance.BuildLoader && Application.isPlaying)
             {
                 var sceneData = AssetPack.GetValueOrDefault(item.Path);
                 var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(scene => scene == item.Name);
@@ -246,14 +263,6 @@ namespace Astraia.Core
                 var sceneName = reason.Substring(reason.LastIndexOf('/') + 1);
                 return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
             }
-        }
-
-        internal static void Dispose()
-        {
-            AssetPath.Clear();
-            AssetTask.Clear();
-            AssetPack.Clear();
-            AssetBundle.UnloadAllAssetBundles(true);
         }
 
         private static T Instantiate<T>(T asset) where T : Object

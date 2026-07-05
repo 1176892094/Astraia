@@ -20,21 +20,19 @@ namespace Astraia.Core
     [Serializable]
     public class UIManager : Singleton<UIManager>
     {
-        private static readonly Dictionary<int, UIStack> StackData = new Dictionary<int, UIStack>();
-        private static readonly Dictionary<int, RectTransform> LayerData = new Dictionary<int, RectTransform>();
-        private static readonly Dictionary<Type, UIPanel> PanelData = new Dictionary<Type, UIPanel>();
-
-        [SerializeField]
-        private Canvas canvas;
+        private Dictionary<int, UIStack> stackData = new Dictionary<int, UIStack>();
+        private Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
+        private Dictionary<Type, UIPanel> panelData = new Dictionary<Type, UIPanel>();
+        [SerializeField] private Canvas canvas;
 
         public static Canvas Canvas => Instance.canvas;
 
         public override void Enqueue()
         {
             Instance = null;
-            StackData.Clear();
-            LayerData.Clear();
-            PanelData.Clear();
+            stackData.Clear();
+            layerData.Clear();
+            panelData.Clear();
         }
 
         public static T Show<T>() where T : UIPanel
@@ -115,79 +113,79 @@ namespace Astraia.Core
             }
 
             SetTransform(child, GetLayer(panel.Layer));
-            PanelData.Add(value, panel);
+            panelData.Add(value, panel);
             return panel;
         }
 
         private T ShowInternal<T>() where T : UIPanel
         {
-            if (!PanelData.TryGetValue(typeof(T), out var panel))
+            if (!panelData.TryGetValue(typeof(T), out var panel))
             {
                 panel = Load(typeof(T).Name, typeof(T));
             }
 
-            UIGroup.Show(panel);
+            ShowInGroup(panel);
             return (T)panel;
         }
 
         private T FindInternal<T>() where T : UIPanel
         {
-            return (T)PanelData.GetValueOrDefault(typeof(T));
+            return (T)panelData.GetValueOrDefault(typeof(T));
         }
 
         private void HideInternal<T>() where T : UIPanel
         {
-            if (PanelData.TryGetValue(typeof(T), out var panel))
+            if (panelData.TryGetValue(typeof(T), out var panel))
             {
-                UIGroup.Hide(panel);
+                HideInGroup(panel);
             }
         }
 
         private void DestroyInternal<T>()
         {
-            if (PanelData.TryGetValue(typeof(T), out var panel))
+            if (panelData.TryGetValue(typeof(T), out var panel))
             {
-                UIGroup.Remove(panel);
-                PanelData.Remove(typeof(T));
+                DestroyInGroup(panel);
+                panelData.Remove(typeof(T));
             }
         }
 
         private UIPanel ShowInternal(Type value)
         {
-            if (!PanelData.TryGetValue(value, out var panel))
+            if (!panelData.TryGetValue(value, out var panel))
             {
                 panel = Load(value.Name, value);
             }
 
-            UIGroup.Show(panel);
+            ShowInGroup(panel);
             return panel;
         }
 
         public UIPanel FindInternal(Type value)
         {
-            return PanelData.GetValueOrDefault(value);
+            return panelData.GetValueOrDefault(value);
         }
 
         public void HideInternal(Type value)
         {
-            if (PanelData.TryGetValue(value, out var panel))
+            if (panelData.TryGetValue(value, out var panel))
             {
-                UIGroup.Hide(panel);
+                HideInGroup(panel);
             }
         }
 
         public void DestroyInternal(Type value)
         {
-            if (PanelData.TryGetValue(value, out var panel))
+            if (panelData.TryGetValue(value, out var panel))
             {
-                UIGroup.Remove(panel);
-                PanelData.Remove(value);
+                DestroyInGroup(panel);
+                panelData.Remove(value);
             }
         }
 
         public void HideInternal(int index)
         {
-            if (StackData.TryGetValue(index, out var panel))
+            if (stackData.TryGetValue(index, out var panel))
             {
                 panel.Hide();
             }
@@ -195,14 +193,14 @@ namespace Astraia.Core
 
         public void DestroyInternal()
         {
-            foreach (var result in PanelData.Keys.ToList())
+            foreach (var result in panelData.Keys.ToList())
             {
-                if (PanelData.TryGetValue(result, out var panel))
+                if (panelData.TryGetValue(result, out var panel))
                 {
                     if (panel.state != UIState.Stable)
                     {
-                        UIGroup.Remove(panel);
-                        PanelData.Remove(result);
+                        DestroyInGroup(panel);
+                        panelData.Remove(result);
                     }
                 }
             }
@@ -210,14 +208,14 @@ namespace Astraia.Core
 
         public RectTransform GetLayerInternal(int value)
         {
-            if (!LayerData.TryGetValue(value, out var parent))
+            if (!layerData.TryGetValue(value, out var parent))
             {
                 var rename = "Pool - Canvas-{0}".Format(value);
                 parent = new GameObject(rename).AddComponent<RectTransform>();
                 parent.gameObject.layer = LayerMask.NameToLayer("UI");
                 SetTransform(parent, canvas.transform);
-                parent.SetSiblingIndex(LayerData.Keys.Count(key => key < value));
-                LayerData.Add(value, parent);
+                parent.SetSiblingIndex(layerData.Keys.Count(key => key < value));
+                layerData.Add(value, parent);
             }
 
             return parent;
@@ -234,64 +232,61 @@ namespace Astraia.Core
             rect.localPosition = Vector3.zero;
         }
 
-        private static class UIGroup
+        private void ShowInGroup(UIPanel panel)
         {
-            public static void Show(UIPanel panel)
+            if (panel.Group == 0)
             {
-                if (panel.Group == 0)
-                {
-                    Modified(panel, true);
-                    return;
-                }
-
-                if (!StackData.TryGetValue(panel.Group, out var result))
-                {
-                    result = new UIStack();
-                    StackData.Add(panel.Group, result);
-                }
-
-                result.Push(panel);
+                Modified(panel, true);
+                return;
             }
 
-            public static void Hide(UIPanel panel)
+            if (!stackData.TryGetValue(panel.Group, out var result))
             {
-                if (panel.Group == 0)
-                {
-                    Modified(panel, false);
-                    return;
-                }
-
-                if (StackData.TryGetValue(panel.Group, out var result))
-                {
-                    result.Back(panel);
-                }
+                result = new UIStack();
+                stackData.Add(panel.Group, result);
             }
 
-            public static void Remove(UIPanel panel)
+            result.Push(panel);
+        }
+
+        private void HideInGroup(UIPanel panel)
+        {
+            if (panel.Group == 0)
             {
                 Modified(panel, false);
-                Object.Destroy(panel.owner.gameObject);
+                return;
             }
 
-            public static void Modified(UIPanel panel, bool state)
+            if (stackData.TryGetValue(panel.Group, out var result))
             {
-                var owner = panel.owner.gameObject;
-                if (state != owner.activeSelf)
+                result.Back(panel);
+            }
+        }
+
+        private void DestroyInGroup(UIPanel panel)
+        {
+            Modified(panel, false);
+            Object.Destroy(panel.owner.gameObject);
+        }
+
+        private static void Modified(UIPanel panel, bool state)
+        {
+            var owner = panel.owner.gameObject;
+            if (state != owner.activeSelf)
+            {
+                if (state)
                 {
-                    if (state)
-                    {
-                        owner.SetActive(true);
-                        panel.OnShow();
-                    }
-                    else if (panel is ITween)
-                    {
-                        panel.OnHide();
-                    }
-                    else
-                    {
-                        panel.OnHide();
-                        owner.SetActive(false);
-                    }
+                    owner.SetActive(true);
+                    panel.OnShow();
+                }
+                else if (panel is ITween)
+                {
+                    panel.OnHide();
+                }
+                else
+                {
+                    panel.OnHide();
+                    owner.SetActive(false);
                 }
             }
         }
@@ -310,12 +305,12 @@ namespace Astraia.Core
 
                 if (current != null && current.owner)
                 {
-                    UIGroup.Modified(current, false);
+                    Modified(current, false);
                     reverse = current;
                 }
 
                 current = panel;
-                UIGroup.Modified(current, true);
+                Modified(current, true);
             }
 
             public void Back(UIPanel panel)
@@ -329,11 +324,11 @@ namespace Astraia.Core
                 {
                     if (current != null && current.owner)
                     {
-                        UIGroup.Modified(current, false);
+                        Modified(current, false);
                     }
 
                     (current, reverse) = (reverse, current);
-                    UIGroup.Modified(current, true);
+                    Modified(current, true);
                 }
             }
 
@@ -341,7 +336,7 @@ namespace Astraia.Core
             {
                 if (current != null && current.owner)
                 {
-                    UIGroup.Modified(current, false);
+                    Modified(current, false);
                 }
 
                 reverse = null;

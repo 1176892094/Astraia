@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Astraia.Core
@@ -19,16 +18,10 @@ namespace Astraia.Core
     [DefaultExecutionOrder(-100)]
     public sealed class GlobalManager : Entity
     {
-        internal static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
-        internal static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
-        internal static readonly Dictionary<string, Task<AssetBundle>> AssetTask = new Dictionary<string, Task<AssetBundle>>();
-
         internal static readonly Dictionary<Type, IDataTable> DataTable = new Dictionary<Type, IDataTable>();
         internal static readonly Dictionary<Type, Dictionary<int, IData>> DataTable1 = new Dictionary<Type, Dictionary<int, IData>>();
         internal static readonly Dictionary<Type, Dictionary<Enum, IData>> DataTable2 = new Dictionary<Type, Dictionary<Enum, IData>>();
         internal static readonly Dictionary<Type, Dictionary<string, IData>> DataTable3 = new Dictionary<Type, Dictionary<string, IData>>();
-
-        internal static AssetBundleManifest Manifest;
 
         public static GlobalManager Instance;
         public static Package Package;
@@ -68,22 +61,13 @@ namespace Astraia.Core
             EventManager.Invoke(new OnGizmoUpdate());
         }
 
-        protected override async void OnDestroy()
+        protected override void OnDestroy()
         {
-            Manifest = null;
             Instance = null;
             base.OnDestroy();
-            await Task.Yield();
             HeapManager.Dispose();
-            AssetManager.Dispose();
             EventManager.Dispose();
             GC.Collect();
-        }
-
-        public struct AssetData
-        {
-            public string Name;
-            public string Path;
         }
     }
 }

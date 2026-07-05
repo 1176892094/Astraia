@@ -44,13 +44,13 @@ namespace Astraia
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [EnumToggleButtons]
 #endif
-        public AssetMode AssetMode = AssetMode.Resource;
+        public bool BuildLoader;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowIf("AssetMode", AssetMode.Resource)] [ValueDropdown("UpdateEncryptKey")]
+        [ShowIf("BuildLoader")] [ValueDropdown("UpdateEncryptKey")]
 #endif
-        public int EncryptKey;
+        public int BuildEncrypt;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowIf("AssetMode", AssetMode.Simulate)]
+        [ShowIf("BuildLoader")]
 #endif
         public string RemotePath = "https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main";
 

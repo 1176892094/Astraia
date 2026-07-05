@@ -25,7 +25,7 @@ namespace Astraia.Core
         public static async void Update()
         {
             if (!Instance) return;
-            if (GlobalSetting.Instance.AssetMode == AssetMode.Resource)
+            if (!GlobalSetting.Instance.BuildLoader)
             {
                 EventManager.Invoke(new OnBundleComplete(0, "启动本地资源加载。"));
                 return;

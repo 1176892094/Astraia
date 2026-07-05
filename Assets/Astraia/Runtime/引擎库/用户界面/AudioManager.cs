@@ -18,11 +18,11 @@ namespace Astraia.Core
     [Serializable]
     public class AudioManager : Singleton<AudioManager>
     {
-        [SerializeField] private List<AudioSource> audioData = new();
+        [SerializeField] private AudioSource musicMain;
         [SerializeField] private int musicVolume;
         [SerializeField] private int audioVolume;
         [SerializeField] private bool isPlaying;
-        [SerializeField] private AudioSource musicMain;
+        [SerializeField] private List<AudioSource> audioData = new();
 
         public int MusicVolume
         {

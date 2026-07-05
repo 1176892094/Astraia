@@ -18,21 +18,21 @@ namespace Astraia.Core
     [Serializable]
     public class PoolManager : Singleton<PoolManager>
     {
-        private static readonly Dictionary<string, Transform> RootData = new Dictionary<string, Transform>();
-        private static readonly Dictionary<string, IPool> PoolData = new Dictionary<string, IPool>();
+        private Dictionary<string, Transform> rootData = new Dictionary<string, Transform>();
+        private Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
 
-        internal static ICollection<IPool> Values => PoolData.Values;
+        internal ICollection<IPool> Values => poolData.Values;
 
         public override void Enqueue()
         {
             Instance = null;
-            foreach (var item in PoolData.Values)
+            foreach (var item in poolData.Values)
             {
                 item.Dispose();
             }
 
-            PoolData.Clear();
-            RootData.Clear();
+            poolData.Clear();
+            rootData.Clear();
         }
 
         public static T Show<T>(string path) where T : Component
@@ -164,11 +164,11 @@ namespace Astraia.Core
         private void HideInternal<T>(T item) where T : Component
         {
             if (!item) return;
-            if (!RootData.TryGetValue(item.name, out var pool))
+            if (!rootData.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(item.name)).transform;
                 pool.SetParent(owner.transform);
-                RootData.Add(item.name, pool);
+                rootData.Add(item.name, pool);
             }
 
             item.gameObject.SetActive(false);
@@ -179,11 +179,11 @@ namespace Astraia.Core
         private void HideInternal(GameObject item)
         {
             if (!item) return;
-            if (!RootData.TryGetValue(item.name, out var pool))
+            if (!rootData.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(item.name)).transform;
                 pool.SetParent(owner.transform);
-                RootData.Add(item.name, pool);
+                rootData.Add(item.name, pool);
             }
 
             item.SetActive(false);
@@ -193,10 +193,10 @@ namespace Astraia.Core
 
         private Pool LoadPool(string path)
         {
-            if (!PoolData.TryGetValue(path, out var pool))
+            if (!poolData.TryGetValue(path, out var pool))
             {
                 pool = new Pool(typeof(GameObject), path);
-                PoolData.Add(path, pool);
+                poolData.Add(path, pool);
             }
 
             return (Pool)pool;
@@ -204,10 +204,10 @@ namespace Astraia.Core
 
         private Pool LoadPool(string path, string name)
         {
-            if (!PoolData.TryGetValue(name, out var pool))
+            if (!poolData.TryGetValue(name, out var pool))
             {
                 pool = new Pool(typeof(GameObject), path);
-                PoolData.Add(name, pool);
+                poolData.Add(name, pool);
             }
 
             return (Pool)pool;

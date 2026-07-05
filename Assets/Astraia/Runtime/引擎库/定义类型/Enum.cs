@@ -29,11 +29,6 @@ namespace Astraia
         Icons,
     }
 
-    internal enum AssetMode : byte
-    {
-        Resource,
-        Simulate,
-    }
 
     internal enum BuildMode : byte
     {

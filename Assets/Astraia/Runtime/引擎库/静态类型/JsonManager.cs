@@ -55,7 +55,7 @@ namespace Astraia.Core
             var json = ToJson(data);
             json = Zip.Compress(json);
             var item = Text.GetBytes(json);
-            item = Xor.Encrypt(item, GlobalSetting.Instance.EncryptKey);
+            item = Xor.Encrypt(item, GlobalSetting.Instance.BuildEncrypt);
             File.WriteAllBytes(path, item);
         }
 
