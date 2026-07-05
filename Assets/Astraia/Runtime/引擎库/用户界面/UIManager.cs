@@ -24,16 +24,75 @@ namespace Astraia.Core
         private static readonly Dictionary<int, RectTransform> LayerData = new Dictionary<int, RectTransform>();
         private static readonly Dictionary<Type, UIPanel> PanelData = new Dictionary<Type, UIPanel>();
 
-        public static Canvas Canvas => GlobalManager.Instance.canvas;
+        [SerializeField]
+        private Canvas canvas;
+
+        public static Canvas Canvas => Instance.canvas;
 
         public override void Enqueue()
         {
+            Instance = null;
             StackData.Clear();
             LayerData.Clear();
             PanelData.Clear();
         }
 
-        private static UIPanel Load(string name, Type value)
+        public static T Show<T>() where T : UIPanel
+        {
+            return Instance?.ShowInternal<T>();
+        }
+
+        public static T Find<T>() where T : UIPanel
+        {
+            return Instance?.FindInternal<T>();
+        }
+
+        public static void Hide<T>() where T : UIPanel
+        {
+            Instance?.HideInternal<T>();
+        }
+
+        public static void Destroy<T>() where T : UIPanel
+        {
+            Instance?.DestroyInternal<T>();
+        }
+
+        public static UIPanel Show(Type value)
+        {
+            return Instance?.ShowInternal(value);
+        }
+
+        public static UIPanel Find(Type value)
+        {
+            return Instance?.FindInternal(value);
+        }
+
+        public static void Hide(Type value)
+        {
+            Instance?.HideInternal(value);
+        }
+
+        public static void Destroy(Type value)
+        {
+            Instance?.DestroyInternal(value);
+        }
+
+        public static void Hide(int value)
+        {
+            Instance?.HideInternal(value);
+        }
+
+        public static void Destroy()
+        {
+            Instance?.DestroyInternal();
+        }
+
+        public static RectTransform GetLayer(int value)
+        {
+            return Instance?.GetLayerInternal(value);
+        }
+
+        private UIPanel Load(string name, Type value)
         {
             var item = GlobalSetting.PREFAB.Format(name);
             if (value.GetAttribute(out UIPathAttribute path))
@@ -45,9 +104,9 @@ namespace Astraia.Core
             asset.gameObject.SetActive(false);
             asset.gameObject.name = name;
 
-            var owner = asset.AddComponent<Entity>();
-            var panel = owner.AddComponent<UIPanel>(value);
-            var child = owner.GetComponent<RectTransform>();
+            var agent = asset.AddComponent<Entity>();
+            var panel = agent.AddComponent<UIPanel>(value);
+            var child = agent.GetComponent<RectTransform>();
 
             if (value.GetAttribute(out UIMaskAttribute mask))
             {
@@ -60,9 +119,8 @@ namespace Astraia.Core
             return panel;
         }
 
-        public static T Show<T>() where T : UIPanel
+        private T ShowInternal<T>() where T : UIPanel
         {
-            if (!GlobalManager.Instance) return null;
             if (!PanelData.TryGetValue(typeof(T), out var panel))
             {
                 panel = Load(typeof(T).Name, typeof(T));
@@ -72,23 +130,21 @@ namespace Astraia.Core
             return (T)panel;
         }
 
-        public static void Hide<T>() where T : UIPanel
+        private T FindInternal<T>() where T : UIPanel
         {
-            if (!GlobalManager.Instance) return;
+            return (T)PanelData.GetValueOrDefault(typeof(T));
+        }
+
+        private void HideInternal<T>() where T : UIPanel
+        {
             if (PanelData.TryGetValue(typeof(T), out var panel))
             {
                 UIGroup.Hide(panel);
             }
         }
 
-        public static T Find<T>() where T : UIPanel
+        private void DestroyInternal<T>()
         {
-            return PanelData.TryGetValue(typeof(T), out var panel) ? (T)panel : null;
-        }
-
-        public static void Destroy<T>()
-        {
-            if (!GlobalManager.Instance) return;
             if (PanelData.TryGetValue(typeof(T), out var panel))
             {
                 UIGroup.Remove(panel);
@@ -96,54 +152,50 @@ namespace Astraia.Core
             }
         }
 
-        public static UIPanel Show(Type type)
+        private UIPanel ShowInternal(Type value)
         {
-            if (!GlobalManager.Instance) return null;
-            if (!PanelData.TryGetValue(type, out var panel))
+            if (!PanelData.TryGetValue(value, out var panel))
             {
-                panel = Load(type.Name, type);
+                panel = Load(value.Name, value);
             }
 
             UIGroup.Show(panel);
             return panel;
         }
 
-        public static void Hide(Type type)
+        public UIPanel FindInternal(Type value)
         {
-            if (!GlobalManager.Instance) return;
-            if (PanelData.TryGetValue(type, out var panel))
+            return PanelData.GetValueOrDefault(value);
+        }
+
+        public void HideInternal(Type value)
+        {
+            if (PanelData.TryGetValue(value, out var panel))
             {
                 UIGroup.Hide(panel);
             }
         }
 
-        public static UIPanel Find(Type type)
+        public void DestroyInternal(Type value)
         {
-            return type != null ? PanelData.GetValueOrDefault(type) : null;
-        }
-
-        public static void Destroy(Type type)
-        {
-            if (!GlobalManager.Instance) return;
-            if (PanelData.TryGetValue(type, out var panel))
+            if (PanelData.TryGetValue(value, out var panel))
             {
                 UIGroup.Remove(panel);
-                PanelData.Remove(type);
+                PanelData.Remove(value);
             }
         }
 
-        public static void Hide(int index)
+        public void HideInternal(int index)
         {
-            if (StackData.TryGetValue(index, out var result))
+            if (StackData.TryGetValue(index, out var panel))
             {
-                result.Hide();
+                panel.Hide();
             }
         }
 
-        public static void Destroy()
+        public void DestroyInternal()
         {
-            var copies = new List<Type>(PanelData.Keys);
-            foreach (var result in copies)
+            foreach (var result in PanelData.Keys.ToList())
             {
                 if (PanelData.TryGetValue(result, out var panel))
                 {
@@ -156,17 +208,16 @@ namespace Astraia.Core
             }
         }
 
-        public static RectTransform GetLayer(int layer)
+        public RectTransform GetLayerInternal(int value)
         {
-            if (!GlobalManager.Instance) return null;
-            if (!LayerData.TryGetValue(layer, out var parent))
+            if (!LayerData.TryGetValue(value, out var parent))
             {
-                var format = "Pool - Canvas-{0}".Format(layer);
-                parent = new GameObject(format).AddComponent<RectTransform>();
+                var rename = "Pool - Canvas-{0}".Format(value);
+                parent = new GameObject(rename).AddComponent<RectTransform>();
                 parent.gameObject.layer = LayerMask.NameToLayer("UI");
-                SetTransform(parent, Canvas.transform);
-                parent.SetSiblingIndex(LayerData.Keys.Count(key => key < layer));
-                LayerData.Add(layer, parent);
+                SetTransform(parent, canvas.transform);
+                parent.SetSiblingIndex(LayerData.Keys.Count(key => key < value));
+                LayerData.Add(value, parent);
             }
 
             return parent;
@@ -185,7 +236,7 @@ namespace Astraia.Core
 
         private static class UIGroup
         {
-            internal static void Show(UIPanel panel)
+            public static void Show(UIPanel panel)
             {
                 if (panel.Group == 0)
                 {
@@ -202,7 +253,7 @@ namespace Astraia.Core
                 result.Push(panel);
             }
 
-            internal static void Hide(UIPanel panel)
+            public static void Hide(UIPanel panel)
             {
                 if (panel.Group == 0)
                 {
@@ -216,7 +267,7 @@ namespace Astraia.Core
                 }
             }
 
-            internal static void Remove(UIPanel panel)
+            public static void Remove(UIPanel panel)
             {
                 Modified(panel, false);
                 Object.Destroy(panel.owner.gameObject);

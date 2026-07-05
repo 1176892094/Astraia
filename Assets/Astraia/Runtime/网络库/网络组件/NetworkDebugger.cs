@@ -323,7 +323,7 @@ namespace Astraia.Net
 
             public void Execute(bool modified)
             {
-                Rebuild(poolData, GlobalManager.PoolData.Values, "对象池");
+                Rebuild(poolData, PoolManager.Values, "对象池");
                 ScreenView = GUILayout.BeginScrollView(ScreenView, "Box");
                 Repaint(poolData, "未激活\t激活中\t出队次数\t入队次数");
                 GUILayout.EndScrollView();

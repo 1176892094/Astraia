@@ -9,7 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -196,12 +195,6 @@ namespace Astraia.Core
         {
             var component = self.GetComponent<T>();
             return component ? component : self.AddComponent<T>();
-        }
-
-        public static T GetOrAddComponent<T>(this GameObject self, Type type) where T : Component
-        {
-            var component = (T)self.GetComponent(type);
-            return component ? component : (T)self.AddComponent(type);
         }
 
         private readonly struct AsyncAdaptor : IAsync

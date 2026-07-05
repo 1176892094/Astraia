@@ -48,10 +48,4 @@ namespace Astraia
         Stable,
     }
 
-    public enum AudioState : byte
-    {
-        Play,
-        Pause,
-        Stop,
-    }
 }

@@ -218,7 +218,7 @@ namespace Astraia
                 return;
             }
 
-            grid = PoolManager.Show<TGrid>(assetPath, scroll.content, assetName);
+            grid = PoolManager.Show<TGrid>(assetPath, assetName, scroll.content);
             grids[index] = grid;
 
             if (grid.TryGetComponent(out RectTransform rect))
