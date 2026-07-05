@@ -13,76 +13,59 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace Astraia.Core
 {
-    using static GlobalManager;
-
-    public static class UIManager
+    [Serializable]
+    public class UIManager : Singleton<UIManager>
     {
-        private static bool initialized;
+        private static readonly Dictionary<int, UIStack> StackData = new Dictionary<int, UIStack>();
+        private static readonly Dictionary<int, RectTransform> LayerData = new Dictionary<int, RectTransform>();
+        private static readonly Dictionary<Type, UIPanel> PanelData = new Dictionary<Type, UIPanel>();
 
-        private static void Initialized()
+        public static Canvas Canvas => GlobalManager.Instance.canvas;
+
+        public override void Enqueue()
         {
-            if (initialized) return;
-            initialized = true;
-            var prefab = new GameObject(nameof(UIManager));
-            Canvas = prefab.AddComponent<Canvas>();
-            Canvas.sortingOrder = 20;
-            Canvas.planeDistance = 20;
-            Canvas.gameObject.layer = LayerMask.NameToLayer("UI");
-            var canvas = prefab.AddComponent<CanvasScaler>();
-            canvas.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvas.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            canvas.matchWidthOrHeight = 0.5F;
-            canvas.referenceResolution = new Vector2(1920, 1080);
-            canvas.referencePixelsPerUnit = 32;
-            var caster = prefab.AddComponent<GraphicRaycaster>();
-            caster.blockingMask = 1 << prefab.layer;
-            caster.ignoreReversedGraphics = false;
-            Object.DontDestroyOnLoad(prefab);
+            StackData.Clear();
+            LayerData.Clear();
+            PanelData.Clear();
         }
 
-        public static void SetCamera(Camera camera)
+        private static UIPanel Load(string name, Type value)
         {
-            Initialized();
-            Canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            Canvas.worldCamera = camera;
-        }
-
-        private static UIPanel Load(string path, Type item)
-        {
-            if (item.GetAttribute(out UIPathAttribute page))
+            var item = GlobalSetting.PREFAB.Format(name);
+            if (value.GetAttribute(out UIPathAttribute path))
             {
-                path = GlobalSetting.PREFAB.Format(page.asset);
+                item = GlobalSetting.PREFAB.Format(path.asset);
             }
 
-            Initialized();
-            var asset = AssetManager.Load<GameObject>(path);
-            asset.gameObject.name = item.Name;
+            var asset = AssetManager.Load<GameObject>(item);
             asset.gameObject.SetActive(false);
+            asset.gameObject.name = name;
+
             var owner = asset.AddComponent<Entity>();
-            var panel = owner.AddComponent<UIPanel>(item);
-            var graph = owner.GetComponent<RectTransform>();
-            if (item.GetAttribute(out UIMaskAttribute mask))
+            var panel = owner.AddComponent<UIPanel>(value);
+            var child = owner.GetComponent<RectTransform>();
+
+            if (value.GetAttribute(out UIMaskAttribute mask))
             {
-                panel.layer = mask.layer;
-                panel.group = mask.group;
+                panel.Layer = mask.layer;
+                panel.Group = mask.group;
             }
 
-            SetTransform(graph, GetLayer(panel.layer));
-            PanelData.Add(item, panel);
+            SetTransform(child, GetLayer(panel.Layer));
+            PanelData.Add(value, panel);
             return panel;
         }
 
         public static T Show<T>() where T : UIPanel
         {
-            if (!Instance) return null;
+            if (!GlobalManager.Instance) return null;
             if (!PanelData.TryGetValue(typeof(T), out var panel))
             {
-                panel = Load(GlobalSetting.PREFAB.Format(typeof(T).Name), typeof(T));
+                panel = Load(typeof(T).Name, typeof(T));
             }
 
             UIGroup.Show(panel);
@@ -91,7 +74,7 @@ namespace Astraia.Core
 
         public static void Hide<T>() where T : UIPanel
         {
-            if (!Instance) return;
+            if (!GlobalManager.Instance) return;
             if (PanelData.TryGetValue(typeof(T), out var panel))
             {
                 UIGroup.Hide(panel);
@@ -105,19 +88,20 @@ namespace Astraia.Core
 
         public static void Destroy<T>()
         {
-            if (!Instance) return;
+            if (!GlobalManager.Instance) return;
             if (PanelData.TryGetValue(typeof(T), out var panel))
             {
-                UIGroup.Destroy(panel, typeof(T));
+                UIGroup.Remove(panel);
+                PanelData.Remove(typeof(T));
             }
         }
 
         public static UIPanel Show(Type type)
         {
-            if (!Instance) return null;
+            if (!GlobalManager.Instance) return null;
             if (!PanelData.TryGetValue(type, out var panel))
             {
-                panel = Load(GlobalSetting.PREFAB.Format(type.Name), type);
+                panel = Load(type.Name, type);
             }
 
             UIGroup.Show(panel);
@@ -126,7 +110,7 @@ namespace Astraia.Core
 
         public static void Hide(Type type)
         {
-            if (!Instance) return;
+            if (!GlobalManager.Instance) return;
             if (PanelData.TryGetValue(type, out var panel))
             {
                 UIGroup.Hide(panel);
@@ -140,10 +124,19 @@ namespace Astraia.Core
 
         public static void Destroy(Type type)
         {
-            if (!Instance) return;
+            if (!GlobalManager.Instance) return;
             if (PanelData.TryGetValue(type, out var panel))
             {
-                UIGroup.Destroy(panel, type);
+                UIGroup.Remove(panel);
+                PanelData.Remove(type);
+            }
+        }
+
+        public static void Hide(int index)
+        {
+            if (StackData.TryGetValue(index, out var result))
+            {
+                result.Hide();
             }
         }
 
@@ -156,7 +149,8 @@ namespace Astraia.Core
                 {
                     if (panel.state != UIState.Stable)
                     {
-                        UIGroup.Destroy(panel, result);
+                        UIGroup.Remove(panel);
+                        PanelData.Remove(result);
                     }
                 }
             }
@@ -164,7 +158,7 @@ namespace Astraia.Core
 
         public static RectTransform GetLayer(int layer)
         {
-            if (!Instance) return null;
+            if (!GlobalManager.Instance) return null;
             if (!LayerData.TryGetValue(layer, out var parent))
             {
                 var format = "Pool - Canvas-{0}".Format(layer);
@@ -189,12 +183,119 @@ namespace Astraia.Core
             rect.localPosition = Vector3.zero;
         }
 
-        internal static void Dispose()
+        private static class UIGroup
         {
-            QueueData.Clear();
-            LayerData.Clear();
-            PanelData.Clear();
-            initialized = false;
+            internal static void Show(UIPanel panel)
+            {
+                if (panel.Group == 0)
+                {
+                    Modified(panel, true);
+                    return;
+                }
+
+                if (!StackData.TryGetValue(panel.Group, out var result))
+                {
+                    result = new UIStack();
+                    StackData.Add(panel.Group, result);
+                }
+
+                result.Push(panel);
+            }
+
+            internal static void Hide(UIPanel panel)
+            {
+                if (panel.Group == 0)
+                {
+                    Modified(panel, false);
+                    return;
+                }
+
+                if (StackData.TryGetValue(panel.Group, out var result))
+                {
+                    result.Back(panel);
+                }
+            }
+
+            internal static void Remove(UIPanel panel)
+            {
+                Modified(panel, false);
+                Object.Destroy(panel.owner.gameObject);
+            }
+
+            public static void Modified(UIPanel panel, bool state)
+            {
+                var owner = panel.owner.gameObject;
+                if (state != owner.activeSelf)
+                {
+                    if (state)
+                    {
+                        owner.SetActive(true);
+                        panel.OnShow();
+                    }
+                    else if (panel is ITween)
+                    {
+                        panel.OnHide();
+                    }
+                    else
+                    {
+                        panel.OnHide();
+                        owner.SetActive(false);
+                    }
+                }
+            }
+        }
+
+        private sealed class UIStack
+        {
+            private UIPanel current;
+            private UIPanel reverse;
+
+            public void Push(UIPanel panel)
+            {
+                if (current == panel)
+                {
+                    return;
+                }
+
+                if (current != null && current.owner)
+                {
+                    UIGroup.Modified(current, false);
+                    reverse = current;
+                }
+
+                current = panel;
+                UIGroup.Modified(current, true);
+            }
+
+            public void Back(UIPanel panel)
+            {
+                if (current != panel)
+                {
+                    return;
+                }
+
+                if (reverse != null && reverse.owner)
+                {
+                    if (current != null && current.owner)
+                    {
+                        UIGroup.Modified(current, false);
+                    }
+
+                    (current, reverse) = (reverse, current);
+                    UIGroup.Modified(current, true);
+                }
+            }
+
+            public void Hide()
+            {
+                if (current != null && current.owner)
+                {
+                    UIGroup.Modified(current, false);
+                }
+
+                reverse = null;
+                current = null;
+            }
         }
     }
 }

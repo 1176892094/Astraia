@@ -18,13 +18,17 @@ using UnityEngine.UI;
 
 namespace Astraia
 {
+    public interface ITween
+    {
+    }
+
     [Serializable]
     public abstract class UIPanel : Module<Entity>, IModule
     {
         public UIState state = UIState.Common;
 
-        internal int group;
-        internal int layer;
+        internal int Group;
+        internal int Layer;
 
         public virtual bool Interactive()
         {
