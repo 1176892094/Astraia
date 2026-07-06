@@ -175,70 +175,69 @@ namespace Astraia
         {
             using var md5 = MD5.Create();
             using var stream = File.OpenRead(filePath);
-            var hash = md5.ComputeHash(stream);
-            var sb = new StringBuilder(hash.Length * 2);
-            foreach (var b in hash)
+            var md5Hash = md5.ComputeHash(stream);
+            var builder = new StringBuilder(md5Hash.Length * 2);
+            foreach (var b in md5Hash)
             {
-                sb.Append(b.ToString("X2"));
+                builder.Append(b.ToString("X2"));
             }
 
-            return sb.ToString();
+            return builder.ToString();
         }
 
         [MenuItem("Tools/Astraia/热更资源构建", priority = 3)]
         private static async void BuildAsset()
         {
             var watch = Stopwatch.StartNew();
-            var folder = Directory.CreateDirectory(GlobalSetting.RemoteAssetPath);
             var buildMap = new List<AssetBundleBuild>();
-            var allAssetBundles = AssetDatabase.GetAllAssetBundleNames();
-            foreach (var assetBundleName in allAssetBundles)
+            foreach (var assetBundle in AssetDatabase.GetAllAssetBundleNames())
             {
-                if (assetBundleName != "unifiedraytracing")
+                if (assetBundle != "unifiedraytracing")
                 {
-                    buildMap.Add(new AssetBundleBuild { assetBundleName = assetBundleName, assetNames = AssetDatabase.GetAssetPathsFromAssetBundle(assetBundleName) });
+                    var build = new AssetBundleBuild();
+                    build.assetBundleName = assetBundle;
+                    build.assetNames = AssetDatabase.GetAssetPathsFromAssetBundle(assetBundle);
+                    buildMap.Add(build);
                 }
             }
 
-            BuildPipeline.BuildAssetBundles(GlobalSetting.RemoteAssetPath, buildMap.ToArray(), BuildAssetBundleOptions.None, (BuildTarget)GlobalSetting.Instance.BuildTarget);
+            var folder = Directory.CreateDirectory(GlobalSetting.BuildAssetPath);
+            BuildPipeline.BuildAssetBundles(GlobalSetting.BuildAssetPath, buildMap.ToArray(), BuildAssetBundleOptions.ChunkBasedCompression, (BuildTarget)GlobalSetting.Instance.BuildTarget);
 
-            var items = new Dictionary<string, string>();
-            if (File.Exists(GlobalSetting.RemoteAssetData))
+            var oldMap = new Dictionary<string, string>();
+            if (File.Exists(GlobalSetting.BuildAssetData))
             {
-                var readJson = await File.ReadAllTextAsync(GlobalSetting.RemoteAssetData);
-                items = JsonManager.FromJson<Package>(readJson).Bundles.ToDictionary(d => d.Name, d => d.Code);
+                var json = await File.ReadAllTextAsync(GlobalSetting.BuildAssetData);
+                var data = JsonManager.FromJson<Package>(json);
+                oldMap = data.Bundles.ToDictionary(d => d.Name, d => d.Hash);
             }
 
             var files = folder.GetFiles();
-            var verify = new Package(DateTime.Now.Ticks);
+            var package = new Package(GlobalSetting.Instance.AssetVersion, new List<Bundle>());
+
             foreach (var file in files)
             {
-                if (file.Extension != "")
+                var name = file.Name;
+                if (name.EndsWith(".manifest"))
                 {
                     continue;
                 }
 
-                var value = ComputeMD5(file.FullName);
-                if (items.TryGetValue(file.Name, out var item) && item == value)
+                var newMD5 = ComputeMD5(file.FullName);
+                if (oldMap.TryGetValue(name, out var oldMD5) && oldMD5 == newMD5)
                 {
-                    verify.Bundles.Add(new Bundle(value, file.Name, file.Length));
-                    Debug.Log("跳过未变更文件: {0}".Format(file.Name));
+                    package.Bundles.Add(new Bundle(file.Length, name, newMD5));
+                    Debug.Log("跳过未变更文件: {0}".Format(file));
                     continue;
                 }
 
-                await Task.Run(() =>
-                {
-                    var bytes = File.ReadAllBytes(file.FullName);
-                    bytes = Xor.Encrypt(bytes);
-                    File.WriteAllBytes(file.FullName, bytes);
-                });
+                Xor.Encrypt(file.FullName);
 
-                value = ComputeMD5(file.FullName);
-                verify.Bundles.Add(new Bundle(value, file.Name, file.Length));
-                Debug.Log("加密并更新文件: {0}".Color("G").Format(file.Name));
+                package.Bundles.Add(new Bundle(file.Length, name, ComputeMD5(file.FullName)));
+                Debug.Log("加密并更新文件: {0}".Color("G").Format(file));
             }
 
-            await File.WriteAllTextAsync(GlobalSetting.RemoteAssetData, JsonManager.ToJson(verify));
+            await File.WriteAllTextAsync(GlobalSetting.BuildAssetData, JsonManager.ToJson(package));
             watch.Stop();
             Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(watch.ElapsedMilliseconds / 1000F));
             AssetDatabase.Refresh();

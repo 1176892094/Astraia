@@ -11,11 +11,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 using System.Runtime.CompilerServices;
@@ -33,7 +31,7 @@ namespace Astraia.Core
         private static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
         private static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
 
-        public long version;
+        public int version;
         public bool simulate = true;
         public AssetBundleManifest manifest;
 
@@ -140,7 +138,7 @@ namespace Astraia.Core
         {
             if (Instance != null)
             {
-                var platform = await LoadAssetBundle(GlobalSetting.Instance.BuildTarget.ToString());
+                var platform = await LoadAssetBundle(Instance.version.ToString());
                 var manifest = Instance.manifest;
                 if (manifest == null)
                 {
@@ -178,7 +176,7 @@ namespace Astraia.Core
                 return await request;
             }
 
-            request = LoadRequest(GlobalSetting.TargetPath.Format(reason), GlobalSetting.ClientPath.Format(reason));
+            request = LoadRequest(GlobalSetting.TargetPath.Format(reason));
             AssetTask.Add(reason, request);
             try
             {
@@ -193,31 +191,17 @@ namespace Astraia.Core
             }
         }
 
-        private static async Task<AssetBundle> LoadRequest(string persistentData, string streamingAsset)
+        private static async Task<AssetBundle> LoadRequest(string persistentData)
         {
-            var item = await LoadManager.LoadRequest(persistentData, streamingAsset);
-            byte[] bytes = null;
-            if (item.Key == 1)
+            var item = await LoadManager.ReadDataAsync(persistentData);
+            if (item == null)
             {
-                bytes = await Task.Run(() => Xor.Decrypt(File.ReadAllBytes(item.Value)));
-            }
-            else if (item.Key == 2)
-            {
-                using var request = UnityWebRequest.Get(item.Value);
-                await request.SendWebRequest();
-                if (request.result == UnityWebRequest.Result.Success)
-                {
-                    bytes = await Task.Run(() => Xor.Decrypt(request.downloadHandler.data));
-                }
+                return null;
             }
 
-            var result = AssetBundle.LoadFromMemoryAsync(bytes);
-            while (!result.isDone && Instance != null)
-            {
-                await Task.Yield();
-            }
-
-            return result.assetBundle;
+            var request = AssetBundle.LoadFromMemoryAsync(Xor.Decrypt(item));
+            await request;
+            return request.assetBundle;
         }
 
         public static async void LoadScene(string reason)

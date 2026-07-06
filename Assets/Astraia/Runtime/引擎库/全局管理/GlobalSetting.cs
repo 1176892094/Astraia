@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Astraia.Core;
 using UnityEngine;
 using Object = UnityEngine.Object;
 #if ODIN_INSPECTOR
@@ -31,7 +32,6 @@ namespace Astraia
         public const string AUDIOS = "Audios/{0}";
         public const string PREFAB = "Prefabs/{0}";
         public const string SHEETS = "DataTable/{0}";
-        public const string TARGET = "{0}/AssetBundles";
         public const string DEFINE = "HotUpdate.Data";
         public const string VERIFY = "AssetBundle.json";
         public const string BUNDLE = "Assets/AssetBundles";
@@ -45,13 +45,15 @@ namespace Astraia
 #endif
         public string[] EncryptGroup;
 
+        public int AssetVersion;
+
         public string RemotePath = "https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main";
 
-        public static string EditorPath => TARGET.Format(Path.GetDirectoryName(Application.dataPath));
-        public static string BundlePath => TARGET.Format(Application.persistentDataPath);
-        public static string TargetPath => TARGET.Format(Application.persistentDataPath) + "/{0}";
-        public static string ServerPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget + "/{0}");
-        public static string ClientPath => Path.Combine(Application.streamingAssetsPath, Instance.BuildTarget + "/{0}");
+        public static string BundlePath => Path.Combine(Application.persistentDataPath, "AssetBundles");
+        public static string TargetPath => Path.Combine(Application.persistentDataPath, "AssetBundles", "{0}");
+        public static string StreamPath => Path.Combine(Application.streamingAssetsPath, Instance.BuildTarget.ToString(), "{0}");
+        public static string ServerPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), "{0}");
+        public static string PacketPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString(), "{0}");
 
         private static readonly Dictionary<AssetData, TextAsset> TextAssets = new Dictionary<AssetData, TextAsset>();
 
@@ -93,15 +95,19 @@ namespace Astraia
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string RemoteBuildPath => Instance.BuildPath == BuildMode.AssetBundlePath ? EditorPath : Application.streamingAssetsPath;
+        public static string BuildLocalPath => Path.Combine(Environment.CurrentDirectory, "AssetBundles");
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string RemoteAssetPath => Path.Combine(RemoteBuildPath, Instance.BuildTarget.ToString());
+        public static string BuildLocalData => Instance.BuildPath == BuildMode.AssetBundlePath ? BuildLocalPath : Application.streamingAssetsPath;
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string RemoteAssetData => Path.Combine(RemoteAssetPath, VERIFY);
+        public static string BuildAssetPath => Path.Combine(BuildLocalData, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString());
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+#endif
+        public static string BuildAssetData => Path.Combine(BuildLocalData, Instance.BuildTarget.ToString(), VERIFY);
 #endif
     }
 }

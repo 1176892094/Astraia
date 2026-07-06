@@ -22,6 +22,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
 namespace Astraia
 {
@@ -116,21 +117,17 @@ namespace Astraia
 
     public static class Xor
     {
-        private static readonly Dictionary<int, byte[]> KeyMap = new Dictionary<int, byte[]>();
-        private const string NORMAL = "A1B2C3D4E5F6G7H8";
-        private const ushort LENGTH = 0x0010;
+        private static List<byte[]> KeyMap;
+        private const int COUNT = 1 << 16;
+        private const int LENGTH = 1 << 5;
 
-        public static void SetUp(params string[] args)
+        public static void SetUp(params string[] param)
         {
-            for (int i = 0; i < args.Length; i++)
+            using var key = SHA256.Create();
+            KeyMap = new List<byte[]>();
+            foreach (var value in param)
             {
-                var item = Text.GetBytes(args[i]);
-                if (item.Length != LENGTH)
-                {
-                    Array.Resize(ref item, LENGTH);
-                }
-
-                KeyMap[i + 1] = item;
+                KeyMap.Add(key.ComputeHash(Text.GetBytes(value)));
             }
         }
 
@@ -139,10 +136,7 @@ namespace Astraia
             var iv = new byte[LENGTH];
             Seed.NextBytes(iv);
 
-            if (!KeyMap.TryGetValue(version, out var key) || key.Length == 0)
-            {
-                key = Text.GetBytes(NORMAL);
-            }
+            var key = GetKeyByVersion(version);
 
             var buffer = new byte[data.Length + LENGTH + 1];
             Buffer.BlockCopy(iv, 0, buffer, 1, LENGTH);
@@ -168,10 +162,7 @@ namespace Astraia
             Buffer.BlockCopy(data, 1, iv, 0, LENGTH);
             var buffer = new byte[data.Length - LENGTH - 1];
 
-            if (!KeyMap.TryGetValue(version, out var key) || key.Length == 0)
-            {
-                key = Text.GetBytes(NORMAL);
-            }
+            var key = GetKeyByVersion(version);
 
             fixed (byte* pData = data, pBuffer = buffer, pKey = key, pIv = iv)
             {
@@ -184,30 +175,145 @@ namespace Astraia
 
             return buffer;
         }
+
+        public static void Encrypt(string inputPath, int version = 0)
+        {
+            var tempPath = inputPath + ".tmp";
+            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
+            using var output = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
+
+            var data = BitConverter.GetBytes(version);
+            var key = GetKeyByVersion(version);
+
+            using var aes = Aes.Create();
+            aes.Key = key;
+            aes.GenerateIV();
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
+
+            output.Write(data, 0, data.Length);
+            output.Write(aes.IV, 0, aes.IV.Length);
+
+            using var encryptor = aes.CreateEncryptor();
+            using (var cryptoStream = new CryptoStream(output, encryptor, CryptoStreamMode.Write))
+            {
+                var buffer = new byte[COUNT];
+                int read;
+
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    cryptoStream.Write(buffer, 0, read);
+                }
+            }
+
+            File.Replace(tempPath, inputPath, null);
+        }
+
+        public static void Decrypt(string inputPath)
+        {
+            var tempPath = inputPath + ".tmp";
+            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var output = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
+
+            var data = new byte[4];
+            if (input.Read(data, 0, data.Length) != 4)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var iv = new byte[16];
+            if (input.Read(iv, 0, iv.Length) != 16)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var version = BitConverter.ToInt32(data);
+            var key = GetKeyByVersion(version);
+
+            using var aes = Aes.Create();
+            aes.Key = key;
+            aes.IV = iv;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
+
+            using var decryptor = aes.CreateDecryptor();
+            using (var cryptoStream = new CryptoStream(output, decryptor, CryptoStreamMode.Write))
+            {
+                var buffer = new byte[COUNT];
+                int read;
+
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    cryptoStream.Write(buffer, 0, read);
+                }
+            }
+
+            File.Replace(tempPath, inputPath, null);
+        }
+
+        private static byte[] GetKeyByVersion(int version)
+        {
+            if (version < KeyMap.Count)
+            {
+                return KeyMap[version];
+            }
+
+            throw new InvalidOperationException();
+        }
     }
 
     public static class Zip
     {
         public static string Compress(string data)
         {
-            var bytes = Text.GetBytes(data);
-            using var buffer = new MemoryStream();
-            using (var stream = new GZipStream(buffer, CompressionMode.Compress, true))
+            if (!string.IsNullOrEmpty(data))
             {
-                stream.Write(bytes, 0, bytes.Length);
+                var reason = Compress(Text.GetBytes(data));
+                return Convert.ToBase64String(reason);
             }
 
-            return Convert.ToBase64String(buffer.GetBuffer(), 0, (int)buffer.Length);
+            return data;
         }
 
         public static string Decompress(string data)
         {
-            var bytes = Convert.FromBase64String(data);
-            using var buffer = new MemoryStream(bytes);
-            using var stream = new GZipStream(buffer, CompressionMode.Decompress);
-            using var output = new MemoryStream();
-            stream.CopyTo(output);
-            return Text.GetString(output.GetBuffer(), 0, (int)output.Length);
+            if (!string.IsNullOrEmpty(data))
+            {
+                var reason = Convert.FromBase64String(data);
+                return Text.GetString(Decompress(reason));
+            }
+
+            return data;
+        }
+
+        public static byte[] Compress(byte[] bytes)
+        {
+            if (bytes != null && bytes.Length != 0)
+            {
+                using var output = new MemoryStream();
+                using (var stream = new GZipStream(output, CompressionMode.Compress))
+                {
+                    stream.Write(bytes, 0, bytes.Length);
+                }
+
+                return output.ToArray();
+            }
+
+            return bytes;
+        }
+
+        public static byte[] Decompress(byte[] bytes)
+        {
+            if (bytes != null && bytes.Length != 0)
+            {
+                using var input = new MemoryStream(bytes);
+                using var stream = new GZipStream(input, CompressionMode.Decompress);
+                using var output = new MemoryStream();
+                stream.CopyTo(output);
+                return output.ToArray();
+            }
+
+            return bytes;
         }
     }
 

@@ -97,10 +97,16 @@ namespace Astraia.Net
             NetworkSpawner.Clear(this);
         }
 
+        protected virtual void OnValidate()
+        {
+#if UNITY_EDITOR
+            AssignAssetId();
+#endif
+        }
 #if UNITY_EDITOR
         private static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
 
-        protected virtual void OnValidate()
+        private void AssignAssetId()
         {
             uint.TryParse(name, out assetId);
             if (PrefabUtility.IsPartOfPrefabAsset(gameObject))

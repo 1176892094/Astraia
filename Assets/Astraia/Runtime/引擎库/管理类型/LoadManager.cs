@@ -12,13 +12,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Astraia.Core
 {
-    [Serializable]
     internal static class LoadManager
     {
         public static async void Update()
@@ -34,310 +35,308 @@ namespace Astraia.Core
                 Directory.CreateDirectory(GlobalSetting.BundlePath);
             }
 
-            var processingData = GlobalSetting.ServerPath.Format(GlobalSetting.VERIFY);
-            var persistentData = GlobalSetting.TargetPath.Format(GlobalSetting.VERIFY);
-            var streamingAsset = GlobalSetting.ClientPath.Format(GlobalSetting.VERIFY);
-            var streamResult = await LoadClientRequest(persistentData, streamingAsset, true);
-            var streamPacket = LoadVerifyRequest(streamResult, out var streamData);
-            var clientResult = await LoadClientRequest(persistentData, streamingAsset);
-            var clientPacket = LoadVerifyRequest(clientResult, out var clientData);
-            var serverResult = await LoadServerRequest(processingData, GlobalSetting.VERIFY);
-            var serverPacket = LoadVerifyRequest(serverResult, out var serverData);
+            var streamResult = await LoadManifestFromStreamingAsync();
+            var clientResult = await LoadManifestFromPersistentAsync();
+            var serverResult = await LoadManifestFromServerAsync();
 
-            var isRemote = !string.IsNullOrEmpty(serverResult);
-            if (isRemote)
+            var manifest = SelectManifest(streamResult, clientResult, serverResult);
+            AssetManager.Instance.version = manifest.Version;
+
+            if (!manifest.IsLoaded)
             {
-                AssetManager.Instance.version = serverPacket.Version;
-                if (streamPacket.Version >= serverPacket.Version)
+                EventManager.Invoke(new OnBundleComplete(0, "没有找到可用资源。"));
+                return;
+            }
+
+            if (clientResult.Version >= manifest.Version)
+            {
+                EventManager.Invoke(new OnBundleComplete(1, "本地资源无需更新。"));
+                return;
+            }
+
+            var toDownload = new Dictionary<string, Bundle>();
+            var toDelete = new List<string>();
+
+            var clientData = clientResult.Bundles;
+            foreach (var (name, bundle) in manifest.Bundles)
+            {
+                if (clientData.TryGetValue(name, out var clientBundle))
                 {
-                    serverData = streamData;
-                    serverResult = streamResult;
-                    isRemote = false;
-                    AssetManager.Instance.version = streamPacket.Version;
+                    if (bundle.Hash != clientBundle.Hash)
+                    {
+                        toDownload.Add(name, bundle);
+                    }
+
+                    clientData.Remove(name);
                 }
+                else
+                {
+                    toDownload.Add(name, bundle);
+                }
+            }
+
+            toDelete.AddRange(clientData.Keys);
+            EventManager.Invoke(new OnLoadBundle(toDownload.Values.Sum(download => download.Size)));
+
+            foreach (var delete in toDelete)
+            {
+                var path = BuildPersistentPath(delete);
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+
+            var success = await DownloadBundlesAsync(toDownload.Keys, manifest.IsRemote);
+            if (success)
+            {
+                await SaveManifestToPersistentAsync(manifest);
+                EventManager.Invoke(new OnBundleComplete(1, "更新完成！"));
             }
             else
             {
-                AssetManager.Instance.version = clientPacket.Version;
-                if (streamPacket.Version > clientPacket.Version)
-                {
-                    serverData = streamData;
-                    serverResult = streamResult;
-                    EventManager.Invoke(new OnBundleComplete(-1, "本地资源需要更新!"));
-                    AssetManager.Instance.version = streamPacket.Version;
-                }
-                else
-                {
-                    EventManager.Invoke(new OnBundleComplete(-1, "本地资源无需更新。"));
-                    return;
-                }
+                EventManager.Invoke(new OnBundleComplete(1, "更新失败！"));
             }
+        }
 
-            var names = new HashSet<string>();
-            foreach (var key in serverData.Keys)
+        private static async Task<bool> DownloadBundlesAsync(ICollection<string> toDownload, bool isRemote)
+        {
+            try
             {
-                if (clientData.TryGetValue(key, out var bundle))
+                if (toDownload.Count == 0)
                 {
-                    if (!serverData[key].Equals(bundle))
+                    return true;
+                }
+
+                var semaphore = new SemaphoreSlim(5);
+                var downloads = new List<Task<bool>>();
+                foreach (var name in toDownload)
+                {
+                    await semaphore.WaitAsync();
+                    var download = DownloadBundleWithRetryAsync(name, isRemote, semaphore);
+                    downloads.Add(download);
+                }
+
+                var results = await Task.WhenAll(downloads);
+                return results.All(download => download);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static async Task<bool> DownloadBundleWithRetryAsync(string name, bool isRemote, SemaphoreSlim semaphore)
+        {
+            try
+            {
+                for (var retry = 0; retry < 5; retry++)
+                {
+                    if (retry > 0)
                     {
-                        names.Add(key);
+                        await Task.Delay(200 * retry);
                     }
 
-                    clientData.Remove(key);
-                }
-                else
-                {
-                    names.Add(key);
-                }
-            }
-
-            var bytes = 0L;
-            foreach (var name in names)
-            {
-                if (serverData.TryGetValue(name, out var value))
-                {
-                    bytes += value.Size;
-                }
-            }
-
-            EventManager.Invoke(new OnLoadBundle(bytes));
-            foreach (var deleteData in clientData.Keys)
-            {
-                var targetPath = GlobalSetting.TargetPath.Format(deleteData);
-                if (File.Exists(targetPath))
-                {
-                    File.Delete(targetPath);
-                }
-            }
-
-            var success = await LoadBundleRequest(names, isRemote);
-            if (success)
-            {
-                await File.WriteAllTextAsync(persistentData, serverResult);
-            }
-
-            EventManager.Invoke(new OnBundleComplete(1, success ? "更新完成!" : "更新失败!"));
-        }
-
-        private static Package LoadVerifyRequest(string request, out Dictionary<string, Bundle> result)
-        {
-            result = new Dictionary<string, Bundle>();
-            if (!string.IsNullOrEmpty(request))
-            {
-                var verify = JsonManager.FromJson<Package>(request);
-                foreach (var item in verify.Bundles)
-                {
-                    result.Add(item.Name, item);
-                }
-
-                return verify;
-            }
-
-            return default;
-        }
-
-        private static async Task<bool> LoadBundleRequest(HashSet<string> names, bool isRemote)
-        {
-            var copies = new HashSet<string>(names);
-            foreach (var name in names)
-            {
-                var originPath = isRemote ? GlobalSetting.ServerPath.Format(name) : GlobalSetting.ClientPath.Format(name);
-                var targetPath = GlobalSetting.TargetPath.Format(name);
-
-                var success = false;
-                for (var i = 0; i < 5; i++)
-                {
-                    var data = await LoadBundleRequest(originPath, name, isRemote);
-                    if (data == null || data.Length == 0)
+                    var path = isRemote ? BuildRemotePath(name) : BuildStreamingPath(name);
+                    var data = await ReadBundleDataAsync(path, isRemote);
+                    if (data != null && data.Length != 0)
                     {
-                        await Task.Delay(500);
-                        continue;
+                        await File.WriteAllBytesAsync(BuildPersistentPath(name), data);
+                        return true;
                     }
-
-                    await File.WriteAllBytesAsync(targetPath, data);
-                    success = true;
-                    break;
                 }
 
-                if (success)
-                {
-                    copies.Remove(name);
-                }
+                Log.Warn("请求服务器下载 {0} 失败!\n".Format(name));
+                return false;
             }
-
-            return copies.Count == 0;
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
-        private static async Task<string> LoadServerRequest(string uri, string name)
+        private static async Task<byte[]> ReadBundleDataAsync(string path, bool isRemote)
         {
+            if (isRemote)
+            {
+                using var request = UnityWebRequest.Get(path);
+                request.timeout = 10;
+                request.downloadHandler = new DownloadHandlerBuffer();
+                request.SetRequestHeader("Cache-Control", "no-cache");
+                request.SetRequestHeader("Pragma", "no-cache");
+
+                var operation = request.SendWebRequest();
+
+                while (!operation.isDone)
+                {
+                    EventManager.Invoke(new OnBundleUpdate(path, request.downloadedBytes));
+                    await Task.Yield();
+                }
+
+                EventManager.Invoke(new OnBundleUpdate(path, request.downloadedBytes));
+                return request.result == UnityWebRequest.Result.Success ? request.downloadHandler.data : null;
+            }
+
+            return await ReadDataAsync(path);
+        }
+
+        private static string BuildRemotePath(string name)
+        {
+            return GlobalSetting.PacketPath.Format(name);
+        }
+
+        private static string BuildStreamingPath(string name)
+        {
+            return GlobalSetting.StreamPath.Format(name);
+        }
+
+        private static string BuildPersistentPath(string name)
+        {
+            return GlobalSetting.TargetPath.Format(name);
+        }
+
+        private static async Task SaveManifestToPersistentAsync(Manifest manifest)
+        {
+            var json = JsonManager.ToJson(new Package(manifest.Version, manifest.Bundles.Values.ToList()));
+            var path = GlobalSetting.TargetPath.Format(GlobalSetting.VERIFY);
+            await File.WriteAllTextAsync(path, json);
+        }
+
+        internal static async Task<byte[]> ReadDataAsync(string path)
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            using var request = UnityWebRequest.Get(path);
+            await request.SendWebRequest();
+            return request.result == UnityWebRequest.Result.Success ? request.downloadHandler.data : null;
+#else
+            return File.Exists(path) ? await File.ReadAllBytesAsync(path) : null;
+#endif
+        }
+
+        private static async Task<string> ReadTextAsync(string path)
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            using var request = UnityWebRequest.Get(path);
+            await request.SendWebRequest();
+            return request.result == UnityWebRequest.Result.Success ? request.downloadHandler.text : null;
+#else
+            return File.Exists(path) ? await File.ReadAllTextAsync(path) : null;
+#endif
+        }
+
+        private static async Task<Manifest> LoadManifestFromStreamingAsync()
+        {
+            var path = GlobalSetting.StreamPath.Format(GlobalSetting.VERIFY);
+            var json = await ReadTextAsync(path);
+            return LoadManifestFromJson(json, false);
+        }
+
+        private static async Task<Manifest> LoadManifestFromPersistentAsync()
+        {
+            var path = GlobalSetting.TargetPath.Format(GlobalSetting.VERIFY);
+            var json = File.Exists(path) ? await File.ReadAllTextAsync(path) : null;
+            return LoadManifestFromJson(json, false);
+        }
+
+        private static async Task<Manifest> LoadManifestFromServerAsync()
+        {
+            var path = GlobalSetting.ServerPath.Format(GlobalSetting.VERIFY);
+            var json = string.Empty;
             for (var i = 0; i < 5; i++)
             {
-                using (var request = UnityWebRequest.Head(uri))
-                {
-                    request.timeout = 5;
-                    await request.SendWebRequest();
-                    if (request.result != UnityWebRequest.Result.Success)
-                    {
-                        continue;
-                    }
-                }
-
-                using (var request = UnityWebRequest.Get(uri))
-                {
-                    await request.SendWebRequest();
-                    if (request.result != UnityWebRequest.Result.Success)
-                    {
-                        Log.Warn("请求服务器下载 {0} 失败!\n".Format(name));
-                        continue;
-                    }
-
-                    return request.downloadHandler.text;
-                }
-            }
-
-            return null;
-        }
-
-        private static async Task<byte[]> LoadBundleRequest(string uri, string name, bool isRemote)
-        {
-            if (!isRemote)
-            {
-#if UNITY_ANDROID && !UNITY_EDITOR
-                using (var request = UnityWebRequest.Get(uri))
-                {
-                    await request.SendWebRequest();
-                    if (request.result == UnityWebRequest.Result.Success)
-                    {
-                        return request.downloadHandler.data;
-                    }
-
-                    return Array.Empty<byte>();
-                }
-#else
-                return await File.ReadAllBytesAsync(uri);
-#endif
-            }
-
-            using (var request = UnityWebRequest.Head(uri))
-            {
+                using var request = UnityWebRequest.Get(path);
                 request.timeout = 5;
                 await request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Log.Warn("请求服务器校验 {0} 失败!\n".Format(name));
-                    return null;
+                    Log.Warn("请求服务器下载 {0} 失败!\n".Format(GlobalSetting.VERIFY));
+                    await Task.Delay(200);
+                    continue;
                 }
+
+                json = request.downloadHandler.text;
             }
 
-            using (var request = UnityWebRequest.Get(uri))
-            {
-                var result = request.SendWebRequest();
-                while (!result.isDone && AssetManager.Instance != null)
-                {
-                    EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
-                    await Task.Yield();
-                }
-
-                EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
-                if (request.result != UnityWebRequest.Result.Success)
-                {
-                    Log.Warn("请求服务器下载 {0} 失败!\n".Format(name));
-                    return null;
-                }
-
-                return request.downloadHandler.data;
-            }
+            return LoadManifestFromJson(json, true);
         }
 
-        private static async Task<string> LoadClientRequest(string persistentData, string streamingAsset, bool skipped = false)
+        private static Manifest LoadManifestFromJson(string json, bool remote)
         {
-            var assetData = await LoadRequest(persistentData, streamingAsset, skipped);
-            string result = null;
-            if (assetData.Key == 1)
+            if (string.IsNullOrEmpty(json))
             {
-                result = await File.ReadAllTextAsync(assetData.Value);
+                return default;
             }
-            else if (assetData.Key == 2)
+
+            var package = JsonManager.FromJson<Package>(json);
+            var bundles = new Dictionary<string, Bundle>();
+            if (package.Bundles != null)
             {
-                using var request = UnityWebRequest.Get(assetData.Value);
-                await request.SendWebRequest();
-                if (request.result == UnityWebRequest.Result.Success)
+                foreach (var bundle in package.Bundles)
                 {
-                    result = request.downloadHandler.text;
+                    bundles[bundle.Name] = bundle;
                 }
             }
 
-            return result;
+            return new Manifest(package.Version, bundles, true, remote);
         }
 
-        internal static async Task<(int Key, string Value)> LoadRequest(string persistentData, string streamingAsset, bool skipped = false)
+        private static Manifest SelectManifest(Manifest stream, Manifest client, Manifest server)
         {
-            if (!skipped && File.Exists(persistentData))
+            if (server.IsLoaded)
             {
-                return (1, persistentData);
+                return server.Version > stream.Version ? server : stream;
             }
 
-#if UNITY_ANDROID && !UNITY_EDITOR
-            if (!streamingAsset.StartsWith("jar:"))
+            if (client.IsLoaded)
             {
-                streamingAsset = "jar:" + streamingAsset;
+                return client.Version > stream.Version ? client : stream;
             }
-            using var request = UnityWebRequest.Head(streamingAsset);
-            await request.SendWebRequest();
-            if (request.result == UnityWebRequest.Result.Success)
-            {
-                return (2, streamingAsset);
-            }
-#else
-            if (File.Exists(streamingAsset))
-            {
-                return (1, streamingAsset);
-            }
-#endif
-            return await Task.FromResult((0, string.Empty));
+
+            return stream.IsLoaded ? stream : default;
+        }
+    }
+
+    internal readonly struct Manifest
+    {
+        public readonly int Version;
+        public readonly bool IsLoaded;
+        public readonly bool IsRemote;
+        public readonly Dictionary<string, Bundle> Bundles;
+
+        public Manifest(int version, Dictionary<string, Bundle> bundles, bool isLoaded, bool isRemote)
+        {
+            Version = version;
+            Bundles = bundles;
+            IsLoaded = isLoaded;
+            IsRemote = isRemote;
         }
     }
 
     [Serializable]
     internal struct Package
     {
+        public int Version;
         public List<Bundle> Bundles;
-        public long Version;
 
-        public Package(long version)
+        public Package(int version, List<Bundle> bundles)
         {
             Version = version;
-            Bundles = new List<Bundle>();
+            Bundles = bundles;
         }
     }
 
     [Serializable]
-    internal struct Bundle : IEquatable<Bundle>
+    internal struct Bundle
     {
         public long Size;
-        public string Code;
         public string Name;
+        public string Hash;
 
-        public Bundle(string code, string name, long size)
+        public Bundle(long size, string name, string hash)
         {
-            Code = code;
-            Name = name;
             Size = size;
-        }
-
-        public bool Equals(Bundle other)
-        {
-            return Code == other.Code;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Bundle other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Code, Name, Size);
+            Name = name;
+            Hash = hash;
         }
     }
 }
