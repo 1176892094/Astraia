@@ -12,7 +12,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 #if ODIN_INSPECTOR
@@ -42,36 +41,17 @@ namespace Astraia
 #endif
         public AssetPlatform BuildTarget = AssetPlatform.StandaloneWindows;
 #if UNITY_EDITOR && ODIN_INSPECTOR
-        [EnumToggleButtons]
-#endif
-        public bool BuildLoader;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowIf("BuildLoader")] [ValueDropdown("UpdateEncryptKey")]
-#endif
-        public int BuildEncrypt;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [ShowIf("BuildLoader")]
-#endif
-        public string RemotePath = "https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main";
-
-#if UNITY_EDITOR && ODIN_INSPECTOR
         [PropertyOrder(1)]
 #endif
         public string[] EncryptGroup;
+
+        public string RemotePath = "https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main";
 
         public static string EditorPath => TARGET.Format(Path.GetDirectoryName(Application.dataPath));
         public static string BundlePath => TARGET.Format(Application.persistentDataPath);
         public static string TargetPath => TARGET.Format(Application.persistentDataPath) + "/{0}";
         public static string ServerPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget + "/{0}");
         public static string ClientPath => Path.Combine(Application.streamingAssetsPath, Instance.BuildTarget + "/{0}");
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void RuntimeInitializeOnLoad()
-        {
-            Xor.LoadData(Instance.EncryptGroup);
-            Bad.LoadData(LoadAsset(AssetData.BadWord));
-            Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
-        }
 
         private static readonly Dictionary<AssetData, TextAsset> TextAssets = new Dictionary<AssetData, TextAsset>();
 
@@ -122,9 +102,6 @@ namespace Astraia
         [ShowInInspector]
 #endif
         public static string RemoteAssetData => Path.Combine(RemoteAssetPath, VERIFY);
-#if ODIN_INSPECTOR
-        private IEnumerable<ValueDropdownItem<int>> UpdateEncryptKey => EncryptGroup.Select((item, i) => new ValueDropdownItem<int>(item, i));
-#endif
 #endif
     }
 }

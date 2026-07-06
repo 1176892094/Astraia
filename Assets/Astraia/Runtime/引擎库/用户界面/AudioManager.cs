@@ -18,11 +18,12 @@ namespace Astraia.Core
     [Serializable]
     public class AudioManager : Singleton<AudioManager>
     {
+        private static List<AudioSource> audioData = new List<AudioSource>();
+        private static bool isPlaying;
+
         [SerializeField] private AudioSource musicMain;
         [SerializeField] private int musicVolume;
         [SerializeField] private int audioVolume;
-        [SerializeField] private bool isPlaying;
-        [SerializeField] private List<AudioSource> audioData = new();
 
         public int MusicVolume
         {
@@ -67,7 +68,7 @@ namespace Astraia.Core
             audioData.Clear();
         }
 
-        internal void Update()
+        internal static void Update()
         {
             if (isPlaying)
             {
@@ -77,12 +78,12 @@ namespace Astraia.Core
                     {
                         if (!audioData[i].isPlaying)
                         {
-                            StopInternal(audioData[i]);
+                            Stop(audioData[i]);
                         }
                     }
                     else
                     {
-                        StopInternal(audioData[i]);
+                        Stop(audioData[i]);
                     }
                 }
             }

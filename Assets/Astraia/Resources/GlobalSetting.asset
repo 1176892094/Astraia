@@ -71,12 +71,10 @@ MonoBehaviour:
   m_Name: GlobalSetting
   m_EditorClassIdentifier: 
   BuildTarget: 9
-  BuildLoader: 0
-  BuildEncrypt: 0
-  RemotePath: https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main
   EncryptGroup:
   - I1J2K3L4M5N6O7P8
   - Q1R2S3T4U5V6W7X8
+  RemotePath: https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main
   BuildPath: 1
   ignoreAssets:
   - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}

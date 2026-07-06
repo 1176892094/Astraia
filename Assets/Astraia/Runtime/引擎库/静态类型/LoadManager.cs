@@ -18,11 +18,14 @@ using UnityEngine.Networking;
 
 namespace Astraia.Core
 {
+    [Serializable]
     internal class LoadManager : Singleton<LoadManager>
     {
+        [SerializeField] private bool simulation = true;
+
         public static async void Update()
         {
-            if (!GlobalSetting.Instance.BuildLoader)
+            if (Instance == null || Instance.simulation)
             {
                 EventManager.Invoke(new OnBundleComplete(0, "启动本地资源加载。"));
                 return;
@@ -46,24 +49,24 @@ namespace Astraia.Core
             var isRemote = !string.IsNullOrEmpty(serverResult);
             if (isRemote)
             {
-                GlobalManager.Package = serverPacket;
+                AssetManager.Instance.version = serverPacket.Version;
                 if (streamPacket.Version >= serverPacket.Version)
                 {
                     serverData = streamData;
                     serverResult = streamResult;
                     isRemote = false;
-                    GlobalManager.Package = streamPacket;
+                    AssetManager.Instance.version = streamPacket.Version;
                 }
             }
             else
             {
-                GlobalManager.Package = clientPacket;
+                AssetManager.Instance.version = clientPacket.Version;
                 if (streamPacket.Version > clientPacket.Version)
                 {
                     serverData = streamData;
                     serverResult = streamResult;
                     EventManager.Invoke(new OnBundleComplete(-1, "本地资源需要更新!"));
-                    GlobalManager.Package = streamPacket;
+                    AssetManager.Instance.version = streamPacket.Version;
                 }
                 else
                 {
@@ -298,7 +301,7 @@ namespace Astraia.Core
     }
 
     [Serializable]
-    public struct Package
+    internal struct Package
     {
         public List<Bundle> Bundles;
         public long Version;
@@ -311,7 +314,7 @@ namespace Astraia.Core
     }
 
     [Serializable]
-    public struct Bundle : IEquatable<Bundle>
+    internal struct Bundle : IEquatable<Bundle>
     {
         public long Size;
         public string Code;

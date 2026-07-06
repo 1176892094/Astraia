@@ -49,22 +49,22 @@ namespace Astraia.Core
             return FromJson<T>(json);
         }
 
-        public static void Encrypt<T>(T data, string name)
+        public static void Encrypt<T>(T data, string name, int version = 0)
         {
             var path = LoadPath(name);
             var json = ToJson(data);
             json = Zip.Compress(json);
             var item = Text.GetBytes(json);
-            item = Xor.Encrypt(item, GlobalSetting.Instance.BuildEncrypt);
+            item = Xor.Encrypt(item, version);
             File.WriteAllBytes(path, item);
         }
 
-        public static void Decrypt<T>(T data, string name)
+        public static void Decrypt<T>(T data, string name, int version = 0)
         {
             var path = LoadPath(name);
             if (!File.Exists(path))
             {
-                Encrypt(data, name);
+                Encrypt(data, name, version);
             }
 
             var item = File.ReadAllBytes(path);
@@ -74,12 +74,12 @@ namespace Astraia.Core
             FromJson(json, data);
         }
 
-        public static T Decrypt<T>(string name, T data = default)
+        public static T Decrypt<T>(string name, T data = default, int version = 0)
         {
             var path = LoadPath(name);
             if (!File.Exists(path))
             {
-                Encrypt(data, name);
+                Encrypt(data, name, version);
             }
 
             var item = File.ReadAllBytes(path);

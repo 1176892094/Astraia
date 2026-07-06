@@ -29,16 +29,12 @@ namespace Astraia.Core
     [Serializable]
     public class AssetManager : Singleton<AssetManager>
     {
-        public struct AssetData
-        {
-            public string Name;
-            public string Path;
-        }
+        private static readonly Dictionary<string, Task<AssetBundle>> AssetTask = new Dictionary<string, Task<AssetBundle>>();
+        private static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
+        private static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
 
-        internal static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
-        internal static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
-        internal static readonly Dictionary<string, Task<AssetBundle>> AssetTask = new Dictionary<string, Task<AssetBundle>>();
-        internal static AssetBundleManifest Manifest;
+        public long version;
+        public AssetBundleManifest manifest;
 
         public override void Enqueue()
         {
@@ -91,7 +87,7 @@ namespace Astraia.Core
 
         private static T LoadAsset<T>(string reason) where T : Object
         {
-            if (GlobalSetting.Instance.BuildLoader && Application.isPlaying)
+            if (Instance != null && Instance.manifest)
             {
                 var asset = LoadFirst<T>(LoadAssetData(reason));
                 return asset ?? LoadSecond<T>(reason);
@@ -105,7 +101,7 @@ namespace Astraia.Core
 
         private static T[] LoadAssetAll<T>(string reason) where T : Object
         {
-            if (GlobalSetting.Instance.BuildLoader && Application.isPlaying)
+            if (Instance != null && Instance.manifest)
             {
                 var asset = LoadFirstAll<T>(LoadAssetData(reason));
                 return asset ?? LoadSecondAll<T>(reason);
@@ -141,22 +137,26 @@ namespace Astraia.Core
 
         public static async void LoadAssetBundle()
         {
-            var platform = await LoadAssetBundle(GlobalSetting.Instance.BuildTarget.ToString());
-            if (Manifest == null)
+            if (Instance != null)
             {
-                Manifest = platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
+                var platform = await LoadAssetBundle(GlobalSetting.Instance.BuildTarget.ToString());
+                var manifest = Instance.manifest;
+                if (manifest == null)
+                {
+                    manifest = platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
+                }
+
+                EventManager.Invoke(new OnLoadAsset(manifest.GetAllAssetBundles()));
+
+                var bundles = manifest.GetAllAssetBundles();
+                foreach (var bundle in bundles)
+                {
+                    _ = LoadAssetBundle(bundle);
+                }
+
+                await Task.WhenAll(AssetTask.Values);
+                EventManager.Invoke(new OnAssetComplete());
             }
-
-            EventManager.Invoke(new OnLoadAsset(Manifest.GetAllAssetBundles()));
-
-            var bundles = Manifest.GetAllAssetBundles();
-            foreach (var bundle in bundles)
-            {
-                _ = LoadAssetBundle(bundle);
-            }
-
-            await Task.WhenAll(AssetTask.Values);
-            EventManager.Invoke(new OnAssetComplete());
         }
 
         public static async Task<AssetBundle> LoadAssetBundle(string reason)
@@ -244,7 +244,7 @@ namespace Astraia.Core
         private static AsyncOperation LoadSceneAsset(string reason)
         {
             var item = LoadAssetData(reason);
-            if (GlobalSetting.Instance.BuildLoader && Application.isPlaying)
+            if (Instance != null && Instance.manifest)
             {
                 var sceneData = AssetPack.GetValueOrDefault(item.Path);
                 var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(scene => scene == item.Name);
@@ -311,6 +311,12 @@ namespace Astraia.Core
             }
 #endif
             return null;
+        }
+
+        public struct AssetData
+        {
+            public string Name;
+            public string Path;
         }
     }
 }

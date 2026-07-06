@@ -120,7 +120,7 @@ namespace Astraia
         private const string NORMAL = "A1B2C3D4E5F6G7H8";
         private const ushort LENGTH = 0x0010;
 
-        public static void LoadData(params string[] args)
+        public static void SetUp(params string[] args)
         {
             for (int i = 0; i < args.Length; i++)
             {
@@ -565,7 +565,7 @@ namespace Astraia
 
         private static readonly Node root = new Node();
 
-        public static void LoadData(string text)
+        public static void SetUp(string text)
         {
             var splits = Zip.Decompress(text).Split('\n');
             foreach (var chars in splits)

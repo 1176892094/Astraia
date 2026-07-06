@@ -10,18 +10,21 @@
 // *********************************************************************************
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace Astraia.Core
 {
+    using static DataManager;
+
     public static class DataManager
     {
         internal static readonly Dictionary<Type, IDataTable> DataTable = new Dictionary<Type, IDataTable>();
-        internal static readonly Dictionary<Type, Dictionary<int, IData>> DataTable1 = new Dictionary<Type, Dictionary<int, IData>>();
-        internal static readonly Dictionary<Type, Dictionary<Enum, IData>> DataTable2 = new Dictionary<Type, Dictionary<Enum, IData>>();
-        internal static readonly Dictionary<Type, Dictionary<string, IData>> DataTable3 = new Dictionary<Type, Dictionary<string, IData>>();
+        internal static readonly Dictionary<Type, IDictionary> Database1 = new Dictionary<Type, IDictionary>();
+        internal static readonly Dictionary<Type, IDictionary> Database2 = new Dictionary<Type, IDictionary>();
+        internal static readonly Dictionary<Type, IDictionary> Database3 = new Dictionary<Type, IDictionary>();
 
         public static void LoadDataTable()
         {
@@ -48,55 +51,52 @@ namespace Astraia.Core
             EventManager.Invoke(new OnDataComplete());
         }
 
-        public static T Get<T>(int key) where T : IData
+        public static T Get<T>(int key) where T : struct, IData
         {
-            if (DataTable1.TryGetValue(typeof(T), out var data))
+            if (Database1.TryGetValue(typeof(T), out var result))
             {
-                if (data.TryGetValue(key, out var result))
-                {
-                    return (T)result;
-                }
+                return ((Dictionary<int, T>)result).GetValueOrDefault(key);
             }
 
             return default;
         }
 
-        public static T Get<T>(Enum key) where T : IData
+        public static T Get<T>(Enum key) where T : struct, IData
         {
-            if (DataTable2.TryGetValue(typeof(T), out var data))
+            if (Database2.TryGetValue(typeof(T), out var result))
             {
-                if (data.TryGetValue(key, out var result))
-                {
-                    return (T)result;
-                }
+                return ((Dictionary<Enum, T>)result).GetValueOrDefault(key);
             }
 
             return default;
         }
 
-        public static T Get<T>(string key) where T : IData
+        public static T Get<T>(string key) where T : struct, IData
         {
-            if (DataTable3.TryGetValue(typeof(T), out var data))
+            if (Database3.TryGetValue(typeof(T), out var result))
             {
-                if (data.TryGetValue(key, out var result))
-                {
-                    return (T)result;
-                }
+                return ((Dictionary<string, T>)result).GetValueOrDefault(key);
             }
 
             return default;
         }
 
-        public static List<T> GetTable<T>() where T : IData
+        public static List<T> GetTable<T>() where T : struct, IData
         {
-            return (DataTable<T>)DataTable[typeof(T)];
+            if (DataTable.TryGetValue(typeof(T), out var items))
+            {
+                return (DataTable<T>)items;
+            }
+
+            return null;
         }
 
         public static void Dispose()
         {
-            DataTable1.Clear();
-            DataTable2.Clear();
-            DataTable3.Clear();
+            Database1.Clear();
+            Database2.Clear();
+            Database3.Clear();
+            DataTable.Clear();
         }
     }
 
@@ -260,7 +260,7 @@ namespace Astraia.Core
     }
 
     [Serializable]
-    public abstract class DataTable<TData> : ScriptableObject, IDataTable where TData : IData
+    public abstract class DataTable<TData> : ScriptableObject, IDataTable where TData : struct, IData
     {
         [SerializeField] private List<TData> items = new List<TData>();
 
@@ -268,39 +268,35 @@ namespace Astraia.Core
 
         void IDataTable.AddData(IData data) => items.Add((TData)data);
 
-        void IDataTable.AddData(string name, Type type)
+        void IDataTable.AddData(string name, Type value)
         {
-            if (type == typeof(int))
+            if (!Database1.ContainsKey(typeof(TData)) && value == typeof(int))
             {
-                if (!DataManager.DataTable1.ContainsKey(typeof(TData)))
-                {
-                    DataManager.DataTable1[typeof(TData)] = GetData<int>(name);
-                }
-            }
-            else if (type.IsEnum)
-            {
-                if (!DataManager.DataTable2.ContainsKey(typeof(TData)))
-                {
-                    DataManager.DataTable2[typeof(TData)] = GetData<Enum>(name);
-                }
-            }
-            else if (type == typeof(string))
-            {
-                if (!DataManager.DataTable3.ContainsKey(typeof(TData)))
-                {
-                    DataManager.DataTable3[typeof(TData)] = GetData<string>(name);
-                }
+                Database1[typeof(TData)] = GetData<int>(name);
             }
 
-            DataManager.DataTable[typeof(TData)] = this;
+            if (!Database2.ContainsKey(typeof(TData)) && value.IsEnum)
+            {
+                Database2[typeof(TData)] = GetData<Enum>(name);
+            }
+
+            if (!Database3.ContainsKey(typeof(TData)) && value == typeof(string))
+            {
+                Database3[typeof(TData)] = GetData<string>(name);
+            }
+
+            if (!DataTable.ContainsKey(typeof(TData)))
+            {
+                DataTable[typeof(TData)] = this;
+            }
         }
 
-        private Dictionary<TKey, IData> GetData<TKey>(string name)
+        private IDictionary GetData<T>(string name)
         {
-            var result = new Dictionary<TKey, IData>();
+            var result = new Dictionary<T, TData>();
             foreach (var item in items)
             {
-                var index = item.GetValue<TKey>(name);
+                var index = item.GetValue<T>(name);
                 if (result.ContainsKey(index))
                 {
                     Log.Warn("加载数据 {0} 失败。键值重复: {1}".Format(item, index));

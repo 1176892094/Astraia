@@ -9,7 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
 using UnityEngine;
 
 namespace Astraia.Core
@@ -17,16 +16,14 @@ namespace Astraia.Core
     [DefaultExecutionOrder(-100)]
     public sealed class GlobalManager : Entity
     {
-        public static Package Package;
-
         protected override void Awake()
         {
+            Async.Time = 0;
             DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
         {
-            Async.Time = 0;
             LoadManager.Update();
         }
 
@@ -38,7 +35,7 @@ namespace Astraia.Core
 
         private void LateUpdate()
         {
-            AudioManager.Instance.Update();
+            AudioManager.Update();
             EventManager.Invoke(new OnAfterUpdate());
         }
 
@@ -57,7 +54,15 @@ namespace Astraia.Core
             base.OnDestroy();
             HeapManager.Dispose();
             EventManager.Dispose();
-            GC.Collect();
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void RuntimeInitializeOnLoad()
+        {
+            Xor.SetUp(GlobalSetting.Instance.EncryptGroup);
+            Bad.SetUp(GlobalSetting.LoadAsset(AssetData.BadWord));
+            Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
+            Instantiate(Resources.Load(nameof(GlobalManager)));
         }
     }
 }
