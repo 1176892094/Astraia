@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Astraia.Core
 {
     [Serializable]
-    public class AudioManager : Singleton<AudioManager>, IEvent<OnAfterUpdate>
+    public class SoundManager : Singleton<SoundManager>, IEvent<OnAfterUpdate>
     {
         private static List<AudioSource> audioData = new List<AudioSource>();
         private static bool isPlaying;

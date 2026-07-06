@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Astraia
+namespace Astraia.Core
 {
     [Serializable]
-    public class VisibleManager : Singleton<VisibleManager>, IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
+    public class SpaceManager : Singleton<SpaceManager>, IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
     {
         private readonly SpatialHash<IVisible> visibles = new SpatialHash<IVisible>();
         private readonly HashSet<IVisible> forwards = new HashSet<IVisible>();
