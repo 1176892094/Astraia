@@ -18,12 +18,12 @@ namespace Astraia.Core
     {
         protected override void Awake()
         {
-            Async.Time = 0;
             DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
         {
+            Async.Time = 0;
             LoadManager.Update();
         }
 
@@ -35,7 +35,6 @@ namespace Astraia.Core
 
         private void LateUpdate()
         {
-            AudioManager.Update();
             EventManager.Invoke(new OnAfterUpdate());
         }
 
@@ -62,7 +61,6 @@ namespace Astraia.Core
             Xor.SetUp(GlobalSetting.Instance.EncryptGroup);
             Bad.SetUp(GlobalSetting.LoadAsset(AssetData.BadWord));
             Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
-            Instantiate(Resources.Load(nameof(GlobalManager)));
         }
     }
 }

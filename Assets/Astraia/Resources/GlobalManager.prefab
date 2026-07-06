@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6748006628461545796}
   - component: {fileID: 2997637547309323673}
+  - component: {fileID: 5391013338388984376}
   m_Layer: 0
   m_Name: AudioSource
   m_TagString: Untagged
@@ -129,6 +130,14 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!81 &5391013338388984376
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 820132373918623160}
+  m_Enabled: 1
 --- !u!1 &5282001741284870159
 GameObject:
   m_ObjectHideFlags: 0
@@ -358,9 +367,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Astraia.Run::Astraia.Core.GlobalManager
   moduleList:
   - rid: 5279500917910798419
-  - rid: 5279500917910799001
   - rid: 5279500917910798744
-  - rid: 5279500917910798996
   - rid: 5279500917910798898
   references:
     version: 2
@@ -377,14 +384,5 @@ MonoBehaviour:
       type: {class: AssetManager, ns: Astraia.Core, asm: Astraia.Run}
       data:
         version: 0
+        simulate: 1
         manifest: {fileID: 0}
-    - rid: 5279500917910798996
-      type: {class: LoadManager, ns: Astraia.Core, asm: Astraia.Run}
-      data:
-        simulation: 1
-    - rid: 5279500917910799001
-      type: {class: AudioManager, ns: Astraia.Core, asm: Astraia.Run}
-      data:
-        musicMain: {fileID: 2997637547309323673}
-        musicVolume: 0
-        audioVolume: 0

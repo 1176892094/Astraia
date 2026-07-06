@@ -19,13 +19,11 @@ using UnityEngine.Networking;
 namespace Astraia.Core
 {
     [Serializable]
-    internal class LoadManager : Singleton<LoadManager>
+    internal static class LoadManager
     {
-        [SerializeField] private bool simulation = true;
-
         public static async void Update()
         {
-            if (Instance == null || Instance.simulation)
+            if (AssetManager.Instance == null || AssetManager.Instance.simulate)
             {
                 EventManager.Invoke(new OnBundleComplete(0, "启动本地资源加载。"));
                 return;
@@ -234,7 +232,7 @@ namespace Astraia.Core
             using (var request = UnityWebRequest.Get(uri))
             {
                 var result = request.SendWebRequest();
-                while (!result.isDone && Instance != null)
+                while (!result.isDone && AssetManager.Instance != null)
                 {
                     EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
                     await Task.Yield();

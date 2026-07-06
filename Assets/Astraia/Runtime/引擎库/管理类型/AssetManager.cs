@@ -34,6 +34,7 @@ namespace Astraia.Core
         private static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
 
         public long version;
+        public bool simulate = true;
         public AssetBundleManifest manifest;
 
         public override void Enqueue()
@@ -144,6 +145,7 @@ namespace Astraia.Core
                 if (manifest == null)
                 {
                     manifest = platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
+                    Instance.manifest = manifest;
                 }
 
                 EventManager.Invoke(new OnLoadAsset(manifest.GetAllAssetBundles()));

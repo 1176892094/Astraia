@@ -233,7 +233,7 @@ namespace Astraia.Net
 
         internal void OnNotifyAuthority()
         {
-            if ((state & State.权限) == 0 && isOwner)
+            if ((state & State.认证) == 0 && isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -243,7 +243,7 @@ namespace Astraia.Net
                     }
                 }
             }
-            else if ((state & State.权限) != 0 && !isOwner)
+            else if ((state & State.认证) != 0 && !isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -254,7 +254,7 @@ namespace Astraia.Net
                 }
             }
 
-            state = isOwner ? state | State.权限 : state & ~State.权限;
+            state = isOwner ? state | State.认证 : state & ~State.认证;
         }
 
         public static implicit operator uint(NetworkEntity entity)
@@ -279,7 +279,7 @@ namespace Astraia.Net
             所有者 = 1 << 0,
             客户端 = 1 << 1,
             服务器 = 1 << 2,
-            权限 = 1 << 3,
+            认证 = 1 << 3,
             活跃 = 1 << 4,
             销毁 = 1 << 5,
         }

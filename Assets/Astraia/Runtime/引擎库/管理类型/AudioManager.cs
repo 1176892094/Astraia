@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Astraia.Core
 {
     [Serializable]
-    public class AudioManager : Singleton<AudioManager>
+    public class AudioManager : Singleton<AudioManager>, IEvent<OnAfterUpdate>
     {
         private static List<AudioSource> audioData = new List<AudioSource>();
         private static bool isPlaying;
@@ -68,7 +68,7 @@ namespace Astraia.Core
             audioData.Clear();
         }
 
-        internal static void Update()
+        public void Execute(OnAfterUpdate message)
         {
             if (isPlaying)
             {
@@ -78,12 +78,12 @@ namespace Astraia.Core
                     {
                         if (!audioData[i].isPlaying)
                         {
-                            Stop(audioData[i]);
+                            StopInternal(audioData[i]);
                         }
                     }
                     else
                     {
-                        Stop(audioData[i]);
+                        StopInternal(audioData[i]);
                     }
                 }
             }

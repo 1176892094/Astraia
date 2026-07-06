@@ -28,7 +28,6 @@ namespace Astraia.Editor
     {
         private static readonly HashSet<string> IgnoreAssemblies = new HashSet<string>()
         {
-            "Astraia.Run",
             "Astraia.Editor",
             "Assembly-CSharp-firstpass",
             "Assembly-CSharp-Editor",
