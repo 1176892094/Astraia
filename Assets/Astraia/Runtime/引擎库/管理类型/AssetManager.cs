@@ -28,7 +28,6 @@ namespace Astraia.Core
     [Serializable]
     public class AssetManager : Singleton<AssetManager>
     {
-        private static readonly Dictionary<string, Task<AssetBundle>> AssetTask = new Dictionary<string, Task<AssetBundle>>();
         private static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
         private static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
         private static Manifest package;
@@ -47,7 +46,6 @@ namespace Astraia.Core
         {
             Instance = null;
             AssetPath.Clear();
-            AssetTask.Clear();
             AssetPack.Clear();
             AssetBundle.UnloadAllAssetBundles(true);
         }
@@ -146,7 +144,8 @@ namespace Astraia.Core
         {
             if (Instance != null)
             {
-                var platform = await LoadAssetBundle(GlobalSetting.Instance.BuildTarget.ToString());
+                var requests = new Dictionary<string, Task<AssetBundle>>();
+                var platform = await LoadAssetBundle(GlobalSetting.TargetPlatform, requests);
                 var manifest = Instance.manifest;
                 if (manifest == null)
                 {
@@ -159,15 +158,15 @@ namespace Astraia.Core
                 var bundles = manifest.GetAllAssetBundles();
                 foreach (var bundle in bundles)
                 {
-                    _ = LoadAssetBundle(bundle);
+                    _ = LoadAssetBundle(bundle, requests);
                 }
 
-                await Task.WhenAll(AssetTask.Values);
+                await Task.WhenAll(requests.Values);
                 EventManager.Invoke(new OnAssetComplete());
             }
         }
 
-        public static async Task<AssetBundle> LoadAssetBundle(string reason)
+        public static async Task<AssetBundle> LoadAssetBundle(string reason, Dictionary<string, Task<AssetBundle>> requests)
         {
             if (string.IsNullOrEmpty(reason))
             {
@@ -179,13 +178,13 @@ namespace Astraia.Core
                 return bundle;
             }
 
-            if (AssetTask.TryGetValue(reason, out var request))
+            if (requests.TryGetValue(reason, out var request))
             {
                 return await request;
             }
 
             request = LoadRequest(reason);
-            AssetTask.Add(reason, request);
+            requests.Add(reason, request);
             try
             {
                 bundle = await request;
@@ -195,7 +194,7 @@ namespace Astraia.Core
             }
             finally
             {
-                AssetTask.Remove(reason);
+                requests.Remove(reason);
             }
         }
 
@@ -208,13 +207,9 @@ namespace Astraia.Core
                 if (package.Bundles.TryGetValue(reason, out var bundle))
                 {
                     Directory.CreateDirectory(GlobalSetting.TemporaryCache);
-                    Aes.Decrypt(inputPath, outputPath, bundle.HexToBytes(), Guid.Parse(bundle.Guid).ToByteArray());
+                    await Aes.DecryptAsync(inputPath, outputPath, bundle.HexToBytes(), Guid.Parse(bundle.Guid).ToByteArray());
                     var request = AssetBundle.LoadFromFileAsync(outputPath);
-                    while (!request.isDone && Instance != null)
-                    {
-                        await Task.Yield();
-                    }
-
+                    await request;
                     return request.assetBundle;
                 }
 

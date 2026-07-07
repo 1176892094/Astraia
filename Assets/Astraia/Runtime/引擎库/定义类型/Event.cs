@@ -35,12 +35,12 @@ namespace Astraia.Core
 
     public readonly struct OnBundleComplete : IEvent
     {
-        public readonly int status;
+        public readonly int opcode;
         public readonly string message;
 
-        public OnBundleComplete(int status, string message)
+        public OnBundleComplete(int opcode, string message)
         {
-            this.status = status;
+            this.opcode = opcode;
             this.message = message;
         }
     }
@@ -97,9 +97,5 @@ namespace Astraia.Core
         {
             this.sceneName = sceneName;
         }
-    }
-
-    public readonly struct OnDataComplete : IEvent
-    {
     }
 }

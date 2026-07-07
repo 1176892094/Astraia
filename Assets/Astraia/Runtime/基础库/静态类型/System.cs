@@ -188,30 +188,30 @@ namespace Astraia
             return bytes;
         }
 
-        public static void Encrypt(string inputPath, string outputPath, byte[] key, byte[] iv)
+        public static async Task EncryptAsync(string inputPath, string outputPath, byte[] key, byte[] iv)
         {
-            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
-            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
+            await using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
+            await using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
             using var aes = System.Security.Cryptography.Aes.Create();
             aes.Key = key;
             aes.IV = iv;
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
-            using var crypt = new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write);
-            input.CopyTo(crypt, COUNT);
+            await using var crypt = new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write);
+            await input.CopyToAsync(crypt, COUNT);
         }
 
-        public static void Decrypt(string inputPath, string outputPath, byte[] key, byte[] iv)
+        public static async Task DecryptAsync(string inputPath, string outputPath, byte[] key, byte[] iv)
         {
-            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
-            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
+            await using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
+            await using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
             using var aes = System.Security.Cryptography.Aes.Create();
             aes.Key = key;
             aes.IV = iv;
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
-            using var crypt = new CryptoStream(output, aes.CreateDecryptor(), CryptoStreamMode.Write);
-            input.CopyTo(crypt, COUNT);
+            await using var crypt = new CryptoStream(output, aes.CreateDecryptor(), CryptoStreamMode.Write);
+            await input.CopyToAsync(crypt, COUNT);
         }
 
         public static void Compress(string inputPath, string outputPath)

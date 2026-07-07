@@ -44,12 +44,13 @@ namespace Astraia
 
         public string RemotePath = "https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main";
 
+        public static string TargetPlatform => Instance.BuildTarget.ToString();
         public static string PersistentData => Path.Combine(Application.persistentDataPath, "AssetBundles");
         public static string PersistentPath => Path.Combine(Application.persistentDataPath, "AssetBundles", "{0}");
         public static string TemporaryCache => Path.Combine(Application.temporaryCachePath, "AssetBundles");
-        public static string StreamingAsset => Path.Combine(Application.streamingAssetsPath, Instance.BuildTarget.ToString(), "{0}");
-        public static string ServerListData => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), "{0}");
-        public static string ServerDataPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString(), "{0}");
+        public static string StreamingAsset => Path.Combine(Application.streamingAssetsPath, TargetPlatform, "{0}");
+        public static string ServerListData => Path.Combine(Instance.RemotePath, TargetPlatform, "{0}");
+        public static string ServerDataPath => Path.Combine(Instance.RemotePath, TargetPlatform, Instance.AssetVersion.ToString(), "{0}");
 
         private static readonly Dictionary<AssetData, TextAsset> TextCache = new Dictionary<AssetData, TextAsset>();
 
@@ -103,15 +104,15 @@ namespace Astraia
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string BuildTargetPath => Path.Combine(BuildFolderPath, Instance.BuildTarget.ToString(), Instance.BuildTarget.ToString());
+        public static string BuildTargetPath => Path.Combine(BuildFolderPath, TargetPlatform, TargetPlatform);
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string BuildTargetJson => Path.Combine(BuildFolderPath, Instance.BuildTarget.ToString(), VERIFY);
+        public static string BuildTargetJson => Path.Combine(BuildFolderPath, TargetPlatform, VERIFY);
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string BuildVersion => Path.Combine(BuildFolderPath, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString());
+        public static string BuildVersion => Path.Combine(BuildFolderPath, TargetPlatform, Instance.AssetVersion.ToString());
 #endif
     }
 }

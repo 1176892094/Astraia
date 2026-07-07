@@ -47,8 +47,6 @@ namespace Astraia.Core
                     }
                 }
             }
-
-            EventManager.Invoke(new OnDataComplete());
         }
 
         public static T Get<T>(int key) where T : struct, IData

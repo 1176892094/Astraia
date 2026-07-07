@@ -177,7 +177,7 @@ namespace Astraia
         }
 
         [MenuItem("Tools/Astraia/热更资源构建", priority = 3)]
-        private static void BuildAsset()
+        private static async void BuildAsset()
         {
             var watch = Stopwatch.StartNew();
             var build = Directory.CreateDirectory(GlobalSetting.BuildTargetPath);
@@ -188,7 +188,7 @@ namespace Astraia
             var bundles = new Dictionary<string, Bundle>();
             if (File.Exists(GlobalSetting.BuildTargetJson))
             {
-                var json = File.ReadAllText(GlobalSetting.BuildTargetJson);
+                var json = await File.ReadAllTextAsync(GlobalSetting.BuildTargetJson);
                 bundles = JsonManager.FromJson<Package>(json).Bundles.ToDictionary(d => d.Name);
             }
 
@@ -208,8 +208,7 @@ namespace Astraia
                     else
                     {
                         newBundle.Guid = newGuid.ToString();
-
-                        Aes.Encrypt(item.FullName, Path.Combine(GlobalSetting.BuildVersion, item.Name), newHash, newGuid.ToByteArray());
+                        await Aes.EncryptAsync(item.FullName, Path.Combine(GlobalSetting.BuildVersion, item.Name), newHash, newGuid.ToByteArray());
                         Debug.Log("加密并更新文件: {0}".Color("G").Format(item.Name));
                     }
 
@@ -217,7 +216,7 @@ namespace Astraia
                 }
             }
 
-            File.WriteAllText(GlobalSetting.BuildTargetJson, JsonManager.ToJson(package));
+            await File.WriteAllTextAsync(GlobalSetting.BuildTargetJson, JsonManager.ToJson(package));
             watch.Stop();
             AssetDatabase.Refresh();
             Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(watch.ElapsedMilliseconds / 1000F));
