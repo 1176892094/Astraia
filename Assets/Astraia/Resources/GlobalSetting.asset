@@ -70,12 +70,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00978f1164bf4da9a2ece05f4c00289f, type: 3}
   m_Name: GlobalSetting
   m_EditorClassIdentifier: 
-  BuildTarget: 2
+  BuildTarget: 9
   EncryptGroup:
   - I1J2K3L4M5N6O7P8
   - Q1R2S3T4U5V6W7X8
-  AssetVersion: 101
-  RemotePath: https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main
+  AssetVersion: 100
+  RemotePath: http://192.168.0.3:8000/Documents/GitHub/Astraia-Game/AssetBundles
   BuildPath: 0
   ignoreAssets:
   - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}

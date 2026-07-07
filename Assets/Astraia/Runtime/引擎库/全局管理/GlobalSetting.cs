@@ -51,6 +51,7 @@ namespace Astraia
 
         public static string BundlePath => Path.Combine(Application.persistentDataPath, "AssetBundles");
         public static string TargetPath => Path.Combine(Application.persistentDataPath, "AssetBundles", "{0}");
+        public static string OutputPath => Path.Combine(Application.temporaryCachePath, "AssetBundles");
         public static string StreamPath => Path.Combine(Application.streamingAssetsPath, Instance.BuildTarget.ToString(), "{0}");
         public static string ServerPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), "{0}");
         public static string PacketPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString(), "{0}");
@@ -103,7 +104,11 @@ namespace Astraia
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string BuildAssetPath => Path.Combine(BuildLocalData, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString());
+        public static string BuildAssetPath => Path.Combine(BuildLocalData, Instance.BuildTarget.ToString());
+#if ODIN_INSPECTOR
+        [ShowInInspector]
+#endif
+        public static string BuildCryptPath => Path.Combine(BuildLocalData, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString());
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif

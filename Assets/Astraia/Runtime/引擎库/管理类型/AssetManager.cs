@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -30,10 +31,17 @@ namespace Astraia.Core
         private static readonly Dictionary<string, Task<AssetBundle>> AssetTask = new Dictionary<string, Task<AssetBundle>>();
         private static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
         private static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
+        private static Manifest package;
 
         public int version;
         public bool simulate = true;
         public AssetBundleManifest manifest;
+
+        internal void SetVersion(Manifest package)
+        {
+            version = package.Version;
+            AssetManager.package = package;
+        }
 
         public override void Enqueue()
         {
@@ -138,7 +146,7 @@ namespace Astraia.Core
         {
             if (Instance != null)
             {
-                var platform = await LoadAssetBundle(Instance.version.ToString());
+                var platform = await LoadAssetBundle(GlobalSetting.Instance.BuildTarget.ToString());
                 var manifest = Instance.manifest;
                 if (manifest == null)
                 {
@@ -176,7 +184,7 @@ namespace Astraia.Core
                 return await request;
             }
 
-            request = LoadRequest(GlobalSetting.TargetPath.Format(reason));
+            request = LoadRequest(reason);
             AssetTask.Add(reason, request);
             try
             {
@@ -191,17 +199,31 @@ namespace Astraia.Core
             }
         }
 
-        private static async Task<AssetBundle> LoadRequest(string persistentData)
+        private static async Task<AssetBundle> LoadRequest(string reason)
         {
-            var item = await LoadManager.ReadDataAsync(persistentData);
-            if (item == null)
+            var inputPath = GlobalSetting.TargetPath.Format(reason);
+            var outputPath = Path.Combine(GlobalSetting.OutputPath, reason);
+            try
             {
+                if (package.Bundles.TryGetValue(reason, out var bundle))
+                {
+                    Directory.CreateDirectory(GlobalSetting.OutputPath);
+                    Aes.Decrypt(inputPath, outputPath, bundle.HexToBytes());
+                    var request = AssetBundle.LoadFromFileAsync(outputPath);
+                    while (!request.isDone && Instance != null)
+                    {
+                        await Task.Yield();
+                    }
+
+                    return request.assetBundle;
+                }
+
                 return null;
             }
-
-            var request = AssetBundle.LoadFromMemoryAsync(Xor.Decrypt(item));
-            await request;
-            return request.assetBundle;
+            catch (Exception e)
+            {
+                throw new Exception("{0}\n{1}\n{2}".Format(inputPath, outputPath, e));
+            }
         }
 
         public static async void LoadScene(string reason)
@@ -230,25 +252,23 @@ namespace Astraia.Core
         private static AsyncOperation LoadSceneAsset(string reason)
         {
             var item = LoadAssetData(reason);
+#if UNITY_EDITOR
+            var sceneAsset = LoadThird<SceneAsset>(item);
+            if (sceneAsset)
+            {
+                var scenePath = AssetDatabase.GetAssetPath(sceneAsset);
+                return EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Single));
+            }
+#endif
             if (Instance != null && Instance.manifest)
             {
                 var sceneData = AssetPack.GetValueOrDefault(item.Path);
                 var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(scene => scene == item.Name);
                 return SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
             }
-            else
-            {
-#if UNITY_EDITOR
-                var sceneData = LoadThird<SceneAsset>(item);
-                if (sceneData)
-                {
-                    var scenePath = AssetDatabase.GetAssetPath(sceneData);
-                    return EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Single));
-                }
-#endif
-                var sceneName = reason.Substring(reason.LastIndexOf('/') + 1);
-                return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
-            }
+
+            var sceneName = reason.Substring(reason.LastIndexOf('/') + 1);
+            return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
         }
 
         private static T Instantiate<T>(T asset) where T : Object

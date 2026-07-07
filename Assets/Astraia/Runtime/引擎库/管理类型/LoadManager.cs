@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -40,7 +41,7 @@ namespace Astraia.Core
             var serverResult = await LoadManifestFromServerAsync();
 
             var manifest = SelectManifest(streamResult, clientResult, serverResult);
-            AssetManager.Instance.version = manifest.Version;
+            AssetManager.Instance.SetVersion(manifest);
 
             if (!manifest.IsLoaded)
             {
@@ -48,7 +49,7 @@ namespace Astraia.Core
                 return;
             }
 
-            if (clientResult.Version >= manifest.Version)
+            if (!manifest.IsRemote && clientResult.Version >= manifest.Version)
             {
                 EventManager.Invoke(new OnBundleComplete(1, "本地资源无需更新。"));
                 return;
@@ -138,7 +139,7 @@ namespace Astraia.Core
                     }
 
                     var path = isRemote ? BuildRemotePath(name) : BuildStreamingPath(name);
-                    var data = await ReadBundleDataAsync(path, isRemote);
+                    var data = await ReadBundleDataAsync(path, name, isRemote);
                     if (data != null && data.Length != 0)
                     {
                         await File.WriteAllBytesAsync(BuildPersistentPath(name), data);
@@ -155,7 +156,7 @@ namespace Astraia.Core
             }
         }
 
-        private static async Task<byte[]> ReadBundleDataAsync(string path, bool isRemote)
+        private static async Task<byte[]> ReadBundleDataAsync(string path, string name, bool isRemote)
         {
             if (isRemote)
             {
@@ -169,11 +170,11 @@ namespace Astraia.Core
 
                 while (!operation.isDone)
                 {
-                    EventManager.Invoke(new OnBundleUpdate(path, request.downloadedBytes));
+                    EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
                     await Task.Yield();
                 }
 
-                EventManager.Invoke(new OnBundleUpdate(path, request.downloadedBytes));
+                EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
                 return request.result == UnityWebRequest.Result.Success ? request.downloadHandler.data : null;
             }
 
@@ -202,7 +203,7 @@ namespace Astraia.Core
             await File.WriteAllTextAsync(path, json);
         }
 
-        internal static async Task<byte[]> ReadDataAsync(string path)
+        private static async Task<byte[]> ReadDataAsync(string path)
         {
 #if UNITY_ANDROID && !UNITY_EDITOR
             using var request = UnityWebRequest.Get(path);
@@ -242,33 +243,42 @@ namespace Astraia.Core
         {
             var path = GlobalSetting.ServerPath.Format(GlobalSetting.VERIFY);
             var json = string.Empty;
-            for (var i = 0; i < 5; i++)
+            try
             {
-                using var request = UnityWebRequest.Get(path);
-                request.timeout = 5;
-                await request.SendWebRequest();
-                if (request.result != UnityWebRequest.Result.Success)
+                for (var i = 0; i < 5; i++)
                 {
-                    Log.Warn("请求服务器下载 {0} 失败!\n".Format(GlobalSetting.VERIFY));
-                    await Task.Delay(200);
-                    continue;
+                    using var request = UnityWebRequest.Get(path);
+                    request.timeout = 5;
+                    await request.SendWebRequest();
+                    if (request.result != UnityWebRequest.Result.Success)
+                    {
+                        Log.Warn("请求服务器下载 {0} 失败!\n".Format(GlobalSetting.VERIFY));
+                        await Task.Delay(200);
+                        continue;
+                    }
+
+                    json = request.downloadHandler.text;
+                    break;
                 }
 
-                json = request.downloadHandler.text;
+                return LoadManifestFromJson(json, true);
             }
-
-            return LoadManifestFromJson(json, true);
+            catch (Exception e)
+            {
+                throw new InvalidOperationException("{0}\n{1}\n{2}".Format(path, json, e));
+            }
         }
 
         private static Manifest LoadManifestFromJson(string json, bool remote)
         {
+            var bundles = new Dictionary<string, Bundle>();
             if (string.IsNullOrEmpty(json))
             {
-                return default;
+                return new Manifest(-1, bundles, false, remote);
             }
 
             var package = JsonManager.FromJson<Package>(json);
-            var bundles = new Dictionary<string, Bundle>();
+
             if (package.Bundles != null)
             {
                 foreach (var bundle in package.Bundles)
@@ -332,11 +342,40 @@ namespace Astraia.Core
         public string Name;
         public string Hash;
 
-        public Bundle(long size, string name, string hash)
+        public Bundle(long size, string name, byte[] bytes)
         {
             Size = size;
             Name = name;
-            Hash = hash;
+
+            var result = new StringBuilder(bytes.Length);
+            foreach (var hex in bytes)
+            {
+                result.Append(hex.ToString("X2"));
+            }
+
+            Hash = result.ToString();
+        }
+
+        public byte[] HexToBytes()
+        {
+            var bytes = new byte[Hash.Length / 2];
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] = (byte)((HexValue(Hash[i * 2]) << 4) | HexValue(Hash[i * 2 + 1]));
+            }
+
+            return bytes;
+        }
+
+        private int HexValue(char c)
+        {
+            return c switch
+            {
+                >= '0' and <= '9' => c - '0',
+                >= 'A' and <= 'F' => c - 'A' + 10,
+                >= 'a' and <= 'f' => c - 'a' + 10,
+                _ => 0
+            };
         }
     }
 }

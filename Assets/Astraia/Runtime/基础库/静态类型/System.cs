@@ -118,7 +118,6 @@ namespace Astraia
     public static class Xor
     {
         private static List<byte[]> KeyMap;
-        private const int COUNT = 1 << 16;
         private const int LENGTH = 1 << 5;
 
         public static void SetUp(params string[] param)
@@ -176,81 +175,6 @@ namespace Astraia
             return buffer;
         }
 
-        public static void Encrypt(string inputPath, int version = 0)
-        {
-            var tempPath = inputPath + ".tmp";
-            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
-            using var output = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
-
-            var data = BitConverter.GetBytes(version);
-            var key = GetKeyByVersion(version);
-
-            using var aes = Aes.Create();
-            aes.Key = key;
-            aes.GenerateIV();
-            aes.Mode = CipherMode.CBC;
-            aes.Padding = PaddingMode.PKCS7;
-
-            output.Write(data, 0, data.Length);
-            output.Write(aes.IV, 0, aes.IV.Length);
-
-            using var encryptor = aes.CreateEncryptor();
-            using (var cryptoStream = new CryptoStream(output, encryptor, CryptoStreamMode.Write))
-            {
-                var buffer = new byte[COUNT];
-                int read;
-
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    cryptoStream.Write(buffer, 0, read);
-                }
-            }
-
-            File.Replace(tempPath, inputPath, null);
-        }
-
-        public static void Decrypt(string inputPath)
-        {
-            var tempPath = inputPath + ".tmp";
-            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            using var output = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
-
-            var data = new byte[4];
-            if (input.Read(data, 0, data.Length) != 4)
-            {
-                throw new InvalidOperationException();
-            }
-
-            var iv = new byte[16];
-            if (input.Read(iv, 0, iv.Length) != 16)
-            {
-                throw new InvalidOperationException();
-            }
-
-            var version = BitConverter.ToInt32(data);
-            var key = GetKeyByVersion(version);
-
-            using var aes = Aes.Create();
-            aes.Key = key;
-            aes.IV = iv;
-            aes.Mode = CipherMode.CBC;
-            aes.Padding = PaddingMode.PKCS7;
-
-            using var decryptor = aes.CreateDecryptor();
-            using (var cryptoStream = new CryptoStream(output, decryptor, CryptoStreamMode.Write))
-            {
-                var buffer = new byte[COUNT];
-                int read;
-
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    cryptoStream.Write(buffer, 0, read);
-                }
-            }
-
-            File.Replace(tempPath, inputPath, null);
-        }
-
         private static byte[] GetKeyByVersion(int version)
         {
             if (version < KeyMap.Count)
@@ -286,14 +210,14 @@ namespace Astraia
             return data;
         }
 
-        public static byte[] Compress(byte[] bytes)
+        private static byte[] Compress(byte[] bytes)
         {
             if (bytes != null && bytes.Length != 0)
             {
                 using var output = new MemoryStream();
-                using (var stream = new GZipStream(output, CompressionMode.Compress))
+                using (var gzip = new GZipStream(output, CompressionMode.Compress, true))
                 {
-                    stream.Write(bytes, 0, bytes.Length);
+                    gzip.Write(bytes, 0, bytes.Length);
                 }
 
                 return output.ToArray();
@@ -302,18 +226,65 @@ namespace Astraia
             return bytes;
         }
 
-        public static byte[] Decompress(byte[] bytes)
+        private static byte[] Decompress(byte[] bytes)
         {
             if (bytes != null && bytes.Length != 0)
             {
                 using var input = new MemoryStream(bytes);
-                using var stream = new GZipStream(input, CompressionMode.Decompress);
+                using var gzip = new GZipStream(input, CompressionMode.Decompress);
                 using var output = new MemoryStream();
-                stream.CopyTo(output);
+                gzip.CopyTo(output);
                 return output.ToArray();
             }
 
             return bytes;
+        }
+    }
+
+    public static class Aes
+    {
+        private const int COUNT = 1 << 16;
+
+        public static void Encrypt(string inputPath, string outputPath, byte[] key)
+        {
+            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
+            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
+            using var aes = System.Security.Cryptography.Aes.Create();
+            aes.Key = key;
+            aes.IV = key;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
+            using var crypt = new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write);
+            input.CopyTo(crypt, COUNT);
+        }
+
+        public static void Decrypt(string inputPath, string outputPath, byte[] key)
+        {
+            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
+            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
+            using var aes = System.Security.Cryptography.Aes.Create();
+            aes.Key = key;
+            aes.IV = key;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
+            using var crypt = new CryptoStream(output, aes.CreateDecryptor(), CryptoStreamMode.Write);
+            input.CopyTo(crypt, COUNT);
+        }
+
+        public static void Compress(string inputPath, string outputPath)
+        {
+            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
+            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
+            using var gzip = new GZipStream(output, CompressionMode.Compress);
+            input.CopyTo(gzip, COUNT);
+        }
+
+        public static void Decompress(string inputPath, string outputPath)
+        {
+            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
+            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
+            using var gzip = new GZipStream(input, CompressionMode.Decompress);
+            gzip.CopyTo(output, COUNT);
         }
     }
 
