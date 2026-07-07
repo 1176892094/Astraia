@@ -402,7 +402,9 @@ namespace Astraia
         public void Dispose()
         {
             opened.Clear();
+            copied.Clear();
             opened = null;
+            copied = null;
             parent = null;
             fScore = null;
             gScore = null;
