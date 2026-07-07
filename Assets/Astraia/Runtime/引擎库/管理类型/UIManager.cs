@@ -161,12 +161,12 @@ namespace Astraia.Core
             return panel;
         }
 
-        public UIPanel FindInternal(Type value)
+        private UIPanel FindInternal(Type value)
         {
             return panelData.GetValueOrDefault(value);
         }
 
-        public void HideInternal(Type value)
+        private void HideInternal(Type value)
         {
             if (panelData.TryGetValue(value, out var panel))
             {
@@ -174,7 +174,7 @@ namespace Astraia.Core
             }
         }
 
-        public void DestroyInternal(Type value)
+        private void DestroyInternal(Type value)
         {
             if (panelData.TryGetValue(value, out var panel))
             {
@@ -183,7 +183,7 @@ namespace Astraia.Core
             }
         }
 
-        public void HideInternal(int index)
+        private void HideInternal(int index)
         {
             if (stackData.TryGetValue(index, out var panel))
             {
@@ -191,7 +191,7 @@ namespace Astraia.Core
             }
         }
 
-        public void DestroyInternal()
+        private void DestroyInternal()
         {
             foreach (var result in panelData.Keys.ToList())
             {
@@ -206,7 +206,7 @@ namespace Astraia.Core
             }
         }
 
-        public RectTransform GetLayerInternal(int value)
+        private RectTransform GetLayerInternal(int value)
         {
             if (!layerData.TryGetValue(value, out var parent))
             {
