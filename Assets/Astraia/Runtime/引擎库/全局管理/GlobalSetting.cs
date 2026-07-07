@@ -12,7 +12,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Astraia.Core;
 using UnityEngine;
 using Object = UnityEngine.Object;
 #if ODIN_INSPECTOR
@@ -40,36 +39,32 @@ namespace Astraia
         [EnumToggleButtons]
 #endif
         public AssetPlatform BuildTarget = AssetPlatform.StandaloneWindows;
-#if UNITY_EDITOR && ODIN_INSPECTOR
-        [PropertyOrder(1)]
-#endif
-        public string[] EncryptGroup;
 
         public int AssetVersion;
 
         public string RemotePath = "https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main";
 
-        public static string BundlePath => Path.Combine(Application.persistentDataPath, "AssetBundles");
-        public static string TargetPath => Path.Combine(Application.persistentDataPath, "AssetBundles", "{0}");
-        public static string OutputPath => Path.Combine(Application.temporaryCachePath, "AssetBundles");
-        public static string StreamPath => Path.Combine(Application.streamingAssetsPath, Instance.BuildTarget.ToString(), "{0}");
-        public static string ServerPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), "{0}");
-        public static string PacketPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString(), "{0}");
+        public static string PersistentData => Path.Combine(Application.persistentDataPath, "AssetBundles");
+        public static string PersistentPath => Path.Combine(Application.persistentDataPath, "AssetBundles", "{0}");
+        public static string TemporaryCache => Path.Combine(Application.temporaryCachePath, "AssetBundles");
+        public static string StreamingAsset => Path.Combine(Application.streamingAssetsPath, Instance.BuildTarget.ToString(), "{0}");
+        public static string ServerListData => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), "{0}");
+        public static string ServerDataPath => Path.Combine(Instance.RemotePath, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString(), "{0}");
 
-        private static readonly Dictionary<AssetData, TextAsset> TextAssets = new Dictionary<AssetData, TextAsset>();
+        private static readonly Dictionary<AssetData, TextAsset> TextCache = new Dictionary<AssetData, TextAsset>();
 
-        public static string LoadAsset(AssetData option)
+        public static string LoadText(AssetData option)
         {
-            if (TextAssets.Count <= 0)
+            if (TextCache.Count <= 0)
             {
                 var items = Resources.LoadAll<TextAsset>(nameof(GlobalSetting));
                 for (var i = 0; i < items.Length; i++)
                 {
-                    TextAssets[(AssetData)i] = items[i];
+                    TextCache[(AssetData)i] = items[i];
                 }
             }
 
-            return TextAssets[option].text;
+            return TextCache[option].text;
         }
 
 #if UNITY_EDITOR
@@ -86,6 +81,10 @@ namespace Astraia
 #endif
         public BuildMode BuildPath = BuildMode.StreamingAssets;
 #if ODIN_INSPECTOR
+        [ShowInInspector]
+#endif
+        public UnityEditor.BuildAssetBundleOptions BuildOptions;
+#if ODIN_INSPECTOR
         [PropertyOrder(1)]
 #endif
         public List<Object> ignoreAssets = new List<Object>();
@@ -96,23 +95,23 @@ namespace Astraia
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string BuildLocalPath => Path.Combine(Environment.CurrentDirectory, "AssetBundles");
+        private static string BuildFolder => Path.Combine(Environment.CurrentDirectory, "AssetBundles");
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string BuildLocalData => Instance.BuildPath == BuildMode.AssetBundlePath ? BuildLocalPath : Application.streamingAssetsPath;
+        private static string BuildFolderPath => Instance.BuildPath == BuildMode.AssetBundlePath ? BuildFolder : Application.streamingAssetsPath;
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string BuildAssetPath => Path.Combine(BuildLocalData, Instance.BuildTarget.ToString());
+        public static string BuildTargetPath => Path.Combine(BuildFolderPath, Instance.BuildTarget.ToString(), Instance.BuildTarget.ToString());
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string BuildCryptPath => Path.Combine(BuildLocalData, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString());
+        public static string BuildTargetJson => Path.Combine(BuildFolderPath, Instance.BuildTarget.ToString(), VERIFY);
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public static string BuildAssetData => Path.Combine(BuildLocalData, Instance.BuildTarget.ToString(), VERIFY);
+        public static string BuildVersion => Path.Combine(BuildFolderPath, Instance.BuildTarget.ToString(), Instance.AssetVersion.ToString());
 #endif
     }
 }

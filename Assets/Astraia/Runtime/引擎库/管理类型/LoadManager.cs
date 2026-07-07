@@ -31,10 +31,7 @@ namespace Astraia.Core
                 return;
             }
 
-            if (!Directory.Exists(GlobalSetting.BundlePath))
-            {
-                Directory.CreateDirectory(GlobalSetting.BundlePath);
-            }
+            Directory.CreateDirectory(GlobalSetting.PersistentData);
 
             var streamResult = await LoadManifestFromStreamingAsync();
             var clientResult = await LoadManifestFromPersistentAsync();
@@ -183,23 +180,23 @@ namespace Astraia.Core
 
         private static string BuildRemotePath(string name)
         {
-            return GlobalSetting.PacketPath.Format(name);
+            return GlobalSetting.ServerDataPath.Format(name);
         }
 
         private static string BuildStreamingPath(string name)
         {
-            return GlobalSetting.StreamPath.Format(name);
+            return GlobalSetting.StreamingAsset.Format(name);
         }
 
         private static string BuildPersistentPath(string name)
         {
-            return GlobalSetting.TargetPath.Format(name);
+            return GlobalSetting.PersistentPath.Format(name);
         }
 
         private static async Task SaveManifestToPersistentAsync(Manifest manifest)
         {
             var json = JsonManager.ToJson(new Package(manifest.Version, manifest.Bundles.Values.ToList()));
-            var path = GlobalSetting.TargetPath.Format(GlobalSetting.VERIFY);
+            var path = GlobalSetting.PersistentPath.Format(GlobalSetting.VERIFY);
             await File.WriteAllTextAsync(path, json);
         }
 
@@ -227,21 +224,21 @@ namespace Astraia.Core
 
         private static async Task<Manifest> LoadManifestFromStreamingAsync()
         {
-            var path = GlobalSetting.StreamPath.Format(GlobalSetting.VERIFY);
+            var path = GlobalSetting.StreamingAsset.Format(GlobalSetting.VERIFY);
             var json = await ReadTextAsync(path);
             return LoadManifestFromJson(json, false);
         }
 
         private static async Task<Manifest> LoadManifestFromPersistentAsync()
         {
-            var path = GlobalSetting.TargetPath.Format(GlobalSetting.VERIFY);
+            var path = GlobalSetting.PersistentPath.Format(GlobalSetting.VERIFY);
             var json = File.Exists(path) ? await File.ReadAllTextAsync(path) : null;
             return LoadManifestFromJson(json, false);
         }
 
         private static async Task<Manifest> LoadManifestFromServerAsync()
         {
-            var path = GlobalSetting.ServerPath.Format(GlobalSetting.VERIFY);
+            var path = GlobalSetting.ServerListData.Format(GlobalSetting.VERIFY);
             var json = string.Empty;
             try
             {
@@ -340,19 +337,20 @@ namespace Astraia.Core
     {
         public long Size;
         public string Name;
+        public string Guid;
         public string Hash;
 
         public Bundle(long size, string name, byte[] bytes)
         {
-            Size = size;
-            Name = name;
-
             var result = new StringBuilder(bytes.Length);
             foreach (var hex in bytes)
             {
                 result.Append(hex.ToString("X2"));
             }
 
+            Size = size;
+            Name = name;
+            Guid = string.Empty;
             Hash = result.ToString();
         }
 

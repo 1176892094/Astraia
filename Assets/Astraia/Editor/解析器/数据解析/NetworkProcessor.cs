@@ -28,6 +28,7 @@ namespace Astraia.Editor
     {
         private static readonly HashSet<string> IgnoreAssemblies = new HashSet<string>()
         {
+            "Astraia.Run",
             "Astraia.Editor",
             "Assembly-CSharp-firstpass",
             "Assembly-CSharp-Editor",
@@ -84,12 +85,7 @@ namespace Astraia.Editor
 
                 using var peStream = new MemoryStream();
                 using var pdbStream = new MemoryStream();
-                assembly.Write(peStream, new WriterParameters
-                {
-                    SymbolStream = pdbStream, 
-                    SymbolWriterProvider = new PortablePdbWriterProvider(), 
-                    WriteSymbols = true
-                });
+                assembly.Write(peStream, new WriterParameters { SymbolStream = pdbStream, SymbolWriterProvider = new PortablePdbWriterProvider(), WriteSymbols = true });
                 return new ILPostProcessResult(new InMemoryAssembly(peStream.ToArray(), pdbStream.ToArray()), Log.messages);
             }
 

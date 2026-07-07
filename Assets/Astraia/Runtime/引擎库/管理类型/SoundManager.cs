@@ -62,6 +62,16 @@ namespace Astraia.Core
             AudioVolume = JsonManager.Load(nameof(AudioVolume), 100);
         }
 
+        public override void OnShow()
+        {
+            EventManager.Listen(this);
+        }
+
+        public override void OnHide()
+        {
+            EventManager.Remove(this);
+        }
+
         public override void Enqueue()
         {
             Instance = null;

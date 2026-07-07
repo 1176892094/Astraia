@@ -49,43 +49,37 @@ namespace Astraia.Core
             return FromJson<T>(json);
         }
 
-        public static void Encrypt<T>(T data, string name, int version = 0)
+        public static void Encrypt<T>(T data, string name)
         {
             var path = LoadPath(name);
             var json = ToJson(data);
-            json = Zip.Compress(json);
-            var item = Text.GetBytes(json);
-            item = Xor.Encrypt(item, version);
-            File.WriteAllBytes(path, item);
+            var item = Zip.Compress(Text.GetBytes(json));
+            File.WriteAllBytes(path, item.Xor());
         }
 
-        public static void Decrypt<T>(T data, string name, int version = 0)
+        public static void Decrypt<T>(T data, string name)
         {
             var path = LoadPath(name);
             if (!File.Exists(path))
             {
-                Encrypt(data, name, version);
+                Encrypt(data, name);
             }
 
-            var item = File.ReadAllBytes(path);
-            item = Xor.Decrypt(item);
-            var json = Text.GetString(item);
-            json = Zip.Decompress(json);
+            var item = File.ReadAllBytes(path).Xor();
+            var json = Text.GetString(Zip.Decompress(item));
             FromJson(json, data);
         }
 
-        public static T Decrypt<T>(string name, T data = default, int version = 0)
+        public static T Decrypt<T>(string name, T data = default)
         {
             var path = LoadPath(name);
             if (!File.Exists(path))
             {
-                Encrypt(data, name, version);
+                Encrypt(data, name);
             }
 
-            var item = File.ReadAllBytes(path);
-            item = Xor.Decrypt(item);
-            var json = Text.GetString(item);
-            json = Zip.Decompress(json);
+            var item = File.ReadAllBytes(path).Xor();
+            var json = Text.GetString(Zip.Decompress(item));
             return FromJson<T>(json);
         }
 

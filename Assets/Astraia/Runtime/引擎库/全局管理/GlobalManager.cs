@@ -61,8 +61,7 @@ namespace Astraia.Core
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            Xor.SetUp(GlobalSetting.Instance.EncryptGroup);
-            Bad.SetUp(GlobalSetting.LoadAsset(AssetData.BadWord));
+            Bad.SetUp(GlobalSetting.LoadText(AssetData.BadWord));
             Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
         }
     }

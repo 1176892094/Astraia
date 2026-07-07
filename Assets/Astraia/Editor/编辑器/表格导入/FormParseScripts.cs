@@ -54,7 +54,7 @@ namespace Astraia
 
                 Loaded = true;
                 var instance = false;
-                formItem.Add(GlobalSetting.ASMDEF, GlobalSetting.LoadAsset(AssetData.Assembly).Replace("REPLACE", GlobalSetting.DEFINE));
+                formItem.Add(GlobalSetting.ASMDEF, GlobalSetting.LoadText(AssetData.Assembly).Replace("REPLACE", GlobalSetting.DEFINE));
                 foreach (var item in formItem)
                 {
                     instance |= await Task.Run(() => WriteScripts(item.Key, item.Value));
@@ -142,7 +142,7 @@ namespace Astraia
         private static (string, string) WriteTable(string className, Dictionary<string, string> fields)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
-            var scriptText = GlobalSetting.LoadAsset(AssetData.DataTable).Replace("Template", className);
+            var scriptText = GlobalSetting.LoadText(AssetData.DataTable).Replace("Template", className);
             var count = 0;
             foreach (var field in fields)
             {
@@ -188,7 +188,7 @@ namespace Astraia
         private static (string, string) WriteStruct(string className, string classType)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
-            var scriptText = GlobalSetting.LoadAsset(AssetData.Struct).Replace("Template", className);
+            var scriptText = GlobalSetting.LoadText(AssetData.Struct).Replace("Template", className);
 
             var members = classType.Substring(1, classType.IndexOf('}') - 1).Split(',');
             foreach (var member in members)
@@ -209,7 +209,7 @@ namespace Astraia
         private static (string, string) WriteEnum(string className, IEnumerable<string> members, bool isFlags)
         {
             var builder = HeapManager.Dequeue<StringBuilder>();
-            var scriptText = GlobalSetting.LoadAsset(AssetData.Enum).Replace("Template", className);
+            var scriptText = GlobalSetting.LoadText(AssetData.Enum).Replace("Template", className);
 
             foreach (var member in members)
             {

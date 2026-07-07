@@ -27,6 +27,18 @@ namespace Astraia.Core
             visibles.Clear();
         }
 
+        public override void OnShow()
+        {
+            EventManager.Listen<OnAfterUpdate>(this);
+            EventManager.Listen<OnGizmoUpdate>(this);
+        }
+
+        public override void OnHide()
+        {
+            EventManager.Remove<OnAfterUpdate>(this);
+            EventManager.Remove<OnGizmoUpdate>(this);
+        }
+
         public void Execute(OnAfterUpdate message)
         {
             if (observer)

@@ -9,7 +9,6 @@
 // // # Description: This is an automatically generated comment.
 // // *********************************************************************************
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -29,12 +28,11 @@ namespace Astraia
                 return Form;
             }
 
-            var fileName = Path.GetFileNameWithoutExtension(filePath);
-            var fileData = Path.Combine(Path.GetTempPath(), "{0}_{1}".Format(fileName, Guid.NewGuid()));
-            File.Copy(filePath, fileData, true);
+            var fileCopy = Path.Combine(Path.GetTempPath(), Path.GetFileName(filePath));
+            File.Copy(filePath, fileCopy, true);
             try
             {
-                using var archive = ZipFile.OpenRead(fileData);
+                using var archive = ZipFile.OpenRead(fileCopy);
                 var sheetNames = ReadSheetNames(archive);
                 var sharedStrings = ReadSharedStrings(archive);
 
@@ -46,7 +44,7 @@ namespace Astraia
             }
             finally
             {
-                File.Delete(fileData);
+                File.Delete(fileCopy);
             }
 
             return Form;
@@ -145,7 +143,6 @@ namespace Astraia
                     }
                 }
             }
-
 
             return (sheetName, sheetData);
         }

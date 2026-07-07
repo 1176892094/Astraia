@@ -177,18 +177,18 @@ namespace Astraia
         }
 
         [MenuItem("Tools/Astraia/热更资源构建", priority = 3)]
-        private static async void BuildAsset()
+        private static void BuildAsset()
         {
             var watch = Stopwatch.StartNew();
-            var build = Directory.CreateDirectory(GlobalSetting.BuildAssetPath);
+            var build = Directory.CreateDirectory(GlobalSetting.BuildTargetPath);
 
-            Directory.CreateDirectory(GlobalSetting.BuildCryptPath);
-            BuildPipeline.BuildAssetBundles(GlobalSetting.BuildAssetPath, BuildAssetBundleOptions.ChunkBasedCompression, (BuildTarget)GlobalSetting.Instance.BuildTarget);
+            Directory.CreateDirectory(GlobalSetting.BuildVersion);
+            BuildPipeline.BuildAssetBundles(GlobalSetting.BuildTargetPath, GlobalSetting.Instance.BuildOptions, (BuildTarget)GlobalSetting.Instance.BuildTarget);
 
             var bundles = new Dictionary<string, Bundle>();
-            if (File.Exists(GlobalSetting.BuildAssetData))
+            if (File.Exists(GlobalSetting.BuildTargetJson))
             {
-                var json = await File.ReadAllTextAsync(GlobalSetting.BuildAssetData);
+                var json = File.ReadAllText(GlobalSetting.BuildTargetJson);
                 bundles = JsonManager.FromJson<Package>(json).Bundles.ToDictionary(d => d.Name);
             }
 
@@ -197,23 +197,27 @@ namespace Astraia
             {
                 if (item.Extension == string.Empty)
                 {
-                    var newMD5 = ComputeHash(item.FullName);
-                    var newBundle = new Bundle(item.Length, item.Name, newMD5);
+                    var newGuid = Guid.NewGuid();
+                    var newHash = ComputeHash(item.FullName);
+                    var newBundle = new Bundle(item.Length, item.Name, newHash);
                     if (bundles.TryGetValue(item.Name, out var oldBundle) && oldBundle.Hash == newBundle.Hash)
                     {
+                        newBundle.Guid = oldBundle.Guid;
                         Debug.Log("跳过未变更文件: {0}".Format(item.Name));
                     }
                     else
                     {
-                        Aes.Encrypt(item.FullName, Path.Combine(GlobalSetting.BuildCryptPath, item.Name), newMD5);
-                        Debug.Log("加密并更新文件: {0}".Color("G").Format(item));
+                        newBundle.Guid = newGuid.ToString();
+
+                        Aes.Encrypt(item.FullName, Path.Combine(GlobalSetting.BuildVersion, item.Name), newHash, newGuid.ToByteArray());
+                        Debug.Log("加密并更新文件: {0}".Color("G").Format(item.Name));
                     }
 
                     package.Bundles.Add(newBundle);
                 }
             }
 
-            await File.WriteAllTextAsync(GlobalSetting.BuildAssetData, JsonManager.ToJson(package));
+            File.WriteAllText(GlobalSetting.BuildTargetJson, JsonManager.ToJson(package));
             watch.Stop();
             AssetDatabase.Refresh();
             Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(watch.ElapsedMilliseconds / 1000F));

@@ -201,14 +201,14 @@ namespace Astraia.Core
 
         private static async Task<AssetBundle> LoadRequest(string reason)
         {
-            var inputPath = GlobalSetting.TargetPath.Format(reason);
-            var outputPath = Path.Combine(GlobalSetting.OutputPath, reason);
+            var inputPath = GlobalSetting.PersistentPath.Format(reason);
+            var outputPath = Path.Combine(GlobalSetting.TemporaryCache, reason);
             try
             {
                 if (package.Bundles.TryGetValue(reason, out var bundle))
                 {
-                    Directory.CreateDirectory(GlobalSetting.OutputPath);
-                    Aes.Decrypt(inputPath, outputPath, bundle.HexToBytes());
+                    Directory.CreateDirectory(GlobalSetting.TemporaryCache);
+                    Aes.Decrypt(inputPath, outputPath, bundle.HexToBytes(), Guid.Parse(bundle.Guid).ToByteArray());
                     var request = AssetBundle.LoadFromFileAsync(outputPath);
                     while (!request.isDone && Instance != null)
                     {
