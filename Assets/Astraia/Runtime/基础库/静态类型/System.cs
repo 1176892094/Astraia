@@ -1021,7 +1021,14 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Invoke<T>(T value)
         {
-            Writer<T>.writer?.Invoke(this, value);
+            var writerDelegate = Writer<T>.writer;
+            if (writerDelegate == null)
+            {
+                Log.Error("No writer found for {0}.".Format(typeof(T)));
+                return;
+            }
+
+            writerDelegate(this, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1104,7 +1111,14 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Invoke<T>()
         {
-            return Reader<T>.reader != null ? Reader<T>.reader.Invoke(this) : default;
+            var readerDelegate = Reader<T>.reader;
+            if (readerDelegate == null)
+            {
+                Log.Error($"No reader found for {typeof(T)}.");
+                return default;
+            }
+
+            return readerDelegate(this);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
