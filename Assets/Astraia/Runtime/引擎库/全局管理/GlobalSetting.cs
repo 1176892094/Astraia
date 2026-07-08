@@ -42,6 +42,8 @@ namespace Astraia
 
         public int AssetVersion;
 
+        public bool AssetSimulate = true;
+
         public string RemotePath = "https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main";
 
         public static string TargetPlatform => Instance.BuildTarget.ToString();

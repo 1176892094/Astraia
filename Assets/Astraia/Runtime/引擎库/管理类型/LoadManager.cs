@@ -25,7 +25,7 @@ namespace Astraia.Core
     {
         public static async void Update()
         {
-            if (AssetManager.Instance == null || AssetManager.Instance.simulate)
+            if (GlobalSetting.Instance.AssetSimulate)
             {
                 EventManager.Invoke(new OnBundleComplete(0, "启动本地资源加载。"));
                 return;

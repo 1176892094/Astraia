@@ -33,7 +33,6 @@ namespace Astraia.Core
         private static Manifest package;
 
         public int version;
-        public bool simulate = true;
         public AssetBundleManifest manifest;
 
         internal void SetVersion(Manifest package)
