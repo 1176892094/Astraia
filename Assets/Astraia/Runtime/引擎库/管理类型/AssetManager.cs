@@ -246,19 +246,26 @@ namespace Astraia.Core
         private static AsyncOperation LoadSceneAsset(string reason)
         {
             var item = LoadAssetData(reason);
-#if UNITY_EDITOR
-            var sceneAsset = LoadThird<SceneAsset>(item);
-            if (sceneAsset)
-            {
-                var scenePath = AssetDatabase.GetAssetPath(sceneAsset);
-                return EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Single));
-            }
-#endif
+
             if (Instance != null && Instance.manifest)
             {
                 var sceneData = AssetPack.GetValueOrDefault(item.Path);
-                var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(scene => scene == item.Name);
-                return SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
+                var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(path => Path.GetFileNameWithoutExtension(path) == item.Name);
+                if (!string.IsNullOrEmpty(scenePath))
+                {
+                    return SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
+                }
+            }
+            else
+            {
+#if UNITY_EDITOR
+                var sceneData = LoadThird<SceneAsset>(item);
+                var scenePath = AssetDatabase.GetAssetPath(sceneData);
+                if (!string.IsNullOrEmpty(scenePath))
+                {
+                    return EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Single));
+                }
+#endif
             }
 
             var sceneName = reason.Substring(reason.LastIndexOf('/') + 1);
