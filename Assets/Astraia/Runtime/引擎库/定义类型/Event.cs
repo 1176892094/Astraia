@@ -24,9 +24,9 @@ namespace Astraia.Core
     public readonly struct OnBundleUpdate : IEvent
     {
         public readonly string name;
-        public readonly ulong bytes;
+        public readonly long bytes;
 
-        public OnBundleUpdate(string name, ulong bytes)
+        public OnBundleUpdate(string name, long bytes)
         {
             this.name = name;
             this.bytes = bytes;

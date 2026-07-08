@@ -84,7 +84,7 @@ namespace Astraia.Core
                 }
             }
 
-            var success = await DownloadBundlesAsync(toDownload.Keys, manifest.IsRemote);
+            var success = await DownloadBundlesAsync(toDownload, manifest.IsRemote);
             if (success)
             {
                 await SaveManifestToPersistentAsync(manifest);
@@ -96,7 +96,7 @@ namespace Astraia.Core
             }
         }
 
-        private static async Task<bool> DownloadBundlesAsync(ICollection<string> toDownload, bool isRemote)
+        private static async Task<bool> DownloadBundlesAsync(Dictionary<string, Bundle> toDownload, bool isRemote)
         {
             try
             {
@@ -105,17 +105,17 @@ namespace Astraia.Core
                     return true;
                 }
 
-                var semaphore = new SemaphoreSlim(5);
-                var downloads = new List<Task<bool>>();
-                foreach (var name in toDownload)
+                var downloadTasks = new List<Task<bool>>();
+                var downloadBytes = new Dictionary<string, long>();
+
+                using var semaphore = new SemaphoreSlim(5);
+                foreach (var name in toDownload.Keys)
                 {
-                    await semaphore.WaitAsync();
-                    var download = DownloadBundleWithRetryAsync(name, isRemote, semaphore);
-                    downloads.Add(download);
+                    downloadTasks.Add(DownloadBundleAsync(name, isRemote, downloadBytes, semaphore));
                 }
 
-                var results = await Task.WhenAll(downloads);
-                return results.All(download => download);
+                var successes = await Task.WhenAll(downloadTasks);
+                return successes.All(success => success);
             }
             catch
             {
@@ -123,8 +123,9 @@ namespace Astraia.Core
             }
         }
 
-        private static async Task<bool> DownloadBundleWithRetryAsync(string name, bool isRemote, SemaphoreSlim semaphore)
+        private static async Task<bool> DownloadBundleAsync(string name, bool isRemote, Dictionary<string, long> downloadBytes, SemaphoreSlim semaphore)
         {
+            await semaphore.WaitAsync();
             try
             {
                 for (var retry = 0; retry < 5; retry++)
@@ -135,7 +136,7 @@ namespace Astraia.Core
                     }
 
                     var path = isRemote ? BuildRemotePath(name) : BuildStreamingPath(name);
-                    var data = await ReadBundleDataAsync(path, name, isRemote);
+                    var data = await ReadBundleDataAsync(name, path, isRemote, downloadBytes);
                     if (data != null && data.Length != 0)
                     {
                         await File.WriteAllBytesAsync(BuildPersistentPath(name), data);
@@ -152,25 +153,22 @@ namespace Astraia.Core
             }
         }
 
-        private static async Task<byte[]> ReadBundleDataAsync(string path, string name, bool isRemote)
+        private static async Task<byte[]> ReadBundleDataAsync(string name, string path, bool isRemote, Dictionary<string, long> downloadBytes)
         {
             if (isRemote)
             {
                 using var request = UnityWebRequest.Get(path);
-                request.timeout = 10;
-                request.downloadHandler = new DownloadHandlerBuffer();
-                request.SetRequestHeader("Cache-Control", "no-cache");
-                request.SetRequestHeader("Pragma", "no-cache");
-
                 var operation = request.SendWebRequest();
 
                 while (!operation.isDone)
                 {
-                    EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
+                    downloadBytes[name] = (long)request.downloadedBytes;
+                    EventManager.Invoke(new OnBundleUpdate(name, downloadBytes.Values.Sum()));
                     await Task.Yield();
                 }
 
-                EventManager.Invoke(new OnBundleUpdate(name, request.downloadedBytes));
+                downloadBytes[name] = (long)request.downloadedBytes;
+                EventManager.Invoke(new OnBundleUpdate(name, downloadBytes.Values.Sum()));
                 return request.result == UnityWebRequest.Result.Success ? request.downloadHandler.data : null;
             }
 
