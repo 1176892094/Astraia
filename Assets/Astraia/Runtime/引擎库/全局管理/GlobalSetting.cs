@@ -49,7 +49,6 @@ namespace Astraia
         public static string TargetPlatform => Instance.BuildTarget.ToString();
         public static string PersistentData => Path.Combine(Application.persistentDataPath, "AssetBundles");
         public static string PersistentPath => Path.Combine(Application.persistentDataPath, "AssetBundles", "{0}");
-        public static string TemporaryCache => Path.Combine(Application.temporaryCachePath, "AssetBundles");
         public static string StreamingAsset => Path.Combine(Application.streamingAssetsPath, TargetPlatform, "{0}");
         public static string ServerListData => Path.Combine(Instance.RemotePath, TargetPlatform, "{0}");
         public static string ServerDataPath => Path.Combine(Instance.RemotePath, TargetPlatform, Instance.AssetVersion.ToString(), "{0}");

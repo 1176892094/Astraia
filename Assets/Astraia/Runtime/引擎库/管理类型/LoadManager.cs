@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -337,43 +336,13 @@ namespace Astraia.Core
     {
         public long Size;
         public string Name;
-        public string Guid;
         public string Hash;
 
-        public Bundle(long size, string name, byte[] bytes)
+        public Bundle(long size, string name, string hash)
         {
-            var result = new StringBuilder(bytes.Length);
-            foreach (var hex in bytes)
-            {
-                result.Append(hex.ToString("X2"));
-            }
-
             Size = size;
             Name = name;
-            Guid = string.Empty;
-            Hash = result.ToString();
-        }
-
-        public byte[] HexToBytes()
-        {
-            var bytes = new byte[Hash.Length / 2];
-            for (var i = 0; i < bytes.Length; i++)
-            {
-                bytes[i] = (byte)((HexValue(Hash[i * 2]) << 4) | HexValue(Hash[i * 2 + 1]));
-            }
-
-            return bytes;
-        }
-
-        private int HexValue(char c)
-        {
-            return c switch
-            {
-                >= '0' and <= '9' => c - '0',
-                >= 'A' and <= 'F' => c - 'A' + 10,
-                >= 'a' and <= 'f' => c - 'a' + 10,
-                _ => 0
-            };
+            Hash = hash;
         }
     }
 }

@@ -28,8 +28,8 @@ namespace Astraia.Core
     [Serializable]
     public class AssetManager : Singleton<AssetManager>
     {
-        private static readonly Dictionary<string, AssetBundle> AssetPack = new Dictionary<string, AssetBundle>();
-        private static readonly Dictionary<string, AssetData> AssetPath = new Dictionary<string, AssetData>();
+        private static readonly Dictionary<string, AssetData> assetData = new();
+        private static readonly Dictionary<string, AssetBundle> assetPack = new();
         private static Manifest package;
 
         public int version;
@@ -44,8 +44,8 @@ namespace Astraia.Core
         public override void Enqueue()
         {
             Instance = null;
-            AssetPath.Clear();
-            AssetPack.Clear();
+            assetData.Clear();
+            assetPack.Clear();
             AssetBundle.UnloadAllAssetBundles(true);
         }
 
@@ -119,7 +119,7 @@ namespace Astraia.Core
 
         private static AssetData LoadAssetData(string reason)
         {
-            if (!AssetPath.TryGetValue(reason, out var asset))
+            if (!assetData.TryGetValue(reason, out var asset))
             {
                 var index = reason.LastIndexOf('/');
                 asset = new AssetData();
@@ -133,7 +133,7 @@ namespace Astraia.Core
                     asset.Name = reason.Substring(index + 1);
                 }
 
-                AssetPath.Add(reason, asset);
+                assetData.Add(reason, asset);
             }
 
             return asset;
@@ -161,7 +161,7 @@ namespace Astraia.Core
                 }
 
                 await Task.WhenAll(requests.Values);
-                EventManager.Invoke(new OnAssetComplete());
+                EventManager.Invoke(new OnAssetComplete(assetPack.Values.All(bundle => bundle)));
             }
         }
 
@@ -172,7 +172,7 @@ namespace Astraia.Core
                 return null;
             }
 
-            if (AssetPack.TryGetValue(reason, out var bundle))
+            if (assetPack.TryGetValue(reason, out var bundle))
             {
                 return bundle;
             }
@@ -187,7 +187,7 @@ namespace Astraia.Core
             try
             {
                 bundle = await request;
-                AssetPack.Add(reason, bundle);
+                assetPack.Add(reason, bundle);
                 EventManager.Invoke(new OnAssetUpdate(reason));
                 return bundle;
             }
@@ -199,25 +199,18 @@ namespace Astraia.Core
 
         private static async Task<AssetBundle> LoadRequest(string reason)
         {
-            var inputPath = GlobalSetting.PersistentPath.Format(reason);
-            var outputPath = Path.Combine(GlobalSetting.TemporaryCache, reason);
-            try
+            var result = GlobalSetting.PersistentPath.Format(reason);
+            if (package.Bundles.TryGetValue(reason, out var bundle))
             {
-                if (package.Bundles.TryGetValue(reason, out var bundle))
+                if (bundle.Hash == Zip.ComputeHash(result))
                 {
-                    Directory.CreateDirectory(GlobalSetting.TemporaryCache);
-                    await Aes.DecryptAsync(inputPath, outputPath, bundle.HexToBytes(), Guid.Parse(bundle.Guid).ToByteArray());
-                    var request = AssetBundle.LoadFromFileAsync(outputPath);
+                    var request = AssetBundle.LoadFromFileAsync(result);
                     await request;
                     return request.assetBundle;
                 }
+            }
 
-                return null;
-            }
-            catch (Exception e)
-            {
-                throw new Exception("{0}\n{1}\n{2}".Format(inputPath, outputPath, e));
-            }
+            return null;
         }
 
         public static async void LoadScene(string reason)
@@ -249,7 +242,7 @@ namespace Astraia.Core
 
             if (Instance != null && Instance.manifest)
             {
-                var sceneData = AssetPack.GetValueOrDefault(item.Path);
+                var sceneData = assetPack.GetValueOrDefault(item.Path);
                 var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(path => Path.GetFileNameWithoutExtension(path) == item.Name);
                 if (!string.IsNullOrEmpty(scenePath))
                 {
@@ -279,12 +272,12 @@ namespace Astraia.Core
 
         private static T LoadFirst<T>(AssetData reason) where T : Object
         {
-            return Instantiate(AssetPack.GetValueOrDefault(reason.Path)?.LoadAsset<T>(reason.Name));
+            return Instantiate(assetPack.GetValueOrDefault(reason.Path)?.LoadAsset<T>(reason.Name));
         }
 
         private static T[] LoadFirstAll<T>(AssetData reason) where T : Object
         {
-            return AssetPack.GetValueOrDefault(reason.Path)?.LoadAssetWithSubAssets<T>(reason.Name);
+            return assetPack.GetValueOrDefault(reason.Path)?.LoadAssetWithSubAssets<T>(reason.Name);
         }
 
         private static T LoadSecond<T>(string reason) where T : Object

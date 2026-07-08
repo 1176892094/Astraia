@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using Astraia.Core;
 using UnityEditor;
@@ -169,15 +168,8 @@ namespace Astraia
 
     internal static class EditorBuilder
     {
-        private static byte[] ComputeHash(string path)
-        {
-            using var md5 = MD5.Create();
-            using var stream = File.OpenRead(path);
-            return md5.ComputeHash(stream);
-        }
-
         [MenuItem("Tools/Astraia/热更资源构建", priority = 3)]
-        private static async void BuildAsset()
+        private static void BuildAsset()
         {
             var watch = Stopwatch.StartNew();
             var build = Directory.CreateDirectory(GlobalSetting.BuildTargetPath);
@@ -185,41 +177,21 @@ namespace Astraia
             Directory.CreateDirectory(GlobalSetting.BuildVersion);
             BuildPipeline.BuildAssetBundles(GlobalSetting.BuildTargetPath, GlobalSetting.Instance.BuildOptions, (BuildTarget)GlobalSetting.Instance.BuildTarget);
 
-            var bundles = new Dictionary<string, Bundle>();
-            if (File.Exists(GlobalSetting.BuildTargetJson))
-            {
-                var json = await File.ReadAllTextAsync(GlobalSetting.BuildTargetJson);
-                bundles = JsonManager.FromJson<Package>(json).Bundles.ToDictionary(d => d.Name);
-            }
-
             var package = new Package(GlobalSetting.Instance.AssetVersion, new List<Bundle>());
             foreach (var item in build.GetFiles())
             {
                 if (item.Extension == string.Empty)
                 {
-                    var newGuid = Guid.NewGuid();
-                    var newHash = ComputeHash(item.FullName);
-                    var newBundle = new Bundle(item.Length, item.Name, newHash);
-                    if (bundles.TryGetValue(item.Name, out var oldBundle) && oldBundle.Hash == newBundle.Hash)
-                    {
-                        newBundle.Guid = oldBundle.Guid;
-                        Debug.Log("跳过未变更文件: {0}".Format(item.Name));
-                    }
-                    else
-                    {
-                        newBundle.Guid = newGuid.ToString();
-                        await Aes.EncryptAsync(item.FullName, Path.Combine(GlobalSetting.BuildVersion, item.Name), newHash, newGuid.ToByteArray());
-                        Debug.Log("加密并更新文件: {0}".Color("G").Format(item.Name));
-                    }
-
-                    package.Bundles.Add(newBundle);
+                    var newHash = Zip.ComputeHash(item.FullName);
+                    package.Bundles.Add(new Bundle(item.Length, item.Name, newHash));
+                    File.Copy(item.FullName, Path.Combine(GlobalSetting.BuildVersion, item.Name), true);
                 }
             }
 
-            await File.WriteAllTextAsync(GlobalSetting.BuildTargetJson, JsonManager.ToJson(package));
+            File.WriteAllText(GlobalSetting.BuildTargetJson, JsonManager.ToJson(package));
             watch.Stop();
             AssetDatabase.Refresh();
-            Debug.Log("加密 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(watch.ElapsedMilliseconds / 1000F));
+            Debug.Log("构建 AssetBundle 完成。耗时: <color=#00FF00>{0:F2}</color> 秒".Format(watch.ElapsedMilliseconds / 1000F));
         }
 
         [MenuItem("Tools/Astraia/项目工程路径", priority = 6)]

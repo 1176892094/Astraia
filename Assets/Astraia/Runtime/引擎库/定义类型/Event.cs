@@ -67,6 +67,12 @@ namespace Astraia.Core
 
     public readonly struct OnAssetComplete : IEvent
     {
+        public readonly bool success;
+
+        public OnAssetComplete(bool success)
+        {
+            this.success = success;
+        }
     }
 
     public readonly struct OnLoadScene : IEvent

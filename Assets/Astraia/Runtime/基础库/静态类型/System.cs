@@ -117,6 +117,33 @@ namespace Astraia
 
     public static class Zip
     {
+        public static byte[] Xor(this byte[] bytes, uint state = 1176892094)
+        {
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                state ^= state << 13;
+                state ^= state >> 17;
+                state ^= state << 5;
+                bytes[i] ^= (byte)(state ^ (state >> 8) ^ (state >> 16) ^ (state >> 24));
+            }
+
+            return bytes;
+        }
+
+        public static string ComputeHash(string reason)
+        {
+            using var md5 = MD5.Create();
+            using var stream = File.OpenRead(reason);
+            var buffer = md5.ComputeHash(stream);
+            var result = new StringBuilder(buffer.Length);
+            foreach (var hex in buffer)
+            {
+                result.Append(hex.ToString("X2"));
+            }
+
+            return result.ToString();
+        }
+
         public static string Compress(string data)
         {
             if (!string.IsNullOrEmpty(data))
@@ -167,67 +194,6 @@ namespace Astraia
             }
 
             return bytes;
-        }
-    }
-
-    public static class Aes
-    {
-        private const int COUNT = 1 << 16;
-
-        public static byte[] Xor(this byte[] bytes)
-        {
-            var state = 1176892094U;
-            for (var i = 0; i < bytes.Length; i++)
-            {
-                state ^= state << 13;
-                state ^= state >> 17;
-                state ^= state << 5;
-                bytes[i] ^= (byte)(state ^ (state >> 8) ^ (state >> 16) ^ (state >> 24));
-            }
-
-            return bytes;
-        }
-
-        public static async Task EncryptAsync(string inputPath, string outputPath, byte[] key, byte[] iv)
-        {
-            await using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
-            await using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
-            using var aes = System.Security.Cryptography.Aes.Create();
-            aes.Key = key;
-            aes.IV = iv;
-            aes.Mode = CipherMode.CBC;
-            aes.Padding = PaddingMode.PKCS7;
-            await using var crypt = new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write);
-            await input.CopyToAsync(crypt, COUNT);
-        }
-
-        public static async Task DecryptAsync(string inputPath, string outputPath, byte[] key, byte[] iv)
-        {
-            await using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
-            await using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
-            using var aes = System.Security.Cryptography.Aes.Create();
-            aes.Key = key;
-            aes.IV = iv;
-            aes.Mode = CipherMode.CBC;
-            aes.Padding = PaddingMode.PKCS7;
-            await using var crypt = new CryptoStream(output, aes.CreateDecryptor(), CryptoStreamMode.Write);
-            await input.CopyToAsync(crypt, COUNT);
-        }
-
-        public static void Compress(string inputPath, string outputPath)
-        {
-            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
-            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
-            using var gzip = new GZipStream(output, CompressionMode.Compress);
-            input.CopyTo(gzip, COUNT);
-        }
-
-        public static void Decompress(string inputPath, string outputPath)
-        {
-            using var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read, COUNT, FileOptions.SequentialScan);
-            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, COUNT, FileOptions.SequentialScan);
-            using var gzip = new GZipStream(input, CompressionMode.Decompress);
-            gzip.CopyTo(output, COUNT);
         }
     }
 
