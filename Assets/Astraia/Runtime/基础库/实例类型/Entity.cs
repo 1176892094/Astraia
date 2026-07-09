@@ -617,10 +617,13 @@ namespace Astraia
     }
 
     [Serializable]
-    public abstract class Module : IModule
+    public abstract class Module<T> : IModule
     {
+        public T owner;
+
         void IModule.Acquire(object owner)
         {
+            this.owner = (T)owner;
         }
 
         public virtual void Dequeue()
@@ -637,17 +640,6 @@ namespace Astraia
 
         public virtual void Enqueue()
         {
-        }
-    }
-
-    [Serializable]
-    public abstract class Module<T> : Module, IModule
-    {
-        public T owner { get; internal set; }
-
-        void IModule.Acquire(object owner)
-        {
-            this.owner = (T)owner;
         }
     }
 

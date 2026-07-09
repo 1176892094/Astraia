@@ -77,23 +77,23 @@ namespace Astraia.Editor
                     {
                         if (td.IsSubclassOf<NetworkModule>())
                         {
-                            var parent = td;
-                            while (parent != null)
+                            var current = td;
+                            while (current != null)
                             {
-                                if (parent.Is<NetworkModule>())
+                                if (current.Is<NetworkModule>())
                                 {
                                     break;
                                 }
 
-                                change |= new NetworkModuleGen(assembly, access, module, writer, reader, Log, parent).Process(ref failed);
-                                parent = parent.GetBaseType();
+                                change |= new NetworkModuleGen(assembly, access, module, writer, reader, Log, current).Process(ref failed);
+                                current = current.BaseType?.Resolve();
                             }
                         }
                     }
 
                     if (td.IsSubclassOf(typeof(Inject)))
                     {
-                        modified |= EntityGenerator.Processed(assembly, td, module);
+                        modified |= EntityGenerator.Processed(assembly, td, module, Log);
                     }
 
                     if (td.IsSubclassOf(typeof(Module<>)))
@@ -241,7 +241,7 @@ namespace Astraia.Editor
             return tr.Resolve().Properties.Where(pd => pd.Name == name).Select(pd => ad.MainModule.ImportReference(pd.GetMethod)).FirstOrDefault();
         }
 
-        public static MethodDefinition GetConstructor(TypeReference tr)
+        public static MethodDefinition GetConstructor(this TypeReference tr)
         {
             return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Weaver.MED_C1 && md.Resolve().IsPublic && md.Parameters.Count == 0);
         }
@@ -275,70 +275,89 @@ namespace Astraia.Editor
             return mr;
         }
 
-        public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, string name)
+        public static FieldReference GetField(this TypeReference tr, AssemblyDefinition ad, string name)
         {
             while (tr != null)
             {
-                var td = tr.Resolve();
-                foreach (var md in td.Methods.Where(md => md.Name == name))
+                foreach (var fd in tr.Resolve().Fields)
                 {
-                    MethodReference mr = md;
-                    if (tr.IsGenericInstance)
+                    if (fd.Name == name)
                     {
-                        mr = mr.GenericInstance(tr.Module, (GenericInstanceType)tr);
-                    }
+                        FieldReference fr = fd;
+                        if (tr is GenericInstanceType git) //如果当前类型是泛型实例（如 List<int>）
+                        {
+                            fr = fr.GenericField(tr.Module, git); // 替换为具体的泛型实参（如将 T 替换为 int）
+                        }
 
-                    return ad.MainModule.ImportReference(mr);
+                        return ad.MainModule.ImportReference(fr);
+                    }
                 }
 
-                tr = ApplyGenericParameters(tr);
+                tr = tr.GetBaseType(); // 当前类型未找到，处理基类（并处理基类上的泛型参数映射）
             }
 
             return null;
         }
 
-        private static TypeReference ApplyGenericParameters(TypeReference self)
+        public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, string name)
         {
-            var parent = self.Resolve().BaseType;
-            if (parent.IsGenericInstance)
+            while (tr != null)
             {
-                var args = (GenericInstanceType)parent;
-                var it = new GenericInstanceType(parent.Resolve());
-                foreach (var tr in args.GenericArguments)
+                foreach (var md in tr.Resolve().Methods)
                 {
-                    it.GenericArguments.Add(tr);
-                }
-
-                for (var i = 0; i < it.GenericArguments.Count; i++)
-                {
-                    if (it.GenericArguments[i].IsGenericParameter)
+                    if (md.Name == name)
                     {
-                        var tr = GetGenericArgument(self, it.GenericArguments[i].Name);
-                        it.GenericArguments[i] = parent.Module.ImportReference(tr);
+                        MethodReference mr = md;
+                        if (tr is GenericInstanceType git) //如果当前类型是泛型实例（如 List<int>）
+                        {
+                            mr = mr.GenericInstance(tr.Module, git); // 替换为具体的泛型实参（如将 T 替换为 int）
+                        }
+
+                        return ad.MainModule.ImportReference(mr);
                     }
                 }
 
-                return it;
+                tr = tr.GetBaseType(); // 当前类型未找到，处理基类（并处理基类上的泛型参数映射）
+            }
+
+            return null;
+        }
+
+        private static TypeReference GetBaseType(this TypeReference self)
+        {
+            var parent = self.Resolve().BaseType;
+            if (parent is GenericInstanceType git)
+            {
+                var result = new GenericInstanceType(parent.Resolve());
+                foreach (var arg in git.GenericArguments)
+                {
+                    var tr = arg;
+                    if (tr.IsGenericParameter) // 如果基类的某个泛型参数是泛型占位符（如 T）
+                    {
+                        var td = self.Resolve();
+                        if (td.HasGenericParameters) // 检查当前类型是否有泛型参数列表
+                        {
+                            for (var i = 0; i < td.GenericParameters.Count; i++)
+                            {
+                                if (td.GenericParameters[i].Name == tr.Name)
+                                {
+                                    tr = ((GenericInstanceType)self).GenericArguments[i];
+                                }
+                            }
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("方法带有泛型参数，但是参数不匹配。");
+                        }
+                    }
+
+                    result.GenericArguments.Add(parent.Module.ImportReference(tr));
+                }
+
+                return result;
             }
 
             return parent;
-        }
-
-        private static TypeReference GetGenericArgument(TypeReference self, string name)
-        {
-            var td = self.Resolve();
-            if (td.HasGenericParameters)
-            {
-                for (var i = 0; i < td.GenericParameters.Count; i++)
-                {
-                    if (td.GenericParameters[i].Name == name)
-                    {
-                        return ((GenericInstanceType)self).GenericArguments[i];
-                    }
-                }
-            }
-
-            throw new InvalidOperationException("方法带有泛型参数，但是参数不匹配。");
         }
     }
 
@@ -418,21 +437,6 @@ namespace Astraia.Editor
             return true;
         }
 
-        public static bool HasInterface(this TypeDefinition self, Type t)
-        {
-            while (self != null)
-            {
-                if (self.Interfaces.Any(ii => ii.InterfaceType.Is(t)))
-                {
-                    return true;
-                }
-
-                self = self.GetBaseType();
-            }
-
-            return false;
-        }
-
         public static bool HasAttribute<T>(this ICustomAttributeProvider self)
         {
             return self.CustomAttributes.Any(custom => custom.AttributeType.Is<T>());
@@ -463,60 +467,73 @@ namespace Astraia.Editor
             return self.Methods.Where(method => method.IsConstructor);
         }
 
-        public static IEnumerable<FieldDefinition> GetFields(this TypeDefinition self)
+        public static bool HasInterface(this TypeReference self, Type t)
         {
-            while (self != null)
+            var current = self;
+            while (current != null)
             {
-                foreach (var fd in self.Fields.Where(field => field.IsPublic && !field.IsStatic))
+                var td = current.Resolve();
+                if (td == null)
+                {
+                    return false;
+                }
+
+                if (td.Interfaces.Any(it => it.InterfaceType.Is(t)))
+                {
+                    return true;
+                }
+
+                current = td.BaseType;
+            }
+
+            return false;
+        }
+
+        public static IEnumerable<FieldDefinition> GetFields(this TypeReference self)
+        {
+            var current = self;
+            while (current != null)
+            {
+                var td = current.Resolve();
+                if (td == null)
+                {
+                    yield break;
+                }
+
+                foreach (var fd in td.Fields.Where(field => field.IsPublic && !field.IsStatic))
                 {
                     yield return fd;
                 }
 
-                self = self.GetBaseType();
+                current = td.BaseType;
             }
         }
 
-        public static MethodDefinition GetBaseMethod(this TypeDefinition self, string name)
+        public static MethodDefinition GetBaseMethod(this TypeReference self, string name)
         {
-            while (self != null)
+            var current = self;
+            while (current != null)
             {
-                foreach (var md in self.Methods.Where(md => md.Name == name))
+                var td = current.Resolve();
+                if (td == null)
+                {
+                    return null;
+                }
+
+                foreach (var md in td.Methods.Where(md => md.Name == name))
                 {
                     return md;
                 }
 
-                self = self.GetBaseType();
+                current = td.BaseType;
             }
 
             return null;
         }
 
-        public static TypeDefinition GetBaseType(this TypeDefinition self)
-        {
-            try
-            {
-                return self.BaseType?.Resolve();
-            }
-            catch (AssemblyResolutionException)
-            {
-                return null;
-            }
-        }
-
         public static FieldReference GenericField(this FieldReference self, ModuleDefinition module, GenericInstanceType tr)
         {
             return module.ImportReference(new FieldReference(self.Name, self.FieldType, tr));
-        }
-
-        public static GenericInstanceType MakeGeneric(this TypeReference self, params TypeReference[] parameters)
-        {
-            var tr = new GenericInstanceType(self);
-            foreach (var param in parameters)
-            {
-                tr.GenericArguments.Add(param);
-            }
-
-            return tr;
         }
 
         public static FieldReference MakeGeneric(this FieldReference self)
@@ -530,14 +547,25 @@ namespace Astraia.Editor
             return new FieldReference(self.Name, self.FieldType, tr);
         }
 
-        public static MethodReference MakeGeneric(this MethodReference self, ModuleDefinition md, TypeReference tr)
+        public static MethodReference MakeGeneric(this MethodReference self, ModuleDefinition module, TypeReference tr)
         {
             var method = new GenericInstanceMethod(self);
             method.GenericArguments.Add(tr);
-            return md.ImportReference(method);
+            return module.ImportReference(method);
         }
 
-        public static MethodReference GenericInstance(this MethodReference self, ModuleDefinition md, GenericInstanceType tr)
+        public static GenericInstanceType MakeGeneric(this TypeReference self, params TypeReference[] parameters)
+        {
+            var tr = new GenericInstanceType(self);
+            foreach (var param in parameters)
+            {
+                tr.GenericArguments.Add(param);
+            }
+
+            return tr;
+        }
+
+        public static MethodReference GenericInstance(this MethodReference self, ModuleDefinition module, GenericInstanceType tr)
         {
             var mr = new MethodReference(self.Name, self.ReturnType, tr);
             mr.HasThis = self.HasThis;
@@ -554,7 +582,8 @@ namespace Astraia.Editor
                 mr.GenericParameters.Add(new GenericParameter(param.Name, mr));
             }
 
-            return md.ImportReference(mr);
+            return module.ImportReference(mr);
         }
+
     }
 }

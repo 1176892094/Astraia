@@ -379,7 +379,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Call, GetFunction(module.Import<bool>(), ref failed));
             }
 
-            foreach (var field in tr.Resolve().GetFields())
+            foreach (var field in tr.GetFields())
             {
                 var mr = GetFunction(field.FieldType, ref failed);
                 if (mr == null)
@@ -504,7 +504,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ret);
                 worker.Append(nop);
 
-                var ctor = Common.GetConstructor(tr);
+                var ctor = tr.GetConstructor();
                 if (ctor == null)
                 {
                     Log.Error("{0} 不能被反序列化，因为它没有默认的构造函数".Format(tr.Name), tr);
@@ -522,7 +522,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Initobj, tr);
             }
 
-            foreach (var field in tr.Resolve().GetFields())
+            foreach (var field in tr.GetFields())
             {
                 worker.Emit(tr.IsValueType ? OpCodes.Ldloca : OpCodes.Ldloc, 0);
                 var mr = GetFunction(field.FieldType, ref failed);

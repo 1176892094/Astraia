@@ -201,7 +201,7 @@ namespace Astraia.Editor
                     {
                         if (result.GetName(string.Empty) == name)
                         {
-                            var md = create.BaseType.Resolve().GetBaseMethod(fullName);
+                            var md = create.BaseType.GetBaseMethod(fullName);
                             if (md == null)
                             {
                                 debugger.Error("找不到base方法: {0}".Format(fullName), method);
