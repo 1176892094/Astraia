@@ -9,7 +9,9 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -24,45 +26,41 @@ namespace Astraia.Core
             if (child)
             {
                 var component = child.GetComponent<T>();
-                if (Button(obj, component, name))
+                var method = obj.GetType().GetMethod(name, Search.Instance);
+                if (method != null)
                 {
-                    return component;
+                    if (Button(obj, component, method) || Toggle(obj, component, method) || Slider(obj, component, method))
+                    {
+                        return component;
+                    }
+
+                    InputField(obj, component, method);
                 }
 
-                if (Toggle(obj, component, name))
-                {
-                    return component;
-                }
-
-                if (Slider(obj, component, name))
-                {
-                    return component;
-                }
-
-                InputField(obj, component, name);
                 return component;
             }
 
             return owner.GetComponent<T>();
         }
 
-        private static bool Button<T>(object obj, T component, string name) where T : Component
+        private static bool Button<T>(object obj, T component, MethodInfo method) where T : Component
         {
             if (component.TryGetComponent(out Button button))
             {
+                var action = (UnityAction)Delegate.CreateDelegate(typeof(UnityAction), obj, method);
                 if (obj is UIPanel panel)
                 {
                     button.onClick.AddListener(() =>
                     {
-                        if (panel.Interactive())
+                        if (panel.state != UIState.Freeze)
                         {
-                            obj.Invoke(name);
+                            action.Invoke();
                         }
                     });
                 }
                 else
                 {
-                    button.onClick.AddListener(() => obj.Invoke(name));
+                    button.onClick.AddListener(action);
                 }
 
                 return true;
@@ -71,23 +69,24 @@ namespace Astraia.Core
             return false;
         }
 
-        private static bool Toggle<T>(object obj, T component, string name) where T : Component
+        private static bool Toggle<T>(object obj, T component, MethodInfo method) where T : Component
         {
             if (component.TryGetComponent(out Toggle toggle))
             {
+                var action = (UnityAction<bool>)Delegate.CreateDelegate(typeof(UnityAction<bool>), obj, method);
                 if (obj is UIPanel panel)
                 {
                     toggle.onValueChanged.AddListener(value =>
                     {
-                        if (panel.Interactive())
+                        if (panel.state != UIState.Freeze)
                         {
-                            obj.Invoke(name, value);
+                            action.Invoke(value);
                         }
                     });
                 }
                 else
                 {
-                    toggle.onValueChanged.AddListener(value => obj.Invoke(name, value));
+                    toggle.onValueChanged.AddListener(action);
                 }
 
                 return true;
@@ -96,23 +95,24 @@ namespace Astraia.Core
             return false;
         }
 
-        private static bool Slider<T>(object obj, T component, string name) where T : Component
+        private static bool Slider<T>(object obj, T component, MethodInfo method) where T : Component
         {
             if (component.TryGetComponent(out Slider slider))
             {
+                var action = (UnityAction<float>)Delegate.CreateDelegate(typeof(UnityAction<float>), obj, method);
                 if (obj is UIPanel panel)
                 {
                     slider.onValueChanged.AddListener(value =>
                     {
-                        if (panel.Interactive())
+                        if (panel.state != UIState.Freeze)
                         {
-                            obj.Invoke(name, value);
+                            action.Invoke(value);
                         }
                     });
                 }
                 else
                 {
-                    slider.onValueChanged.AddListener(value => obj.Invoke(name, value));
+                    slider.onValueChanged.AddListener(action);
                 }
 
                 return true;
@@ -121,24 +121,25 @@ namespace Astraia.Core
             return false;
         }
 
-        private static void InputField<T>(object obj, T component, string name) where T : Component
+        private static void InputField<T>(object obj, T component, MethodInfo method) where T : Component
         {
             var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
             if (component.TryGetComponent(cacheType, out var inputField))
             {
+                var action = (UnityAction<string>)Delegate.CreateDelegate(typeof(UnityAction<string>), obj, method);
                 if (obj is UIPanel panel)
                 {
                     inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
                     {
-                        if (panel.Interactive())
+                        if (panel.state != UIState.Freeze)
                         {
-                            obj.Invoke(name, value);
+                            action.Invoke(value);
                         }
                     });
                 }
                 else
                 {
-                    inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value => obj.Invoke(name, value));
+                    inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(action);
                 }
             }
         }

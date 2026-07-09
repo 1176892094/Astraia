@@ -29,12 +29,7 @@ namespace Astraia
 
         internal int Group;
         internal int Layer;
-
-        public virtual bool Interactive()
-        {
-            return state != UIState.Freeze;
-        }
-
+        
         void IModule.OnShow()
         {
         }

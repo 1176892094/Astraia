@@ -295,7 +295,8 @@ namespace Astraia.Core
 #if UNITY_EDITOR
             foreach (var result in AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(reason.Path, reason.Name))
             {
-                return Instantiate(AssetDatabase.LoadAssetAtPath<T>(result));
+                var asset = AssetDatabase.LoadAssetAtPath<T>(result);
+                if (asset) return Instantiate(asset);
             }
 #endif
             return null;
