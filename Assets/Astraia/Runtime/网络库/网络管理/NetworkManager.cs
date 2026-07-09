@@ -16,13 +16,11 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public sealed partial class NetworkManager : Entity, IEvent<OnSceneComplete>
+    public sealed partial class NetworkManager : Inject, IEvent<OnSceneComplete>
     {
         public static NetworkManager Instance;
 
         private static bool isRemote;
-        private static int connection;
-        private static int collection;
 
         public int sendRate = 30;
         public int maxPlayer = 100;
@@ -31,13 +29,18 @@ namespace Astraia.Net
         public string roomName;
         public RoomMode roomMode;
 
+        [SerializeReference] private Transport connection = new NetworkTransport();
+        [SerializeReference] private Transport management = new NetworkAuthority();
+        [SerializeReference] private Transport collection = new NetworkTransport();
+        [SerializeReference] private NetworkDiscovery discovery;
+        [SerializeReference] private NetworkObserving observing;
         public static bool isHost => isServer && isClient;
         public static bool isServer => Server.state != State.断开连接;
         public static bool isClient => Client.state != State.断开连接;
         public static bool isSaloon => Saloon.state != State.断开连接;
         internal static double syncRate => 1.0 / Instance.sendRate;
         internal static double syncTime => Time.unscaledTimeAsDouble;
-        internal static Transport kcp => Instance ? Instance.GetComponent<Transport>(isRemote ? collection : connection) : null;
+        internal static Transport Kcp => isRemote ? Instance?.management : Instance?.connection;
 
         protected override void Awake()
         {
@@ -45,40 +48,11 @@ namespace Astraia.Net
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
-
-            var isLocal = true;
-            for (var i = 0; i < moduleList.Count; i++)
-            {
-                if (moduleList[i] is NetworkTransport)
-                {
-                    connection = i;
-                    isLocal = false;
-                    break;
-                }
-            }
-
-            if (isLocal)
-            {
-                connection = moduleList.IndexOf(AddComponent<NetworkTransport>());
-            }
-
-            var isLobby = true;
-            for (var i = 0; i < moduleList.Count; i++)
-            {
-                if (moduleList[i] is NetworkAuthority)
-                {
-                    collection = i;
-                    isLobby = false;
-                    NetworkAuthority.Instance = AddComponent<NetworkTransport>();
-                    break;
-                }
-            }
-
-            if (isLobby)
-            {
-                collection = moduleList.IndexOf(AddComponent<NetworkAuthority>());
-                NetworkAuthority.Instance = AddComponent<NetworkTransport>();
-            }
+            NetworkObserving.Instance = observing;
+            NetworkDiscovery.Instance = discovery;
+            NetworkAuthority.Instance = collection;
+            connection.Register(false);
+            collection.Register(false);
         }
 
         private void OnApplicationQuit()
@@ -97,6 +71,9 @@ namespace Astraia.Net
             {
                 StopServer();
             }
+
+            observing?.Dispose();
+            discovery?.StopDiscovery();
         }
 
         public void Execute(OnSceneComplete message)
@@ -118,8 +95,8 @@ namespace Astraia.Net
 
         public static void SetTransport(string address, ushort port)
         {
-            kcp.address = address;
-            kcp.port = port;
+            Kcp.address = address;
+            Kcp.port = port;
         }
 
         public static void StartServer()

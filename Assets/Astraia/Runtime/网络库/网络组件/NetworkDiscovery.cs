@@ -7,17 +7,14 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkDiscovery : Singleton<NetworkDiscovery>
+    public class NetworkDiscovery
     {
+        public static NetworkDiscovery Instance;
+
         [SerializeField] private string address;
         [SerializeField] private ushort port = 47777;
         private UdpClient udpClient;
         private UdpClient udpServer;
-
-        public override void Enqueue()
-        {
-            StopDiscovery();
-        }
 
         public void StartDiscovery()
         {
@@ -100,7 +97,7 @@ namespace Astraia.Net
             try
             {
                 using var writer = MemoryWriter.Pop();
-                writer.Invoke(new ResponseMessage(NetworkManager.kcp.port));
+                writer.Invoke(new ResponseMessage(NetworkManager.Kcp.port));
                 ArraySegment<byte> segment = writer;
                 udpServer.Send(segment.Array!, segment.Count, endPoint);
             }

@@ -16,8 +16,10 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkObserver : Singleton<NetworkObserver>, IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
+    public class NetworkObserving : IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
     {
+        public static NetworkObserving Instance;
+
         private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
         private readonly SpatialHash<NetworkClient> visible = new SpatialHash<NetworkClient>();
         private readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
@@ -28,15 +30,6 @@ namespace Astraia.Net
 
         [SerializeField] private Vector2Int extents = Vector2Int.one;
         [SerializeField] private float cellSize = 1;
-
-        public override void Enqueue()
-        {
-            copies.Clear();
-            clients.Clear();
-            visible.Clear();
-            players.Clear();
-            entities.Clear();
-        }
 
         public void Register(NetworkEntity entity)
         {
@@ -150,6 +143,15 @@ namespace Astraia.Net
             var x = Mathf.FloorToInt(position.x / cellSize);
             var y = Mathf.FloorToInt(position.y / cellSize);
             return new Position(x, y);
+        }
+
+        public void Dispose()
+        {
+            copies.Clear();
+            clients.Clear();
+            visible.Clear();
+            players.Clear();
+            entities.Clear();
         }
 
         public void Add(NetworkEntity entity)

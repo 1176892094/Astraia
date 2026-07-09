@@ -43,14 +43,14 @@ namespace Astraia.Net
                 NetworkAuthority.Instance.cEvent.Connect += Connect;
                 NetworkAuthority.Instance.cEvent.Disconnect += Disconnect;
                 NetworkAuthority.Instance.cEvent.Receive += Receive;
-                NetworkAuthority.Instance.port = kcp.port;
-                NetworkAuthority.Instance.address = kcp.address;
+                NetworkAuthority.Instance.port = Kcp.port;
+                NetworkAuthority.Instance.address = Kcp.address;
                 NetworkAuthority.Instance.StartClient();
             }
 
             internal static async void Update()
             {
-                var texts = await Host.Http.GetStringAsync("http://{0}:{1}/api/compressed/servers".Format(kcp.address, kcp.port));
+                var texts = await Host.Http.GetStringAsync("http://{0}:{1}/api/compressed/servers".Format(Kcp.address, Kcp.port));
                 var rooms = Zip.Decompress(texts);
                 var jsons = JsonManager.FromJson<LobbyData[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
@@ -123,12 +123,12 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt32();
                             clients.Add(clientId, objectId);
                             players.Add(objectId, clientId);
-                            kcp.sEvent.Connect(objectId);
+                            Kcp.sEvent.Connect(objectId);
                         }
 
                         if (isClient)
                         {
-                            kcp.cEvent.Connect();
+                            Kcp.cEvent.Connect();
                         }
                     }
                     else if (opcode == Lobby.离开房间成功)
@@ -136,7 +136,7 @@ namespace Astraia.Net
                         if (isClient)
                         {
                             isClient = false;
-                            kcp.cEvent.Disconnect();
+                            Kcp.cEvent.Disconnect();
                         }
                     }
                     else if (opcode == Lobby.同步网络数据)
@@ -147,13 +147,13 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt32();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
-                                kcp.sEvent.Receive(playerId, message, pass);
+                                Kcp.sEvent.Receive(playerId, message, pass);
                             }
                         }
 
                         if (isClient)
                         {
-                            kcp.cEvent.Receive(message, pass);
+                            Kcp.cEvent.Receive(message, pass);
                         }
                     }
                     else if (opcode == Lobby.断开玩家连接)
@@ -163,7 +163,7 @@ namespace Astraia.Net
                             var clientId = reader.ReadInt32();
                             if (clients.TryGetValue(clientId, out var playerId))
                             {
-                                kcp.sEvent.Disconnect(playerId);
+                                Kcp.sEvent.Disconnect(playerId);
                                 clients.Remove(clientId);
                                 players.Remove(playerId);
                             }

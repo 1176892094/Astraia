@@ -991,7 +991,7 @@ namespace Astraia
     }
 
     [Serializable]
-    internal abstract class Transport : Module
+    internal abstract class Transport
     {
         public string address = "localhost";
         public ushort port = 20974;
@@ -999,6 +999,7 @@ namespace Astraia
         public readonly CEvent cEvent = new CEvent();
         public readonly SEvent sEvent = new SEvent();
 
+        public abstract void Register(bool isRemote);
         public abstract uint GetLength(int pass);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP);
         public abstract void SendToServer(ArraySegment<byte> segment, int pass = Pass.KCP);
@@ -1014,7 +1015,7 @@ namespace Astraia
     }
 
     [Serializable]
-    internal sealed class NetworkTransport : Transport, IModule
+    internal sealed class NetworkTransport : Transport
     {
         private const uint MAX_MTU = 1200;
         private const uint TIME_OUT = 10000;
@@ -1027,12 +1028,12 @@ namespace Astraia
         private KcpClient kcpClient;
         private KcpServer kcpServer;
 
-        void IModule.Acquire(object isServer)
+        public override void Register(bool isRemote)
         {
             var setting = new Setting(MAX_MTU, TIME_OUT, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
             kcpClient = new KcpClient(setting, cEvent);
             kcpServer = new KcpServer(setting, sEvent);
-            if (isServer is true)
+            if (isRemote)
             {
                 sEvent.Error = OnServerError;
             }

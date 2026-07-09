@@ -18,6 +18,10 @@ namespace Astraia.Net
     {
         public static Transport Instance;
 
+        public override void Register(bool isRemote)
+        {
+        }
+
         public override uint GetLength(int pass)
         {
             return Instance.GetLength(pass);
