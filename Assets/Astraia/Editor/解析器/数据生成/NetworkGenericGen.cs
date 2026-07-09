@@ -18,7 +18,7 @@ namespace Astraia.Editor
             {
                 if (f.HasAttribute<InjectAttribute>())
                 {
-                    td.GetMethod(assembly.MainModule, "Awake").InjectField(module.Inject.MakeGeneric(assembly.MainModule, f.FieldType), f);
+                    td.GetMethod(assembly.MainModule, Weaver.GEN_S2, "Awake").InjectField(module.Inject.MakeGeneric(assembly.MainModule, f.FieldType), f);
                     modified = true;
                 }
             }
@@ -31,8 +31,8 @@ namespace Astraia.Editor
                     if (elementType.Is(typeof(IEvent<>)))
                     {
                         var eventType = generic.GenericArguments[0];
-                        td.GetMethod(assembly.MainModule, "OnEnable").InjectEvent(module.Listen.MakeGeneric(assembly.MainModule, eventType));
-                        td.GetMethod(assembly.MainModule, "OnDisable").InjectEvent(module.Remove.MakeGeneric(assembly.MainModule, eventType));
+                        td.GetMethod(assembly.MainModule, Weaver.GEN_S2, "OnEnable").InjectEvent(module.Listen.MakeGeneric(assembly.MainModule, eventType));
+                        td.GetMethod(assembly.MainModule, Weaver.GEN_S2, "OnDisable").InjectEvent(module.Remove.MakeGeneric(assembly.MainModule, eventType));
                         modified = true;
                     }
                 }
@@ -70,7 +70,7 @@ namespace Astraia.Editor
             {
                 if (f.HasAttribute<InjectAttribute>())
                 {
-                    td.GetMethod(assembly.MainModule, "Dequeue").InjectField(module.Inject.MakeGeneric(assembly.MainModule, f.FieldType), f, owner);
+                    td.GetMethod(assembly.MainModule, Weaver.GEN_S1, "Dequeue").InjectField(module.Inject.MakeGeneric(assembly.MainModule, f.FieldType), f, owner);
                     modified = true;
                 }
             }
@@ -83,8 +83,8 @@ namespace Astraia.Editor
                     if (elementType.Is(typeof(IEvent<>)))
                     {
                         var eventType = generic.GenericArguments[0];
-                        td.GetMethod(assembly.MainModule, "OnShow").InjectEvent(module.Listen.MakeGeneric(assembly.MainModule, eventType));
-                        td.GetMethod(assembly.MainModule, "OnHide").InjectEvent(module.Remove.MakeGeneric(assembly.MainModule, eventType));
+                        td.GetMethod(assembly.MainModule, Weaver.GEN_S1, "OnShow").InjectEvent(module.Listen.MakeGeneric(assembly.MainModule, eventType));
+                        td.GetMethod(assembly.MainModule, Weaver.GEN_S1, "OnHide").InjectEvent(module.Remove.MakeGeneric(assembly.MainModule, eventType));
                         modified = true;
                     }
                 }
@@ -129,12 +129,12 @@ namespace Astraia.Editor
             worker.InsertBefore(target, worker.Create(OpCodes.Call, method));
         }
 
-        public static MethodDefinition GetMethod(this TypeDefinition td, ModuleDefinition module, string name)
+        public static MethodDefinition GetMethod(this TypeDefinition td, ModuleDefinition module, MethodAttributes attrs, string name)
         {
             var method = td.Methods.FirstOrDefault(m => m.Name == name && m.Parameters.Count == 0);
             if (method == null)
             {
-                method = new MethodDefinition(name, Weaver.GEN_S1, module.ImportReference(typeof(void)));
+                method = new MethodDefinition(name, attrs, module.ImportReference(typeof(void)));
                 var result = td.BaseType.Resolve().GetBaseMethod(name);
                 var worker = method.Body.GetILProcessor();
                 if (result != null)

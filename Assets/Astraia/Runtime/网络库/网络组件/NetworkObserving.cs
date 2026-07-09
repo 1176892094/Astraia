@@ -163,10 +163,5 @@ namespace Astraia.Net
         {
             entities.Remove(entity);
         }
-
-        public void Clear()
-        {
-            entities.Clear();
-        }
     }
 }

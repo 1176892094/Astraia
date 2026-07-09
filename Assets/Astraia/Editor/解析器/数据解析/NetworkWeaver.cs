@@ -36,7 +36,8 @@ namespace Astraia.Editor
         public const MA GEN_V1 = MA.HideBySig | MA.Family | MA.Static;
         public const MA GEN_V2 = MA.HideBySig | MA.Public | MA.Static;
         public const MA GEN_S1 = MA.HideBySig | MA.Public | MA.Virtual;
-        public const MA GEN_S2 = MA.HideBySig | MA.Public | MA.SpecialName;
+        public const MA GEN_S2 = MA.HideBySig | MA.Family | MA.Virtual;
+        public const MA GEN_S3 = MA.HideBySig | MA.Public | MA.SpecialName;
         public const MA GEN_C2 = MA.HideBySig | MA.Static | MA.SpecialName | MA.Private | MA.RTSpecialName;
         public const TA GEN_T1 = TA.AutoClass | TA.Public | TA.Class | TA.AnsiClass | TA.Abstract | TA.Sealed | TA.BeforeFieldInit;
 

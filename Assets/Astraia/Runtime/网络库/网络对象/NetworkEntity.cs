@@ -31,11 +31,7 @@ namespace Astraia.Net
 
         [HideInInspector] public uint sceneId;
 
-        [SerializeField] internal bool visible = true;
-
         internal int count;
-
-        internal State state;
 
         internal NetworkClient client;
 
@@ -48,20 +44,23 @@ namespace Astraia.Net
         internal HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
 
         public bool isReady => NetworkManager.Client.isReady;
+        
+        public bool isOwner => (state & OWNING) != 0;
 
-        public bool isOwner => (state & State.所有者) != 0;
+        public bool isServer => (state & SERVER) != 0 && NetworkManager.isServer;
 
-        public bool isServer => (state & State.服务器) != 0 && NetworkManager.isServer;
-
-        public bool isClient => (state & State.客户端) != 0 && NetworkManager.isClient;
+        public bool isClient => (state & CLIENT) != 0 && NetworkManager.isClient;
 
         protected override void OnEnable()
         {
-            modules = moduleList.OfType<NetworkModule>().ToArray();
-            for (byte i = 0; i < modules.Length; ++i)
+            if ((state & CREATE) == 0)
             {
-                modules[i].owner = this;
-                modules[i].moduleId = i;
+                modules = moduleList.OfType<NetworkModule>().ToArray();
+                for (byte i = 0; i < modules.Length; ++i)
+                {
+                    modules[i].owner = this;
+                    modules[i].moduleId = i;
+                }
             }
 
             base.OnEnable();
@@ -74,7 +73,7 @@ namespace Astraia.Net
                 NetworkManager.Client.spawns.Remove(objectId);
             }
 
-            if (isServer && (state & State.销毁) == 0)
+            if (isServer && (state & DESTROY) == 0)
             {
                 NetworkManager.Server.Destroy(gameObject);
             }
@@ -91,7 +90,7 @@ namespace Astraia.Net
         {
             objectId = 0;
             client = null;
-            state = State.默认;
+            state = CREATE;
             owner.position = 0;
             other.position = 0;
             NetworkSpawner.Clear(this);
@@ -185,7 +184,7 @@ namespace Astraia.Net
 
         internal void OnStartClient()
         {
-            if ((state & State.活跃) == 0)
+            if ((state & ENABLE) == 0)
             {
                 foreach (var module in modules)
                 {
@@ -195,13 +194,13 @@ namespace Astraia.Net
                     }
                 }
 
-                state |= State.活跃;
+                state |= ENABLE;
             }
         }
 
         internal void OnStopClient()
         {
-            if ((state & State.活跃) != 0)
+            if ((state & ENABLE) != 0)
             {
                 foreach (var module in modules)
                 {
@@ -211,7 +210,7 @@ namespace Astraia.Net
                     }
                 }
 
-                state &= ~State.活跃;
+                state &= ~ENABLE;
             }
         }
 
@@ -239,7 +238,7 @@ namespace Astraia.Net
 
         internal void OnNotifyAuthority()
         {
-            if ((state & State.认证) == 0 && isOwner)
+            if ((state & NOTIFY) == 0 && isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -249,7 +248,7 @@ namespace Astraia.Net
                     }
                 }
             }
-            else if ((state & State.认证) != 0 && !isOwner)
+            else if ((state & NOTIFY) != 0 && !isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -260,7 +259,7 @@ namespace Astraia.Net
                 }
             }
 
-            state = isOwner ? state | State.认证 : state & ~State.认证;
+            state = isOwner ? state | NOTIFY : state & ~NOTIFY;
         }
 
         public static implicit operator uint(NetworkEntity entity)
@@ -276,18 +275,6 @@ namespace Astraia.Net
             }
 
             return NetworkManager.Client.spawns.GetValueOrDefault(objectId);
-        }
-
-        [Flags]
-        internal enum State : byte
-        {
-            默认 = 0,
-            所有者 = 1 << 0,
-            客户端 = 1 << 1,
-            服务器 = 1 << 2,
-            认证 = 1 << 3,
-            活跃 = 1 << 4,
-            销毁 = 1 << 5,
         }
     }
 }

@@ -184,7 +184,7 @@ namespace Astraia.Editor
 
         private MethodDefinition GenerateSyncVarGetter(FieldDefinition fd, string name, FieldReference obj)
         {
-            var getter = new MethodDefinition("get_{0}Var".Format(name), Weaver.GEN_S2, fd.FieldType);
+            var getter = new MethodDefinition("get_{0}Var".Format(name), Weaver.GEN_S3, fd.FieldType);
             var worker = getter.Body.GetILProcessor();
             var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeGeneric() : fd;
 
@@ -233,7 +233,7 @@ namespace Astraia.Editor
 
         private MethodDefinition GenerateSyncVarSetter(FieldDefinition fd, string name, FieldReference obj, TypeDefinition td, long dirtyBit, ref bool failed)
         {
-            var setter = new MethodDefinition("set_{0}Var".Format(name), Weaver.GEN_S2, module.Import(typeof(void)));
+            var setter = new MethodDefinition("set_{0}Var".Format(name), Weaver.GEN_S3, module.Import(typeof(void)));
             var worker = setter.Body.GetILProcessor();
             var fr = fd.DeclaringType.HasGenericParameters ? fd.MakeGeneric() : fd;
 

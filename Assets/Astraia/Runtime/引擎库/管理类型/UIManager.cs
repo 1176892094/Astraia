@@ -275,15 +275,15 @@ namespace Astraia.Core
                 if (state)
                 {
                     owner.SetActive(true);
-                    panel.OnShow();
+                    panel.OnShowInternal();
                 }
                 else if (panel is ITween)
                 {
-                    panel.OnHide();
+                    panel.OnHideInternal();
                 }
                 else
                 {
-                    panel.OnHide();
+                    panel.OnHideInternal();
                     owner.SetActive(false);
                 }
             }

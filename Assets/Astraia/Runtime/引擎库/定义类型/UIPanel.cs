@@ -30,11 +30,39 @@ namespace Astraia
         internal int Group;
         internal int Layer;
 
-        public virtual void OnShow()
+        protected override void Awake() => AwakeInternal();
+
+        protected override void OnEnable() => EnableInternal();
+
+        protected override void OnDisable() => DisableInternal();
+
+        protected override void OnDestroy() => DestroyInternal();
+
+        internal void OnShowInternal() => OnShow();
+
+        internal void OnHideInternal() => OnHide();
+
+        protected virtual void OnShow()
         {
         }
 
-        public virtual void OnHide()
+        protected virtual void OnHide()
+        {
+        }
+
+        internal virtual void AwakeInternal()
+        {
+        }
+
+        internal virtual void DestroyInternal()
+        {
+        }
+
+        internal virtual void EnableInternal()
+        {
+        }
+
+        internal virtual void DisableInternal()
         {
         }
     }
@@ -60,7 +88,7 @@ namespace Astraia
         public ScrollRect scroll;
         public Action<IGrid> OnMove;
 
-        protected override void Awake()
+        internal override void AwakeInternal()
         {
             scroll = this.Inject<ScrollRect>(this, nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
@@ -101,18 +129,18 @@ namespace Astraia
             grids = new TGrid[col * row];
         }
 
-        protected override void OnEnable()
+        internal override void EnableInternal()
         {
             scroll.onValueChanged.AddListener(ScrollView);
         }
 
-        protected override void OnDisable()
+        internal override void DisableInternal()
         {
             Unload();
             scroll.onValueChanged.RemoveListener(ScrollView);
         }
 
-        protected override void OnDestroy()
+        internal override void DestroyInternal()
         {
             items = null;
             grids = null;

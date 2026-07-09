@@ -34,6 +34,9 @@ namespace Astraia.Net
             private static uint objectId;
 
             private static double sendTime;
+
+            private static bool isObserver => NetworkObserving.Instance != null;
+
             public static bool isReady => clients.Values.All(connection => connection.isReady);
             public static int connections => clients.Count;
 
@@ -96,11 +99,7 @@ namespace Astraia.Net
 
             private static void SpawnObjects()
             {
-                if (NetworkObserving.Instance != null)
-                {
-                    NetworkObserving.Instance.Dispose();
-                }
-
+                NetworkObserving.Instance?.Dispose();
 #if UNITY_6000_4_OR_NEWER
                 var entities = FindObjectsByType<NetworkEntity>();
 #else
@@ -143,14 +142,9 @@ namespace Astraia.Net
                 client.Send(new SpawnBeginMessage());
                 EventManager.Invoke(new ServerReady(client));
 
-                if (NetworkObserving.Instance != null)
-                {
-                    NetworkObserving.Instance.Clear();
-                }
-
                 foreach (var entity in spawns.Values)
                 {
-                    if (NetworkObserving.Instance != null && !entity.visible)
+                    if (isObserver && (entity.state & Entity.VISIBLE) == 0)
                     {
                         NetworkObserving.Instance.Add(entity);
                         NetworkObserving.Instance.Tick(entity, client);
@@ -329,9 +323,9 @@ namespace Astraia.Net
                 }
 
                 entity.client = client;
-                entity.state = client?.clientId == 0 ? entity.state | NetworkEntity.State.所有者 : entity.state & ~NetworkEntity.State.所有者;
-                entity.state = isServer ? entity.state | NetworkEntity.State.服务器 : entity.state & ~NetworkEntity.State.服务器;
-                entity.state = isClient ? entity.state | NetworkEntity.State.客户端 : entity.state & ~NetworkEntity.State.客户端;
+                entity.state = client?.clientId == 0 ? entity.state | Entity.OWNING : entity.state & ~Entity.OWNING;
+                entity.state = isServer ? entity.state | Entity.SERVER : entity.state & ~Entity.SERVER;
+                entity.state = isClient ? entity.state | Entity.CLIENT : entity.state & ~Entity.CLIENT;
                 if (entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
@@ -339,7 +333,7 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (NetworkObserving.Instance != null && !entity.visible)
+                if (isObserver && (entity.state & Entity.VISIBLE) == 0)
                 {
                     NetworkObserving.Instance.Add(entity);
                     NetworkObserving.Instance.Tick(entity);
@@ -374,12 +368,12 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        if (NetworkObserving.Instance != null && !entity.visible)
+                        if (isObserver && (entity.state & Entity.VISIBLE) == 0)
                         {
                             NetworkObserving.Instance.Remove(entity);
                         }
 
-                        entity.state |= NetworkEntity.State.销毁;
+                        entity.state |= Entity.DESTROY;
                         UnityEngine.Object.Destroy(entity.gameObject);
                     }
                 }
