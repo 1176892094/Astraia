@@ -29,7 +29,6 @@ namespace Runtime
         {
             mainCamera = Camera.main;
             Application.targetFrameRate = 60;
-            UIManager.Canvas.worldCamera = mainCamera;
             UIManager.Show<LoadPanel>();
 
             owner.transform.Wait(0.1F).OnComplete(() =>

@@ -20,7 +20,7 @@ namespace Runtime
         public override async void OnHide()
         {
             await panel.DOFade(0, 0.5f);
-            owner.gameObject.SetActive(false);
+            gameObject.SetActive(false);
             UIManager.Show<LabelPanel>();
         }
     }

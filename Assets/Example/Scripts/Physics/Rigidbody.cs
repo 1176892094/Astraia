@@ -1,6 +1,5 @@
 using System;
 using Astraia;
-using Astraia.Core;
 using UnityEngine;
 
 namespace Runtime

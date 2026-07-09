@@ -31,9 +31,9 @@ namespace Astraia.Core
         private static readonly Dictionary<string, AssetData> assetData = new();
         private static readonly Dictionary<string, AssetBundle> assetPack = new();
         private static Manifest package;
+        private static AssetBundleManifest manifest;
 
         public int version;
-        public AssetBundleManifest manifest;
 
         internal void SetVersion(Manifest package)
         {
@@ -44,6 +44,7 @@ namespace Astraia.Core
         public override void Enqueue()
         {
             Instance = null;
+            manifest = null;
             assetData.Clear();
             assetPack.Clear();
             AssetBundle.UnloadAllAssetBundles(true);
@@ -91,7 +92,7 @@ namespace Astraia.Core
 
         private static T LoadAsset<T>(string reason) where T : Object
         {
-            if (Instance != null && Instance.manifest)
+            if (Instance != null && manifest)
             {
                 var asset = LoadFirst<T>(LoadAssetData(reason));
                 return asset ?? LoadSecond<T>(reason);
@@ -105,7 +106,7 @@ namespace Astraia.Core
 
         private static T[] LoadAssetAll<T>(string reason) where T : Object
         {
-            if (Instance != null && Instance.manifest)
+            if (Instance != null && manifest)
             {
                 var asset = LoadFirstAll<T>(LoadAssetData(reason));
                 return asset ?? LoadSecondAll<T>(reason);
@@ -145,11 +146,10 @@ namespace Astraia.Core
             {
                 var requests = new Dictionary<string, Task<AssetBundle>>();
                 var platform = await LoadAssetBundle(GlobalSetting.TargetPlatform, requests);
-                var manifest = Instance.manifest;
+
                 if (manifest == null)
                 {
                     manifest = platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
-                    Instance.manifest = manifest;
                 }
 
                 EventManager.Invoke(new OnLoadAsset(manifest.GetAllAssetBundles()));
@@ -240,7 +240,7 @@ namespace Astraia.Core
         {
             var item = LoadAssetData(reason);
 
-            if (Instance != null && Instance.manifest)
+            if (Instance != null && manifest)
             {
                 var sceneData = assetPack.GetValueOrDefault(item.Path);
                 var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(path => Path.GetFileNameWithoutExtension(path) == item.Name);

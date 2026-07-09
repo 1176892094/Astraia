@@ -18,12 +18,12 @@ namespace Astraia.Core
     {
         protected override void Awake()
         {
+            Async.Time = 0;
             DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
         {
-            Async.Time = 0;
             LoadManager.Update();
         }
 

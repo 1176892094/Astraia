@@ -301,16 +301,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55c3b094877074c03a956c8a536c6a66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkManager
-  moduleList: []
   sendRate: 30
   maxPlayer: 100
   roomGuid: 
   roomData: 
   roomName: 
   roomMode: 0
+  connection:
+    rid: 5279501012556316672
+  management:
+    rid: 5279501012556316673
+  collection:
+    rid: 5279501012556316674
+  discovery:
+    rid: -2
+  observing:
+    rid: -2
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5279501012556316672
+      type: {class: NetworkTransport, ns: Astraia, asm: Astraia}
+      data:
+        address: localhost
+        port: 20974
+    - rid: 5279501012556316673
+      type: {class: NetworkAuthority, ns: Astraia.Net, asm: Astraia.Net}
+      data:
+        address: localhost
+        port: 20974
+    - rid: 5279501012556316674
+      type: {class: NetworkTransport, ns: Astraia, asm: Astraia}
+      data:
+        address: localhost
+        port: 20974
 --- !u!4 &584064306
 Transform:
   m_ObjectHideFlags: 0
@@ -338,6 +364,67 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7ebd91d087ac427bab9f4b472ebde57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Log::Astraia.Core.DebugManager
+--- !u!1001 &803060175
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 647030427235946417, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_BlockingMask.m_Bits
+      value: 247
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6569305452797124265, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9119460044637376236, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_Name
+      value: GlobalManager
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
 --- !u!1 &1521847866
 GameObject:
   m_ObjectHideFlags: 0
@@ -4212,3 +4299,4 @@ SceneRoots:
   - {fileID: 1809924874}
   - {fileID: 75954605}
   - {fileID: 584064306}
+  - {fileID: 803060175}

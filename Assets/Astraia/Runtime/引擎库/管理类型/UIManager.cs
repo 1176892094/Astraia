@@ -102,16 +102,14 @@ namespace Astraia.Core
             asset.gameObject.SetActive(false);
             asset.gameObject.name = name;
 
-            var agent = asset.AddComponent<Entity>();
-            var panel = agent.AddComponent<UIPanel>(value);
-            var child = agent.GetComponent<RectTransform>();
-
+            var panel = asset.GetOrAddComponent<UIPanel>(value);
             if (value.GetAttribute(out UIMaskAttribute mask))
             {
                 panel.Layer = mask.layer;
                 panel.Group = mask.group;
             }
 
+            var child = asset.GetComponent<RectTransform>();
             SetTransform(child, GetLayer(panel.Layer));
             panelData.Add(value, panel);
             return panel;
@@ -266,12 +264,12 @@ namespace Astraia.Core
         private void DestroyInGroup(UIPanel panel)
         {
             Modified(panel, false);
-            Object.Destroy(panel.owner.gameObject);
+            Object.Destroy(panel.gameObject);
         }
 
         private static void Modified(UIPanel panel, bool state)
         {
-            var owner = panel.owner.gameObject;
+            var owner = panel.gameObject;
             if (state != owner.activeSelf)
             {
                 if (state)
@@ -303,7 +301,7 @@ namespace Astraia.Core
                     return;
                 }
 
-                if (current != null && current.owner)
+                if (current)
                 {
                     Modified(current, false);
                     reverse = current;
@@ -320,9 +318,9 @@ namespace Astraia.Core
                     return;
                 }
 
-                if (reverse != null && reverse.owner)
+                if (reverse)
                 {
-                    if (current != null && current.owner)
+                    if (current)
                     {
                         Modified(current, false);
                     }
@@ -334,7 +332,7 @@ namespace Astraia.Core
 
             public void Hide()
             {
-                if (current != null && current.owner)
+                if (current)
                 {
                     Modified(current, false);
                 }

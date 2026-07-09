@@ -10,11 +10,13 @@ namespace Astraia
         [SerializeReference]
         public List<IModule> moduleList = new List<IModule>();
 
-        private bool initialized;
+        private int state;
+
+        private const int CREATE = 1 << 0;
 
         protected override void OnEnable()
         {
-            if (!initialized)
+            if ((state & CREATE) == 0)
             {
                 foreach (var module in moduleList)
                 {
@@ -26,7 +28,7 @@ namespace Astraia
                     module.Dequeue();
                 }
 
-                initialized = true;
+                state |= CREATE;
             }
 
             foreach (var module in moduleList)

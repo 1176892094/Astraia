@@ -23,29 +23,24 @@ namespace Astraia
     }
 
     [Serializable]
-    public abstract class UIPanel : Module<Entity>, IModule
+    public abstract class UIPanel : Inject
     {
         public UIState state = UIState.Common;
 
         internal int Group;
         internal int Layer;
-        
-        void IModule.OnShow()
+
+        public virtual void OnShow()
         {
         }
 
-        void IModule.OnHide()
+        public virtual void OnHide()
         {
-        }
-
-        public static implicit operator bool(UIPanel panel)
-        {
-            return panel != null && panel.owner && panel.owner.isActiveAndEnabled;
         }
     }
 
     [Serializable]
-    public abstract class UIPanel<T, TGrid> : UIPanel, IModule, IMove where TGrid : Component, IGrid<T>
+    public abstract class UIPanel<T, TGrid> : UIPanel, IMove where TGrid : Component, IGrid<T>
     {
         private TGrid[] grids;
         private IList<T> items;
@@ -65,9 +60,9 @@ namespace Astraia
         public ScrollRect scroll;
         public Action<IGrid> OnMove;
 
-        void IModule.Dequeue()
+        protected override void Awake()
         {
-            scroll = owner.Inject<ScrollRect>(this, nameof(ScrollRect));
+            scroll = this.Inject<ScrollRect>(this, nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
                 col = rect.col;
@@ -104,23 +99,21 @@ namespace Astraia
             cor = rotation ? col : row;
             roc = rotation ? row : col;
             grids = new TGrid[col * row];
-            Dequeue();
         }
 
-        void IModule.OnShow()
+        protected override void OnEnable()
         {
             scroll.onValueChanged.AddListener(ScrollView);
         }
 
-        void IModule.OnHide()
+        protected override void OnDisable()
         {
             Unload();
             scroll.onValueChanged.RemoveListener(ScrollView);
         }
 
-        void IModule.Enqueue()
+        protected override void OnDestroy()
         {
-            Enqueue();
             items = null;
             grids = null;
             OnMove = null;

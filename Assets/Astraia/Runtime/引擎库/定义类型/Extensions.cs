@@ -192,6 +192,12 @@ namespace Astraia.Core
             return component ? component : self.gameObject.AddComponent<T>();
         }
 
+        public static T GetOrAddComponent<T>(this GameObject self, Type value) where T : Component
+        {
+            var component = (T)self.GetComponent(value);
+            return component ? component : (T)self.AddComponent(value);
+        }
+
         public static T GetOrAddComponent<T>(this GameObject self) where T : Component
         {
             var component = self.GetComponent<T>();
