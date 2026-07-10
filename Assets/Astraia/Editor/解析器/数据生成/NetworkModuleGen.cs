@@ -506,9 +506,9 @@ namespace Astraia.Editor
 
     internal class SyncVarAccess
     {
-        public readonly Dictionary<FieldDefinition, MethodDefinition> getter = new Dictionary<FieldDefinition, MethodDefinition>();
-        public readonly Dictionary<FieldDefinition, MethodDefinition> setter = new Dictionary<FieldDefinition, MethodDefinition>();
-        private readonly Dictionary<string, int> syncVars = new Dictionary<string, int>();
+        public readonly IDictionary<FieldDefinition, MethodDefinition> getter = new Dictionary<FieldDefinition, MethodDefinition>();
+        public readonly IDictionary<FieldDefinition, MethodDefinition> setter = new Dictionary<FieldDefinition, MethodDefinition>();
+        private readonly IDictionary<string, int> syncVars = new Dictionary<string, int>();
 
         public int GetSyncVar(string className)
         {

@@ -75,7 +75,7 @@ MonoBehaviour:
   AssetSimulate: 1
   RemotePath: http://192.168.0.3:8000/Documents/GitHub/Astraia-Game/AssetBundles
   BuildPath: 0
-  BuildOptions: 1
+  BuildOptions: 256
   ignoreAssets:
   - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
   cacheAssets:

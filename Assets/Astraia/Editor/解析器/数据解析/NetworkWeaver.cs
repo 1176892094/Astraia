@@ -91,7 +91,7 @@ namespace Astraia.Editor
                         }
                     }
 
-                    if (td.IsSubclassOf(typeof(Inject)))
+                    if (td.IsSubclassOf<Inject>())
                     {
                         modified |= EntityGenerator.Processed(assembly, td, module, Log);
                     }
@@ -584,6 +584,5 @@ namespace Astraia.Editor
 
             return module.ImportReference(mr);
         }
-
     }
 }
