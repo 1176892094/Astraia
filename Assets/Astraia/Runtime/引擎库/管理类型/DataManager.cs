@@ -98,11 +98,79 @@ namespace Astraia.Core
         }
     }
 
-    public static class DataSetting
+    [Serializable]
+    public abstract class DataTable<TData> : ScriptableObject, IDataTable where TData : struct, IData
+    {
+        [SerializeField] private List<TData> items = new List<TData>();
+
+        Type IDataTable.Type => typeof(TData);
+
+        void IDataTable.AddData(IData data) => items.Add((TData)data);
+
+        void IDataTable.AddData(string name, Type value)
+        {
+            if (!Database1.ContainsKey(typeof(TData)) && value == typeof(int))
+            {
+                Database1[typeof(TData)] = GetData<int>(name);
+            }
+
+            if (!Database2.ContainsKey(typeof(TData)) && value.IsEnum)
+            {
+                Database2[typeof(TData)] = GetData<Enum>(name);
+            }
+
+            if (!Database3.ContainsKey(typeof(TData)) && value == typeof(string))
+            {
+                Database3[typeof(TData)] = GetData<string>(name);
+            }
+
+            if (!DataTable.ContainsKey(typeof(TData)))
+            {
+                DataTable[typeof(TData)] = this;
+            }
+        }
+
+        private IDictionary GetData<T>(string name)
+        {
+            var result = new Dictionary<T, TData>();
+            foreach (var item in items)
+            {
+                var index = item.GetValue<T>(name);
+                if (result.ContainsKey(index))
+                {
+                    Log.Warn("加载数据 {0} 失败。键值重复: {1}".Format(item, index));
+                }
+
+                result[index] = item;
+            }
+
+            return result;
+        }
+
+        public static implicit operator List<TData>(DataTable<TData> dataTable)
+        {
+            return dataTable.items;
+        }
+    }
+
+    internal interface IDataTable
+    {
+        Type Type { get; }
+
+        void AddData(IData data);
+
+        void AddData(string name, Type type);
+    }
+
+    public interface IData
+    {
+    }
+
+    public static class DataExtensions
     {
         private static readonly Dictionary<Type, Delegate> parsers = new Dictionary<Type, Delegate>();
 
-        static DataSetting()
+        static DataExtensions()
         {
             parsers[typeof(Vector2)] = new Func<string, Vector2>(InputVector2);
             parsers[typeof(Vector3)] = new Func<string, Vector3>(InputVector3);
@@ -255,73 +323,5 @@ namespace Astraia.Core
                 return result;
             }
         }
-    }
-
-    [Serializable]
-    public abstract class DataTable<TData> : ScriptableObject, IDataTable where TData : struct, IData
-    {
-        [SerializeField] private List<TData> items = new List<TData>();
-
-        Type IDataTable.Type => typeof(TData);
-
-        void IDataTable.AddData(IData data) => items.Add((TData)data);
-
-        void IDataTable.AddData(string name, Type value)
-        {
-            if (!Database1.ContainsKey(typeof(TData)) && value == typeof(int))
-            {
-                Database1[typeof(TData)] = GetData<int>(name);
-            }
-
-            if (!Database2.ContainsKey(typeof(TData)) && value.IsEnum)
-            {
-                Database2[typeof(TData)] = GetData<Enum>(name);
-            }
-
-            if (!Database3.ContainsKey(typeof(TData)) && value == typeof(string))
-            {
-                Database3[typeof(TData)] = GetData<string>(name);
-            }
-
-            if (!DataTable.ContainsKey(typeof(TData)))
-            {
-                DataTable[typeof(TData)] = this;
-            }
-        }
-
-        private IDictionary GetData<T>(string name)
-        {
-            var result = new Dictionary<T, TData>();
-            foreach (var item in items)
-            {
-                var index = item.GetValue<T>(name);
-                if (result.ContainsKey(index))
-                {
-                    Log.Warn("加载数据 {0} 失败。键值重复: {1}".Format(item, index));
-                }
-
-                result[index] = item;
-            }
-
-            return result;
-        }
-
-        public static implicit operator List<TData>(DataTable<TData> dataTable)
-        {
-            return dataTable.items;
-        }
-    }
-
-    internal interface IDataTable
-    {
-        Type Type { get; }
-
-        void AddData(IData data);
-
-        void AddData(string name, Type type);
-    }
-
-    public interface IData
-    {
     }
 }
