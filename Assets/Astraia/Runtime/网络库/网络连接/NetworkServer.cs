@@ -56,7 +56,7 @@ namespace Astraia.Net
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void AddMessage(MemoryWriter writer, int pass)
+        private void AddMessage(MemoryWriter writer, int pass)
         {
             if (!packets.TryGetValue(pass, out var batch))
             {
