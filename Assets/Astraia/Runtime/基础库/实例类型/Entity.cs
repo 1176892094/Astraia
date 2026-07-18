@@ -619,7 +619,7 @@ namespace Astraia
     [Serializable]
     public abstract class Module<T> : IModule
     {
-        public T owner;
+        [NonSerialized] public T owner;
 
         void IModule.Acquire(object owner)
         {
