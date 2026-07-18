@@ -11,13 +11,13 @@ namespace Runtime
     {
         [Inject] public Image panel;
 
-        public override async void OnShow()
+        protected override async void OnShow()
         {
             await panel.DOFade(1, 0.25f);
             UIManager.Hide<LoadPanel>();
         }
 
-        public override async void OnHide()
+        protected override async void OnHide()
         {
             await panel.DOFade(0, 0.5f);
             gameObject.SetActive(false);
@@ -32,7 +32,7 @@ namespace Runtime
         [Inject] public Button prevButton;
         [Inject] public Button nextButton;
 
-        public override void OnShow()
+        protected override void OnShow()
         {
             message.text = "1.点击调试器\n2.找到Network面板\n3.房主启动 Host 模式\n4.房员启动 Client 模式";
         }
