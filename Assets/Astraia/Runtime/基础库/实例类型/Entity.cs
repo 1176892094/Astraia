@@ -824,10 +824,10 @@ namespace Astraia
     {
         internal IAsync owner;
 
-        protected short state;
+        protected int state;
         protected float waitTime;
         protected float duration;
-        protected Action onWaitable;
+        protected Action onAwaiter;
         protected Action onComplete;
         protected Func<float> onTime;
         public bool IsCompleted => state != 0;
@@ -839,10 +839,11 @@ namespace Astraia
                 if (owner.isActive)
                 {
                     Update();
-                    return;
                 }
-
-                Break();
+                else
+                {
+                    Break();
+                }
             }
             catch (Exception e)
             {
@@ -873,11 +874,11 @@ namespace Astraia
             return this;
         }
 
-        void INotifyCompletion.OnCompleted(Action waitable)
+        void INotifyCompletion.OnCompleted(Action awaiter)
         {
             if (owner.isActive)
             {
-                onWaitable = waitable;
+                onAwaiter = awaiter;
             }
             else
             {
@@ -911,7 +912,7 @@ namespace Astraia
             owner = null;
             onTime = null;
             onUpdate = null;
-            onWaitable = null;
+            onAwaiter = null;
             EventManager.Remove(this);
             HeapManager.Enqueue(this);
         }
@@ -931,7 +932,7 @@ namespace Astraia
                 if (progress == 0)
                 {
                     state |= 1 << 1;
-                    onComplete += onWaitable;
+                    onComplete += onAwaiter;
                     onComplete.Invoke();
                 }
             }
@@ -940,6 +941,13 @@ namespace Astraia
         public Timer OnUpdate(Action update)
         {
             onUpdate += update;
+            return this;
+        }
+
+        public Timer SetTime(Func<float> onTime)
+        {
+            this.onTime = onTime;
+            waitTime = duration + onTime();
             return this;
         }
 
@@ -959,13 +967,6 @@ namespace Astraia
         public Timer Loops(int count = 0)
         {
             progress = count;
-            return this;
-        }
-
-        public Timer SetTime(Func<float> onTime)
-        {
-            this.onTime = onTime;
-            waitTime = duration + onTime();
             return this;
         }
     }
@@ -995,7 +996,7 @@ namespace Astraia
             owner = null;
             onTime = null;
             onUpdate = null;
-            onWaitable = null;
+            onAwaiter = null;
             EventManager.Remove(this);
             HeapManager.Enqueue(this);
         }
@@ -1015,7 +1016,7 @@ namespace Astraia
                 if (progress >= 1)
                 {
                     state |= 1 << 1;
-                    onComplete += onWaitable;
+                    onComplete += onAwaiter;
                     onComplete.Invoke();
                 }
             }
