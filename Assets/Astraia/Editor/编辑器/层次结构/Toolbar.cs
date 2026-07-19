@@ -27,14 +27,14 @@ namespace Astraia
         [MainToolbarElement("Astraia/Preference Setting", defaultDockPosition = MainToolbarDockPosition.Left)]
         public static MainToolbarElement PreferenceSettings()
         {
-            var content = new MainToolbarContent(EditorRef.projectIcon.image as Texture2D);
+            var content = new MainToolbarContent(EditorEmit.projectIcon.image as Texture2D);
             return new MainToolbarButton(content, () => SettingsService.OpenUserPreferences());
         }
 
         [MainToolbarElement("Astraia/Build Setting", defaultDockPosition = MainToolbarDockPosition.Left)]
         public static MainToolbarElement BuildSettings()
         {
-            var content = new MainToolbarContent(EditorRef.buildIcon.image as Texture2D);
+            var content = new MainToolbarContent(EditorEmit.buildIcon.image as Texture2D);
 
             return new MainToolbarButton(content, () => EditorApplication.ExecuteMenuItem("File/Build Profiles"));
         }
@@ -42,21 +42,21 @@ namespace Astraia
         [MainToolbarElement("Astraia/Framework Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
         public static MainToolbarElement FrameworkSettings()
         {
-            var content = new MainToolbarContent(EditorRef.customIcon.image as Texture2D);
+            var content = new MainToolbarContent(EditorEmit.customIcon.image as Texture2D);
             return new MainToolbarButton(content, EditorSetting.ShowWindow);
         }
 
         [MainToolbarElement("Astraia/Project Setting", defaultDockPosition = MainToolbarDockPosition.Right)]
         public static MainToolbarElement ProjectSettings()
         {
-            var content = new MainToolbarContent(EditorRef.settingIcon.image as Texture2D);
+            var content = new MainToolbarContent(EditorEmit.settingIcon.image as Texture2D);
             return new MainToolbarButton(content, () => SettingsService.OpenProjectSettings());
         }
 
         [MainToolbarElement("Astraia/Timescale", defaultDockPosition = MainToolbarDockPosition.Middle)]
         public static MainToolbarElement Timescale()
         {
-            var content = new MainToolbarContent("{0:F2}".Format(Time.timeScale), EditorRef.windowIcon.image as Texture2D, null);
+            var content = new MainToolbarContent("{0:F2}".Format(Time.timeScale), EditorEmit.windowIcon.image as Texture2D, null);
             return new MainToolbarDropdown(content, ShowTimeScaleMenu);
         }
 
@@ -91,7 +91,7 @@ namespace Astraia
                 sceneName = "Untitled";
             }
 
-            var content = new MainToolbarContent(sceneName, EditorRef.sceneIcon.image as Texture2D, null);
+            var content = new MainToolbarContent(sceneName, EditorEmit.sceneIcon.image as Texture2D, null);
             return new MainToolbarDropdown(content, ShowDropdownMenu);
         }
 

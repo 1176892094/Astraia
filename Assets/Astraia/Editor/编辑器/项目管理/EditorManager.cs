@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Astraia;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -82,7 +81,7 @@ namespace Astraia
                 focusedWindow = EditorWindow.focusedWindow;
                 if (focusedWindow)
                 {
-                    if (focusedWindow.GetType() == EditorRef.Inspector)
+                    if (focusedWindow.GetType() == EditorEmit.Inspector)
                     {
                         Inspector.InitWindow(focusedWindow);
                     }
@@ -94,7 +93,7 @@ namespace Astraia
                 if (isMaximized != focusedWindow.maximized)
                 {
                     isMaximized = focusedWindow.maximized;
-                    if (focusedWindow.GetType() == EditorRef.Inspector)
+                    if (focusedWindow.GetType() == EditorEmit.Inspector)
                     {
                         Inspector.InitWindow(focusedWindow);
                     }
@@ -195,8 +194,64 @@ namespace Astraia
         }
     }
 
-    internal static class Emit
+    internal static class EditorEmit
     {
+        public static readonly Type Toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
+        public static readonly Type Browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
+        public static readonly Type Property = typeof(Editor).Assembly.GetType("UnityEditor.PropertyEditor");
+        public static readonly Type Hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
+        public static readonly Type Inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+        public static readonly GUIContent buildIcon = EditorGUIUtility.IconContent("BuildSettings.Standalone");
+        public static readonly GUIContent sceneIcon = EditorGUIUtility.IconContent("UnityLogo");
+        public static readonly GUIContent customIcon = EditorGUIUtility.IconContent("CustomTool");
+        public static readonly GUIContent windowIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow");
+        public static readonly GUIContent settingIcon = EditorGUIUtility.IconContent("SettingsIcon");
+        public static readonly GUIContent projectIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon");
+
+        public static float CalcSize(string name)
+        {
+            var text = GUIContent.none.text;
+            GUIContent.none.text = name;
+            var size = GUI.skin.label.CalcSize(GUIContent.none).x;
+            GUIContent.none.text = text;
+            return size;
+        }
+
+        public static void HideIcon(EditorWindow window)
+        {
+            if (!window) return;
+            var result = window.GetValue("m_SceneHierarchy");
+            if (result == null) return;
+            result = result.GetValue("m_TreeView");
+            if (result == null) return;
+            result = result.GetValue("gui");
+            if (result == null) return;
+            result.SetValue<float>("k_IconWidth", 0);
+            result.SetValue<float>("k_SpaceBetweenIconAndText", 18);
+        }
+
+        public static IEnumerable<TreeViewItem> GetItems()
+        {
+            var window = Browser.GetValue<EditorWindow>("s_LastInteractedProjectBrowser");
+            if (window == null) return null;
+            IEnumerable<TreeViewItem> items = null;
+            var cached = window.GetValue("m_AssetTree");
+            if (cached != null)
+            {
+                cached = cached.GetValue("data");
+                items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
+            }
+
+            cached = window.GetValue("m_FolderTree");
+            if (cached != null)
+            {
+                cached = cached.GetValue("data");
+                items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
+            }
+
+            return items;
+        }
+
         private static readonly Dictionary<Type, Dictionary<string, FieldInfo>> fieldData = new();
         private static readonly Dictionary<Type, Dictionary<string, MethodInfo>> methodData = new();
         private static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> propertyData = new();
@@ -333,98 +388,39 @@ namespace Astraia
     internal static class Extensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static object GetValue(this object target, string name)
+        public static object GetValue(this object target, string name)
         {
-            return Emit.GetValue(target, name);
+            return EditorEmit.GetValue(target, name);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static T GetValue<T>(this object target, string name)
+        public static T GetValue<T>(this object target, string name)
         {
-            return (T)Emit.GetValue(target, name);
+            return (T)EditorEmit.GetValue(target, name);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void SetValue(this object target, string name, object value)
+        public static void SetValue(this object target, string name, object value)
         {
-            Emit.SetValue(target, name, value);
+            EditorEmit.SetValue(target, name, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void SetValue<T>(this object target, string name, T value)
+        public static void SetValue<T>(this object target, string name, T value)
         {
-            Emit.SetValue(target, name, value);
+            EditorEmit.SetValue(target, name, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static object Invoke(this object target, string name, params object[] args)
+        public static object Invoke(this object target, string name, params object[] args)
         {
-            return Emit.Invoke(target, name, args);
+            return EditorEmit.Invoke(target, name, args);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static T Invoke<T>(this object target, string name, params object[] args)
+        public static T Invoke<T>(this object target, string name, params object[] args)
         {
-            return (T)Emit.Invoke(target, name, args);
-        }
-    }
-
-    internal static class EditorRef
-    {
-        public static readonly Type Toolbar = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
-        public static readonly Type Browser = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
-        public static readonly Type Property = typeof(Editor).Assembly.GetType("UnityEditor.PropertyEditor");
-        public static readonly Type Hierarchy = typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
-        public static readonly Type Inspector = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
-        public static readonly GUIContent buildIcon = EditorGUIUtility.IconContent("BuildSettings.Standalone");
-        public static readonly GUIContent sceneIcon = EditorGUIUtility.IconContent("UnityLogo");
-        public static readonly GUIContent customIcon = EditorGUIUtility.IconContent("CustomTool");
-        public static readonly GUIContent windowIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow");
-        public static readonly GUIContent settingIcon = EditorGUIUtility.IconContent("SettingsIcon");
-        public static readonly GUIContent projectIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon");
-
-        public static float CalcSize(string name)
-        {
-            var text = GUIContent.none.text;
-            GUIContent.none.text = name;
-            var size = GUI.skin.label.CalcSize(GUIContent.none).x;
-            GUIContent.none.text = text;
-            return size;
-        }
-
-        public static void HideIcon(EditorWindow window)
-        {
-            if (!window) return;
-            var result = window.GetValue("m_SceneHierarchy");
-            if (result == null) return;
-            result = result.GetValue("m_TreeView");
-            if (result == null) return;
-            result = result.GetValue("gui");
-            if (result == null) return;
-            result.SetValue<float>("k_IconWidth", 0);
-            result.SetValue<float>("k_SpaceBetweenIconAndText", 18);
-        }
-
-        public static IEnumerable<TreeViewItem> GetItems()
-        {
-            var window = Browser.GetValue<EditorWindow>("s_LastInteractedProjectBrowser");
-            if (window == null) return null;
-            IEnumerable<TreeViewItem> items = null;
-            var cached = window.GetValue("m_AssetTree");
-            if (cached != null)
-            {
-                cached = cached.GetValue("data");
-                items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
-            }
-
-            cached = window.GetValue("m_FolderTree");
-            if (cached != null)
-            {
-                cached = cached.GetValue("data");
-                items = cached.Invoke<IEnumerable<TreeViewItem>>("GetRows");
-            }
-
-            return items;
+            return (T)EditorEmit.Invoke(target, name, args);
         }
     }
 }

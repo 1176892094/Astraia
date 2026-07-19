@@ -53,7 +53,7 @@ namespace Astraia
 
             void DrawWindow()
             {
-                var window = EditorRef.Hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
+                var window = EditorEmit.Hierarchy.GetValue<EditorWindow>("s_LastInteractedHierarchy");
                 if (window != null)
                 {
                     var instance = window.GetEntityId();
@@ -61,7 +61,7 @@ namespace Astraia
                     {
                         var root = window.rootVisualElement.parent.Query<IMGUIContainer>().First();
                         root.onGUIHandler = HideIcon + root.onGUIHandler;
-                        EditorRef.HideIcon(window);
+                        EditorEmit.HideIcon(window);
                         windows.Add(instance);
                     }
                 }
@@ -72,7 +72,7 @@ namespace Astraia
                 {
                     if (isLayout)
                     {
-                        EditorRef.HideIcon(window);
+                        EditorEmit.HideIcon(window);
                     }
                 }
             }
@@ -120,7 +120,7 @@ namespace Astraia
             {
                 if (!target)
                 {
-                    return EditorRef.sceneIcon.image;
+                    return EditorEmit.sceneIcon.image;
                 }
 
                 Texture icon = EditorIcon.GetIcon(target);
@@ -210,7 +210,7 @@ namespace Astraia
             }
 
             var distance = rect.xMax + 16;
-            var nameSize = rect.x + EditorRef.CalcSize(target.name) + 15;
+            var nameSize = rect.x + EditorEmit.CalcSize(target.name) + 15;
             for (var i = 0; i < items.Count; ++i)
             {
                 if (!items[i])

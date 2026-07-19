@@ -32,7 +32,7 @@ namespace Astraia
                 return;
             }
 
-            if (window.GetType() != EditorRef.Hierarchy)
+            if (window.GetType() != EditorEmit.Hierarchy)
             {
                 return;
             }
