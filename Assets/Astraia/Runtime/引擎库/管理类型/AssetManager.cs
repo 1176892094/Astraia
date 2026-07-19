@@ -26,7 +26,7 @@ using UnityEditor.SceneManagement;
 namespace Astraia
 {
     [Serializable]
-    public class AssetManager : Singleton<AssetManager>
+    public partial class AssetManager : Singleton<AssetManager>
     {
         private static readonly Dictionary<string, AssetData> assetData = new();
         private static readonly Dictionary<string, AssetBundle> assetPack = new();
@@ -34,6 +34,15 @@ namespace Astraia
         private static AssetBundleManifest manifest;
 
         public int version;
+        public static event Action<int> OnLoadAsset;
+        public static event Action<string> OnAssetUpdate;
+        public static event Action<bool> OnAssetComplete;
+        public static event Action<string> OnLoadScene;
+        public static event Action<float> OnSceneUpdate;
+        public static event Action<string> OnSceneComplete;
+        public static event Action<long> OnLoadBatch;
+        public static event Action<string, long> OnBatchUpdate;
+        public static event Action<string, bool> OnBatchComplete;
 
         internal void SetVersion(Manifest package)
         {
@@ -43,6 +52,16 @@ namespace Astraia
 
         protected override void Enqueue()
         {
+            OnLoadAsset = null;
+            OnAssetUpdate = null;
+            OnAssetComplete = null;
+            OnLoadScene = null;
+            OnSceneUpdate = null;
+            OnSceneComplete = null;
+            OnLoadBatch = null;
+            OnBatchUpdate = null;
+            OnBatchComplete = null;
+
             Instance = null;
             manifest = null;
             assetData.Clear();
@@ -152,7 +171,7 @@ namespace Astraia
                     manifest = platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
                 }
 
-                EventManager.Invoke(new OnLoadAsset(manifest.GetAllAssetBundles()));
+                OnLoadAsset?.Invoke(manifest.GetAllAssetBundles().Length);
 
                 var bundles = manifest.GetAllAssetBundles();
                 foreach (var bundle in bundles)
@@ -161,7 +180,7 @@ namespace Astraia
                 }
 
                 await Task.WhenAll(requests.Values);
-                EventManager.Invoke(new OnAssetComplete(assetPack.Values.All(bundle => bundle)));
+                OnAssetComplete?.Invoke(assetPack.Values.All(bundle => bundle));
             }
         }
 
@@ -188,7 +207,7 @@ namespace Astraia
             {
                 bundle = await request;
                 assetPack.Add(reason, bundle);
-                EventManager.Invoke(new OnAssetUpdate(reason));
+                OnAssetUpdate?.Invoke(reason);
                 return bundle;
             }
             finally
@@ -219,15 +238,15 @@ namespace Astraia
             {
                 if (Instance != null)
                 {
-                    EventManager.Invoke(new OnLoadScene(reason));
+                    OnLoadScene?.Invoke(reason);
                     var request = LoadSceneAsset(GlobalSetting.SCENES.Format(reason));
                     while (!request.isDone && Instance != null)
                     {
-                        EventManager.Invoke(new OnSceneUpdate(request.progress));
+                        OnSceneUpdate?.Invoke(request.progress);
                         await Task.Yield();
                     }
 
-                    EventManager.Invoke(new OnSceneComplete(reason));
+                    OnSceneComplete?.Invoke(reason);
                 }
             }
             catch (Exception e)
@@ -314,7 +333,7 @@ namespace Astraia
             return null;
         }
 
-        public struct AssetData
+        private struct AssetData
         {
             public string Name;
             public string Path;

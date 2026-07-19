@@ -10,13 +10,12 @@
 // *********************************************************************************
 
 using System;
-using Astraia;
 using UnityEngine;
 
 namespace Astraia.Net
 {
     [Serializable]
-    public sealed partial class NetworkManager : Inject, IEvent<OnSceneComplete>
+    public sealed partial class NetworkManager : MonoBehaviour
     {
         public static NetworkManager Instance;
 
@@ -42,9 +41,8 @@ namespace Astraia.Net
         internal static double syncTime => Time.unscaledTimeAsDouble;
         internal static Transport Kcp => isRemote ? Instance?.management : Instance?.connection;
 
-        protected override void Awake()
+        private void Awake()
         {
-            base.Awake();
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
@@ -76,20 +74,30 @@ namespace Astraia.Net
             discovery?.StopDiscovery();
         }
 
-        public void Execute(OnSceneComplete message)
+        private void OnEnable()
+        {
+            AssetManager.OnSceneComplete += OnSceneComplete;
+        }
+
+        private void OnDisable()
+        {
+            AssetManager.OnSceneComplete -= OnSceneComplete;
+        }
+
+        public void OnSceneComplete(string sceneName)
         {
             if (isHost)
             {
-                Server.LoadSceneComplete(message.sceneName);
-                Client.LoadSceneComplete(message.sceneName);
+                Server.LoadSceneComplete(sceneName);
+                Client.LoadSceneComplete(sceneName);
             }
             else if (isServer)
             {
-                Server.LoadSceneComplete(message.sceneName);
+                Server.LoadSceneComplete(sceneName);
             }
             else if (isClient)
             {
-                Client.LoadSceneComplete(message.sceneName);
+                Client.LoadSceneComplete(sceneName);
             }
         }
 

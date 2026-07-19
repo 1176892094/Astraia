@@ -20,13 +20,13 @@ using UnityEngine.Networking;
 
 namespace Astraia
 {
-    internal static class LoadManager
+    public partial class AssetManager
     {
-        public static async void Update()
+        internal static async void Update()
         {
             if (GlobalSetting.Instance.AssetSimulate)
             {
-                EventManager.Invoke(new OnBundleComplete(0, "启动本地资源加载。"));
+                OnBatchComplete?.Invoke("启动本地资源加载。", false);
                 return;
             }
 
@@ -36,18 +36,18 @@ namespace Astraia
             var clientResult = await LoadManifestFromPersistentAsync();
             var serverResult = await LoadManifestFromServerAsync();
 
-            var manifest = SelectManifest(streamResult, clientResult, serverResult);
-            AssetManager.Instance.SetVersion(manifest);
+            var selected = SelectManifest(streamResult, clientResult, serverResult);
+            Instance.SetVersion(selected);
 
-            if (!manifest.IsLoaded)
+            if (!selected.IsLoaded)
             {
-                EventManager.Invoke(new OnBundleComplete(0, "没有找到可用资源。"));
+                OnBatchComplete?.Invoke("没有找到可用资源。", false);
                 return;
             }
 
-            if (!manifest.IsRemote && clientResult.Version >= manifest.Version)
+            if (!selected.IsRemote && clientResult.Version >= selected.Version)
             {
-                EventManager.Invoke(new OnBundleComplete(1, "本地资源无需更新。"));
+                OnBatchComplete?.Invoke("本地资源无需更新。", true);
                 return;
             }
 
@@ -55,7 +55,7 @@ namespace Astraia
             var toDelete = new List<string>();
 
             var clientData = clientResult.Bundles;
-            foreach (var (name, bundle) in manifest.Bundles)
+            foreach (var (name, bundle) in selected.Bundles)
             {
                 if (clientData.TryGetValue(name, out var clientBundle))
                 {
@@ -73,7 +73,7 @@ namespace Astraia
             }
 
             toDelete.AddRange(clientData.Keys);
-            EventManager.Invoke(new OnLoadBundle(toDownload.Values.Sum(download => download.Size)));
+            OnLoadBatch?.Invoke(toDownload.Values.Sum(download => download.Size));
 
             foreach (var delete in toDelete)
             {
@@ -84,15 +84,15 @@ namespace Astraia
                 }
             }
 
-            var success = await DownloadBundlesAsync(toDownload, manifest.IsRemote);
+            var success = await DownloadBundlesAsync(toDownload, selected.IsRemote);
             if (success)
             {
-                await SaveManifestToPersistentAsync(manifest);
-                EventManager.Invoke(new OnBundleComplete(1, "更新完成！"));
+                await SaveManifestToPersistentAsync(selected);
+                OnBatchComplete?.Invoke("更新完成！", true);
             }
             else
             {
-                EventManager.Invoke(new OnBundleComplete(1, "更新失败！"));
+                OnBatchComplete?.Invoke("更新失败！", true);
             }
         }
 
@@ -163,12 +163,13 @@ namespace Astraia
                 while (!operation.isDone)
                 {
                     downloadBytes[name] = (long)request.downloadedBytes;
-                    EventManager.Invoke(new OnBundleUpdate(name, downloadBytes.Values.Sum()));
+                    OnBatchUpdate?.Invoke(name, downloadBytes.Values.Sum());
+
                     await Task.Yield();
                 }
 
                 downloadBytes[name] = (long)request.downloadedBytes;
-                EventManager.Invoke(new OnBundleUpdate(name, downloadBytes.Values.Sum()));
+                OnBatchUpdate?.Invoke(name, downloadBytes.Values.Sum());
                 return request.result == UnityWebRequest.Result.Success ? request.downloadHandler.data : null;
             }
 
@@ -271,17 +272,17 @@ namespace Astraia
                 return new Manifest(-1, bundles, false, remote);
             }
 
-            var package = JsonManager.FromJson<Package>(json);
+            var result = JsonManager.FromJson<Package>(json);
 
-            if (package.Bundles != null)
+            if (result.Bundles != null)
             {
-                foreach (var bundle in package.Bundles)
+                foreach (var bundle in result.Bundles)
                 {
                     bundles[bundle.Name] = bundle;
                 }
             }
 
-            return new Manifest(package.Version, bundles, true, remote);
+            return new Manifest(result.Version, bundles, true, remote);
         }
 
         private static Manifest SelectManifest(Manifest stream, Manifest client, Manifest server)

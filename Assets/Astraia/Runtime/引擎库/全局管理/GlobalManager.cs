@@ -24,7 +24,7 @@ namespace Astraia
 
         private void Start()
         {
-            LoadManager.Update();
+            AssetManager.Update();
         }
 
         private void Update()
