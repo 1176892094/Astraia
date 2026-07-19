@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Astraia
@@ -1153,12 +1154,12 @@ namespace Astraia
     }
 
     [Serializable]
-    public struct Actuator : INode
+    public struct Randomer : INode
     {
         private INode[] Nodes;
         private int Index;
 
-        public Actuator(int index, INode[] nodes)
+        public Randomer(int index, INode[] nodes)
         {
             Index = index;
             Nodes = nodes ?? Array.Empty<INode>();
@@ -1276,71 +1277,63 @@ namespace Astraia
         }
     }
 
-    public static class Nodes
+    public static class BTNode
     {
-        public static INode LoadNode(Node node, Func<Node, string> func)
+        private static readonly Dictionary<Type, Func<Node, INode>> NodeFunc = new();
+
+        static BTNode()
         {
-            if (node.Name.IsNullOrEmpty())
-            {
-                throw new NullReferenceException();
-            }
-
-            var root = Search.GetType(func.Invoke(node));
-            if (root == typeof(Sequence))
-            {
-                return new Sequence(node.Index, LoadNodes(node, func));
-            }
-
-            if (root == typeof(Selector))
-            {
-                return new Selector(node.Index, LoadNodes(node, func));
-            }
-
-            if (root == typeof(Parallel))
-            {
-                return new Parallel(int.Parse(node.Data), LoadNodes(node, func));
-            }
-
-            if (root == typeof(Actuator))
-            {
-                return new Actuator(node.Index, LoadNodes(node, func));
-            }
-
-            if (root == typeof(Repeater))
-            {
-                return new Repeater(node.Index, int.Parse(node.Data), LoadNode(node.Nodes[0], func));
-            }
-
-            if (root == typeof(Inverter))
-            {
-                return new Inverter(LoadNode(node.Nodes[0], func));
-            }
-
-            if (root == typeof(Success))
-            {
-                return new Success(LoadNode(node.Nodes[0], func));
-            }
-
-            if (root == typeof(Failure))
-            {
-                return new Failure(LoadNode(node.Nodes[0], func));
-            }
-
-            return (INode)Activator.CreateInstance(root);
+            NodeFunc[typeof(Sequence)] = Sequence;
+            NodeFunc[typeof(Selector)] = Selector;
+            NodeFunc[typeof(Parallel)] = Parallel;
+            NodeFunc[typeof(Randomer)] = Randomer;
+            NodeFunc[typeof(Repeater)] = Repeater;
+            NodeFunc[typeof(Inverter)] = Inverter;
+            NodeFunc[typeof(Success)] = Success;
+            NodeFunc[typeof(Failure)] = Failure;
         }
 
-        private static INode[] LoadNodes(Node node, Func<Node, string> func)
+        private static INode Sequence(Node node)
         {
-            var nodes = new INode[node.Nodes.Count];
-            for (var i = 0; i < node.Nodes.Count; i++)
-            {
-                nodes[i] = LoadNode(node.Nodes[i], func);
-            }
-
-            return nodes;
+            return new Sequence(node.Index, node.Nodes.Select(i => i.Build()).ToArray());
         }
 
-        public static Node GetNode(string reason, ref int i)
+        private static INode Selector(Node node)
+        {
+            return new Selector(node.Index, node.Nodes.Select(i => i.Build()).ToArray());
+        }
+
+        private static INode Parallel(Node node)
+        {
+            return new Parallel(int.Parse(node.Data), node.Nodes.Select(i => i.Build()).ToArray());
+        }
+
+        private static INode Randomer(Node node)
+        {
+            return new Randomer(node.Index, node.Nodes.Select(i => i.Build()).ToArray());
+        }
+
+        private static INode Repeater(Node node)
+        {
+            return new Repeater(node.Index, int.Parse(node.Data), node.Nodes[0].Build());
+        }
+
+        private static INode Inverter(Node node)
+        {
+            return new Inverter(node.Nodes[0].Build());
+        }
+
+        private static INode Success(Node node)
+        {
+            return new Success(node.Nodes[0].Build());
+        }
+
+        private static INode Failure(Node node)
+        {
+            return new Failure(node.Nodes[0].Build());
+        }
+
+        public static Node Load(string reason, ref int i)
         {
             if (string.IsNullOrEmpty(reason))
             {
@@ -1356,7 +1349,7 @@ namespace Astraia
             var result = new Node(reason.Substring(0, index).Trim(), i++);
             foreach (var child in LoadNode(Checked(reason, index)))
             {
-                result.Nodes.Add(GetNode(child, ref i));
+                result.Nodes.Add(Load(child, ref i));
             }
 
             return result;
@@ -1419,6 +1412,8 @@ namespace Astraia
         [Serializable]
         public struct Node
         {
+            public static Func<Node, Type> OnLoad;
+
             public int Index;
             public string Name;
             public string Data;
@@ -1440,6 +1435,21 @@ namespace Astraia
 
                 Index = index;
                 Nodes = new List<Node>();
+            }
+
+            public INode Build()
+            {
+                if (Name.IsNullOrEmpty())
+                {
+                    throw new NullReferenceException();
+                }
+
+                if (NodeFunc.TryGetValue(OnLoad(this), out var result))
+                {
+                    return result.Invoke(this);
+                }
+
+                return (INode)Activator.CreateInstance(OnLoad(this));
             }
         }
 
