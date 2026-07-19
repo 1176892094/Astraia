@@ -39,7 +39,7 @@ TextAsset:
     # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
     20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
     is an automatically generated comment.\n// *********************************************************************************\n\nusing
-    System;\nusing UnityEngine;\nusing Astraia.Core;\n\nnamespace Astraia.Table\n{\n   
+    System;\nusing UnityEngine;\nusing Astraia;\n\nnamespace Astraia.Table\n{\n   
     [Serializable]\n    public struct Template\n     {\n //TODO:1\n    }\n}"
 --- !u!49 &-2960232863454612889
 TextAsset:
@@ -53,7 +53,7 @@ TextAsset:
     # Version: 1.0.0\n// # History: 2024-09-08 02:09:18\n// # Recently: 2024-12-22
     20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
     is an automatically generated comment.\n// *********************************************************************************\n\nusing
-    System;\nusing UnityEngine;\nusing Astraia.Core;\n\nnamespace Astraia.Table\n{\n   
+    System;\nusing UnityEngine;\nusing Astraia;\n\nnamespace Astraia.Table\n{\n   
     internal class TemplateDataTable : DataTable<TemplateData> { }\n\n     [Serializable]\n   
     public struct TemplateData : IData\n    {\n //TODO:1\n        [HideInInspector,
     SerializeField] private Bytes[] Bytes;\n        public TemplateData(Bytes[] bytes)
@@ -79,11 +79,11 @@ MonoBehaviour:
   ignoreAssets:
   - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
   cacheAssets:
-  - {fileID: 102900000, guid: 115c0d53879fa4768b765af0606778f9, type: 3}
+  - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
   - {fileID: 102900000, guid: d997d30491f12460a83474cffc127ae4, type: 3}
   - {fileID: 102900000, guid: 7ee700e87bf3541bdadae33287525107, type: 3}
+  - {fileID: 102900000, guid: 115c0d53879fa4768b765af0606778f9, type: 3}
   - {fileID: 102900000, guid: 40d95e4e2b8594e018558d8d142f3b06, type: 3}
-  - {fileID: 102900000, guid: c91375a9b46674e908dfa77e8d9455a8, type: 3}
 --- !u!49 &8449695024802945918
 TextAsset:
   m_ObjectHideFlags: 0

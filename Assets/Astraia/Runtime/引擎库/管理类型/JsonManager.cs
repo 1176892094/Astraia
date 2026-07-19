@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace Astraia.Core
+namespace Astraia
 {
     public static class JsonManager
     {

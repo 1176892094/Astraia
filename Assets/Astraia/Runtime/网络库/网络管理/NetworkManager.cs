@@ -10,7 +10,7 @@
 // *********************************************************************************
 
 using System;
-using Astraia.Core;
+using Astraia;
 using UnityEngine;
 
 namespace Astraia.Net

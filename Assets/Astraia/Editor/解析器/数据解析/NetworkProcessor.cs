@@ -16,7 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Astraia.Core;
+using Astraia;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;

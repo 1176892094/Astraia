@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Astraia.Core;
+using Astraia;
 
 namespace Astraia.Net
 {

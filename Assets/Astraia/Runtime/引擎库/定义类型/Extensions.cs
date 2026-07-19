@@ -16,9 +16,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace Astraia.Core
+namespace Astraia
 {
-    public static partial class Extensions
+    public static partial class EntityExtensions
     {
         public static T Inject<T>(this Component owner, object obj, string name) where T : Component
         {
@@ -47,20 +47,20 @@ namespace Astraia.Core
         {
             if (component.TryGetComponent(out Button button))
             {
-                var action = (UnityAction)Delegate.CreateDelegate(typeof(UnityAction), obj, method);
+                var result = (UnityAction)Delegate.CreateDelegate(typeof(UnityAction), obj, method);
                 if (obj is UIPanel panel)
                 {
                     button.onClick.AddListener(() =>
                     {
                         if (panel.state != UIState.Freeze)
                         {
-                            action.Invoke();
+                            result.Invoke();
                         }
                     });
                 }
                 else
                 {
-                    button.onClick.AddListener(action);
+                    button.onClick.AddListener(result);
                 }
 
                 return true;
@@ -73,20 +73,20 @@ namespace Astraia.Core
         {
             if (component.TryGetComponent(out Toggle toggle))
             {
-                var action = (UnityAction<bool>)Delegate.CreateDelegate(typeof(UnityAction<bool>), obj, method);
+                var result = (UnityAction<bool>)Delegate.CreateDelegate(typeof(UnityAction<bool>), obj, method);
                 if (obj is UIPanel panel)
                 {
                     toggle.onValueChanged.AddListener(value =>
                     {
                         if (panel.state != UIState.Freeze)
                         {
-                            action.Invoke(value);
+                            result.Invoke(value);
                         }
                     });
                 }
                 else
                 {
-                    toggle.onValueChanged.AddListener(action);
+                    toggle.onValueChanged.AddListener(result);
                 }
 
                 return true;
@@ -99,20 +99,20 @@ namespace Astraia.Core
         {
             if (component.TryGetComponent(out Slider slider))
             {
-                var action = (UnityAction<float>)Delegate.CreateDelegate(typeof(UnityAction<float>), obj, method);
+                var result = (UnityAction<float>)Delegate.CreateDelegate(typeof(UnityAction<float>), obj, method);
                 if (obj is UIPanel panel)
                 {
                     slider.onValueChanged.AddListener(value =>
                     {
                         if (panel.state != UIState.Freeze)
                         {
-                            action.Invoke(value);
+                            result.Invoke(value);
                         }
                     });
                 }
                 else
                 {
-                    slider.onValueChanged.AddListener(action);
+                    slider.onValueChanged.AddListener(result);
                 }
 
                 return true;
@@ -126,20 +126,21 @@ namespace Astraia.Core
             var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
             if (component.TryGetComponent(cacheType, out var inputField))
             {
-                var action = (UnityAction<string>)Delegate.CreateDelegate(typeof(UnityAction<string>), obj, method);
+                var result = (UnityAction<string>)Delegate.CreateDelegate(typeof(UnityAction<string>), obj, method);
+                var reason = (UnityEvent<string>)cacheType.GetProperty("onSubmit", Search.Instance)!.GetValue(inputField);
                 if (obj is UIPanel panel)
                 {
-                    inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(value =>
+                    reason.AddListener(value =>
                     {
                         if (panel.state != UIState.Freeze)
                         {
-                            action.Invoke(value);
+                            result.Invoke(value);
                         }
                     });
                 }
                 else
                 {
-                    inputField.GetValue<UnityEvent<string>>("onSubmit").AddListener(action);
+                    reason.AddListener(result);
                 }
             }
         }
@@ -165,11 +166,11 @@ namespace Astraia.Core
         }
     }
 
-    public static partial class Extensions
+    public static partial class EntityExtensions
     {
         private static readonly Dictionary<char, string> colors = new Dictionary<char, string>();
 
-        static Extensions()
+        static EntityExtensions()
         {
             colors['R'] = "#FF0000";
             colors['G'] = "#00FF00";

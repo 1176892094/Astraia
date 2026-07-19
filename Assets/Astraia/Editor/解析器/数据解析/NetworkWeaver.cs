@@ -183,7 +183,7 @@ namespace Astraia.Editor
 
             Listen = Import(typeof(EventManager)).GetMethod(assembly, nameof(Listen), Log, ref failed);
             Remove = Import(typeof(EventManager)).GetMethod(assembly, nameof(Remove), Log, ref failed);
-            Inject = Import(typeof(Astraia.Core.Extensions)).GetMethod(assembly, nameof(Inject), Log, ref failed);
+            Inject = Import(typeof(Astraia.EntityExtensions)).GetMethod(assembly, nameof(Inject), Log, ref failed);
 
             WriterDequeue = Import<MemoryWriter>().GetMethod(assembly, "Pop", Log, ref failed);
             WriterEnqueue = Import<MemoryWriter>().GetMethod(assembly, "Push", Log, ref failed);
@@ -273,30 +273,6 @@ namespace Astraia.Editor
             }
 
             return mr;
-        }
-
-        public static FieldReference GetField(this TypeReference tr, AssemblyDefinition ad, string name)
-        {
-            while (tr != null)
-            {
-                foreach (var fd in tr.Resolve().Fields)
-                {
-                    if (fd.Name == name)
-                    {
-                        FieldReference fr = fd;
-                        if (tr is GenericInstanceType git) //如果当前类型是泛型实例（如 List<int>）
-                        {
-                            fr = fr.GenericField(tr.Module, git); // 替换为具体的泛型实参（如将 T 替换为 int）
-                        }
-
-                        return ad.MainModule.ImportReference(fr);
-                    }
-                }
-
-                tr = tr.GetBaseType(); // 当前类型未找到，处理基类（并处理基类上的泛型参数映射）
-            }
-
-            return null;
         }
 
         public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, string name)

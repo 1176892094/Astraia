@@ -11,7 +11,7 @@
 
 using UnityEngine;
 
-namespace Astraia.Core
+namespace Astraia
 {
     [DefaultExecutionOrder(-100)]
     public sealed class GlobalManager : Entity

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Astraia.Core
+namespace Astraia
 {
     [Serializable]
-    public class SpaceManager : Singleton<SpaceManager>, IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
+    public class VisibleManager : Singleton<VisibleManager>, IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
     {
         private readonly SpatialHash<IVisible> visibles = new SpatialHash<IVisible>();
         private readonly HashSet<IVisible> forwards = new HashSet<IVisible>();
@@ -19,7 +19,7 @@ namespace Astraia.Core
         [SerializeField] private int extentY = 1;
         [SerializeField] private int cellSize = 1;
 
-        public override void Enqueue()
+        protected override void Enqueue()
         {
             forwards.Clear();
             previous.Clear();
@@ -27,13 +27,13 @@ namespace Astraia.Core
             visibles.Clear();
         }
 
-        public override void OnShow()
+        protected override void OnShow()
         {
             EventManager.Listen<OnAfterUpdate>(this);
             EventManager.Listen<OnGizmoUpdate>(this);
         }
 
-        public override void OnHide()
+        protected override void OnHide()
         {
             EventManager.Remove<OnAfterUpdate>(this);
             EventManager.Remove<OnGizmoUpdate>(this);

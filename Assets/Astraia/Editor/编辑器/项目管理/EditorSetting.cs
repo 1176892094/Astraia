@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
-using Astraia.Core;
+using Astraia;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;

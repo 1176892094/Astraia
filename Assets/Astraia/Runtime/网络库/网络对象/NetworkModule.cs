@@ -12,7 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Astraia.Core;
+using Astraia;
 using UnityEngine;
 
 namespace Astraia.Net

@@ -68,7 +68,7 @@ namespace Astraia.Editor
             }
 
             var modified = false;
-            var owner = td.GetField(assembly, "owner");
+            var owner = td.GetMethod(assembly, "get_owner");
             foreach (var f in td.Fields)
             {
                 if (f.HasAttribute<InjectAttribute>())
@@ -110,7 +110,7 @@ namespace Astraia.Editor
 
     internal static class CustomExtensions
     {
-        public static void InjectField(this MethodDefinition md, MethodReference method, FieldDefinition field, FieldReference owner = null)
+        public static void InjectField(this MethodDefinition md, MethodReference method, FieldDefinition field, MethodReference owner = null)
         {
             var worker = md.Body.GetILProcessor();
             var target = md.Body.Instructions[0];
@@ -118,7 +118,7 @@ namespace Astraia.Editor
             worker.InsertBefore(target, worker.Create(OpCodes.Ldarg_0));
             if (owner != null)
             {
-                worker.InsertBefore(target, worker.Create(OpCodes.Ldfld, owner));
+                worker.InsertBefore(target, worker.Create(OpCodes.Call, owner));
             }
 
             worker.InsertBefore(target, worker.Create(OpCodes.Ldarg_0));

@@ -78,7 +78,7 @@ namespace Astraia.Net
             }
         }
 
-        public override void Dequeue()
+        protected override void Dequeue()
         {
             target = owner.transform;
             position = target.position;

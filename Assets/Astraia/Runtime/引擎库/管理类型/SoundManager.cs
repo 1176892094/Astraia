@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Astraia.Core
+namespace Astraia
 {
     [Serializable]
     public class SoundManager : Singleton<SoundManager>, IEvent<OnAfterUpdate>
@@ -55,24 +55,24 @@ namespace Astraia.Core
             }
         }
 
-        public override void Dequeue()
+        protected override void Dequeue()
         {
             isPlaying = true;
             MusicVolume = JsonManager.Load(nameof(MusicVolume), 100);
             AudioVolume = JsonManager.Load(nameof(AudioVolume), 100);
         }
 
-        public override void OnShow()
+        protected override void OnShow()
         {
             EventManager.Listen(this);
         }
 
-        public override void OnHide()
+        protected override void OnHide()
         {
             EventManager.Remove(this);
         }
 
-        public override void Enqueue()
+        protected override void Enqueue()
         {
             Instance = null;
             audioData.Clear();

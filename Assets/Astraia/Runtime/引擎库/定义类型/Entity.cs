@@ -61,23 +61,23 @@ namespace Astraia
             moduleList.Clear();
         }
 
-        public T AddComponent<T>() where T : IModule
+        public T AddComponent<T>() 
         {
-            var module = Activator.CreateInstance<T>();
+            var module = (IModule)Activator.CreateInstance<T>();
             moduleList.Add(module);
             module.Acquire(this);
-            return module;
+            return (T)module;
         }
 
-        public T AddComponent<T>(Type item) where T : IModule
+        public T AddComponent<T>(Type item)
         {
-            var module = (T)Activator.CreateInstance(item);
+            var module = (IModule)Activator.CreateInstance(item);
             moduleList.Add(module);
             module.Acquire(this);
-            return module;
+            return (T)module;
         }
 
-        public T GetComponent<T>(int index) where T : IModule
+        public T GetComponent<T>(int index)
         {
             return index < moduleList.Count ? (T)moduleList[index] : default;
         }

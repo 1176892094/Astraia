@@ -13,7 +13,7 @@ using System;
 using Astraia.Net;
 using UnityEngine;
 
-namespace Astraia.Core
+namespace Astraia
 {
     public interface IMessage
     {

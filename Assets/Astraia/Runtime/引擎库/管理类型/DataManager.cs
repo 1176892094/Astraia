@@ -15,7 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Astraia.Core
+namespace Astraia
 {
     using static DataManager;
 
@@ -135,7 +135,7 @@ namespace Astraia.Core
             var result = new Dictionary<T, TData>();
             foreach (var item in items)
             {
-                var index = item.GetValue<T>(name);
+                var index = (T)typeof(TData).GetProperty(name, Search.Instance)!.GetValue(item);
                 if (result.ContainsKey(index))
                 {
                     Log.Warn("加载数据 {0} 失败。键值重复: {1}".Format(item, index));

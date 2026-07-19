@@ -23,7 +23,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 
-namespace Astraia.Core
+namespace Astraia
 {
     [Serializable]
     public class AssetManager : Singleton<AssetManager>
@@ -41,7 +41,7 @@ namespace Astraia.Core
             AssetManager.package = package;
         }
 
-        public override void Enqueue()
+        protected override void Enqueue()
         {
             Instance = null;
             manifest = null;

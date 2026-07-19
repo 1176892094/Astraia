@@ -607,7 +607,7 @@ namespace Astraia
         }
     }
 
-    public interface IModule
+    internal interface IModule
     {
         void Acquire(object owner);
         void Dequeue();
@@ -616,34 +616,7 @@ namespace Astraia
         void OnHide();
     }
 
-    [Serializable]
-    public abstract class Module<T> : IModule
-    {
-        [NonSerialized] public T owner;
-
-        void IModule.Acquire(object owner)
-        {
-            this.owner = (T)owner;
-        }
-
-        public virtual void Dequeue()
-        {
-        }
-
-        public virtual void OnShow()
-        {
-        }
-
-        public virtual void OnHide()
-        {
-        }
-
-        public virtual void Enqueue()
-        {
-        }
-    }
-
-    public interface IState
+    internal interface IState
     {
         void Acquire(object owner);
         void OnEnter();
@@ -651,44 +624,72 @@ namespace Astraia
         void OnExit();
     }
 
-    public abstract class State<T> : IState
+    [Serializable]
+    public abstract class Module<T> : IModule
     {
-        protected T owner { get; private set; }
+        public T owner { get; internal set; }
+        void IModule.Acquire(object owner) => this.owner = (T)owner;
+        void IModule.Dequeue() => Dequeue();
+        void IModule.Enqueue() => Enqueue();
+        void IModule.OnShow() => OnShow();
+        void IModule.OnHide() => OnHide();
 
-        void IState.Acquire(object owner)
-        {
-            this.owner = (T)owner;
-        }
-
-        public virtual void OnEnter()
-        {
-        }
-
-        public virtual void OnUpdate()
+        protected virtual void Dequeue()
         {
         }
 
-        public virtual void OnExit()
+        protected virtual void Enqueue()
+        {
+        }
+
+        protected virtual void OnShow()
+        {
+        }
+
+        protected virtual void OnHide()
         {
         }
     }
 
     [Serializable]
-    public class StateMachine<T> : Dictionary<T, IState>
+    public abstract class State<T> : IState
     {
+        public T owner { get; internal set; }
+        void IState.Acquire(object owner) => this.owner = (T)owner;
+        void IState.OnEnter() => OnEnter();
+        void IState.OnUpdate() => OnUpdate();
+        void IState.OnExit() => OnExit();
+
+        protected virtual void OnEnter()
+        {
+        }
+
+        protected virtual void OnUpdate()
+        {
+        }
+
+        protected virtual void OnExit()
+        {
+        }
+    }
+
+    [Serializable]
+    public class StateMachine<T>
+    {
+        private Dictionary<T, IState> states = new Dictionary<T, IState>();
         private IState state;
 
-        public void Create<TState>(object owner, T key) where TState : IState
+        public void Create<TState>(object owner, T key)
         {
             var item = HeapManager.Dequeue<IState>(typeof(TState));
             item.Acquire(owner);
-            this[key] = item;
+            states[key] = item;
         }
 
         public void Switch(T key)
         {
             state?.OnExit();
-            TryGetValue(key, out state);
+            states.TryGetValue(key, out state);
             state?.OnEnter();
         }
 
@@ -699,13 +700,13 @@ namespace Astraia
 
         public void Dispose()
         {
-            foreach (var item in Values)
+            foreach (var item in states.Values)
             {
                 HeapManager.Enqueue(item, item.GetType());
             }
 
-            Clear();
             state = null;
+            states.Clear();
         }
     }
 

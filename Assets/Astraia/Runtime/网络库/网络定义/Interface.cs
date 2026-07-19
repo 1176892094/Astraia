@@ -11,7 +11,7 @@
 
 using Astraia.Net;
 
-namespace Astraia.Core
+namespace Astraia
 {
     public interface IStartClient
     {

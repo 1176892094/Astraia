@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Astraia.Core
+namespace Astraia
 {
     [Serializable]
     public class PoolManager : Singleton<PoolManager>
@@ -23,7 +23,7 @@ namespace Astraia.Core
         [SerializeField] private Transform parent;
         internal ICollection<IPool> Values => poolData.Values;
 
-        public override void Enqueue()
+        protected override void Enqueue()
         {
             Instance = null;
             foreach (var item in poolData.Values)

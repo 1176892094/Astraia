@@ -15,7 +15,7 @@ using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Astraia.Core
+namespace Astraia
 {
     [Serializable]
     public class UIManager : Singleton<UIManager>
@@ -27,7 +27,7 @@ namespace Astraia.Core
 
         public static Canvas Canvas => Instance.canvas;
 
-        public override void Enqueue()
+        protected override void Enqueue()
         {
             Instance = null;
             stackData.Clear();

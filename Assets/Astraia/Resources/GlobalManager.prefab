@@ -227,23 +227,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Astraia.Run::Astraia.Core.GlobalManager
   moduleList:
-  - rid: 5279500917910798419
-  - rid: 5279500917910798744
-  - rid: 5279500917910798898
+  - rid: 5279501231168421966
+  - rid: 5279501231168421967
+  - rid: 5279501231168421968
   references:
     version: 2
     RefIds:
-    - rid: 5279500917910798419
-      type: {class: UIManager, ns: Astraia.Core, asm: Astraia.Run}
+    - rid: 5279501231168421966
+      type: {class: UIManager, ns: Astraia, asm: Astraia.Run}
       data:
         canvas: {fileID: 5092998757371484232}
-    - rid: 5279500917910798744
-      type: {class: PoolManager, ns: Astraia.Core, asm: Astraia.Run}
+    - rid: 5279501231168421967
+      type: {class: PoolManager, ns: Astraia, asm: Astraia.Run}
       data:
         parent: {fileID: 6589046794473241548}
-    - rid: 5279500917910798898
-      type: {class: AssetManager, ns: Astraia.Core, asm: Astraia.Run}
+    - rid: 5279501231168421968
+      type: {class: AssetManager, ns: Astraia, asm: Astraia.Run}
       data:
         version: 0
-        simulate: 1
-        manifest: {fileID: 0}

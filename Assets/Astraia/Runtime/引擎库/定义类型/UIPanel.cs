@@ -11,7 +11,7 @@
 
 using System;
 using System.Collections.Generic;
-using Astraia.Core;
+using Astraia;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
