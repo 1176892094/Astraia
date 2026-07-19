@@ -26,6 +26,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("Astraia.Net")]
 [assembly: InternalsVisibleTo("Astraia.Editor")]
+[assembly: InternalsVisibleTo("HotUpdate.Data")]
 [assembly: InternalsVisibleTo("HotUpdate.Editor")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

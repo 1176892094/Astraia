@@ -287,7 +287,7 @@ namespace Astraia
         }
     }
 
-    public static class Text
+    internal static class Text
     {
         [ThreadStatic] private static UTF8Encoding encoding;
 
@@ -600,8 +600,7 @@ namespace Astraia
         }
     }
 
-
-    public static class Extensions
+    public static class StringExtensions
     {
         public static string Format<T>(this string format, T arg1)
         {
@@ -697,8 +696,6 @@ namespace Astraia
             attribute = member.GetCustomAttribute<T>(true);
             return attribute != null;
         }
-
-  
     }
 
     internal static class Compress

@@ -13,8 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Security.Cryptography;
-using Astraia;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -332,6 +330,54 @@ namespace Astraia
                 AssetDatabase.Refresh();
                 return instance;
             }
+        }
+    }
+
+    [CustomPropertyDrawer(typeof(Xor32))]
+    internal class XorIntDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.BeginProperty(position, label, property);
+
+            var color = GUI.color;
+            GUI.color = Color.green;
+            var content = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+            GUI.color = color;
+
+            var origin = property.FindPropertyRelative("origin");
+            var offset = property.FindPropertyRelative("offset");
+            var source = origin.intValue ^ offset.intValue;
+
+            GUI.enabled = false;
+            EditorGUI.IntField(content, source);
+            GUI.enabled = true;
+
+            EditorGUI.EndProperty();
+        }
+    }
+
+    [CustomPropertyDrawer(typeof(Xor64))]
+    internal class XorLongDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.BeginProperty(position, label, property);
+
+            var color = GUI.color;
+            GUI.color = Color.green;
+            var content = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+            GUI.color = color;
+
+            var origin = property.FindPropertyRelative("origin");
+            var offset = property.FindPropertyRelative("offset");
+            var source = origin.longValue ^ offset.longValue;
+
+            GUI.enabled = false;
+            EditorGUI.LongField(content, source);
+            GUI.enabled = true;
+
+            EditorGUI.EndProperty();
         }
     }
 }

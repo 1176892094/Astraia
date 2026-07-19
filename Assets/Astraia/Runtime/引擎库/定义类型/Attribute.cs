@@ -13,13 +13,13 @@ using System;
 
 namespace Astraia
 {
-    [AttributeUsage(AttributeTargets.Field)]
-    public class InjectAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property)]
+    internal class PrimaryAttribute : Attribute
     {
     }
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public class PrimaryAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Field)]
+    public class InjectAttribute : Attribute
     {
     }
 

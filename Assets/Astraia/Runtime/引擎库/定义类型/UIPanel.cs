@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using Astraia;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -44,7 +43,7 @@ namespace Astraia
     }
 
     [Serializable]
-    public abstract class UIPanel<T, TGrid> : UIPanel, IMove where TGrid : Component, IGrid<T>
+    public abstract class UIPanel<T, TGrid> : UIPanel, INeighbor where TGrid : Component, IGrid<T>
     {
         private TGrid[] grids;
         private IList<T> items;
@@ -233,7 +232,7 @@ namespace Astraia
             grid.SetItem(items[i]);
         }
 
-        public void Move(int index, MoveDirection move)
+        public void Neighbor(int index, MoveDirection move)
         {
             var content = scroll.content;
             var pos = content.anchoredPosition;
@@ -261,9 +260,9 @@ namespace Astraia
         }
     }
 
-    public interface IMove
+    public interface INeighbor
     {
-        void Move(int index, MoveDirection move);
+        void Neighbor(int index, MoveDirection move);
     }
 
     public interface IGrid
