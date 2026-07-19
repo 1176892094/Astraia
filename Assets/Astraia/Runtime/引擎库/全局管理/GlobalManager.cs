@@ -18,7 +18,6 @@ namespace Astraia
     {
         protected override void Awake()
         {
-            Async.Time = 0;
             DontDestroyOnLoad(gameObject);
         }
 
@@ -29,7 +28,6 @@ namespace Astraia
 
         private void Update()
         {
-            Async.Time = Time.time;
             EventManager.Invoke(new OnEarlyUpdate());
         }
 

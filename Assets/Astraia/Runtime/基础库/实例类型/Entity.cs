@@ -798,11 +798,6 @@ namespace Astraia
         }
     }
 
-    internal interface IAsync
-    {
-        bool isActive { get; }
-    }
-
     public struct OnEarlyUpdate : IEvent
     {
     }
@@ -819,9 +814,14 @@ namespace Astraia
     {
     }
 
+    internal interface IAsync
+    {
+        bool isActive { get; }
+    }
+
+    [Serializable]
     public abstract class Async : INotifyCompletion, IEvent<OnEarlyUpdate>
     {
-        internal static float Time;
         internal IAsync owner;
 
         protected short state;
@@ -829,6 +829,7 @@ namespace Astraia
         protected float duration;
         protected Action onWaitable;
         protected Action onComplete;
+        protected Func<float> onTime;
         public bool IsCompleted => state != 0;
 
         void IEvent<OnEarlyUpdate>.Execute(OnEarlyUpdate message)
@@ -838,16 +839,15 @@ namespace Astraia
                 if (owner.isActive)
                 {
                     Update();
+                    return;
                 }
-                else
-                {
-                    Break();
-                }
+
+                Break();
             }
             catch (Exception e)
             {
-                Break();
                 Log.Info("打断异步方法：\n{0}".Format(e));
+                Break();
             }
         }
 
@@ -863,9 +863,9 @@ namespace Astraia
             onComplete += complete;
         }
 
-        public bool GetResult()
+        public int GetResult()
         {
-            return state == 2;
+            return state;
         }
 
         public Async GetAwaiter()
@@ -886,12 +886,13 @@ namespace Astraia
         }
     }
 
+    [Serializable]
     public sealed class Timer : Async
     {
         private int progress;
         private Action onUpdate;
 
-        internal static Timer Create(IAsync owner, float duration)
+        internal static Timer Create(IAsync owner, Func<float> onTime, float duration)
         {
             var item = HeapManager.Dequeue<Timer>();
             EventManager.Listen(item);
@@ -899,15 +900,16 @@ namespace Astraia
             item.state = 0;
             item.progress = 1;
             item.duration = duration;
-            item.waitTime = duration + Time;
             item.onComplete = item.Release;
+            item.SetTime(onTime);
             return item;
         }
 
         private void Release()
         {
-            state = 1;
+            state |= 1 << 0;
             owner = null;
+            onTime = null;
             onUpdate = null;
             onWaitable = null;
             EventManager.Remove(this);
@@ -916,9 +918,10 @@ namespace Astraia
 
         protected override void Update()
         {
-            if (waitTime < Time)
+            var stepTime = onTime();
+            if (waitTime < stepTime)
             {
-                waitTime = Time + duration;
+                waitTime = stepTime + duration;
                 if (onUpdate != null)
                 {
                     onUpdate.Invoke();
@@ -927,7 +930,7 @@ namespace Astraia
                 progress--;
                 if (progress == 0)
                 {
-                    state = 2;
+                    state |= 1 << 1;
                     onComplete += onWaitable;
                     onComplete.Invoke();
                 }
@@ -943,7 +946,7 @@ namespace Astraia
         public Timer Set(float interval)
         {
             duration = interval;
-            waitTime = interval + Time;
+            waitTime = interval + onTime();
             return this;
         }
 
@@ -958,14 +961,22 @@ namespace Astraia
             progress = count;
             return this;
         }
+
+        public Timer SetTime(Func<float> onTime)
+        {
+            this.onTime = onTime;
+            waitTime = duration + onTime();
+            return this;
+        }
     }
 
+    [Serializable]
     public sealed class Tween : Async
     {
         private float progress;
         private Action<float> onUpdate;
 
-        internal static Tween Create(IAsync owner, float duration)
+        internal static Tween Create(IAsync owner, Func<float> onTime, float duration)
         {
             var item = HeapManager.Dequeue<Tween>();
             EventManager.Listen(item);
@@ -973,15 +984,16 @@ namespace Astraia
             item.state = 0;
             item.progress = 0;
             item.duration = duration;
-            item.waitTime = Time;
             item.onComplete = item.Release;
+            item.SetTime(onTime);
             return item;
         }
 
         private void Release()
         {
-            state = 1;
+            state |= 1 << 0;
             owner = null;
+            onTime = null;
             onUpdate = null;
             onWaitable = null;
             EventManager.Remove(this);
@@ -990,9 +1002,10 @@ namespace Astraia
 
         protected override void Update()
         {
-            if (waitTime < Time)
+            var stepTime = duration + onTime();
+            if (waitTime < stepTime)
             {
-                progress = (Time - waitTime) / duration;
+                progress = (stepTime - waitTime) / duration;
                 if (progress > 1)
                 {
                     progress = 1;
@@ -1001,7 +1014,7 @@ namespace Astraia
                 onUpdate.Invoke(progress);
                 if (progress >= 1)
                 {
-                    state = 2;
+                    state |= 1 << 1;
                     onComplete += onWaitable;
                     onComplete.Invoke();
                 }
@@ -1011,6 +1024,13 @@ namespace Astraia
         public Tween OnUpdate(Action<float> update)
         {
             onUpdate += update;
+            return this;
+        }
+
+        public Tween SetTime(Func<float> onTime)
+        {
+            this.onTime = onTime;
+            waitTime = duration + onTime();
             return this;
         }
     }

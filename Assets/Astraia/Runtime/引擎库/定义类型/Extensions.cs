@@ -369,12 +369,17 @@ namespace Astraia
 
         public static Timer Wait(this Component current, float duration = 0)
         {
-            return Timer.Create(new AsyncAdaptor(current), duration);
+            return Timer.Create(new AsyncAdaptor(current), GetTime, duration);
         }
 
         public static Tween Play(this Component current, float duration)
         {
-            return Tween.Create(new AsyncAdaptor(current), duration);
+            return Tween.Create(new AsyncAdaptor(current), GetTime, duration);
+        }
+
+        private static float GetTime()
+        {
+            return Time.time;
         }
 
         public static Tween DOMoveX(this Component component, float endValue, float duration)
