@@ -22,7 +22,7 @@ namespace Astraia
     }
 
     [Serializable]
-    public abstract class UIPanel : Inject
+    public abstract class UIPanel : Export
     {
         public UIState state = UIState.Common;
 
@@ -65,7 +65,7 @@ namespace Astraia
 
         protected override void Awake()
         {
-            scroll = InjectManager.Inject<ScrollRect>(this, this, nameof(ScrollRect));
+            scroll = ExportManager.Export<ScrollRect>(this, this, nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
                 col = rect.col;

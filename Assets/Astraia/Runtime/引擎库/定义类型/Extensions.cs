@@ -49,7 +49,7 @@ namespace Astraia
             return "<color={0}>{1}</color>".Format(colors.GetValueOrDefault(format[0], format), result);
         }
 
-        public static T Parse<T>(this Bytes[] reason, int index)
+        public static T Parse<T>(this XorEx[] reason, int index)
         {
             if (reason == null) return default;
             var value = Text.GetString(reason[index]);

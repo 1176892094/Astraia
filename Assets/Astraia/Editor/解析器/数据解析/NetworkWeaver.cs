@@ -91,7 +91,7 @@ namespace Astraia.Editor
                         }
                     }
 
-                    if (td.IsSubclassOf<Inject>())
+                    if (td.IsSubclassOf<Export>())
                     {
                         modified |= EntityGenerator.Processed(assembly, td, module, Log);
                     }
@@ -134,7 +134,7 @@ namespace Astraia.Editor
 
         public readonly MethodReference Listen;
         public readonly MethodReference Remove;
-        public readonly MethodReference Inject;
+        public readonly MethodReference Export;
 
         public readonly MethodReference LogError;
         public readonly MethodReference SyncVarHook;
@@ -183,7 +183,7 @@ namespace Astraia.Editor
 
             Listen = Import(typeof(EventManager)).GetMethod(assembly, nameof(Listen), Log, ref failed);
             Remove = Import(typeof(EventManager)).GetMethod(assembly, nameof(Remove), Log, ref failed);
-            Inject = Import(typeof(InjectManager)).GetMethod(assembly, nameof(Inject), Log, ref failed);
+            Export = Import(typeof(ExportManager)).GetMethod(assembly, nameof(Export), Log, ref failed);
 
             WriterDequeue = Import<MemoryWriter>().GetMethod(assembly, "Pop", Log, ref failed);
             WriterEnqueue = Import<MemoryWriter>().GetMethod(assembly, "Push", Log, ref failed);

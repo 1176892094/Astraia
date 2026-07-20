@@ -54,9 +54,9 @@ TextAsset:
     20:12:28\n// # Copyright: 2024, \u4E91\u8C37\u5343\u7FBD\n// # Description: This
     is an automatically generated comment.\n// *********************************************************************************\n\nusing
     System;\nusing UnityEngine;\nusing Astraia;\n\nnamespace Astraia.Table\n{\n   
-    internal class TemplateDataTable : DataTable<TemplateData> { }\n\n     [Serializable]\n   
+    internal class TemplateDataTable : DataTable<TemplateData> { }\n\n    [Serializable]\n   
     public struct TemplateData : IData\n    {\n //TODO:1\n        [HideInInspector,
-    SerializeField] private Bytes[] Bytes;\n        public TemplateData(Bytes[] bytes)
+    SerializeField] private XorEx[] Bytes;\n        public TemplateData(XorEx[] bytes)
     => Bytes = bytes;\n    }\n}"
 --- !u!114 &11400000
 MonoBehaviour:

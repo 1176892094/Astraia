@@ -16,9 +16,9 @@ namespace Astraia.Editor
             var modified = false;
             foreach (var f in td.Fields)
             {
-                if (f.HasAttribute<InjectAttribute>())
+                if (f.HasAttribute<ExportAttribute>())
                 {
-                    var awake = module.Inject.MakeGeneric(assembly.MainModule, f.FieldType);
+                    var awake = module.Export.MakeGeneric(assembly.MainModule, f.FieldType);
                     td.GetMethod(assembly, Weaver.GEN_S2, "Awake").InjectField(awake, f);
                     modified = true;
                 }
@@ -71,9 +71,9 @@ namespace Astraia.Editor
             var owner = td.GetMethod(assembly, "get_owner");
             foreach (var f in td.Fields)
             {
-                if (f.HasAttribute<InjectAttribute>())
+                if (f.HasAttribute<ExportAttribute>())
                 {
-                    var dequeue = module.Inject.MakeGeneric(assembly.MainModule, f.FieldType);
+                    var dequeue = module.Export.MakeGeneric(assembly.MainModule, f.FieldType);
                     td.GetMethod(assembly, Weaver.GEN_S1, "Dequeue").InjectField(dequeue, f, owner);
                     modified = true;
                 }

@@ -220,7 +220,7 @@ namespace Astraia
             var result = GlobalSetting.PersistentPath.Format(reason);
             if (package.Bundles.TryGetValue(reason, out var bundle))
             {
-                if (bundle.Hash == Zip.ComputeHash(result))
+                if (bundle.Hash == Utils.ComputeHash(result))
                 {
                     var request = AssetBundle.LoadFromFileAsync(result);
                     await request;

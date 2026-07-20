@@ -115,7 +115,7 @@ namespace Astraia
         }
     }
 
-    public static class Zip
+    public static class Utils
     {
         public static byte[] Xor(this byte[] bytes, uint state = 1176892094)
         {
@@ -518,7 +518,7 @@ namespace Astraia
 
         public static void SetUp(string text)
         {
-            var splits = Zip.Decompress(text).Split('\n');
+            var splits = Utils.Decompress(text).Split('\n');
             foreach (var chars in splits)
             {
                 var current = root;

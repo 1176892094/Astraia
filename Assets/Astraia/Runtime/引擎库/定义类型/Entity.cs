@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public class Entity : Inject
+    public class Entity : Export
     {
         [SerializeReference]
         internal List<IModule> moduleList = new List<IModule>();
@@ -89,7 +89,7 @@ namespace Astraia
         }
     }
 
-    public abstract class Inject : MonoBehaviour
+    public abstract class Export : MonoBehaviour
     {
         protected virtual void Awake() { }
 

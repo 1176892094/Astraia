@@ -6,9 +6,9 @@ using UnityEngine.UI;
 
 namespace Astraia
 {
-    public static class InjectManager
+    public static class ExportManager
     {
-        public static T Inject<T>(Component owner, object obj, string name) where T : Component
+        public static T Export<T>(Component owner, object obj, string name) where T : Component
         {
             var child = owner.transform.GetChild(name);
             if (child)

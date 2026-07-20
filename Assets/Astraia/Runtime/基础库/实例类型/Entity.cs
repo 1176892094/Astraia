@@ -166,7 +166,7 @@ namespace Astraia
     }
 
     [Serializable]
-    public struct Bytes : IEquatable<Bytes>
+    public struct XorEx : IEquatable<XorEx>
     {
         private static readonly int Ticks = (int)DateTime.Now.Ticks;
         public byte[] origin;
@@ -198,7 +198,7 @@ namespace Astraia
             }
         }
 
-        public Bytes(byte[] value)
+        public XorEx(byte[] value)
         {
             buffer = 0;
             offset = Ticks;
@@ -206,24 +206,24 @@ namespace Astraia
             buffer = GetHashCode();
         }
 
-        public static implicit operator byte[](Bytes variable)
+        public static implicit operator byte[](XorEx variable)
         {
             return variable.Value;
         }
 
-        public static implicit operator Bytes(byte[] value)
+        public static implicit operator XorEx(byte[] value)
         {
-            return new Bytes(value);
+            return new XorEx(value);
         }
 
-        public bool Equals(Bytes other)
+        public bool Equals(XorEx other)
         {
             return Value == other.Value;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is Bytes other && Equals(other);
+            return obj is XorEx other && Equals(other);
         }
 
         public override string ToString()

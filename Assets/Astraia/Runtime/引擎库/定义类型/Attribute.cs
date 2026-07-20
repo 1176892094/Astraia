@@ -19,7 +19,7 @@ namespace Astraia
     }
 
     [AttributeUsage(AttributeTargets.Field)]
-    public class InjectAttribute : Attribute
+    public class ExportAttribute : Attribute
     {
     }
 

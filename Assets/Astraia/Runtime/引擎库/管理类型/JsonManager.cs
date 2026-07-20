@@ -53,7 +53,7 @@ namespace Astraia
         {
             var path = LoadPath(name);
             var json = ToJson(data);
-            var item = Zip.Compress(Text.GetBytes(json));
+            var item = Utils.Compress(Text.GetBytes(json));
             File.WriteAllBytes(path, item.Xor());
         }
 
@@ -66,7 +66,7 @@ namespace Astraia
             }
 
             var item = File.ReadAllBytes(path).Xor();
-            var json = Text.GetString(Zip.Decompress(item));
+            var json = Text.GetString(Utils.Decompress(item));
             FromJson(json, data);
         }
 
@@ -79,7 +79,7 @@ namespace Astraia
             }
 
             var item = File.ReadAllBytes(path).Xor();
-            var json = Text.GetString(Zip.Decompress(item));
+            var json = Text.GetString(Utils.Decompress(item));
             return FromJson<T>(json);
         }
 
