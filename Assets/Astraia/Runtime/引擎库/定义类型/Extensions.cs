@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace Astraia
@@ -209,21 +210,21 @@ namespace Astraia
             return component ? component : self.AddComponent<T>();
         }
 
-        private readonly struct AsyncAdaptor : IAsync
+        private readonly struct AsyncAdaptor
         {
             private readonly Component owner;
-            public AsyncAdaptor(Component owner) => this.owner = owner;
-            public bool isActive => owner && owner.gameObject && owner.gameObject.activeInHierarchy;
+            public AsyncAdaptor(Component value) => owner = value;
+            public override int GetHashCode() => owner && owner.gameObject && owner.gameObject.activeInHierarchy ? 1 : 0;
         }
 
         public static Timer Wait(this Component current, float duration = 0)
         {
-            return Timer.Create(new AsyncAdaptor(current), GetTime, duration);
+            return Timer.Create(new AsyncAdaptor(current), duration, GetTime);
         }
 
         public static Tween Play(this Component current, float duration)
         {
-            return Tween.Create(new AsyncAdaptor(current), GetTime, duration);
+            return Tween.Create(new AsyncAdaptor(current), duration, GetTime);
         }
 
         private static float GetTime()

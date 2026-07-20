@@ -812,86 +812,22 @@ namespace Astraia
 
     public struct OnGizmoUpdate : IEvent { }
 
-    internal interface IAsync
-    {
-        bool isActive { get; }
-    }
-
     [Serializable]
-    public abstract class Async : INotifyCompletion, IEvent<OnEarlyUpdate>
+    public sealed class Timer : INotifyCompletion, IEvent<OnEarlyUpdate>
     {
-        internal IAsync owner;
+        private int state;
+        private object owner;
+        private float waitTime;
+        private float duration;
+        private Action onAwaiter;
+        private Action onComplete;
+        private Func<float> onTime;
 
-        protected int state;
-        protected float waitTime;
-        protected float duration;
-        protected Action onAwaiter;
-        protected Action onComplete;
-        protected Func<float> onTime;
-        public bool IsCompleted => state != 0;
-
-        void IEvent<OnEarlyUpdate>.Execute(OnEarlyUpdate message)
-        {
-            try
-            {
-                if (owner.isActive)
-                {
-                    Update();
-                }
-                else
-                {
-                    Break();
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Info("打断异步方法：\n{0}".Format(e));
-                Break();
-            }
-        }
-
-        protected abstract void Update();
-
-        public void Break()
-        {
-            onComplete.Invoke();
-        }
-
-        public void OnComplete(Action complete)
-        {
-            onComplete += complete;
-        }
-
-        public int GetResult()
-        {
-            return state;
-        }
-
-        public Async GetAwaiter()
-        {
-            return this;
-        }
-
-        void INotifyCompletion.OnCompleted(Action awaiter)
-        {
-            if (owner.isActive)
-            {
-                onAwaiter = awaiter;
-            }
-            else
-            {
-                Break();
-            }
-        }
-    }
-
-    [Serializable]
-    public sealed class Timer : Async
-    {
         private int progress;
         private Action onUpdate;
+        public bool IsCompleted => state != 0;
 
-        internal static Timer Create(IAsync owner, Func<float> onTime, float duration)
+        internal static Timer Create(object owner, float duration, Func<float> onTime)
         {
             var item = HeapManager.Dequeue<Timer>();
             EventManager.Listen(item);
@@ -915,25 +851,49 @@ namespace Astraia
             HeapManager.Enqueue(this);
         }
 
-        protected override void Update()
+        void IEvent<OnEarlyUpdate>.Execute(OnEarlyUpdate message)
         {
-            var stepTime = onTime();
-            if (waitTime < stepTime)
+            try
             {
-                waitTime = stepTime + duration;
-                if (onUpdate != null)
+                if (owner.GetHashCode() == 0)
                 {
-                    onUpdate.Invoke();
+                    Break();
+                    return;
                 }
 
-                progress--;
-                if (progress == 0)
+                var stepTime = onTime();
+                if (waitTime < stepTime)
                 {
-                    state |= 1 << 1;
-                    onComplete += onAwaiter;
-                    onComplete.Invoke();
+                    waitTime = stepTime + duration;
+                    if (onUpdate != null)
+                    {
+                        onUpdate.Invoke();
+                    }
+
+                    progress--;
+                    if (progress == 0)
+                    {
+                        state |= 1 << 1;
+                        onComplete += onAwaiter;
+                        onComplete.Invoke();
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                Log.Info("打断异步方法：\n{0}".Format(e));
+                Break();
+            }
+        }
+
+        public void Break()
+        {
+            onComplete.Invoke();
+        }
+
+        public void OnComplete(Action complete)
+        {
+            onComplete += complete;
         }
 
         public Timer OnUpdate(Action update)
@@ -967,15 +927,46 @@ namespace Astraia
             progress = count;
             return this;
         }
+
+        public int GetResult()
+        {
+            return state;
+        }
+
+        public Timer GetAwaiter()
+        {
+            return this;
+        }
+
+        void INotifyCompletion.OnCompleted(Action awaiter)
+        {
+            if (owner.GetHashCode() == 0)
+            {
+                Break();
+            }
+            else
+            {
+                onAwaiter = awaiter;
+            }
+        }
     }
 
     [Serializable]
-    public sealed class Tween : Async
+    public sealed class Tween : INotifyCompletion, IEvent<OnEarlyUpdate>
     {
+        private int state;
+        private object owner;
+        private float waitTime;
+        private float duration;
+        private Action onAwaiter;
+        private Action onComplete;
+        private Func<float> onTime;
+
         private float progress;
         private Action<float> onUpdate;
+        public bool IsCompleted => state != 0;
 
-        internal static Tween Create(IAsync owner, Func<float> onTime, float duration)
+        internal static Tween Create(object owner, float duration, Func<float> onTime)
         {
             var item = HeapManager.Dequeue<Tween>();
             EventManager.Listen(item);
@@ -999,25 +990,49 @@ namespace Astraia
             HeapManager.Enqueue(this);
         }
 
-        protected override void Update()
+        void IEvent<OnEarlyUpdate>.Execute(OnEarlyUpdate message)
         {
-            var stepTime = duration + onTime();
-            if (waitTime < stepTime)
+            try
             {
-                progress = (stepTime - waitTime) / duration;
-                if (progress > 1)
+                if (owner.GetHashCode() == 0)
                 {
-                    progress = 1;
+                    Break();
+                    return;
                 }
 
-                onUpdate.Invoke(progress);
-                if (progress >= 1)
+                var stepTime = duration + onTime();
+                if (waitTime < stepTime)
                 {
-                    state |= 1 << 1;
-                    onComplete += onAwaiter;
-                    onComplete.Invoke();
+                    progress = (stepTime - waitTime) / duration;
+                    if (progress > 1)
+                    {
+                        progress = 1;
+                    }
+
+                    onUpdate.Invoke(progress);
+                    if (progress >= 1)
+                    {
+                        state |= 1 << 1;
+                        onComplete += onAwaiter;
+                        onComplete.Invoke();
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                Log.Info("打断异步方法：\n{0}".Format(e));
+                Break();
+            }
+        }
+
+        public void Break()
+        {
+            onComplete.Invoke();
+        }
+
+        public void OnComplete(Action complete)
+        {
+            onComplete += complete;
         }
 
         public Tween OnUpdate(Action<float> update)
@@ -1031,6 +1046,28 @@ namespace Astraia
             this.onTime = onTime;
             waitTime = duration + onTime();
             return this;
+        }
+
+        public int GetResult()
+        {
+            return state;
+        }
+
+        public Tween GetAwaiter()
+        {
+            return this;
+        }
+
+        void INotifyCompletion.OnCompleted(Action awaiter)
+        {
+            if (owner.GetHashCode() == 0)
+            {
+                Break();
+            }
+            else
+            {
+                onAwaiter = awaiter;
+            }
         }
     }
 
