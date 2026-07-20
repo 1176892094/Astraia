@@ -65,7 +65,7 @@ namespace Astraia
 
         protected override void Awake()
         {
-            scroll = this.Inject<ScrollRect>(this, nameof(ScrollRect));
+            scroll = InjectManager.Inject<ScrollRect>(this, this, nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
                 col = rect.col;

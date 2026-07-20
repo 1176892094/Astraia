@@ -183,7 +183,7 @@ namespace Astraia.Editor
 
             Listen = Import(typeof(EventManager)).GetMethod(assembly, nameof(Listen), Log, ref failed);
             Remove = Import(typeof(EventManager)).GetMethod(assembly, nameof(Remove), Log, ref failed);
-            Inject = Import(typeof(Astraia.EntityExtensions)).GetMethod(assembly, nameof(Inject), Log, ref failed);
+            Inject = Import(typeof(InjectManager)).GetMethod(assembly, nameof(Inject), Log, ref failed);
 
             WriterDequeue = Import<MemoryWriter>().GetMethod(assembly, "Pop", Log, ref failed);
             WriterEnqueue = Import<MemoryWriter>().GetMethod(assembly, "Push", Log, ref failed);
