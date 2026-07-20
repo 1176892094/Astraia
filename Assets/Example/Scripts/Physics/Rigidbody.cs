@@ -50,7 +50,7 @@ namespace Runtime
             set => Velocity.y = value;
         }
 
-        public override void Dequeue()
+        protected override void Dequeue()
         {
             MovePosition(owner.transform.position);
         }

@@ -16,14 +16,14 @@ namespace Runtime
 {
     public class PlayerIdle : PlayerState
     {
-        public override void OnEnter()
+        protected override void OnEnter()
         {
             Feature.CrashCount = 0;
             Feature.CrashPoint = Vector3.down * 1000;
             owner.Sender.SyncColorServerRpc(Color.white);
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             if (isFall)
             {
@@ -42,12 +42,12 @@ namespace Runtime
 
     public class PlayerWalk : PlayerState
     {
-        public override void OnEnter()
+        protected override void OnEnter()
         {
             owner.Sender.SyncColorServerRpc(Color.green);
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             if (isGrab)
             {
@@ -69,7 +69,7 @@ namespace Runtime
             Move();
         }
 
-        public override void OnExit()
+        protected override void OnExit()
         {
         }
     }
@@ -78,7 +78,7 @@ namespace Runtime
     {
         private float waitTime;
 
-        public override void OnEnter()
+        protected override void OnEnter()
         {
             Feature.JumpCount--;
             state |= State.跳跃;
@@ -101,7 +101,7 @@ namespace Runtime
             velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             if (Feature.DashTimer > Time.fixedTime)
             {
@@ -152,7 +152,7 @@ namespace Runtime
             Move(2);
         }
 
-        public override void OnExit()
+        protected override void OnExit()
         {
             state &= ~State.跳跃;
             state &= ~State.侧跳;
@@ -161,13 +161,13 @@ namespace Runtime
 
     public class PlayerFall : PlayerState
     {
-        public override void OnEnter()
+        protected override void OnEnter()
         {
             state |= State.下落;
             owner.Sender.SyncColorServerRpc(Color.red);
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             if (isGrab)
             {
@@ -183,7 +183,7 @@ namespace Runtime
             Move(2);
         }
 
-        public override void OnExit()
+        protected override void OnExit()
         {
             state &= ~State.下落;
         }
@@ -193,7 +193,7 @@ namespace Runtime
     {
         private Vector2 velocity;
 
-        public override void OnEnter()
+        protected override void OnEnter()
         {
             Feature.DashCount--;
             state |= State.冲刺;
@@ -202,7 +202,7 @@ namespace Runtime
             velocity = InputManager.Direction.normalized;
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             if (Feature.DashTimer < Time.fixedTime)
             {
@@ -255,7 +255,7 @@ namespace Runtime
             Collision();
         }
 
-        public override void OnExit()
+        protected override void OnExit()
         {
             velocityX = 0;
             velocityY = 0;
@@ -265,13 +265,13 @@ namespace Runtime
 
     public class PlayerGrab : PlayerState
     {
-        public override void OnEnter()
+        protected override void OnEnter()
         {
             state |= State.攀爬;
             owner.Sender.SyncColorServerRpc(Color.cyan);
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             if (Machine.OverlapX(Feature.MoveSpeed * InputManager.MoveX, out _))
             {
@@ -289,7 +289,7 @@ namespace Runtime
             Move();
         }
 
-        public override void OnExit()
+        protected override void OnExit()
         {
             state &= ~State.攀爬;
             Feature.GrabCD = Time.fixedTime + 0.1F;
@@ -301,7 +301,7 @@ namespace Runtime
         private float waitTime;
         private int moveX;
 
-        public override void OnEnter()
+        protected override void OnEnter()
         {
             state |= State.冲跳;
             waitTime = Time.fixedTime + 0.1F;
@@ -310,7 +310,7 @@ namespace Runtime
             Feature.CrashCount++;
         }
 
-        public override void OnUpdate()
+        protected override void OnUpdate()
         {
             if (waitTime < Time.fixedTime)
             {
@@ -337,7 +337,7 @@ namespace Runtime
             Collision();
         }
 
-        public override void OnExit()
+        protected override void OnExit()
         {
             velocityX /= 2;
             state &= ~State.冲跳;

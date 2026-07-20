@@ -1,5 +1,5 @@
 using System;
-using Astraia.Core;
+using Astraia;
 using Astraia.Net;
 using UnityEngine;
 

@@ -11,7 +11,7 @@
 
 using System;
 using Astraia;
-using Astraia.Core;
+
 using Astraia.Net;
 using UnityEngine;
 
@@ -25,7 +25,7 @@ namespace Runtime
         [SerializeField] private Transform player;
         [SerializeField] private Camera mainCamera;
 
-        public override void Dequeue()
+        protected override void Dequeue()
         {
             mainCamera = Camera.main;
             Application.targetFrameRate = 60;

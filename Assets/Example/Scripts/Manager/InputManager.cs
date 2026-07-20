@@ -1,6 +1,6 @@
 using System;
 using Astraia;
-using Astraia.Core;
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -22,13 +22,13 @@ namespace Runtime
         public static int MoveY => moveY != 0 ? moveY : Move.ReadValue<Vector2>().y > 0 ? 1 : Move.ReadValue<Vector2>().y < 0 ? -1 : 0;
         public static Vector2 Direction => new Vector2(MoveX, MoveY).normalized;
 
-        public override void Dequeue()
+        protected override void Dequeue()
         {
             inputAsset = AssetManager.Load<InputActionAsset>("Settings/InputManager");
             inputAsset.Enable();
         }
 
-        public override void Enqueue()
+        protected override void Enqueue()
         {
             inputAsset.Disable();
         }

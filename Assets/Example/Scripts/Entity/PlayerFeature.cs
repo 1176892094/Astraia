@@ -1,6 +1,6 @@
 using System;
 using Astraia;
-using Astraia.Core;
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -34,7 +34,7 @@ namespace Runtime
         public int CrashCount;
         public Vector3 CrashPoint;
 
-        public override void Dequeue()
+        protected override void Dequeue()
         {
             MoveSpeed = 30;
             GrabForce = MoveSpeed * 3 / 2;
@@ -56,14 +56,14 @@ namespace Runtime
             set => Feature.State = value;
         }
 
-        public override void Dequeue()
+        public new void Dequeue()
         {
             InputManager.Dash.performed += DashButton;
             InputManager.Jump.started += JumpButton;
             InputManager.Jump.canceled += FallButton;
         }
 
-        public override void Enqueue()
+        protected override void Enqueue()
         {
             InputManager.Dash.performed -= DashButton;
             InputManager.Jump.started -= JumpButton;

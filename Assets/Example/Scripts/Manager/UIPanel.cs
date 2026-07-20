@@ -1,6 +1,6 @@
 using System;
 using Astraia;
-using Astraia.Core;
+
 using UnityEngine.UI;
 using Text = UnityEngine.UI.Text;
 

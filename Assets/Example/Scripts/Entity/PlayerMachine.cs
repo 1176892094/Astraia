@@ -8,9 +8,9 @@ namespace Runtime
     {
         private readonly StateMachine<int> machine = new StateMachine<int>();
 
-        public override void Enqueue()
+        protected override void Enqueue()
         {
-            machine.Clear();
+            machine.Dispose();
         }
 
         public void Tick()
@@ -18,7 +18,7 @@ namespace Runtime
             machine.Update();
         }
 
-        public void Create<T>(int key) where T : IState
+        public void Create<T>(int key) 
         {
             machine.Create<T>(owner, key);
         }
