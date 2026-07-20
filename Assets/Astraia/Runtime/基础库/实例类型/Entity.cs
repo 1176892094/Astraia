@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Astraia
@@ -326,81 +325,6 @@ namespace Astraia
                     bitOffset = 0;
                     p++;
                 }
-            }
-        }
-    }
-
-    [Serializable]
-    public class Enumerable<T> : IEnumerable<T>
-    {
-        private T[] Items;
-        public int Count;
-
-        public Enumerable(int count)
-        {
-            Items = new T[count];
-        }
-
-        public T this[int index]
-        {
-            get => Items[index];
-            set => Items[index] = value;
-        }
-
-        public void Clear()
-        {
-            Count = 0;
-            Items = null;
-        }
-
-        public Enumerator GetEnumerator()
-        {
-            return new Enumerator(Items, Count);
-        }
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public static implicit operator T[](Enumerable<T> value)
-        {
-            return value.Items;
-        }
-
-        public struct Enumerator : IEnumerator<T>
-        {
-            private readonly T[] Items;
-            private readonly int Count;
-            private int Index;
-            public T Current => Items[Index];
-            object IEnumerator.Current => Items[Index];
-
-            public Enumerator(T[] items, int count)
-            {
-                Index = -1;
-                Items = items;
-                Count = count;
-            }
-
-            public bool MoveNext()
-            {
-                return ++Index < Count;
-            }
-
-            public void Reset()
-            {
-                Index = -1;
-            }
-
-            public void Dispose()
-            {
-                Index = -1;
             }
         }
     }
@@ -1071,470 +995,203 @@ namespace Astraia
         }
     }
 
-    public enum BTState
-    {
-        Running,
-        Success,
-        Failure
-    }
-
-    public interface INode
-    {
-        BTState OnTick(int[] indices, Whiteboard<int> root);
-    }
-
     [Serializable]
-    public struct Sequence : INode
+    public class Enumerable<T> : IEnumerable<T>
     {
-        private INode[] Nodes;
-        private int Index;
+        private T[] Items;
+        public int Count;
 
-        public Sequence(int index, INode[] nodes)
+        public Enumerable(int count)
         {
-            Index = index;
-            Nodes = nodes ?? Array.Empty<INode>();
+            Items = new T[count];
         }
 
-        public BTState OnTick(int[] indices, Whiteboard<int> root)
+        public T this[int index]
         {
-            while (indices[Index] < Nodes.Length)
+            get => Items[index];
+            set => Items[index] = value;
+        }
+
+        public void Clear()
+        {
+            Count = 0;
+            Items = null;
+        }
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(Items, Count);
+        }
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public static implicit operator T[](Enumerable<T> value)
+        {
+            return value.Items;
+        }
+
+        public struct Enumerator : IEnumerator<T>
+        {
+            private readonly T[] Items;
+            private readonly int Count;
+            private int Index;
+            public T Current => Items[Index];
+            object IEnumerator.Current => Items[Index];
+
+            public Enumerator(T[] items, int count)
             {
-                var result = Nodes[indices[Index]].OnTick(indices, root);
-                if (result == BTState.Running)
-                {
-                    return BTState.Running;
-                }
-
-                if (result == BTState.Failure)
-                {
-                    indices[Index] = 0;
-                    return BTState.Failure;
-                }
-
-                indices[Index]++;
+                Index = -1;
+                Items = items;
+                Count = count;
             }
 
-            indices[Index] = 0;
-            return BTState.Success;
-        }
-    }
-
-    [Serializable]
-    public struct Selector : INode
-    {
-        private INode[] Nodes;
-        private int Index;
-
-        public Selector(int index, INode[] nodes)
-        {
-            Index = index;
-            Nodes = nodes ?? Array.Empty<INode>();
-        }
-
-        public BTState OnTick(int[] indices, Whiteboard<int> root)
-        {
-            while (indices[Index] < Nodes.Length)
+            public bool MoveNext()
             {
-                var result = Nodes[indices[Index]].OnTick(indices, root);
-                if (result == BTState.Running)
-                {
-                    return BTState.Running;
-                }
-
-                if (result == BTState.Success)
-                {
-                    indices[Index] = 0;
-                    return BTState.Success;
-                }
-
-                indices[Index]++;
+                return ++Index < Count;
             }
 
-            indices[Index] = 0;
-            return BTState.Failure;
+            public void Reset()
+            {
+                Index = -1;
+            }
+
+            public void Dispose()
+            {
+                Index = -1;
+            }
         }
     }
 
     [Serializable]
-    public struct Parallel : INode
+    public struct Position
     {
-        private INode[] Nodes;
-        private bool IsAny;
+        public int x;
+        public int y;
 
-        public Parallel(int index, INode[] nodes)
+        public Position(int x, int y)
         {
-            IsAny = index != 0;
-            Nodes = nodes ?? Array.Empty<INode>();
+            this.x = x;
+            this.y = y;
         }
 
-        public BTState OnTick(int[] indices, Whiteboard<int> root)
+        public static Position operator +(Position a, Position b)
         {
-            if (IsAny)
+            return new Position(a.x + b.x, a.y + b.y);
+        }
+
+        public static Position operator -(Position a, Position b)
+        {
+            return new Position(a.x - b.x, a.y - b.y);
+        }
+
+        public ulong Hash => ((ulong)x << 32) ^ (ulong)y;
+    }
+
+    [Serializable]
+    public sealed class SpatialHash<T>
+    {
+        private readonly Dictionary<ulong, HashSet<T>> buckets = new Dictionary<ulong, HashSet<T>>();
+        private readonly Dictionary<T, ulong> objects = new Dictionary<T, ulong>();
+
+        public void Insert(T item, Position center)
+        {
+            var node = center.Hash;
+            if (!buckets.TryGetValue(node, out var items))
             {
-                foreach (var node in Nodes)
+                items = new HashSet<T>();
+                buckets.Add(node, items);
+            }
+
+            items.Add(item);
+            objects[item] = node;
+        }
+
+        public void Remove(T item)
+        {
+            if (objects.TryGetValue(item, out var node))
+            {
+                if (buckets.TryGetValue(node, out var items))
                 {
-                    var result = node.OnTick(indices, root);
-                    if (result == BTState.Success)
+                    items.Remove(item);
+                    if (items.Count == 0)
                     {
-                        return BTState.Success;
+                        buckets.Remove(node);
+                    }
+                }
+
+                objects.Remove(item);
+            }
+        }
+
+        public void Update(T item, Position center)
+        {
+            if (objects.TryGetValue(item, out var oldNode))
+            {
+                var newNode = center.Hash;
+                if (oldNode != newNode)
+                {
+                    if (buckets.TryGetValue(oldNode, out var oldItems))
+                    {
+                        oldItems.Remove(item);
+                        if (oldItems.Count == 0)
+                        {
+                            buckets.Remove(oldNode);
+                        }
                     }
 
-                    if (result == BTState.Failure)
+                    if (!buckets.TryGetValue(newNode, out var newItems))
                     {
-                        return BTState.Failure;
+                        newItems = new HashSet<T>();
+                        buckets.Add(newNode, newItems);
+                    }
+
+                    newItems.Add(item);
+                    objects[item] = newNode;
+                }
+            }
+        }
+
+        public void Query(Position center, int extentX, int extentY, HashSet<T> items)
+        {
+            items.Clear();
+            var minX = center.x - extentX;
+            var maxX = center.x + extentX;
+            var minY = center.y - extentY;
+            var maxY = center.y + extentY;
+
+            for (var x = minX; x <= maxX; x++)
+            {
+                for (var y = minY; y <= maxY; y++)
+                {
+                    var node = new Position(x, y).Hash;
+                    if (buckets.TryGetValue(node, out var copies))
+                    {
+                        foreach (var item in copies)
+                        {
+                            items.Add(item);
+                        }
                     }
                 }
-
-                return BTState.Running;
             }
+        }
 
-            var isAll = true;
-            foreach (var node in Nodes)
+        public void Clear()
+        {
+            foreach (var bucket in buckets.Values)
             {
-                var result = node.OnTick(indices, root);
-                if (result == BTState.Failure)
-                {
-                    return BTState.Failure;
-                }
-
-                if (result == BTState.Running)
-                {
-                    isAll = false;
-                }
+                bucket.Clear();
             }
 
-            return isAll ? BTState.Success : BTState.Running;
-        }
-    }
-
-    [Serializable]
-    public struct Randomer : INode
-    {
-        private INode[] Nodes;
-        private int Index;
-
-        public Randomer(int index, INode[] nodes)
-        {
-            Index = index;
-            Nodes = nodes ?? Array.Empty<INode>();
-        }
-
-        public BTState OnTick(int[] indices, Whiteboard<int> root)
-        {
-            if (indices[Index] == 0)
-            {
-                indices[Index] = Seed.Next(Nodes.Length) + 1;
-            }
-
-            var result = Nodes[indices[Index] - 1].OnTick(indices, root);
-            if (result == BTState.Running)
-            {
-                return BTState.Running;
-            }
-
-            indices[Index] = 0;
-            return result;
-        }
-    }
-
-    [Serializable]
-    public struct Repeater : INode
-    {
-        private INode Node;
-        private int Index;
-        private int Count;
-
-        public Repeater(int index, int count, INode node)
-        {
-            Node = node;
-            Index = index;
-            Count = count;
-        }
-
-        public BTState OnTick(int[] indices, Whiteboard<int> root)
-        {
-            var result = Node.OnTick(indices, root);
-            if (result == BTState.Running)
-            {
-                return BTState.Running;
-            }
-
-            indices[Index]++;
-            if (Count < 0 || indices[Index] < Count)
-            {
-                return BTState.Running;
-            }
-
-            indices[Index] = 0;
-            return BTState.Success;
-        }
-    }
-
-    [Serializable]
-    public struct Inverter : INode
-    {
-        private INode Node;
-
-        public Inverter(INode node)
-        {
-            Node = node;
-        }
-
-        public BTState OnTick(int[] indices, Whiteboard<int> root)
-        {
-            switch (Node.OnTick(indices, root))
-            {
-                case BTState.Success: return BTState.Failure;
-                case BTState.Failure: return BTState.Success;
-            }
-
-            return BTState.Running;
-        }
-    }
-
-    [Serializable]
-    public struct Success : INode
-    {
-        private INode Node;
-
-        public Success(INode node)
-        {
-            Node = node;
-        }
-
-        public BTState OnTick(int[] indices, Whiteboard<int> root)
-        {
-            return Node.OnTick(indices, root) == BTState.Running ? BTState.Running : BTState.Success;
-        }
-    }
-
-    [Serializable]
-    public struct Failure : INode
-    {
-        private INode Node;
-
-        public Failure(INode node)
-        {
-            Node = node;
-        }
-
-        public BTState OnTick(int[] indices, Whiteboard<int> root)
-        {
-            return Node.OnTick(indices, root) == BTState.Running ? BTState.Running : BTState.Failure;
-        }
-    }
-
-    public static class BTNode
-    {
-        private static readonly Dictionary<Type, Func<Node, INode>> NodeFunc = new();
-
-        static BTNode()
-        {
-            NodeFunc[typeof(Sequence)] = Sequence;
-            NodeFunc[typeof(Selector)] = Selector;
-            NodeFunc[typeof(Parallel)] = Parallel;
-            NodeFunc[typeof(Randomer)] = Randomer;
-            NodeFunc[typeof(Repeater)] = Repeater;
-            NodeFunc[typeof(Inverter)] = Inverter;
-            NodeFunc[typeof(Success)] = Success;
-            NodeFunc[typeof(Failure)] = Failure;
-        }
-
-        private static INode Sequence(Node node)
-        {
-            return new Sequence(node.Index, node.Nodes.Select(i => i.Build()).ToArray());
-        }
-
-        private static INode Selector(Node node)
-        {
-            return new Selector(node.Index, node.Nodes.Select(i => i.Build()).ToArray());
-        }
-
-        private static INode Parallel(Node node)
-        {
-            return new Parallel(int.Parse(node.Data), node.Nodes.Select(i => i.Build()).ToArray());
-        }
-
-        private static INode Randomer(Node node)
-        {
-            return new Randomer(node.Index, node.Nodes.Select(i => i.Build()).ToArray());
-        }
-
-        private static INode Repeater(Node node)
-        {
-            return new Repeater(node.Index, int.Parse(node.Data), node.Nodes[0].Build());
-        }
-
-        private static INode Inverter(Node node)
-        {
-            return new Inverter(node.Nodes[0].Build());
-        }
-
-        private static INode Success(Node node)
-        {
-            return new Success(node.Nodes[0].Build());
-        }
-
-        private static INode Failure(Node node)
-        {
-            return new Failure(node.Nodes[0].Build());
-        }
-
-        public static Node Load(string reason, ref int i)
-        {
-            if (string.IsNullOrEmpty(reason))
-            {
-                return default;
-            }
-
-            var index = FindFirstBracket(reason);
-            if (index < 0)
-            {
-                return new Node(reason, i++);
-            }
-
-            var result = new Node(reason.Substring(0, index).Trim(), i++);
-            foreach (var child in LoadNode(Checked(reason, index)))
-            {
-                result.Nodes.Add(Load(child, ref i));
-            }
-
-            return result;
-        }
-
-        private static string Checked(string reason, int index)
-        {
-            var depth = 0;
-            var count = index;
-            while (count < reason.Length)
-            {
-                if (IsLeftBracket(reason[count]))
-                {
-                    depth++;
-                }
-                else if (IsRightBracket(reason[count]))
-                {
-                    depth--;
-                }
-
-                if (depth == 0)
-                {
-                    break;
-                }
-
-                count++;
-            }
-
-            return reason.Substring(index + 1, count - index - 1);
-        }
-
-        private static List<string> LoadNode(string reason)
-        {
-            var result = new List<string>();
-            var depth = 0;
-            var index = 0;
-
-            for (var i = 0; i < reason.Length; i++)
-            {
-                var c = reason[i];
-                if (IsLeftBracket(c))
-                {
-                    depth++;
-                }
-                else if (IsRightBracket(c))
-                {
-                    depth--;
-                }
-                else if (depth == 0 && IsSeparator(c))
-                {
-                    result.Add(reason.Substring(index, i - index).Trim());
-                    index = i + 1;
-                }
-            }
-
-            result.Add(reason.Substring(index).Trim());
-            return result;
-        }
-
-        [Serializable]
-        public struct Node
-        {
-            public static Func<Node, Type> OnLoad;
-
-            public int Index;
-            public string Name;
-            public string Data;
-            public List<Node> Nodes;
-
-            public Node(string name, int index)
-            {
-                var i = FindColon(name);
-                if (i < 0)
-                {
-                    Name = name;
-                    Data = null;
-                }
-                else
-                {
-                    Name = name.Substring(0, i);
-                    Data = name.Substring(i + 1);
-                }
-
-                Index = index;
-                Nodes = new List<Node>();
-            }
-
-            public INode Build()
-            {
-                if (Name.IsNullOrEmpty())
-                {
-                    throw new NullReferenceException();
-                }
-
-                if (NodeFunc.TryGetValue(OnLoad(this), out var result))
-                {
-                    return result.Invoke(this);
-                }
-
-                return (INode)Activator.CreateInstance(OnLoad(this));
-            }
-        }
-
-        private static int FindFirstBracket(string text)
-        {
-            var englishIndex = text.IndexOf('(');
-            var chineseIndex = text.IndexOf('（');
-
-            if (englishIndex < 0) return chineseIndex;
-            if (chineseIndex < 0) return englishIndex;
-
-            return Math.Min(englishIndex, chineseIndex);
-        }
-
-        private static int FindColon(string text)
-        {
-            var englishIndex = text.IndexOf(':');
-            var chineseIndex = text.IndexOf('：');
-
-            if (englishIndex < 0) return chineseIndex;
-            if (chineseIndex < 0) return englishIndex;
-
-            return Math.Min(englishIndex, chineseIndex);
-        }
-
-        private static bool IsLeftBracket(char c)
-        {
-            return c is '(' or '（';
-        }
-
-        private static bool IsRightBracket(char c)
-        {
-            return c is ')' or '）';
-        }
-
-        private static bool IsSeparator(char c)
-        {
-            return c is ',' or '，';
+            buckets.Clear();
+            objects.Clear();
         }
     }
 }

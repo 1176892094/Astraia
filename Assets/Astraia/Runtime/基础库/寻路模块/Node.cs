@@ -1,130 +1,476 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Astraia
 {
-    [Serializable]
-    public struct Position
+    public interface INode
     {
-        public int x;
-        public int y;
-
-        public Position(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-
-        public static Position operator +(Position a, Position b)
-        {
-            return new Position(a.x + b.x, a.y + b.y);
-        }
-
-        public static Position operator -(Position a, Position b)
-        {
-            return new Position(a.x - b.x, a.y - b.y);
-        }
-
-        public ulong Hash => ((ulong)x << 32) ^ (ulong)y;
+        Tree.State OnTick(int[] indices, Whiteboard<int> root);
     }
 
     [Serializable]
-    public sealed class SpatialHash<T>
+    public struct Sequence : INode
     {
-        private readonly Dictionary<ulong, HashSet<T>> buckets = new Dictionary<ulong, HashSet<T>>();
-        private readonly Dictionary<T, ulong> objects = new Dictionary<T, ulong>();
+        private int Index;
+        private INode[] Nodes;
 
-        public void Insert(T item, Position center)
+        public Sequence(int index, INode[] nodes)
         {
-            var node = center.Hash;
-            if (!buckets.TryGetValue(node, out var items))
-            {
-                items = new HashSet<T>();
-                buckets.Add(node, items);
-            }
-
-            items.Add(item);
-            objects[item] = node;
+            Index = index;
+            Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public void Remove(T item)
+        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
         {
-            if (objects.TryGetValue(item, out var node))
+            var current = indices[Index];
+            while (current < Nodes.Length)
             {
-                if (buckets.TryGetValue(node, out var items))
+                var result = Nodes[current].OnTick(indices, root);
+                if (result == Tree.State.Running)
                 {
-                    items.Remove(item);
-                    if (items.Count == 0)
+                    return Tree.State.Running;
+                }
+
+                if (result == Tree.State.Failure)
+                {
+                    indices[Index] = 0;
+                    return Tree.State.Failure;
+                }
+
+                current++;
+                indices[Index] = current;
+            }
+
+            indices[Index] = 0;
+            return Tree.State.Success;
+        }
+    }
+
+    [Serializable]
+    public struct Selector : INode
+    {
+        private int Index;
+        private INode[] Nodes;
+
+        public Selector(int index, INode[] nodes)
+        {
+            Index = index;
+            Nodes = nodes ?? Array.Empty<INode>();
+        }
+
+        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        {
+            var current = indices[Index];
+            while (current < Nodes.Length)
+            {
+                var result = Nodes[current].OnTick(indices, root);
+                if (result == Tree.State.Running)
+                {
+                    return Tree.State.Running;
+                }
+
+                if (result == Tree.State.Success)
+                {
+                    indices[Index] = 0;
+                    return Tree.State.Success;
+                }
+
+                current++;
+                indices[Index] = current;
+            }
+
+            indices[Index] = 0;
+            return Tree.State.Failure;
+        }
+    }
+
+    [Serializable]
+    public struct Parallel : INode
+    {
+        private bool IsAny;
+        private INode[] Nodes;
+
+        public Parallel(string isAny, INode[] nodes)
+        {
+            IsAny = isAny == "Any";
+            Nodes = nodes ?? Array.Empty<INode>();
+        }
+
+        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        {
+            if (IsAny)
+            {
+                foreach (var node in Nodes)
+                {
+                    var result = node.OnTick(indices, root);
+                    if (result == Tree.State.Success)
                     {
-                        buckets.Remove(node);
+                        return Tree.State.Success;
+                    }
+
+                    if (result == Tree.State.Failure)
+                    {
+                        return Tree.State.Failure;
                     }
                 }
 
-                objects.Remove(item);
+                return Tree.State.Running;
             }
-        }
 
-        public void Update(T item, Position center)
-        {
-            if (objects.TryGetValue(item, out var oldNode))
+            var isAll = true;
+            foreach (var node in Nodes)
             {
-                var newNode = center.Hash;
-                if (oldNode != newNode)
+                var result = node.OnTick(indices, root);
+                if (result == Tree.State.Failure)
                 {
-                    if (buckets.TryGetValue(oldNode, out var oldItems))
-                    {
-                        oldItems.Remove(item);
-                        if (oldItems.Count == 0)
-                        {
-                            buckets.Remove(oldNode);
-                        }
-                    }
+                    return Tree.State.Failure;
+                }
 
-                    if (!buckets.TryGetValue(newNode, out var newItems))
-                    {
-                        newItems = new HashSet<T>();
-                        buckets.Add(newNode, newItems);
-                    }
-
-                    newItems.Add(item);
-                    objects[item] = newNode;
+                if (result == Tree.State.Running)
+                {
+                    isAll = false;
                 }
             }
+
+            return isAll ? Tree.State.Success : Tree.State.Running;
+        }
+    }
+
+    [Serializable]
+    public struct Randomer : INode
+    {
+        private int Index;
+        private INode[] Nodes;
+
+        public Randomer(int index, INode[] nodes)
+        {
+            Index = index;
+            Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public void Query(Position center, int extentX, int extentY, HashSet<T> items)
+        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
         {
-            items.Clear();
-            var minX = center.x - extentX;
-            var maxX = center.x + extentX;
-            var minY = center.y - extentY;
-            var maxY = center.y + extentY;
-
-            for (var x = minX; x <= maxX; x++)
+            if (indices[Index] == 0)
             {
-                for (var y = minY; y <= maxY; y++)
+                indices[Index] = Seed.Next(Nodes.Length) + 1;
+            }
+
+            var result = Nodes[indices[Index] - 1].OnTick(indices, root);
+            if (result == Tree.State.Running)
+            {
+                return Tree.State.Running;
+            }
+
+            indices[Index] = 0;
+            return result;
+        }
+    }
+
+    [Serializable]
+    public struct Repeater : INode
+    {
+        private int Index;
+        private int Count;
+        private INode Node;
+
+        public Repeater(int index, int count, INode node)
+        {
+            Node = node;
+            Index = index;
+            Count = count;
+        }
+
+        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        {
+            var result = Node.OnTick(indices, root);
+            if (result == Tree.State.Running)
+            {
+                return Tree.State.Running;
+            }
+
+            indices[Index]++;
+            if (Count < 0 || indices[Index] < Count)
+            {
+                return Tree.State.Running;
+            }
+
+            indices[Index] = 0;
+            return Tree.State.Success;
+        }
+    }
+
+    [Serializable]
+    public struct Inverter : INode
+    {
+        private INode Node;
+
+        public Inverter(INode node)
+        {
+            Node = node;
+        }
+
+        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        {
+            switch (Node.OnTick(indices, root))
+            {
+                case Tree.State.Success: return Tree.State.Failure;
+                case Tree.State.Failure: return Tree.State.Success;
+            }
+
+            return Tree.State.Running;
+        }
+    }
+
+    [Serializable]
+    public struct Success : INode
+    {
+        private INode Node;
+
+        public Success(INode node)
+        {
+            Node = node;
+        }
+
+        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        {
+            return Node.OnTick(indices, root) == Tree.State.Running ? Tree.State.Running : Tree.State.Success;
+        }
+    }
+
+    [Serializable]
+    public struct Failure : INode
+    {
+        private INode Node;
+
+        public Failure(INode node)
+        {
+            Node = node;
+        }
+
+        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        {
+            return Node.OnTick(indices, root) == Tree.State.Running ? Tree.State.Running : Tree.State.Failure;
+        }
+    }
+
+    public static class Tree
+    {
+        private static readonly Dictionary<Type, Func<Node, Func<Node, string>, INode>> Func = new();
+
+        public enum State
+        {
+            Running,
+            Success,
+            Failure
+        }
+
+        static Tree()
+        {
+            Func[typeof(Sequence)] = Sequence;
+            Func[typeof(Selector)] = Selector;
+            Func[typeof(Parallel)] = Parallel;
+            Func[typeof(Randomer)] = Randomer;
+            Func[typeof(Repeater)] = Repeater;
+            Func[typeof(Inverter)] = Inverter;
+            Func[typeof(Success)] = Success;
+            Func[typeof(Failure)] = Failure;
+        }
+
+        private static INode Sequence(Node node, Func<Node, string> func)
+        {
+            return new Sequence(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
+        }
+
+        private static INode Selector(Node node, Func<Node, string> func)
+        {
+            return new Selector(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
+        }
+
+        private static INode Parallel(Node node, Func<Node, string> func)
+        {
+            return new Parallel(node.Data, node.Nodes.Select(i => i.Build(func)).ToArray());
+        }
+
+        private static INode Randomer(Node node, Func<Node, string> func)
+        {
+            return new Randomer(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
+        }
+
+        private static INode Repeater(Node node, Func<Node, string> func)
+        {
+            return new Repeater(node.Index, int.Parse(node.Data), node.Nodes.Select(i => i.Build(func)).First());
+        }
+
+        private static INode Inverter(Node node, Func<Node, string> func)
+        {
+            return new Inverter(node.Nodes.Select(i => i.Build(func)).First());
+        }
+
+        private static INode Success(Node node, Func<Node, string> func)
+        {
+            return new Success(node.Nodes.Select(i => i.Build(func)).First());
+        }
+
+        private static INode Failure(Node node, Func<Node, string> func)
+        {
+            return new Failure(node.Nodes.Select(i => i.Build(func)).First());
+        }
+
+        public static Node Load(string reason, ref int i)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                return default;
+            }
+
+            var index = FindFirstBracket(reason);
+            if (index < 0)
+            {
+                return new Node(reason, i++);
+            }
+
+            var result = new Node(reason.Substring(0, index).Trim(), i++);
+            foreach (var child in LoadNode(Checked(reason, index)))
+            {
+                result.Nodes.Add(Load(child, ref i));
+            }
+
+            return result;
+        }
+
+        private static string Checked(string reason, int index)
+        {
+            var depth = 0;
+            var count = index;
+            while (count < reason.Length)
+            {
+                if (IsLeftBracket(reason[count]))
                 {
-                    var node = new Position(x, y).Hash;
-                    if (buckets.TryGetValue(node, out var copies))
-                    {
-                        foreach (var item in copies)
-                        {
-                            items.Add(item);
-                        }
-                    }
+                    depth++;
+                }
+                else if (IsRightBracket(reason[count]))
+                {
+                    depth--;
+                }
+
+                if (depth == 0)
+                {
+                    break;
+                }
+
+                count++;
+            }
+
+            return reason.Substring(index + 1, count - index - 1);
+        }
+
+        private static List<string> LoadNode(string reason)
+        {
+            var result = new List<string>();
+            var depth = 0;
+            var index = 0;
+
+            for (var i = 0; i < reason.Length; i++)
+            {
+                var c = reason[i];
+                if (IsLeftBracket(c))
+                {
+                    depth++;
+                }
+                else if (IsRightBracket(c))
+                {
+                    depth--;
+                }
+                else if (depth == 0 && IsSeparator(c))
+                {
+                    result.Add(reason.Substring(index, i - index).Trim());
+                    index = i + 1;
                 }
             }
+
+            result.Add(reason.Substring(index).Trim());
+            return result;
         }
 
-        public void Clear()
+        private static int FindFirstBracket(string text)
         {
-            foreach (var bucket in buckets.Values)
+            var englishIndex = text.IndexOf('(');
+            var chineseIndex = text.IndexOf('（');
+
+            if (englishIndex < 0) return chineseIndex;
+            if (chineseIndex < 0) return englishIndex;
+
+            return Math.Min(englishIndex, chineseIndex);
+        }
+
+        private static int FindColon(string text)
+        {
+            var englishIndex = text.IndexOf(':');
+            var chineseIndex = text.IndexOf('：');
+
+            if (englishIndex < 0) return chineseIndex;
+            if (chineseIndex < 0) return englishIndex;
+
+            return Math.Min(englishIndex, chineseIndex);
+        }
+
+        private static bool IsLeftBracket(char c)
+        {
+            return c is '(' or '（';
+        }
+
+        private static bool IsRightBracket(char c)
+        {
+            return c is ')' or '）';
+        }
+
+        private static bool IsSeparator(char c)
+        {
+            return c is ',' or '，';
+        }
+
+        [Serializable]
+        public struct Node
+        {
+            public int Index;
+            public string Name;
+            public string Data;
+            public List<Node> Nodes;
+
+            public Node(string name, int index)
             {
-                bucket.Clear();
+                var i = FindColon(name);
+                if (i < 0)
+                {
+                    Name = name;
+                    Data = null;
+                }
+                else
+                {
+                    Name = name.Substring(0, i);
+                    Data = name.Substring(i + 1);
+                }
+
+                Index = index;
+                Nodes = new List<Node>();
             }
 
-            buckets.Clear();
-            objects.Clear();
+            public INode Build(Func<Node, string> func)
+            {
+                if (Name.IsNullOrEmpty())
+                {
+                    throw new NullReferenceException();
+                }
+
+                var reason = Search.GetType(func.Invoke(this));
+                if (Func.TryGetValue(reason, out var result))
+                {
+                    return result.Invoke(this, func);
+                }
+
+                return (INode)Activator.CreateInstance(reason);
+            }
         }
     }
 
