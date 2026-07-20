@@ -319,41 +319,6 @@ namespace Astraia
         }
     }
 
-    internal static class String
-    {
-        [ThreadStatic] private static StringBuilder stringBuilder;
-
-        private static StringBuilder StringBuilder => stringBuilder ??= new StringBuilder(1024);
-
-        internal static string Format<T>(string format, T arg1)
-        {
-            StringBuilder.Length = 0;
-            StringBuilder.AppendFormat(format, arg1);
-            return StringBuilder.ToString();
-        }
-
-        internal static string Format<T1, T2>(string format, T1 arg1, T2 arg2)
-        {
-            StringBuilder.Length = 0;
-            StringBuilder.AppendFormat(format, arg1, arg2);
-            return StringBuilder.ToString();
-        }
-
-        internal static string Format<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
-        {
-            StringBuilder.Length = 0;
-            StringBuilder.AppendFormat(format, arg1, arg2, arg3);
-            return StringBuilder.ToString();
-        }
-
-        internal static string Format<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-        {
-            StringBuilder.Length = 0;
-            StringBuilder.AppendFormat(format, arg1, arg2, arg3, arg4);
-            return StringBuilder.ToString();
-        }
-    }
-
     public static class Search
     {
         private static readonly Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
@@ -600,6 +565,41 @@ namespace Astraia
         }
     }
 
+    internal static class String
+    {
+        [ThreadStatic] private static StringBuilder stringBuilder;
+
+        private static StringBuilder StringBuilder => stringBuilder ??= new StringBuilder(1024);
+
+        internal static string Format<T>(string format, T arg1)
+        {
+            StringBuilder.Length = 0;
+            StringBuilder.AppendFormat(format, arg1);
+            return StringBuilder.ToString();
+        }
+
+        internal static string Format<T1, T2>(string format, T1 arg1, T2 arg2)
+        {
+            StringBuilder.Length = 0;
+            StringBuilder.AppendFormat(format, arg1, arg2);
+            return StringBuilder.ToString();
+        }
+
+        internal static string Format<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
+        {
+            StringBuilder.Length = 0;
+            StringBuilder.AppendFormat(format, arg1, arg2, arg3);
+            return StringBuilder.ToString();
+        }
+
+        internal static string Format<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+        {
+            StringBuilder.Length = 0;
+            StringBuilder.AppendFormat(format, arg1, arg2, arg3, arg4);
+            return StringBuilder.ToString();
+        }
+    }
+
     public static class StringExtensions
     {
         public static string Format<T>(this string format, T arg1)
@@ -809,11 +809,13 @@ namespace Astraia
 
     public static class Writer<T>
     {
+        // ReSharper disable once UnassignedField.Global
         public static Action<MemoryWriter, T> writer;
     }
 
     public static class Reader<T>
     {
+        // ReSharper disable once UnassignedField.Global
         public static Func<MemoryReader, T> reader;
     }
 
@@ -934,7 +936,7 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T? ReadNullable<T>() where T : unmanaged
         {
-            return Read<byte>() != 0 ? Read<T>() : default(T?);
+            return Read<byte>() != 0 ? Read<T>() : null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
