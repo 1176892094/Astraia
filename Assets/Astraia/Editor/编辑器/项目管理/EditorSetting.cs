@@ -223,7 +223,7 @@ namespace Astraia
         }
     }
 
-    public class EditorProcess : AssetPostprocessor
+    internal class EditorProcess : AssetPostprocessor
     {
         private static int offset => GlobalSetting.BUNDLE.EndsWith("/") ? GlobalSetting.BUNDLE.Length : GlobalSetting.BUNDLE.Length + 1;
 

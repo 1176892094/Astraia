@@ -684,18 +684,6 @@ namespace Astraia
 
             return str.Substring(0, i2) + mask;
         }
-
-        public static bool HasAttribute<T>(this MemberInfo member) where T : Attribute
-        {
-            var attribute = member.GetCustomAttribute<T>(true);
-            return attribute != null;
-        }
-
-        public static bool GetAttribute<T>(this MemberInfo member, out T attribute) where T : Attribute
-        {
-            attribute = member.GetCustomAttribute<T>(true);
-            return attribute != null;
-        }
     }
 
     internal static class Compress

@@ -6,7 +6,7 @@ namespace Astraia
 {
     public interface INode
     {
-        Tree.State OnTick(int[] indices, Whiteboard<int> root);
+        Nodes.State OnTick(int[] indices, Whiteboard<int> root);
     }
 
     [Serializable]
@@ -21,21 +21,21 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
             {
                 var result = Nodes[current].OnTick(indices, root);
-                if (result == Tree.State.Running)
+                if (result == Astraia.Nodes.State.Running)
                 {
-                    return Tree.State.Running;
+                    return Astraia.Nodes.State.Running;
                 }
 
-                if (result == Tree.State.Failure)
+                if (result == Astraia.Nodes.State.Failure)
                 {
                     indices[Index] = 0;
-                    return Tree.State.Failure;
+                    return Astraia.Nodes.State.Failure;
                 }
 
                 current++;
@@ -43,7 +43,7 @@ namespace Astraia
             }
 
             indices[Index] = 0;
-            return Tree.State.Success;
+            return Astraia.Nodes.State.Success;
         }
     }
 
@@ -59,21 +59,21 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
             {
                 var result = Nodes[current].OnTick(indices, root);
-                if (result == Tree.State.Running)
+                if (result == Astraia.Nodes.State.Running)
                 {
-                    return Tree.State.Running;
+                    return Astraia.Nodes.State.Running;
                 }
 
-                if (result == Tree.State.Success)
+                if (result == Astraia.Nodes.State.Success)
                 {
                     indices[Index] = 0;
-                    return Tree.State.Success;
+                    return Astraia.Nodes.State.Success;
                 }
 
                 current++;
@@ -81,7 +81,7 @@ namespace Astraia
             }
 
             indices[Index] = 0;
-            return Tree.State.Failure;
+            return Astraia.Nodes.State.Failure;
         }
     }
 
@@ -97,43 +97,43 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             if (IsAny)
             {
                 foreach (var node in Nodes)
                 {
                     var result = node.OnTick(indices, root);
-                    if (result == Tree.State.Success)
+                    if (result == Astraia.Nodes.State.Success)
                     {
-                        return Tree.State.Success;
+                        return Astraia.Nodes.State.Success;
                     }
 
-                    if (result == Tree.State.Failure)
+                    if (result == Astraia.Nodes.State.Failure)
                     {
-                        return Tree.State.Failure;
+                        return Astraia.Nodes.State.Failure;
                     }
                 }
 
-                return Tree.State.Running;
+                return Astraia.Nodes.State.Running;
             }
 
             var isAll = true;
             foreach (var node in Nodes)
             {
                 var result = node.OnTick(indices, root);
-                if (result == Tree.State.Failure)
+                if (result == Astraia.Nodes.State.Failure)
                 {
-                    return Tree.State.Failure;
+                    return Astraia.Nodes.State.Failure;
                 }
 
-                if (result == Tree.State.Running)
+                if (result == Astraia.Nodes.State.Running)
                 {
                     isAll = false;
                 }
             }
 
-            return isAll ? Tree.State.Success : Tree.State.Running;
+            return isAll ? Astraia.Nodes.State.Success : Astraia.Nodes.State.Running;
         }
     }
 
@@ -149,7 +149,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             if (indices[Index] == 0)
             {
@@ -157,9 +157,9 @@ namespace Astraia
             }
 
             var result = Nodes[indices[Index] - 1].OnTick(indices, root);
-            if (result == Tree.State.Running)
+            if (result == Astraia.Nodes.State.Running)
             {
-                return Tree.State.Running;
+                return Astraia.Nodes.State.Running;
             }
 
             indices[Index] = 0;
@@ -181,22 +181,22 @@ namespace Astraia
             Count = count;
         }
 
-        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             var result = Node.OnTick(indices, root);
-            if (result == Tree.State.Running)
+            if (result == Nodes.State.Running)
             {
-                return Tree.State.Running;
+                return Nodes.State.Running;
             }
 
             indices[Index]++;
             if (Count < 0 || indices[Index] < Count)
             {
-                return Tree.State.Running;
+                return Nodes.State.Running;
             }
 
             indices[Index] = 0;
-            return Tree.State.Success;
+            return Nodes.State.Success;
         }
     }
 
@@ -210,15 +210,15 @@ namespace Astraia
             Node = node;
         }
 
-        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             switch (Node.OnTick(indices, root))
             {
-                case Tree.State.Success: return Tree.State.Failure;
-                case Tree.State.Failure: return Tree.State.Success;
+                case Nodes.State.Success: return Nodes.State.Failure;
+                case Nodes.State.Failure: return Nodes.State.Success;
             }
 
-            return Tree.State.Running;
+            return Nodes.State.Running;
         }
     }
 
@@ -232,9 +232,9 @@ namespace Astraia
             Node = node;
         }
 
-        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
-            return Node.OnTick(indices, root) == Tree.State.Running ? Tree.State.Running : Tree.State.Success;
+            return Node.OnTick(indices, root) == Nodes.State.Running ? Nodes.State.Running : Nodes.State.Success;
         }
     }
 
@@ -248,13 +248,13 @@ namespace Astraia
             Node = node;
         }
 
-        public Tree.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
-            return Node.OnTick(indices, root) == Tree.State.Running ? Tree.State.Running : Tree.State.Failure;
+            return Node.OnTick(indices, root) == Nodes.State.Running ? Nodes.State.Running : Nodes.State.Failure;
         }
     }
 
-    public static class Tree
+    public static class Nodes
     {
         private static readonly Dictionary<Type, Func<Node, Func<Node, string>, INode>> Func = new();
 
@@ -265,7 +265,7 @@ namespace Astraia
             Failure
         }
 
-        static Tree()
+        static Nodes()
         {
             Func[typeof(Sequence)] = Sequence;
             Func[typeof(Selector)] = Selector;
@@ -475,16 +475,22 @@ namespace Astraia
     }
 
     [Serializable]
-    public abstract class PathFinding
+    internal readonly struct Grid
     {
-        protected const int INF = int.MaxValue;
+        public static readonly Grid[] Neighbors;
 
-        protected int width;
-        protected int height;
+        public readonly int x;
+        public readonly int y;
+        public readonly int cost;
 
-        protected static readonly Grid[] Neighbors;
+        public Grid(int x, int y, int cost)
+        {
+            this.x = x;
+            this.y = y;
+            this.cost = cost;
+        }
 
-        static PathFinding()
+        static Grid()
         {
             Neighbors = new Grid[8];
 
@@ -499,125 +505,101 @@ namespace Astraia
             Neighbors[6] = new Grid(1, 0, 10);
             Neighbors[7] = new Grid(-1, 0, 10);
         }
+    }
 
-        protected PathFinding(int width, int height)
+    [Serializable]
+    internal sealed class MinHeap
+    {
+        private readonly List<int> heap = new();
+        private readonly int[] cost;
+
+        public MinHeap(int[] cost)
         {
-            this.width = width;
-            this.height = height;
+            this.cost = cost;
         }
 
-        protected int Index(int x, int y)
+        public int Count => heap.Count;
+
+        public void Clear()
         {
-            return y * width + x;
+            heap.Clear();
         }
 
-        protected bool Contains(int x, int y)
+        public void Enqueue(int index)
         {
-            return x >= 0 && y >= 0 && x < width && y < height;
-        }
+            heap.Add(index);
 
-        protected readonly struct Grid
-        {
-            public readonly int x;
-            public readonly int y;
-            public readonly int cost;
+            var i = heap.Count - 1;
 
-            public Grid(int x, int y, int cost)
+            while (i > 0)
             {
-                this.x = x;
-                this.y = y;
-                this.cost = cost;
-            }
-        }
+                var parent = (i - 1) >> 1;
 
-        protected sealed class MinHeap
-        {
-            private readonly List<int> heap = new();
-            private readonly int[] cost;
-
-            public MinHeap(int[] cost)
-            {
-                this.cost = cost;
-            }
-
-            public int Count => heap.Count;
-
-            public void Clear()
-            {
-                heap.Clear();
-            }
-
-            public void Enqueue(int index)
-            {
-                heap.Add(index);
-
-                var i = heap.Count - 1;
-
-                while (i > 0)
+                if (cost[heap[parent]] <= cost[heap[i]])
                 {
-                    var parent = (i - 1) >> 1;
-
-                    if (cost[heap[parent]] <= cost[heap[i]])
-                    {
-                        break;
-                    }
-
-                    (heap[parent], heap[i]) = (heap[i], heap[parent]);
-                    i = parent;
-                }
-            }
-
-            public int Dequeue()
-            {
-                var root = heap[0];
-
-                var last = heap[^1];
-                heap.RemoveAt(heap.Count - 1);
-
-                if (heap.Count == 0)
-                {
-                    return root;
+                    break;
                 }
 
-                heap[0] = last;
+                (heap[parent], heap[i]) = (heap[i], heap[parent]);
+                i = parent;
+            }
+        }
 
-                var i = 0;
+        public int Dequeue()
+        {
+            var root = heap[0];
 
-                while (true)
-                {
-                    var left = i * 2 + 1;
+            var last = heap[^1];
+            heap.RemoveAt(heap.Count - 1);
 
-                    if (left >= heap.Count)
-                    {
-                        break;
-                    }
-
-                    var right = left + 1;
-
-                    var smallest = left;
-
-                    if (right < heap.Count && cost[heap[right]] < cost[heap[left]])
-                    {
-                        smallest = right;
-                    }
-
-                    if (cost[heap[i]] <= cost[heap[smallest]])
-                    {
-                        break;
-                    }
-
-                    (heap[i], heap[smallest]) = (heap[smallest], heap[i]);
-                    i = smallest;
-                }
-
+            if (heap.Count == 0)
+            {
                 return root;
             }
+
+            heap[0] = last;
+
+            var i = 0;
+
+            while (true)
+            {
+                var left = i * 2 + 1;
+
+                if (left >= heap.Count)
+                {
+                    break;
+                }
+
+                var right = left + 1;
+
+                var smallest = left;
+
+                if (right < heap.Count && cost[heap[right]] < cost[heap[left]])
+                {
+                    smallest = right;
+                }
+
+                if (cost[heap[i]] <= cost[heap[smallest]])
+                {
+                    break;
+                }
+
+                (heap[i], heap[smallest]) = (heap[smallest], heap[i]);
+                i = smallest;
+            }
+
+            return root;
         }
     }
 
     [Serializable]
-    public class AStar : PathFinding
+    public sealed class AStar
     {
+        private const int INF = int.MaxValue;
+
+        private int width;
+        private int height;
+
         private int[] parent;
         private int[] gScore;
         private int[] fScore;
@@ -627,14 +609,27 @@ namespace Astraia
         private MinHeap opened;
         private List<Position> copied = new();
 
-        public AStar(int width, int height, bool[] map) : base(width, height)
+        public AStar(int width, int height, bool[] map)
         {
+            this.width = width;
+            this.height = height;
+
             walkable = map;
             parent = new int[width * height];
             gScore = new int[width * height];
             fScore = new int[width * height];
             closed = new bool[width * height];
             opened = new MinHeap(fScore);
+        }
+
+        private int Index(int x, int y)
+        {
+            return y * width + x;
+        }
+
+        private bool Contains(int x, int y)
+        {
+            return x >= 0 && y >= 0 && x < width && y < height;
         }
 
         public IList<Position> Rebuild(int sx, int sy, int ex, int ey)
@@ -674,7 +669,7 @@ namespace Astraia
                 var cx = i % width;
                 var cy = i / width;
 
-                foreach (var n in Neighbors)
+                foreach (var n in Grid.Neighbors)
                 {
                     var nx = cx + n.x;
                     var ny = cy + n.y;
@@ -760,15 +755,23 @@ namespace Astraia
     }
 
     [Serializable]
-    public class FlowField : PathFinding
+    public class FlowField
     {
+        private const int INF = int.MaxValue;
+
+        private int width;
+        private int height;
+
         private int[] nodes;
         private int[] costs;
         private int[] steps;
         private MinHeap opened;
 
-        public FlowField(int width, int height, bool[] walkable) : base(width, height)
+        public FlowField(int width, int height, bool[] walkable)
         {
+            this.width = width;
+            this.height = height;
+
             costs = new int[width * height];
             nodes = new int[width * height];
             steps = new int[width * height];
@@ -777,6 +780,16 @@ namespace Astraia
             {
                 costs[i] = walkable[i] ? 1 : INF;
             }
+        }
+
+        private int Index(int x, int y)
+        {
+            return y * width + x;
+        }
+
+        private bool Contains(int x, int y)
+        {
+            return x >= 0 && y >= 0 && x < width && y < height;
         }
 
         public void SetCost(int x, int y, int cost)
@@ -833,7 +846,7 @@ namespace Astraia
 
                 var step = steps[i];
 
-                foreach (var n in Neighbors)
+                foreach (var n in Grid.Neighbors)
                 {
                     var nx = cx + n.x;
                     var ny = cy + n.y;
@@ -872,9 +885,9 @@ namespace Astraia
                 var best = -1;
                 var step = steps[i];
 
-                for (var k = 0; k < Neighbors.Length; k++)
+                for (var k = 0; k < Grid.Neighbors.Length; k++)
                 {
-                    var n = Neighbors[k];
+                    var n = Grid.Neighbors[k];
                     var nx = cx + n.x;
                     var ny = cy + n.y;
 
@@ -908,16 +921,16 @@ namespace Astraia
 
             if (nodes[i] != -1)
             {
-                var neighbor = Neighbors[nodes[i]];
+                var neighbor = Grid.Neighbors[nodes[i]];
                 return new Position(neighbor.x, neighbor.y);
             }
 
             var best = -1;
             var step = INF;
 
-            for (var k = 0; k < Neighbors.Length; k++)
+            for (var k = 0; k < Grid.Neighbors.Length; k++)
             {
-                var n = Neighbors[k];
+                var n = Grid.Neighbors[k];
                 var nx = cx + n.x;
                 var ny = cy + n.y;
 
@@ -935,7 +948,7 @@ namespace Astraia
 
             if (best != -1)
             {
-                var neighbor = Neighbors[best];
+                var neighbor = Grid.Neighbors[best];
                 return new Position(neighbor.x, neighbor.y);
             }
 

@@ -12,12 +12,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+using System.Reflection;
 using UnityEngine;
 
 namespace Astraia
 {
-    public static partial class EntityExtensions
+    public static class EntityExtensions
     {
         private static readonly Dictionary<Type, Delegate> parsers = new Dictionary<Type, Delegate>();
         private static readonly Dictionary<char, string> colors = new Dictionary<char, string>();
@@ -188,10 +188,7 @@ namespace Astraia
                 return result;
             }
         }
-    }
 
-    public static partial class EntityExtensions
-    {
         public static T GetOrAddComponent<T>(this Component self) where T : Component
         {
             var component = self.GetComponent<T>();

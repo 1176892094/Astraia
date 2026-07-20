@@ -152,5 +152,17 @@ namespace Astraia
 
             return null;
         }
+
+        internal static bool HasAttribute<T>(this MemberInfo member) where T : Attribute
+        {
+            var attribute = member.GetCustomAttribute<T>(true);
+            return attribute != null;
+        }
+
+        internal static bool GetAttribute<T>(this MemberInfo member, out T attribute) where T : Attribute
+        {
+            attribute = member.GetCustomAttribute<T>(true);
+            return attribute != null;
+        }
     }
 }

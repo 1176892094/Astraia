@@ -617,7 +617,7 @@ namespace Astraia
     }
 
     [Serializable]
-    public sealed class Blackboard<T>
+    public class Blackboard<T>
     {
         private Dictionary<T, int> properties = new Dictionary<T, int>();
         private int percent;
