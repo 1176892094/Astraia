@@ -17,8 +17,13 @@ using UnityEngine.UI;
 
 namespace Astraia
 {
-    public interface ITween
+    public interface ITween { }
+
+    public enum UIState : byte
     {
+        Common,
+        Freeze,
+        Stable,
     }
 
     [Serializable]
@@ -33,13 +38,9 @@ namespace Astraia
 
         internal void OnHideInternal() => OnHide();
 
-        protected virtual void OnShow()
-        {
-        }
+        protected virtual void OnShow() { }
 
-        protected virtual void OnHide()
-        {
-        }
+        protected virtual void OnHide() { }
     }
 
     [Serializable]

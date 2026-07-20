@@ -20,8 +20,8 @@ namespace Astraia
     [Serializable]
     public class UIManager : Singleton<UIManager>
     {
-        private Dictionary<int, UIStack> stackData = new Dictionary<int, UIStack>();
         private Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
+        private Dictionary<int, UIStack> stackData = new Dictionary<int, UIStack>();
         private Dictionary<Type, UIPanel> panelData = new Dictionary<Type, UIPanel>();
         [SerializeField] private Canvas canvas;
 

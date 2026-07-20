@@ -22,6 +22,10 @@ namespace Astraia
 {
     public partial class AssetManager
     {
+        public static event Action<long> OnLoadBatch;
+        public static event Action<string, long> OnBatchUpdate;
+        public static event Action<string, bool> OnBatchComplete;
+
         internal static async void Update()
         {
             if (GlobalSetting.Instance.AssetSimulate)

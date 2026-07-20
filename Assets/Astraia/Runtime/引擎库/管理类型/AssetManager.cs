@@ -40,9 +40,6 @@ namespace Astraia
         public static event Action<string> OnLoadScene;
         public static event Action<float> OnSceneUpdate;
         public static event Action<string> OnSceneComplete;
-        public static event Action<long> OnLoadBatch;
-        public static event Action<string, long> OnBatchUpdate;
-        public static event Action<string, bool> OnBatchComplete;
 
         internal void SetVersion(Manifest package)
         {

@@ -21,6 +21,7 @@ namespace Astraia
         private Dictionary<string, Transform> rootData = new Dictionary<string, Transform>();
         private Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
         [SerializeField] private Transform parent;
+        
         internal ICollection<IPool> Values => poolData.Values;
 
         protected override void Enqueue()

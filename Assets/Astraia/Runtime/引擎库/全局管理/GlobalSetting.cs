@@ -116,4 +116,28 @@ namespace Astraia
         public static string BuildVersion => Path.Combine(BuildFolderPath, TargetPlatform, Instance.AssetVersion.ToString());
 #endif
     }
+
+    internal enum AssetPlatform : byte
+    {
+        StandaloneOSX = 2,
+        StandaloneWindows = 5,
+        IOS = 9,
+        Android = 13
+    }
+
+    internal enum AssetData : byte
+    {
+        Assembly,
+        Enum,
+        Struct,
+        DataTable,
+        BadWord,
+        Icons,
+    }
+
+    internal enum BuildMode : byte
+    {
+        AssetBundlePath,
+        StreamingAssets
+    }
 }
