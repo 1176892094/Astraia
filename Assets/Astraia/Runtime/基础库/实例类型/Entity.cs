@@ -1080,7 +1080,7 @@ namespace Astraia
 
     public interface INode
     {
-        BTState OnTick(int index, Whiteboard<int> root);
+        BTState OnTick(int[] indices, Whiteboard<int> root);
     }
 
     [Serializable]
@@ -1095,12 +1095,11 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public BTState OnTick(int index, Whiteboard<int> root)
+        public BTState OnTick(int[] indices, Whiteboard<int> root)
         {
-            var reason = root.Get<int[]>(index);
-            while (reason[Index] < Nodes.Length)
+            while (indices[Index] < Nodes.Length)
             {
-                var result = Nodes[reason[Index]].OnTick(index, root);
+                var result = Nodes[indices[Index]].OnTick(indices, root);
                 if (result == BTState.Running)
                 {
                     return BTState.Running;
@@ -1108,14 +1107,14 @@ namespace Astraia
 
                 if (result == BTState.Failure)
                 {
-                    reason[Index] = 0;
+                    indices[Index] = 0;
                     return BTState.Failure;
                 }
 
-                reason[Index]++;
+                indices[Index]++;
             }
 
-            reason[Index] = 0;
+            indices[Index] = 0;
             return BTState.Success;
         }
     }
@@ -1132,12 +1131,11 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public BTState OnTick(int index, Whiteboard<int> root)
+        public BTState OnTick(int[] indices, Whiteboard<int> root)
         {
-            var reason = root.Get<int[]>(index);
-            while (reason[Index] < Nodes.Length)
+            while (indices[Index] < Nodes.Length)
             {
-                var result = Nodes[reason[Index]].OnTick(index, root);
+                var result = Nodes[indices[Index]].OnTick(indices, root);
                 if (result == BTState.Running)
                 {
                     return BTState.Running;
@@ -1145,14 +1143,14 @@ namespace Astraia
 
                 if (result == BTState.Success)
                 {
-                    reason[Index] = 0;
+                    indices[Index] = 0;
                     return BTState.Success;
                 }
 
-                reason[Index]++;
+                indices[Index]++;
             }
 
-            reason[Index] = 0;
+            indices[Index] = 0;
             return BTState.Failure;
         }
     }
@@ -1169,13 +1167,13 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public BTState OnTick(int index, Whiteboard<int> root)
+        public BTState OnTick(int[] indices, Whiteboard<int> root)
         {
             if (IsAny)
             {
                 foreach (var node in Nodes)
                 {
-                    var result = node.OnTick(index, root);
+                    var result = node.OnTick(indices, root);
                     if (result == BTState.Success)
                     {
                         return BTState.Success;
@@ -1190,10 +1188,10 @@ namespace Astraia
                 return BTState.Running;
             }
 
-            var IsAll = true;
+            var isAll = true;
             foreach (var node in Nodes)
             {
-                var result = node.OnTick(index, root);
+                var result = node.OnTick(indices, root);
                 if (result == BTState.Failure)
                 {
                     return BTState.Failure;
@@ -1201,11 +1199,11 @@ namespace Astraia
 
                 if (result == BTState.Running)
                 {
-                    IsAll = false;
+                    isAll = false;
                 }
             }
 
-            return IsAll ? BTState.Success : BTState.Running;
+            return isAll ? BTState.Success : BTState.Running;
         }
     }
 
@@ -1221,21 +1219,20 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public BTState OnTick(int index, Whiteboard<int> root)
+        public BTState OnTick(int[] indices, Whiteboard<int> root)
         {
-            var reason = root.Get<int[]>(index);
-            if (reason[Index] == 0)
+            if (indices[Index] == 0)
             {
-                reason[Index] = Seed.Next(Nodes.Length) + 1;
+                indices[Index] = Seed.Next(Nodes.Length) + 1;
             }
 
-            var result = Nodes[reason[Index] - 1].OnTick(index, root);
+            var result = Nodes[indices[Index] - 1].OnTick(indices, root);
             if (result == BTState.Running)
             {
                 return BTState.Running;
             }
 
-            reason[Index] = 0;
+            indices[Index] = 0;
             return result;
         }
     }
@@ -1254,22 +1251,21 @@ namespace Astraia
             Count = count;
         }
 
-        public BTState OnTick(int index, Whiteboard<int> root)
+        public BTState OnTick(int[] indices, Whiteboard<int> root)
         {
-            var reason = root.Get<int[]>(index);
-            var result = Node.OnTick(index, root);
+            var result = Node.OnTick(indices, root);
             if (result == BTState.Running)
             {
                 return BTState.Running;
             }
 
-            reason[Index]++;
-            if (Count < 0 || reason[Index] < Count)
+            indices[Index]++;
+            if (Count < 0 || indices[Index] < Count)
             {
                 return BTState.Running;
             }
 
-            reason[Index] = 0;
+            indices[Index] = 0;
             return BTState.Success;
         }
     }
@@ -1284,17 +1280,12 @@ namespace Astraia
             Node = node;
         }
 
-        public BTState OnTick(int index, Whiteboard<int> root)
+        public BTState OnTick(int[] indices, Whiteboard<int> root)
         {
-            var result = Node.OnTick(index, root);
-            if (result == BTState.Success)
+            switch (Node.OnTick(indices, root))
             {
-                return BTState.Failure;
-            }
-
-            if (result == BTState.Failure)
-            {
-                return BTState.Success;
+                case BTState.Success: return BTState.Failure;
+                case BTState.Failure: return BTState.Success;
             }
 
             return BTState.Running;
@@ -1311,9 +1302,9 @@ namespace Astraia
             Node = node;
         }
 
-        public BTState OnTick(int index, Whiteboard<int> root)
+        public BTState OnTick(int[] indices, Whiteboard<int> root)
         {
-            return Node.OnTick(index, root) == BTState.Running ? BTState.Running : BTState.Success;
+            return Node.OnTick(indices, root) == BTState.Running ? BTState.Running : BTState.Success;
         }
     }
 
@@ -1327,9 +1318,9 @@ namespace Astraia
             Node = node;
         }
 
-        public BTState OnTick(int index, Whiteboard<int> root)
+        public BTState OnTick(int[] indices, Whiteboard<int> root)
         {
-            return Node.OnTick(index, root) == BTState.Running ? BTState.Running : BTState.Failure;
+            return Node.OnTick(indices, root) == BTState.Running ? BTState.Running : BTState.Failure;
         }
     }
 
