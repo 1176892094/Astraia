@@ -628,7 +628,7 @@ namespace Astraia
     [Serializable]
     public abstract class Module<T> : IModule
     {
-        public T owner { get; internal set; }
+        public T owner { get; private set; }
         void IModule.Acquire(object value) => owner = (T)value;
         void IModule.Release() => owner = default;
         void IModule.Dequeue() => Dequeue();
@@ -644,7 +644,7 @@ namespace Astraia
     [Serializable]
     public abstract class State<T> : IState
     {
-        public T owner { get; internal set; }
+        public T owner { get; private set; }
         void IState.Acquire(object value) => owner = (T)value;
         void IState.Release() => owner = default;
         void IState.OnEnter() => OnEnter();
@@ -705,8 +705,8 @@ namespace Astraia
 
         public int GetInt(T key)
         {
-            properties.TryGetValue(key, out var value);
-            return value / percent;
+            properties.TryGetValue(key, out var result);
+            return result / percent;
         }
 
         public void SetInt(T key, int value)
@@ -716,20 +716,20 @@ namespace Astraia
 
         public void AddInt(T key, int value)
         {
-            properties.TryGetValue(key, out var v);
-            properties[key] = v + value * percent;
+            properties.TryGetValue(key, out var result);
+            properties[key] = result + value * percent;
         }
 
         public void SubInt(T key, int value)
         {
-            properties.TryGetValue(key, out var v);
-            properties[key] = v - value * percent;
+            properties.TryGetValue(key, out var result);
+            properties[key] = result - value * percent;
         }
 
         public float GetFloat(T key)
         {
-            properties.TryGetValue(key, out var value);
-            return value / (float)percent;
+            properties.TryGetValue(key, out var result);
+            return result / (float)percent;
         }
 
         public void SetFloat(T key, float value)
@@ -739,14 +739,14 @@ namespace Astraia
 
         public void AddFloat(T key, float value)
         {
-            properties.TryGetValue(key, out var v);
-            properties[key] = v + (int)Math.Round(value * percent);
+            properties.TryGetValue(key, out var result);
+            properties[key] = result + (int)Math.Round(value * percent);
         }
 
         public void SubFloat(T key, float value)
         {
-            properties.TryGetValue(key, out var v);
-            properties[key] = v - (int)Math.Round(value * percent);
+            properties.TryGetValue(key, out var result);
+            properties[key] = result - (int)Math.Round(value * percent);
         }
 
         public void Clear()

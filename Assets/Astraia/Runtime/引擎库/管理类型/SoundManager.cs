@@ -74,7 +74,6 @@ namespace Astraia
 
         protected override void Enqueue()
         {
-            Instance = null;
             audioData.Clear();
         }
 

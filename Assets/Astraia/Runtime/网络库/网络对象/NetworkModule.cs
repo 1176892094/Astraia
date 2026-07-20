@@ -18,12 +18,25 @@ namespace Astraia.Net
 {
     public abstract class NetworkSingleton<T> : NetworkModule, IModule where T : NetworkSingleton<T>
     {
-        public static T Instance;
+        private static T instance;
+        public static T Instance => instance;
 
-        void IModule.Acquire(object value)
+        void IModule.Dequeue()
         {
-            Instance = (T)this;
-            this.owner = (NetworkEntity)value;
+            if (instance != this)
+            {
+                instance = (T)this;
+                instance.Dequeue();
+            }
+        }
+
+        void IModule.Enqueue()
+        {
+            if (instance == this)
+            {
+                instance.Enqueue();
+                instance = null;
+            }
         }
     }
 

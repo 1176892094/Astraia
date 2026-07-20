@@ -25,7 +25,6 @@ namespace Astraia
 
         protected override void Enqueue()
         {
-            Instance = null;
             foreach (var item in poolData.Values)
             {
                 item.Dispose();

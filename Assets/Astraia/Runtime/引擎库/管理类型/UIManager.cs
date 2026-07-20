@@ -29,7 +29,6 @@ namespace Astraia
 
         protected override void Enqueue()
         {
-            Instance = null;
             stackData.Clear();
             layerData.Clear();
             panelData.Clear();

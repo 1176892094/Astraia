@@ -57,7 +57,6 @@ namespace Astraia.Net
                 modules = moduleList.OfType<NetworkModule>().ToArray();
                 for (byte i = 0; i < modules.Length; ++i)
                 {
-                    modules[i].owner = this;
                     modules[i].moduleId = i;
                 }
             }

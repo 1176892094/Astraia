@@ -103,12 +103,25 @@ namespace Astraia
     [Serializable]
     public abstract class Singleton<T> : Module<Entity>, IModule where T : Singleton<T>
     {
-        public static T Instance;
+        private static T instance;
+        public static T Instance => instance;
 
-        void IModule.Acquire(object value)
+        void IModule.Dequeue()
         {
-            Instance = (T)this;
-            this.owner = (Entity)value;
+            if (instance != this)
+            {
+                instance = (T)this;
+                instance.Dequeue();
+            }
+        }
+
+        void IModule.Enqueue()
+        {
+            if (instance == this)
+            {
+                instance.Enqueue();
+                instance = null;
+            }
         }
     }
 }

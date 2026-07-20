@@ -62,7 +62,6 @@ namespace Astraia
             OnBatchUpdate = null;
             OnBatchComplete = null;
 
-            Instance = null;
             manifest = null;
             assetData.Clear();
             assetPack.Clear();
