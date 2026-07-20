@@ -512,9 +512,7 @@ namespace Astraia
         }
     }
 
-    public interface IEvent
-    {
-    }
+    public interface IEvent { }
 
     public interface IEvent<in T> where T : struct, IEvent
     {
@@ -610,7 +608,8 @@ namespace Astraia
 
     internal interface IModule
     {
-        void Acquire(object owner);
+        void Acquire(object value);
+        void Release();
         void Dequeue();
         void Enqueue();
         void OnShow();
@@ -619,7 +618,8 @@ namespace Astraia
 
     internal interface IState
     {
-        void Acquire(object owner);
+        void Acquire(object value);
+        void Release();
         void OnEnter();
         void OnUpdate();
         void OnExit();
@@ -629,60 +629,41 @@ namespace Astraia
     public abstract class Module<T> : IModule
     {
         public T owner { get; internal set; }
-        void IModule.Acquire(object owner) => this.owner = (T)owner;
+        void IModule.Acquire(object value) => owner = (T)value;
+        void IModule.Release() => owner = default;
         void IModule.Dequeue() => Dequeue();
         void IModule.Enqueue() => Enqueue();
         void IModule.OnShow() => OnShow();
         void IModule.OnHide() => OnHide();
-
-        protected virtual void Dequeue()
-        {
-        }
-
-        protected virtual void Enqueue()
-        {
-        }
-
-        protected virtual void OnShow()
-        {
-        }
-
-        protected virtual void OnHide()
-        {
-        }
+        protected virtual void Dequeue() { }
+        protected virtual void Enqueue() { }
+        protected virtual void OnShow() { }
+        protected virtual void OnHide() { }
     }
 
     [Serializable]
     public abstract class State<T> : IState
     {
         public T owner { get; internal set; }
-        void IState.Acquire(object owner) => this.owner = (T)owner;
+        void IState.Acquire(object value) => owner = (T)value;
+        void IState.Release() => owner = default;
         void IState.OnEnter() => OnEnter();
         void IState.OnUpdate() => OnUpdate();
         void IState.OnExit() => OnExit();
-
-        protected virtual void OnEnter()
-        {
-        }
-
-        protected virtual void OnUpdate()
-        {
-        }
-
-        protected virtual void OnExit()
-        {
-        }
+        protected virtual void OnEnter() { }
+        protected virtual void OnUpdate() { }
+        protected virtual void OnExit() { }
     }
 
     [Serializable]
-    public class StateMachine<T>
+    public sealed class StateMachine<T>
     {
         private Dictionary<T, IState> states = new Dictionary<T, IState>();
         private IState state;
 
         public void Create<TState>(object owner, T key)
         {
-            var item = HeapManager.Dequeue<IState>(typeof(TState));
+            var item = (IState)Activator.CreateInstance<TState>();
             item.Acquire(owner);
             states[key] = item;
         }
@@ -699,11 +680,11 @@ namespace Astraia
             state?.OnUpdate();
         }
 
-        public void Dispose()
+        public void Clear()
         {
             foreach (var item in states.Values)
             {
-                HeapManager.Enqueue(item, item.GetType());
+                item.Release();
             }
 
             state = null;
@@ -712,64 +693,79 @@ namespace Astraia
     }
 
     [Serializable]
-    public class Blackboard<T> : Dictionary<T, int>
+    public sealed class Blackboard<T>
     {
+        private Dictionary<T, int> properties = new Dictionary<T, int>();
+        private int percent;
+
+        public Blackboard(int percent = 100)
+        {
+            this.percent = percent;
+        }
+
         public int GetInt(T key)
         {
-            TryGetValue(key, out var value);
-            return value / 100;
+            properties.TryGetValue(key, out var value);
+            return value / percent;
         }
 
         public void SetInt(T key, int value)
         {
-            this[key] = value * 100;
+            properties[key] = value * percent;
         }
 
         public void AddInt(T key, int value)
         {
-            TryGetValue(key, out var v);
-            this[key] = v + value * 100;
+            properties.TryGetValue(key, out var v);
+            properties[key] = v + value * percent;
         }
 
         public void SubInt(T key, int value)
         {
-            TryGetValue(key, out var v);
-            this[key] = v - value * 100;
+            properties.TryGetValue(key, out var v);
+            properties[key] = v - value * percent;
         }
 
         public float GetFloat(T key)
         {
-            TryGetValue(key, out var value);
-            return value / 100F;
+            properties.TryGetValue(key, out var value);
+            return value / (float)percent;
         }
 
         public void SetFloat(T key, float value)
         {
-            this[key] = (int)Math.Round(value * 100);
+            properties[key] = (int)Math.Round(value * percent);
         }
 
         public void AddFloat(T key, float value)
         {
-            TryGetValue(key, out var v);
-            this[key] = v + (int)Math.Round(value * 100);
+            properties.TryGetValue(key, out var v);
+            properties[key] = v + (int)Math.Round(value * percent);
         }
 
         public void SubFloat(T key, float value)
         {
-            TryGetValue(key, out var v);
-            this[key] = v - (int)Math.Round(value * 100);
+            properties.TryGetValue(key, out var v);
+            properties[key] = v - (int)Math.Round(value * percent);
+        }
+
+        public void Clear()
+        {
+            properties.Clear();
         }
     }
 
     [Serializable]
-    public class Dictionary<T> : Dictionary<Type, IDictionary>
+    public class Whiteboard<T>
     {
+        private Dictionary<Type, IDictionary> properties = new Dictionary<Type, IDictionary>();
+
         public void Set<TValue>(T key, TValue value)
         {
-            if (!TryGetValue(typeof(TValue), out var items))
+            if (!properties.TryGetValue(typeof(TValue), out var items))
             {
                 items = new Dictionary<T, TValue>();
-                Add(typeof(TValue), items);
+                properties.Add(typeof(TValue), items);
             }
 
             ((Dictionary<T, TValue>)items)[key] = value;
@@ -777,10 +773,10 @@ namespace Astraia
 
         public TValue Get<TValue>(T key)
         {
-            if (!TryGetValue(typeof(TValue), out var items))
+            if (!properties.TryGetValue(typeof(TValue), out var items))
             {
                 items = new Dictionary<T, TValue>();
-                Add(typeof(TValue), items);
+                properties.Add(typeof(TValue), items);
             }
 
             return ((Dictionary<T, TValue>)items).GetValueOrDefault(key);
@@ -788,31 +784,33 @@ namespace Astraia
 
         public bool TryGet<TValue>(T key, out TValue value)
         {
-            if (!TryGetValue(typeof(TValue), out var items))
+            if (!properties.TryGetValue(typeof(TValue), out var items))
             {
                 items = new Dictionary<T, TValue>();
-                Add(typeof(TValue), items);
+                properties.Add(typeof(TValue), items);
             }
 
             return ((Dictionary<T, TValue>)items).TryGetValue(key, out value);
         }
+
+        public void Clear()
+        {
+            foreach (var child in properties.Values)
+            {
+                child.Clear();
+            }
+
+            properties.Clear();
+        }
     }
 
-    public struct OnEarlyUpdate : IEvent
-    {
-    }
+    public struct OnEarlyUpdate : IEvent { }
 
-    public struct OnAfterUpdate : IEvent
-    {
-    }
+    public struct OnAfterUpdate : IEvent { }
 
-    public struct OnFixedUpdate : IEvent
-    {
-    }
+    public struct OnFixedUpdate : IEvent { }
 
-    public struct OnGizmoUpdate : IEvent
-    {
-    }
+    public struct OnGizmoUpdate : IEvent { }
 
     internal interface IAsync
     {
@@ -1045,7 +1043,7 @@ namespace Astraia
 
     public interface INode
     {
-        BTState OnTick(int index, Dictionary<int> root);
+        BTState OnTick(int index, Whiteboard<int> root);
     }
 
     [Serializable]
@@ -1060,7 +1058,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public BTState OnTick(int index, Dictionary<int> root)
+        public BTState OnTick(int index, Whiteboard<int> root)
         {
             var reason = root.Get<int[]>(index);
             while (reason[Index] < Nodes.Length)
@@ -1097,7 +1095,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public BTState OnTick(int index, Dictionary<int> root)
+        public BTState OnTick(int index, Whiteboard<int> root)
         {
             var reason = root.Get<int[]>(index);
             while (reason[Index] < Nodes.Length)
@@ -1134,7 +1132,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public BTState OnTick(int index, Dictionary<int> root)
+        public BTState OnTick(int index, Whiteboard<int> root)
         {
             if (IsAny)
             {
@@ -1186,7 +1184,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public BTState OnTick(int index, Dictionary<int> root)
+        public BTState OnTick(int index, Whiteboard<int> root)
         {
             var reason = root.Get<int[]>(index);
             if (reason[Index] == 0)
@@ -1219,7 +1217,7 @@ namespace Astraia
             Count = count;
         }
 
-        public BTState OnTick(int index, Dictionary<int> root)
+        public BTState OnTick(int index, Whiteboard<int> root)
         {
             var reason = root.Get<int[]>(index);
             var result = Node.OnTick(index, root);
@@ -1249,7 +1247,7 @@ namespace Astraia
             Node = node;
         }
 
-        public BTState OnTick(int index, Dictionary<int> root)
+        public BTState OnTick(int index, Whiteboard<int> root)
         {
             var result = Node.OnTick(index, root);
             if (result == BTState.Success)
@@ -1276,7 +1274,7 @@ namespace Astraia
             Node = node;
         }
 
-        public BTState OnTick(int index, Dictionary<int> root)
+        public BTState OnTick(int index, Whiteboard<int> root)
         {
             return Node.OnTick(index, root) == BTState.Running ? BTState.Running : BTState.Success;
         }
@@ -1292,7 +1290,7 @@ namespace Astraia
             Node = node;
         }
 
-        public BTState OnTick(int index, Dictionary<int> root)
+        public BTState OnTick(int index, Whiteboard<int> root)
         {
             return Node.OnTick(index, root) == BTState.Running ? BTState.Running : BTState.Failure;
         }

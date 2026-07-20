@@ -9,8 +9,9 @@ namespace Astraia
     {
         [SerializeReference]
         internal List<IModule> moduleList = new List<IModule>();
+
         internal int state;
-        
+
         internal const int CREATE = 1 << 0;
         internal const int OWNING = 1 << 1;
         internal const int CLIENT = 1 << 2;
@@ -58,10 +59,15 @@ namespace Astraia
                 module.Enqueue();
             }
 
+            foreach (var module in moduleList)
+            {
+                module.Release();
+            }
+
             moduleList.Clear();
         }
 
-        public T AddComponent<T>() 
+        public T AddComponent<T>()
         {
             var module = (IModule)Activator.CreateInstance<T>();
             moduleList.Add(module);
@@ -85,21 +91,13 @@ namespace Astraia
 
     public abstract class Inject : MonoBehaviour
     {
-        protected virtual void Awake()
-        {
-        }
+        protected virtual void Awake() { }
 
-        protected virtual void OnEnable()
-        {
-        }
+        protected virtual void OnEnable() { }
 
-        protected virtual void OnDisable()
-        {
-        }
+        protected virtual void OnDisable() { }
 
-        protected virtual void OnDestroy()
-        {
-        }
+        protected virtual void OnDestroy() { }
     }
 
     [Serializable]
@@ -107,10 +105,10 @@ namespace Astraia
     {
         public static T Instance;
 
-        void IModule.Acquire(object owner)
+        void IModule.Acquire(object value)
         {
             Instance = (T)this;
-            this.owner = (Entity)owner;
+            this.owner = (Entity)value;
         }
     }
 }

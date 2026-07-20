@@ -20,10 +20,10 @@ namespace Astraia.Net
     {
         public static T Instance;
 
-        void IModule.Acquire(object owner)
+        void IModule.Acquire(object value)
         {
             Instance = (T)this;
-            this.owner = (NetworkEntity)owner;
+            this.owner = (NetworkEntity)value;
         }
     }
 
