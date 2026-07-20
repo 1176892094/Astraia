@@ -264,7 +264,7 @@ namespace Astraia
         private readonly string userName;
         private readonly Stopwatch watch = new Stopwatch();
         private readonly CEvent onEvent;
-        private uint exitTime;
+        private uint skipTime;
         private uint pingTime;
         private uint waitTime;
         private uint userData;
@@ -290,7 +290,7 @@ namespace Astraia
             userData = 0;
             pingTime = 0;
             waitTime = 0;
-            exitTime = setting.Timeout;
+            skipTime = setting.Timeout;
             kcp = new Protocol(0, SendReliable);
             kcp.SetData(setting.MaxUnit - METADATA_SIZE, setting.DeadLink);
             kcp.SetDelay(setting.NoDelay, setting.Interval, setting.FastResend, !setting.Congestion);
@@ -460,9 +460,9 @@ namespace Astraia
 
         private void BeforeReceive(uint sinceTime)
         {
-            if (sinceTime >= waitTime + exitTime)
+            if (sinceTime >= waitTime + skipTime)
             {
-                onEvent.Error(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, exitTime / 1000));
+                onEvent.Error(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, skipTime / 1000));
                 Disconnect();
             }
 
