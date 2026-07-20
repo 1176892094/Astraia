@@ -843,7 +843,7 @@ namespace Astraia
             var writerDelegate = Writer<T>.writer;
             if (writerDelegate == null)
             {
-                Log.Error("No writer found for {0}.".Format(typeof(T)));
+                Log.Error("No writer found for {0}.", typeof(T));
                 return;
             }
 
@@ -933,7 +933,7 @@ namespace Astraia
             var readerDelegate = Reader<T>.reader;
             if (readerDelegate == null)
             {
-                Log.Error($"No reader found for {typeof(T)}.");
+                Log.Error("No reader found for {0}.", typeof(T));
                 return default;
             }
 

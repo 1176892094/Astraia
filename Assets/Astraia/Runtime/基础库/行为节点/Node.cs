@@ -6,7 +6,7 @@ namespace Astraia.Node
 {
     public interface INode
     {
-        Trees.State OnTick(int[] indices, Whiteboard<int> root);
+        Root.State OnTick(int[] indices, Whiteboard<int> root);
     }
 
     [Serializable]
@@ -21,21 +21,21 @@ namespace Astraia.Node
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Trees.State OnTick(int[] indices, Whiteboard<int> root)
+        public Root.State OnTick(int[] indices, Whiteboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
             {
                 var result = Nodes[current].OnTick(indices, root);
-                if (result == Trees.State.Running)
+                if (result == Root.State.Running)
                 {
-                    return Trees.State.Running;
+                    return Root.State.Running;
                 }
 
-                if (result == Trees.State.Failure)
+                if (result == Root.State.Failure)
                 {
                     indices[Index] = 0;
-                    return Trees.State.Failure;
+                    return Root.State.Failure;
                 }
 
                 current++;
@@ -43,7 +43,7 @@ namespace Astraia.Node
             }
 
             indices[Index] = 0;
-            return Trees.State.Success;
+            return Root.State.Success;
         }
     }
 
@@ -59,21 +59,21 @@ namespace Astraia.Node
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Trees.State OnTick(int[] indices, Whiteboard<int> root)
+        public Root.State OnTick(int[] indices, Whiteboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
             {
                 var result = Nodes[current].OnTick(indices, root);
-                if (result == Trees.State.Running)
+                if (result == Root.State.Running)
                 {
-                    return Trees.State.Running;
+                    return Root.State.Running;
                 }
 
-                if (result == Trees.State.Success)
+                if (result == Root.State.Success)
                 {
                     indices[Index] = 0;
-                    return Trees.State.Success;
+                    return Root.State.Success;
                 }
 
                 current++;
@@ -81,7 +81,7 @@ namespace Astraia.Node
             }
 
             indices[Index] = 0;
-            return Trees.State.Failure;
+            return Root.State.Failure;
         }
     }
 
@@ -97,43 +97,43 @@ namespace Astraia.Node
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Trees.State OnTick(int[] indices, Whiteboard<int> root)
+        public Root.State OnTick(int[] indices, Whiteboard<int> root)
         {
             if (IsAny)
             {
                 foreach (var node in Nodes)
                 {
                     var result = node.OnTick(indices, root);
-                    if (result == Trees.State.Success)
+                    if (result == Root.State.Success)
                     {
-                        return Trees.State.Success;
+                        return Root.State.Success;
                     }
 
-                    if (result == Trees.State.Failure)
+                    if (result == Root.State.Failure)
                     {
-                        return Trees.State.Failure;
+                        return Root.State.Failure;
                     }
                 }
 
-                return Trees.State.Running;
+                return Root.State.Running;
             }
 
             var isAll = true;
             foreach (var node in Nodes)
             {
                 var result = node.OnTick(indices, root);
-                if (result == Trees.State.Failure)
+                if (result == Root.State.Failure)
                 {
-                    return Trees.State.Failure;
+                    return Root.State.Failure;
                 }
 
-                if (result == Trees.State.Running)
+                if (result == Root.State.Running)
                 {
                     isAll = false;
                 }
             }
 
-            return isAll ? Trees.State.Success : Trees.State.Running;
+            return isAll ? Root.State.Success : Root.State.Running;
         }
     }
 
@@ -149,7 +149,7 @@ namespace Astraia.Node
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Trees.State OnTick(int[] indices, Whiteboard<int> root)
+        public Root.State OnTick(int[] indices, Whiteboard<int> root)
         {
             if (indices[Index] == 0)
             {
@@ -157,9 +157,9 @@ namespace Astraia.Node
             }
 
             var result = Nodes[indices[Index] - 1].OnTick(indices, root);
-            if (result == Trees.State.Running)
+            if (result == Root.State.Running)
             {
-                return Trees.State.Running;
+                return Root.State.Running;
             }
 
             indices[Index] = 0;
@@ -181,22 +181,22 @@ namespace Astraia.Node
             Count = count;
         }
 
-        public Trees.State OnTick(int[] indices, Whiteboard<int> root)
+        public Root.State OnTick(int[] indices, Whiteboard<int> root)
         {
             var result = Node.OnTick(indices, root);
-            if (result == Trees.State.Running)
+            if (result == Root.State.Running)
             {
-                return Trees.State.Running;
+                return Root.State.Running;
             }
 
             indices[Index]++;
             if (Count < 0 || indices[Index] < Count)
             {
-                return Trees.State.Running;
+                return Root.State.Running;
             }
 
             indices[Index] = 0;
-            return Trees.State.Success;
+            return Root.State.Success;
         }
     }
 
@@ -210,15 +210,15 @@ namespace Astraia.Node
             Node = node;
         }
 
-        public Trees.State OnTick(int[] indices, Whiteboard<int> root)
+        public Root.State OnTick(int[] indices, Whiteboard<int> root)
         {
             switch (Node.OnTick(indices, root))
             {
-                case Trees.State.Success: return Trees.State.Failure;
-                case Trees.State.Failure: return Trees.State.Success;
+                case Root.State.Success: return Root.State.Failure;
+                case Root.State.Failure: return Root.State.Success;
             }
 
-            return Trees.State.Running;
+            return Root.State.Running;
         }
     }
 
@@ -232,9 +232,9 @@ namespace Astraia.Node
             Node = node;
         }
 
-        public Trees.State OnTick(int[] indices, Whiteboard<int> root)
+        public Root.State OnTick(int[] indices, Whiteboard<int> root)
         {
-            return Node.OnTick(indices, root) == Trees.State.Running ? Trees.State.Running : Trees.State.Success;
+            return Node.OnTick(indices, root) == Root.State.Running ? Root.State.Running : Root.State.Success;
         }
     }
 
@@ -248,13 +248,13 @@ namespace Astraia.Node
             Node = node;
         }
 
-        public Trees.State OnTick(int[] indices, Whiteboard<int> root)
+        public Root.State OnTick(int[] indices, Whiteboard<int> root)
         {
-            return Node.OnTick(indices, root) == Trees.State.Running ? Trees.State.Running : Trees.State.Failure;
+            return Node.OnTick(indices, root) == Root.State.Running ? Root.State.Running : Root.State.Failure;
         }
     }
 
-    public static class Trees
+    public static class Root
     {
         private static readonly Dictionary<Type, Func<Node, Func<Node, string>, INode>> Func = new();
 
@@ -265,7 +265,7 @@ namespace Astraia.Node
             Failure
         }
 
-        static Trees()
+        static Root()
         {
             Func[typeof(Sequence)] = Sequence;
             Func[typeof(Selector)] = Selector;

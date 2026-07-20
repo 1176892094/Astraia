@@ -706,17 +706,6 @@ namespace Astraia
             return ((Dictionary<T, TValue>)items).GetValueOrDefault(key);
         }
 
-        public bool TryGet<TValue>(T key, out TValue value)
-        {
-            if (!properties.TryGetValue(typeof(TValue), out var items))
-            {
-                items = new Dictionary<T, TValue>();
-                properties.Add(typeof(TValue), items);
-            }
-
-            return ((Dictionary<T, TValue>)items).TryGetValue(key, out value);
-        }
-
         public void Clear()
         {
             foreach (var child in properties.Values)
@@ -805,7 +794,7 @@ namespace Astraia
             }
             catch (Exception e)
             {
-                Log.Info("打断异步方法：\n{0}".Format(e));
+                Log.Info("打断异步方法：\n{0}", e);
                 Break();
             }
         }
@@ -944,7 +933,7 @@ namespace Astraia
             }
             catch (Exception e)
             {
-                Log.Info("打断异步方法：\n{0}".Format(e));
+                Log.Info("打断异步方法：\n{0}", e);
                 Break();
             }
         }
