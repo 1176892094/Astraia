@@ -161,6 +161,28 @@ namespace Astraia
                 GUILayout.EndHorizontal();
             }
         }
+
+        internal class FixationDrawer : OdinValueDrawer<Fixation>
+        {
+            protected override void DrawPropertyLayout(GUIContent label)
+            {
+                GUILayout.BeginHorizontal();
+                var value = ValueEntry.SmartValue;
+                SirenixEditorFields.FloatField(label, (float)value);
+                GUILayout.EndHorizontal();
+            }
+        }
+
+        internal class PositionDrawer : OdinValueDrawer<Position>
+        {
+            protected override void DrawPropertyLayout(GUIContent label)
+            {
+                GUILayout.BeginHorizontal();
+                var value = ValueEntry.SmartValue;
+                SirenixEditorFields.Vector3Field(label, new Vector3((float)value.x, (float)value.y, (float)value.magnitude));
+                GUILayout.EndHorizontal();
+            }
+        }
 #endif
     }
 
@@ -334,7 +356,7 @@ namespace Astraia
     }
 
     [CustomPropertyDrawer(typeof(Xor32))]
-    internal class XorIntDrawer : PropertyDrawer
+    internal class Xor32Drawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -358,7 +380,7 @@ namespace Astraia
     }
 
     [CustomPropertyDrawer(typeof(Xor64))]
-    internal class XorLongDrawer : PropertyDrawer
+    internal class Xor64Drawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
