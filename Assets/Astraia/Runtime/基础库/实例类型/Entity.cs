@@ -75,13 +75,13 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetBit(int shift, int bits)
         {
-            return (Value >> shift) & (1 << bits) - 1;
+            return (Value >> shift) & ((1 << bits) - 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetBit(int shift, int bits, int value)
         {
-            Value = (Value & ~((1 << bits) - 1 << shift)) | ((value & (1 << bits) - 1) << shift);
+            Value = (Value & ~(((1 << bits) - 1) << shift)) | ((value & ((1 << bits) - 1)) << shift);
         }
     }
 
@@ -155,13 +155,13 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetBit(int shift, int bits)
         {
-            return (int)((Value >> shift) & (1L << bits) - 1);
+            return (int)((Value >> shift) & ((1L << bits) - 1));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetBit(int shift, int bits, int value)
         {
-            Value = (Value & ~((1L << bits) - 1 << shift)) | ((value & (1L << bits) - 1) << shift);
+            Value = (Value & ~(((1L << bits) - 1) << shift)) | ((value & ((1L << bits) - 1)) << shift);
         }
     }
 
@@ -276,7 +276,9 @@ namespace Astraia
                     var remain = bits - read;
 
                     if (take > remain)
+                    {
                         take = remain;
+                    }
 
                     var mask = (1 << take) - 1;
 
@@ -311,7 +313,9 @@ namespace Astraia
                     var remain = bits - written;
 
                     if (take > remain)
+                    {
                         take = remain;
+                    }
 
                     var mask = (1 << take) - 1;
 
@@ -341,7 +345,7 @@ namespace Astraia
 
     public static class HeapManager
     {
-        internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
+        internal static readonly Dictionary<Type, IPool> poolData = new();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Dequeue<T>(params object[] args)
@@ -391,7 +395,7 @@ namespace Astraia
 
         private class Pool<T> : IPool
         {
-            private readonly Queue<T> unused = new Queue<T>();
+            private readonly Queue<T> unused = new();
             public Type Type { get; private set; }
             public string Path { get; private set; }
             public int Acquire { get; private set; }
@@ -445,7 +449,7 @@ namespace Astraia
 
     public static class EventManager
     {
-        internal static readonly Dictionary<Type, IPool> poolData = new Dictionary<Type, IPool>();
+        internal static readonly Dictionary<Type, IPool> poolData = new();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Listen<T>(IEvent<T> data) where T : struct, IEvent
@@ -582,7 +586,7 @@ namespace Astraia
     [Serializable]
     public sealed class StateMachine<T>
     {
-        private Dictionary<T, IState> states = new Dictionary<T, IState>();
+        private Dictionary<T, IState> states = new();
         private IState state;
 
         public void Create<TState>(object owner, T key)
@@ -619,7 +623,7 @@ namespace Astraia
     [Serializable]
     public class Blackboard<T>
     {
-        private Dictionary<T, int> properties = new Dictionary<T, int>();
+        private Dictionary<T, int> properties = new();
         private int percent;
 
         public Blackboard(int percent = 100)
@@ -682,7 +686,7 @@ namespace Astraia
     [Serializable]
     public class Whiteboard<T>
     {
-        private Dictionary<Type, IDictionary> properties = new Dictionary<Type, IDictionary>();
+        private Dictionary<Type, IDictionary> properties = new();
 
         public void Set<TValue>(T key, TValue value)
         {
@@ -1060,39 +1064,14 @@ namespace Astraia
     }
 
     [Serializable]
-    public struct Position
-    {
-        public int x;
-        public int y;
-
-        public Position(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-
-        public static Position operator +(Position a, Position b)
-        {
-            return new Position(a.x + b.x, a.y + b.y);
-        }
-
-        public static Position operator -(Position a, Position b)
-        {
-            return new Position(a.x - b.x, a.y - b.y);
-        }
-
-        public ulong Hash => ((ulong)x << 32) ^ (ulong)y;
-    }
-
-    [Serializable]
     public sealed class SpatialHash<T>
     {
-        private readonly Dictionary<ulong, HashSet<T>> buckets = new Dictionary<ulong, HashSet<T>>();
-        private readonly Dictionary<T, ulong> objects = new Dictionary<T, ulong>();
+        private readonly Dictionary<int, HashSet<T>> buckets = new();
+        private readonly Dictionary<T, int> objects = new();
 
         public void Insert(T item, Position center)
         {
-            var node = center.Hash;
+            var node = center.GetHashCode();
             if (!buckets.TryGetValue(node, out var items))
             {
                 items = new HashSet<T>();
@@ -1124,7 +1103,7 @@ namespace Astraia
         {
             if (objects.TryGetValue(item, out var oldNode))
             {
-                var newNode = center.Hash;
+                var newNode = center.GetHashCode();
                 if (oldNode != newNode)
                 {
                     if (buckets.TryGetValue(oldNode, out var oldItems))
@@ -1160,7 +1139,7 @@ namespace Astraia
             {
                 for (var y = minY; y <= maxY; y++)
                 {
-                    var node = new Position(x, y).Hash;
+                    var node = new Position(x, y).GetHashCode();
                     if (buckets.TryGetValue(node, out var copies))
                     {
                         foreach (var item in copies)
@@ -1181,6 +1160,314 @@ namespace Astraia
 
             buckets.Clear();
             objects.Clear();
+        }
+    }
+
+    [Serializable]
+    public readonly struct Fixation : IEquatable<Fixation>, IComparable<Fixation>
+    {
+        private const int BIT = 16;
+        private const int ONE = 1 << BIT;
+
+        private readonly int value;
+
+        public static readonly Fixation Zero = new Fixation(0);
+
+        private Fixation(int value)
+        {
+            this.value = value;
+        }
+
+        private int ToInt()
+        {
+            return value >> BIT;
+        }
+
+        private float ToFloat()
+        {
+            return (float)value / ONE;
+        }
+
+        private static Fixation FromInt(int value)
+        {
+            return new Fixation(value << BIT);
+        }
+
+        private static Fixation FromFloat(float value)
+        {
+            return new Fixation((int)(value * ONE));
+        }
+
+        public static bool operator <(Fixation a, Fixation b)
+        {
+            return a.value < b.value;
+        }
+
+        public static bool operator >(Fixation a, Fixation b)
+        {
+            return a.value > b.value;
+        }
+
+        public static bool operator <=(Fixation a, Fixation b)
+        {
+            return a.value <= b.value;
+        }
+
+        public static bool operator >=(Fixation a, Fixation b)
+        {
+            return a.value >= b.value;
+        }
+
+        public static bool operator ==(Fixation a, Fixation b)
+        {
+            return a.value == b.value;
+        }
+
+        public static bool operator !=(Fixation a, Fixation b)
+        {
+            return a.value != b.value;
+        }
+
+        public static Fixation operator +(Fixation a, Fixation b)
+        {
+            return new Fixation(a.value + b.value);
+        }
+
+        public static Fixation operator -(Fixation a, Fixation b)
+        {
+            return new Fixation(a.value - b.value);
+        }
+
+        public static Fixation operator *(Fixation a, Fixation b)
+        {
+            return new Fixation((int)(((long)a.value * b.value) >> BIT));
+        }
+
+        public static Fixation operator /(Fixation a, Fixation b)
+        {
+            return new Fixation((int)(((long)a.value << BIT) / b.value));
+        }
+
+        public static implicit operator Fixation(int value)
+        {
+            return FromInt(value);
+        }
+
+        public static implicit operator int(Fixation value)
+        {
+            return value.ToInt();
+        }
+
+        public static explicit operator Fixation(float value)
+        {
+            return FromFloat(value);
+        }
+
+        public static explicit operator float(Fixation value)
+        {
+            return value.ToFloat();
+        }
+
+        public int CompareTo(Fixation other)
+        {
+            return value.CompareTo(other.value);
+        }
+
+        public bool Equals(Fixation other)
+        {
+            return value == other.value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Fixation other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return value.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return ToFloat().ToString("F3");
+        }
+
+        public static int Sign(Fixation value)
+        {
+            return value > Zero ? 1 : value < Zero ? -1 : 0;
+        }
+
+        public static Fixation Min(Fixation a, Fixation b)
+        {
+            return a < b ? a : b;
+        }
+
+        public static Fixation Max(Fixation a, Fixation b)
+        {
+            return a > b ? a : b;
+        }
+
+        public static Fixation Abs(Fixation value)
+        {
+            return value.value < 0 ? new Fixation(-value.value) : value;
+        }
+
+        public static Fixation Lerp(Fixation a, Fixation b, Fixation t)
+        {
+            return a + (b - a) * t;
+        }
+
+        public static Fixation Sqrt(Fixation value)
+        {
+            if (value.value <= 0)
+            {
+                return Zero;
+            }
+
+            var number = (long)value.value << BIT;
+            var result = 1L << ((BitLength(number) + 1) >> 1);
+
+            while (true)
+            {
+                var next = (result + number / result) >> 1;
+                if (next >= result)
+                {
+                    break;
+                }
+
+                result = next;
+            }
+
+            return new Fixation((int)result);
+        }
+
+        private static int BitLength(long value)
+        {
+            var length = 0;
+
+            while (value > 0)
+            {
+                value >>= 1;
+                length++;
+            }
+
+            return length;
+        }
+    }
+
+    [Serializable]
+    public readonly struct Position : IEquatable<Position>
+    {
+        public readonly Fixation x;
+        public readonly Fixation y;
+
+        public static readonly Position Zero = new Position(0, 0);
+
+        public Fixation sqrMagnitude => x * x + y * y;
+        public Fixation magnitude => Fixation.Sqrt(x * x + y * y);
+        public Position normalize => x == 0 && y == 0 ? Zero : this / magnitude;
+
+        public Position(Fixation x, Fixation y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+
+        public static bool operator ==(Position a, Position b)
+        {
+            return a.x == b.x && a.y == b.y;
+        }
+
+        public static bool operator !=(Position a, Position b)
+        {
+            return a.x != b.x || a.y != b.y;
+        }
+
+        public static Position operator +(Position a, Position b)
+        {
+            return new Position(a.x + b.x, a.y + b.y);
+        }
+
+        public static Position operator -(Position a, Position b)
+        {
+            return new Position(a.x - b.x, a.y - b.y);
+        }
+
+        public static Position operator *(Position a, Fixation b)
+        {
+            return new Position(a.x * b, a.y * b);
+        }
+
+        public static Position operator /(Position a, Fixation b)
+        {
+            return new Position(a.x / b, a.y / b);
+        }
+
+        public bool Equals(Position other)
+        {
+            return x.Equals(other.x) && y.Equals(other.y);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Position other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return x << 16 ^ y;
+        }
+
+        public override string ToString()
+        {
+            return "({0}, {1})".Format(x, y);
+        }
+
+        public static Fixation Dot(Position a, Position b)
+        {
+            return a.x * b.x + a.y * b.y;
+        }
+
+        public static Fixation Cross(Position a, Position b)
+        {
+            return a.x * b.y - a.y * b.x;
+        }
+
+        public static Position Lerp(Position a, Position b, Fixation t)
+        {
+            return new Position(Fixation.Lerp(a.x, b.x, t), Fixation.Lerp(a.y, b.y, t));
+        }
+
+        public static Fixation Distance(Position a, Position b)
+        {
+            return Fixation.Sqrt((a - b).sqrMagnitude);
+        }
+
+        public static Fixation SqrDistance(Position a, Position b)
+        {
+            return (a - b).sqrMagnitude;
+        }
+
+        public static Position MoveTowards(Position current, Position target, Fixation maxDistanceDelta)
+        {
+            var delta = target - current;
+
+            var sqrDistance = delta.sqrMagnitude;
+
+            if (sqrDistance == 0)
+            {
+                return target;
+            }
+
+            var maxSqrDistance = maxDistanceDelta * maxDistanceDelta;
+
+            if (sqrDistance <= maxSqrDistance)
+            {
+                return target;
+            }
+
+            return current + delta.normalize * maxDistanceDelta;
         }
     }
 }
