@@ -829,9 +829,9 @@ namespace Astraia.Node
             opened.Clear();
             foreach (var p in points)
             {
-                if (Contains(p.x, p.y))
+                if (Contains(p.X, p.Y))
                 {
-                    var i = Index(p.x, p.y);
+                    var i = Index(p.X, p.Y);
                     steps[i] = 0;
                     opened.Enqueue(i);
                 }
@@ -909,8 +909,8 @@ namespace Astraia.Node
 
         public Position GetDirection(Position d)
         {
-            var cx = d.x;
-            var cy = d.y;
+            var cx = d.X;
+            var cy = d.Y;
 
             if (!Contains(cx, cy))
             {

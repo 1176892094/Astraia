@@ -1130,10 +1130,10 @@ namespace Astraia
         public void Query(Position center, int extentX, int extentY, HashSet<T> items)
         {
             items.Clear();
-            var minX = center.x - extentX;
-            var maxX = center.x + extentX;
-            var minY = center.y - extentY;
-            var maxY = center.y + extentY;
+            var minX = center.X - extentX;
+            var maxX = center.X + extentX;
+            var minY = center.Y - extentY;
+            var maxY = center.Y + extentY;
 
             for (var x = minX; x <= maxX; x++)
             {
@@ -1166,121 +1166,65 @@ namespace Astraia
     [Serializable]
     public readonly struct Fixation : IEquatable<Fixation>, IComparable<Fixation>
     {
-        public static readonly Fixation Zero = new Fixation(0);
-        public readonly int value;
+        private const int BIT = 16;
+        private const int FIX = 1 << BIT;
 
-        public const int BIT = 16;
-        public const int FIX = 1 << BIT;
+        public static readonly Fixation Zero = new Fixation();
+        public readonly int raw;
 
-        private Fixation(int value)
-        {
-            this.value = value;
-        }
+        private Fixation(int raw) => this.raw = raw;
 
-        private int ToInt()
-        {
-            return value >> BIT;
-        }
+        public int CompareTo(Fixation other) => raw.CompareTo(other.raw);
 
-        private float ToFloat()
-        {
-            return (float)value / FIX;
-        }
+        public bool Equals(Fixation other) => raw == other.raw;
 
-        public static Fixation FromInt(int value)
-        {
-            return new Fixation(value << BIT);
-        }
+        public override bool Equals(object obj) => obj is Fixation other && Equals(other);
 
-        public static Fixation FromFloat(float value)
-        {
-            return new Fixation((int)(value * FIX));
-        }
+        public override string ToString() => ((float)raw / FIX).ToString("R");
 
-        public static bool operator <(Fixation a, Fixation b)
-        {
-            return a.value < b.value;
-        }
+        public override int GetHashCode() => raw.GetHashCode();
 
-        public static bool operator >(Fixation a, Fixation b)
-        {
-            return a.value > b.value;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <(Fixation a, Fixation b) => a.raw < b.raw;
 
-        public static bool operator <=(Fixation a, Fixation b)
-        {
-            return a.value <= b.value;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >(Fixation a, Fixation b) => a.raw > b.raw;
 
-        public static bool operator >=(Fixation a, Fixation b)
-        {
-            return a.value >= b.value;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <=(Fixation a, Fixation b) => a.raw <= b.raw;
 
-        public static bool operator ==(Fixation a, Fixation b)
-        {
-            return a.value == b.value;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >=(Fixation a, Fixation b) => a.raw >= b.raw;
 
-        public static bool operator !=(Fixation a, Fixation b)
-        {
-            return a.value != b.value;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(Fixation a, Fixation b) => a.raw == b.raw;
 
-        public static Fixation operator +(Fixation a, Fixation b)
-        {
-            return new Fixation(a.value + b.value);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(Fixation a, Fixation b) => a.raw != b.raw;
 
-        public static Fixation operator -(Fixation a, Fixation b)
-        {
-            return new Fixation(a.value - b.value);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixation operator +(Fixation a, Fixation b) => new(a.raw + b.raw);
 
-        public static Fixation operator *(Fixation a, Fixation b)
-        {
-            return new Fixation((int)(((long)a.value * b.value) >> BIT));
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixation operator -(Fixation a, Fixation b) => new(a.raw - b.raw);
 
-        public static Fixation operator /(Fixation a, Fixation b)
-        {
-            return new Fixation((int)(((long)a.value << BIT) / b.value));
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixation operator *(Fixation a, Fixation b) => new((int)(((long)a.raw * b.raw) >> BIT));
 
-        public static implicit operator int(Fixation value)
-        {
-            return value.ToInt();
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixation operator /(Fixation a, Fixation b) => new((int)(((long)a.raw << BIT) / b.raw));
 
-        public static explicit operator float(Fixation value)
-        {
-            return value.ToFloat();
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator int(Fixation value) => value.raw >> BIT;
 
-        public int CompareTo(Fixation other)
-        {
-            return value.CompareTo(other.value);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator Fixation(int value) => new(value << BIT);
 
-        public bool Equals(Fixation other)
-        {
-            return value == other.value;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator float(Fixation value) => (float)value.raw / FIX;
 
-        public override bool Equals(object obj)
-        {
-            return obj is Fixation other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return value.GetHashCode();
-        }
-
-        public override string ToString()
-        {
-            return ToFloat().ToString("R");
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Fixation(float value) => new((int)(value * FIX));
 
         public static int Sign(Fixation value)
         {
@@ -1299,7 +1243,7 @@ namespace Astraia
 
         public static Fixation Abs(Fixation value)
         {
-            return value.value < 0 ? new Fixation(-value.value) : value;
+            return value.raw < 0 ? new Fixation(-value.raw) : value;
         }
 
         public static Fixation Lerp(Fixation a, Fixation b, Fixation t)
@@ -1309,12 +1253,12 @@ namespace Astraia
 
         public static Fixation Sqrt(Fixation value)
         {
-            if (value.value <= 0)
+            if (value.raw <= 0)
             {
                 return Zero;
             }
 
-            var number = (long)value.value << BIT;
+            var number = 0L + value.raw << BIT;
             var result = 1L << ((BitLength(number) + 1) >> 1);
 
             while (true)
@@ -1353,8 +1297,11 @@ namespace Astraia
         public readonly Fixation x;
         public readonly Fixation y;
 
+        internal int X => (int)x;
+        internal int Y => (int)y;
+
         public Fixation sqrMagnitude => x * x + y * y;
-        public Fixation magnitude => Fixation.Sqrt(x * x + y * y);
+        public Fixation magnitude => Fixation.Sqrt(sqrMagnitude);
         public Position normalize => x == 0 && y == 0 ? Zero : this / magnitude;
 
         public Position(Fixation x, Fixation y)
@@ -1363,61 +1310,25 @@ namespace Astraia
             this.y = y;
         }
 
-        public Position(float x, float y)
-        {
-            this.x = Fixation.FromFloat(x);
-            this.y = Fixation.FromFloat(y);
-        }
+        public static bool operator ==(Position a, Position b) => a.x == b.x && a.y == b.y;
 
-        public static bool operator ==(Position a, Position b)
-        {
-            return a.x == b.x && a.y == b.y;
-        }
+        public static bool operator !=(Position a, Position b) => a.x != b.x || a.y != b.y;
 
-        public static bool operator !=(Position a, Position b)
-        {
-            return a.x != b.x || a.y != b.y;
-        }
+        public static Position operator +(Position a, Position b) => new Position(a.x + b.x, a.y + b.y);
 
-        public static Position operator +(Position a, Position b)
-        {
-            return new Position(a.x + b.x, a.y + b.y);
-        }
+        public static Position operator -(Position a, Position b) => new Position(a.x - b.x, a.y - b.y);
 
-        public static Position operator -(Position a, Position b)
-        {
-            return new Position(a.x - b.x, a.y - b.y);
-        }
+        public static Position operator *(Position a, Fixation b) => new Position(a.x * b, a.y * b);
 
-        public static Position operator *(Position a, Fixation b)
-        {
-            return new Position(a.x * b, a.y * b);
-        }
+        public static Position operator /(Position a, Fixation b) => new Position(a.x / b, a.y / b);
 
-        public static Position operator /(Position a, Fixation b)
-        {
-            return new Position(a.x / b, a.y / b);
-        }
+        public bool Equals(Position other) => x.Equals(other.x) && y.Equals(other.y);
 
-        public bool Equals(Position other)
-        {
-            return x.Equals(other.x) && y.Equals(other.y);
-        }
+        public override bool Equals(object obj) => obj is Position other && Equals(other);
 
-        public override bool Equals(object obj)
-        {
-            return obj is Position other && Equals(other);
-        }
+        public override int GetHashCode() => X << 16 ^ Y;
 
-        public override int GetHashCode()
-        {
-            return x << Fixation.BIT ^ y;
-        }
-
-        public override string ToString()
-        {
-            return "({0}, {1})".Format(x, y);
-        }
+        public override string ToString() => "({0}, {1}) ({0}, {1})".Format(X, Y, x, y);
 
         public static Fixation Dot(Position a, Position b)
         {
