@@ -256,7 +256,7 @@ namespace Astraia.Node
 
     public static class Root
     {
-        private static readonly Dictionary<Type, Func<Node, Func<Node, string>, INode>> Func = new();
+        private static readonly Dictionary<Type, Func<Node, Func<Node, Type>, INode>> Func = new();
 
         public enum State
         {
@@ -277,42 +277,42 @@ namespace Astraia.Node
             Func[typeof(Failure)] = Failure;
         }
 
-        private static INode Sequence(Node node, Func<Node, string> func)
+        private static INode Sequence(Node node, Func<Node, Type> func)
         {
             return new Sequence(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
         }
 
-        private static INode Selector(Node node, Func<Node, string> func)
+        private static INode Selector(Node node, Func<Node, Type> func)
         {
             return new Selector(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
         }
 
-        private static INode Parallel(Node node, Func<Node, string> func)
+        private static INode Parallel(Node node, Func<Node, Type> func)
         {
             return new Parallel(node.Data, node.Nodes.Select(i => i.Build(func)).ToArray());
         }
 
-        private static INode Randomer(Node node, Func<Node, string> func)
+        private static INode Randomer(Node node, Func<Node, Type> func)
         {
             return new Randomer(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
         }
 
-        private static INode Repeater(Node node, Func<Node, string> func)
+        private static INode Repeater(Node node, Func<Node, Type> func)
         {
             return new Repeater(node.Index, int.Parse(node.Data), node.Nodes.Select(i => i.Build(func)).First());
         }
 
-        private static INode Inverter(Node node, Func<Node, string> func)
+        private static INode Inverter(Node node, Func<Node, Type> func)
         {
             return new Inverter(node.Nodes.Select(i => i.Build(func)).First());
         }
 
-        private static INode Success(Node node, Func<Node, string> func)
+        private static INode Success(Node node, Func<Node, Type> func)
         {
             return new Success(node.Nodes.Select(i => i.Build(func)).First());
         }
 
-        private static INode Failure(Node node, Func<Node, string> func)
+        private static INode Failure(Node node, Func<Node, Type> func)
         {
             return new Failure(node.Nodes.Select(i => i.Build(func)).First());
         }
@@ -456,14 +456,14 @@ namespace Astraia.Node
                 Nodes = new List<Node>();
             }
 
-            public INode Build(Func<Node, string> func)
+            public INode Build(Func<Node, Type> func)
             {
                 if (Name.IsNullOrEmpty())
                 {
                     throw new NullReferenceException();
                 }
 
-                var reason = Search.GetType(func.Invoke(this));
+                var reason = func.Invoke(this);
                 if (Func.TryGetValue(reason, out var result))
                 {
                     return result.Invoke(this, func);

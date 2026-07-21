@@ -1166,12 +1166,11 @@ namespace Astraia
     [Serializable]
     public readonly struct Fixation : IEquatable<Fixation>, IComparable<Fixation>
     {
-        private const int BIT = 16;
-        private const int ONE = 1 << BIT;
-
-        private readonly int value;
-
         public static readonly Fixation Zero = new Fixation(0);
+        public readonly int value;
+
+        public const int BIT = 16;
+        public const int FIX = 1 << BIT;
 
         private Fixation(int value)
         {
@@ -1185,17 +1184,17 @@ namespace Astraia
 
         private float ToFloat()
         {
-            return (float)value / ONE;
+            return (float)value / FIX;
         }
 
-        private static Fixation FromInt(int value)
+        public static Fixation FromInt(int value)
         {
             return new Fixation(value << BIT);
         }
 
-        private static Fixation FromFloat(float value)
+        public static Fixation FromFloat(float value)
         {
-            return new Fixation((int)(value * ONE));
+            return new Fixation((int)(value * FIX));
         }
 
         public static bool operator <(Fixation a, Fixation b)
@@ -1248,19 +1247,9 @@ namespace Astraia
             return new Fixation((int)(((long)a.value << BIT) / b.value));
         }
 
-        public static implicit operator Fixation(int value)
-        {
-            return FromInt(value);
-        }
-
         public static implicit operator int(Fixation value)
         {
             return value.ToInt();
-        }
-
-        public static explicit operator Fixation(float value)
-        {
-            return FromFloat(value);
         }
 
         public static explicit operator float(Fixation value)
@@ -1290,7 +1279,7 @@ namespace Astraia
 
         public override string ToString()
         {
-            return ToFloat().ToString("F3");
+            return ToFloat().ToString("R");
         }
 
         public static int Sign(Fixation value)
@@ -1359,10 +1348,10 @@ namespace Astraia
     [Serializable]
     public readonly struct Position : IEquatable<Position>
     {
+        public static readonly Position Zero = new Position(0, 0);
+
         public readonly Fixation x;
         public readonly Fixation y;
-
-        public static readonly Position Zero = new Position(0, 0);
 
         public Fixation sqrMagnitude => x * x + y * y;
         public Fixation magnitude => Fixation.Sqrt(x * x + y * y);
@@ -1372,6 +1361,12 @@ namespace Astraia
         {
             this.x = x;
             this.y = y;
+        }
+
+        public Position(float x, float y)
+        {
+            this.x = Fixation.FromFloat(x);
+            this.y = Fixation.FromFloat(y);
         }
 
         public static bool operator ==(Position a, Position b)
@@ -1416,7 +1411,7 @@ namespace Astraia
 
         public override int GetHashCode()
         {
-            return x << 16 ^ y;
+            return x << Fixation.BIT ^ y;
         }
 
         public override string ToString()
