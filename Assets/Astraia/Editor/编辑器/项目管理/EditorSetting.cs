@@ -179,7 +179,7 @@ namespace Astraia
             {
                 GUILayout.BeginHorizontal();
                 var value = ValueEntry.SmartValue;
-                SirenixEditorFields.Vector3Field(label, new Vector3(value.x, value.y, value.magnitude));
+                SirenixEditorFields.Vector4Field(label, new Vector4(value.x, value.y, value.x.value, value.y.value));
                 GUILayout.EndHorizontal();
             }
         }

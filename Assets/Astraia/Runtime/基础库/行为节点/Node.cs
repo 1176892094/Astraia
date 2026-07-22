@@ -32,7 +32,7 @@ namespace Astraia
 
         public override string ToString()
         {
-            return value.ToString();
+            return (value / 65536F).ToString("R");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
