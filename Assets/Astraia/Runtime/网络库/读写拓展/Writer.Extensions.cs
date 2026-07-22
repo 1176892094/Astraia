@@ -190,6 +190,17 @@ namespace Astraia.Net
             writer.WriteBytes(value.Array, value.Offset, value.Count);
         }
 
+        public static void WriteFixation(this MemoryWriter writer, Fixation value)
+        {
+            writer.WriteInt32(value.value);
+        }
+
+        public static void WritePosition(this MemoryWriter writer, Position value)
+        {
+            writer.WriteInt32(value.x.value);
+            writer.WriteInt32(value.y.value);
+        }
+
         public static void WriteDateTime(this MemoryWriter writer, DateTime value)
         {
             writer.WriteDouble(value.ToOADate());

@@ -185,6 +185,18 @@ namespace Astraia.Net
             return count == 0 ? default : reader.ReadArraySegment(checked((int)(count - 1)));
         }
 
+        public static Fixation ReadFixation(this MemoryReader reader)
+        {
+            return new Fixation(reader.ReadInt32());
+        }
+
+        public static Position ReadPosition(this MemoryReader reader)
+        {
+            var x = new Fixation(reader.ReadInt32());
+            var y = new Fixation(reader.ReadInt32());
+            return new Position(x, y);
+        }
+
         public static DateTime ReadDateTime(this MemoryReader reader)
         {
             return DateTime.FromOADate(reader.ReadDouble());
