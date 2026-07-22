@@ -293,69 +293,6 @@ namespace Astraia
     }
 
     [Serializable]
-    public class Blackboard<T>
-    {
-        private Dictionary<T, int> properties = new();
-        private int percent;
-
-        public Blackboard(int percent = 100)
-        {
-            this.percent = percent;
-        }
-
-        public int GetInt(T key)
-        {
-            properties.TryGetValue(key, out var result);
-            return result / percent;
-        }
-
-        public void SetInt(T key, int value)
-        {
-            properties[key] = value * percent;
-        }
-
-        public void AddInt(T key, int value)
-        {
-            properties.TryGetValue(key, out var result);
-            properties[key] = result + value * percent;
-        }
-
-        public void SubInt(T key, int value)
-        {
-            properties.TryGetValue(key, out var result);
-            properties[key] = result - value * percent;
-        }
-
-        public float GetFloat(T key)
-        {
-            properties.TryGetValue(key, out var result);
-            return result / (float)percent;
-        }
-
-        public void SetFloat(T key, float value)
-        {
-            properties[key] = (int)Math.Round(value * percent);
-        }
-
-        public void AddFloat(T key, float value)
-        {
-            properties.TryGetValue(key, out var result);
-            properties[key] = result + (int)Math.Round(value * percent);
-        }
-
-        public void SubFloat(T key, float value)
-        {
-            properties.TryGetValue(key, out var result);
-            properties[key] = result - (int)Math.Round(value * percent);
-        }
-
-        public void Clear()
-        {
-            properties.Clear();
-        }
-    }
-
-    [Serializable]
     public class Whiteboard<T>
     {
         private Dictionary<Type, IDictionary> properties = new();

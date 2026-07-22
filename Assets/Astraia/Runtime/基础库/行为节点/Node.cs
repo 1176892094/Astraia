@@ -6,6 +6,42 @@ using System.Runtime.CompilerServices;
 namespace Astraia
 {
     [Serializable]
+    public readonly struct Blackboard<T> where T : unmanaged, Enum
+    {
+        private readonly float[] properties;
+
+        public Blackboard(int value = 0)
+        {
+            properties = value != 0 ? new float[value] : new float[Seed.Count<T>()];
+        }
+
+        public float Get(T key)
+        {
+            return properties[key.Index()];
+        }
+
+        public void Set(T key, float value)
+        {
+            properties[key.Index()] = value;
+        }
+
+        public void Add(T key, float value)
+        {
+            properties[key.Index()] += value;
+        }
+
+        public void Sub(T key, float value)
+        {
+            properties[key.Index()] -= value;
+        }
+
+        public void Clear()
+        {
+            Array.Clear(properties, 0, properties.Length);
+        }
+    }
+
+    [Serializable]
     public readonly struct Fixation : IEquatable<Fixation>
     {
         public readonly int value;

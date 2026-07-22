@@ -199,7 +199,7 @@ namespace Astraia
 
     public static class Seed
     {
-        private static readonly Random random = new Random(Environment.TickCount);
+        private static readonly Random random = new(Environment.TickCount);
 
         public static float value => (float)random.NextDouble();
 
@@ -233,10 +233,25 @@ namespace Astraia
             random.NextBytes(bytes);
         }
 
+        public static float NextDouble(float min, float max)
+        {
+            return random.NextDouble() < 0.5F ? Next(min, max) : -Next(min, max);
+        }
+
         private static class Enum<T> where T : unmanaged, Enum
         {
+            public static readonly Dictionary<T, int> Indices;
             public static readonly T[] Values;
-            static Enum() => Values = (T[])Enum.GetValues(typeof(T));
+
+            static Enum()
+            {
+                Values = (T[])Enum.GetValues(typeof(T));
+                Indices = new Dictionary<T, int>(Values.Length);
+                for (var i = 0; i < Values.Length; i++)
+                {
+                    Indices[Values[i]] = i;
+                }
+            }
         }
 
         public static T Next<T>(T minValue, T maxValue) where T : unmanaged, Enum
@@ -262,6 +277,11 @@ namespace Astraia
         public static int Count<T>() where T : unmanaged, Enum
         {
             return Enum<T>.Values.Length;
+        }
+
+        public static int Index<T>(this T value) where T : unmanaged, Enum
+        {
+            return Enum<T>.Indices[value];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -321,8 +341,8 @@ namespace Astraia
 
     public static class Search
     {
-        private static readonly Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
-        private static readonly Dictionary<string, Type> cacheTypes = new Dictionary<string, Type>();
+        private static readonly Dictionary<string, Assembly> assemblies = new();
+        private static readonly Dictionary<string, Type> cacheTypes = new();
 
         public const BindingFlags Static = (BindingFlags)56;
         public const BindingFlags Instance = (BindingFlags)52;
@@ -413,7 +433,7 @@ namespace Astraia
 
     public static class Host
     {
-        public static readonly HttpClient Http = new HttpClient();
+        public static readonly HttpClient Http = new();
 
         public static string Ip()
         {
@@ -510,11 +530,11 @@ namespace Astraia
     {
         private class Node
         {
-            public readonly Dictionary<char, Node> nodes = new Dictionary<char, Node>();
+            public readonly Dictionary<char, Node> nodes = new();
             public bool finish;
         }
 
-        private static readonly Node root = new Node();
+        private static readonly Node root = new();
 
         public static void SetUp(string text)
         {
@@ -657,7 +677,7 @@ namespace Astraia
             var width = 0;
             var i1 = str.Length;
 
-            for (int i = 0; i < i1; i++)
+            for (var i = 0; i < i1; i++)
             {
                 width += str[i] > 255 ? 2 : 1;
             }
@@ -998,7 +1018,7 @@ namespace Astraia
 
     internal class WriterQueue
     {
-        private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
+        private readonly Queue<MemoryWriter> writers = new();
         private readonly uint maxLength;
         private MemoryWriter writer;
 
@@ -1057,8 +1077,8 @@ namespace Astraia
 
     internal class ReaderQueue
     {
-        private readonly Queue<MemoryWriter> writers = new Queue<MemoryWriter>();
-        private readonly MemoryReader reader = new MemoryReader();
+        private readonly Queue<MemoryWriter> writers = new();
+        private readonly MemoryReader reader = new();
         public int Count => writers.Count;
 
         public bool AddBatch(ArraySegment<byte> segment)
