@@ -1,12 +1,632 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
-namespace Astraia.Node
+namespace Astraia
 {
-    public interface INode
+    [Serializable]
+    public readonly struct Fixation : IEquatable<Fixation>
     {
-        Root.State OnTick(int[] indices, Whiteboard<int> root);
+        public readonly int value;
+
+        public Fixation(int value)
+        {
+            this.value = value;
+        }
+
+        public bool Equals(Fixation other)
+        {
+            return value == other.value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Fixation other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return value;
+        }
+
+        public override string ToString()
+        {
+            return value.ToString();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <(Fixation a, Fixation b)
+        {
+            return a.value < b.value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >(Fixation a, Fixation b)
+        {
+            return a.value > b.value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <=(Fixation a, Fixation b)
+        {
+            return a.value <= b.value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >=(Fixation a, Fixation b)
+        {
+            return a.value >= b.value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(Fixation a, Fixation b)
+        {
+            return a.value == b.value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(Fixation a, Fixation b)
+        {
+            return a.value != b.value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixation operator +(Fixation a, Fixation b)
+        {
+            return new Fixation(a.value + b.value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixation operator -(Fixation a, Fixation b)
+        {
+            return new Fixation(a.value - b.value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixation operator *(Fixation a, Fixation b)
+        {
+            return new Fixation((int)(((long)a.value * b.value) >> 16));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixation operator /(Fixation a, Fixation b)
+        {
+            return new Fixation((int)(((long)a.value << 16) / b.value));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator int(Fixation value)
+        {
+            return value.value >> 16;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator Fixation(int value)
+        {
+            return new Fixation(value << 16);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator float(Fixation value)
+        {
+            return value.value / 65536F;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Fixation(float value)
+        {
+            return new Fixation((int)(value * 65536));
+        }
+
+        public static int Sign(Fixation value)
+        {
+            return value > 0 ? 1 : value < 0 ? -1 : 0;
+        }
+
+        public static Fixation Min(Fixation a, Fixation b)
+        {
+            return a < b ? a : b;
+        }
+
+        public static Fixation Max(Fixation a, Fixation b)
+        {
+            return a > b ? a : b;
+        }
+
+        public static Fixation Abs(Fixation value)
+        {
+            return value.value < 0 ? new Fixation(-value.value) : value;
+        }
+
+        public static Fixation Lerp(Fixation a, Fixation b, Fixation t)
+        {
+            return a + (b - a) * t;
+        }
+
+        public static Fixation Sqrt(Fixation value)
+        {
+            if (value.value <= 0)
+            {
+                return 0;
+            }
+
+            var number = 0L + value.value << 16;
+            var result = 1L << ((BitLength(number) + 1) >> 1);
+
+            while (true)
+            {
+                var next = (result + number / result) >> 1;
+                if (next >= result)
+                {
+                    break;
+                }
+
+                result = next;
+            }
+
+            return new Fixation((int)result);
+        }
+
+        private static int BitLength(long value)
+        {
+            var length = 0;
+
+            while (value > 0)
+            {
+                value >>= 1;
+                length++;
+            }
+
+            return length;
+        }
+    }
+
+    [Serializable]
+    public readonly struct Position : IEquatable<Position>
+    {
+        public static readonly Position Zero = new Position(0, 0);
+
+        public readonly Fixation x;
+        public readonly Fixation y;
+
+        internal int X => (int)x;
+        internal int Y => (int)y;
+
+        public Fixation sqrMagnitude => x * x + y * y;
+        public Fixation magnitude => Fixation.Sqrt(sqrMagnitude);
+        public Position normalize => x == 0 && y == 0 ? Zero : this / magnitude;
+
+        public Position(Fixation x, Fixation y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+
+        public bool Equals(Position other)
+        {
+            return x.Equals(other.x) && y.Equals(other.y);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Position other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return (X << 16) ^ Y;
+        }
+
+        public override string ToString()
+        {
+            return "({0}, {1})".Format(x, y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(Position a, Position b)
+        {
+            return a.x == b.x && a.y == b.y;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(Position a, Position b)
+        {
+            return a.x != b.x || a.y != b.y;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Position operator +(Position a, Position b)
+        {
+            return new Position(a.x + b.x, a.y + b.y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Position operator -(Position a, Position b)
+        {
+            return new Position(a.x - b.x, a.y - b.y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Position operator *(Position a, Fixation b)
+        {
+            return new Position(a.x * b, a.y * b);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Position operator /(Position a, Fixation b)
+        {
+            return new Position(a.x / b, a.y / b);
+        }
+
+        public static Fixation Dot(Position a, Position b)
+        {
+            return a.x * b.x + a.y * b.y;
+        }
+
+        public static Fixation Cross(Position a, Position b)
+        {
+            return a.x * b.y - a.y * b.x;
+        }
+
+        public static Position Lerp(Position a, Position b, Fixation t)
+        {
+            return new Position(Fixation.Lerp(a.x, b.x, t), Fixation.Lerp(a.y, b.y, t));
+        }
+
+        public static Fixation Distance(Position a, Position b)
+        {
+            return Fixation.Sqrt((a - b).sqrMagnitude);
+        }
+
+        public static Position MoveTowards(Position current, Position target, Fixation maxDistanceDelta)
+        {
+            var delta = target - current;
+
+            var sqrDistance = delta.sqrMagnitude;
+
+            if (sqrDistance == 0)
+            {
+                return target;
+            }
+
+            var maxSqrDistance = maxDistanceDelta * maxDistanceDelta;
+
+            if (sqrDistance <= maxSqrDistance)
+            {
+                return target;
+            }
+
+            return current + delta.normalize * maxDistanceDelta;
+        }
+    }
+
+    [Serializable]
+    public struct Xor32 : IEquatable<Xor32>
+    {
+        private static readonly int Ticks = (int)DateTime.Now.Ticks;
+        public int origin;
+        public int buffer;
+        public int offset;
+
+        public int Value
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                var value = origin ^ offset;
+                if (buffer != ((offset >> 8) ^ value))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                return value;
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                offset = Ticks;
+                origin = value ^ offset;
+                buffer = (offset >> 8) ^ value;
+            }
+        }
+
+        public Xor32(int value = 0)
+        {
+            offset = Ticks;
+            origin = value ^ offset;
+            buffer = (offset >> 8) ^ value;
+        }
+
+        public static implicit operator int(Xor32 data)
+        {
+            return data.Value;
+        }
+
+        public static implicit operator Xor32(int data)
+        {
+            return new Xor32(data);
+        }
+
+        public bool Equals(Xor32 other)
+        {
+            return Value == other.Value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Xor32 other && Equals(other);
+        }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetBit(int shift, int bits)
+        {
+            return (Value >> shift) & ((1 << bits) - 1);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetBit(int shift, int bits, int value)
+        {
+            Value = (Value & ~(((1 << bits) - 1) << shift)) | ((value & ((1 << bits) - 1)) << shift);
+        }
+    }
+
+    [Serializable]
+    public struct Xor64 : IEquatable<Xor64>
+    {
+        private static readonly long Ticks = DateTime.Now.Ticks;
+        public long origin;
+        public long buffer;
+        public long offset;
+
+        public long Value
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                var value = origin ^ offset;
+                if (buffer != ((offset >> 8) ^ value))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                return value;
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                offset = Ticks;
+                origin = value ^ offset;
+                buffer = (offset >> 8) ^ value;
+            }
+        }
+
+        public Xor64(long value = 0)
+        {
+            offset = Ticks;
+            origin = value ^ offset;
+            buffer = (offset >> 8) ^ value;
+        }
+
+        public static implicit operator long(Xor64 data)
+        {
+            return data.Value;
+        }
+
+        public static implicit operator Xor64(long data)
+        {
+            return new Xor64(data);
+        }
+
+        public bool Equals(Xor64 other)
+        {
+            return Value == other.Value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Xor64 other && Equals(other);
+        }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetBit(int shift, int bits)
+        {
+            return (int)((Value >> shift) & ((1L << bits) - 1));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetBit(int shift, int bits, int value)
+        {
+            Value = (Value & ~(((1L << bits) - 1) << shift)) | ((value & ((1L << bits) - 1)) << shift);
+        }
+    }
+
+    [Serializable]
+    public struct XorEx : IEquatable<XorEx>
+    {
+        private static readonly int Ticks = (int)DateTime.Now.Ticks;
+        public byte[] origin;
+        public int buffer;
+        public int offset;
+
+        public byte[] Value
+        {
+            get
+            {
+                if (origin == null)
+                {
+                    return null;
+                }
+
+                if (buffer != GetHashCode())
+                {
+                    throw new InvalidOperationException();
+                }
+
+                return origin;
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                offset = Ticks;
+                origin = value;
+                buffer = GetHashCode();
+            }
+        }
+
+        public XorEx(byte[] value)
+        {
+            buffer = 0;
+            offset = Ticks;
+            origin = value;
+            buffer = GetHashCode();
+        }
+
+        public static implicit operator byte[](XorEx variable)
+        {
+            return variable.Value;
+        }
+
+        public static implicit operator XorEx(byte[] value)
+        {
+            return new XorEx(value);
+        }
+
+        public bool Equals(XorEx other)
+        {
+            return Value == other.Value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is XorEx other && Equals(other);
+        }
+
+        public override string ToString()
+        {
+            return BitConverter.ToString(Value, 0, origin.Length);
+        }
+
+        public override unsafe int GetHashCode()
+        {
+            var result = offset;
+            unchecked
+            {
+                fixed (byte* ptr = origin)
+                {
+                    var count = origin.Length / 4;
+                    var ip = (int*)ptr;
+                    for (var i = 0; i < count; i++)
+                    {
+                        result = (result * 31) ^ ip[i];
+                    }
+
+                    var bp = ptr + count * 4;
+                    for (var i = count * 4; i < origin.Length; i++)
+                    {
+                        result = (result * 31) ^ *bp;
+                        bp++;
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe int GetBit(int shift, int bits)
+        {
+            fixed (byte* ptr = origin)
+            {
+                var byteIndex = shift >> 3;
+                var bitOffset = shift & 7;
+
+                var result = 0;
+                var read = 0;
+
+                var p = ptr + byteIndex;
+
+                while (read < bits)
+                {
+                    var take = 8 - bitOffset;
+                    var remain = bits - read;
+
+                    if (take > remain)
+                    {
+                        take = remain;
+                    }
+
+                    var mask = (1 << take) - 1;
+
+                    var part = (*p >> bitOffset) & mask;
+
+                    result |= part << read;
+
+                    read += take;
+                    bitOffset = 0;
+                    p++;
+                }
+
+                return result;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void SetBit(int shift, int bits, int value)
+        {
+            fixed (byte* ptr = origin)
+            {
+                var byteIndex = shift >> 3;
+                var bitOffset = shift & 7;
+
+                var written = 0;
+
+                var p = ptr + byteIndex;
+
+                while (written < bits)
+                {
+                    var take = 8 - bitOffset;
+                    var remain = bits - written;
+
+                    if (take > remain)
+                    {
+                        take = remain;
+                    }
+
+                    var mask = (1 << take) - 1;
+
+                    var part = (value >> written) & mask;
+
+                    var clearMask = ~(mask << bitOffset);
+
+                    *p = (byte)((*p & clearMask) | (part << bitOffset));
+
+                    written += take;
+                    bitOffset = 0;
+                    p++;
+                }
+            }
+        }
     }
 
     [Serializable]
@@ -254,6 +874,11 @@ namespace Astraia.Node
         }
     }
 
+    public interface INode
+    {
+        Root.State OnTick(int[] indices, Whiteboard<int> root);
+    }
+
     public static class Root
     {
         private static readonly Dictionary<Type, Func<Node, Func<Node, Type>, INode>> Func = new();
@@ -471,497 +1096,6 @@ namespace Astraia.Node
 
                 return (INode)Activator.CreateInstance(reason);
             }
-        }
-    }
-
-    [Serializable]
-    internal readonly struct Grid
-    {
-        public static readonly Grid[] Neighbors;
-
-        public readonly int x;
-        public readonly int y;
-        public readonly int cost;
-
-        public Grid(int x, int y, int cost)
-        {
-            this.x = x;
-            this.y = y;
-            this.cost = cost;
-        }
-
-        static Grid()
-        {
-            Neighbors = new Grid[8];
-
-            Neighbors[0] = new Grid(0, 1, 10);
-            Neighbors[1] = new Grid(1, 1, 14);
-            Neighbors[2] = new Grid(-1, 1, 14);
-
-            Neighbors[3] = new Grid(0, -1, 10);
-            Neighbors[4] = new Grid(1, -1, 14);
-            Neighbors[5] = new Grid(-1, -1, 14);
-
-            Neighbors[6] = new Grid(1, 0, 10);
-            Neighbors[7] = new Grid(-1, 0, 10);
-        }
-    }
-
-    [Serializable]
-    internal sealed class MinHeap
-    {
-        private readonly List<int> heap = new();
-        private readonly int[] cost;
-
-        public MinHeap(int[] cost)
-        {
-            this.cost = cost;
-        }
-
-        public int Count => heap.Count;
-
-        public void Clear()
-        {
-            heap.Clear();
-        }
-
-        public void Enqueue(int index)
-        {
-            heap.Add(index);
-
-            var i = heap.Count - 1;
-
-            while (i > 0)
-            {
-                var parent = (i - 1) >> 1;
-
-                if (cost[heap[parent]] <= cost[heap[i]])
-                {
-                    break;
-                }
-
-                (heap[parent], heap[i]) = (heap[i], heap[parent]);
-                i = parent;
-            }
-        }
-
-        public int Dequeue()
-        {
-            var root = heap[0];
-
-            var last = heap[^1];
-            heap.RemoveAt(heap.Count - 1);
-
-            if (heap.Count == 0)
-            {
-                return root;
-            }
-
-            heap[0] = last;
-
-            var i = 0;
-
-            while (true)
-            {
-                var left = i * 2 + 1;
-
-                if (left >= heap.Count)
-                {
-                    break;
-                }
-
-                var right = left + 1;
-
-                var smallest = left;
-
-                if (right < heap.Count && cost[heap[right]] < cost[heap[left]])
-                {
-                    smallest = right;
-                }
-
-                if (cost[heap[i]] <= cost[heap[smallest]])
-                {
-                    break;
-                }
-
-                (heap[i], heap[smallest]) = (heap[smallest], heap[i]);
-                i = smallest;
-            }
-
-            return root;
-        }
-    }
-
-    [Serializable]
-    public sealed class AStar
-    {
-        private const int INF = int.MaxValue;
-
-        private int width;
-        private int height;
-
-        private int[] parent;
-        private int[] gScore;
-        private int[] fScore;
-        private bool[] closed;
-        private bool[] walkable;
-
-        private MinHeap opened;
-        private List<Position> copied = new();
-
-        public AStar(int width, int height, bool[] map)
-        {
-            this.width = width;
-            this.height = height;
-
-            walkable = map;
-            parent = new int[width * height];
-            gScore = new int[width * height];
-            fScore = new int[width * height];
-            closed = new bool[width * height];
-            opened = new MinHeap(fScore);
-        }
-
-        private int Index(int x, int y)
-        {
-            return y * width + x;
-        }
-
-        private bool Contains(int x, int y)
-        {
-            return x >= 0 && y >= 0 && x < width && y < height;
-        }
-
-        public IList<Position> Rebuild(int sx, int sy, int ex, int ey)
-        {
-            for (var i = 0; i < gScore.Length; i++)
-            {
-                parent[i] = -1;
-                gScore[i] = INF;
-                fScore[i] = INF;
-                closed[i] = false;
-            }
-
-            var s = Index(sx, sy);
-            var e = Index(ex, ey);
-            gScore[s] = 0;
-            fScore[s] = Heuristic(s, e);
-
-            opened.Clear();
-            opened.Enqueue(s);
-
-            while (opened.Count > 0)
-            {
-                var i = opened.Dequeue();
-
-                if (closed[i])
-                {
-                    continue;
-                }
-
-                closed[i] = true;
-
-                if (i == e)
-                {
-                    return Reconstruct(e);
-                }
-
-                var cx = i % width;
-                var cy = i / width;
-
-                foreach (var n in Grid.Neighbors)
-                {
-                    var nx = cx + n.x;
-                    var ny = cy + n.y;
-
-                    if (Contains(nx, ny))
-                    {
-                        var j = Index(nx, ny);
-
-                        if (!walkable[j] || closed[j])
-                        {
-                            continue;
-                        }
-
-                        if (n.cost == 14)
-                        {
-                            var wx = Index(cx, ny);
-                            var wy = Index(nx, cy);
-
-                            if (!walkable[wx] || !walkable[wy])
-                            {
-                                continue;
-                            }
-                        }
-
-                        var gCost = gScore[i] + n.cost;
-                        if (gCost < gScore[j])
-                        {
-                            parent[j] = i;
-                            gScore[j] = gCost;
-                            fScore[j] = gCost + Heuristic(j, e);
-                            opened.Enqueue(j);
-                        }
-                    }
-                }
-            }
-
-            return Array.Empty<Position>();
-        }
-
-        private int Heuristic(int a, int b)
-        {
-            var sx = a % width;
-            var sy = a / width;
-
-            var ex = b % width;
-            var ey = b / width;
-
-            var nx = Math.Abs(sx - ex);
-            var ny = Math.Abs(sy - ey);
-
-            var min = Math.Min(nx, ny);
-            var max = Math.Max(nx, ny);
-
-            return 14 * min + 10 * (max - min);
-        }
-
-        private List<Position> Reconstruct(int e)
-        {
-            copied.Clear();
-
-            while (e != -1)
-            {
-                copied.Add(new Position(e % width, e / width));
-                e = parent[e];
-            }
-
-            copied.Reverse();
-            return copied;
-        }
-
-        public void Dispose()
-        {
-            opened.Clear();
-            copied.Clear();
-            opened = null;
-            copied = null;
-            parent = null;
-            fScore = null;
-            gScore = null;
-            closed = null;
-            walkable = null;
-        }
-    }
-
-    [Serializable]
-    public class FlowField
-    {
-        private const int INF = int.MaxValue;
-
-        private int width;
-        private int height;
-
-        private int[] nodes;
-        private int[] costs;
-        private int[] steps;
-        private MinHeap opened;
-
-        public FlowField(int width, int height, bool[] walkable)
-        {
-            this.width = width;
-            this.height = height;
-
-            costs = new int[width * height];
-            nodes = new int[width * height];
-            steps = new int[width * height];
-            opened = new MinHeap(steps);
-            for (var i = 0; i < costs.Length; i++)
-            {
-                costs[i] = walkable[i] ? 1 : INF;
-            }
-        }
-
-        private int Index(int x, int y)
-        {
-            return y * width + x;
-        }
-
-        private bool Contains(int x, int y)
-        {
-            return x >= 0 && y >= 0 && x < width && y < height;
-        }
-
-        public void SetCost(int x, int y, int cost)
-        {
-            if (Contains(x, y))
-            {
-                costs[Index(x, y)] = Math.Max(1, cost);
-            }
-        }
-
-        public void SetObstacle(int x, int y, bool walkable)
-        {
-            if (Contains(x, y))
-            {
-                costs[Index(x, y)] = walkable ? 1 : INF;
-            }
-        }
-
-        private bool CanMove(int x, int y, Grid g)
-        {
-            return g.cost != 14 || costs[Index(x, y + g.y)] < INF && costs[Index(x + g.x, y)] < INF;
-        }
-
-        public void Rebuild(IList<Position> points)
-        {
-            BuildIntegration(points);
-            BuildFlowField();
-        }
-
-        private void BuildIntegration(IList<Position> points)
-        {
-            for (var i = 0; i < steps.Length; i++)
-            {
-                steps[i] = INF;
-            }
-
-            opened.Clear();
-            foreach (var p in points)
-            {
-                if (Contains(p.X, p.Y))
-                {
-                    var i = Index(p.X, p.Y);
-                    steps[i] = 0;
-                    opened.Enqueue(i);
-                }
-            }
-
-            while (opened.Count > 0)
-            {
-                var i = opened.Dequeue();
-
-                var cx = i % width;
-                var cy = i / width;
-
-                var step = steps[i];
-
-                foreach (var n in Grid.Neighbors)
-                {
-                    var nx = cx + n.x;
-                    var ny = cy + n.y;
-
-                    if (Contains(nx, ny) && CanMove(cx, cy, n))
-                    {
-                        var j = Index(nx, ny);
-
-                        if (costs[j] < INF)
-                        {
-                            var cost = step + n.cost + costs[j] * 10;
-                            if (cost < steps[j])
-                            {
-                                steps[j] = cost;
-                                opened.Enqueue(j);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private void BuildFlowField()
-        {
-            for (var i = 0; i < steps.Length; i++)
-            {
-                var cx = i % width;
-                var cy = i / width;
-
-                if (costs[i] >= INF || steps[i] >= INF)
-                {
-                    nodes[i] = -1;
-                    continue;
-                }
-
-                var best = -1;
-                var step = steps[i];
-
-                for (var k = 0; k < Grid.Neighbors.Length; k++)
-                {
-                    var n = Grid.Neighbors[k];
-                    var nx = cx + n.x;
-                    var ny = cy + n.y;
-
-                    if (Contains(nx, ny) && CanMove(cx, cy, n))
-                    {
-                        var j = Index(nx, ny);
-
-                        if (steps[j] < step)
-                        {
-                            best = k;
-                            step = steps[j];
-                        }
-                    }
-                }
-
-                nodes[i] = best;
-            }
-        }
-
-        public Position GetDirection(Position d)
-        {
-            var cx = d.X;
-            var cy = d.Y;
-
-            if (!Contains(cx, cy))
-            {
-                return default;
-            }
-
-            var i = Index(cx, cy);
-
-            if (nodes[i] != -1)
-            {
-                var neighbor = Grid.Neighbors[nodes[i]];
-                return new Position(neighbor.x, neighbor.y);
-            }
-
-            var best = -1;
-            var step = INF;
-
-            for (var k = 0; k < Grid.Neighbors.Length; k++)
-            {
-                var n = Grid.Neighbors[k];
-                var nx = cx + n.x;
-                var ny = cy + n.y;
-
-                if (Contains(nx, ny) && CanMove(cx, cy, n))
-                {
-                    var j = Index(nx, ny);
-
-                    if (steps[j] < step)
-                    {
-                        best = k;
-                        step = steps[j];
-                    }
-                }
-            }
-
-            if (best != -1)
-            {
-                var neighbor = Grid.Neighbors[best];
-                return new Position(neighbor.x, neighbor.y);
-            }
-
-            return default;
-        }
-
-        public void Dispose()
-        {
-            opened.Clear();
-            opened = null;
-            costs = null;
-            nodes = null;
-            steps = null;
         }
     }
 }
