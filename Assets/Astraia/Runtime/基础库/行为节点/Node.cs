@@ -630,10 +630,10 @@ namespace Astraia
     }
 
     [Serializable]
-    public struct Sequence : INode
+    public readonly struct Sequence : INode
     {
-        private int Index;
-        private INode[] Nodes;
+        private readonly int Index;
+        private readonly INode[] Nodes;
 
         public Sequence(int index, INode[] nodes)
         {
@@ -641,21 +641,21 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Root.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
             {
                 var result = Nodes[current].OnTick(indices, root);
-                if (result == Root.State.Running)
+                if (result == Astraia.Nodes.State.Running)
                 {
-                    return Root.State.Running;
+                    return Astraia.Nodes.State.Running;
                 }
 
-                if (result == Root.State.Failure)
+                if (result == Astraia.Nodes.State.Failure)
                 {
                     indices[Index] = 0;
-                    return Root.State.Failure;
+                    return Astraia.Nodes.State.Failure;
                 }
 
                 current++;
@@ -663,15 +663,15 @@ namespace Astraia
             }
 
             indices[Index] = 0;
-            return Root.State.Success;
+            return Astraia.Nodes.State.Success;
         }
     }
 
     [Serializable]
-    public struct Selector : INode
+    public readonly struct Selector : INode
     {
-        private int Index;
-        private INode[] Nodes;
+        private readonly int Index;
+        private readonly INode[] Nodes;
 
         public Selector(int index, INode[] nodes)
         {
@@ -679,21 +679,21 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Root.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
             {
                 var result = Nodes[current].OnTick(indices, root);
-                if (result == Root.State.Running)
+                if (result == Astraia.Nodes.State.Running)
                 {
-                    return Root.State.Running;
+                    return Astraia.Nodes.State.Running;
                 }
 
-                if (result == Root.State.Success)
+                if (result == Astraia.Nodes.State.Success)
                 {
                     indices[Index] = 0;
-                    return Root.State.Success;
+                    return Astraia.Nodes.State.Success;
                 }
 
                 current++;
@@ -701,15 +701,15 @@ namespace Astraia
             }
 
             indices[Index] = 0;
-            return Root.State.Failure;
+            return Astraia.Nodes.State.Failure;
         }
     }
 
     [Serializable]
-    public struct Parallel : INode
+    public readonly struct Parallel : INode
     {
-        private bool IsAny;
-        private INode[] Nodes;
+        private readonly bool IsAny;
+        private readonly INode[] Nodes;
 
         public Parallel(string isAny, INode[] nodes)
         {
@@ -717,51 +717,51 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Root.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             if (IsAny)
             {
                 foreach (var node in Nodes)
                 {
                     var result = node.OnTick(indices, root);
-                    if (result == Root.State.Success)
+                    if (result == Astraia.Nodes.State.Success)
                     {
-                        return Root.State.Success;
+                        return Astraia.Nodes.State.Success;
                     }
 
-                    if (result == Root.State.Failure)
+                    if (result == Astraia.Nodes.State.Failure)
                     {
-                        return Root.State.Failure;
+                        return Astraia.Nodes.State.Failure;
                     }
                 }
 
-                return Root.State.Running;
+                return Astraia.Nodes.State.Running;
             }
 
             var isAll = true;
             foreach (var node in Nodes)
             {
                 var result = node.OnTick(indices, root);
-                if (result == Root.State.Failure)
+                if (result == Astraia.Nodes.State.Failure)
                 {
-                    return Root.State.Failure;
+                    return Astraia.Nodes.State.Failure;
                 }
 
-                if (result == Root.State.Running)
+                if (result == Astraia.Nodes.State.Running)
                 {
                     isAll = false;
                 }
             }
 
-            return isAll ? Root.State.Success : Root.State.Running;
+            return isAll ? Astraia.Nodes.State.Success : Astraia.Nodes.State.Running;
         }
     }
 
     [Serializable]
-    public struct Randomer : INode
+    public readonly struct Randomer : INode
     {
-        private int Index;
-        private INode[] Nodes;
+        private readonly int Index;
+        private readonly INode[] Nodes;
 
         public Randomer(int index, INode[] nodes)
         {
@@ -769,7 +769,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Root.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             if (indices[Index] == 0)
             {
@@ -777,9 +777,9 @@ namespace Astraia
             }
 
             var result = Nodes[indices[Index] - 1].OnTick(indices, root);
-            if (result == Root.State.Running)
+            if (result == Astraia.Nodes.State.Running)
             {
-                return Root.State.Running;
+                return Astraia.Nodes.State.Running;
             }
 
             indices[Index] = 0;
@@ -788,11 +788,11 @@ namespace Astraia
     }
 
     [Serializable]
-    public struct Repeater : INode
+    public readonly struct Repeater : INode
     {
-        private int Index;
-        private int Count;
-        private INode Node;
+        private readonly int Index;
+        private readonly int Count;
+        private readonly INode Node;
 
         public Repeater(int index, int count, INode node)
         {
@@ -801,85 +801,85 @@ namespace Astraia
             Count = count;
         }
 
-        public Root.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             var result = Node.OnTick(indices, root);
-            if (result == Root.State.Running)
+            if (result == Nodes.State.Running)
             {
-                return Root.State.Running;
+                return Nodes.State.Running;
             }
 
             indices[Index]++;
             if (Count < 0 || indices[Index] < Count)
             {
-                return Root.State.Running;
+                return Nodes.State.Running;
             }
 
             indices[Index] = 0;
-            return Root.State.Success;
+            return Nodes.State.Success;
         }
     }
 
     [Serializable]
-    public struct Inverter : INode
+    public readonly struct Inverter : INode
     {
-        private INode Node;
+        private readonly INode Node;
 
         public Inverter(INode node)
         {
             Node = node;
         }
 
-        public Root.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
             switch (Node.OnTick(indices, root))
             {
-                case Root.State.Success: return Root.State.Failure;
-                case Root.State.Failure: return Root.State.Success;
+                case Nodes.State.Success: return Nodes.State.Failure;
+                case Nodes.State.Failure: return Nodes.State.Success;
             }
 
-            return Root.State.Running;
+            return Nodes.State.Running;
         }
     }
 
     [Serializable]
-    public struct Success : INode
+    public readonly struct Success : INode
     {
-        private INode Node;
+        private readonly INode Node;
 
         public Success(INode node)
         {
             Node = node;
         }
 
-        public Root.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
-            return Node.OnTick(indices, root) == Root.State.Running ? Root.State.Running : Root.State.Success;
+            return Node.OnTick(indices, root) == Nodes.State.Running ? Nodes.State.Running : Nodes.State.Success;
         }
     }
 
     [Serializable]
-    public struct Failure : INode
+    public readonly struct Failure : INode
     {
-        private INode Node;
+        private readonly INode Node;
 
         public Failure(INode node)
         {
             Node = node;
         }
 
-        public Root.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
         {
-            return Node.OnTick(indices, root) == Root.State.Running ? Root.State.Running : Root.State.Failure;
+            return Node.OnTick(indices, root) == Nodes.State.Running ? Nodes.State.Running : Nodes.State.Failure;
         }
     }
 
     public interface INode
     {
-        Root.State OnTick(int[] indices, Whiteboard<int> root);
+        Nodes.State OnTick(int[] indices, Whiteboard<int> root);
     }
 
-    public static class Root
+    public static class Nodes
     {
         private static readonly Dictionary<Type, Func<Node, Func<Node, Type>, INode>> Func = new();
 
@@ -890,7 +890,7 @@ namespace Astraia
             Failure
         }
 
-        static Root()
+        static Nodes()
         {
             Func[typeof(Sequence)] = Sequence;
             Func[typeof(Selector)] = Selector;
