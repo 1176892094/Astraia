@@ -6,13 +6,13 @@ using System.Runtime.CompilerServices;
 namespace Astraia
 {
     [Serializable]
-    public readonly struct Blackboard<T> where T : unmanaged, Enum
+    public readonly struct Properties<T> where T : unmanaged, Enum
     {
-        private readonly float[] properties;
+        private readonly Fixation[] properties;
 
-        public Blackboard(int value = 0)
+        public Properties(int value)
         {
-            properties = value != 0 ? new float[value] : new float[Seed.Count<T>()];
+            properties = value != 0 ? new Fixation[value] : new Fixation[Seed.Count<T>()];
         }
 
         public float Get(T key)
@@ -44,6 +44,9 @@ namespace Astraia
     [Serializable]
     public readonly struct Fixation : IEquatable<Fixation>
     {
+        private const int BIT = 12;
+        private const float FIX = 1 << BIT;
+
         public readonly int value;
 
         public Fixation(int value)
@@ -68,7 +71,7 @@ namespace Astraia
 
         public override string ToString()
         {
-            return (value / 65536F).ToString("R");
+            return (value / FIX).ToString("R");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -122,62 +125,42 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixation operator *(Fixation a, Fixation b)
         {
-            return new Fixation((int)(((long)a.value * b.value) >> 16));
+            return new Fixation((int)(((long)a.value * b.value) >> BIT));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixation operator /(Fixation a, Fixation b)
         {
-            return new Fixation((int)(((long)a.value << 16) / b.value));
+            return new Fixation((int)(((long)a.value << BIT) / b.value));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator int(Fixation value)
         {
-            return value.value >> 16;
+            return value.value >> BIT;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator Fixation(int value)
         {
-            return new Fixation(value << 16);
+            return new Fixation(value << BIT);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator float(Fixation value)
         {
-            return value.value / 65536F;
+            return value.value / FIX;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Fixation(float value)
         {
-            return new Fixation((int)(value * 65536));
+            return new Fixation((int)(value * FIX));
         }
 
         public static int Sign(Fixation value)
         {
             return value > 0 ? 1 : value < 0 ? -1 : 0;
-        }
-
-        public static Fixation Min(Fixation a, Fixation b)
-        {
-            return a < b ? a : b;
-        }
-
-        public static Fixation Max(Fixation a, Fixation b)
-        {
-            return a > b ? a : b;
-        }
-
-        public static Fixation Abs(Fixation value)
-        {
-            return value.value < 0 ? new Fixation(-value.value) : value;
-        }
-
-        public static Fixation Lerp(Fixation a, Fixation b, Fixation t)
-        {
-            return a + (b - a) * t;
         }
 
         public static Fixation Sqrt(Fixation value)
@@ -303,11 +286,6 @@ namespace Astraia
         public static Fixation Cross(Position a, Position b)
         {
             return a.x * b.y - a.y * b.x;
-        }
-
-        public static Position Lerp(Position a, Position b, Fixation t)
-        {
-            return new Position(Fixation.Lerp(a.x, b.x, t), Fixation.Lerp(a.y, b.y, t));
         }
 
         public static Fixation Distance(Position a, Position b)
@@ -677,7 +655,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
@@ -715,7 +693,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
@@ -753,7 +731,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
         {
             if (IsAny)
             {
@@ -805,7 +783,7 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
         {
             if (indices[Index] == 0)
             {
@@ -837,7 +815,7 @@ namespace Astraia
             Count = count;
         }
 
-        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
         {
             var result = Node.OnTick(indices, root);
             if (result == Nodes.State.Running)
@@ -866,7 +844,7 @@ namespace Astraia
             Node = node;
         }
 
-        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
         {
             switch (Node.OnTick(indices, root))
             {
@@ -888,7 +866,7 @@ namespace Astraia
             Node = node;
         }
 
-        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
         {
             return Node.OnTick(indices, root) == Nodes.State.Running ? Nodes.State.Running : Nodes.State.Success;
         }
@@ -904,7 +882,7 @@ namespace Astraia
             Node = node;
         }
 
-        public Nodes.State OnTick(int[] indices, Whiteboard<int> root)
+        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
         {
             return Node.OnTick(indices, root) == Nodes.State.Running ? Nodes.State.Running : Nodes.State.Failure;
         }
@@ -912,7 +890,7 @@ namespace Astraia
 
     public interface INode
     {
-        Nodes.State OnTick(int[] indices, Whiteboard<int> root);
+        Nodes.State OnTick(int[] indices, Blackboard<int> root);
     }
 
     public static class Nodes

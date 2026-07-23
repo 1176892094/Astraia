@@ -293,7 +293,7 @@ namespace Astraia
     }
 
     [Serializable]
-    public class Whiteboard<T>
+    public class Blackboard<T>
     {
         private Dictionary<Type, IDictionary> properties = new();
 
@@ -352,6 +352,7 @@ namespace Astraia
         private int progress;
         private Action onUpdate;
         public bool IsCompleted => state != 0;
+        public bool isInterrupt => owner.GetHashCode() == 0;
 
         internal static Timer Create(object owner, float duration, Func<float> onTime)
         {
@@ -381,7 +382,7 @@ namespace Astraia
         {
             try
             {
-                if (owner.GetHashCode() == 0)
+                if (isInterrupt)
                 {
                     Break();
                     return;
@@ -466,7 +467,7 @@ namespace Astraia
 
         void INotifyCompletion.OnCompleted(Action awaiter)
         {
-            if (owner.GetHashCode() == 0)
+            if (isInterrupt)
             {
                 Break();
             }
@@ -491,6 +492,7 @@ namespace Astraia
         private float progress;
         private Action<float> onUpdate;
         public bool IsCompleted => state != 0;
+        public bool isInterrupt => owner.GetHashCode() == 0;
 
         internal static Tween Create(object owner, float duration, Func<float> onTime)
         {
@@ -520,7 +522,7 @@ namespace Astraia
         {
             try
             {
-                if (owner.GetHashCode() == 0)
+                if (isInterrupt)
                 {
                     Break();
                     return;
@@ -586,7 +588,7 @@ namespace Astraia
 
         void INotifyCompletion.OnCompleted(Action awaiter)
         {
-            if (owner.GetHashCode() == 0)
+            if (isInterrupt)
             {
                 Break();
             }
