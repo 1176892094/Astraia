@@ -1,6 +1,5 @@
 using System;
 using Astraia;
-
 using UnityEngine.UI;
 using Text = UnityEngine.UI.Text;
 
@@ -9,7 +8,7 @@ namespace Runtime
     [UIMask(2)] [Serializable]
     public class LoadPanel : UIPanel, ITween
     {
-        [Inject] public Image panel;
+        [Export] public Image panel;
 
         protected override async void OnShow()
         {
@@ -28,9 +27,9 @@ namespace Runtime
     [UIMask(1)] [Serializable]
     public class LabelPanel : UIPanel
     {
-        [Inject] public Text message;
-        [Inject] public Button prevButton;
-        [Inject] public Button nextButton;
+        [Export] public Text message;
+        [Export] public Button prevButton;
+        [Export] public Button nextButton;
 
         protected override void OnShow()
         {

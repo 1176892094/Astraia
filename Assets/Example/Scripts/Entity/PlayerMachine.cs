@@ -10,7 +10,7 @@ namespace Runtime
 
         protected override void Enqueue()
         {
-            machine.Dispose();
+            machine.Clear();
         }
 
         public void Tick()
