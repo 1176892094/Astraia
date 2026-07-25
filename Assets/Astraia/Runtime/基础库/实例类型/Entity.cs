@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Astraia
 {
@@ -339,20 +340,75 @@ namespace Astraia
     public struct OnGizmoUpdate : IEvent { }
 
     [Serializable]
-    public sealed class Timer : INotifyCompletion, IEvent<OnEarlyUpdate>
+    public class Awaiter : INotifyCompletion
     {
-        private int state;
-        private object owner;
-        private float waitTime;
-        private float duration;
-        private Action onAwaiter;
-        private Action onComplete;
-        private Func<float> onTime;
+        public static readonly Task<State> Success = Task.FromResult(State.Success);
+        public static readonly Task<State> Failure = Task.FromResult(State.Failure);
 
-        private int progress;
-        private Action onUpdate;
+        public enum State
+        {
+            Running,
+            Success,
+            Failure
+        }
+
+        protected State state;
+        protected object owner;
+        protected float waitTime;
+        protected float duration;
+        protected Action onAwaiter;
+        protected Action onComplete;
+        protected Func<float> onTime;
+
         public bool IsCompleted => state != 0;
         public bool isInterrupt => owner.GetHashCode() == 0;
+
+        public void OnComplete(Action complete)
+        {
+            onComplete += complete;
+        }
+
+        public void Break()
+        {
+            onComplete.Invoke();
+            state = State.Failure;
+        }
+
+        public Awaiter SetTime(Func<float> onTime)
+        {
+            this.onTime = onTime;
+            waitTime = duration + onTime();
+            return this;
+        }
+
+        public Awaiter GetAwaiter()
+        {
+            return this;
+        }
+
+        public State GetResult()
+        {
+            return state;
+        }
+
+        void INotifyCompletion.OnCompleted(Action awaiter)
+        {
+            if (isInterrupt)
+            {
+                Break();
+            }
+            else
+            {
+                onAwaiter = awaiter;
+            }
+        }
+    }
+
+    [Serializable]
+    public sealed class Timer : Awaiter, IEvent<OnEarlyUpdate>
+    {
+        private int progress;
+        private Action onUpdate;
 
         internal static Timer Create(object owner, float duration, Func<float> onTime)
         {
@@ -369,7 +425,7 @@ namespace Astraia
 
         private void Release()
         {
-            state |= 1 << 0;
+            state = State.Running;
             owner = null;
             onTime = null;
             onUpdate = null;
@@ -400,7 +456,7 @@ namespace Astraia
                     progress--;
                     if (progress == 0)
                     {
-                        state |= 1 << 1;
+                        state = State.Success;
                         onComplete += onAwaiter;
                         onComplete.Invoke();
                     }
@@ -413,26 +469,9 @@ namespace Astraia
             }
         }
 
-        public void Break()
-        {
-            onComplete.Invoke();
-        }
-
-        public void OnComplete(Action complete)
-        {
-            onComplete += complete;
-        }
-
         public Timer OnUpdate(Action update)
         {
             onUpdate += update;
-            return this;
-        }
-
-        public Timer SetTime(Func<float> onTime)
-        {
-            this.onTime = onTime;
-            waitTime = duration + onTime();
             return this;
         }
 
@@ -454,45 +493,13 @@ namespace Astraia
             progress = count;
             return this;
         }
-
-        public int GetResult()
-        {
-            return state;
-        }
-
-        public Timer GetAwaiter()
-        {
-            return this;
-        }
-
-        void INotifyCompletion.OnCompleted(Action awaiter)
-        {
-            if (isInterrupt)
-            {
-                Break();
-            }
-            else
-            {
-                onAwaiter = awaiter;
-            }
-        }
     }
 
     [Serializable]
-    public sealed class Tween : INotifyCompletion, IEvent<OnEarlyUpdate>
+    public sealed class Tween : Awaiter, IEvent<OnEarlyUpdate>
     {
-        private int state;
-        private object owner;
-        private float waitTime;
-        private float duration;
-        private Action onAwaiter;
-        private Action onComplete;
-        private Func<float> onTime;
-
         private float progress;
         private Action<float> onUpdate;
-        public bool IsCompleted => state != 0;
-        public bool isInterrupt => owner.GetHashCode() == 0;
 
         internal static Tween Create(object owner, float duration, Func<float> onTime)
         {
@@ -509,7 +516,7 @@ namespace Astraia
 
         private void Release()
         {
-            state |= 1 << 0;
+            state = State.Running;
             owner = null;
             onTime = null;
             onUpdate = null;
@@ -540,7 +547,7 @@ namespace Astraia
                     onUpdate.Invoke(progress);
                     if (progress >= 1)
                     {
-                        state |= 1 << 1;
+                        state = State.Success;
                         onComplete += onAwaiter;
                         onComplete.Invoke();
                     }
@@ -553,49 +560,10 @@ namespace Astraia
             }
         }
 
-        public void Break()
-        {
-            onComplete.Invoke();
-        }
-
-        public void OnComplete(Action complete)
-        {
-            onComplete += complete;
-        }
-
         public Tween OnUpdate(Action<float> update)
         {
             onUpdate += update;
             return this;
-        }
-
-        public Tween SetTime(Func<float> onTime)
-        {
-            this.onTime = onTime;
-            waitTime = duration + onTime();
-            return this;
-        }
-
-        public int GetResult()
-        {
-            return state;
-        }
-
-        public Tween GetAwaiter()
-        {
-            return this;
-        }
-
-        void INotifyCompletion.OnCompleted(Action awaiter)
-        {
-            if (isInterrupt)
-            {
-                Break();
-            }
-            else
-            {
-                onAwaiter = awaiter;
-            }
         }
     }
 
