@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Astraia
 {
@@ -655,21 +656,21 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
+        public async Task<Awaiter.State> OnTick(int[] indices, Blackboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
             {
-                var result = Nodes[current].OnTick(indices, root);
-                if (result == Astraia.Nodes.State.Running)
+                var state = await Nodes[current].OnTick(indices, root);
+                if (state == Awaiter.State.Running)
                 {
-                    return Astraia.Nodes.State.Running;
+                    return Awaiter.State.Running;
                 }
 
-                if (result == Astraia.Nodes.State.Failure)
+                if (state == Awaiter.State.Failure)
                 {
                     indices[Index] = 0;
-                    return Astraia.Nodes.State.Failure;
+                    return Awaiter.State.Failure;
                 }
 
                 current++;
@@ -677,7 +678,7 @@ namespace Astraia
             }
 
             indices[Index] = 0;
-            return Astraia.Nodes.State.Success;
+            return Awaiter.State.Success;
         }
     }
 
@@ -693,21 +694,21 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
+        public async Task<Awaiter.State> OnTick(int[] indices, Blackboard<int> root)
         {
             var current = indices[Index];
             while (current < Nodes.Length)
             {
-                var result = Nodes[current].OnTick(indices, root);
-                if (result == Astraia.Nodes.State.Running)
+                var state = await Nodes[current].OnTick(indices, root);
+                if (state == Awaiter.State.Running)
                 {
-                    return Astraia.Nodes.State.Running;
+                    return Awaiter.State.Running;
                 }
 
-                if (result == Astraia.Nodes.State.Success)
+                if (state == Awaiter.State.Success)
                 {
                     indices[Index] = 0;
-                    return Astraia.Nodes.State.Success;
+                    return Awaiter.State.Success;
                 }
 
                 current++;
@@ -715,7 +716,7 @@ namespace Astraia
             }
 
             indices[Index] = 0;
-            return Astraia.Nodes.State.Failure;
+            return Awaiter.State.Failure;
         }
     }
 
@@ -731,43 +732,43 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
+        public async Task<Awaiter.State> OnTick(int[] indices, Blackboard<int> root)
         {
             if (IsAny)
             {
                 foreach (var node in Nodes)
                 {
-                    var result = node.OnTick(indices, root);
-                    if (result == Astraia.Nodes.State.Success)
+                    var state = await node.OnTick(indices, root);
+                    if (state == Awaiter.State.Success)
                     {
-                        return Astraia.Nodes.State.Success;
+                        return Awaiter.State.Success;
                     }
 
-                    if (result == Astraia.Nodes.State.Failure)
+                    if (state == Awaiter.State.Failure)
                     {
-                        return Astraia.Nodes.State.Failure;
+                        return Awaiter.State.Failure;
                     }
                 }
 
-                return Astraia.Nodes.State.Running;
+                return Awaiter.State.Running;
             }
 
             var isAll = true;
             foreach (var node in Nodes)
             {
-                var result = node.OnTick(indices, root);
-                if (result == Astraia.Nodes.State.Failure)
+                var state = await node.OnTick(indices, root);
+                if (state == Awaiter.State.Failure)
                 {
-                    return Astraia.Nodes.State.Failure;
+                    return Awaiter.State.Failure;
                 }
 
-                if (result == Astraia.Nodes.State.Running)
+                if (state == Awaiter.State.Running)
                 {
                     isAll = false;
                 }
             }
 
-            return isAll ? Astraia.Nodes.State.Success : Astraia.Nodes.State.Running;
+            return isAll ? Awaiter.State.Success : Awaiter.State.Running;
         }
     }
 
@@ -783,21 +784,21 @@ namespace Astraia
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
+        public async Task<Awaiter.State> OnTick(int[] indices, Blackboard<int> root)
         {
             if (indices[Index] == 0)
             {
                 indices[Index] = Seed.Next(Nodes.Length) + 1;
             }
 
-            var result = Nodes[indices[Index] - 1].OnTick(indices, root);
-            if (result == Astraia.Nodes.State.Running)
+            var state = await Nodes[indices[Index] - 1].OnTick(indices, root);
+            if (state == Awaiter.State.Running)
             {
-                return Astraia.Nodes.State.Running;
+                return Awaiter.State.Running;
             }
 
             indices[Index] = 0;
-            return result;
+            return state;
         }
     }
 
@@ -815,22 +816,22 @@ namespace Astraia
             Count = count;
         }
 
-        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
+        public async Task<Awaiter.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            var result = Node.OnTick(indices, root);
-            if (result == Nodes.State.Running)
+            var state = await Node.OnTick(indices, root);
+            if (state == Awaiter.State.Running)
             {
-                return Nodes.State.Running;
+                return Awaiter.State.Running;
             }
 
             indices[Index]++;
             if (Count < 0 || indices[Index] < Count)
             {
-                return Nodes.State.Running;
+                return Awaiter.State.Running;
             }
 
             indices[Index] = 0;
-            return Nodes.State.Success;
+            return Awaiter.State.Success;
         }
     }
 
@@ -844,15 +845,16 @@ namespace Astraia
             Node = node;
         }
 
-        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
+        public async Task<Awaiter.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            switch (Node.OnTick(indices, root))
+            var state = await Node.OnTick(indices, root);
+            switch (state)
             {
-                case Nodes.State.Success: return Nodes.State.Failure;
-                case Nodes.State.Failure: return Nodes.State.Success;
+                case Awaiter.State.Success: return Awaiter.State.Failure;
+                case Awaiter.State.Failure: return Awaiter.State.Success;
             }
 
-            return Nodes.State.Running;
+            return Awaiter.State.Running;
         }
     }
 
@@ -866,9 +868,10 @@ namespace Astraia
             Node = node;
         }
 
-        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
+        public async Task<Awaiter.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            return Node.OnTick(indices, root) == Nodes.State.Running ? Nodes.State.Running : Nodes.State.Success;
+            var state = await Node.OnTick(indices, root);
+            return state == Awaiter.State.Running ? Awaiter.State.Running : Awaiter.State.Success;
         }
     }
 
@@ -882,76 +885,70 @@ namespace Astraia
             Node = node;
         }
 
-        public Nodes.State OnTick(int[] indices, Blackboard<int> root)
+        public async Task<Awaiter.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            return Node.OnTick(indices, root) == Nodes.State.Running ? Nodes.State.Running : Nodes.State.Failure;
+            var state = await Node.OnTick(indices, root);
+            return state == Awaiter.State.Running ? Awaiter.State.Running : Awaiter.State.Failure;
         }
     }
 
     public interface INode
     {
-        Nodes.State OnTick(int[] indices, Blackboard<int> root);
+        Task<Awaiter.State> OnTick(int[] indices, Blackboard<int> root);
     }
 
     public static class Nodes
     {
         private static readonly Dictionary<Type, Func<Node, Func<Node, Type>, INode>> Func = new();
 
-        public enum State
-        {
-            Running,
-            Success,
-            Failure
-        }
-
         static Nodes()
         {
-            Func[typeof(Sequence)] = Sequence;
-            Func[typeof(Selector)] = Selector;
-            Func[typeof(Parallel)] = Parallel;
-            Func[typeof(Randomer)] = Randomer;
-            Func[typeof(Repeater)] = Repeater;
-            Func[typeof(Inverter)] = Inverter;
-            Func[typeof(Success)] = Success;
-            Func[typeof(Failure)] = Failure;
+            Func[typeof(Sequence)] = SequenceInternal;
+            Func[typeof(Selector)] = SelectorInternal;
+            Func[typeof(Parallel)] = ParallelInternal;
+            Func[typeof(Randomer)] = RandomerInternal;
+            Func[typeof(Repeater)] = RepeaterInternal;
+            Func[typeof(Inverter)] = InverterInternal;
+            Func[typeof(Success)] = SuccessInternal;
+            Func[typeof(Failure)] = FailureInternal;
         }
 
-        private static INode Sequence(Node node, Func<Node, Type> func)
+        private static INode SequenceInternal(Node node, Func<Node, Type> func)
         {
             return new Sequence(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
         }
 
-        private static INode Selector(Node node, Func<Node, Type> func)
+        private static INode SelectorInternal(Node node, Func<Node, Type> func)
         {
             return new Selector(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
         }
 
-        private static INode Parallel(Node node, Func<Node, Type> func)
+        private static INode ParallelInternal(Node node, Func<Node, Type> func)
         {
             return new Parallel(node.Data, node.Nodes.Select(i => i.Build(func)).ToArray());
         }
 
-        private static INode Randomer(Node node, Func<Node, Type> func)
+        private static INode RandomerInternal(Node node, Func<Node, Type> func)
         {
             return new Randomer(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
         }
 
-        private static INode Repeater(Node node, Func<Node, Type> func)
+        private static INode RepeaterInternal(Node node, Func<Node, Type> func)
         {
             return new Repeater(node.Index, int.Parse(node.Data), node.Nodes.Select(i => i.Build(func)).First());
         }
 
-        private static INode Inverter(Node node, Func<Node, Type> func)
+        private static INode InverterInternal(Node node, Func<Node, Type> func)
         {
             return new Inverter(node.Nodes.Select(i => i.Build(func)).First());
         }
 
-        private static INode Success(Node node, Func<Node, Type> func)
+        private static INode SuccessInternal(Node node, Func<Node, Type> func)
         {
             return new Success(node.Nodes.Select(i => i.Build(func)).First());
         }
 
-        private static INode Failure(Node node, Func<Node, Type> func)
+        private static INode FailureInternal(Node node, Func<Node, Type> func)
         {
             return new Failure(node.Nodes.Select(i => i.Build(func)).First());
         }
