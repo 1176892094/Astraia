@@ -35,7 +35,7 @@ namespace Runtime
         public static readonly int Dash = Animator.StringToHash(nameof(Dash));
         public static readonly int Fall = Animator.StringToHash(nameof(Fall));
         public static readonly int Grab = Animator.StringToHash(nameof(Grab));
-        public static readonly int Crash = Animator.StringToHash(nameof(Crash));
+        public static readonly int Rush = Animator.StringToHash(nameof(Rush));
     }
 
     public static class Extensions

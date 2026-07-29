@@ -18,8 +18,8 @@ namespace Runtime
     {
         protected override void OnEnter()
         {
-            Feature.CrashCount = 0;
-            Feature.CrashPoint = Vector3.down * 1000;
+            Feature.RushCount = 0;
+            Feature.RushPoint = Vector3.down * 1000;
             owner.Sender.SyncColorServerRpc(Color.white);
         }
 
@@ -107,7 +107,7 @@ namespace Runtime
             {
                 if (isGround && isCrash)
                 {
-                    Machine.Switch(Animations.Crash);
+                    Machine.Switch(Animations.Rush);
                     return;
                 }
 
@@ -210,9 +210,9 @@ namespace Runtime
                 return;
             }
 
-            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.45f)
+            if (Vector3.Distance(transform.position, Feature.RushPoint) >= 1.45f)
             {
-                Feature.CrashPoint = transform.position;
+                Feature.RushPoint = transform.position;
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 
@@ -296,7 +296,7 @@ namespace Runtime
         }
     }
 
-    public class PlayerCrash : PlayerState
+    public class PlayerRush : PlayerState
     {
         private float waitTime;
         private int moveX;
@@ -306,8 +306,8 @@ namespace Runtime
             state |= State.冲跳;
             waitTime = Time.fixedTime + 0.1F;
             moveX = direction;
-            velocityX = direction * (Feature.CrashSpeed + Feature.CrashSpeed * Feature.CrashCount / 4);
-            Feature.CrashCount++;
+            velocityX = direction * (Feature.RushSpeed + Feature.RushSpeed * Feature.RushCount / 4);
+            Feature.RushCount++;
         }
 
         protected override void OnUpdate()
@@ -327,9 +327,9 @@ namespace Runtime
                 }
             }
 
-            if (Vector3.Distance(transform.position, Feature.CrashPoint) >= 1.45f)
+            if (Vector3.Distance(transform.position, Feature.RushPoint) >= 1.45f)
             {
-                Feature.CrashPoint = transform.position;
+                Feature.RushPoint = transform.position;
                 owner.Sender.LoadEffectServerRpc(transform.position);
             }
 

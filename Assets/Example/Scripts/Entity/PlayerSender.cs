@@ -23,10 +23,6 @@ namespace Runtime
                     {
                         SetDirectionServerRpc(value);
                     }
-                    else if (isServer)
-                    {
-                        SetDirectionClientRpc(value);
-                    }
 
                     owner.transform.localScale = new Vector3(value, 1, 1);
                 }
@@ -82,7 +78,7 @@ namespace Runtime
             owner.Machine.Create<PlayerFall>(Animations.Fall);
             owner.Machine.Create<PlayerGrab>(Animations.Grab);
             owner.Machine.Create<PlayerDash>(Animations.Dash);
-            owner.Machine.Create<PlayerCrash>(Animations.Crash);
+            owner.Machine.Create<PlayerRush>(Animations.Rush);
             owner.Machine.Switch(Animations.Idle);
         }
     }

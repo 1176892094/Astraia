@@ -30,9 +30,9 @@ namespace Runtime
         public float DashTimer;
         public float DashCD;
 
-        public int CrashSpeed;
-        public int CrashCount;
-        public Vector3 CrashPoint;
+        public int RushSpeed;
+        public int RushCount;
+        public Vector3 RushPoint;
 
         protected override void Dequeue()
         {
@@ -40,7 +40,7 @@ namespace Runtime
             GrabForce = MoveSpeed * 3 / 2;
             JumpForce = MoveSpeed * 2;
             DashSpeed = MoveSpeed * 3;
-            CrashSpeed = MoveSpeed * 2;
+            RushSpeed = MoveSpeed * 2;
         }
     }
 
