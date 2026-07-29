@@ -9,7 +9,17 @@ namespace Runtime
         protected PlayerFeature Feature => owner.Feature;
         protected Rigidbody.Collision collision => Machine.collision;
         protected bool isWalk => InputManager.MoveX != 0;
+        protected bool isGrab => isWall && velocityY < 0;
+        protected bool isDash => (state & State.冲刺) != 0;
+        protected bool isJump => (state & State.跳跃) != 0;
+        protected bool isHold => (state & State.悬挂) != 0;
+        protected bool isRush => (state & State.横冲) != 0;
+        protected bool isWall => (state & State.墙面) != 0;
+        protected bool isHead => (state & State.头顶) != 0;
         protected bool isPlane => (state & State.平面) != 0;
+        protected bool isGround => (state & State.地面) != 0;
+        protected bool isPlatform => (state & State.平台) != 0;
+        protected bool isCorner => (state & State.碰撞) != 0;
 
         protected State state
         {
@@ -70,6 +80,12 @@ namespace Runtime
             {
                 velocityX = 0;
             }
+        }
+
+        protected void InputY(int moveY)
+        {
+            velocityY = moveY * owner.Feature.MoveSpeed;
+            state &= ~State.碰撞;
         }
 
         protected void InputY()

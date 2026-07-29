@@ -47,7 +47,6 @@ namespace Runtime
         protected override void Dequeue()
         {
             collider = owner.GetComponent<Collider2D>();
-            InitPosition(owner.transform.position);
         }
 
         public void SetPixelate(Camera camera)

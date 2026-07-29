@@ -34,6 +34,7 @@ namespace Runtime
         public static readonly int Wait = Animator.StringToHash(nameof(Wait));
         public static readonly int Walk = Animator.StringToHash(nameof(Walk));
         public static readonly int Jump = Animator.StringToHash(nameof(Jump));
+        public static readonly int Hold = Animator.StringToHash(nameof(Hold));
         public static readonly int Dash = Animator.StringToHash(nameof(Dash));
         public static readonly int Fall = Animator.StringToHash(nameof(Fall));
         public static readonly int Grab = Animator.StringToHash(nameof(Grab));
@@ -69,11 +70,13 @@ namespace Runtime
         冲刺 = 1 << 8,
         横冲 = 1 << 9,
         竖冲 = 1 << 10,
+        悬挂 = 1 << 11,
 
-        侧跳 = 1 << 10,
-        平台 = 1 << 11,
+        侧跳 = 1 << 12,
+        平台 = 1 << 13,
         墙面 = 左墙 | 右墙,
         平面 = 平台 | 地面,
-        碰撞 = 地面 | 左墙 | 右墙 | 头顶,
+        墙顶 = 左墙 | 右墙 | 头顶,
+        碰撞 = 地面 | 左墙 | 右墙 | 头顶 | 平台,
     }
 }

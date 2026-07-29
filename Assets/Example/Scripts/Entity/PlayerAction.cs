@@ -53,7 +53,6 @@ namespace Runtime
             if (CanDash)
             {
                 State |= State.冲刺;
-                Feature.DashCD = Time.time + 0.4F;
             }
 
             if (State.HasFlag(State.地面) || State.HasFlag(State.左墙) || State.HasFlag(State.右墙))

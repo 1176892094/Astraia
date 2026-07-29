@@ -86,6 +86,7 @@ namespace Runtime
         public State State = State.默认;
 
         public int MoveSpeed;
+
         public float Platform;
 
         public int GrabForce;
@@ -102,13 +103,12 @@ namespace Runtime
         public int DashSpeed;
         public int DashCount;
         public float DashInput;
-        public float DashTimer;
         public float DashCD;
 
         public int RushSpeed;
         public int RushCount;
-        public Vector3 RushPoint;
-
+        public int RushInput;
+     
         protected override void Dequeue()
         {
             MoveSpeed = 30;

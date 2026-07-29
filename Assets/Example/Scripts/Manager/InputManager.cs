@@ -73,7 +73,7 @@ namespace Runtime
 
         public void Execute(ServerReady message)
         {
-            NetworkManager.Server.Spawn(AssetManager.Load<GameObject>("Prefabs/30001"), message.client);
+            NetworkManager.Server.Spawn(AssetManager.Load<GameObject>("Prefabs/10001"), message.client);
         }
 
         public void Execute(OnEarlyUpdate message)

@@ -54,15 +54,18 @@ namespace Runtime
             CameraManager.Instance.SetPlayer(player.transform);
             CameraManager.Instance.SetBounds(default);
             player.AddComponent<PlayerAction>().Dequeue();
+            player.Machine.SetPixelate(Camera.main);
             player.Machine.Create<PlayerIdle>(Animations.Idle);
             player.Machine.Create<PlayerWait>(Animations.Wait);
             player.Machine.Create<PlayerWalk>(Animations.Walk);
             player.Machine.Create<PlayerJump>(Animations.Jump);
             player.Machine.Create<PlayerFall>(Animations.Fall);
-            // player.Machine.Create<PlayerGrab>(Animations.Grab);
-            // player.Machine.Create<PlayerDash>(Animations.Dash);
-            // player.Machine.Create<PlayerRush>(Animations.Rush);
+            player.Machine.Create<PlayerGrab>(Animations.Grab);
+            player.Machine.Create<PlayerHold>(Animations.Hold);
+            player.Machine.Create<PlayerDash>(Animations.Dash);
+            player.Machine.Create<PlayerRush>(Animations.Rush);
             player.Machine.Switch(Animations.Idle);
+ 
         }
     }
 }
