@@ -1,4 +1,5 @@
 using System;
+using Astraia;
 using UnityEngine;
 
 namespace Runtime
@@ -118,16 +119,7 @@ namespace Runtime
             {
                 stepTime = Time.fixedTime + 0.1F;
                 direction = Feature.GrabInput;
-                if ((state & State.竖冲) != 0)
-                {
-                    velocityX = Feature.GrabInput * Feature.JumpForce;
-                }
-                else
-                {
-                    velocityX = Feature.GrabInput * Feature.GrabForce;
-                }
-
-                Debug.Log(velocityX);
+                velocityX = Feature.GrabInput * Feature.GrabForce;
             }
 
             velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
@@ -224,6 +216,7 @@ namespace Runtime
         private State oldState;
         private float waitTime;
         private Vector2 normalize;
+        private Position position;
 
         protected override void OnEnter()
         {
@@ -234,6 +227,7 @@ namespace Runtime
             waitTime = Time.fixedTime + 0.18F;
             direction = InputManager.MoveX;
             normalize = InputManager.Direction;
+            position = new Position(0, -100);
         }
 
         protected override void OnUpdate()
@@ -242,6 +236,12 @@ namespace Runtime
             {
                 state &= ~State.冲刺;
                 return;
+            }
+
+            if (Distance(Machine.position, position) >= 1.4f)
+            {
+                position = Machine.position;
+                owner.Sender.LoadEffectServerRpc(Machine.position);
             }
 
             velocityX = normalize.x * Feature.DashSpeed;
@@ -320,7 +320,6 @@ namespace Runtime
 
             waitTime = Time.fixedTime + 0.1F;
             velocityX = Feature.RushInput * (Feature.RushSpeed + Feature.RushCount * Feature.RushSpeed / 5);
-            Debug.Log(Feature.RushSpeed );
             Feature.RushCount++;
         }
 

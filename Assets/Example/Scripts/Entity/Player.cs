@@ -90,11 +90,13 @@ namespace Runtime
         public Fixation RushSpeed;
         public Fixation JumpForce;
         public Fixation GrabForce;
+
         public float Platform;
+        public int RushCount;
+        public int RushInput;
 
         public int GrabInput;
         public float GrabTimer;
-        public float GrabCD;
 
         public int JumpCount;
         public float JumpInput;
@@ -105,12 +107,9 @@ namespace Runtime
         public float DashInput;
         public float DashCD;
 
-        public int RushCount;
-        public int RushInput;
-
         protected override void Dequeue()
         {
-            MoveSpeed = 200F / 2500;
+            MoveSpeed = 200F / 40 / 60;
             GrabForce = MoveSpeed * 2.5F;
             JumpForce = MoveSpeed * 3;
             DashSpeed = MoveSpeed * 5;

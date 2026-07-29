@@ -34,15 +34,15 @@ namespace Runtime
         }
 
         [ServerRpc]
-        public void LoadEffectServerRpc(Vector3 position)
+        public void LoadEffectServerRpc(Position position)
         {
             LoadEffectClientRpc(position);
         }
 
         [ClientRpc]
-        public async void LoadEffectClientRpc(Vector3 position)
+        public async void LoadEffectClientRpc(Position position)
         {
-            var sprite = PoolManager.Show<SpriteRenderer>("Prefabs/Shadow", position);
+            var sprite = PoolManager.Show<SpriteRenderer>("Prefabs/10002", position.ToVector2());
             sprite.color = new Color(0, 0, 0, 1);
             await sprite.DOFade(0, 0.5f);
             PoolManager.Hide(sprite);
@@ -65,7 +65,6 @@ namespace Runtime
             player.Machine.Create<PlayerDash>(Animations.Dash);
             player.Machine.Create<PlayerRush>(Animations.Rush);
             player.Machine.Switch(Animations.Idle);
- 
         }
     }
 }
