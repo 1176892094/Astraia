@@ -15,23 +15,16 @@ namespace Runtime
 {
     public class Player : NetworkEntity
     {
-        public PlayerAction Action => GetComponent<PlayerAction>(4);
-        public PlayerSender Sender => GetComponent<PlayerSender>(2);
         public PlayerFeature Feature => GetComponent<PlayerFeature>(0);
         public PlayerMachine Machine => GetComponent<PlayerMachine>(1);
-
-        private void Update()
-        {
-            if (isOwner)
-            {
-                Action.Tick();
-            }
-        }
+        public PlayerSender Sender => GetComponent<PlayerSender>(2);
+        public PlayerAction Action => GetComponent<PlayerAction>(4);
 
         private void FixedUpdate()
         {
             if (isOwner)
             {
+                Action.Tick();
                 Machine.Tick();
             }
         }

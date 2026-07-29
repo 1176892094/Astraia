@@ -48,14 +48,17 @@ namespace Runtime
         {
             camera = Camera.main;
             Application.targetFrameRate = 60;
-            try
+            owner.Wait(0.1F).OnComplete(() =>
             {
-                NetworkManager.StartHost();
-            }
-            catch
-            {
-                NetworkManager.StartClient();
-            }
+                try
+                {
+                    NetworkManager.StartHost();
+                }
+                catch
+                {
+                    NetworkManager.StartClient();
+                }
+            });
         }
 
         public void SetBounds(Bounds bounds)
@@ -75,12 +78,9 @@ namespace Runtime
 
         public void Execute(OnEarlyUpdate message)
         {
-            CameraModule.Move(camera, player, bounds, ref position, ref velocity, 0.2f);
+            Move(camera, player, bounds, ref position, ref velocity, Time.deltaTime * 10);
         }
-    }
 
-    public static class CameraModule
-    {
         public static void Move(Camera camera, Transform target, Bounds bounds, ref Vector3 velocity, ref Vector3 position, float smoothTime)
         {
             if (target)
