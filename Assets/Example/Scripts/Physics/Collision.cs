@@ -14,10 +14,10 @@ namespace Runtime
             private readonly Vector2 extent;
             private readonly Vector2 center;
 
-            private float minX => center.x - extent.x;
-            private float minY => center.y - extent.y;
-            private float maxX => center.x + extent.x;
-            private float maxY => center.y + extent.y;
+            private float minX => center.x - extent.x - 0.01F;
+            private float minY => center.y - extent.y - 0.01F;
+            private float maxX => center.x + extent.x + 0.01F;
+            private float maxY => center.y + extent.y + 0.01F;
             private Vector2 LT => new(minX, maxY); // 左上
             private Vector2 LB => new(minX, minY); // 左下
             private Vector2 RT => new(maxX, maxY); // 右上

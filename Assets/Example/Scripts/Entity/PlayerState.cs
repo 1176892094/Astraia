@@ -133,6 +133,7 @@ namespace Runtime
             {
                 foreach (var hit in collision.Boxcast(new Vector2(moveX, 0), value, LayerConst.Ground))
                 {
+                 
                     if (hit.distance >= 0)
                     {
                         if (moveX > 0)
@@ -179,19 +180,19 @@ namespace Runtime
                 }
             }
 
-            if (moveY < 0 && Feature.Platform < Time.fixedTime)
-            {
-                foreach (var hit in collision.Boxcast(value, LayerConst.Platform))
-                {
-                    if (hit.distance >= 0)
-                    {
-                        Feature.JumpCount = 1;
-                        Feature.DashCount = 1;
-                        state |= State.平台;
-                        velocityY = moveY * hit.distance;
-                    }
-                }
-            }
+            // if (moveY < 0 && Feature.Platform < Time.fixedTime)
+            // {
+            //     foreach (var hit in collision.Boxcast(value, LayerConst.Platform))
+            //     {
+            //         if (hit.distance >= 0)
+            //         {
+            //             Feature.JumpCount = 1;
+            //             Feature.DashCount = 1;
+            //             state |= State.平台;
+            //             velocityY = moveY * hit.distance;
+            //         }
+            //     }
+            // }
 
             positionY += velocityY;
         }

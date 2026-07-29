@@ -18,7 +18,7 @@ namespace Runtime
         public Position syncPosition;
         public Position syncVelocity;
         public Position startPosition;
-        public Collision collision => new Collision(position.ToVector2(), collider.bounds.size, collider.offset);
+        public Collision collision => new Collision(position.ToVector2(), collider.bounds.extents, collider.offset);
 
         public Fixation positionX
         {

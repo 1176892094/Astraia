@@ -85,37 +85,36 @@ namespace Runtime
     {
         public State State = State.默认;
 
-        public int MoveSpeed;
-
+        public Fixation MoveSpeed;
+        public Fixation DashSpeed;
+        public Fixation RushSpeed;
+        public Fixation JumpForce;
+        public Fixation GrabForce;
         public float Platform;
 
-        public int GrabForce;
         public int GrabInput;
         public float GrabTimer;
         public float GrabCD;
 
-        public int JumpForce;
         public int JumpCount;
         public float JumpInput;
         public float JumpTimer;
         public float JumpCD;
 
-        public int DashSpeed;
         public int DashCount;
         public float DashInput;
         public float DashCD;
 
-        public int RushSpeed;
         public int RushCount;
         public int RushInput;
-     
+
         protected override void Dequeue()
         {
-            MoveSpeed = 30;
-            GrabForce = MoveSpeed * 3 / 2;
-            JumpForce = MoveSpeed * 2;
-            DashSpeed = MoveSpeed * 3;
-            RushSpeed = MoveSpeed * 2;
+            MoveSpeed = 200F / 2500;
+            GrabForce = MoveSpeed * 2.5F;
+            JumpForce = MoveSpeed * 3;
+            DashSpeed = MoveSpeed * 5;
+            RushSpeed = DashSpeed * 2;
         }
     }
 }

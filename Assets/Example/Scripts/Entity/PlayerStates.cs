@@ -5,7 +5,7 @@ namespace Runtime
 {
     public class PlayerIdle : PlayerState
     {
-        protected override void OnEnter()
+        protected override void OnUpdate()
         {
             if (isHold)
             {
@@ -116,6 +116,8 @@ namespace Runtime
 
             if (!isPlane && Feature.GrabTimer > Time.fixedTime)
             {
+                stepTime = Time.fixedTime + 0.1F;
+                direction = Feature.GrabInput;
                 if ((state & State.竖冲) != 0)
                 {
                     velocityX = Feature.GrabInput * Feature.JumpForce;
@@ -125,7 +127,7 @@ namespace Runtime
                     velocityX = Feature.GrabInput * Feature.GrabForce;
                 }
 
-                direction = Feature.GrabInput;
+                Debug.Log(velocityX);
             }
 
             velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
