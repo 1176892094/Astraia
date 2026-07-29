@@ -119,10 +119,23 @@ namespace Runtime
             {
                 stepTime = Time.fixedTime + 0.1F;
                 direction = Feature.GrabInput;
-                velocityX = Feature.GrabInput * Feature.GrabForce;
+                if ((state & State.竖冲) != 0)
+                {
+                    velocityX = Feature.GrabInput * Feature.JumpForce;
+                }
+                else
+                {
+                    velocityX = Feature.GrabInput * Feature.GrabForce;
+                }
             }
 
             velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
+
+            if ((state & State.竖冲) != 0)
+            {
+                owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
+                Machine.cachePosition = Machine.position;
+            }
         }
 
         protected override void OnUpdate()
@@ -131,6 +144,15 @@ namespace Runtime
             {
                 state &= ~State.跳跃;
                 return;
+            }
+
+            if ((state & State.竖冲) != 0)
+            {
+                if (Distance(Machine.position, Machine.cachePosition) >= 2.2f)
+                {
+                    owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
+                    Machine.cachePosition = Machine.position;
+                }
             }
 
             if (stepTime > Time.fixedTime)
@@ -216,7 +238,6 @@ namespace Runtime
         private State oldState;
         private float waitTime;
         private Vector2 normalize;
-        private Position position;
 
         protected override void OnEnter()
         {
@@ -227,7 +248,7 @@ namespace Runtime
             waitTime = Time.fixedTime + 0.18F;
             direction = InputManager.MoveX;
             normalize = InputManager.Direction;
-            position = new Position(0, -100);
+            Machine.cachePosition = new Position(0, -100);
         }
 
         protected override void OnUpdate()
@@ -238,9 +259,9 @@ namespace Runtime
                 return;
             }
 
-            if (Distance(Machine.position, position) >= 1.4f)
+            if (Distance(Machine.position, Machine.cachePosition) >= 1.4f)
             {
-                position = Machine.position;
+                Machine.cachePosition = Machine.position;
                 owner.Sender.LoadEffectServerRpc(Machine.position);
             }
 
@@ -321,6 +342,8 @@ namespace Runtime
             waitTime = Time.fixedTime + 0.1F;
             velocityX = Feature.RushInput * (Feature.RushSpeed + Feature.RushCount * Feature.RushSpeed / 5);
             Feature.RushCount++;
+            Machine.cachePosition = Machine.position;
+            owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
         }
 
         protected override void OnUpdate()
@@ -329,6 +352,12 @@ namespace Runtime
             {
                 state &= ~State.横冲;
                 return;
+            }
+
+            if (Distance(Machine.position, Machine.cachePosition) >= 3.5f)
+            {
+                Machine.cachePosition = Machine.position;
+                owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
             }
 
             if (waitTime < Time.fixedTime)

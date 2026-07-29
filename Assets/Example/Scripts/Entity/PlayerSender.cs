@@ -48,6 +48,24 @@ namespace Runtime
             PoolManager.Hide(sprite);
         }
 
+        [ServerRpc]
+        public void LoadEffectServerRpc(Position position, Position velocity)
+        {
+            LoadEffectClientRpc(position, velocity);
+        }
+
+        [ClientRpc]
+        public void LoadEffectClientRpc(Position position, Position velocity)
+        {
+            var sprite = PoolManager.Show<SpriteRenderer>("Prefabs/10003", position.ToVector2());
+            sprite.color = new Color(1, 1, 1, 1);
+            sprite.transform.localScale = Vector3.one * 0.5F;
+            var angle = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg;
+            sprite.transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle));
+            sprite.DOFade(0, 0.5F);
+            sprite.DOScale(Vector3.one, 0.5F).OnComplete(() => PoolManager.Hide(sprite));
+        }
+
         public void OnStartAuthority()
         {
             var player = (Player)owner;
