@@ -22,7 +22,7 @@ namespace Runtime
         public PlayerFeature Feature => GetComponent<PlayerFeature>(0);
         public PlayerMachine Machine => GetComponent<PlayerMachine>(1);
         public PlayerSender Sender => GetComponent<PlayerSender>(2);
-        public PlayerAction Action => GetComponent<PlayerAction>(4);
+        public PlayerAction Action => GetComponent<PlayerAction>(3);
 
         public int Direction
         {
@@ -47,6 +47,10 @@ namespace Runtime
             {
                 Action.Tick();
                 Machine.Tick();
+            }
+            else
+            {
+                Machine.SyncPosition();
             }
         }
     }

@@ -16,6 +16,12 @@ namespace Runtime
         }
 
         [ServerRpc]
+        public void SetPositionServerRpc(Position position)
+        {
+            SyncManager.Instance.SetPosition(objectId, position);
+        }
+
+        [ServerRpc]
         public void SyncColorServerRpc(Color32 color)
         {
             this.color = color;
@@ -72,7 +78,7 @@ namespace Runtime
             CameraManager.Instance.SetPlayer(player.transform);
             CameraManager.Instance.SetBounds(default);
             player.AddComponent<PlayerAction>().Dequeue();
-            player.Machine.SetPixelate(Camera.main);
+            player.Machine.InitPosition(player.transform.position);
             player.Machine.Create<PlayerIdle>(Animations.Idle);
             player.Machine.Create<PlayerWait>(Animations.Wait);
             player.Machine.Create<PlayerWalk>(Animations.Walk);

@@ -73,6 +73,11 @@ namespace Runtime
 
         public void Execute(ServerReady message)
         {
+            if (NetworkManager.Server.connections == 1)
+            {
+                NetworkManager.Server.Spawn(AssetManager.Load<GameObject>("Prefabs/10004"));
+            }
+
             NetworkManager.Server.Spawn(AssetManager.Load<GameObject>("Prefabs/10001"), message.client);
         }
 

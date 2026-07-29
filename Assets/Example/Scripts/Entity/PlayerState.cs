@@ -119,6 +119,7 @@ namespace Runtime
             if (owner.isOwner && oldValue != newValue)
             {
                 Machine.MovePosition(newValue);
+                SyncManager.Instance?.AddPosition(owner, newValue);
             }
         }
 
@@ -128,12 +129,11 @@ namespace Runtime
         }
 
         private void MoveX(int moveX, float value)
-        {      
+        {
             if (moveX != 0)
             {
                 foreach (var hit in collision.Boxcast(new Vector2(moveX, 0), value, LayerConst.Ground))
                 {
-               
                     if (hit.distance >= 0)
                     {
                         if (moveX > 0)
@@ -152,7 +152,7 @@ namespace Runtime
                     }
                 }
             }
-     
+
             positionX += velocityX;
         }
 

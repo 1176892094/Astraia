@@ -50,9 +50,8 @@ MonoBehaviour:
   - rid: 915762514025775162
   - rid: 915762514025775165
   - rid: 915762514025775163
-  - rid: 915762514025775164
   objectId: 0
-  assetId: 30001
+  assetId: 10001
   sceneId: 0
   references:
     version: 2
@@ -61,24 +60,18 @@ MonoBehaviour:
       type: {class: PlayerFeature, ns: Runtime, asm: Assembly-CSharp}
       data:
         State: 0
-        MoveSpeed: 0
-        GrabForce: 0
+        Platform: 0
+        RushCount: 0
+        RushInput: 0
         GrabInput: 0
         GrabTimer: 0
-        GrabCD: 0
-        JumpForce: 0
         JumpCount: 0
         JumpInput: 0
         JumpTimer: 0
         JumpCD: 0
-        DashSpeed: 0
         DashCount: 0
         DashInput: 0
-        DashTimer: 0
         DashCD: 0
-        RushSpeed: 0
-        RushCount: 0
-        RushPoint: {x: 0, y: 0, z: 0}
     - rid: 915762514025775163
       type: {class: PlayerSender, ns: Runtime, asm: Assembly-CSharp}
       data:
@@ -87,25 +80,9 @@ MonoBehaviour:
         color:
           serializedVersion: 2
           rgba: 0
-    - rid: 915762514025775164
-      type: {class: NetworkTransform, ns: Astraia.Net, asm: Astraia.Net}
-      data:
-        syncMode: 1
-        syncStep: 0
-        target: {fileID: 7478125468919891840}
-        option: 1
-        positionPerceive: 0.01
-        rotationPerceive: 0.01
-        mutationPerceive: 0.01
-        positionSmooth: 0.5
-        rotationSmooth: 0.5
-        mutationSmooth: 0.5
     - rid: 915762514025775165
       type: {class: PlayerMachine, ns: Runtime, asm: Assembly-CSharp}
-      data:
-        Collider: {fileID: 0}
-        Position: {x: 0, y: 0}
-        Velocity: {x: 0, y: 0}
+      data: {}
 --- !u!61 &4050376154587281838
 BoxCollider2D:
   m_ObjectHideFlags: 0

@@ -9,7 +9,7 @@ namespace Runtime
     {
         private static readonly Collider2D[] overlaps = new Collider2D[16];
 
-        private float pixelate;
+        private float pixelate = 1 / 16F;
         private Vector2 smoothStep;
         private Collider2D collider;
 
@@ -48,11 +48,6 @@ namespace Runtime
         protected override void Dequeue()
         {
             collider = owner.GetComponent<Collider2D>();
-        }
-
-        public void SetPixelate(Camera camera)
-        {
-            pixelate = 1 / (camera.targetTexture.height / (camera.orthographicSize * 2));
         }
 
         public void InitPosition(Vector3 worldPos)
