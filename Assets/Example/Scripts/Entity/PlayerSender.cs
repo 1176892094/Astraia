@@ -12,23 +12,6 @@ namespace Runtime
 
         [SyncVar(nameof(OnValueChanged))] public Color32 color;
 
-        public int Direction
-        {
-            get => Math.Sign(owner.transform.localScale.x);
-            set
-            {
-                if ((value > 0 && Direction < 0) || (value < 0 && Direction > 0))
-                {
-                    if (isOwner)
-                    {
-                        SetDirectionServerRpc(value);
-                    }
-
-                    owner.transform.localScale = new Vector3(value, 1, 1);
-                }
-            }
-        }
-
         private void OnValueChanged(Color32 oldValue, Color32 newValue)
         {
             owner.GetComponentInChildren<SpriteRenderer>().color = newValue;
@@ -41,7 +24,7 @@ namespace Runtime
         }
 
         [ServerRpc]
-        private void SetDirectionServerRpc(int direction)
+        public void SetDirectionServerRpc(int direction)
         {
             SetDirectionClientRpc(direction);
         }
@@ -70,7 +53,7 @@ namespace Runtime
         public void OnStartAuthority()
         {
             CameraManager.Instance.SetPlayer(owner.transform);
-            CameraManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(13, 6)));
+            CameraManager.Instance.SetBounds(default);
             owner.AddComponent<PlayerAction>().Dequeue();
             owner.Machine.Create<PlayerIdle>(Animations.Idle);
             owner.Machine.Create<PlayerWalk>(Animations.Walk);

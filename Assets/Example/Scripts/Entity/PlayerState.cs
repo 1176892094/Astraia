@@ -25,8 +25,8 @@ namespace Runtime
 
         protected int direction
         {
-            get => owner.Sender.Direction;
-            set => owner.Sender.Direction = value;
+            get => owner.Direction;
+            set => owner.Direction = value;
         }
 
         protected int velocityX
