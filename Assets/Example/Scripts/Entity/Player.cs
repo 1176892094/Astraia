@@ -16,12 +16,13 @@ using UnityEngine;
 
 namespace Runtime
 {
+    [Serializable]
     public class Player : NetworkEntity
     {
         public PlayerFeature Feature => GetComponent<PlayerFeature>(0);
         public PlayerMachine Machine => GetComponent<PlayerMachine>(1);
         public PlayerSender Sender => GetComponent<PlayerSender>(2);
-        private PlayerAction Action => GetComponent<PlayerAction>(4);
+        public PlayerAction Action => GetComponent<PlayerAction>(4);
 
         public int Direction
         {
@@ -85,6 +86,7 @@ namespace Runtime
         public State State = State.默认;
 
         public int MoveSpeed;
+        public float Platform;
 
         public int GrabForce;
         public int GrabInput;

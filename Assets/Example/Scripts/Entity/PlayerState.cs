@@ -1,21 +1,15 @@
-using System;
 using Astraia;
 using UnityEngine;
 
 namespace Runtime
 {
-    public abstract class PlayerState : State<Player>
+    public class PlayerState : State<Player>
     {
-        protected bool isCrash => InputManager.MoveY != 1 && InputManager.MoveX != 0;
-        protected bool isHead => (state & State.头顶) != 0;
-        protected bool isWall => (state & State.墙面) != 0;
-        protected bool isGround => (state & State.地面) != 0;
-        protected bool isCorner => isWall || isGround;
-        protected bool isFall => !isGround && velocityY < 0;
-        protected bool isGrab => isWall && isFall;
-        protected Transform transform => owner.transform;
         protected PlayerMachine Machine => owner.Machine;
         protected PlayerFeature Feature => owner.Feature;
+        protected Rigidbody.Collision collision => Machine.collision;
+        protected bool isWalk => InputManager.MoveX != 0;
+        protected bool isPlane => (state & State.平面) != 0;
 
         protected State state
         {
@@ -29,36 +23,35 @@ namespace Runtime
             set => owner.Direction = value;
         }
 
-        protected int velocityX
+        protected Fixation velocityX
         {
             get => Machine.velocityX;
             set => Machine.velocityX = value;
         }
 
-        protected int velocityY
+        protected Fixation velocityY
         {
             get => Machine.velocityY;
             set => Machine.velocityY = value;
         }
 
-        private int positionX
+        protected Fixation positionX
         {
             get => Machine.positionX;
             set => Machine.positionX = value;
         }
 
-        private int positionY
+        protected Fixation positionY
         {
             get => Machine.positionY;
             set => Machine.positionY = value;
         }
 
-        protected void Move(int percent = 0)
+        protected void InputX(int moveX, float expansion = 1, float percent = 0.16F)
         {
-            var moveX = InputManager.MoveX;
             if (moveX != 0)
             {
-                var moveSpeed = moveX * Feature.MoveSpeed;
+                var moveSpeed = moveX * owner.Feature.MoveSpeed;
                 if (direction != moveX || Mathf.Abs(velocityX) < Mathf.Abs(moveSpeed / 2))
                 {
                     direction = moveX;
@@ -66,104 +59,79 @@ namespace Runtime
                 }
                 else
                 {
-                    moveSpeed += moveSpeed * percent / 10;
-                    switch (velocityX)
-                    {
-                        case > 0 when velocityX < moveSpeed:
-                            velocityX++;
-                            break;
-                        case < 0 when velocityX > moveSpeed:
-                            velocityX--;
-                            break;
-                        case < 0 when velocityX < moveSpeed:
-                            velocityX++;
-                            break;
-                        case > 0 when velocityX > moveSpeed:
-                            velocityX--;
-                            break;
-                    }
+                    velocityX = Mathf.Lerp(velocityX, moveSpeed * expansion, percent);
                 }
             }
-            else if (velocityX != 0)
+            else if (Mathf.Abs(velocityX) > 0.01F)
             {
-                switch (velocityX)
-                {
-                    case > 0:
-                        velocityX = Mathf.Max(velocityX - 2, 0);
-                        break;
-                    case < 0:
-                        velocityX = Mathf.Min(velocityX + 2, 0);
-                        break;
-                }
+                velocityX = Mathf.Lerp(velocityX, 0, percent);
             }
             else
             {
                 velocityX = 0;
             }
-
-            Gravitino();
-            Collision();
         }
 
-        protected void Gravitino()
+        protected void InputY()
         {
             if (state.HasFlag(State.攀爬))
             {
-                velocityY = Mathf.Max(velocityY - 1, -10);
+                velocityY = Mathf.Max(velocityY - 0.012F, -0.04F);
             }
             else if (state.HasFlag(State.缓冲))
             {
-                velocityY = Mathf.Max(velocityY - 3, -60);
+                velocityY = Mathf.Max(velocityY - 0.012F, -0.24F);
             }
             else
             {
-                velocityY = Mathf.Max(velocityY - 6, -60);
+                velocityY = Mathf.Max(velocityY - 0.024F, -0.24F);
             }
 
             state &= ~State.碰撞;
         }
 
-        protected void Collision()
+        protected void Apply()
         {
-            MoveX(Math.Sign(velocityX), Math.Abs(velocityX));
-            MoveY(Math.Sign(velocityY), Math.Abs(velocityY));
-            Machine.MovePosition();
+            var position = Machine.position;
+            MoveX(Fixation.Sign(velocityX), Mathf.Abs(velocityX));
+            MoveY(Fixation.Sign(velocityY), Mathf.Abs(velocityY));
+            SendPosition(position, Machine.position);
         }
 
-        private void MoveX(int moveX, int distance)
+        private void SendPosition(Position oldValue, Position newValue)
+        {
+            if (owner.isOwner && oldValue != newValue)
+            {
+                Machine.MovePosition(newValue);
+            }
+        }
+
+        protected float Distance(Position origin, Position target)
+        {
+            return Vector2.Distance(origin.ToVector2(), target.ToVector2());
+        }
+
+        private void MoveX(int moveX, float value)
         {
             if (moveX != 0)
             {
-                positionX += moveX * Mathf.RoundToInt(Rigidbody.FIX / 100);
-                var hits = Machine.Boxcast(new Vector2(moveX, 0), distance, LayerConst.Ground);
-                positionX -= moveX * Mathf.RoundToInt(Rigidbody.FIX / 100);
-                foreach (var hit in hits)
+                foreach (var hit in collision.Boxcast(new Vector2(moveX, 0), value, LayerConst.Ground))
                 {
-                    var stepX = Mathf.RoundToInt(hit.distance * Rigidbody.FIX);
-                    if (stepX >= 0)
+                    if (hit.distance >= 0)
                     {
                         if (moveX > 0)
                         {
-                            if (!state.HasFlag(State.跳跃))
-                            {
-                                Feature.JumpCount = 1;
-                            }
-
                             state |= State.右墙;
                         }
                         else
                         {
-                            if (!state.HasFlag(State.跳跃))
-                            {
-                                Feature.JumpCount = 1;
-                            }
-
                             state |= State.左墙;
                         }
 
-                        Feature.GrabTimer = Time.fixedTime + 0.1F;
+                        Feature.JumpCount = 1;
                         Feature.GrabInput = -moveX;
-                        velocityX = moveX * stepX;
+                        Feature.GrabTimer = Time.fixedTime + 0.1F;
+                        velocityX = moveX * hit.distance;
                     }
                 }
             }
@@ -171,17 +139,13 @@ namespace Runtime
             positionX += velocityX;
         }
 
-        private void MoveY(int moveY, int distance)
+        private void MoveY(int moveY, float value)
         {
             if (moveY != 0)
             {
-                positionY += moveY * Mathf.RoundToInt(Rigidbody.FIX / 100);
-                var hits = Machine.Boxcast(new Vector2(0, moveY), distance, LayerConst.Ground);
-                positionY -= moveY * Mathf.RoundToInt(Rigidbody.FIX / 100);
-                foreach (var hit in hits)
+                foreach (var hit in collision.Boxcast(new Vector2(0, moveY), value, LayerConst.Ground))
                 {
-                    var stepY = Mathf.RoundToInt(hit.distance * Rigidbody.FIX);
-                    if (stepY >= 0)
+                    if (hit.distance >= 0)
                     {
                         if (moveY > 0)
                         {
@@ -189,20 +153,26 @@ namespace Runtime
                         }
                         else
                         {
-                            if (!state.HasFlag(State.跳跃))
-                            {
-                                Feature.JumpCount = 1;
-                            }
-
-                            if (!state.HasFlag(State.冲刺))
-                            {
-                                Feature.DashCount = 1;
-                            }
-
+                            Feature.JumpCount = 1;
+                            Feature.DashCount = 1;
                             state |= State.地面;
                         }
 
-                        velocityY = moveY * stepY;
+                        velocityY = moveY * hit.distance;
+                    }
+                }
+            }
+
+            if (moveY < 0 && Feature.Platform < Time.fixedTime)
+            {
+                foreach (var hit in collision.Boxcast(value, LayerConst.Platform))
+                {
+                    if (hit.distance >= 0)
+                    {
+                        Feature.JumpCount = 1;
+                        Feature.DashCount = 1;
+                        state |= State.平台;
+                        velocityY = moveY * hit.distance;
                     }
                 }
             }

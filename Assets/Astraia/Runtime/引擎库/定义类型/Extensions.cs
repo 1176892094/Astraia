@@ -188,6 +188,16 @@ namespace Astraia
             }
         }
 
+        public static Position ToPosition(this Vector3 position)
+        {
+            return new Position(position.x, position.y);
+        }
+
+        public static Vector2 ToVector2(this Position position)
+        {
+            return new Vector2(position.x, position.y);
+        }
+
         public static T GetOrAddComponent<T>(this Component self) where T : Component
         {
             var component = self.GetComponent<T>();

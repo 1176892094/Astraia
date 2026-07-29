@@ -8,8 +8,6 @@ namespace Runtime
     [Serializable]
     public class PlayerSender : NetworkModule, IStartAuthority
     {
-        public new Player owner => (Player)base.owner;
-
         [SyncVar(nameof(OnValueChanged))] public Color32 color;
 
         private void OnValueChanged(Color32 oldValue, Color32 newValue)
@@ -52,17 +50,19 @@ namespace Runtime
 
         public void OnStartAuthority()
         {
-            CameraManager.Instance.SetPlayer(owner.transform);
+            var player = (Player)owner;
+            CameraManager.Instance.SetPlayer(player.transform);
             CameraManager.Instance.SetBounds(default);
-            owner.AddComponent<PlayerAction>().Dequeue();
-            owner.Machine.Create<PlayerIdle>(Animations.Idle);
-            owner.Machine.Create<PlayerWalk>(Animations.Walk);
-            owner.Machine.Create<PlayerJump>(Animations.Jump);
-            owner.Machine.Create<PlayerFall>(Animations.Fall);
-            owner.Machine.Create<PlayerGrab>(Animations.Grab);
-            owner.Machine.Create<PlayerDash>(Animations.Dash);
-            owner.Machine.Create<PlayerRush>(Animations.Rush);
-            owner.Machine.Switch(Animations.Idle);
+            player.AddComponent<PlayerAction>().Dequeue();
+            player.Machine.Create<PlayerIdle>(Animations.Idle);
+            player.Machine.Create<PlayerWait>(Animations.Wait);
+            player.Machine.Create<PlayerWalk>(Animations.Walk);
+            player.Machine.Create<PlayerJump>(Animations.Jump);
+            player.Machine.Create<PlayerFall>(Animations.Fall);
+            // player.Machine.Create<PlayerGrab>(Animations.Grab);
+            // player.Machine.Create<PlayerDash>(Animations.Dash);
+            // player.Machine.Create<PlayerRush>(Animations.Rush);
+            player.Machine.Switch(Animations.Idle);
         }
     }
 }

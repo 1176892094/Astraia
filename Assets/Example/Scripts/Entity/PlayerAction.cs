@@ -66,7 +66,6 @@ namespace Runtime
                 if (CanJump)
                 {
                     State |= State.跳跃;
-                    Feature.JumpCD = Time.time + 0.3F;
                 }
             }
         }
