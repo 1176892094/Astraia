@@ -301,7 +301,7 @@ namespace Runtime
             {
                 if (normalize.y <= 0)
                 {
-                    if ((oldState & State.平面) != 0 && isWalk)
+                    if ((oldState & State.平面) != 0 || isWalk)
                     {
                         state |= State.横冲;
                         state &= ~State.冲刺;

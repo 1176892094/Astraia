@@ -38,7 +38,7 @@ namespace Runtime
 
             public Enumerable<RaycastHit2D> Boxcast(Vector2 direction, float distance, ContactFilter2D filter) // 移动检测
             {
-                var origin = center + direction * 0.01F; 
+                var origin = center + direction * 0.01F;
                 Hits.Count = Physics2D.BoxCast(origin, extent * 2, 0, direction, filter, Hits, distance);
                 return Hits;
             }
@@ -52,7 +52,7 @@ namespace Runtime
 
                 for (int i = 0; i < count; i++)
                 {
-                    var other = overlaps[i];
+                    var other = Overlaps[i];
 
                     if (other == null || other == collider)
                         continue;

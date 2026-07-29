@@ -7,7 +7,6 @@ namespace Runtime
     [Serializable]
     public partial class Rigidbody : Module<Entity>
     {
-        private static readonly Collider2D[] overlaps = new Collider2D[16];
 
         private float pixelate = 1 / 16F;
         private Vector2 smoothStep;
