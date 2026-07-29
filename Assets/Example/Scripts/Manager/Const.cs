@@ -25,7 +25,12 @@ namespace Runtime
             Ground = new ContactFilter2D();
             Ground.SetLayerMask(LayerMask.GetMask("Ground"));
             Ground.useTriggers = false;
+            
+            Platform = new ContactFilter2D();
+            Platform.SetLayerMask(LayerMask.GetMask("Platform"));
+            Platform.useTriggers = false;
         }
+        
     }
 
     public static class Animations
@@ -66,14 +71,12 @@ namespace Runtime
         跳跃 = 1 << 4,
         缓冲 = 1 << 5,
         攀爬 = 1 << 6,
-        下落 = 1 << 7,
-        冲刺 = 1 << 8,
-        横冲 = 1 << 9,
-        竖冲 = 1 << 10,
-        悬挂 = 1 << 11,
-
-        侧跳 = 1 << 12,
-        平台 = 1 << 13,
+        冲刺 = 1 << 7,
+        横冲 = 1 << 8,
+        竖冲 = 1 << 9,
+        悬挂 = 1 << 10,
+        平台 = 1 << 11,
+        
         墙面 = 左墙 | 右墙,
         平面 = 平台 | 地面,
         墙顶 = 左墙 | 右墙 | 头顶,

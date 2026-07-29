@@ -320,6 +320,7 @@ namespace Runtime
 
             waitTime = Time.fixedTime + 0.1F;
             velocityX = Feature.RushInput * (Feature.RushSpeed + Feature.RushCount * Feature.RushSpeed / 5);
+            Debug.Log(Feature.RushSpeed );
             Feature.RushCount++;
         }
 

@@ -114,7 +114,7 @@ namespace Runtime
             GrabForce = MoveSpeed * 2.5F;
             JumpForce = MoveSpeed * 3;
             DashSpeed = MoveSpeed * 5;
-            RushSpeed = DashSpeed * 2;
+            RushSpeed = DashSpeed / 2;
         }
     }
 }

@@ -45,13 +45,13 @@ namespace Runtime
             set => Machine.velocityY = value;
         }
 
-        protected Fixation positionX
+        private Fixation positionX
         {
             get => Machine.positionX;
             set => Machine.positionX = value;
         }
 
-        protected Fixation positionY
+        private Fixation positionY
         {
             get => Machine.positionY;
             set => Machine.positionY = value;
@@ -128,12 +128,12 @@ namespace Runtime
         }
 
         private void MoveX(int moveX, float value)
-        {
+        {      
             if (moveX != 0)
             {
                 foreach (var hit in collision.Boxcast(new Vector2(moveX, 0), value, LayerConst.Ground))
                 {
-                 
+               
                     if (hit.distance >= 0)
                     {
                         if (moveX > 0)
@@ -152,7 +152,7 @@ namespace Runtime
                     }
                 }
             }
-
+     
             positionX += velocityX;
         }
 
@@ -180,19 +180,19 @@ namespace Runtime
                 }
             }
 
-            // if (moveY < 0 && Feature.Platform < Time.fixedTime)
-            // {
-            //     foreach (var hit in collision.Boxcast(value, LayerConst.Platform))
-            //     {
-            //         if (hit.distance >= 0)
-            //         {
-            //             Feature.JumpCount = 1;
-            //             Feature.DashCount = 1;
-            //             state |= State.平台;
-            //             velocityY = moveY * hit.distance;
-            //         }
-            //     }
-            // }
+            if (moveY < 0 && Feature.Platform < Time.fixedTime)
+            {
+                foreach (var hit in collision.Boxcast(value, LayerConst.Platform))
+                {
+                    if (hit.distance >= 0)
+                    {
+                        Feature.JumpCount = 1;
+                        Feature.DashCount = 1;
+                        state |= State.平台;
+                        velocityY = moveY * hit.distance;
+                    }
+                }
+            }
 
             positionY += velocityY;
         }
