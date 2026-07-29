@@ -11,9 +11,7 @@
 
 using System;
 using Astraia;
-
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Runtime
 {
@@ -47,18 +45,8 @@ namespace Runtime
             var color = component.color;
             return component.Play(duration).OnUpdate(progress =>
             {
-                var colorA = Mathf.Lerp(color.a, endValue, progress);
-                component.color = new Color(color.r, color.g, color.b, colorA);
-            });
-        }
-
-        public static Tween DOFade(this Graphic component, float endValue, float duration)
-        {
-            var color = component.color;
-            return component.Play(duration).OnUpdate(progress =>
-            {
-                var colorA = Mathf.Lerp(color.a, endValue, progress);
-                component.color = new Color(color.r, color.g, color.b, colorA);
+                var alpha = Mathf.Lerp(color.a, endValue, progress);
+                component.color = new Color(color.r, color.g, color.b, alpha);
             });
         }
     }

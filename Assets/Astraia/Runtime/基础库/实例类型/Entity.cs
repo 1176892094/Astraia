@@ -395,8 +395,15 @@ namespace Astraia
 
         public void Break()
         {
-            onComplete.Invoke();
-            state = State.Failure;
+            try
+            {
+                onComplete.Invoke();
+                state = State.Failure;
+            }
+            finally
+            {
+                onComplete = null;
+            }
         }
 
         public Awaiter SetTime(Func<float> onTime)
@@ -461,14 +468,14 @@ namespace Astraia
 
         void IEvent<OnEarlyUpdate>.Execute(OnEarlyUpdate message)
         {
+            if (isInterrupt)
+            {
+                Break();
+                return;
+            }
+
             try
             {
-                if (isInterrupt)
-                {
-                    Break();
-                    return;
-                }
-
                 var stepTime = onTime();
                 if (waitTime < stepTime)
                 {
@@ -552,14 +559,14 @@ namespace Astraia
 
         void IEvent<OnEarlyUpdate>.Execute(OnEarlyUpdate message)
         {
+            if (isInterrupt)
+            {
+                Break();
+                return;
+            }
+
             try
             {
-                if (isInterrupt)
-                {
-                    Break();
-                    return;
-                }
-
                 var stepTime = duration + onTime();
                 if (waitTime < stepTime)
                 {

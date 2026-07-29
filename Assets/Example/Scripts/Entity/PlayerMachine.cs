@@ -6,7 +6,7 @@ namespace Runtime
     [Serializable]
     public class PlayerMachine : Rigidbody
     {
-        private readonly StateMachine<int> machine = new StateMachine<int>();
+        private readonly StateMachine machine = new StateMachine();
 
         protected override void Enqueue()
         {

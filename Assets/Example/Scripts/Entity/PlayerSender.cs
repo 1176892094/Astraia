@@ -73,8 +73,8 @@ namespace Runtime
 
         public void OnStartAuthority()
         {
-            GameManager.Instance.SetPlayer(owner.transform);
-            GameManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(13, 6)));
+            CameraManager.Instance.SetPlayer(owner.transform);
+            CameraManager.Instance.SetBounds(new Bounds(Vector3.zero, new Vector3(13, 6)));
             owner.AddComponent<PlayerAction>().Dequeue();
             owner.Machine.Create<PlayerIdle>(Animations.Idle);
             owner.Machine.Create<PlayerWalk>(Animations.Walk);
