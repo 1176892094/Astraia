@@ -8,7 +8,7 @@ namespace Runtime
         protected PlayerMachine Machine => owner.Machine;
         protected PlayerFeature Feature => owner.Feature;
         protected Rigidbody.Collision collision => Machine.collision;
-        protected bool isWalk => InputManager.MoveX != 0;
+        protected bool isWalk => GameManager.MoveX != 0;
         protected bool isGrab => isWall && velocityY < 0;
         protected bool isDash => (state & State.冲刺) != 0;
         protected bool isJump => (state & State.跳跃) != 0;

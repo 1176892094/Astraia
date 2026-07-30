@@ -75,10 +75,8 @@ namespace Runtime
         public void OnStartAuthority()
         {
             var player = (Player)owner;
-            CameraManager.Instance.SetPlayer(player.transform);
-            CameraManager.Instance.SetBounds(default);
             player.AddComponent<PlayerAction>().Dequeue();
-            player.Machine.InitPosition(player.transform.position);
+            player.Machine.MovePosition(player.transform.position);
             player.Machine.Create<PlayerIdle>(Animations.Idle);
             player.Machine.Create<PlayerWait>(Animations.Wait);
             player.Machine.Create<PlayerWalk>(Animations.Walk);

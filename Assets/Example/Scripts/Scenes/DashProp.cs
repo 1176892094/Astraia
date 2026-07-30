@@ -10,12 +10,16 @@ namespace Runtime
 
         public void OnEnter(Collider2D other)
         {
-            if (other.TryGetComponent(out Player player) && player.isOwner)
+            if (other.TryGetComponent(out Player player))
             {
                 collider.enabled = false;
                 renderer.enabled = false;
-                player.Feature.DashCD = 0;
-                player.Feature.DashCount = 1;
+                if (player.isOwner)
+                {
+                    player.Feature.DashCD = 0;
+                    player.Feature.DashCount = 1;
+                }
+
                 renderer.Wait(1.5F).OnComplete(() =>
                 {
                     collider.enabled = true;

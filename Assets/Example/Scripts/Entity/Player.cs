@@ -48,12 +48,13 @@ namespace Runtime
             {
                 Action.Tick();
                 Machine.Tick();
-                Module.Tick();
             }
             else
             {
                 Machine.SyncPosition();
             }
+
+            Module.Tick();
         }
     }
 

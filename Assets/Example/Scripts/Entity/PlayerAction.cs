@@ -22,23 +22,23 @@ namespace Runtime
 
         public new void Dequeue()
         {
-            InputManager.Dash.performed += DashButton;
-            InputManager.Jump.started += JumpButton;
-            InputManager.Jump.canceled += FallButton;
+            GameManager.Dash.performed += DashButton;
+            GameManager.Jump.started += JumpButton;
+            GameManager.Jump.canceled += FallButton;
         }
 
         protected override void Enqueue()
         {
-            InputManager.Dash.performed -= DashButton;
-            InputManager.Jump.started -= JumpButton;
-            InputManager.Jump.canceled -= FallButton;
+            GameManager.Dash.performed -= DashButton;
+            GameManager.Jump.started -= JumpButton;
+            GameManager.Jump.canceled -= FallButton;
         }
 
         private void DashButton(InputAction.CallbackContext obj)
         {
-            if (InputManager.Direction != Vector2.zero)
+            if (GameManager.Direction != Vector2.zero)
             {
-                var input = new Vector2(InputManager.MoveX, InputManager.MoveY);
+                var input = new Vector2(GameManager.MoveX, GameManager.MoveY);
                 var success = true;
                 Collider2D collider = null;
                 foreach (var hit in owner.Machine.collision.Boxcast(input.normalized, input.magnitude, LayerConst.GroundAndCollision))
@@ -67,7 +67,7 @@ namespace Runtime
 
         private void JumpButton(InputAction.CallbackContext obj)
         {
-            if (InputManager.MoveY < 0)
+            if (GameManager.MoveY < 0)
             {
                 var success = true;
                 Collider2D collider = null;
@@ -110,7 +110,7 @@ namespace Runtime
                 else
                 {
                     Feature.DashTimer += Feature.DashTime;
-                    Feature.DashDirection = InputManager.Direction;
+                    Feature.DashDirection = GameManager.Direction;
                     Feature.DashCount--;
                 }
 

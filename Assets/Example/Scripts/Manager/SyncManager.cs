@@ -64,6 +64,11 @@ namespace Runtime
                 var player = (Player)sync.Id;
                 if (player)
                 {
+                    if (!player.isOwner)
+                    {
+                        player.Machine.position = sync.Position;
+                    }
+
                     player.Machine.syncPosition = sync.Position;
                     serverPosition[sync.Id] = sync.Position;
                 }

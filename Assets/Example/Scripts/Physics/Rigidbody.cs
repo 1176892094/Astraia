@@ -9,7 +9,7 @@ namespace Runtime
     {
         private float pixelate = 1 / 16F;
         private Vector2 smoothStep;
-        
+
         public Collider2D collider;
         public Position position;
         public Position velocity;
@@ -45,14 +45,7 @@ namespace Runtime
         protected override void Dequeue()
         {
             collider = owner.GetComponent<Collider2D>();
-            InitPosition(owner.transform.position);
-        }
-
-        public void InitPosition(Vector3 worldPos)
-        {
-            position = worldPos.ToPosition();
-            syncPosition = position;
-            MovePosition(position);
+            MovePosition(owner.transform.position);
         }
 
         public void MovePosition(Vector3 worldPos)
@@ -63,6 +56,7 @@ namespace Runtime
 
         public void MovePosition(Position position)
         {
+            syncPosition = position;
             var worldPos = position.ToVector2();
             worldPos.x = Mathf.Round(worldPos.x / pixelate) * pixelate;
             worldPos.y = Mathf.Round(worldPos.y / pixelate) * pixelate;

@@ -70,7 +70,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            InputX(InputManager.MoveX);
+            InputX(GameManager.MoveX);
             InputY();
             Apply();
         }
@@ -86,7 +86,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            InputX(InputManager.MoveX);
+            InputX(GameManager.MoveX);
             InputY();
             Apply();
         }
@@ -102,7 +102,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            InputX(InputManager.MoveX, 1.2F, 0.08F);
+            InputX(GameManager.MoveX, 1.2F, 0.08F);
             InputY();
             Apply();
         }
@@ -163,14 +163,14 @@ namespace Runtime
 
             if (stepTime > Time.fixedTime)
             {
-                if (InputManager.MoveX == Feature.GrabInput)
+                if (GameManager.MoveX == Feature.GrabInput)
                 {
                     velocityX = Mathf.Max(Feature.GrabInput * Feature.GrabForce, velocityX);
                 }
             }
             else
             {
-                InputX(InputManager.MoveX, 1.2F, 0.08F);
+                InputX(GameManager.MoveX, 1.2F, 0.08F);
             }
 
             InputY();
@@ -195,13 +195,13 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (collision.RaycastX(Feature.GrabForce * InputManager.MoveX, LayerConst.GroundAndCollision))
+            if (collision.RaycastX(Feature.GrabForce * GameManager.MoveX, LayerConst.GroundAndCollision))
             {
                 state |= State.悬挂;
                 return;
             }
 
-            InputX(InputManager.MoveX);
+            InputX(GameManager.MoveX);
             InputY();
             Apply();
         }
@@ -221,7 +221,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (!collision.RaycastX(Feature.GrabForce * InputManager.MoveX, LayerConst.GroundAndCollision))
+            if (!collision.RaycastX(Feature.GrabForce * GameManager.MoveX, LayerConst.GroundAndCollision))
             {
                 state &= ~State.悬挂;
             }
@@ -249,8 +249,8 @@ namespace Runtime
             Feature.DashCD = Time.fixedTime + 0.4F;
             oldState = state;
             Feature.DashTimer = Time.fixedTime + Feature.DashTime;
-            Feature.DashDirection = InputManager.Direction;
-            direction = InputManager.MoveX;
+            Feature.DashDirection = GameManager.Direction;
+            direction = GameManager.MoveX;
             Machine.cachePosition = new Position(0, -100);
         }
 
@@ -353,7 +353,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (InputManager.MoveX != Feature.RushInput)
+            if (GameManager.MoveX != Feature.RushInput)
             {
                 state &= ~State.横冲;
                 return;
