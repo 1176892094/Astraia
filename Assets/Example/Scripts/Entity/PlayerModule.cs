@@ -28,7 +28,6 @@ namespace Runtime
                 var other = hit.collider;
                 if (other && !previous.Contains(other))
                 {
-                    Debug.Log(other);
                     other.GetComponent<IOnEnter>()?.OnEnter(collision);
                 }
 
@@ -50,6 +49,7 @@ namespace Runtime
             }
         }
     }
+
 
     public interface IOnEnter
     {

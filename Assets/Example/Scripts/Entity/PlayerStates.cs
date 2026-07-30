@@ -8,6 +8,12 @@ namespace Runtime
     {
         protected override void OnUpdate()
         {
+            if (isShuttle)
+            {
+                Machine.Update(Animations.Shuttle);
+                return;
+            }
+
             if (isHold)
             {
                 Machine.Update(Animations.Hold);
@@ -380,6 +386,38 @@ namespace Runtime
         protected override void OnExit()
         {
             state &= ~State.横冲;
+        }
+    }
+
+    public class PlayerShuttle : PlayerState
+    {
+        protected override void OnEnter()
+        {
+            Feature.DashCount--;
+            Feature.DashCD = Time.fixedTime + 0.4F;
+            
+            owner.Sender.SyncColorServerRpc(Color.skyBlue);
+            Machine.cachePosition = Machine.position;
+        }
+
+        protected override void OnUpdate()
+        {
+            if (Distance(Machine.position, Machine.cachePosition) >= 0.5f)
+            {
+                Machine.cachePosition = Machine.position;
+                owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
+            }
+
+            velocityX = Feature.DashQuad.x * Feature.DashSpeed;
+            velocityY = Feature.DashQuad.y * Feature.DashSpeed;
+            Apply();
+        }
+
+        protected override void OnExit()
+        {
+            velocityX = 0;
+            velocityY = 0;
+            state &= ~State.穿梭;
         }
     }
 }

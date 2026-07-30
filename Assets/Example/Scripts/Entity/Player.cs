@@ -98,6 +98,8 @@ namespace Runtime
         public Fixation GrabForce;
 
         public float Platform;
+        public Vector2 DashQuad;
+
         public int RushCount;
         public int RushInput;
 

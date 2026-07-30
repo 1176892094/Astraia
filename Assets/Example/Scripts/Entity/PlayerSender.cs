@@ -88,6 +88,7 @@ namespace Runtime
             player.Machine.Create<PlayerHold>(Animations.Hold);
             player.Machine.Create<PlayerDash>(Animations.Dash);
             player.Machine.Create<PlayerRush>(Animations.Rush);
+            player.Machine.Create<PlayerShuttle>(Animations.Shuttle);
             player.Machine.Switch(Animations.Idle);
         }
     }

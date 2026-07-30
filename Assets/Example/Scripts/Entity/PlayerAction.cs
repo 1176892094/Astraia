@@ -36,29 +36,66 @@ namespace Runtime
 
         private void DashButton(InputAction.CallbackContext obj)
         {
+            if (InputManager.Direction != Vector2.zero)
+            {
+                var input = new Vector2(InputManager.MoveX, InputManager.MoveY);
+                var success = true;
+                Collider2D collider = null;
+                foreach (var hit in owner.Machine.collision.Boxcast(input.normalized, input.magnitude, LayerConst.GroundAndCollision))
+                {
+                    if (hit.collider.CompareTag("DashQuad"))
+                    {
+                        collider = hit.collider;
+                    }
+                    else
+                    {
+                        success = false;
+                    }
+                }
+
+                if (collider && success)
+                {
+                    State |= State.穿梭;
+                    collider.tag = "Untagged";
+                    Feature.DashQuad = input.normalized;
+                    return;
+                }
+            }
+
             Feature.DashInput = Time.time + 0.2f;
         }
 
         private void JumpButton(InputAction.CallbackContext obj)
         {
+            if (InputManager.MoveY < 0)
+            {
+                var success = true;
+                Collider2D collider = null;
+                foreach (var hit in owner.Machine.collision.Boxcast(0.1F, LayerConst.GroundAndCollision))
+                {
+                    if (hit.collider.CompareTag("Platform") && CanPlatform)
+                    {
+                        collider = hit.collider;
+                    }
+                    else
+                    {
+                        success = false;
+                    }
+                }
+
+                if (collider && success)
+                {
+                    Feature.Platform = Time.fixedTime + 0.1F;
+                    return;
+                }
+            }
+
             State |= State.缓冲;
             Feature.JumpInput = Time.time + 0.2f;
         }
 
         private void FallButton(InputAction.CallbackContext obj)
         {
-            if (InputManager.MoveY < 0)
-            {
-                foreach (var hit in owner.Machine.collision.Boxcast(0.1F, LayerConst.Collision))
-                {
-                    if (hit.collider.CompareTag("Platform") && CanPlatform)
-                    {
-                        Feature.Platform = Time.fixedTime + 0.1F;
-                        return;
-                    }
-                }
-            }
-
             State &= ~State.缓冲;
         }
 

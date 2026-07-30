@@ -20,7 +20,6 @@ namespace Runtime
         public static ContactFilter2D GroundAndCollision;
         public static ContactFilter2D Collision;
 
-
         static LayerConst()
         {
             GroundAndCollision = new ContactFilter2D();
@@ -44,6 +43,7 @@ namespace Runtime
         public static readonly int Fall = Animator.StringToHash(nameof(Fall));
         public static readonly int Grab = Animator.StringToHash(nameof(Grab));
         public static readonly int Rush = Animator.StringToHash(nameof(Rush));
+        public static readonly int Shuttle = Animator.StringToHash(nameof(Shuttle));
     }
 
     public static class Extensions
@@ -67,15 +67,16 @@ namespace Runtime
         左墙 = 1 << 1,
         右墙 = 1 << 2,
         头顶 = 1 << 3,
+        平台 = 1 << 4,
 
-        跳跃 = 1 << 4,
-        缓冲 = 1 << 5,
-        攀爬 = 1 << 6,
-        冲刺 = 1 << 7,
-        横冲 = 1 << 8,
-        竖冲 = 1 << 9,
-        悬挂 = 1 << 10,
-        平台 = 1 << 11,
+        跳跃 = 1 << 6,
+        缓冲 = 1 << 7,
+        攀爬 = 1 << 8,
+        冲刺 = 1 << 9,
+        横冲 = 1 << 10,
+        竖冲 = 1 << 11,
+        悬挂 = 1 << 12,
+        穿梭 = 1 << 13,
 
         墙面 = 左墙 | 右墙,
         平面 = 平台 | 地面,

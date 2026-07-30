@@ -18,6 +18,7 @@ namespace Runtime
         protected bool isHead => (state & State.头顶) != 0;
         protected bool isPlane => (state & State.平面) != 0;
         protected bool isGround => (state & State.地面) != 0;
+        protected bool isShuttle => (state & State.穿梭) != 0;
         protected bool isPlatform => (state & State.平台) != 0;
         protected bool isCorner => (state & State.碰撞) != 0;
 
@@ -134,7 +135,7 @@ namespace Runtime
             {
                 foreach (var hit in collision.Boxcast(new Vector2(moveX, 0), value, LayerConst.GroundAndCollision))
                 {
-                    if (!hit.collider.CompareTag("Platform"))
+                    if (!hit.collider.CompareTag("Platform") && !hit.collider.CompareTag("Untagged"))
                     {
                         if (hit.distance >= 0)
                         {
@@ -165,7 +166,7 @@ namespace Runtime
             {
                 foreach (var hit in collision.Boxcast(new Vector2(0, moveY), value, LayerConst.GroundAndCollision))
                 {
-                    if (!hit.collider.CompareTag("Platform"))
+                    if (!hit.collider.CompareTag("Platform") && !hit.collider.CompareTag("Untagged"))
                     {
                         if (hit.distance >= 0)
                         {
