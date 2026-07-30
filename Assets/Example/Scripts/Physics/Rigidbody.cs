@@ -7,7 +7,6 @@ namespace Runtime
     [Serializable]
     public partial class Rigidbody : Module<Entity>
     {
-
         private float pixelate = 1 / 16F;
         private Vector2 smoothStep;
         private Collider2D collider;
@@ -47,6 +46,7 @@ namespace Runtime
         protected override void Dequeue()
         {
             collider = owner.GetComponent<Collider2D>();
+            InitPosition(owner.transform.position);
         }
 
         public void InitPosition(Vector3 worldPos)

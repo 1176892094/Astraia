@@ -17,20 +17,20 @@ namespace Runtime
 {
     public static class LayerConst
     {
-        public static ContactFilter2D Ground;
-        public static ContactFilter2D Platform;
+        public static ContactFilter2D GroundAndCollision;
+        public static ContactFilter2D Collision;
+
 
         static LayerConst()
         {
-            Ground = new ContactFilter2D();
-            Ground.SetLayerMask(LayerMask.GetMask("Ground"));
-            Ground.useTriggers = false;
-            
-            Platform = new ContactFilter2D();
-            Platform.SetLayerMask(LayerMask.GetMask("Platform"));
-            Platform.useTriggers = false;
+            GroundAndCollision = new ContactFilter2D();
+            GroundAndCollision.SetLayerMask(LayerMask.GetMask("Ground") | LayerMask.GetMask("Collision"));
+            GroundAndCollision.useTriggers = false;
+
+            Collision = new ContactFilter2D();
+            Collision.SetLayerMask(LayerMask.GetMask("Collision"));
+            Collision.useTriggers = false;
         }
-        
     }
 
     public static class Animations
@@ -76,7 +76,7 @@ namespace Runtime
         竖冲 = 1 << 9,
         悬挂 = 1 << 10,
         平台 = 1 << 11,
-        
+
         墙面 = 左墙 | 右墙,
         平面 = 平台 | 地面,
         墙顶 = 左墙 | 右墙 | 头顶,

@@ -49,9 +49,9 @@ namespace Runtime
         {
             if (InputManager.MoveY < 0)
             {
-                foreach (var unused in owner.Machine.collision.Boxcast(0.1F, LayerConst.Platform))
+                foreach (var hit in owner.Machine.collision.Boxcast(0.1F, LayerConst.Collision))
                 {
-                    if (CanPlatform)
+                    if (hit.collider.CompareTag("Platform") && CanPlatform)
                     {
                         Feature.Platform = Time.fixedTime + 0.1F;
                         return;

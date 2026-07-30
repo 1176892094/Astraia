@@ -132,23 +132,26 @@ namespace Runtime
         {
             if (moveX != 0)
             {
-                foreach (var hit in collision.Boxcast(new Vector2(moveX, 0), value, LayerConst.Ground))
+                foreach (var hit in collision.Boxcast(new Vector2(moveX, 0), value, LayerConst.GroundAndCollision))
                 {
-                    if (hit.distance >= 0)
+                    if (!hit.collider.CompareTag("Platform"))
                     {
-                        if (moveX > 0)
+                        if (hit.distance >= 0)
                         {
-                            state |= State.右墙;
-                        }
-                        else
-                        {
-                            state |= State.左墙;
-                        }
+                            if (moveX > 0)
+                            {
+                                state |= State.右墙;
+                            }
+                            else
+                            {
+                                state |= State.左墙;
+                            }
 
-                        Feature.JumpCount = 1;
-                        Feature.GrabInput = -moveX;
-                        Feature.GrabTimer = Time.fixedTime + 0.1F;
-                        velocityX = moveX * hit.distance;
+                            Feature.JumpCount = 1;
+                            Feature.GrabInput = -moveX;
+                            Feature.GrabTimer = Time.fixedTime + 0.1F;
+                            velocityX = moveX * hit.distance;
+                        }
                     }
                 }
             }
@@ -160,36 +163,42 @@ namespace Runtime
         {
             if (moveY != 0)
             {
-                foreach (var hit in collision.Boxcast(new Vector2(0, moveY), value, LayerConst.Ground))
+                foreach (var hit in collision.Boxcast(new Vector2(0, moveY), value, LayerConst.GroundAndCollision))
                 {
-                    if (hit.distance >= 0)
+                    if (!hit.collider.CompareTag("Platform"))
                     {
-                        if (moveY > 0)
+                        if (hit.distance >= 0)
                         {
-                            state |= State.头顶;
-                        }
-                        else
-                        {
-                            Feature.JumpCount = 1;
-                            Feature.DashCount = 1;
-                            state |= State.地面;
-                        }
+                            if (moveY > 0)
+                            {
+                                state |= State.头顶;
+                            }
+                            else
+                            {
+                                Feature.JumpCount = 1;
+                                Feature.DashCount = 1;
+                                state |= State.地面;
+                            }
 
-                        velocityY = moveY * hit.distance;
+                            velocityY = moveY * hit.distance;
+                        }
                     }
                 }
             }
 
             if (moveY < 0 && Feature.Platform < Time.fixedTime)
             {
-                foreach (var hit in collision.Boxcast(value, LayerConst.Platform))
+                foreach (var hit in collision.Boxcast(value, LayerConst.Collision))
                 {
-                    if (hit.distance >= 0)
+                    if (hit.collider.CompareTag("Platform"))
                     {
-                        Feature.JumpCount = 1;
-                        Feature.DashCount = 1;
-                        state |= State.平台;
-                        velocityY = moveY * hit.distance;
+                        if (hit.distance >= 0)
+                        {
+                            Feature.JumpCount = 1;
+                            Feature.DashCount = 1;
+                            state |= State.平台;
+                            velocityY = moveY * hit.distance;
+                        }
                     }
                 }
             }

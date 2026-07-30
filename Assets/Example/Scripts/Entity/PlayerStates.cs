@@ -189,7 +189,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (collision.RaycastX(Feature.GrabForce * InputManager.MoveX, LayerConst.Ground))
+            if (collision.RaycastX(Feature.GrabForce * InputManager.MoveX, LayerConst.GroundAndCollision))
             {
                 state |= State.悬挂;
                 return;
@@ -215,7 +215,7 @@ namespace Runtime
 
         protected override void OnUpdate()
         {
-            if (!collision.RaycastX(Feature.GrabForce * InputManager.MoveX, LayerConst.Ground))
+            if (!collision.RaycastX(Feature.GrabForce * InputManager.MoveX, LayerConst.GroundAndCollision))
             {
                 state &= ~State.悬挂;
             }
@@ -269,22 +269,22 @@ namespace Runtime
             velocityY = normalize.y * Feature.DashSpeed;
             switch (normalize.y)
             {
-                case 0 when normalize.x < 0 && isWall && collision.RaycastX(velocityX, LayerConst.Ground, out var output):
+                case 0 when normalize.x < 0 && isWall && collision.RaycastX(velocityX, LayerConst.GroundAndCollision, out var output):
                     velocityY = output;
                     break;
-                case 0 when normalize.x > 0 && isWall && collision.RaycastX(velocityX, LayerConst.Ground, out var output):
+                case 0 when normalize.x > 0 && isWall && collision.RaycastX(velocityX, LayerConst.GroundAndCollision, out var output):
                     velocityY = output;
                     break;
                 case 0 when normalize.x == 0:
                     velocityX = direction * Feature.DashSpeed;
                     break;
-                case < 0 when isGround && !isPlatform && collision.RaycastY(velocityY, LayerConst.Ground, out var output):
+                case < 0 when isGround && !isPlatform && collision.RaycastY(velocityY, LayerConst.GroundAndCollision, out var output):
                     velocityX = output;
                     break;
                 case < 0 when isPlane:
                     velocityX = direction * Feature.DashSpeed;
                     break;
-                case > 0 when isHead && collision.RaycastY(velocityY, LayerConst.Ground, out var output):
+                case > 0 when isHead && collision.RaycastY(velocityY, LayerConst.GroundAndCollision, out var output):
                     velocityX = output;
                     Feature.JumpCount = 1;
                     Feature.GrabInput = Math.Sign(output);
