@@ -61,7 +61,12 @@ MonoBehaviour:
       type: {class: PlayerFeature, ns: Runtime, asm: Assembly-CSharp}
       data:
         State: 0
+        FallSpeed: 0
+        FallLimit: 0
+        GrabSpeed: 0
+        GrabLimit: 0
         Platform: 0
+        DashQuad: {x: 0, y: 0}
         RushCount: 0
         RushInput: 0
         GrabInput: 0
@@ -71,8 +76,11 @@ MonoBehaviour:
         JumpTimer: 0
         JumpCD: 0
         DashCount: 0
+        DashTimer: 0
+        DashTime: 0.18
         DashInput: 0
         DashCD: 0
+        DashDirection: {x: 0, y: 0}
     - rid: 915762514025775163
       type: {class: PlayerSender, ns: Runtime, asm: Assembly-CSharp}
       data:
@@ -83,7 +91,8 @@ MonoBehaviour:
           rgba: 0
     - rid: 915762514025775165
       type: {class: PlayerMachine, ns: Runtime, asm: Assembly-CSharp}
-      data: {}
+      data:
+        collider: {fileID: 0}
     - rid: 5279501486990557413
       type: {class: PlayerModule, ns: Runtime, asm: Assembly-CSharp}
       data: 
@@ -212,7 +221,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: a3d4125b103714f559e9b3e76d66099b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

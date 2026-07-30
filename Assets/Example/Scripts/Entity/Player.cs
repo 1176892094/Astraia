@@ -99,6 +99,11 @@ namespace Runtime
         public Fixation JumpForce;
         public Fixation GrabForce;
 
+        public float FallSpeed;
+        public float FallLimit;
+        public float GrabSpeed;
+        public float GrabLimit;
+
         public float Platform;
         public Vector2 DashQuad;
 
@@ -122,7 +127,11 @@ namespace Runtime
 
         protected override void Dequeue()
         {
-            MoveSpeed = 200F / 40 / 60;
+            MoveSpeed = 5F / 60;
+            FallLimit = 15F / 60;
+            FallSpeed = 1.5F / 60;
+            GrabLimit = 3.0F / 60;
+            GrabSpeed = 0.75F / 60;
             GrabForce = MoveSpeed * 2.5F;
             JumpForce = MoveSpeed * 3;
             DashSpeed = MoveSpeed * 5;

@@ -93,15 +93,15 @@ namespace Runtime
         {
             if (state.HasFlag(State.攀爬))
             {
-                velocityY = Mathf.Max(velocityY - 0.012F, -0.04F);
+                velocityY = Mathf.Max(velocityY - Feature.GrabSpeed, -Feature.GrabLimit);
             }
             else if (state.HasFlag(State.缓冲))
             {
-                velocityY = Mathf.Max(velocityY - 0.012F, -0.24F);
+                velocityY = Mathf.Max(velocityY - Feature.GrabSpeed, -Feature.FallLimit);
             }
             else
             {
-                velocityY = Mathf.Max(velocityY - 0.024F, -0.24F);
+                velocityY = Mathf.Max(velocityY - Feature.FallSpeed, -Feature.FallLimit);
             }
 
             state &= ~State.碰撞;

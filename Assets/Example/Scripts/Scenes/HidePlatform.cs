@@ -15,7 +15,7 @@ namespace Runtime
                 var a = player.Machine.collider.bounds;
                 var b = collider.bounds;
 
-                if (a.Intersects(b)) // 生成时玩家在里面
+                if (a.Intersects(b)) // 生成时玩家在里面 弹出玩家
                 {
                     float y;
                     if (a.center.y > b.center.y)

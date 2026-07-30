@@ -14,7 +14,7 @@ namespace Runtime
         public Position position;
         public Position velocity;
         public Position syncPosition;
-        public Position syncVelocity;
+
         public Position cachePosition;
         public Collision collision => new Collision(position.ToVector2(), collider.bounds.extents, collider.offset);
 

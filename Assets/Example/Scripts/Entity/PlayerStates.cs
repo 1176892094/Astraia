@@ -135,8 +135,6 @@ namespace Runtime
                 }
             }
 
-            velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
-
             if ((state & State.竖冲) != 0)
             {
                 owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);

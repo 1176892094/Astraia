@@ -41,7 +41,7 @@ namespace Runtime
                 var input = new Vector2(GameManager.MoveX, GameManager.MoveY);
                 var success = true;
                 Collider2D collider = null;
-                foreach (var hit in owner.Machine.collision.Boxcast(input.normalized, input.magnitude, LayerConst.GroundAndCollision))
+                foreach (var hit in owner.Machine.collision.Boxcast(input.normalized, 0.5F, LayerConst.GroundAndCollision))
                 {
                     if (hit.collider.CompareTag("DashQuad"))
                     {
