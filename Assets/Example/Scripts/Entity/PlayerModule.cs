@@ -50,7 +50,6 @@ namespace Runtime
         }
     }
 
-
     public interface IOnEnter
     {
         void OnEnter(Collider2D other);

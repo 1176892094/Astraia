@@ -8,7 +8,7 @@ namespace Runtime
         {
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
-                gameObject.tag = "Collision";
+                gameObject.tag = "DashQuad";
                 player.Feature.State &= ~State.穿梭;
             }
         }

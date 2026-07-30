@@ -43,7 +43,7 @@ namespace Runtime
                 Collider2D collider = null;
                 foreach (var hit in owner.Machine.collision.Boxcast(input.normalized, input.magnitude, LayerConst.GroundAndCollision))
                 {
-                    if (hit.collider.CompareTag("Collision"))
+                    if (hit.collider.CompareTag("DashQuad"))
                     {
                         collider = hit.collider;
                     }
