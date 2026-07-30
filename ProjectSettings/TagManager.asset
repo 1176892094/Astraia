@@ -6,7 +6,7 @@ TagManager:
   tags:
   - Ground
   - Platform
-  - DashQuad
+  - Collision
   layers:
   - Default
   - TransparentFX

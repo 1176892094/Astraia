@@ -242,24 +242,21 @@ namespace Runtime
     public class PlayerDash : PlayerState
     {
         private State oldState;
-        private float waitTime;
-        private Vector2 normalize;
 
         protected override void OnEnter()
         {
             Feature.DashCount--;
             Feature.DashCD = Time.fixedTime + 0.4F;
-
             oldState = state;
-            waitTime = Time.fixedTime + 0.18F;
+            Feature.DashTimer = Time.fixedTime + Feature.DashTime;
+            Feature.DashDirection = InputManager.Direction;
             direction = InputManager.MoveX;
-            normalize = InputManager.Direction;
             Machine.cachePosition = new Position(0, -100);
         }
 
         protected override void OnUpdate()
         {
-            if (waitTime < Time.fixedTime)
+            if (Feature.DashTimer < Time.fixedTime)
             {
                 state &= ~State.冲刺;
                 return;
@@ -271,6 +268,7 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(Machine.position);
             }
 
+            var normalize = Feature.DashDirection;
             velocityX = normalize.x * Feature.DashSpeed;
             velocityY = normalize.y * Feature.DashSpeed;
             switch (normalize.y)
@@ -329,6 +327,7 @@ namespace Runtime
         {
             velocityX = 0;
             velocityY = 0;
+
             state &= ~State.冲刺;
         }
     }
@@ -395,7 +394,7 @@ namespace Runtime
         {
             Feature.DashCount--;
             Feature.DashCD = Time.fixedTime + 0.4F;
-            
+
             owner.Sender.SyncColorServerRpc(Color.skyBlue);
             Machine.cachePosition = Machine.position;
         }

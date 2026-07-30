@@ -23,7 +23,7 @@ namespace Runtime
             var velocity = rigidbody.velocity;
             var moveX = Fixation.Sign(velocity.x);
             var moveY = Fixation.Sign(velocity.y);
-            foreach (var hit in rigidbody.collision.Boxcast(new Vector2(moveX, moveY), velocity.magnitude, LayerConst.Collision))
+            foreach (var hit in rigidbody.collision.Boxcast(new Vector2(moveX, moveY), 0.01F, LayerConst.Collision))
             {
                 var other = hit.collider;
                 if (other && !previous.Contains(other))

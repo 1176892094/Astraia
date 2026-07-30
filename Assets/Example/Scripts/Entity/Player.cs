@@ -87,6 +87,7 @@ namespace Runtime
         }
     }
 
+    [Serializable]
     public class PlayerFeature : Module<Player>
     {
         public State State = State.默认;
@@ -112,8 +113,11 @@ namespace Runtime
         public float JumpCD;
 
         public int DashCount;
+        public float DashTimer;
+        public float DashTime = 0.18F;
         public float DashInput;
         public float DashCD;
+        public Vector2 DashDirection;
 
         protected override void Dequeue()
         {

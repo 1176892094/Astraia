@@ -9,8 +9,8 @@ namespace Runtime
     public class PlayerAction : Module<Player>
     {
         private PlayerFeature Feature => owner.Feature;
-        private bool CanDash => Feature.DashCount > 0 && Feature.DashInput > Time.time && Feature.DashCD < Time.time && (State & State.冲刺) == 0;
-        private bool CanJump => Feature.JumpCount > 0 && Feature.JumpInput > Time.time && Feature.JumpCD < Time.time && (State & State.跳跃) == 0;
+        private bool CanDash => Feature.DashCount > 0 && Feature.DashInput > Time.fixedTime && Feature.DashCD < Time.fixedTime;
+        private bool CanJump => Feature.JumpCount > 0 && Feature.JumpInput > Time.fixedTime && Feature.JumpCD < Time.fixedTime && (State & State.跳跃) == 0;
         private bool CanGround => (State & State.左墙) != 0 || (State & State.右墙) != 0 || (State & State.地面) != 0 || (State & State.平台) != 0;
         private bool CanPlatform => (State & State.地面) == 0 && (State & State.冲刺) == 0 && (State & State.平台) != 0;
 
@@ -43,7 +43,7 @@ namespace Runtime
                 Collider2D collider = null;
                 foreach (var hit in owner.Machine.collision.Boxcast(input.normalized, input.magnitude, LayerConst.GroundAndCollision))
                 {
-                    if (hit.collider.CompareTag("DashQuad"))
+                    if (hit.collider.CompareTag("Collision"))
                     {
                         collider = hit.collider;
                     }
@@ -62,7 +62,7 @@ namespace Runtime
                 }
             }
 
-            Feature.DashInput = Time.time + 0.2f;
+            Feature.DashInput = Time.fixedTime + 0.2f;
         }
 
         private void JumpButton(InputAction.CallbackContext obj)
@@ -91,7 +91,7 @@ namespace Runtime
             }
 
             State |= State.缓冲;
-            Feature.JumpInput = Time.time + 0.2f;
+            Feature.JumpInput = Time.fixedTime + 0.2f;
         }
 
         private void FallButton(InputAction.CallbackContext obj)
@@ -103,15 +103,26 @@ namespace Runtime
         {
             if (CanDash)
             {
-                State |= State.冲刺;
+                if ((State & State.冲刺) == 0)
+                {
+                    State |= State.冲刺;
+                }
+                else
+                {
+                    Feature.DashTimer += Feature.DashTime;
+                    Feature.DashDirection = InputManager.Direction;
+                    Feature.DashCount--;
+                }
+
+                Feature.DashInput = 0;
             }
 
             if (CanGround)
             {
-                Feature.JumpTimer = Time.time + 0.2F;
+                Feature.JumpTimer = Time.fixedTime + 0.2F;
             }
 
-            if (Feature.JumpTimer > Time.time)
+            if (Feature.JumpTimer > Time.fixedTime)
             {
                 if (CanJump)
                 {

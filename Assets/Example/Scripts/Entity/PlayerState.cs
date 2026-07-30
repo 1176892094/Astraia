@@ -135,7 +135,7 @@ namespace Runtime
             {
                 foreach (var hit in collision.Boxcast(new Vector2(moveX, 0), value, LayerConst.GroundAndCollision))
                 {
-                    if (!hit.collider.CompareTag("Platform") && !hit.collider.CompareTag("Untagged"))
+                    if (hit.collider.CompareTag("Ground") || hit.collider.CompareTag("Collision"))
                     {
                         if (hit.distance >= 0)
                         {
@@ -166,7 +166,7 @@ namespace Runtime
             {
                 foreach (var hit in collision.Boxcast(new Vector2(0, moveY), value, LayerConst.GroundAndCollision))
                 {
-                    if (!hit.collider.CompareTag("Platform") && !hit.collider.CompareTag("Untagged"))
+                    if (hit.collider.CompareTag("Ground") || hit.collider.CompareTag("Collision"))
                     {
                         if (hit.distance >= 0)
                         {
