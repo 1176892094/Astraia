@@ -9,7 +9,6 @@ namespace Runtime
         public readonly struct Collision
         {
             private static readonly Enumerable<RaycastHit2D> Hits = new Enumerable<RaycastHit2D>(16);
-            private static readonly Collider2D[] Overlaps = new Collider2D[16];
 
             private readonly Vector2 extent;
             private readonly Vector2 center;
