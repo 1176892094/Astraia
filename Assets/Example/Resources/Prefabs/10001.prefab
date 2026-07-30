@@ -50,6 +50,7 @@ MonoBehaviour:
   - rid: 915762514025775162
   - rid: 915762514025775165
   - rid: 915762514025775163
+  - rid: 5279501486990557413
   objectId: 0
   assetId: 10001
   sceneId: 0
@@ -83,6 +84,9 @@ MonoBehaviour:
     - rid: 915762514025775165
       type: {class: PlayerMachine, ns: Runtime, asm: Assembly-CSharp}
       data: {}
+    - rid: 5279501486990557413
+      type: {class: PlayerModule, ns: Runtime, asm: Assembly-CSharp}
+      data: 
 --- !u!61 &4050376154587281838
 BoxCollider2D:
   m_ObjectHideFlags: 0

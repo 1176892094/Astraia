@@ -11,7 +11,7 @@ namespace Runtime
         private PlayerFeature Feature => owner.Feature;
         private bool CanDash => Feature.DashCount > 0 && Feature.DashInput > Time.time && Feature.DashCD < Time.time && (State & State.冲刺) == 0;
         private bool CanJump => Feature.JumpCount > 0 && Feature.JumpInput > Time.time && Feature.JumpCD < Time.time && (State & State.跳跃) == 0;
-        private bool CanGround => (State & State.左墙) != 0 || (State & State.右墙) != 0 || (State & State.地面) != 0;
+        private bool CanGround => (State & State.左墙) != 0 || (State & State.右墙) != 0 || (State & State.地面) != 0 || (State & State.平台) != 0;
         private bool CanPlatform => (State & State.地面) == 0 && (State & State.冲刺) == 0 && (State & State.平台) != 0;
 
         private State State

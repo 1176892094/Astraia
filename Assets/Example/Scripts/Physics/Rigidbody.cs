@@ -9,13 +9,12 @@ namespace Runtime
     {
         private float pixelate = 1 / 16F;
         private Vector2 smoothStep;
-        private Collider2D collider;
-
+        
+        public Collider2D collider;
         public Position position;
         public Position velocity;
         public Position syncPosition;
         public Position syncVelocity;
-        public Position startPosition;
         public Position cachePosition;
         public Collision collision => new Collision(position.ToVector2(), collider.bounds.extents, collider.offset);
 
@@ -53,7 +52,6 @@ namespace Runtime
         {
             position = worldPos.ToPosition();
             syncPosition = position;
-            startPosition = position;
             MovePosition(position);
         }
 
@@ -78,19 +76,6 @@ namespace Runtime
             worldPos.x = Mathf.Round(worldPos.x / pixelate) * pixelate;
             worldPos.y = Mathf.Round(worldPos.y / pixelate) * pixelate;
             owner.transform.position = worldPos;
-        }
-
-        public void ResolveOverlap(ContactFilter2D filter)
-        {
-            for (var i = 0; i < 4; i++)
-            {
-                if (!collision.Decelerate(collider, filter, out var offset))
-                {
-                    return;
-                }
-
-                position += offset.ToPosition();
-            }
         }
     }
 }

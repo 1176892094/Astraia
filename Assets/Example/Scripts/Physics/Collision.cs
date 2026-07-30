@@ -43,44 +43,6 @@ namespace Runtime
                 return Hits;
             }
 
-            public bool Decelerate(Collider2D collider, ContactFilter2D filter, out Vector3 offset)
-            {
-                offset = Vector2.zero;
-                var count = Physics2D.OverlapBox(center, extent * 2, 0, filter, Overlaps);
-                var minDistance = float.MaxValue;
-                Vector2 result = default;
-
-                for (int i = 0; i < count; i++)
-                {
-                    var other = Overlaps[i];
-
-                    if (other == null || other == collider)
-                        continue;
-
-                    var distance = Physics2D.Distance(collider, other);
-
-                    if (distance.isOverlapped)
-                    {
-                        var push = distance.normal * distance.distance;
-                        var magnitude = push.magnitude;
-
-                        if (magnitude < minDistance)
-                        {
-                            minDistance = magnitude;
-                            result = push;
-                        }
-                    }
-                }
-
-                if (minDistance < float.MaxValue)
-                {
-                    offset = result;
-                    return true;
-                }
-
-                return false;
-            }
-
             public bool RaycastX(float velocityX, ContactFilter2D filter)
             {
                 var moveX = Math.Sign(velocityX);
