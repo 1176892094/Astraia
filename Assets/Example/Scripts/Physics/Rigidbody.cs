@@ -32,13 +32,13 @@ namespace Runtime
 
         public Fixation velocityX
         {
-            get => velocity.x + externalVelocity.x;
+            get => velocity.x;
             set => velocity = new Position(value, velocity.y);
         }
 
         public Fixation velocityY
         {
-            get => velocity.y + externalVelocity.y;
+            get => velocity.y;
             set => velocity = new Position(velocity.x, value);
         }
 

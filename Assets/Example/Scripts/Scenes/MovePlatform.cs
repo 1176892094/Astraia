@@ -3,17 +3,17 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class MovePlatform : Export, IOnEnter, IOnExit
+    public class MovePlatform : Export, IOnEnter, IOnExit, IEvent<OnPlatformUpdate>
     {
-        private const float SPEED = 2.5f / 60f;
+        private const float SPEED = 5f / 60f;
 
         private Player owner;
 
         [SerializeField] private Position velocity;
-        [SerializeField] private Position lastVelocity;
         [SerializeField] private Position position;
+        [SerializeField] private Position carryVelocity;
         [SerializeField] private Vector2 direction;
-        
+
         [Export] private new BoxCollider2D collider;
         [Export] private new SpriteRenderer renderer;
 
@@ -23,17 +23,22 @@ namespace Runtime
             position = transform.position.ToPosition();
         }
 
-        private void FixedUpdate()
+        public void Execute(OnPlatformUpdate message)
         {
             var normalize = direction.normalized;
+
             velocity = new Position(Mathf.Lerp(velocity.x, normalize.x * SPEED, 0.2f), Mathf.Lerp(velocity.y, normalize.y * SPEED, 0.2f));
-            position += velocity;
+
+            var delta = velocity;
 
             if (owner)
             {
-                lastVelocity = velocity;
-                owner.Machine.externalVelocity = velocity;
+                carryVelocity = velocity;
+
+                owner.Apply(delta);
             }
+
+            position += velocity;
 
             if (position.x > 15)
             {
@@ -53,8 +58,7 @@ namespace Runtime
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
                 owner = player;
-                lastVelocity = velocity;
-                player.Machine.externalVelocity = velocity;
+                carryVelocity = velocity;
             }
         }
 
@@ -62,9 +66,9 @@ namespace Runtime
         {
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
+                player.Machine.velocity += carryVelocity;
+                carryVelocity = Position.Zero;
                 owner = null;
-                player.Machine.velocity += lastVelocity;
-                player.Machine.externalVelocity = Position.Zero;
             }
         }
     }

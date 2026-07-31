@@ -74,11 +74,11 @@ namespace Runtime
                         feature.WallInput = -signX;
                         feature.WallTimer = Time.fixedTime + 0.1F;
                         value = signX * hit.distance;
+                        machine.velocityX = value;
                     }
                 }
             }
 
-            machine.velocityX = value;
             machine.positionX += value;
         }
 
@@ -104,6 +104,7 @@ namespace Runtime
                         }
 
                         value = signY * hit.distance;
+                        machine.velocityY = value;
                     }
                 }
             }
@@ -118,10 +119,11 @@ namespace Runtime
                         feature.DashCount = 1;
                         feature.State |= State.平台;
                         value = signY * hit.distance;
+                        machine.velocityY = value;
                     }
                 }
             }
-            machine.velocityY = value;
+
             machine.positionY += value;
         }
     }

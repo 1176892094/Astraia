@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Runtime
 {
     [Serializable]
-    public class Player : NetworkEntity
+    public class Player : NetworkEntity, IEvent<OnPlayerUpdate>
     {
         public PlayerFeature Feature => GetComponent<PlayerFeature>(0);
         public PlayerMachine Machine => GetComponent<PlayerMachine>(1);
@@ -42,7 +42,7 @@ namespace Runtime
             }
         }
 
-        private void FixedUpdate()
+        public void Execute(OnPlayerUpdate message)
         {
             if (isOwner)
             {
@@ -62,6 +62,14 @@ namespace Runtime
             var position = Machine.position;
             Machine.MoveX(Feature, Machine.velocityX);
             Machine.MoveY(Feature, Machine.velocityY);
+            SendPosition(position, Machine.position);
+        }
+
+        public void Apply(Position velocity)
+        {
+            var position = Machine.position;
+            Machine.MoveX(Feature, velocity.x);
+            Machine.MoveY(Feature, velocity.y);
             SendPosition(position, Machine.position);
         }
 
