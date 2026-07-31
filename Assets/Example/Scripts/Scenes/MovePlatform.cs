@@ -7,10 +7,10 @@ namespace Runtime
     [Serializable]
     public class MovePlatform : Export, IOnEnter, IOnExit
     {
-        private const float SPEED = 1.5F / 60;
+        private const float SPEED = 2.5F / 60;
 
-        [SerializeField] private float velocityX;
-        [SerializeField] private float velocityY;
+        private Player owner;
+        [SerializeField] private Position velocity;
         [SerializeField] private Position position;
         [SerializeField] private Vector2 direction;
 
@@ -27,10 +27,15 @@ namespace Runtime
         {
             var positionX = position.x;
             var normalize = direction.normalized;
-            velocityX = Mathf.Lerp(velocityX, normalize.x * SPEED, 0.2F);
-            velocityY = Mathf.Lerp(velocityY, normalize.y * SPEED, 0.2F);
-            var velocity = new Position(velocityX, velocityY);
+            var velocityX = Mathf.Lerp(velocity.x, normalize.x * SPEED, 0.2F);
+            var velocityY = Mathf.Lerp(velocity.y, normalize.y * SPEED, 0.2F);
+            velocity = new Position(velocityX, velocityY);
             position += velocity;
+
+            if (owner)
+            {
+                owner.Machine.syncVelocity = velocity;
+            }
 
             if (positionX < 15 && position.x > 15)
             {
@@ -57,7 +62,6 @@ namespace Runtime
         {
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
-                //   owner.Machine.syncVelocity = new Position(velocityX, velocityY);
                 owner = null;
             }
         }

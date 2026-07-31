@@ -424,6 +424,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 371dfce7f3994e87bf5dc7915cadab85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Runtime.MovePlatform
+  direction: {x: 0, y: 0}
 --- !u!61 &141813619
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -788,7 +789,7 @@ Transform:
   m_GameObject: {fileID: 200480738}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 10, y: -0.5, z: 0}
+  m_LocalPosition: {x: 10, y: -6.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

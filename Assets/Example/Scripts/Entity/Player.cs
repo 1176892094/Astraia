@@ -58,36 +58,6 @@ namespace Runtime
         }
     }
 
-    public class PlayerMachine : Rigidbody
-    {
-        private readonly StateMachine machine = new StateMachine();
-
-        protected override void Enqueue()
-        {
-            machine.Clear();
-        }
-
-        public void Tick()
-        {
-            machine.Update();
-        }
-
-        public void Update(int value)
-        {
-            machine.Update(value);
-        }
-
-        public void Create<T>(int value)
-        {
-            machine.Create<T>(owner, value);
-        }
-
-        public void Switch(int value)
-        {
-            machine.Switch(value);
-        }
-    }
-
     [Serializable]
     public class PlayerFeature : Module<Player>
     {
@@ -136,6 +106,36 @@ namespace Runtime
             JumpForce = MoveSpeed * 3;
             DashSpeed = MoveSpeed * 5;
             RushSpeed = DashSpeed / 2;
+        }
+    }
+
+    public class PlayerMachine : Rigidbody
+    {
+        private readonly StateMachine machine = new StateMachine();
+
+        protected override void Enqueue()
+        {
+            machine.Clear();
+        }
+
+        public void Tick()
+        {
+            machine.Update();
+        }
+
+        public void Update(int value)
+        {
+            machine.Update(value);
+        }
+
+        public void Create<T>(int value)
+        {
+            machine.Create<T>(owner, value);
+        }
+
+        public void Switch(int value)
+        {
+            machine.Switch(value);
         }
     }
 }
