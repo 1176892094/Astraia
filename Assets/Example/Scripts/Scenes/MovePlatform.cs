@@ -5,17 +5,15 @@ namespace Runtime
 {
     public class MovePlatform : Export, IOnEnter, IOnExit, IEvent<OnPlatformUpdate>
     {
-        private const float SPEED = 5f / 60f;
+        private const float SPEED = 10f / 60f;
 
-        private Player owner;
-
-        [SerializeField] private Position velocity;
-        [SerializeField] private Position position;
-        [SerializeField] private Position carryVelocity;
         [SerializeField] private Vector2 direction;
+        [SerializeField] public Position velocity;
+        [SerializeField] public Position position;
 
         [Export] private new BoxCollider2D collider;
         [Export] private new SpriteRenderer renderer;
+        private Player owner;
 
         protected override void Awake()
         {
@@ -27,25 +25,21 @@ namespace Runtime
         {
             var normalize = direction.normalized;
 
-            velocity = new Position(Mathf.Lerp(velocity.x, normalize.x * SPEED, 0.2f), Mathf.Lerp(velocity.y, normalize.y * SPEED, 0.2f));
-
-            var delta = velocity;
+            velocity = new Position(normalize.x, normalize.y) * SPEED;
+            position += velocity;
 
             if (owner)
             {
-                carryVelocity = velocity;
-
-                owner.Apply(delta);
+                owner.Machine.position += velocity;
+                owner.Machine.MovePosition(owner.Machine.position);
             }
 
-            position += velocity;
-
-            if (position.x > 15)
+            if (position.x > 14)
             {
                 direction = Vector2.left;
             }
 
-            if (position.x < -3)
+            if (position.x < -2)
             {
                 direction = Vector2.right;
             }
@@ -58,7 +52,9 @@ namespace Runtime
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
                 owner = player;
-                carryVelocity = velocity;
+                owner.Machine.position += velocity;
+                owner.Machine.MovePosition(owner.Machine.position);
+                Debug.Log("OnEnter");
             }
         }
 
@@ -66,9 +62,8 @@ namespace Runtime
         {
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
-                player.Machine.velocity += carryVelocity;
-                carryVelocity = Position.Zero;
-                owner = null;
+                owner = null;Debug.Log("OnExit");
+                player.Machine.velocity += velocity;
             }
         }
     }

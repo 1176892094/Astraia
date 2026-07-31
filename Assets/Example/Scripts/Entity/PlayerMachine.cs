@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Astraia;
 using UnityEngine;
 
@@ -37,31 +36,40 @@ namespace Runtime
 
     public static class MachineExtensions
     {
-        private static readonly string[] Tags = new string[3];
+        private static readonly string[] Tags = new string[4];
 
         static MachineExtensions()
         {
             Tags[0] = "Ground";
             Tags[1] = "DashQuad";
-            Tags[2] = "Collision";
+            Tags[2] = "MoveQuad";
+            Tags[3] = "Collision";
         }
 
         private static bool CompareTag(this Collider2D collider, params string[] tags)
         {
-            return tags.Any(collider.CompareTag);
+            foreach (var tag in tags)
+            {
+                if (collider.CompareTag(tag))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
-        public static void MoveX(this Rigidbody machine, PlayerFeature feature, float value)
+        public static void MoveX(this Rigidbody machine, PlayerFeature feature, float velocityX)
         {
-            var moveX = Math.Abs(value);
-            var signX = Math.Sign(value);
-            if (signX != 0)
+            var distance = Math.Abs(velocityX);
+            var direction = Math.Sign(velocityX);
+            if (direction != 0)
             {
-                foreach (var hit in machine.collision.Boxcast(new Vector2(signX, 0), moveX, LayerConst.GroundAndCollision))
+                foreach (var hit in machine.collision.Boxcast(new Vector2(direction, 0), distance, LayerConst.GroundAndCollision))
                 {
                     if (hit.distance >= 0 && hit.collider.CompareTag(Tags))
                     {
-                        if (signX > 0)
+                        if (direction > 0)
                         {
                             feature.State |= State.右墙;
                         }
@@ -71,28 +79,33 @@ namespace Runtime
                         }
 
                         feature.JumpCount = 1;
-                        feature.WallInput = -signX;
+                        feature.WallInput = -direction;
                         feature.WallTimer = Time.fixedTime + 0.1F;
-                        value = signX * hit.distance;
-                        machine.velocityX = value;
+                        velocityX = direction * hit.distance;
+                        if (hit.collider.CompareTag("MoveQuad"))
+                        {
+                            machine.externalVelocity = new Position(0, machine.externalVelocity.y);
+                        }
+
+                        machine.velocityX = 0;
                     }
                 }
             }
 
-            machine.positionX += value;
+            machine.positionX += velocityX;
         }
 
-        public static void MoveY(this Rigidbody machine, PlayerFeature feature, float value)
+        public static void MoveY(this Rigidbody machine, PlayerFeature feature, float velocityY)
         {
-            var moveY = Math.Abs(value);
-            var signY = Math.Sign(value);
-            if (signY != 0)
+            var distance = Math.Abs(velocityY);
+            var direction = Math.Sign(velocityY);
+            if (direction != 0)
             {
-                foreach (var hit in machine.collision.Boxcast(new Vector2(0, signY), moveY, LayerConst.GroundAndCollision))
+                foreach (var hit in machine.collision.Boxcast(new Vector2(0, direction), distance, LayerConst.GroundAndCollision))
                 {
                     if (hit.distance >= 0 && hit.collider.CompareTag(Tags))
                     {
-                        if (signY > 0)
+                        if (direction > 0)
                         {
                             feature.State |= State.头顶;
                         }
@@ -103,28 +116,33 @@ namespace Runtime
                             feature.State |= State.地面;
                         }
 
-                        value = signY * hit.distance;
-                        machine.velocityY = value;
+                        velocityY = direction * hit.distance;
+                        if (hit.collider.CompareTag("MoveQuad"))
+                        {
+                            machine.externalVelocity = new Position(machine.externalVelocity.x, 0);
+                        }
+
+                        machine.velocityY = 0;
                     }
                 }
             }
 
-            if (signY < 0 && feature.Platform < Time.fixedTime)
+            if (direction < 0 && feature.Platform < Time.fixedTime)
             {
-                foreach (var hit in machine.collision.Boxcast(moveY, LayerConst.Collision))
+                foreach (var hit in machine.collision.Boxcast(distance, LayerConst.Collision))
                 {
                     if (hit.distance >= 0 && hit.collider.CompareTag("Platform"))
                     {
                         feature.JumpCount = 1;
                         feature.DashCount = 1;
                         feature.State |= State.平台;
-                        value = signY * hit.distance;
-                        machine.velocityY = value;
+                        velocityY = direction * hit.distance;
+                        machine.velocityY = 0;
                     }
                 }
             }
 
-            machine.positionY += value;
+            machine.positionY += velocityY;
         }
     }
 }

@@ -7,6 +7,8 @@ namespace Runtime
     [Serializable]
     public partial class Rigidbody : Module<Entity>
     {
+        private static readonly Enumerable<Collider2D> Hits = new Enumerable<Collider2D>(16);
+
         private float pixelate = 1 / 16F;
         private Vector2 smoothStep;
 
@@ -15,7 +17,8 @@ namespace Runtime
         public Position velocity;
         public Position syncPosition;
         public Position externalVelocity;
-        public Position cachePosition;
+        public Position movePosition;
+
         public Collision collision => new Collision(position.ToVector2(), collider.bounds.extents, collider.offset);
 
         public Fixation positionX
@@ -70,6 +73,12 @@ namespace Runtime
             worldPos.x = Mathf.Round(worldPos.x / pixelate) * pixelate;
             worldPos.y = Mathf.Round(worldPos.y / pixelate) * pixelate;
             owner.transform.position = worldPos;
+        }
+
+        public Enumerable<Collider2D> Overlap(ContactFilter2D filter)
+        {
+            Hits.Count = Physics2D.OverlapBox(position.ToVector2(), collider.bounds.size, 0, filter, Hits);
+            return Hits;
         }
     }
 }

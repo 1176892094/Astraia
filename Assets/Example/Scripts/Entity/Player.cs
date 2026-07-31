@@ -65,11 +65,11 @@ namespace Runtime
             SendPosition(position, Machine.position);
         }
 
-        public void Apply(Position velocity)
+        public void Apply2()
         {
             var position = Machine.position;
-            Machine.MoveX(Feature, velocity.x);
-            Machine.MoveY(Feature, velocity.y);
+            Machine.MoveX(Feature, Machine.velocityX);
+            Machine.MoveY(Feature, Machine.velocityY);
             SendPosition(position, Machine.position);
         }
 
