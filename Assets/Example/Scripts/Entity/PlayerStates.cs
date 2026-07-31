@@ -134,7 +134,8 @@ namespace Runtime
                     velocityX = Feature.GrabInput * Feature.GrabForce;
                 }
             }
-
+            velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
+            
             if ((state & State.竖冲) != 0)
             {
                 owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
@@ -390,9 +391,6 @@ namespace Runtime
     {
         protected override void OnEnter()
         {
-            Feature.DashCount--;
-            Feature.DashCD = Time.fixedTime + 0.4F;
-
             owner.Sender.SyncColorServerRpc(Color.skyBlue);
             Machine.cachePosition = Machine.position;
         }

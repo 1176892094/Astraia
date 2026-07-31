@@ -11,7 +11,6 @@ namespace Runtime
 
         [SerializeField] private float velocityX;
         [SerializeField] private float velocityY;
-        [SerializeField] private Player owner;
         [SerializeField] private Position position;
         [SerializeField] private Vector2 direction;
 
@@ -32,10 +31,6 @@ namespace Runtime
             velocityY = Mathf.Lerp(velocityY, normalize.y * SPEED, 0.2F);
             var velocity = new Position(velocityX, velocityY);
             position += velocity;
-            if (owner)
-            {
-                owner.Machine.velocity = velocity;
-            }
 
             if (positionX < 15 && position.x > 15)
             {
