@@ -39,17 +39,24 @@ namespace Runtime
             if (GameManager.Direction != Vector2.zero)
             {
                 var input = new Vector2(GameManager.MoveX, GameManager.MoveY);
+
                 var success = true;
                 Collider2D collider = null;
-                foreach (var hit in owner.Machine.collision.Boxcast(input.normalized, input.magnitude, LayerConst.GroundAndCollision))
+                foreach (var hit in owner.Machine.collision.Raycast(input, input.magnitude + 0.5F, LayerConst.GroundAndCollision))
                 {
                     if (hit.collider.CompareTag("DashQuad"))
                     {
                         collider = hit.collider;
+                        break;
                     }
-                    else
+                }
+
+                foreach (var hit in owner.Machine.collision.Boxcast(input, input.magnitude + 0.5F, LayerConst.GroundAndCollision)) // 防卡墙
+                {
+                    if (!hit.collider.CompareTag("DashQuad"))
                     {
                         success = false;
+                        break;
                     }
                 }
 
@@ -75,7 +82,10 @@ namespace Runtime
                 {
                     if (hit.collider.CompareTag("Platform") && CanPlatform)
                     {
-                        collider = hit.collider;
+                        if (collider == null)
+                        {
+                            collider = hit.collider;
+                        }
                     }
                     else
                     {

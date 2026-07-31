@@ -51,10 +51,27 @@ namespace Runtime
             }
             else
             {
+                Module.Tick();
                 Machine.SyncPosition();
             }
+        }
 
+        public void Apply()
+        {
             Module.Tick();
+            var position = Machine.position;
+            Machine.MoveX(Feature, Machine.velocityX);
+            Machine.MoveY(Feature, Machine.velocityY);
+            SendPosition(position, Machine.position);
+        }
+
+        private void SendPosition(Position oldValue, Position newValue)
+        {
+            if (isOwner && oldValue != newValue)
+            {
+                Machine.MovePosition(newValue);
+                SyncManager.Instance?.AddPosition(objectId, newValue);
+            }
         }
     }
 
@@ -80,8 +97,8 @@ namespace Runtime
         public int RushCount;
         public int RushInput;
 
-        public int GrabInput;
-        public float GrabTimer;
+        public int WallInput;
+        public float WallTimer;
 
         public int JumpCount;
         public float JumpInput;
@@ -106,36 +123,6 @@ namespace Runtime
             JumpForce = MoveSpeed * 3;
             DashSpeed = MoveSpeed * 5;
             RushSpeed = DashSpeed / 2;
-        }
-    }
-
-    public class PlayerMachine : Rigidbody
-    {
-        private readonly StateMachine machine = new StateMachine();
-
-        protected override void Enqueue()
-        {
-            machine.Clear();
-        }
-
-        public void Tick()
-        {
-            machine.Update();
-        }
-
-        public void Update(int value)
-        {
-            machine.Update(value);
-        }
-
-        public void Create<T>(int value)
-        {
-            machine.Create<T>(owner, value);
-        }
-
-        public void Switch(int value)
-        {
-            machine.Switch(value);
         }
     }
 }

@@ -8,7 +8,6 @@ TagManager:
   - Platform
   - Collision
   - DashQuad
-  - MoveQuad
   layers:
   - Default
   - TransparentFX

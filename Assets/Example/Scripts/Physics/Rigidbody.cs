@@ -14,7 +14,7 @@ namespace Runtime
         public Position position;
         public Position velocity;
         public Position syncPosition;
-        public Position syncVelocity;
+        public Position externalVelocity;
         public Position cachePosition;
         public Collision collision => new Collision(position.ToVector2(), collider.bounds.extents, collider.offset);
 
@@ -32,13 +32,13 @@ namespace Runtime
 
         public Fixation velocityX
         {
-            get => velocity.x + syncVelocity.x;
+            get => velocity.x + externalVelocity.x;
             set => velocity = new Position(value, velocity.y);
         }
 
         public Fixation velocityY
         {
-            get => velocity.y + syncVelocity.y;
+            get => velocity.y + externalVelocity.y;
             set => velocity = new Position(velocity.x, value);
         }
 

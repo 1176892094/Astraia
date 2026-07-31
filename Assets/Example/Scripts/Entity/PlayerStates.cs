@@ -121,26 +121,29 @@ namespace Runtime
             waitTime = Time.fixedTime + 0.15F;
             owner.Sender.SyncColorServerRpc(Color.yellow);
 
-            if (!isPlane && Feature.GrabTimer > Time.fixedTime)
+            if (!isPlane && Feature.WallTimer > Time.fixedTime)
             {
                 stepTime = Time.fixedTime + 0.1F;
-                direction = Feature.GrabInput;
+                direction = Feature.WallInput;
                 if ((state & State.竖冲) != 0)
                 {
-                    velocityX = Feature.GrabInput * Feature.JumpForce;
+                    velocityX = Feature.WallInput * Feature.JumpForce;
                 }
                 else
                 {
-                    velocityX = Feature.GrabInput * Feature.GrabForce;
+                    velocityX = Feature.WallInput * Feature.GrabForce;
                 }
             }
+
             velocityY = Mathf.Max(velocityY + Feature.JumpForce, Feature.JumpForce);
-            
+
             if ((state & State.竖冲) != 0)
             {
                 owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
                 Machine.cachePosition = Machine.position;
             }
+
+            Apply();
         }
 
         protected override void OnUpdate()
@@ -162,9 +165,9 @@ namespace Runtime
 
             if (stepTime > Time.fixedTime)
             {
-                if (GameManager.MoveX == Feature.GrabInput)
+                if (GameManager.MoveX == Feature.WallInput)
                 {
-                    velocityX = Mathf.Max(Feature.GrabInput * Feature.GrabForce, velocityX);
+                    velocityX = Mathf.Max(Feature.WallInput * Feature.GrabForce, velocityX);
                 }
             }
             else
@@ -290,9 +293,9 @@ namespace Runtime
                 case > 0 when isHead && collision.RaycastY(velocityY, LayerConst.GroundAndCollision, out var output):
                     velocityX = output;
                     Feature.JumpCount = 1;
-                    Feature.GrabInput = Math.Sign(output);
-                    Feature.GrabTimer = Time.fixedTime + 0.1F;
-                    Feature.JumpTimer = Feature.GrabTimer;
+                    Feature.WallInput = Math.Sign(output);
+                    Feature.WallTimer = Time.fixedTime + 0.1F;
+                    Feature.JumpTimer = Feature.WallTimer;
                     break;
             }
 

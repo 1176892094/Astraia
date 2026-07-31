@@ -28,6 +28,12 @@ namespace Runtime
                 this.center = center + offset;
             }
 
+            public Enumerable<RaycastHit2D> Raycast(Vector2 direction, float distance, ContactFilter2D filter) // 冲刺检测
+            {
+                Hits.Count = Physics2D.Raycast(center, direction, filter, Hits, distance);
+                return Hits;
+            }
+
             public Enumerable<RaycastHit2D> Boxcast(float distance, ContactFilter2D filter) // 地面检测
             {
                 var origin = new Rect(center.x, minY, extent.x * 2, 0.01F);
