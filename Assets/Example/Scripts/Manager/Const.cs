@@ -15,6 +15,22 @@ using UnityEngine;
 
 namespace Runtime
 {
+    public static class TagConst
+    {
+        public const string Untagged = nameof(Untagged);
+        public const string Respawn = nameof(Respawn);
+        public const string Finish = nameof(Finish);
+        public const string EditorOnly = nameof(EditorOnly);
+        public const string MainCamera = nameof(MainCamera);
+        public const string Player = nameof(Player);
+        public const string GameController = nameof(GameController);
+        public const string Ground = nameof(Ground);
+        public const string Platform = nameof(Platform);
+        public const string Collision = nameof(Collision);
+        public const string DashQuad = nameof(DashQuad);
+        public const string MoveQuad = nameof(MoveQuad);
+    }
+
     public static class LayerConst
     {
         public static ContactFilter2D GroundAndCollision;
@@ -77,6 +93,7 @@ namespace Runtime
         竖冲 = 1 << 12,
         悬挂 = 1 << 13,
         穿梭 = 1 << 14,
+        加速 = 1 << 15,
 
         墙面 = 左墙 | 右墙,
         平面 = 平台 | 地面,

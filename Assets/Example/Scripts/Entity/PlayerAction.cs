@@ -44,7 +44,7 @@ namespace Runtime
                 Collider2D collider = null;
                 foreach (var hit in owner.Machine.collision.Raycast(input, input.magnitude + 0.5F, LayerConst.GroundAndCollision))
                 {
-                    if (hit.collider.CompareTag("DashQuad"))
+                    if (hit.collider.CompareTag(TagConst.DashQuad))
                     {
                         collider = hit.collider;
                         break;
@@ -53,7 +53,7 @@ namespace Runtime
 
                 foreach (var hit in owner.Machine.collision.Boxcast(input, input.magnitude + 0.5F, LayerConst.GroundAndCollision)) // 防卡墙
                 {
-                    if (!hit.collider.CompareTag("DashQuad"))
+                    if (!hit.collider.CompareTag(TagConst.DashQuad))
                     {
                         success = false;
                         break;
@@ -63,7 +63,7 @@ namespace Runtime
                 if (collider && success)
                 {
                     State |= State.穿梭;
-                    collider.tag = "Untagged";
+                    collider.tag = TagConst.Untagged;
                     Feature.DashQuad = input.normalized;
                     return;
                 }
@@ -80,7 +80,7 @@ namespace Runtime
                 Collider2D collider = null;
                 foreach (var hit in owner.Machine.collision.Boxcast(0.1F, LayerConst.GroundAndCollision))
                 {
-                    if (hit.collider.CompareTag("Platform") && CanPlatform)
+                    if (hit.collider.CompareTag(TagConst.Platform) && CanPlatform)
                     {
                         if (collider == null)
                         {

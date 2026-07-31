@@ -5,11 +5,11 @@ namespace Runtime
 {
     public class MovePlatform : Export, IOnEnter, IOnExit, IEvent<OnPlatformUpdate>
     {
-        private const float SPEED = 10f / 60f;
+        private const float SPEED = 5f / 60f;
 
         [SerializeField] private Vector2 direction;
-        [SerializeField] public Position velocity;
-        [SerializeField] public Position position;
+        [SerializeField] private Position velocity;
+        [SerializeField] private Position position;
 
         [Export] private new BoxCollider2D collider;
         [Export] private new SpriteRenderer renderer;
@@ -30,6 +30,7 @@ namespace Runtime
 
             if (owner)
             {
+                owner.Machine.Contains(collider.bounds);
                 owner.Machine.position += velocity;
                 owner.Machine.MovePosition(owner.Machine.position);
             }
@@ -52,9 +53,8 @@ namespace Runtime
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
                 owner = player;
-                owner.Machine.position += velocity;
-                owner.Machine.MovePosition(owner.Machine.position);
-                Debug.Log("OnEnter");
+                player.Feature.State |= State.加速;
+                Debug.Log("Enter");
             }
         }
 
@@ -62,8 +62,8 @@ namespace Runtime
         {
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
-                owner = null;Debug.Log("OnExit");
-                player.Machine.velocity += velocity;
+                owner = null;
+                player.Feature.State &= ~State.加速;
             }
         }
     }

@@ -40,10 +40,10 @@ namespace Runtime
 
         static MachineExtensions()
         {
-            Tags[0] = "Ground";
-            Tags[1] = "DashQuad";
-            Tags[2] = "MoveQuad";
-            Tags[3] = "Collision";
+            Tags[0] = TagConst.Ground;
+            Tags[1] = TagConst.DashQuad;
+            Tags[2] = TagConst.MoveQuad;
+            Tags[3] = TagConst.Collision;
         }
 
         private static bool CompareTag(this Collider2D collider, params string[] tags)
@@ -82,12 +82,8 @@ namespace Runtime
                         feature.WallInput = -direction;
                         feature.WallTimer = Time.fixedTime + 0.1F;
                         velocityX = direction * hit.distance;
-                        if (hit.collider.CompareTag("MoveQuad"))
-                        {
-                            machine.externalVelocity = new Position(0, machine.externalVelocity.y);
-                        }
-
                         machine.velocityX = 0;
+
                     }
                 }
             }
@@ -117,12 +113,8 @@ namespace Runtime
                         }
 
                         velocityY = direction * hit.distance;
-                        if (hit.collider.CompareTag("MoveQuad"))
-                        {
-                            machine.externalVelocity = new Position(machine.externalVelocity.x, 0);
-                        }
-
                         machine.velocityY = 0;
+    
                     }
                 }
             }
@@ -131,7 +123,7 @@ namespace Runtime
             {
                 foreach (var hit in machine.collision.Boxcast(distance, LayerConst.Collision))
                 {
-                    if (hit.distance >= 0 && hit.collider.CompareTag("Platform"))
+                    if (hit.distance >= 0 && hit.collider.CompareTag(TagConst.Platform))
                     {
                         feature.JumpCount = 1;
                         feature.DashCount = 1;

@@ -10,13 +10,13 @@ namespace Runtime
         {
             private static readonly Enumerable<RaycastHit2D> Hits = new Enumerable<RaycastHit2D>(16);
 
-            private readonly Vector2 extent;
-            private readonly Vector2 center;
-
-            private float minX => center.x - extent.x - 0.01F;
-            private float minY => center.y - extent.y - 0.01F;
-            private float maxX => center.x + extent.x + 0.01F;
-            private float maxY => center.y + extent.y + 0.01F;
+            public readonly Bounds bounds;
+            private Vector2 center => bounds.center;
+            private Vector2 extents => bounds.extents;
+            private float minX => center.x - extents.x - 0.01F;
+            private float minY => center.y - extents.y - 0.01F;
+            private float maxX => center.x + extents.x + 0.01F;
+            private float maxY => center.y + extents.y + 0.01F;
             private Vector2 LT => new(minX, maxY); // 左上
             private Vector2 LB => new(minX, minY); // 左下
             private Vector2 RT => new(maxX, maxY); // 右上
@@ -24,8 +24,7 @@ namespace Runtime
 
             public Collision(Vector2 center, Vector2 extent, Vector2 offset)
             {
-                this.extent = extent;
-                this.center = center + offset;
+                bounds = new Bounds(center + offset, extent * 2);
             }
 
             public Enumerable<RaycastHit2D> Raycast(Vector2 direction, float distance, ContactFilter2D filter) // 冲刺检测
@@ -36,7 +35,7 @@ namespace Runtime
 
             public Enumerable<RaycastHit2D> Boxcast(float distance, ContactFilter2D filter) // 地面检测
             {
-                var origin = new Rect(center.x, minY, extent.x * 2, 0.01F);
+                var origin = new Rect(center.x, minY, bounds.size.x, 0.01F);
                 Hits.Count = Physics2D.BoxCast(origin.position, origin.size, 0, Vector2.down, filter, Hits, distance);
                 return Hits;
             }
@@ -44,7 +43,7 @@ namespace Runtime
             public Enumerable<RaycastHit2D> Boxcast(Vector2 direction, float distance, ContactFilter2D filter) // 移动检测
             {
                 var origin = center + direction * 0.01F;
-                Hits.Count = Physics2D.BoxCast(origin, extent * 2, 0, direction, filter, Hits, distance);
+                Hits.Count = Physics2D.BoxCast(origin, bounds.size, 0, direction, filter, Hits, distance);
                 return Hits;
             }
 

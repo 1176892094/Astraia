@@ -65,14 +65,6 @@ namespace Runtime
             SendPosition(position, Machine.position);
         }
 
-        public void Apply2()
-        {
-            var position = Machine.position;
-            Machine.MoveX(Feature, Machine.velocityX);
-            Machine.MoveY(Feature, Machine.velocityY);
-            SendPosition(position, Machine.position);
-        }
-
         private void SendPosition(Position oldValue, Position newValue)
         {
             if (isOwner && oldValue != newValue)
