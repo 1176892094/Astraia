@@ -188,6 +188,11 @@ namespace Astraia
             }
         }
 
+        public static Position ToPosition(this Vector2 position)
+        {
+            return new Position(position.x, position.y);
+        }
+
         public static Position ToPosition(this Vector3 position)
         {
             return new Position(position.x, position.y);
@@ -196,6 +201,11 @@ namespace Astraia
         public static Vector2 ToVector2(this Position position)
         {
             return new Vector2(position.x, position.y);
+        }
+
+        public static Vector3 ToVector3(this Position position)
+        {
+            return new Vector3(position.x, position.y);
         }
 
         public static T GetOrAddComponent<T>(this Component self) where T : Component

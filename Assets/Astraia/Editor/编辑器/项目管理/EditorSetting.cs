@@ -168,7 +168,8 @@ namespace Astraia
             {
                 GUILayout.BeginHorizontal();
                 var value = ValueEntry.SmartValue;
-                SirenixEditorFields.FloatField(label, value);
+                var field = SirenixEditorFields.FloatField(label, value);
+                ValueEntry.SmartValue = field;
                 GUILayout.EndHorizontal();
             }
         }
@@ -179,7 +180,8 @@ namespace Astraia
             {
                 GUILayout.BeginHorizontal();
                 var value = ValueEntry.SmartValue;
-                SirenixEditorFields.Vector4Field(label, new Vector4(value.x, value.y, value.x.value, value.y.value));
+                var field = SirenixEditorFields.Vector4Field(label, new Vector4(value.x, value.y, value.x.value, value.y.value));
+                ValueEntry.SmartValue = new Position(field.x, field.y);
                 GUILayout.EndHorizontal();
             }
         }

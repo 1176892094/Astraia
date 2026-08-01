@@ -43,12 +43,15 @@ namespace Astraia
     }
 
     [Serializable]
-    public readonly struct Fixation : IEquatable<Fixation>
+    public struct Fixation : IEquatable<Fixation>
     {
         private const int BIT = 12;
         private const float FIX = 1 << BIT;
 
-        public readonly int value;
+        public static Fixation MaxValue = new Fixation(int.MaxValue);
+        public static Fixation MinValue = new Fixation(int.MinValue);
+
+        public int value;
 
         public Fixation(int value)
         {
@@ -159,6 +162,34 @@ namespace Astraia
             return new Fixation((int)(value * FIX));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int FloorToInt()
+        {
+            return value >> BIT;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int CeilToInt()
+        {
+            return -(-value >> BIT);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int RoundToInt()
+        {
+            return value >= 0 ? (value + (1 << (BIT - 1))) >> BIT : -((-value + (1 << (BIT - 1))) >> BIT);
+        }
+
+        public static Fixation Max(Fixation a, Fixation b)
+        {
+            return a > b ? a : b;
+        }
+
+        public static Fixation Min(Fixation a, Fixation b)
+        {
+            return a < b ? a : b;
+        }
+
         public static int Sign(Fixation value)
         {
             return value > 0 ? 1 : value < 0 ? -1 : 0;
@@ -203,12 +234,12 @@ namespace Astraia
     }
 
     [Serializable]
-    public readonly struct Position : IEquatable<Position>
+    public struct Position : IEquatable<Position>
     {
         public static readonly Position Zero = new Position(0, 0);
 
-        public readonly Fixation x;
-        public readonly Fixation y;
+        public Fixation x;
+        public Fixation y;
 
         internal int X => (int)x;
         internal int Y => (int)y;
@@ -235,7 +266,7 @@ namespace Astraia
 
         public override int GetHashCode()
         {
-            return (X << 16) ^ Y;
+            return (X << 16) ^ (Y & 0xFFFF);
         }
 
         public override string ToString()
