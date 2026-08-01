@@ -5,47 +5,78 @@ namespace Runtime
 {
     public class MovePlatform : Export, IOnEnter, IOnExit, IEvent<OnPlatformUpdate>
     {
-        private const float SPEED = 5f / 60f;
+        private const float SPEED = 3f / 60f;
 
-        [SerializeField] private Vector2 direction;
-        [SerializeField] private Position velocity;
-        [SerializeField] private Position position;
+        private Position position;
+        private Vector3 startPos;
+        private Vector3 endPos;
+
+        private float t;
+        private bool forward = true;
+
+        [Export] private Transform startPoint;
+        [Export] private Transform endPoint;
 
         [Export] private new BoxCollider2D collider;
         [Export] private new SpriteRenderer renderer;
+
         private Player owner;
+
+        private Vector2 lastPosition;
 
         protected override void Awake()
         {
-            direction = Vector2.right;
+            startPos = startPoint.position;
+            endPos = endPoint.position;
+
             position = transform.position.ToPosition();
+
+            lastPosition = transform.position;
         }
 
         public void Execute(OnPlatformUpdate message)
         {
-            var normalize = direction.normalized;
-
-            velocity = new Position(normalize.x, normalize.y) * SPEED;
-            position += velocity;
-
+            MovePlatforms();
+            var delta = transform.position - (Vector3)lastPosition;
             if (owner)
             {
                 owner.Machine.Contains(collider.bounds);
-                owner.Machine.position += velocity;
+                owner.Machine.position += delta.ToPosition();
                 owner.Machine.MovePosition(owner.Machine.position);
             }
 
-            if (position.x > 14)
+            lastPosition = transform.position;
+        }
+
+        private void MovePlatforms()
+        {
+            var dir = forward ? endPos - startPos : startPos - endPos;
+
+            var velocity = dir.normalized.ToPosition() * SPEED;
+
+            position += velocity;
+
+            var pos = position.ToVector2();
+
+            if (forward)
             {
-                direction = Vector2.left;
+                if (Vector2.Distance(pos, endPos) < SPEED)
+                {
+                    pos = endPos;
+                    forward = false;
+                }
+            }
+            else
+            {
+                if (Vector2.Distance(pos, startPos) < SPEED)
+                {
+                    pos = startPos;
+                    forward = true;
+                }
             }
 
-            if (position.x < -2)
-            {
-                direction = Vector2.right;
-            }
-
-            transform.position = position.ToVector2();
+            position = new Position(pos.x, pos.y);
+            transform.position = pos;
         }
 
         public void OnEnter(Collider2D other)
@@ -54,7 +85,6 @@ namespace Runtime
             {
                 owner = player;
                 player.Feature.State |= State.加速;
-                Debug.Log("Enter");
             }
         }
 

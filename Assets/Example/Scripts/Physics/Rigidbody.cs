@@ -16,6 +16,7 @@ namespace Runtime
         public Position position;
         public Position velocity;
         public Position syncPosition;
+      
         public Position dashPosition;
         public Collision collision => new Collision(position.ToVector2(), collider.bounds.extents, collider.offset);
 
@@ -59,8 +60,8 @@ namespace Runtime
         {
             syncPosition = position;
             var worldPos = position.ToVector2();
-            worldPos.x = Mathf.Round(worldPos.x / PIXELATE) * PIXELATE;
-            worldPos.y = Mathf.Round(worldPos.y / PIXELATE) * PIXELATE;
+            // worldPos.x = Mathf.Round(worldPos.x / PIXELATE) * PIXELATE;
+            // worldPos.y = Mathf.Round(worldPos.y / PIXELATE) * PIXELATE;
             owner.transform.position = worldPos;
         }
 
@@ -68,8 +69,8 @@ namespace Runtime
         {
             var worldPos = syncPosition.ToVector2();
             worldPos = Vector2.SmoothDamp(owner.transform.position, worldPos, ref smoothStep, Time.fixedDeltaTime);
-            worldPos.x = Mathf.Round(worldPos.x / PIXELATE) * PIXELATE;
-            worldPos.y = Mathf.Round(worldPos.y / PIXELATE) * PIXELATE;
+            // worldPos.x = Mathf.Round(worldPos.x / PIXELATE) * PIXELATE;
+            // worldPos.y = Mathf.Round(worldPos.y / PIXELATE) * PIXELATE;
             owner.transform.position = worldPos;
         }
         public bool Contains(Bounds b)

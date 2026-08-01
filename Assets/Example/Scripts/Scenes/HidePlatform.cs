@@ -12,7 +12,7 @@ namespace Runtime
         {
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
-                var a = player.Machine.collider.bounds;
+                var a = player.Machine.collision.bounds;
                 var b = collider.bounds;
 
                 if (a.Intersects(b)) // 生成时玩家在里面 弹出玩家

@@ -36,14 +36,13 @@ namespace Runtime
 
     public static class MachineExtensions
     {
-        private static readonly string[] Tags = new string[4];
+        private static readonly string[] Tags = new string[3];
 
         static MachineExtensions()
         {
             Tags[0] = TagConst.Ground;
             Tags[1] = TagConst.DashQuad;
-            Tags[2] = TagConst.MoveQuad;
-            Tags[3] = TagConst.Collision;
+            Tags[2] = TagConst.Collision;
         }
 
         private static bool CompareTag(this Collider2D collider, params string[] tags)
@@ -83,7 +82,6 @@ namespace Runtime
                         feature.WallTimer = Time.fixedTime + 0.1F;
                         velocityX = direction * hit.distance;
                         machine.velocityX = 0;
-
                     }
                 }
             }
@@ -114,7 +112,6 @@ namespace Runtime
 
                         velocityY = direction * hit.distance;
                         machine.velocityY = 0;
-    
                     }
                 }
             }

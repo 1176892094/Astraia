@@ -28,7 +28,6 @@ namespace Runtime
         public const string Platform = nameof(Platform);
         public const string Collision = nameof(Collision);
         public const string DashQuad = nameof(DashQuad);
-        public const string MoveQuad = nameof(MoveQuad);
     }
 
     public static class LayerConst
