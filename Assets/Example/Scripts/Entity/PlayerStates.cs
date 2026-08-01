@@ -142,8 +142,6 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
                 Machine.dashPosition = Machine.position;
             }
-
-            Apply();
         }
 
         protected override void OnUpdate()

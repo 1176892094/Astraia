@@ -45,11 +45,14 @@ namespace Astraia
     [Serializable]
     public struct Fixation : IEquatable<Fixation>
     {
-        private const int BIT = 12;
-        private const float FIX = 1 << BIT;
+        private const int BIT = 10;
+        private const int FIX = 1 << BIT;
 
-        public static Fixation MaxValue = new Fixation(int.MaxValue);
-        public static Fixation MinValue = new Fixation(int.MinValue);
+        public static readonly Fixation One = new Fixation(FIX);
+        public static readonly Fixation Zero = new Fixation(0);
+        public static readonly Fixation Epsilon = new Fixation(1);
+        public static readonly Fixation MaxValue = new Fixation(int.MaxValue);
+        public static readonly Fixation MinValue = new Fixation(int.MinValue);
 
         public int value;
 
@@ -75,7 +78,7 @@ namespace Astraia
 
         public override string ToString()
         {
-            return (value / FIX).ToString("R");
+            return ((float)value / FIX).ToString("R");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -153,7 +156,7 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator float(Fixation value)
         {
-            return value.value / FIX;
+            return (float)value.value / FIX;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
