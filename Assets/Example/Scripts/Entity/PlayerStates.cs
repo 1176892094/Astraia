@@ -8,6 +8,12 @@ namespace Runtime
     {
         protected override void OnUpdate()
         {
+            if (Feature.platform)
+            {
+                Machine.position += Feature.platform.velocity;
+                Machine.MoveTransform(Machine.position);
+            }
+
             if (isShuttle)
             {
                 Machine.Update(Animations.Shuttle);

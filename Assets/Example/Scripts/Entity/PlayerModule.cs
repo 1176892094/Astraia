@@ -20,8 +20,9 @@ namespace Runtime
         public void Tick()
         {
             forwards.Clear();
-            foreach (var other in rigidbody.Overlap(LayerConst.Collision))
+            foreach (var hit in rigidbody.collision.Boxcast(Vector2.down, 0.2F, LayerConst.Collision))
             {
+                var other = hit.collider;
                 if (other && !previous.Contains(other))
                 {
                     other.GetComponent<IOnEnter>()?.OnEnter(collision);

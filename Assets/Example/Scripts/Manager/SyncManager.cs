@@ -2,16 +2,23 @@ using System;
 using System.Collections.Generic;
 using Astraia;
 using Astraia.Net;
+using UnityEngine;
 
 namespace Runtime
 {
     [Serializable]
-    public class SyncManager : NetworkSingleton<SyncManager>, IEvent<OnEarlyUpdate>
+    public class SyncManager : NetworkSingleton<SyncManager>, IEvent<OnFixedUpdate>
     {
         private Dictionary<uint, Position> clientPosition = new Dictionary<uint, Position>();
         private Dictionary<uint, Position> serverPosition = new Dictionary<uint, Position>();
         private List<SyncData> copied = new List<SyncData>();
         private double sendTime;
+        public static Fixation syncTime;
+
+        protected override void Dequeue()
+        {
+            syncTime = 0;
+        }
 
         public void AddPosition(uint objectId, Position position) // 客户端将坐标提交到发送列表
         {
@@ -23,7 +30,7 @@ namespace Runtime
             serverPosition[objectId] = position;
         }
 
-        public void Execute(OnEarlyUpdate message)
+        public void Execute(OnFixedUpdate message)
         {
             if (!NetworkSystem.Tick(ref sendTime))
             {
@@ -52,12 +59,12 @@ namespace Runtime
                     copied.Add(new SyncData(kv.Key, kv.Value));
                 }
 
-                SendPositionClientRpc(copied);
+                SendPositionClientRpc(Time.fixedTime, copied);
             }
         }
 
         [ClientRpc]
-        private void SendPositionClientRpc(List<SyncData> syncs) // 存储下发的玩家坐标
+        private void SendPositionClientRpc(Fixation syncTime, List<SyncData> syncs) // 存储下发的玩家坐标
         {
             foreach (var sync in syncs)
             {
@@ -73,6 +80,8 @@ namespace Runtime
                     serverPosition[sync.Id] = sync.Position;
                 }
             }
+
+            SyncManager.syncTime = syncTime;
         }
 
         [Serializable]

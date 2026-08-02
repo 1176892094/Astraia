@@ -113,8 +113,9 @@ namespace Runtime
             if (owner.isOwner && oldValue != newValue)
             {
                 Machine.MoveTransform(newValue);
-                SyncManager.Instance?.AddPosition(owner, newValue);
             }
+
+            SyncManager.Instance?.AddPosition(owner, newValue);
         }
     }
 }

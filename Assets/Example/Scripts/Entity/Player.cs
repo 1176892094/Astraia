@@ -44,6 +44,8 @@ namespace Runtime
 
         public void Execute(OnPlayerUpdate message)
         {
+            Module.Tick();
+
             if (isOwner)
             {
                 Action.Tick();
@@ -53,8 +55,6 @@ namespace Runtime
             {
                 Machine.SyncTransform();
             }
-
-            Module.Tick();
         }
     }
 }

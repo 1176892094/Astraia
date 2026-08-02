@@ -9,6 +9,8 @@ namespace Runtime
     {
         public State State = State.默认;
 
+        public MovePlatform platform;
+
         public Fixation MoveSpeed;
         public Fixation DashSpeed;
         public Fixation RushSpeed;
