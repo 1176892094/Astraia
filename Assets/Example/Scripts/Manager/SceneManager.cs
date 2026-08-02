@@ -1,4 +1,3 @@
-using System;
 using Astraia;
 using UnityEngine;
 
@@ -12,8 +11,9 @@ namespace Runtime
     {
         public void FixedUpdate()
         {
-            EventManager.Invoke(new OnPlayerUpdate()); //让玩家先更新
-            EventManager.Invoke(new OnPlatformUpdate()); //再让平台更新
+            EventManager.Invoke(new OnPlatformUpdate());
+            Physics2D.SyncTransforms();
+            EventManager.Invoke(new OnPlayerUpdate());
         }
     }
 }

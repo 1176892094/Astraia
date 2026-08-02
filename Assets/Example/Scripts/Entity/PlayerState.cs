@@ -20,7 +20,7 @@ namespace Runtime
         protected bool isGround => (state & State.地面) != 0;
         protected bool isShuttle => (state & State.穿梭) != 0;
         protected bool isPlatform => (state & State.平台) != 0;
-        protected bool isCorner => isWall || isPlane;
+        protected bool isCorner => (state & State.墙地) != 0;
 
         protected State state
         {
@@ -28,7 +28,7 @@ namespace Runtime
             set => Feature.State = value;
         }
 
-        protected int direction
+        protected int Direction
         {
             get => owner.Direction;
             set => owner.Direction = value;
@@ -51,9 +51,9 @@ namespace Runtime
             if (moveX != 0)
             {
                 var moveSpeed = moveX * owner.Feature.MoveSpeed;
-                if (direction != moveX || Mathf.Abs(velocityX) < Mathf.Abs(moveSpeed / 2))
+                if (Direction != moveX || Mathf.Abs(velocityX) < Mathf.Abs(moveSpeed / 2))
                 {
-                    direction = moveX;
+                    Direction = moveX;
                     velocityX = moveSpeed / 2;
                 }
                 else
@@ -102,7 +102,19 @@ namespace Runtime
 
         protected void Apply()
         {
-            owner.Apply();
+            var position = Machine.position;
+            Machine.MoveX(Feature, Machine.velocityX);
+            Machine.MoveY(Feature, Machine.velocityY);
+            SendPosition(position, Machine.position);
+        }
+
+        private void SendPosition(Position oldValue, Position newValue)
+        {
+            if (owner.isOwner && oldValue != newValue)
+            {
+                Machine.MoveTransform(newValue);
+                SyncManager.Instance?.AddPosition(owner, newValue);
+            }
         }
     }
 }

@@ -9,10 +9,9 @@ namespace Runtime
     public class PlayerAction : Module<Player>
     {
         private PlayerFeature Feature => owner.Feature;
+        private bool CanFall => (State & State.地面) == 0 && (State & State.冲刺) == 0 && (State & State.平台) != 0;
         private bool CanDash => Feature.DashCount > 0 && Feature.DashInput > Time.fixedTime && Feature.DashCD < Time.fixedTime;
-        private bool CanJump => Feature.JumpCount > 0 && Feature.JumpInput > Time.fixedTime && Feature.JumpCD < Time.fixedTime && (State & State.跳跃) == 0;
-        private bool CanGround => (State & State.左墙) != 0 || (State & State.右墙) != 0 || (State & State.地面) != 0 || (State & State.平台) != 0;
-        private bool CanPlatform => (State & State.地面) == 0 && (State & State.冲刺) == 0 && (State & State.平台) != 0;
+        private bool CanJump => Feature.JumpCount > 0 && Feature.JumpInput > Time.fixedTime && Feature.JumpCD < Time.fixedTime;
 
         private State State
         {
@@ -38,11 +37,11 @@ namespace Runtime
         {
             if (GameManager.Direction != Vector2.zero)
             {
-                var input = new Vector2(GameManager.MoveX, GameManager.MoveY);
+                var move = GameManager.Direction;
 
                 var success = true;
                 Collider2D collider = null;
-                foreach (var hit in owner.Machine.collision.Raycast(input, input.magnitude + 0.5F, LayerConst.GroundAndCollision))
+                foreach (var hit in owner.Machine.collision.Raycast(move, move.magnitude + 0.5F, LayerConst.GroundAndCollision))
                 {
                     if (hit.collider.CompareTag(TagConst.DashQuad))
                     {
@@ -51,7 +50,7 @@ namespace Runtime
                     }
                 }
 
-                foreach (var hit in owner.Machine.collision.Boxcast(input, input.magnitude + 0.5F, LayerConst.GroundAndCollision)) // 防卡墙
+                foreach (var hit in owner.Machine.collision.Boxcast(move, move.magnitude, LayerConst.GroundAndCollision)) // 防卡墙
                 {
                     if (!hit.collider.CompareTag(TagConst.DashQuad))
                     {
@@ -64,7 +63,7 @@ namespace Runtime
                 {
                     State |= State.穿梭;
                     collider.tag = TagConst.Untagged;
-                    Feature.DashQuad = input.normalized;
+                    Feature.QuadDirection = move;
                     return;
                 }
             }
@@ -78,9 +77,9 @@ namespace Runtime
             {
                 var success = true;
                 Collider2D collider = null;
-                foreach (var hit in owner.Machine.collision.Boxcast(0.1F, LayerConst.GroundAndCollision))
+                foreach (var hit in owner.Machine.collision.Boxcast(owner.Machine.velocityY, LayerConst.GroundAndCollision))
                 {
-                    if (hit.collider.CompareTag(TagConst.Platform) && CanPlatform)
+                    if (hit.collider.CompareTag(TagConst.Platform) && CanFall)
                     {
                         if (collider == null)
                         {
@@ -95,7 +94,7 @@ namespace Runtime
 
                 if (collider && success)
                 {
-                    Feature.Platform = Time.fixedTime + 0.1F;
+                    Feature.JumpPlatform = Time.fixedTime + 0.1F;
                     return;
                 }
             }
@@ -127,14 +126,14 @@ namespace Runtime
                 Feature.DashInput = 0;
             }
 
-            if (CanGround)
+            if ((State & State.墙地) != 0)
             {
                 Feature.JumpTimer = Time.fixedTime + 0.2F;
             }
 
             if (Feature.JumpTimer > Time.fixedTime)
             {
-                if (CanJump)
+                if (CanJump && (State & State.跳跃) == 0)
                 {
                     State |= State.跳跃;
                 }

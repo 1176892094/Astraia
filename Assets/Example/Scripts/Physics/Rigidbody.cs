@@ -7,7 +7,7 @@ namespace Runtime
     [Serializable]
     public partial class Rigidbody : Module<Entity>
     {
-        private const float PIXELATE = 1 / 16F;
+        private const float PIXELATE = 0.0625F;
 
         private static readonly Enumerable<Collider2D> Hits = new Enumerable<Collider2D>(16);
         private Vector2 smoothStep;
@@ -16,7 +16,7 @@ namespace Runtime
         public Position position;
         public Position velocity;
         public Position syncPosition;
-      
+
         public Position dashPosition;
         public Collision collision => new Collision(position.ToVector2(), collider.bounds.extents, collider.offset);
 
@@ -53,10 +53,10 @@ namespace Runtime
         public void MovePosition(Vector3 worldPos)
         {
             position = worldPos.ToPosition();
-            MovePosition(position);
+            MoveTransform(position);
         }
 
-        public void MovePosition(Position position)
+        public void MoveTransform(Position position)
         {
             syncPosition = position;
             var worldPos = position.ToVector2();
@@ -65,7 +65,7 @@ namespace Runtime
             owner.transform.position = worldPos;
         }
 
-        public void SyncPosition()
+        public void SyncTransform()
         {
             var worldPos = syncPosition.ToVector2();
             worldPos = Vector2.SmoothDamp(owner.transform.position, worldPos, ref smoothStep, Time.fixedDeltaTime);
@@ -73,6 +73,7 @@ namespace Runtime
             // worldPos.y = Mathf.Round(worldPos.y / PIXELATE) * PIXELATE;
             owner.transform.position = worldPos;
         }
+
         public bool Contains(Bounds b)
         {
             var a = collision.bounds;

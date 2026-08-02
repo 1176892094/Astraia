@@ -11,6 +11,7 @@ namespace Runtime
             private static readonly Enumerable<RaycastHit2D> Hits = new Enumerable<RaycastHit2D>(16);
 
             public readonly Bounds bounds;
+            private Vector2 size => bounds.size;
             private Vector2 center => bounds.center;
             private Vector2 extents => bounds.extents;
             private float minX => center.x - extents.x - 0.01F;
@@ -33,17 +34,32 @@ namespace Runtime
                 return Hits;
             }
 
-            public Enumerable<RaycastHit2D> Boxcast(float distance, ContactFilter2D filter) // 地面检测
+            public Enumerable<RaycastHit2D> Boxcast(Vector2 direction, float distance, ContactFilter2D filter) // 冲刺检测
             {
-                var origin = new Rect(center.x, minY, bounds.size.x, 0.01F);
+                Hits.Count = Physics2D.BoxCast(center, size, 0, direction, filter, Hits, distance);
+                return Hits;
+            }
+
+            public Enumerable<RaycastHit2D> Boxcast(float distance, ContactFilter2D filter) // 平台检测
+            {
+                var origin = new Rect(center.x, center.y - extents.y, size.x, 0.01F);
                 Hits.Count = Physics2D.BoxCast(origin.position, origin.size, 0, Vector2.down, filter, Hits, distance);
                 return Hits;
             }
 
-            public Enumerable<RaycastHit2D> Boxcast(Vector2 direction, float distance, ContactFilter2D filter) // 移动检测
+            public Enumerable<RaycastHit2D> BoxcastX(int moveX, float distance, ContactFilter2D filter) // 碰撞检测X
             {
-                var origin = center + direction * 0.01F;
-                Hits.Count = Physics2D.BoxCast(origin, bounds.size, 0, direction, filter, Hits, distance);
+                var direction = new Vector2(moveX, 0);
+                var position = center + direction * 0.01F;
+                Hits.Count = Physics2D.BoxCast(position, size, 0, direction, filter, Hits, distance);
+                return Hits;
+            }
+
+            public Enumerable<RaycastHit2D> BoxcastY(int moveY, float distance, ContactFilter2D filter) // 碰撞检测Y
+            {
+                var direction = new Vector2(0, moveY);
+                var position = center + direction * 0.01F;
+                Hits.Count = Physics2D.BoxCast(position, size, 0, direction, filter, Hits, distance);
                 return Hits;
             }
 

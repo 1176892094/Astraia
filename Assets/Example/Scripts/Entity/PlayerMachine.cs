@@ -58,13 +58,13 @@ namespace Runtime
             return false;
         }
 
-        public static void MoveX(this Rigidbody machine, PlayerFeature feature, float velocityX)
+        public static void MoveX(this Rigidbody machine, PlayerFeature feature, Fixation velocityX)
         {
-            var distance = Math.Abs(velocityX);
-            var direction = Math.Sign(velocityX);
+            var distance = Fixation.Abs(velocityX);
+            var direction = Fixation.Sign(velocityX);
             if (direction != 0)
             {
-                foreach (var hit in machine.collision.Boxcast(new Vector2(direction, 0), distance, LayerConst.GroundAndCollision))
+                foreach (var hit in machine.collision.BoxcastX(direction, distance, LayerConst.GroundAndCollision))
                 {
                     if (hit.distance >= 0 && hit.collider.CompareTag(Tags))
                     {
@@ -78,8 +78,8 @@ namespace Runtime
                         }
 
                         feature.JumpCount = 1;
-                        feature.WallInput = -direction;
-                        feature.WallTimer = Time.fixedTime + 0.1F;
+                        feature.JumpDirection = -direction;
+                        feature.JumpTime = Time.fixedTime + 0.1F;
                         velocityX = direction * hit.distance;
                         machine.velocityX = 0;
                     }
@@ -89,13 +89,13 @@ namespace Runtime
             machine.positionX += velocityX;
         }
 
-        public static void MoveY(this Rigidbody machine, PlayerFeature feature, float velocityY)
+        public static void MoveY(this Rigidbody machine, PlayerFeature feature, Fixation velocityY)
         {
-            var distance = Math.Abs(velocityY);
-            var direction = Math.Sign(velocityY);
+            var distance = Fixation.Abs(velocityY);
+            var direction = Fixation.Sign(velocityY);
             if (direction != 0)
             {
-                foreach (var hit in machine.collision.Boxcast(new Vector2(0, direction), distance, LayerConst.GroundAndCollision))
+                foreach (var hit in machine.collision.BoxcastY(direction, distance, LayerConst.GroundAndCollision))
                 {
                     if (hit.distance >= 0 && hit.collider.CompareTag(Tags))
                     {
@@ -116,7 +116,7 @@ namespace Runtime
                 }
             }
 
-            if (direction < 0 && feature.Platform < Time.fixedTime)
+            if (direction < 0 && feature.JumpPlatform < Time.fixedTime)
             {
                 foreach (var hit in machine.collision.Boxcast(distance, LayerConst.Collision))
                 {

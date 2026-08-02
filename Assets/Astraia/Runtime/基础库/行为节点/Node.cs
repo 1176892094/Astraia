@@ -45,7 +45,7 @@ namespace Astraia
     [Serializable]
     public struct Fixation : IEquatable<Fixation>
     {
-        private const int BIT = 10;
+        private const int BIT = 16;
         private const int FIX = 1 << BIT;
 
         public static readonly Fixation One = new Fixation(FIX);
@@ -191,6 +191,11 @@ namespace Astraia
         public static Fixation Min(Fixation a, Fixation b)
         {
             return a < b ? a : b;
+        }
+
+        public static Fixation Abs(Fixation a)
+        {
+            return a < 0 ? -a : a;
         }
 
         public static int Sign(Fixation value)

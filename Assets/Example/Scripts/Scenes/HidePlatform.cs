@@ -29,7 +29,7 @@ namespace Runtime
                     }
 
                     player.Machine.position = new Position(player.Machine.position.x, y);
-                    player.Machine.MovePosition(player.Machine.position);
+                    player.Machine.MoveTransform(player.Machine.position);
                     return;
                 }
 

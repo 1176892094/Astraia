@@ -121,17 +121,17 @@ namespace Runtime
             waitTime = Time.fixedTime + 0.15F;
             owner.Sender.SyncColorServerRpc(Color.yellow);
 
-            if (!isPlane && Feature.WallTimer > Time.fixedTime)
+            if (!isPlane && Feature.JumpTime > Time.fixedTime)
             {
                 stepTime = Time.fixedTime + 0.1F;
-                direction = Feature.WallInput;
+                Direction = Feature.JumpDirection;
                 if ((state & State.竖冲) != 0)
                 {
-                    velocityX = Feature.WallInput * Feature.JumpForce;
+                    velocityX = Feature.JumpDirection * Feature.JumpForce;
                 }
                 else
                 {
-                    velocityX = Feature.WallInput * Feature.GrabForce;
+                    velocityX = Feature.JumpDirection * Feature.GrabForce;
                 }
             }
 
@@ -163,9 +163,9 @@ namespace Runtime
 
             if (stepTime > Time.fixedTime)
             {
-                if (GameManager.MoveX == Feature.WallInput)
+                if (GameManager.MoveX == Feature.JumpDirection)
                 {
-                    velocityX = Mathf.Max(Feature.WallInput * Feature.GrabForce, velocityX);
+                    velocityX = Mathf.Max(Feature.JumpDirection * Feature.GrabForce, velocityX);
                 }
             }
             else
@@ -226,7 +226,7 @@ namespace Runtime
                 state &= ~State.悬挂;
             }
 
-            InputX(direction);
+            InputX(Direction);
             InputY(2);
             Apply();
         }
@@ -250,7 +250,7 @@ namespace Runtime
             oldState = state;
             Feature.DashTimer = Time.fixedTime + Feature.DashTime;
             Feature.DashDirection = GameManager.Direction;
-            direction = GameManager.MoveX;
+            Direction = GameManager.MoveX;
             Machine.dashPosition = new Position(0, -100);
         }
 
@@ -280,20 +280,20 @@ namespace Runtime
                     velocityY = output;
                     break;
                 case 0 when normalize.x == 0:
-                    velocityX = direction * Feature.DashSpeed;
+                    velocityX = Direction * Feature.DashSpeed;
                     break;
                 case < 0 when isGround && !isPlatform && collision.RaycastY(velocityY, LayerConst.GroundAndCollision, out var output):
                     velocityX = output;
                     break;
                 case < 0 when isPlane:
-                    velocityX = direction * Feature.DashSpeed;
+                    velocityX = Direction * Feature.DashSpeed;
                     break;
                 case > 0 when isHead && collision.RaycastY(velocityY, LayerConst.GroundAndCollision, out var output):
                     velocityX = output;
                     Feature.JumpCount = 1;
-                    Feature.WallInput = Math.Sign(output);
-                    Feature.WallTimer = Time.fixedTime + 0.1F;
-                    Feature.JumpTimer = Feature.WallTimer;
+                    Feature.JumpDirection = Math.Sign(output);
+                    Feature.JumpTime = Time.fixedTime + 0.1F;
+                    Feature.JumpTimer = Feature.JumpTime;
                     break;
             }
 
@@ -338,10 +338,10 @@ namespace Runtime
 
         protected override void OnEnter()
         {
-            if (Feature.RushInput != direction)
+            if (Feature.RushInput != Direction)
             {
                 Feature.RushCount = 0;
-                Feature.RushInput = direction;
+                Feature.RushInput = Direction;
             }
 
             waitTime = Time.fixedTime + 0.1F;
@@ -404,8 +404,8 @@ namespace Runtime
                 owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
             }
 
-            velocityX = Feature.DashQuad.x * Feature.DashSpeed;
-            velocityY = Feature.DashQuad.y * Feature.DashSpeed;
+            velocityX = Feature.QuadDirection.x * Feature.DashSpeed;
+            velocityY = Feature.QuadDirection.y * Feature.DashSpeed;
             Apply();
         }
 

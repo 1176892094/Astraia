@@ -38,14 +38,34 @@ namespace Runtime
         {
             MovePlatforms();
             var delta = transform.position - (Vector3)lastPosition;
-            if (owner)
+            if (owner && IsStandingOnPlatform(owner))
             {
                 owner.Machine.Contains(collider.bounds);
                 owner.Machine.position += delta.ToPosition();
-                owner.Machine.MovePosition(owner.Machine.position);
+                owner.Machine.MoveTransform(owner.Machine.position);
             }
 
             lastPosition = transform.position;
+        }
+
+        private bool IsStandingOnPlatform(Player player)
+        {
+            var playerBounds = player.Machine.collider.bounds;
+            var platformBounds = collider.bounds;
+
+            // 玩家底部
+            float playerBottom = playerBounds.min.y;
+
+            // 平台顶部
+            float platformTop = platformBounds.max.y;
+
+            // X方向重叠
+            bool overlapX = playerBounds.max.x > platformBounds.min.x && playerBounds.min.x < platformBounds.max.x;
+
+            // Y距离允许误差
+            bool closeY = Mathf.Abs(playerBottom - platformTop) < 0.05f;
+
+            return overlapX && closeY;
         }
 
         private void MovePlatforms()
