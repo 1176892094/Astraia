@@ -13,12 +13,10 @@ namespace Runtime
         private Dictionary<uint, Position> serverPosition = new Dictionary<uint, Position>();
         private List<SyncData> copied = new List<SyncData>();
         private double sendTime;
-        public static Fixation syncTime;
 
-        protected override void Dequeue()
-        {
-            syncTime = 0;
-        }
+        public Fixation syncTime;
+        public int playerReady;
+        public int playerCount;
 
         public void AddPosition(uint objectId, Position position) // 客户端将坐标提交到发送列表
         {
@@ -53,13 +51,16 @@ namespace Runtime
 
             if (NetworkManager.isServer)
             {
-                copied.Clear();
-                foreach (var kv in serverPosition)
+                if (playerReady == playerCount && playerCount > 0)
                 {
-                    copied.Add(new SyncData(kv.Key, kv.Value));
-                }
+                    copied.Clear();
+                    foreach (var kv in serverPosition)
+                    {
+                        copied.Add(new SyncData(kv.Key, kv.Value));
+                    }
 
-                SendPositionClientRpc(Time.fixedTime, copied);
+                    SendPositionClientRpc(Time.fixedTime, copied);
+                }
             }
         }
 
@@ -81,7 +82,7 @@ namespace Runtime
                 }
             }
 
-            SyncManager.syncTime = syncTime;
+            Instance.syncTime = syncTime;
         }
 
         [Serializable]

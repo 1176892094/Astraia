@@ -72,6 +72,12 @@ namespace Runtime
             sprite.DOScale(Vector3.one, 0.5F).OnComplete(() => PoolManager.Hide(sprite));
         }
 
+        [ServerRpc]
+        public void SendReadyServerRpc()
+        {
+            SyncManager.Instance.playerReady++;
+        }
+
         public void OnStartAuthority()
         {
             var player = (Player)owner;
@@ -88,6 +94,7 @@ namespace Runtime
             player.Machine.Create<PlayerRush>(Animations.Rush);
             player.Machine.Create<PlayerShuttle>(Animations.Shuttle);
             player.Machine.Switch(Animations.Idle);
+            SendReadyServerRpc();
         }
     }
 }

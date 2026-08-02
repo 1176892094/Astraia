@@ -8,9 +8,9 @@ namespace Runtime
         {
             if (other.TryGetComponent(out Player player) && player.isOwner)
             {
-                if (gameObject.CompareTag("Untagged"))
+                if (gameObject.CompareTag(TagConst.Untagged))
                 {
-                    gameObject.tag = "DashQuad";
+                    gameObject.tag = TagConst.DashQuad;
                     player.Feature.State &= ~State.穿梭;
                 }
             }

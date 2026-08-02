@@ -1,6 +1,5 @@
 using System;
 using Astraia;
-using Astraia.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,7 +10,7 @@ namespace Runtime
     public struct OnPlatformUpdate : IEvent { }
 
     [Serializable]
-    public class GameManager : Export, IEvent<ServerReady>
+    public class GameManager : Export
     {
         private static int moveX;
         private static int moveY;
@@ -35,39 +34,17 @@ namespace Runtime
 
         public void FixedUpdate()
         {
-            EventManager.Invoke(new OnPlatformUpdate());
-            Physics2D.SyncTransforms();
-            EventManager.Invoke(new OnPlayerUpdate());
+            if (SyncManager.Instance != null && SyncManager.Instance.syncTime != 0)
+            {
+                EventManager.Invoke(new OnPlatformUpdate());
+                Physics2D.SyncTransforms();
+                EventManager.Invoke(new OnPlayerUpdate());
+            }
         }
 
         protected override void OnDestroy()
         {
             inputAsset.Disable();
-        }
-
-        private void Start()
-        {
-            transform.Wait(0.1F).OnComplete(() =>
-            {
-                try
-                {
-                    NetworkManager.StartHost();
-                }
-                catch
-                {
-                    NetworkManager.StartClient();
-                }
-            });
-        }
-
-        public void Execute(ServerReady message)
-        {
-            if (NetworkManager.Server.connections == 1)
-            {
-                NetworkManager.Server.Spawn(AssetManager.Load<GameObject>("Prefabs/10004"));
-            }
-
-            NetworkManager.Server.Spawn(AssetManager.Load<GameObject>("Prefabs/10001"), message.client);
         }
     }
 }

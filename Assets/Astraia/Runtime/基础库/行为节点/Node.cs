@@ -11,9 +11,9 @@ namespace Astraia
     {
         private readonly Fixation[] properties;
 
-        public Properties(int value)
+        private Properties(Fixation[] properties)
         {
-            properties = value != 0 ? new Fixation[value] : new Fixation[Seed.Count<T>()];
+            this.properties = properties;
         }
 
         public float Get(T key)
@@ -40,12 +40,17 @@ namespace Astraia
         {
             Array.Clear(properties, 0, properties.Length);
         }
+
+        public static Properties<T> Create()
+        {
+            return new Properties<T>(new Fixation[Seed.Count<T>()]);
+        }
     }
 
     [Serializable]
     public struct Fixation : IEquatable<Fixation>
     {
-        private const int BIT = 16;
+        private const int BIT = 12;
         private const int FIX = 1 << BIT;
 
         public static readonly Fixation One = new Fixation(FIX);
@@ -174,7 +179,7 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CeilToInt()
         {
-            return -(-value >> BIT);
+            return value >= 0 ? (value + FIX - 1) >> BIT : -(-value >> BIT);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
