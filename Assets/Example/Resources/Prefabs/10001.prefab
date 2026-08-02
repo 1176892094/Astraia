@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7478125468919891840}
-  - component: {fileID: 7699375650067373137}
   - component: {fileID: 4050376154587281838}
+  - component: {fileID: 7699375650067373137}
   m_Layer: 7
   m_Name: 10001
   m_TagString: Untagged
@@ -34,68 +34,6 @@ Transform:
   - {fileID: 5890615891911239712}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7699375650067373137
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4745370882994828325}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f46525886dd94e1cad6393357b1f3917, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Runtime.Player
-  moduleList:
-  - rid: 915762514025775162
-  - rid: 915762514025775165
-  - rid: 915762514025775163
-  - rid: 5279501486990557413
-  objectId: 0
-  assetId: 10001
-  sceneId: 0
-  references:
-    version: 2
-    RefIds:
-    - rid: 915762514025775162
-      type: {class: PlayerFeature, ns: Runtime, asm: Assembly-CSharp}
-      data:
-        State: 0
-        FallSpeed: 0
-        FallLimit: 0
-        GrabSpeed: 0
-        GrabLimit: 0
-        Platform: 0
-        DashQuad: {x: 0, y: 0}
-        RushCount: 0
-        RushInput: 0
-        GrabInput: 0
-        GrabTimer: 0
-        JumpCount: 0
-        JumpInput: 0
-        JumpTimer: 0
-        JumpCD: 0
-        DashCount: 0
-        DashTimer: 0
-        DashTime: 0.18
-        DashInput: 0
-        DashCD: 0
-        DashDirection: {x: 0, y: 0}
-    - rid: 915762514025775163
-      type: {class: PlayerSender, ns: Runtime, asm: Assembly-CSharp}
-      data:
-        syncMode: 0
-        syncStep: 0
-        color:
-          serializedVersion: 2
-          rgba: 0
-    - rid: 915762514025775165
-      type: {class: PlayerMachine, ns: Runtime, asm: Assembly-CSharp}
-      data:
-        collider: {fileID: 0}
-    - rid: 5279501486990557413
-      type: {class: PlayerModule, ns: Runtime, asm: Assembly-CSharp}
-      data: 
 --- !u!61 &4050376154587281838
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -142,6 +80,99 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.6, y: 0.8}
   m_EdgeRadius: 0
+--- !u!114 &7699375650067373137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4745370882994828325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f46525886dd94e1cad6393357b1f3917, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Runtime.Player
+  moduleList:
+  - rid: 915762514025775162
+  - rid: 915762514025775165
+  - rid: 915762514025775163
+  - rid: 5279501486990557413
+  objectId: 0
+  assetId: 10001
+  sceneId: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 915762514025775162
+      type: {class: PlayerFeature, ns: Runtime, asm: Assembly-CSharp}
+      data:
+        State: 0
+        platform: {fileID: 0}
+        MoveSpeed:
+          value: 0
+        DashSpeed:
+          value: 0
+        RushSpeed:
+          value: 0
+        JumpForce:
+          value: 0
+        GrabForce:
+          value: 0
+        FallSpeed: 0
+        FallLimit: 0
+        GrabSpeed: 0
+        GrabLimit: 0
+        RushCount: 0
+        RushInput: 0
+        JumpCount: 0
+        JumpInput: 0
+        JumpTimer: 0
+        JumpTime: 0
+        JumpCD: 0
+        JumpDirection: 0
+        JumpPlatform: 0
+        DashCount: 0
+        DashInput: 0
+        DashTimer: 0
+        DashTime: 0.18
+        DashCD: 0
+        DashDirection: {x: 0, y: 0}
+        QuadDirection: {x: 0, y: 0}
+    - rid: 915762514025775163
+      type: {class: PlayerSender, ns: Runtime, asm: Assembly-CSharp}
+      data:
+        syncMode: 0
+        syncStep: 0
+        color:
+          serializedVersion: 2
+          rgba: 0
+    - rid: 915762514025775165
+      type: {class: PlayerMachine, ns: Runtime, asm: Assembly-CSharp}
+      data:
+        collider: {fileID: 0}
+        position:
+          x:
+            value: 0
+          y:
+            value: 0
+        velocity:
+          x:
+            value: 0
+          y:
+            value: 0
+        syncPosition:
+          x:
+            value: 0
+          y:
+            value: 0
+        dashPosition:
+          x:
+            value: 0
+          y:
+            value: 0
+    - rid: 5279501486990557413
+      type: {class: PlayerModule, ns: Runtime, asm: Assembly-CSharp}
+      data: 
 --- !u!1 &8948634512323190195
 GameObject:
   m_ObjectHideFlags: 0

@@ -280,7 +280,6 @@ GameObject:
   m_Component:
   - component: {fileID: 75954605}
   - component: {fileID: 75954609}
-  - component: {fileID: 75954612}
   - component: {fileID: 75954611}
   - component: {fileID: 75954610}
   m_Layer: 0
@@ -379,18 +378,6 @@ MonoBehaviour:
       data:
         address: localhost
         port: 20974
---- !u!114 &75954612
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 75954604}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 04f44a917b5944f685801954d205b5eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Runtime.SceneManager
 --- !u!1 &141813616
 GameObject:
   m_ObjectHideFlags: 0
@@ -1557,6 +1544,10 @@ PrefabInstance:
     - target: {fileID: 9119460044637376236, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
       propertyPath: m_Name
       value: GlobalManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 9119460044637376236, guid: da2ff8d553445420aa04c7d525de5e04, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

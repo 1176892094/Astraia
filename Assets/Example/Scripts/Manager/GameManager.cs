@@ -6,6 +6,10 @@ using UnityEngine.InputSystem;
 
 namespace Runtime
 {
+    public struct OnPlayerUpdate : IEvent { }
+
+    public struct OnPlatformUpdate : IEvent { }
+
     [Serializable]
     public class GameManager : Export, IEvent<ServerReady>
     {
@@ -27,6 +31,13 @@ namespace Runtime
             Application.targetFrameRate = 60;
             inputAsset = AssetManager.Load<InputActionAsset>("Settings/InputManager");
             inputAsset.Enable();
+        }
+
+        public void FixedUpdate()
+        {
+            EventManager.Invoke(new OnPlatformUpdate());
+            Physics2D.SyncTransforms();
+            EventManager.Invoke(new OnPlayerUpdate());
         }
 
         protected override void OnDestroy()
