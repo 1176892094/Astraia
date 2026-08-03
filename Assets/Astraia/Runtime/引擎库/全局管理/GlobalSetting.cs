@@ -66,7 +66,7 @@ namespace Astraia
                 }
             }
 
-            return TextCache[option].text;
+            return TextCache.GetValueOrDefault(option)?.text;
         }
 
 #if UNITY_EDITOR

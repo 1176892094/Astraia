@@ -16,6 +16,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
+    [Serializable]
     public abstract class NetworkSingleton<T> : NetworkModule, IModule where T : NetworkSingleton<T>
     {
         private static T instance;

@@ -1,9 +1,9 @@
 {
   "dependencies": {
     "com.unity.2d.tilemap": "1.0.0",
-    "com.unity.collections": "2.6.7",
+    "com.unity.collections": "6.5.0",
     "com.unity.ide.rider": "3.0.40",
-    "com.unity.inputsystem": "1.19.0",
+    "com.unity.inputsystem": "1.20.0",
     "com.unity.multiplayer.playmode": "2.0.2",
     "com.unity.nuget.mono-cecil": "1.11.6",
     "com.unity.ugui": "2.5.0",
@@ -22,6 +22,7 @@
     "com.unity.modules.particlesystem": "1.0.0",
     "com.unity.modules.physics": "1.0.0",
     "com.unity.modules.physics2d": "1.0.0",
+    "com.unity.modules.physicscore2d": "1.0.0",
     "com.unity.modules.screencapture": "1.0.0",
     "com.unity.modules.terrain": "1.0.0",
     "com.unity.modules.terrainphysics": "1.0.0",

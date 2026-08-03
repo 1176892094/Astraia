@@ -19,8 +19,8 @@ namespace Runtime
 
         [Export] private Transform startPoint;
         [Export] private Transform endPoint;
-        [Export] private new BoxCollider2D collider;
-        [Export] private new SpriteRenderer renderer;
+        [Export] private BoxCollider2D collider;
+        [Export] private SpriteRenderer renderer;
         
 
         protected override void Awake()

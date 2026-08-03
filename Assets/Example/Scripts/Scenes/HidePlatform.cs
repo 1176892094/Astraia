@@ -5,8 +5,8 @@ namespace Runtime
 {
     public class HidePlatform : Export, IOnEnter
     {
-        [Export] private new BoxCollider2D collider;
-        [Export] private new SpriteRenderer renderer;
+        [Export] private BoxCollider2D collider;
+        [Export] private SpriteRenderer renderer;
 
         public void OnEnter(Collider2D other)
         {
