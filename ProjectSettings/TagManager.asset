@@ -4,10 +4,10 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Ground
-  - Platform
   - Collision
   - DashQuad
+  - Platform
+  - Ground
   layers:
   - Default
   - TransparentFX
@@ -45,8 +45,6 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Transparent
-    uniqueID: 3313326317
-    locked: 0
   m_RenderingLayers:
   - Default
+  m_MigratedRenderPipelines: []

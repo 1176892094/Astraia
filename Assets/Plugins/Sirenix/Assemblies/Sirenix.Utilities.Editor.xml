@@ -9122,11 +9122,6 @@
             Returns a <see cref="T:System.String" /> that represents this instance.
             </summary>
         </member>
-        <member name="T:Sirenix.Utilities.Editor.OdinEntityId.Internal">
-            <summary>
-            Use at your own risk; subject to change.
-            </summary>
-        </member>
         <member name="T:Sirenix.Utilities.Editor.TextureUtilities">
             <summary>
             Collection of texture functions.

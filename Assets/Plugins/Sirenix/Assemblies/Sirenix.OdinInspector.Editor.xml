@@ -644,6 +644,15 @@
             Whether the current version of Odin is an enterprise version.
             </summary>
         </member>
+        <member name="M:Sirenix.OdinInspector.Editor.OdinInspectorVersion.GetOnDiskVersion">
+            <summary>
+            Gets the Odin Inspector version as written in the "Version.txt" file inside the Odin Inspector directory.
+            Note that this is the version on disk, which is not necessarily the same as the runtime version determined from the loaded assembly.
+            </summary>
+            <returns>
+            The version read from Version.txt, or null if the file is missing or its contents can't be parsed.
+            </returns>
+        </member>
         <member name="T:Sirenix.OdinInspector.Editor.TypeDrawerPair">
             <summary>
             <para>Contains information about an editor type which is assigned to draw a certain type in the inspector.</para>
@@ -2613,6 +2622,29 @@
         <member name="F:Sirenix.OdinInspector.Editor.CollectionChangeType.SetKey">
             <summary>
             The change is setting the value of a key in the collection. Key, Value and SelectionIndex will be set.
+            </summary>
+        </member>
+        <member name="T:Sirenix.OdinInspector.Editor.IOverridesUnityPropertyNames">
+            <summary>
+            A property resolver can implement this interface to override the Unity property names for all child indices.
+            This can be necessary when the Odin path and the Unity property path are different by some necessity or other.
+            </summary>
+        </member>
+        <member name="T:Sirenix.OdinInspector.Editor.UnityDictionaryPropertyResolver`3">
+            <summary>
+            <para>
+            This resolver has the unenviable job of handling Unity's dictionary serialization and translating it into Odin terms.
+            Unity decided that dictionaries are secretly serialized as arrays, with a secret ordering that is invisible to the outside
+            and only stored inside of Unity's serialization systems.
+            </para>
+            <para>
+            This means Odin must query Unity's SerializedObject/SerializedProperties to determine the true indices of all keys in the 
+            dictionary, which is necessary to, for example, correctly map prefab modification paths. 
+            </para>
+            <para>
+            This resolver also prefers to always modify the dictionary directly through Unity SerializedProperty and then applying, 
+            rather than directly editing the live C# dictionary object.
+            </para>
             </summary>
         </member>
         <member name="T:Sirenix.OdinInspector.Editor.SerializationBackend">

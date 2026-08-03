@@ -2,13 +2,59 @@ fileFormatVersion: 2
 guid: 5978f8f3dd274e848fbb7a123bde1fb9
 timeCreated: 1488828285
 PluginImporter:
-  serializedVersion: 1
+  externalObjects: {}
+  serializedVersion: 2
   iconMap: {}
   executionOrder: {}
+  defineConstraints: []
   isPreloaded: 0
   isOverridable: 0
+  isExplicitlyReferenced: 0
+  validateReferences: 1
   platformData:
-    Any:
+  - first:
+      : Any
+    second:
+      enabled: 0
+      settings:
+        Exclude Editor: 1
+        Exclude Linux64: 1
+        Exclude OSXUniversal: 1
+        Exclude Win: 1
+        Exclude Win64: 0
+  - first:
+      : N3DS
+    second:
+      enabled: 1
+      settings: {}
+  - first:
+      : PSM
+    second:
+      enabled: 1
+      settings: {}
+  - first:
+      : PSP2
+    second:
+      enabled: 1
+      settings: {}
+  - first:
+      : SamsungTV
+    second:
+      enabled: 1
+      settings: {}
+  - first:
+      : Tizen
+    second:
+      enabled: 1
+      settings: {}
+  - first:
+      : WiiU
+    second:
+      enabled: 1
+      settings: {}
+  - first:
+      Any: 
+    second:
       enabled: 0
       settings:
         Exclude Android: 1
@@ -33,45 +79,67 @@ PluginImporter:
         Exclude XboxOne: 0
         Exclude iOS: 0
         Exclude tvOS: 0
-    Editor:
+  - first:
+      Editor: Editor
+    second:
       enabled: 0
       settings:
+        CPU: AnyCPU
         DefaultValueInitialized: true
-    N3DS:
+        OS: AnyOS
+  - first:
+      PS4: PS4
+    second:
       enabled: 1
       settings: {}
-    PS4:
-      enabled: 1
-      settings: {}
-    PSM:
-      enabled: 1
-      settings: {}
-    PSP2:
-      enabled: 1
-      settings: {}
-    SamsungTV:
-      enabled: 1
-      settings: {}
-    Tizen:
-      enabled: 1
-      settings: {}
-    WebGL:
-      enabled: 1
-      settings: {}
-    WiiU:
-      enabled: 1
-      settings: {}
-    WindowsStoreApps:
+  - first:
+      Standalone: Linux64
+    second:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+  - first:
+      Standalone: OSXUniversal
+    second:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+  - first:
+      Standalone: Win
+    second:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+  - first:
+      Standalone: Win64
+    second:
       enabled: 1
       settings:
         CPU: AnyCPU
-    XboxOne:
+  - first:
+      WebGL: WebGL
+    second:
       enabled: 1
       settings: {}
-    iOS:
+  - first:
+      Windows Store Apps: WindowsStoreApps
+    second:
+      enabled: 1
+      settings:
+        CPU: AnyCPU
+  - first:
+      XboxOne: XboxOne
+    second:
       enabled: 1
       settings: {}
-    tvOS:
+  - first:
+      iPhone: iOS
+    second:
+      enabled: 1
+      settings: {}
+  - first:
+      tvOS: tvOS
+    second:
       enabled: 1
       settings: {}
   userData: 
@@ -81,6 +149,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 89041
   packageName: Odin Inspector and Serializer
-  packageVersion: 4.0.2.0
+  packageVersion: 4.0.2.3
   assetPath: Assets/Plugins/Sirenix/Assemblies/NoEditor/Sirenix.Utilities.dll
-  uploadId: 925668
+  uploadId: 957408

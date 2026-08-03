@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 13f3417ca7e200a44b73a2eb0179d189
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89041
+  packageName: Odin Inspector and Serializer
+  packageVersion: 4.0.2.3
+  assetPath: Assets/Plugins/Sirenix/Odin Inspector/Modules/Unity.Addressables.info.txt
+  uploadId: 957408

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: cf202bd9eedf1794084afb01c4c87bc1
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89041
+  packageName: Odin Inspector and Serializer
+  packageVersion: 4.0.2.3
+  assetPath: Assets/Plugins/Sirenix/Odin Inspector/Modules/Unity.Entities.info.txt
+  uploadId: 957408

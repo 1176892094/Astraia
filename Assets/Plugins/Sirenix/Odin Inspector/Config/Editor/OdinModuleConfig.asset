@@ -11,9 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: -228747253, guid: a4865f1ab4504ed8a368670db22f409c, type: 3}
   m_Name: OdinModuleConfig
-  m_EditorClassIdentifier: 
-  configurations:
-  - ID: Unity.Mathematics
-    ActivationSettings: 0
+  m_EditorClassIdentifier: Sirenix.OdinInspector.Editor.dll::Sirenix.OdinInspector.Editor.Modules.OdinModuleConfig
+  configurations: []
   ModuleTogglingSettings: 1
   ModuleUpdateSettings: 1
