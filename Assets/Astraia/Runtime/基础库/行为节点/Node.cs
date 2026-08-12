@@ -212,37 +212,33 @@ namespace Astraia
         {
             if (value.value <= 0)
             {
-                return 0;
+                return Zero;
             }
 
-            var number = 0L + value.value << 16;
-            var result = 1L << ((BitLength(number) + 1) >> 1);
+            var x = (long)value.value << BIT;
 
+            var count = 0;
+            var index = x;
+
+            while (index > 0)
+            {
+                index >>= 1;
+                count++;
+            }
+
+            var guess = 1L << ((count + 1) >> 1);
             while (true)
             {
-                var next = (result + number / result) >> 1;
-                if (next >= result)
+                var next = (guess + x / guess) >> 1;
+                if (next >= guess)
                 {
                     break;
                 }
 
-                result = next;
+                guess = next;
             }
 
-            return new Fixation((int)result);
-        }
-
-        private static int BitLength(long value)
-        {
-            var length = 0;
-
-            while (value > 0)
-            {
-                value >>= 1;
-                length++;
-            }
-
-            return length;
+            return new Fixation((int)guess);
         }
     }
 
