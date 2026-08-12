@@ -16,9 +16,9 @@ namespace Astraia.Net
 {
     public sealed class NetworkClient
     {
-        private readonly Dictionary<int, WriterQueue> packets = new Dictionary<int, WriterQueue>();
+        private readonly Dictionary<int, QueueWriter> packets = new Dictionary<int, QueueWriter>();
         internal readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
-        internal readonly ReaderQueue reader = new ReaderQueue();
+        internal readonly QueueReader reader = new QueueReader();
         internal readonly int clientId;
         internal bool isReady;
 
@@ -66,7 +66,7 @@ namespace Astraia.Net
         {
             if (!packets.TryGetValue(pass, out var batch))
             {
-                batch = new WriterQueue(NetworkManager.Kcp.GetLength(pass));
+                batch = new QueueWriter(NetworkManager.Kcp.GetLength(pass));
                 packets[pass] = batch;
             }
 

@@ -16,8 +16,8 @@ namespace Astraia.Net
 {
     public sealed class NetworkServer
     {
-        private readonly Dictionary<int, WriterQueue> packets = new Dictionary<int, WriterQueue>();
-        internal readonly ReaderQueue reader = new ReaderQueue();
+        private readonly Dictionary<int, QueueWriter> packets = new Dictionary<int, QueueWriter>();
+        internal readonly QueueReader reader = new QueueReader();
         internal bool isReady;
 
         internal void Update()
@@ -59,7 +59,7 @@ namespace Astraia.Net
         {
             if (!packets.TryGetValue(pass, out var batch))
             {
-                batch = new WriterQueue(NetworkManager.Kcp.GetLength(pass));
+                batch = new QueueWriter(NetworkManager.Kcp.GetLength(pass));
                 packets[pass] = batch;
             }
 

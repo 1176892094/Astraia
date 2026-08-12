@@ -1016,13 +1016,13 @@ namespace Astraia
         }
     }
 
-    internal class WriterQueue
+    internal class QueueWriter
     {
         private readonly Queue<MemoryWriter> writers = new();
         private readonly uint maxLength;
         private MemoryWriter writer;
 
-        public WriterQueue(uint maxLength)
+        public QueueWriter(uint maxLength)
         {
             this.maxLength = maxLength;
         }
@@ -1075,7 +1075,7 @@ namespace Astraia
         }
     }
 
-    internal class ReaderQueue
+    internal class QueueReader
     {
         private readonly Queue<MemoryWriter> writers = new();
         private readonly MemoryReader reader = new();
