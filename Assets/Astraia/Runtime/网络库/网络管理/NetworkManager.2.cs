@@ -49,7 +49,7 @@ namespace Astraia.Net
                     AddMessage(true);
                     connection = new NetworkServer();
                     Server.Connect(0);
-                    Connect();
+                    Connect(0);
                 }
                 else
                 {
@@ -171,10 +171,11 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static void Connect()
+            private static void Connect(int serverId)
             {
                 state = State.连接成功;
                 connection.isReady = true;
+                connection.serverId = serverId;
                 connection.Send(new ReadyMessage());
                 EventManager.Invoke(new ClientConnect());
             }

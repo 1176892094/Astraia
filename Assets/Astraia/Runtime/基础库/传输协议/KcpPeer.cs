@@ -22,16 +22,16 @@ namespace Astraia
         private readonly byte[] kcpDataBuffer = new byte[Const.KCP_LEN + 1];
 
         private readonly string userName;
-        private readonly Stopwatch watch = new Stopwatch();
+        private readonly Stopwatch watch = new();
         private uint pingTime;
         private uint nextTime;
         private uint waitTime;
+        private int userData;
         private Protocol kcp;
         private State state;
 
-        public int userData;
-        public Action onConnect;
-        public Action onDisconnect;
+        public Action<int> onConnect;
+        public Action<int> onDisconnect;
         public Action<Error, string> onError;
         public Action<ArraySegment<byte>> onSend;
         public Action<ArraySegment<byte>, int> onReceive;
@@ -108,10 +108,10 @@ namespace Astraia
             }
 
             var pass = segment.Array![segment.Offset];
-            var newData = Common.Decode(segment.Array, segment.Offset + 1);
-            if (state == State.连接成功 && newData != userData)
+            var readData = Common.Decode(segment.Array, segment.Offset + 1);
+            if (state == State.连接成功 && readData != userData)
             {
-                Log.Warn("{0}数据校验失败。旧: {1} 新: {2}", userName, userData, newData);
+                Log.Warn("{0}数据校验失败。旧: {1} 新: {2}", userName, userData, readData);
                 return;
             }
 
@@ -157,7 +157,7 @@ namespace Astraia
         {
             if (segment.Count > Const.UDP_LEN)
             {
-                Log.Error("{0}发送不可靠消息失败。消息大小: {1}", userName, segment.Count);
+                onError(Error.无效发送, "{0}发送网络消息过大。消息大小: {1} < {2}".Format(userName, segment.Count, Const.UDP_LEN));
                 return;
             }
 
@@ -193,7 +193,11 @@ namespace Astraia
 
         public void Disconnect()
         {
-            if (state == State.断开连接) return;
+            if (state == State.断开连接)
+            {
+                return;
+            }
+
             try
             {
                 SendReliable(Opcode.断连);
@@ -202,7 +206,7 @@ namespace Astraia
             finally
             {
                 state = State.断开连接;
-                onDisconnect();
+                onDisconnect(userData);
             }
         }
 
@@ -250,7 +254,7 @@ namespace Astraia
                     case Opcode.握手:
                         state = State.连接成功;
                         userData = Common.Decode(segment.Array, segment.Offset);
-                        onConnect();
+                        onConnect(userData);
                         break;
                     case Opcode.数据:
                         onError(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));

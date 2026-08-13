@@ -18,8 +18,9 @@ namespace Astraia.Net
     {
         private readonly Dictionary<int, QueueWriter> packets = new Dictionary<int, QueueWriter>();
         internal readonly QueueReader reader = new QueueReader();
+        internal int serverId;
         internal bool isReady;
-
+    
         internal void Update()
         {
             foreach (var packet in packets)

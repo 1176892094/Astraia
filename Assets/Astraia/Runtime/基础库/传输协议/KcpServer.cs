@@ -91,7 +91,7 @@ namespace Astraia
             {
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    Log.Info("服务器发送消息失败!\n{0}", e);
+                    Log.Info("服务器接收消息失败!\n{0}", e);
                 }
 
                 return false;
@@ -118,19 +118,19 @@ namespace Astraia
             kcpPeer.Rebuild();
             return client;
 
-            void OnConnect()
+            void OnConnect(int serverId)
             {
                 Log.Info("客户端 {0} 连接到服务器。", id);
                 clients.Add(id, client);
                 client.kcpPeer.Handshake(id);
-                onConnect.Invoke(id);
+                onConnect(id);
             }
 
-            void OnDisconnect()
+            void OnDisconnect(int serverId)
             {
                 Log.Info("客户端 {0} 从服务器断开。", id);
                 removes.Add(id);
-                onDisconnect.Invoke(id);
+                onDisconnect(id);
             }
 
             void OnError(Error error, string reason)
@@ -140,7 +140,7 @@ namespace Astraia
 
             void OnReceive(ArraySegment<byte> message, int pass)
             {
-                onReceive.Invoke(id, message, pass);
+                onReceive(id, message, pass);
             }
 
             void OnSend(ArraySegment<byte> segment)

@@ -25,7 +25,7 @@ namespace Astraia
         private KcpPeer kcpPeer;
         private EndPoint endPoint;
 
-        public Action onConnect;
+        public Action<int> onConnect;
         public Action onDisconnect;
         public Action<Error, string> onError;
         public Action<ArraySegment<byte>> onSend;
@@ -119,21 +119,21 @@ namespace Astraia
             kcpPeer.Rebuild();
         }
 
-        private void OnConnect()
+        private void OnConnect(int serverId)
         {
-            Log.Info("客户端 {0} 连接到服务器。".Format(kcpPeer.userData));
+            Log.Info("客户端 {0} 连接到服务器。".Format(serverId));
             state = State.连接成功;
-            onConnect.Invoke();
+            onConnect(serverId);
         }
 
-        private void OnDisconnect()
+        private void OnDisconnect(int serverId)
         {
-            Log.Info("客户端 {0} 从服务器断开。".Format(kcpPeer.userData));
+            Log.Info("客户端 {0} 从服务器断开。".Format(serverId));
             state = State.断开连接;
             socket.Close();
             socket = null;
             endPoint = null;
-            onDisconnect.Invoke();
+            onDisconnect();
         }
 
         private void OnError(Error error, string message)
@@ -143,7 +143,7 @@ namespace Astraia
 
         private void OnReceive(ArraySegment<byte> segment, int pass)
         {
-            onReceive.Invoke(segment, pass);
+            onReceive(segment, pass);
         }
 
         private void OnSend(ArraySegment<byte> segment)

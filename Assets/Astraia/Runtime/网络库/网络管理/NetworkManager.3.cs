@@ -22,16 +22,18 @@ namespace Astraia.Net
             internal static readonly Dictionary<int, int> clients = new Dictionary<int, int>();
 
             internal static readonly Dictionary<int, int> players = new Dictionary<int, int>();
-          
+
             internal static State state = State.断开连接;
 
             private static int objectId;
+
+            private static int serverId;
 
             internal static bool isClient;
 
             internal static bool isServer;
             internal static bool isActive => state == State.连接成功;
-          
+
             internal static void Start()
             {
                 isRemote = true;
@@ -66,9 +68,10 @@ namespace Astraia.Net
                 NetworkAuthority.Instance.SendToServer(writer);
             }
 
-            private static void Connect()
+            private static void Connect(int serverId)
             {
                 state = State.正在连接;
+                Saloon.serverId = serverId;
             }
 
             internal static void Disconnect()
@@ -126,7 +129,7 @@ namespace Astraia.Net
 
                         if (isClient)
                         {
-                            Kcp.client.onConnect();
+                            Kcp.client.onConnect(serverId);
                         }
                     }
                     else if (opcode == Lobby.离开房间成功)
