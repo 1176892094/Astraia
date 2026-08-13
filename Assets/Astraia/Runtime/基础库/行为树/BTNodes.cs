@@ -101,9 +101,9 @@ namespace Astraia
         private readonly bool IsAny;
         private readonly INode[] Nodes;
 
-        public Parallel(string isAny, INode[] nodes)
+        public Parallel(bool isAny, INode[] nodes)
         {
-            IsAny = isAny == "Any";
+            IsAny = isAny;
             Nodes = nodes ?? Array.Empty<INode>();
         }
 
