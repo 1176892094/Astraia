@@ -20,10 +20,10 @@ namespace Astraia
     [Serializable]
     internal sealed class KcpServer
     {
-        private readonly Dictionary<int, KcpClient> clients = new Dictionary<int, KcpClient>();
-        private readonly HashSet<int> removes = new HashSet<int>();
-        private readonly byte[] buffer = new byte[Const.MTU_DEF];
+        private Dictionary<int, KcpClient> clients = new Dictionary<int, KcpClient>();
+        private byte[] buffer = new byte[Const.MTU_DEF];
         private Socket socket;
+        private List<int> removes = new List<int>();
         private EndPoint endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
 
         public Action<int> onConnect;
@@ -106,23 +106,22 @@ namespace Astraia
             }
         }
 
-        private KcpClient Register(int id)
+        private KcpPeer Register(int id)
         {
             var kcpPeer = new KcpPeer(nameof(KcpServer));
-            var client = new KcpClient(kcpPeer, endPoint);
             kcpPeer.onConnect = OnConnect;
             kcpPeer.onDisconnect = OnDisconnect;
             kcpPeer.onError = OnError;
             kcpPeer.onReceive = OnReceive;
             kcpPeer.onSend = OnSend;
             kcpPeer.Rebuild();
-            return client;
+            return kcpPeer;
 
             void OnConnect(int serverId)
             {
                 Log.Info("客户端 {0} 连接到服务器。", id);
-                clients.Add(id, client);
-                client.kcpPeer.Handshake(id);
+                clients.Add(id, new KcpClient(kcpPeer, endPoint));
+                kcpPeer.Handshake(id);
                 onConnect(id);
             }
 
@@ -175,9 +174,9 @@ namespace Astraia
                 }
                 else
                 {
-                    client = Register(id);
-                    client.kcpPeer.Input(segment);
-                    client.kcpPeer.EarlyUpdate();
+                    var kcpPeer = Register(id);
+                    kcpPeer.Input(segment);
+                    kcpPeer.EarlyUpdate();
                 }
             }
 

@@ -233,19 +233,14 @@ namespace Astraia
             public override int GetHashCode() => owner && owner.gameObject && owner.gameObject.activeInHierarchy ? 1 : 0;
         }
 
-        public static Timer Wait(this Component current, float duration = 0)
+        public static Watch Wait(this Component current, float duration = 0)
         {
-            return Timer.Create(new AsyncAdaptor(current), duration, GetTime);
+            return Watch.Create(new AsyncAdaptor(current), duration);
         }
 
         public static Tween Play(this Component current, float duration)
         {
-            return Tween.Create(new AsyncAdaptor(current), duration, GetTime);
-        }
-
-        private static float GetTime()
-        {
-            return Time.time;
+            return Tween.Create(new AsyncAdaptor(current), duration);
         }
 
         public static Tween DOMoveX(this Component component, float endValue, float duration)

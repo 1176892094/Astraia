@@ -18,9 +18,8 @@ namespace Astraia
     [Serializable]
     internal sealed class KcpClient
     {
-        private readonly byte[] buffer = new byte[Const.MTU_DEF];
+        private byte[] buffer = new byte[Const.MTU_DEF];
         private State state = State.断开连接;
-
         private Socket socket;
         private KcpPeer kcpPeer;
         private EndPoint endPoint;
