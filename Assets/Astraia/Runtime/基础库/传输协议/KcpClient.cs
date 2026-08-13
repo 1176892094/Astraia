@@ -51,7 +51,7 @@ namespace Astraia
                     socket.Blocked();
                     socket.Connect(endPoint);
                     Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
-                    kcpPeer.Handshake();
+                    kcpPeer.Handshake(0);
                 }
             }
             catch (SocketException e)

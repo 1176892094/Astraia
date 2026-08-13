@@ -37,7 +37,7 @@ namespace Astraia
 
     internal static class Common
     {
-        public static void Encode(byte[] p, int offset, uint value)
+        public static void Encode(byte[] p, int offset, int value)
         {
             p[0 + offset] = (byte)(value >> 0);
             p[1 + offset] = (byte)(value >> 8);
@@ -45,13 +45,13 @@ namespace Astraia
             p[3 + offset] = (byte)(value >> 24);
         }
 
-        public static uint Decode(byte[] p, int offset)
+        public static int Decode(byte[] p, int offset)
         {
-            uint result = 0;
+            var result = 0;
             result |= p[0 + offset];
-            result |= (uint)(p[1 + offset] << 8);
-            result |= (uint)(p[2 + offset] << 16);
-            result |= (uint)(p[3 + offset] << 24);
+            result |= p[1 + offset] << 8;
+            result |= p[2 + offset] << 16;
+            result |= p[3 + offset] << 24;
             return result;
         }
 

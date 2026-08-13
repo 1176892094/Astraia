@@ -26,10 +26,10 @@ namespace Astraia
         private uint pingTime;
         private uint nextTime;
         private uint waitTime;
-        public uint userData;
         private Protocol kcp;
         private State state;
 
+        public int userData;
         public Action onConnect;
         public Action onDisconnect;
         public Action<Error, string> onError;
@@ -64,14 +64,9 @@ namespace Astraia
             onSend(new ArraySegment<byte>(rawSendBuffer, 0, Const.HEAD_SIZE + count));
         }
 
-        public void Handshake()
+        public void Handshake(int userData)
         {
-            SendReliable(Opcode.握手, BitConverter.GetBytes(userData));
-        }
-
-        public void Handshake(int id)
-        {
-            userData = (uint)id;
+            this.userData = userData;
             SendReliable(Opcode.握手, BitConverter.GetBytes(userData));
         }
 
