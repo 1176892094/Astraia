@@ -307,14 +307,14 @@ namespace Astraia
             onEvent.Send(new ArraySegment<byte>(rawSendBuffer, 0, count + 1 + 4));
         }
 
-        public static uint KcpLength(uint count, uint window)
+        public static uint KcpLength(uint mtu, uint window)
         {
-            return (count - Kcp.IKCP_OVERHEAD - METADATA_SIZE) * (Math.Min(window, 255) - 1) - 1;
+            return (mtu - Kcp.IKCP_OVERHEAD - METADATA_SIZE) * (Math.Min(window, 255) - 1) - 1;
         }
 
-        public static uint UdpLength(uint count)
+        public static uint UdpLength(uint mtu)
         {
-            return count - METADATA_SIZE;
+            return mtu - METADATA_SIZE;
         }
 
         public void Handshake()
@@ -749,7 +749,7 @@ namespace Astraia
                 {
                     if (e.SocketErrorCode != SocketError.WouldBlock)
                     {
-                        Log.Error("服务器接收消息失败!\n{0}", e);
+                        Log.Error("服务器发送消息失败!\n{0}", e);
                     }
                 }
             }
