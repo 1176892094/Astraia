@@ -48,7 +48,7 @@ namespace Astraia
                     state = State.正在连接;
                     endPoint = new IPEndPoint(addresses[0], port);
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-                    Common.Blocked(socket);
+                    socket.Blocked();
                     socket.Connect(endPoint);
                     Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
                     kcpPeer.Handshake();
@@ -108,7 +108,7 @@ namespace Astraia
         {
             if (kcpPeer == null)
             {
-                kcpPeer = new KcpPeer(nameof(KcpClient), 0);
+                kcpPeer = new KcpPeer(nameof(KcpClient));
                 kcpPeer.onConnect = OnConnect;
                 kcpPeer.onDisconnect = OnDisconnect;
                 kcpPeer.onError = OnError;
@@ -121,14 +121,14 @@ namespace Astraia
 
         private void OnConnect()
         {
-            Log.Info("客户端连接成功。");
+            Log.Info("客户端 {0} 连接到服务器。".Format(kcpPeer.userData));
             state = State.连接成功;
             onConnect.Invoke();
         }
 
         private void OnDisconnect()
         {
-            Log.Info("客户端断开连接。");
+            Log.Info("客户端 {0} 从服务器断开。".Format(kcpPeer.userData));
             state = State.断开连接;
             socket.Close();
             socket = null;

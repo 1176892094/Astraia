@@ -55,7 +55,7 @@ namespace Astraia
             return result;
         }
 
-        public static void Blocked(Socket socket, int buffer = 1024 * 1024 * 7)
+        public static void Blocked(this Socket socket, int buffer = 1024 * 1024 * 7)
         {
             socket.Blocking = false;
             var sendBuffer = socket.SendBufferSize;

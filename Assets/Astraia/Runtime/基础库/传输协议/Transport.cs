@@ -16,6 +16,8 @@ namespace Astraia
     [Serializable]
     internal abstract class Transport
     {
+        public static Transport Instance;
+
         public string address = "localhost";
         public ushort port = 20974;
 
@@ -46,6 +48,7 @@ namespace Astraia
     {
         public override void Register(bool isRemote)
         {
+            Instance = this;
             client = new KcpClient();
             server = new KcpServer();
             if (isRemote)

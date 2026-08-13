@@ -23,7 +23,6 @@ namespace Astraia
         private readonly Dictionary<int, KcpClient> clients = new Dictionary<int, KcpClient>();
         private readonly HashSet<int> removes = new HashSet<int>();
         private readonly byte[] buffer = new byte[Const.MTU_DEF];
-
         private Socket socket;
         private EndPoint endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
 
@@ -60,7 +59,7 @@ namespace Astraia
             }
 
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-            Common.Blocked(socket);
+            socket.Blocked();
         }
 
         public void Send(int id, ArraySegment<byte> segment, int pass)
@@ -109,7 +108,7 @@ namespace Astraia
 
         private KcpClient Register(int id)
         {
-            var kcpPeer = new KcpPeer(nameof(KcpServer), id);
+            var kcpPeer = new KcpPeer(nameof(KcpServer));
             var client = new KcpClient(kcpPeer, endPoint);
             kcpPeer.onConnect = OnConnect;
             kcpPeer.onDisconnect = OnDisconnect;
@@ -123,7 +122,7 @@ namespace Astraia
             {
                 Log.Info("客户端 {0} 连接到服务器。", id);
                 clients.Add(id, client);
-                client.kcpPeer.Handshake();
+                client.kcpPeer.Handshake(id);
                 onConnect.Invoke(id);
             }
 
@@ -170,15 +169,15 @@ namespace Astraia
         {
             while (TryReceive(out var id, out var segment))
             {
-                if (!clients.TryGetValue(id, out var client))
+                if (clients.TryGetValue(id, out var client))
+                {
+                    client.kcpPeer.Input(segment);
+                }
+                else
                 {
                     client = Register(id);
                     client.kcpPeer.Input(segment);
                     client.kcpPeer.EarlyUpdate();
-                }
-                else
-                {
-                    client.kcpPeer.Input(segment);
                 }
             }
 
@@ -210,16 +209,6 @@ namespace Astraia
             socket = null;
         }
 
-        private class KcpClient
-        {
-            public readonly KcpPeer kcpPeer;
-            public readonly EndPoint endPoint;
-
-            public KcpClient(KcpPeer kcpPeer, EndPoint endPoint)
-            {
-                this.kcpPeer = kcpPeer;
-                this.endPoint = endPoint;
-            }
-        }
+        private record KcpClient(KcpPeer kcpPeer, EndPoint endPoint);
     }
 }

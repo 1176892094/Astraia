@@ -26,10 +26,9 @@ namespace Astraia
         private uint pingTime;
         private uint nextTime;
         private uint waitTime;
-        private uint userData;
+        public uint userData;
         private Protocol kcp;
         private State state;
-        private uint Time => (uint)watch.ElapsedMilliseconds;
 
         public Action onConnect;
         public Action onDisconnect;
@@ -37,10 +36,11 @@ namespace Astraia
         public Action<ArraySegment<byte>> onSend;
         public Action<ArraySegment<byte>, int> onReceive;
 
-        public KcpPeer(string userName, int userData)
+        private uint Time => (uint)watch.ElapsedMilliseconds;
+
+        public KcpPeer(string userName)
         {
             this.userName = userName;
-            this.userData = (uint)userData;
         }
 
         public void Rebuild()
@@ -61,12 +61,18 @@ namespace Astraia
             rawSendBuffer[0] = Pass.KCP;
             Common.Encode(rawSendBuffer, 1, userData);
             Buffer.BlockCopy(bytes, 0, rawSendBuffer, Const.HEAD_SIZE, count);
-            onSend(new ArraySegment<byte>(rawSendBuffer, 0, count + Const.HEAD_SIZE));
+            onSend(new ArraySegment<byte>(rawSendBuffer, 0, Const.HEAD_SIZE + count));
         }
 
         public void Handshake()
         {
-            SendReliable(Opcode.握手, new ArraySegment<byte>(BitConverter.GetBytes(userData)));
+            SendReliable(Opcode.握手, BitConverter.GetBytes(userData));
+        }
+
+        public void Handshake(int id)
+        {
+            userData = (uint)id;
+            SendReliable(Opcode.握手, BitConverter.GetBytes(userData));
         }
 
         private bool TryReceive(out Opcode message, out ArraySegment<byte> segment)
@@ -134,7 +140,7 @@ namespace Astraia
 
         private void SendReliable(Opcode message, ArraySegment<byte> segment = default)
         {
-            if (segment.Count + 1 > kcpSendBuffer.Length)
+            if (segment.Count > Const.KCP_LEN)
             {
                 onError(Error.无效发送, "{0}发送网络消息过大。消息大小: {1} < {2}".Format(userName, segment.Count, Const.KCP_LEN));
                 return;
@@ -211,12 +217,14 @@ namespace Astraia
             {
                 onError(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, waitTime / 1000));
                 Disconnect();
+                return;
             }
 
             if (kcp.State == unchecked((uint)-1))
             {
                 onError(Error.连接超时, "{0}网络消息被重传了{1}次而没有得到确认！".Format(userName, kcp.Death));
                 Disconnect();
+                return;
             }
 
             if (sinceTime >= pingTime + Const.PING_TIME)
