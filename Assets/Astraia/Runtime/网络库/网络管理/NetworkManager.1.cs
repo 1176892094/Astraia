@@ -118,12 +118,12 @@ namespace Astraia.Net
         {
             private static void AddMessage()
             {
-                Kcp.sEvent.Connect -= Connect;
-                Kcp.sEvent.Disconnect -= Disconnect;
-                Kcp.sEvent.Receive -= Receive;
-                Kcp.sEvent.Connect += Connect;
-                Kcp.sEvent.Disconnect += Disconnect;
-                Kcp.sEvent.Receive += Receive;
+                Kcp.server.onConnect -= Connect;
+                Kcp.server.onDisconnect -= Disconnect;
+                Kcp.server.onReceive -= Receive;
+                Kcp.server.onConnect += Connect;
+                Kcp.server.onDisconnect += Disconnect;
+                Kcp.server.onReceive += Receive;
                 NetworkMessage<PongMessage>.Add(PongMessage);
                 NetworkMessage<ReadyMessage>.Add(ReadyMessage);
                 NetworkMessage<EntityMessage>.Add(EntityMessage);

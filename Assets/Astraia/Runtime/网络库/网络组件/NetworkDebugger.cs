@@ -992,14 +992,14 @@ namespace Astraia.Net
         {
             if (NetworkManager.Kcp!= null)
             {
-                NetworkManager.Kcp.cEvent.Send -= OnClientSend;
-                NetworkManager.Kcp.sEvent.Send -= OnServerSend;
-                NetworkManager.Kcp.cEvent.Receive -= OnClientReceive;
-                NetworkManager.Kcp.sEvent.Receive -= OnServerReceive;
-                NetworkManager.Kcp.cEvent.Send += OnClientSend;
-                NetworkManager.Kcp.sEvent.Send += OnServerSend;
-                NetworkManager.Kcp.cEvent.Receive += OnClientReceive;
-                NetworkManager.Kcp.sEvent.Receive += OnServerReceive;
+                NetworkManager.Kcp.client.onSend -= OnClientSend;
+                NetworkManager.Kcp.server.onSend -= OnServerSend;
+                NetworkManager.Kcp.client.onReceive -= OnClientReceive;
+                NetworkManager.Kcp.server.onReceive -= OnServerReceive;
+                NetworkManager.Kcp.client.onSend += OnClientSend;
+                NetworkManager.Kcp.server.onSend += OnServerSend;
+                NetworkManager.Kcp.client.onReceive += OnClientReceive;
+                NetworkManager.Kcp.server.onReceive += OnServerReceive;
             }
 
             isActive = true;

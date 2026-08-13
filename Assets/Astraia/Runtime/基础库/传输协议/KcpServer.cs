@@ -17,21 +17,27 @@ using System.Runtime.InteropServices;
 
 namespace Astraia
 {
+    [Serializable]
     internal sealed class KcpServer
     {
         private readonly Dictionary<int, KcpClient> clients = new Dictionary<int, KcpClient>();
         private readonly HashSet<int> removes = new HashSet<int>();
         private readonly byte[] buffer;
-        private readonly SEvent onEvent;
+
         private readonly Setting setting;
 
         private Socket socket;
         private EndPoint endPoint;
 
-        public KcpServer(Setting setting, SEvent onEvent)
+        public Action<int> onConnect;
+        public Action<int> onDisconnect;
+        public Action<int, Error, string> onError;
+        public Action<int, ArraySegment<byte>> onSend;
+        public Action<int, ArraySegment<byte>, int> onReceive;
+
+        public KcpServer(Setting setting)
         {
             this.setting = setting;
-            this.onEvent = onEvent;
             buffer = new byte[setting.MaxUnit];
             endPoint = setting.DualMode ? new IPEndPoint(IPAddress.IPv6Any, 0) : new IPEndPoint(IPAddress.Any, 0);
         }
@@ -80,6 +86,7 @@ namespace Astraia
             if (clients.TryGetValue(id, out var client))
             {
                 client.kcpPeer.SendData(segment, pass);
+                onSend?.Invoke(id, segment);
             }
         }
 
@@ -120,13 +127,13 @@ namespace Astraia
 
         private KcpClient Register(int id)
         {
-            var newEvent = new CEvent();
-            var client = new KcpClient(new KcpPeer(setting, newEvent, "服务器"), endPoint);
-            newEvent.Connect = OnConnect;
-            newEvent.Disconnect = OnDisconnect;
-            newEvent.Error = OnError;
-            newEvent.Receive = OnReceive;
-            newEvent.Send = OnSend;
+            var kcpPeer = new KcpPeer(setting, "服务器");
+            var client = new KcpClient(kcpPeer, endPoint);
+            kcpPeer.onConnect = OnConnect;
+            kcpPeer.onDisconnect = OnDisconnect;
+            kcpPeer.onError = OnError;
+            kcpPeer.onReceive = OnReceive;
+            kcpPeer.onSend = OnSend;
             return client;
 
             void OnConnect()
@@ -134,24 +141,24 @@ namespace Astraia
                 Log.Info("客户端 {0} 连接到服务器。", id);
                 clients.Add(id, client);
                 client.kcpPeer.Handshake();
-                onEvent.Connect.Invoke(id);
+                onConnect.Invoke(id);
             }
 
             void OnDisconnect()
             {
                 Log.Info("客户端 {0} 从服务器断开。", id);
                 removes.Add(id);
-                onEvent.Disconnect.Invoke(id);
+                onDisconnect.Invoke(id);
             }
 
             void OnError(Error error, string reason)
             {
-                onEvent.Error?.Invoke(id, error, reason);
+                onError?.Invoke(id, error, reason);
             }
 
             void OnReceive(ArraySegment<byte> message, int pass)
             {
-                onEvent.Receive.Invoke(id, message, pass);
+                onReceive.Invoke(id, message, pass);
             }
 
             void OnSend(ArraySegment<byte> segment)

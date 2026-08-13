@@ -10,33 +10,9 @@
 // *********************************************************************************
 
 using System;
-using System.Threading;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Net;
-using System.Diagnostics;
-using System.Net.Sockets;
 
 namespace Astraia
 {
-    internal class SEvent
-    {
-        public Action<int> Connect;
-        public Action<int> Disconnect;
-        public Action<int, Error, string> Error;
-        public Action<int, ArraySegment<byte>> Send;
-        public Action<int, ArraySegment<byte>, int> Receive;
-    }
-
-    internal class CEvent
-    {
-        public Action Connect;
-        public Action Disconnect;
-        public Action<Error, string> Error;
-        public Action<ArraySegment<byte>> Send;
-        public Action<ArraySegment<byte>, int> Receive;
-    }
-
     internal readonly struct Setting
     {
         public readonly uint MaxUnit;
@@ -71,9 +47,8 @@ namespace Astraia
         public string address = "localhost";
         public ushort port = 20974;
 
-        public readonly CEvent cEvent = new CEvent();
-        public readonly SEvent sEvent = new SEvent();
-
+        public KcpClient client;
+        public KcpServer server;
         public abstract void Register(bool isRemote);
         public abstract uint GetLength(int pass);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP);
@@ -100,21 +75,18 @@ namespace Astraia
         private const uint SEND_WIN = 1024 * 4;
         private const uint RECEIVE_WIN = 1024 * 4;
 
-        private KcpClient kcpClient;
-        private KcpServer kcpServer;
-
         public override void Register(bool isRemote)
         {
             var setting = new Setting(MAX_MTU, TIME_OUT, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
-            kcpClient = new KcpClient(setting, cEvent);
-            kcpServer = new KcpServer(setting, sEvent);
+            client = new KcpClient(setting);
+            server = new KcpServer(setting);
             if (isRemote)
             {
-                sEvent.Error = OnServerError;
+                server.onError = OnServerError;
             }
             else
             {
-                cEvent.Error = OnClientError;
+                client.onError = OnClientError;
             }
         }
 
@@ -138,59 +110,57 @@ namespace Astraia
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP)
         {
-            kcpServer.Send(clientId, segment, pass);
-            sEvent.Send?.Invoke(clientId, segment);
+            server.Send(clientId, segment, pass);
         }
 
         public override void SendToServer(ArraySegment<byte> segment, int pass = Pass.KCP)
         {
-            kcpClient.Send(segment, pass);
-            cEvent.Send?.Invoke(segment);
+            client.Send(segment, pass);
         }
 
         public override void StartServer()
         {
-            kcpServer.Connect(port);
+            server.Connect(port);
         }
 
         public override void StopServer()
         {
-            kcpServer.StopServer();
+            server.StopServer();
         }
 
         public override void Disconnect(int clientId)
         {
-            kcpServer.Disconnect(clientId);
+            server.Disconnect(clientId);
         }
 
         public override void StartClient()
         {
-            kcpClient.Connect(address, port);
+            client.Connect(address, port);
         }
 
         public override void StopClient()
         {
-            kcpClient.Disconnect();
+            client.Disconnect();
         }
 
         public override void ClientEarlyUpdate()
         {
-            kcpClient.EarlyUpdate();
+            client.EarlyUpdate();
         }
 
         public override void ClientAfterUpdate()
         {
-            kcpClient.AfterUpdate();
+            client.AfterUpdate();
         }
 
         public override void ServerEarlyUpdate()
         {
-            kcpServer.EarlyUpdate();
+            server.EarlyUpdate();
         }
 
         public override void ServerAfterUpdate()
         {
-            kcpServer.AfterUpdate();
+            server.AfterUpdate();
         }
     }
 }

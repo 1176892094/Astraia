@@ -15,20 +15,26 @@ using System.Net.Sockets;
 
 namespace Astraia
 {
+    [Serializable]
     internal sealed class KcpClient
     {
         private readonly byte[] buffer;
-        private readonly CEvent onEvent;
+
         private readonly Setting setting;
         private State state;
         private Socket socket;
         private KcpPeer kcpPeer;
         private EndPoint endPoint;
 
-        public KcpClient(Setting setting, CEvent onEvent)
+        public Action onConnect;
+        public Action onDisconnect;
+        public Action<Error, string> onError;
+        public Action<ArraySegment<byte>> onSend;
+        public Action<ArraySegment<byte>, int> onReceive;
+
+        public KcpClient(Setting setting)
         {
             this.setting = setting;
-            this.onEvent = onEvent;
             buffer = new byte[setting.MaxUnit];
             state = State.断开连接;
         }
@@ -58,8 +64,8 @@ namespace Astraia
             }
             catch (SocketException e)
             {
-                onEvent.Error(Error.解析失败, "无法解析主机地址: {0}\n{1}".Format(address, e));
-                onEvent.Disconnect();
+                onError(Error.解析失败, "无法解析主机地址: {0}\n{1}".Format(address, e));
+                onDisconnect();
             }
         }
 
@@ -68,6 +74,7 @@ namespace Astraia
             if (state != State.断开连接)
             {
                 kcpPeer.SendData(segment, pass);
+                onSend?.Invoke(segment);
             }
         }
 
@@ -109,13 +116,12 @@ namespace Astraia
         {
             if (kcpPeer == null)
             {
-                var newEvent = new CEvent();
-                kcpPeer = new KcpPeer(setting, newEvent, "客户端");
-                newEvent.Connect = OnConnect;
-                newEvent.Disconnect = OnDisconnect;
-                newEvent.Error = OnError;
-                newEvent.Receive = OnReceive;
-                newEvent.Send = OnSend;
+                kcpPeer = new KcpPeer(setting, "客户端");
+                kcpPeer.onConnect = OnConnect;
+                kcpPeer.onDisconnect = OnDisconnect;
+                kcpPeer.onError = OnError;
+                kcpPeer.onReceive = OnReceive;
+                kcpPeer.onSend = OnSend;
             }
             else
             {
@@ -127,7 +133,7 @@ namespace Astraia
         {
             Log.Info("客户端连接成功。");
             state = State.连接成功;
-            onEvent.Connect.Invoke();
+            onConnect.Invoke();
         }
 
         private void OnDisconnect()
@@ -137,17 +143,17 @@ namespace Astraia
             socket.Close();
             socket = null;
             endPoint = null;
-            onEvent.Disconnect.Invoke();
+            onDisconnect.Invoke();
         }
 
         private void OnError(Error error, string message)
         {
-            onEvent.Error?.Invoke(error, message);
+            onError?.Invoke(error, message);
         }
 
         private void OnReceive(ArraySegment<byte> segment, int pass)
         {
-            onEvent.Receive.Invoke(segment, pass);
+            onReceive.Invoke(segment, pass);
         }
 
         private void OnSend(ArraySegment<byte> segment)

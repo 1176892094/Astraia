@@ -92,12 +92,12 @@ namespace Astraia.Net
             {
                 if (!isHost)
                 {
-                    Kcp.cEvent.Connect -= Connect;
-                    Kcp.cEvent.Disconnect -= Disconnect;
-                    Kcp.cEvent.Receive -= Receive;
-                    Kcp.cEvent.Connect += Connect;
-                    Kcp.cEvent.Disconnect += Disconnect;
-                    Kcp.cEvent.Receive += Receive;
+                    Kcp.client.onConnect -= Connect;
+                    Kcp.client.onDisconnect -= Disconnect;
+                    Kcp.client.onReceive -= Receive;
+                    Kcp.client.onConnect += Connect;
+                    Kcp.client.onDisconnect += Disconnect;
+                    Kcp.client.onReceive += Receive;
                 }
 
                 NetworkMessage<PingMessage>.Add(PingMessage);
