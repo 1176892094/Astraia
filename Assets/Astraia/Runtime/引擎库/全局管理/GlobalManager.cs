@@ -29,6 +29,7 @@ namespace Astraia
         private void Update()
         {
             EventManager.Invoke(new OnEarlyUpdate());
+            TimeManager.RenderUpdate(Time.time);
         }
 
         private void LateUpdate()
@@ -39,6 +40,7 @@ namespace Astraia
         private void FixedUpdate()
         {
             EventManager.Invoke(new OnFixedUpdate());
+            TimeManager.PhysicUpdate(Time.fixedTime);
         }
 
         private void OnDrawGizmos()
@@ -63,4 +65,12 @@ namespace Astraia
             Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
         }
     }
+
+    public struct OnEarlyUpdate : IEvent { }
+
+    public struct OnAfterUpdate : IEvent { }
+
+    public struct OnFixedUpdate : IEvent { }
+
+    public struct OnGizmoUpdate : IEvent { }
 }
