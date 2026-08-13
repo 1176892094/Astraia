@@ -13,34 +13,6 @@ using System;
 
 namespace Astraia
 {
-    internal readonly struct Setting
-    {
-        public readonly uint MaxUnit;
-        public readonly uint Timeout;
-        public readonly uint Interval;
-        public readonly uint DeadLink;
-        public readonly uint FastResend;
-        public readonly uint SendWindow;
-        public readonly uint ReceiveWindow;
-        public readonly bool NoDelay;
-        public readonly bool DualMode;
-        public readonly bool Congestion;
-
-        public Setting(uint MaxUnit = Kcp.IKCP_MTU_DEF, uint Timeout = 10000, uint Interval = 10, uint DeadLink = Kcp.IKCP_DEADLINK, uint FastResend = 0, uint SendWindow = Kcp.IKCP_WND_SND, uint ReceiveWindow = Kcp.IKCP_WND_RCV, bool NoDelay = true, bool DualMode = true, bool Congestion = false)
-        {
-            this.MaxUnit = MaxUnit;
-            this.Timeout = Timeout;
-            this.Interval = Interval;
-            this.DeadLink = DeadLink;
-            this.FastResend = FastResend;
-            this.SendWindow = SendWindow;
-            this.ReceiveWindow = ReceiveWindow;
-            this.NoDelay = NoDelay;
-            this.DualMode = DualMode;
-            this.Congestion = Congestion;
-        }
-    }
-
     [Serializable]
     internal abstract class Transport
     {
@@ -49,8 +21,13 @@ namespace Astraia
 
         public KcpClient client;
         public KcpServer server;
+
+        public uint GetLength(int pass)
+        {
+            return pass == Pass.KCP ? Const.KCP_LEN : Const.UDP_LEN;
+        }
+
         public abstract void Register(bool isRemote);
-        public abstract uint GetLength(int pass);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP);
         public abstract void SendToServer(ArraySegment<byte> segment, int pass = Pass.KCP);
         public abstract void StartServer();
@@ -67,19 +44,10 @@ namespace Astraia
     [Serializable]
     internal sealed class NetworkTransport : Transport
     {
-        private const uint MAX_MTU = 1200;
-        private const uint TIME_OUT = 10000;
-        private const uint INTERVAL = 10;
-        private const uint DEAD_LINK = 40;
-        private const uint FAST_RESEND = 2;
-        private const uint SEND_WIN = 1024 * 4;
-        private const uint RECEIVE_WIN = 1024 * 4;
-
         public override void Register(bool isRemote)
         {
-            var setting = new Setting(MAX_MTU, TIME_OUT, INTERVAL, DEAD_LINK, FAST_RESEND, SEND_WIN, RECEIVE_WIN);
-            client = new KcpClient(setting);
-            server = new KcpServer(setting);
+            client = new KcpClient();
+            server = new KcpServer();
             if (isRemote)
             {
                 server.onError = OnServerError;
@@ -101,11 +69,6 @@ namespace Astraia
         private static void OnClientError(Error error, string message)
         {
             Log.Warn("错误代码: {0}\n{1}", error, message);
-        }
-
-        public override uint GetLength(int pass)
-        {
-            return pass == Pass.KCP ? KcpPeer.KcpLength(MAX_MTU, RECEIVE_WIN) : KcpPeer.UdpLength(MAX_MTU);
         }
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP)

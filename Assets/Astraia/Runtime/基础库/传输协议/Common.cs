@@ -13,6 +13,28 @@ using System.Net.Sockets;
 
 namespace Astraia
 {
+    internal static class Const
+    {
+        public const uint MTU_DEF = 1200;
+        public const uint SED_WIN = 1024;
+        public const uint REV_WIN = 1024;
+
+        public const uint INTERVAL = 10;
+        public const uint DEAD_LINK = 40;
+        public const uint PING_TIME = 1000;
+        public const uint WAIT_TIME = 10000;
+        public const uint FAST_RESEND = 2;
+
+        public const int HEAD_PASS = sizeof(byte);
+        public const int HEAD_DATA = sizeof(uint);
+        public const int HEAD_META = sizeof(byte);
+        public const int HEAD_SIZE = HEAD_PASS + HEAD_DATA;
+
+        public const uint KCP_DEF = MTU_DEF - HEAD_SIZE - Kcp.IKCP_OVERHEAD;
+        public const uint UDP_LEN = MTU_DEF - HEAD_SIZE;
+        public const uint KCP_LEN = KCP_DEF * 254 - HEAD_META;
+    }
+
     internal static class Common
     {
         public static void Encode(byte[] p, int offset, uint value)

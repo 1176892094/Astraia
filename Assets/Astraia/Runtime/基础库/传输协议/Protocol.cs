@@ -79,19 +79,19 @@ namespace Astraia
             Kcp.iqueue_del_init(&kcp->snd_queue);
         }
 
-        public void SetData(uint mtu, uint deadLink)
+        public void SetData(uint mtu)
         {
-            kcp->dead_link = deadLink;
             Kcp.ikcp_setmtu(kcp, (int)mtu, ref buffer);
         }
 
-        public void SetDelay(bool noDelay, uint interval, uint resend, bool nc)
+        public void SetDelay(uint interval, uint resend)
         {
-            Kcp.ikcp_nodelay(kcp, noDelay ? 1 : 0, (int)interval, (int)resend, nc ? 1 : 0);
+            Kcp.ikcp_nodelay(kcp, 1, (int)interval, (int)resend, 1);
         }
 
-        public void SetWindow(uint send, uint receive)
+        public void SetWindow(uint send, uint receive, uint deadLink)
         {
+            kcp->dead_link = deadLink;
             Kcp.ikcp_wndsize(kcp, (int)send, (int)receive);
         }
 

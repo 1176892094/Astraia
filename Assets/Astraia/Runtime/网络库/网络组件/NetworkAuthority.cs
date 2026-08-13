@@ -18,14 +18,7 @@ namespace Astraia.Net
     {
         public static Transport Instance;
 
-        public override void Register(bool isRemote)
-        {
-        }
-
-        public override uint GetLength(int pass)
-        {
-            return Instance.GetLength(pass);
-        }
+        public override void Register(bool isRemote) { }
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP)
         {
@@ -112,13 +105,9 @@ namespace Astraia.Net
             Instance.ClientAfterUpdate();
         }
 
-        public override void ServerEarlyUpdate()
-        {
-        }
+        public override void ServerEarlyUpdate() { }
 
-        public override void ServerAfterUpdate()
-        {
-        }
+        public override void ServerAfterUpdate() { }
     }
 
     [Serializable]

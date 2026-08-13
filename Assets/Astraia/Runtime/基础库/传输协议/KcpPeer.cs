@@ -17,51 +17,41 @@ namespace Astraia
 {
     internal sealed class KcpPeer
     {
-        private const int PING_INTERVAL = 1000;
-        private const int METADATA_SIZE = sizeof(byte) + sizeof(int);
-        private readonly byte[] rawSendBuffer;
-        private readonly byte[] kcpSendBuffer;
-        private readonly byte[] kcpDataBuffer;
-        private readonly uint kcpLength;
-        private readonly uint udpLength;
+        private readonly byte[] rawSendBuffer = new byte[Const.MTU_DEF];
+        private readonly byte[] kcpSendBuffer = new byte[Const.KCP_LEN + 1];
+        private readonly byte[] kcpDataBuffer = new byte[Const.KCP_LEN + 1];
+
         private readonly string userName;
         private readonly Stopwatch watch = new Stopwatch();
-        private uint skipTime;
         private uint pingTime;
+        private uint nextTime;
         private uint waitTime;
         private uint userData;
         private Protocol kcp;
         private State state;
         private uint Time => (uint)watch.ElapsedMilliseconds;
-        
+
         public Action onConnect;
         public Action onDisconnect;
         public Action<Error, string> onError;
         public Action<ArraySegment<byte>> onSend;
         public Action<ArraySegment<byte>, int> onReceive;
 
-        public KcpPeer(Setting setting, string userName, uint userData = 0)
+        public KcpPeer(string userName, int userData)
         {
-            Rebuild(setting);
             this.userName = userName;
-            this.userData = userData;
-            udpLength = UdpLength(setting.MaxUnit);
-            kcpLength = KcpLength(setting.MaxUnit, setting.ReceiveWindow);
-            kcpDataBuffer = new byte[1 + kcpLength];
-            kcpSendBuffer = new byte[1 + kcpLength];
-            rawSendBuffer = new byte[setting.MaxUnit];
+            this.userData = (uint)userData;
         }
 
-        public void Rebuild(Setting setting)
+        public void Rebuild()
         {
-            userData = 0;
             pingTime = 0;
-            waitTime = 0;
-            skipTime = setting.Timeout;
+            nextTime = 0;
+            waitTime = Const.WAIT_TIME;
             kcp = new Protocol(0, SendReliable);
-            kcp.SetData(setting.MaxUnit - METADATA_SIZE, setting.DeadLink);
-            kcp.SetDelay(setting.NoDelay, setting.Interval, setting.FastResend, !setting.Congestion);
-            kcp.SetWindow(setting.SendWindow, setting.ReceiveWindow);
+            kcp.SetData(Const.MTU_DEF - Const.HEAD_SIZE);
+            kcp.SetDelay(Const.INTERVAL, Const.FAST_RESEND);
+            kcp.SetWindow(Const.SED_WIN, Const.REV_WIN, Const.DEAD_LINK);
             state = State.正在连接;
             watch.Restart();
         }
@@ -70,18 +60,8 @@ namespace Astraia
         {
             rawSendBuffer[0] = Pass.KCP;
             Common.Encode(rawSendBuffer, 1, userData);
-            Buffer.BlockCopy(bytes, 0, rawSendBuffer, 1 + 4, count);
-            onSend(new ArraySegment<byte>(rawSendBuffer, 0, count + 1 + 4));
-        }
-
-        public static uint KcpLength(uint mtu, uint window)
-        {
-            return (mtu - Kcp.IKCP_OVERHEAD - METADATA_SIZE) * (Math.Min(window, 255) - 1) - 1;
-        }
-
-        public static uint UdpLength(uint mtu)
-        {
-            return mtu - METADATA_SIZE;
+            Buffer.BlockCopy(bytes, 0, rawSendBuffer, Const.HEAD_SIZE, count);
+            onSend(new ArraySegment<byte>(rawSendBuffer, 0, count + Const.HEAD_SIZE));
         }
 
         public void Handshake()
@@ -115,13 +95,13 @@ namespace Astraia
 
             message = (Opcode)kcpDataBuffer[0];
             segment = new ArraySegment<byte>(kcpDataBuffer, 1, count - 1);
-            waitTime = Time;
+            nextTime = Time;
             return true;
         }
 
         public void Input(ArraySegment<byte> segment)
         {
-            if (segment.Count <= 1 + 4)
+            if (segment.Count <= Const.HEAD_SIZE)
             {
                 return;
             }
@@ -134,7 +114,7 @@ namespace Astraia
                 return;
             }
 
-            var message = new ArraySegment<byte>(segment.Array, segment.Offset + 1 + 4, segment.Count - 1 - 4);
+            var message = new ArraySegment<byte>(segment.Array, segment.Offset + Const.HEAD_SIZE, segment.Count - Const.HEAD_SIZE);
             if (pass == Pass.KCP)
             {
                 if (kcp.Input(message.Array, message.Offset, message.Count) != 0)
@@ -147,7 +127,7 @@ namespace Astraia
                 if (state == State.连接成功)
                 {
                     onReceive(message, Pass.UDP);
-                    waitTime = Time;
+                    nextTime = Time;
                 }
             }
         }
@@ -156,7 +136,7 @@ namespace Astraia
         {
             if (segment.Count + 1 > kcpSendBuffer.Length)
             {
-                onError(Error.无效发送, "{0}发送网络消息过大。消息大小: {1} < {2}".Format(userName, segment.Count, kcpLength));
+                onError(Error.无效发送, "{0}发送网络消息过大。消息大小: {1} < {2}".Format(userName, segment.Count, Const.KCP_LEN));
                 return;
             }
 
@@ -174,7 +154,7 @@ namespace Astraia
 
         private void SendUnreliable(ArraySegment<byte> segment)
         {
-            if (segment.Count > udpLength)
+            if (segment.Count > Const.UDP_LEN)
             {
                 Log.Error("{0}发送不可靠消息失败。消息大小: {1}", userName, segment.Count);
                 return;
@@ -184,10 +164,10 @@ namespace Astraia
             Common.Encode(rawSendBuffer, 1, userData);
             if (segment.Count > 0)
             {
-                Buffer.BlockCopy(segment.Array!, segment.Offset, rawSendBuffer, 1 + 4, segment.Count);
+                Buffer.BlockCopy(segment.Array!, segment.Offset, rawSendBuffer, Const.HEAD_SIZE, segment.Count);
             }
 
-            onSend(new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + 1 + 4));
+            onSend(new ArraySegment<byte>(rawSendBuffer, 0, segment.Count + Const.HEAD_SIZE));
         }
 
         public void SendData(ArraySegment<byte> segment, int pass)
@@ -227,9 +207,9 @@ namespace Astraia
 
         private void BeforeReceive(uint sinceTime)
         {
-            if (sinceTime >= waitTime + skipTime)
+            if (sinceTime >= nextTime + waitTime)
             {
-                onError(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, skipTime / 1000));
+                onError(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, waitTime / 1000));
                 Disconnect();
             }
 
@@ -239,7 +219,7 @@ namespace Astraia
                 Disconnect();
             }
 
-            if (sinceTime >= pingTime + PING_INTERVAL)
+            if (sinceTime >= pingTime + Const.PING_TIME)
             {
                 SendReliable(Opcode.心跳);
                 pingTime = sinceTime;

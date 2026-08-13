@@ -22,25 +22,16 @@ namespace Astraia
     {
         private readonly Dictionary<int, KcpClient> clients = new Dictionary<int, KcpClient>();
         private readonly HashSet<int> removes = new HashSet<int>();
-        private readonly byte[] buffer;
-
-        private readonly Setting setting;
+        private readonly byte[] buffer = new byte[Const.MTU_DEF];
 
         private Socket socket;
-        private EndPoint endPoint;
+        private EndPoint endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
 
         public Action<int> onConnect;
         public Action<int> onDisconnect;
         public Action<int, Error, string> onError;
         public Action<int, ArraySegment<byte>> onSend;
         public Action<int, ArraySegment<byte>, int> onReceive;
-
-        public KcpServer(Setting setting)
-        {
-            this.setting = setting;
-            buffer = new byte[setting.MaxUnit];
-            endPoint = setting.DualMode ? new IPEndPoint(IPAddress.IPv6Any, 0) : new IPEndPoint(IPAddress.Any, 0);
-        }
 
         public void Connect(ushort port)
         {
@@ -50,34 +41,25 @@ namespace Astraia
                 return;
             }
 
-            if (setting.DualMode)
+            socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+            try
             {
-                socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
-                try
-                {
-                    socket.DualMode = true;
-                }
-                catch (NotSupportedException e)
-                {
-                    Log.Warn("服务器不支持双连接模式!\n{0}", e);
-                }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    const uint IOC_IN = 0x80000000U;
-                    const uint IOC_VENDOR = 0x18000000U;
-                    const int SIO_UDP_RESET = unchecked((int)(IOC_IN | IOC_VENDOR | 12));
-                    socket.IOControl(SIO_UDP_RESET, new byte[] { 0x00 }, null);
-                }
-
-                socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
+                socket.DualMode = true;
             }
-            else
+            catch (NotSupportedException e)
             {
-                socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                socket.Bind(new IPEndPoint(IPAddress.Any, port));
+                Log.Warn("服务器不支持双连接模式!\n{0}", e);
             }
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                const uint IOC_IN = 0x80000000U;
+                const uint IOC_VENDOR = 0x18000000U;
+                const int SIO_UDP_RESET = unchecked((int)(IOC_IN | IOC_VENDOR | 12));
+                socket.IOControl(SIO_UDP_RESET, new byte[] { 0x00 }, null);
+            }
+
+            socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
             Common.Blocked(socket);
         }
 
@@ -127,13 +109,14 @@ namespace Astraia
 
         private KcpClient Register(int id)
         {
-            var kcpPeer = new KcpPeer(setting, "服务器");
+            var kcpPeer = new KcpPeer(nameof(KcpServer), id);
             var client = new KcpClient(kcpPeer, endPoint);
             kcpPeer.onConnect = OnConnect;
             kcpPeer.onDisconnect = OnDisconnect;
             kcpPeer.onError = OnError;
             kcpPeer.onReceive = OnReceive;
             kcpPeer.onSend = OnSend;
+            kcpPeer.Rebuild();
             return client;
 
             void OnConnect()

@@ -18,10 +18,9 @@ namespace Astraia
     [Serializable]
     internal sealed class KcpClient
     {
-        private readonly byte[] buffer;
+        private readonly byte[] buffer = new byte[Const.MTU_DEF];
+        private State state = State.断开连接;
 
-        private readonly Setting setting;
-        private State state;
         private Socket socket;
         private KcpPeer kcpPeer;
         private EndPoint endPoint;
@@ -31,13 +30,6 @@ namespace Astraia
         public Action<Error, string> onError;
         public Action<ArraySegment<byte>> onSend;
         public Action<ArraySegment<byte>, int> onReceive;
-
-        public KcpClient(Setting setting)
-        {
-            this.setting = setting;
-            buffer = new byte[setting.MaxUnit];
-            state = State.断开连接;
-        }
 
         public void Connect(string address, ushort port)
         {
@@ -52,7 +44,7 @@ namespace Astraia
                 var addresses = Dns.GetHostAddresses(address);
                 if (addresses.Length >= 1)
                 {
-                    Register(setting);
+                    Register();
                     state = State.正在连接;
                     endPoint = new IPEndPoint(addresses[0], port);
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
@@ -112,21 +104,19 @@ namespace Astraia
             }
         }
 
-        private void Register(Setting setting)
+        private void Register()
         {
             if (kcpPeer == null)
             {
-                kcpPeer = new KcpPeer(setting, "客户端");
+                kcpPeer = new KcpPeer(nameof(KcpClient), 0);
                 kcpPeer.onConnect = OnConnect;
                 kcpPeer.onDisconnect = OnDisconnect;
                 kcpPeer.onError = OnError;
                 kcpPeer.onReceive = OnReceive;
                 kcpPeer.onSend = OnSend;
             }
-            else
-            {
-                kcpPeer.Rebuild(setting);
-            }
+
+            kcpPeer.Rebuild();
         }
 
         private void OnConnect()
