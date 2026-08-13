@@ -1029,7 +1029,7 @@ namespace Astraia.Net
         {
             if (isActive)
             {
-                Send.Record(message, Compress.Invoke((uint)bytes) + bytes);
+                Send.Record(message, Compress.Length((uint)bytes) + bytes);
             }
         }
 
@@ -1037,7 +1037,7 @@ namespace Astraia.Net
         {
             if (isActive)
             {
-                Data.Record(message, Compress.Invoke((uint)bytes) + bytes + 2);
+                Data.Record(message, Compress.Length((uint)bytes) + bytes + 2);
             }
         }
 
