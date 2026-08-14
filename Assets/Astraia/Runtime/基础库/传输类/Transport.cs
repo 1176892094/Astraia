@@ -24,11 +24,6 @@ namespace Astraia
         public KcpClient client;
         public KcpServer server;
 
-        public uint GetLength(int pass)
-        {
-            return pass == Pass.KCP ? Const.KCP_LEN : Const.UDP_LEN;
-        }
-
         public abstract void Register(bool isRemote);
         public abstract void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP);
         public abstract void SendToServer(ArraySegment<byte> segment, int pass = Pass.KCP);

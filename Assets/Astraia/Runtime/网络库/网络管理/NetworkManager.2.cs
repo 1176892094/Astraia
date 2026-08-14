@@ -209,14 +209,14 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (!connection.reader.AddBatch(segment))
+                if (!connection.AddBatch(segment))
                 {
                     Log.Warn("无法处理来自服务器的消息。");
                     connection.Disconnect();
                     return;
                 }
 
-                while (!isLoadScene && connection.reader.GetMessage(out var result))
+                while (!isLoadScene && connection.GetMessage(out var result))
                 {
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
@@ -227,19 +227,19 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUInt16();
-                    if (!NetworkMessage.client.TryGetValue(message, out var onMessage))
+                    if (!NetworkMessage.GetValueByClient(message, out var onMessage))
                     {
                         Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
                         connection.Disconnect();
                         return;
                     }
 
-                    onMessage.Invoke(null, reader, pass);
+                    onMessage.Invoke(connection, reader, pass);
                 }
 
-                if (!isLoadScene && connection.reader.Count > 0)
+                if (!isLoadScene && connection.Count > 0)
                 {
-                    Log.Warn("无法处理来自服务器的消息。残留消息: {0}", connection.reader.Count);
+                    Log.Warn("无法处理来自服务器的消息。残留消息: {0}", connection.Count);
                 }
             }
         }

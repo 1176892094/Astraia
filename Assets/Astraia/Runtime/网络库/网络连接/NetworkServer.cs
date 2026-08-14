@@ -9,74 +9,47 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
 namespace Astraia.Net
 {
-    public sealed class NetworkServer
+    public sealed class NetworkServer : Connection
     {
-        private readonly Dictionary<int, NetworkWriter> packets = new Dictionary<int, NetworkWriter>();
-        internal readonly NetworkReader reader = new NetworkReader();
         internal int serverId;
         internal bool isReady;
-    
-        internal void Update()
+
+        internal override void SendInternal(MemoryWriter writer, int pass)
         {
-            foreach (var packet in packets)
-            {
-                using var writer = MemoryWriter.Pop();
-                while (packet.Value.GetBatch(writer))
-                {
-                    NetworkManager.Kcp.SendToServer(writer, packet.Key);
-                    writer.Reset();
-                }
-            }
+            NetworkManager.Kcp.SendToServer(writer, pass);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Send<T>(T message, int pass = Pass.KCP) where T : struct, IMessage
+        internal override void DataInternal(NetworkWriter writer, int pass)
         {
-            using var writer = MemoryWriter.Pop();
-            writer.WriteUInt16(NetworkMessage<T>.Id);
-            writer.Invoke(message);
-
-            if (writer.position > NetworkManager.Kcp.GetLength(pass))
-            {
-                Log.Error("发送消息大小过大！消息大小: {0}", writer.position);
-                return;
-            }
-
-            if (!NetworkManager.isHost)
-            {
-                Debugger.OnSend(message, writer.position);
-            }
-
-            AddMessage(writer, pass);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AddMessage(MemoryWriter writer, int pass)
-        {
-            if (!packets.TryGetValue(pass, out var batch))
-            {
-                batch = new NetworkWriter(NetworkManager.Kcp.GetLength(pass));
-                packets[pass] = batch;
-            }
-
-            batch.AddMessage(writer);
-
             if (NetworkManager.isHost)
             {
                 using var target = MemoryWriter.Pop();
-                if (batch.GetBatch(target))
+                if (writer.GetBatch(target))
                 {
-                    NetworkManager.Server.Receive(0, target, Pass.KCP);
+                    NetworkManager.Server.Receive(0, target, pass);
                 }
             }
         }
 
-        public void Disconnect()
+        internal override void OnSend<T>(T message, int count)
+        {
+            if (!NetworkManager.isHost)
+            {
+                Debugger.OnSend(message, count);
+            }
+        }
+
+        internal override void OnData<T>(T message, int count)
+        {
+            if (!NetworkManager.isHost)
+            {
+                Debugger.OnData(message, count);
+            }
+        }
+
+        public override void Disconnect()
         {
             isReady = false;
             NetworkManager.Kcp.StopClient();

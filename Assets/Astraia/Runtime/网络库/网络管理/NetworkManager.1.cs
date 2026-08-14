@@ -124,10 +124,10 @@ namespace Astraia.Net
                 Kcp.server.onConnect += Connect;
                 Kcp.server.onDisconnect += Disconnect;
                 Kcp.server.onReceive += Receive;
-                NetworkMessage<PongMessage>.Add(PongMessage);
-                NetworkMessage<ReadyMessage>.Add(ReadyMessage);
-                NetworkMessage<EntityMessage>.Add(EntityMessage);
-                NetworkMessage<ServerRpcMessage>.Add(ServerRpcMessage);
+                NetworkMessage<PongMessage>.Add<NetworkClient>(PongMessage);
+                NetworkMessage<ReadyMessage>.Add<NetworkClient>(ReadyMessage);
+                NetworkMessage<EntityMessage>.Add<NetworkClient>(EntityMessage);
+                NetworkMessage<ServerRpcMessage>.Add<NetworkClient>(ServerRpcMessage);
             }
 
             private static void PongMessage(NetworkClient client, PongMessage message)
@@ -264,14 +264,14 @@ namespace Astraia.Net
                     return;
                 }
 
-                if (!client.reader.AddBatch(segment))
+                if (!client.AddBatch(segment))
                 {
                     Log.Warn("无法为客户端 {0} 进行处理消息。", id);
                     client.Disconnect();
                     return;
                 }
 
-                while (!isLoadScene && client.reader.GetMessage(out var result))
+                while (!isLoadScene && client.GetMessage(out var result))
                 {
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
@@ -282,7 +282,7 @@ namespace Astraia.Net
                     }
 
                     var message = reader.ReadUInt16();
-                    if (!NetworkMessage.server.TryGetValue(message, out var onMessage))
+                    if (!NetworkMessage.GetValueByServer(message, out var onMessage))
                     {
                         Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", id, message);
                         client.Disconnect();
@@ -292,9 +292,9 @@ namespace Astraia.Net
                     onMessage.Invoke(client, reader, pass);
                 }
 
-                if (!isLoadScene && client.reader.Count > 0)
+                if (!isLoadScene && client.Count > 0)
                 {
-                    Log.Warn("无法为客户端 {0} 进行处理消息。残留消息: {1}。", id, client.reader.Count);
+                    Log.Warn("无法为客户端 {0} 进行处理消息。残留消息: {1}。", id, client.Count);
                 }
             }
         }

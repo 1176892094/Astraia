@@ -39,7 +39,15 @@ namespace Astraia.Net
         public static bool isSaloon => Saloon.state != State.断开连接;
         internal static double syncRate => 1.0 / Instance.sendRate;
         internal static double syncTime => Time.unscaledTimeAsDouble;
-        internal static Transport Kcp => isRemote ? Instance?.management : Instance?.connection;
+
+        internal static Transport Kcp
+        {
+            get
+            {
+                Transport.Instance = isRemote ? Instance?.management : Instance?.connection;
+                return Transport.Instance;
+            }
+        }
 
         private void Awake()
         {

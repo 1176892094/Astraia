@@ -15,13 +15,7 @@ using UnityEngine;
 
 namespace Astraia
 {
-    public interface IMessage
-    {
-    }
-
-    internal struct ReadyMessage : IMessage
-    {
-    }
+    internal struct ReadyMessage : IMessage { }
 
     internal struct SceneMessage : IMessage
     {
@@ -97,9 +91,7 @@ namespace Astraia
         }
     }
 
-    internal struct SpawnBeginMessage : IMessage
-    {
-    }
+    internal struct SpawnBeginMessage : IMessage { }
 
     internal struct DespawnMessage : IMessage
     {
@@ -125,9 +117,7 @@ namespace Astraia
         }
     }
 
-    internal struct RequestMessage : IMessage
-    {
-    }
+    internal struct RequestMessage : IMessage { }
 
     internal struct ResponseMessage : IMessage
     {

@@ -73,13 +73,9 @@ namespace Astraia
         }
     }
 
-    public readonly struct ClientConnect : IEvent
-    {
-    }
+    public readonly struct ClientConnect : IEvent { }
 
-    public readonly struct ClientDisconnect : IEvent
-    {
-    }
+    public readonly struct ClientDisconnect : IEvent { }
 
     public readonly struct ServerLoadScene : IEvent
     {
@@ -143,9 +139,7 @@ namespace Astraia
         }
     }
 
-    public readonly struct LobbyDisconnect : IEvent
-    {
-    }
+    public readonly struct LobbyDisconnect : IEvent { }
 
     public readonly struct LobbyCreateRoom : IEvent
     {
