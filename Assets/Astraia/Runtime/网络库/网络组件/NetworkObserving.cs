@@ -76,10 +76,10 @@ namespace Astraia.Net
                 if (player)
                 {
                     var center = WorldToNode(player.transform.position);
-                    var minX = center.X - extents.x;
-                    var maxX = center.X + extents.x;
-                    var minY = center.Y - extents.y;
-                    var maxY = center.Y + extents.y;
+                    var minX = center.x.FloorToInt() - extents.x;
+                    var maxX = center.x.FloorToInt() + extents.x;
+                    var minY = center.y.FloorToInt() - extents.y;
+                    var maxY = center.y.FloorToInt() + extents.y;
 
                     for (var x = minX; x <= maxX; x++)
                     {
@@ -127,7 +127,7 @@ namespace Astraia.Net
             if (players.TryGetValue(client, out var player) && player && entity != player)
             {
                 var pos = WorldToNode(entity.transform.position) - WorldToNode(player.transform.position);
-                if (Mathf.Abs(pos.X) <= extents.x && Mathf.Abs(pos.Y) <= extents.y)
+                if (Mathf.Abs(pos.x.FloorToInt()) <= extents.x && Mathf.Abs(pos.y.FloorToInt()) <= extents.y)
                 {
                     NetworkSpawner.Add(entity, client);
                 }

@@ -100,14 +100,14 @@ namespace Astraia.Net
                     Kcp.client.onReceive += Receive;
                 }
 
-                NetworkMessage<PingMessage>.Add(PingMessage);
-                NetworkMessage<EntityMessage>.Add(EntityMessage);
-                NetworkMessage<ClientRpcMessage>.Add(ClientRpcMessage);
-                NetworkMessage<SceneMessage>.Add(SceneMessage);
-                NetworkMessage<SpawnBeginMessage>.Add(SpawnBeginMessage);
-                NetworkMessage<SpawnMessage>.Add(SpawnMessage);
-                NetworkMessage<DespawnMessage>.Add(DespawnMessage);
-                NetworkMessage<DestroyMessage>.Add(DestroyMessage);
+                NetworkMessage<PingMessage>.Add<NetworkServer>(PingMessage);
+                NetworkMessage<EntityMessage>.Add<NetworkServer>(EntityMessage);
+                NetworkMessage<ClientRpcMessage>.Add<NetworkServer>(ClientRpcMessage);
+                NetworkMessage<SceneMessage>.Add<NetworkServer>(SceneMessage);
+                NetworkMessage<SpawnBeginMessage>.Add<NetworkServer>(SpawnBeginMessage);
+                NetworkMessage<SpawnMessage>.Add<NetworkServer>(SpawnMessage);
+                NetworkMessage<DespawnMessage>.Add<NetworkServer>(DespawnMessage);
+                NetworkMessage<DestroyMessage>.Add<NetworkServer>(DestroyMessage);
             }
 
             private static void PingMessage(PingMessage message)

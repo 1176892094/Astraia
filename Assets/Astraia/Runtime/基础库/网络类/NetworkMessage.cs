@@ -57,7 +57,7 @@ namespace Astraia
     {
         public static readonly ushort Id = NetworkMessage.Id(typeof(T).FullName);
 
-        public static void Add(Action<T> onReceive)
+        public static void Add<V>(Action<T> onReceive)where V : Connection
         {
             NetworkMessage.SetValueByClient(Id, (client, reader, pass) =>
             {

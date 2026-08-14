@@ -81,10 +81,10 @@ namespace Astraia
             if (observer)
             {
                 var center = WorldToNode(observer.transform.position);
-                var minX = center.X - extentX;
-                var maxX = center.X + extentX;
-                var minY = center.Y - extentY;
-                var maxY = center.Y + extentY;
+                var minX = center.x.FloorToInt() - extentX;
+                var maxX = center.x.FloorToInt() + extentX;
+                var minY = center.y.FloorToInt() - extentY;
+                var maxY = center.y.FloorToInt() + extentY;
 
                 for (var x = minX; x <= maxX; x++)
                 {
@@ -147,7 +147,7 @@ namespace Astraia
         private bool IsVisible(IVisible visible)
         {
             var node = WorldToNode(visible.transform.position) - WorldToNode(position);
-            return Mathf.Abs(node.X) <= extentX && Mathf.Abs(node.Y) <= extentY;
+            return Mathf.Abs(node.x.FloorToInt()) <= extentX && Mathf.Abs(node.y.FloorToInt()) <= extentY;
         }
 
         private static void SetActive(IVisible visible, bool enabled)
