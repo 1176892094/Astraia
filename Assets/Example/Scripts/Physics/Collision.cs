@@ -1,5 +1,5 @@
 using System;
-using Astraia;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Runtime
@@ -8,7 +8,7 @@ namespace Runtime
     {
         public readonly struct Collision
         {
-            private static readonly Enumerable<RaycastHit2D> Hits = new Enumerable<RaycastHit2D>(16);
+            private static readonly List<RaycastHit2D> Hits = new List<RaycastHit2D>(16);
 
             public readonly Bounds bounds;
             private Vector2 size => bounds.size;
@@ -28,38 +28,43 @@ namespace Runtime
                 bounds = new Bounds(center + offset, extent * 2);
             }
 
-            public Enumerable<RaycastHit2D> Raycast(Vector2 direction, float distance, ContactFilter2D filter) // 冲刺检测
+            public List<RaycastHit2D> Raycast(Vector2 direction, float distance, ContactFilter2D filter) // 冲刺检测
             {
-                Hits.Count = Physics2D.Raycast(center, direction, filter, Hits, distance);
+                Hits.Clear();
+                Physics2D.Raycast(center, direction, filter, Hits, distance);
                 return Hits;
             }
 
-            public Enumerable<RaycastHit2D> Boxcast(Vector2 direction, float distance, ContactFilter2D filter) // 冲刺检测
+            public List<RaycastHit2D> Boxcast(Vector2 direction, float distance, ContactFilter2D filter) // 冲刺检测
             {
-                Hits.Count = Physics2D.BoxCast(center, size, 0, direction, filter, Hits, distance);
+                Hits.Clear();
+                Physics2D.BoxCast(center, size, 0, direction, filter, Hits, distance);
                 return Hits;
             }
 
-            public Enumerable<RaycastHit2D> Boxcast(float distance, ContactFilter2D filter) // 平台检测
+            public List<RaycastHit2D> Boxcast(float distance, ContactFilter2D filter) // 平台检测
             {
                 var origin = new Rect(center.x, center.y - extents.y, size.x, 0.01F);
-                Hits.Count = Physics2D.BoxCast(origin.position, origin.size, 0, Vector2.down, filter, Hits, distance);
+                Hits.Clear();
+                Physics2D.BoxCast(origin.position, origin.size, 0, Vector2.down, filter, Hits, distance);
                 return Hits;
             }
 
-            public Enumerable<RaycastHit2D> BoxcastX(int moveX, float distance, ContactFilter2D filter) // 碰撞检测X
+            public List<RaycastHit2D> BoxcastX(int moveX, float distance, ContactFilter2D filter) // 碰撞检测X
             {
                 var direction = new Vector2(moveX, 0);
                 var position = center + direction * 0.01F;
-                Hits.Count = Physics2D.BoxCast(position, size, 0, direction, filter, Hits, distance);
+                Hits.Clear();
+                Physics2D.BoxCast(position, size, 0, direction, filter, Hits, distance);
                 return Hits;
             }
 
-            public Enumerable<RaycastHit2D> BoxcastY(int moveY, float distance, ContactFilter2D filter) // 碰撞检测Y
+            public List<RaycastHit2D> BoxcastY(int moveY, float distance, ContactFilter2D filter) // 碰撞检测Y
             {
                 var direction = new Vector2(0, moveY);
                 var position = center + direction * 0.01F;
-                Hits.Count = Physics2D.BoxCast(position, size, 0, direction, filter, Hits, distance);
+                Hits.Clear();
+                Physics2D.BoxCast(position, size, 0, direction, filter, Hits, distance);
                 return Hits;
             }
 
@@ -175,9 +180,10 @@ namespace Runtime
                 return true;
             }
 
-            private static Enumerable<RaycastHit2D> Raycast(Vector2 origin, Vector2 direction, ContactFilter2D filter, float distance)
+            private static List<RaycastHit2D> Raycast(Vector2 origin, Vector2 direction, ContactFilter2D filter, float distance)
             {
-                Hits.Count = Physics2D.Raycast(origin, direction, filter, Hits, distance);
+                Hits.Clear();
+                Physics2D.Raycast(origin, direction, filter, Hits, distance);
                 return Hits;
             }
         }
