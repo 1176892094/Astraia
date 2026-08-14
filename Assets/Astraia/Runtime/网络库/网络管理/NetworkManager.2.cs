@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using State = Astraia.Async.State;
 
 namespace Astraia.Net
 {
@@ -26,7 +27,7 @@ namespace Astraia.Net
 
             private static readonly Dictionary<uint, NetworkEntity> copies = new Dictionary<uint, NetworkEntity>();
 
-            internal static State state = State.断开连接;
+            internal static State state = State.Failure;
 
             private static bool isLoadScene;
 
@@ -40,7 +41,7 @@ namespace Astraia.Net
 
             public static bool isReady => connection.isReady;
 
-            public static bool isActive => state == State.连接成功;
+            public static bool isActive => state == State.Success;
 
             internal static void Start(bool isHost)
             {
@@ -54,7 +55,7 @@ namespace Astraia.Net
                 else
                 {
                     AddMessage(false);
-                    state = State.正在连接;
+                    state = State.Running;
                     connection = new NetworkServer();
                     Kcp.StartClient();
                 }
@@ -156,7 +157,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                entity.InvokeMessage(message.moduleId, message.methodId, HookMode.客户端, reader);
+                entity.InvokeMessage(message.moduleId, message.methodId, SyncMode.客户端, reader);
             }
 
             private static void SceneMessage(SceneMessage message)
@@ -173,7 +174,7 @@ namespace Astraia.Net
         {
             private static void Connect(int serverId)
             {
-                state = State.连接成功;
+                state = State.Success;
                 connection.isReady = true;
                 connection.serverId = serverId;
                 connection.Send(new ReadyMessage());
@@ -189,7 +190,7 @@ namespace Astraia.Net
                     DestroyMessage(new DestroyMessage(entity.objectId));
                 }
 
-                state = State.断开连接;
+                state = State.Failure;
                 connection.Disconnect();
                 sendTime = 0;
                 pongTime = 0;

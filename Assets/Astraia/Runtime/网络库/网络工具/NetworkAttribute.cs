@@ -16,24 +16,24 @@ namespace Astraia.Net
 {
     public static class NetworkAttribute
     {
-        private static readonly Dictionary<ushort, HookData> messages = new Dictionary<ushort, HookData>();
+        private static readonly Dictionary<ushort, SyncData> messages = new Dictionary<ushort, SyncData>();
 
-        public static void RegisterServerRpc(Type module, int pass, string name, HookFunc func)
+        public static void RegisterServerRpc(Type module, int pass, string name, SyncFunc func)
         {
-            AddHook(module, pass, name, HookMode.服务器, func);
+            AddHook(module, pass, name, SyncMode.服务器, func);
         }
 
-        public static void RegisterClientRpc(Type module, int pass, string name, HookFunc func)
+        public static void RegisterClientRpc(Type module, int pass, string name, SyncFunc func)
         {
-            AddHook(module, pass, name, HookMode.客户端, func);
+            AddHook(module, pass, name, SyncMode.客户端, func);
         }
 
-        private static void AddHook(Type module, int pass, string name, HookMode mode, HookFunc func)
+        private static void AddHook(Type module, int pass, string name, SyncMode mode, SyncFunc func)
         {
             var id = (ushort)(NetworkMessage.Id(name) & 0xFFFF);
             if (!messages.TryGetValue(id, out var message))
             {
-                message = new HookData(pass, mode, func, module);
+                message = new SyncData(pass, mode, func, module);
                 messages[id] = message;
             }
 
@@ -47,13 +47,13 @@ namespace Astraia.Net
         {
             if (messages.TryGetValue(id, out var message))
             {
-                return (message.pass & Pass.ANY) == 0 && message.mode == HookMode.服务器;
+                return (message.pass & Pass.ANY) == 0 && message.mode == SyncMode.服务器;
             }
 
             return false;
         }
 
-        internal static HookFunc GetHook(ushort id)
+        internal static SyncFunc GetHook(ushort id)
         {
             if (messages.TryGetValue(id, out var message))
             {
@@ -63,7 +63,7 @@ namespace Astraia.Net
             return null;
         }
 
-        internal static bool Invoke(ushort id, HookMode mode, NetworkClient client, MemoryReader reader, NetworkModule component)
+        internal static bool Invoke(ushort id, SyncMode mode, NetworkClient client, MemoryReader reader, NetworkModule component)
         {
             if (messages.TryGetValue(id, out var message))
             {
@@ -84,14 +84,14 @@ namespace Astraia.Net
             return false;
         }
 
-        private struct HookData
+        private struct SyncData
         {
             public readonly int pass;
             public readonly Type module;
-            public readonly HookMode mode;
-            public readonly HookFunc func;
+            public readonly SyncMode mode;
+            public readonly SyncFunc func;
 
-            public HookData(int pass, HookMode mode, HookFunc func, Type module)
+            public SyncData(int pass, SyncMode mode, SyncFunc func, Type module)
             {
                 this.pass = pass;
                 this.mode = mode;
@@ -101,5 +101,5 @@ namespace Astraia.Net
         }
     }
 
-    public delegate void HookFunc(NetworkModule module, MemoryReader reader, NetworkClient client);
+    public delegate void SyncFunc(NetworkModule module, MemoryReader reader, NetworkClient client);
 }

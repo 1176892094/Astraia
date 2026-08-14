@@ -149,7 +149,7 @@ namespace Astraia.Net
             return (mask & (ulong)(1 << index)) != 0;
         }
 
-        internal void InvokeMessage(byte moduleId, ushort function, HookMode mode, MemoryReader reader, NetworkClient client = null)
+        internal void InvokeMessage(byte moduleId, ushort function, SyncMode mode, MemoryReader reader, NetworkClient client = null)
         {
             if (!transform)
             {

@@ -11,6 +11,7 @@
 
 using System;
 using UnityEngine;
+using State = Astraia.Async.State;
 
 namespace Astraia.Net
 {
@@ -33,8 +34,8 @@ namespace Astraia.Net
         [SerializeReference] private NetworkObserving observing;
         public static bool isHost => isServer && isClient;
         public static bool isRunner => isServer || isClient;
-        public static bool isServer => Server.state != State.断开连接;
-        public static bool isClient => Client.state != State.断开连接;
+        public static bool isServer => Server.state != State.Failure;
+        public static bool isClient => Client.state != State.Failure;
         internal static bool isSaloon => Saloon != null && Saloon.isSaloon;
         internal static bool isRemote => Saloon != null && Saloon.isRemote;
         internal static double syncRate => 1.0 / Instance.sendRate;

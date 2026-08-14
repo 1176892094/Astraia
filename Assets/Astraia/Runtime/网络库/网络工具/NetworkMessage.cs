@@ -3,8 +3,8 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2024-12-21 23:12:15
-// # Recently: 2024-12-22 20:12:19
+// # History: 2026-08-15 03:08:10
+// # Recently: 2026-08-15 03:58:10
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
@@ -15,21 +15,21 @@ using UnityEngine;
 
 namespace Astraia
 {
-    internal struct ReadyMessage : IMessage { }
+    internal readonly struct ReadyMessage : IMessage { }
 
-    internal struct SceneMessage : IMessage
+    internal readonly struct SceneMessage : IMessage
     {
         public readonly string sceneName;
         public SceneMessage(string sceneName) => this.sceneName = sceneName;
     }
 
-    internal struct PongMessage : IMessage
+    internal readonly struct PongMessage : IMessage
     {
         public readonly double clientTime;
         public PongMessage(double clientTime) => this.clientTime = clientTime;
     }
 
-    internal struct PingMessage : IMessage
+    internal readonly struct PingMessage : IMessage
     {
         public readonly double clientTime;
         public PingMessage(double clientTime) => this.clientTime = clientTime;
@@ -91,21 +91,21 @@ namespace Astraia
         }
     }
 
-    internal struct SpawnBeginMessage : IMessage { }
+    internal readonly struct SpawnBeginMessage : IMessage { }
 
-    internal struct DespawnMessage : IMessage
+    internal readonly struct DespawnMessage : IMessage
     {
         public readonly uint objectId;
         public DespawnMessage(uint objectId) => this.objectId = objectId;
     }
 
-    internal struct DestroyMessage : IMessage
+    internal readonly struct DestroyMessage : IMessage
     {
         public readonly uint objectId;
         public DestroyMessage(uint objectId) => this.objectId = objectId;
     }
 
-    internal struct EntityMessage : IMessage
+    internal readonly struct EntityMessage : IMessage
     {
         public readonly uint objectId;
         public readonly ArraySegment<byte> segment;
@@ -117,9 +117,9 @@ namespace Astraia
         }
     }
 
-    internal struct RequestMessage : IMessage { }
+    internal readonly struct RequestMessage : IMessage { }
 
-    internal struct ResponseMessage : IMessage
+    internal readonly struct ResponseMessage : IMessage
     {
         public readonly ushort port;
         public ResponseMessage(ushort port) => this.port = port;

@@ -49,10 +49,10 @@ namespace Astraia.Editor
                 var change = false;
                 var failed = false;
                 var module = new Module(assembly, Log, ref failed);
-                var writer = (Writer)null;
-                var reader = (Reader)null;
-                var access = (SyncVarAccess)null;
-                var create = (TypeDefinition)null;
+                Writer writer = null;
+                Reader reader = null;
+                SyncVarAccess access = null;
+                TypeDefinition create = null;
 
                 if (success)
                 {
@@ -176,7 +176,7 @@ namespace Astraia.Editor
 
             LogError = Import<Debug>().GetMethod(assembly, OnLogError, Log, ref failed);
             SyncVarHook = Import(typeof(Action<,>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
-            InvokeDelegate = Import<HookFunc>().GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
+            InvokeDelegate = Import<SyncFunc>().GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             AddArraySegment = Import(typeof(ArraySegment<>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             GetTypeFromHandle = Import<Type>().GetMethod(assembly, "GetTypeFromHandle", Log, ref failed);
             ReadNetworkModule = Import(typeof(ReaderExtensions)).GetMethod(assembly, ReadModule, Log, ref failed);

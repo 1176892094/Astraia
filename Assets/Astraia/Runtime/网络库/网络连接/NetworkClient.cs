@@ -45,7 +45,7 @@ namespace Astraia.Net
         {
             if (clientId != 0)
             {
-               Debugger.OnSend(message, count);
+                Debugger.OnSend(message, count);
             }
         }
 

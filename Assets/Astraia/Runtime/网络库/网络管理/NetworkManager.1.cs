@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using State = Astraia.Async.State;
 
 namespace Astraia.Net
 {
@@ -26,7 +27,7 @@ namespace Astraia.Net
 
             private static readonly List<NetworkClient> copies = new List<NetworkClient>();
 
-            internal static State state = State.断开连接;
+            internal static State state = State.Failure;
 
             private static bool isLoadScene;
 
@@ -46,7 +47,7 @@ namespace Astraia.Net
                     Kcp.StartServer();
                 }
 
-                state = State.连接成功;
+                state = State.Success;
                 AddMessage();
                 SpawnObjects();
             }
@@ -60,7 +61,7 @@ namespace Astraia.Net
                     Disconnect(client.clientId);
                 }
 
-                state = State.断开连接;
+                state = State.Failure;
                 Kcp.StopServer();
                 sendTime = 0;
                 objectId = 0;
@@ -205,7 +206,7 @@ namespace Astraia.Net
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
-                entity.InvokeMessage(message.moduleId, message.methodId, HookMode.服务器, reader, client);
+                entity.InvokeMessage(message.moduleId, message.methodId, SyncMode.服务器, reader, client);
             }
         }
 
@@ -223,15 +224,14 @@ namespace Astraia.Net
                 }
                 else
                 {
-                    var client = new NetworkClient(id);
-                    clients.Add(id, client);
-                    EventManager.Invoke(new ServerConnect(client));
+                    clients.Add(id, new NetworkClient(id));
+                    EventManager.Invoke(new ServerConnect(id));
                 }
             }
 
             internal static void Disconnect(int id)
             {
-                if (clients.Remove(id, out var client))
+                if (clients.TryGetValue(id, out var client))
                 {
                     if (id != 0)
                     {
@@ -252,7 +252,8 @@ namespace Astraia.Net
                     }
 
                     NetworkSpawner.Clear(client);
-                    EventManager.Invoke(new ServerDisconnect(client));
+                    EventManager.Invoke(new ServerDisconnect(id));
+                    clients.Remove(id);
                 }
             }
 
