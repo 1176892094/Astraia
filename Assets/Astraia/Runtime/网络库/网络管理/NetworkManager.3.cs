@@ -27,7 +27,7 @@ namespace Astraia.Net
 
             private static int objectId;
 
-            private static int serverId;
+            internal static int serverId;
 
             internal static bool isClient;
 
@@ -74,7 +74,7 @@ namespace Astraia.Net
                 Saloon.serverId = serverId;
             }
 
-            internal static void Disconnect()
+            internal static void Disconnect(int serverId)
             {
                 if (isSaloon)
                 {
@@ -137,7 +137,7 @@ namespace Astraia.Net
                         if (isClient)
                         {
                             isClient = false;
-                            Kcp.client.onDisconnect();
+                            Kcp.client.onDisconnect(serverId);
                         }
                     }
                     else if (opcode == Lobby.同步网络数据)

@@ -180,7 +180,7 @@ namespace Astraia.Net
                 EventManager.Invoke(new ClientConnect());
             }
 
-            internal static void Disconnect()
+            internal static void Disconnect(int serverId)
             {
                 if (!isClient) return;
                 var entities = spawns.Values.Where(entity => entity).ToList();

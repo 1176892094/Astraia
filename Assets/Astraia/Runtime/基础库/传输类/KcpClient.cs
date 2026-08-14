@@ -25,7 +25,7 @@ namespace Astraia
         private EndPoint endPoint;
 
         public Action<int> onConnect;
-        public Action onDisconnect;
+        public Action<int> onDisconnect;
         public Action<Error, string> onError;
         public Action<ArraySegment<byte>> onSend;
         public Action<ArraySegment<byte>, int> onReceive;
@@ -56,7 +56,7 @@ namespace Astraia
             catch (SocketException e)
             {
                 onError(Error.解析失败, "无法解析主机地址: {0}\n{1}".Format(address, e));
-                onDisconnect();
+                onDisconnect(0);
             }
         }
 
@@ -132,7 +132,7 @@ namespace Astraia
             socket.Close();
             socket = null;
             endPoint = null;
-            onDisconnect();
+            onDisconnect(serverId);
         }
 
         private void OnError(Error error, string message)

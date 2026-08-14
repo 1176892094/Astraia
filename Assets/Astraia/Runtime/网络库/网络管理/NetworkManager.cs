@@ -161,7 +161,7 @@ namespace Astraia.Net
                 Server.Disconnect(0);
             }
 
-            Client.Disconnect();
+            Client.Disconnect(0);
         }
 
         public static void StartHost(bool isHost = true)
@@ -211,7 +211,7 @@ namespace Astraia.Net
                 return;
             }
 
-            Saloon.Disconnect();
+            Saloon.Disconnect(Saloon.serverId);
         }
 
         public static void UpdateRoom()
