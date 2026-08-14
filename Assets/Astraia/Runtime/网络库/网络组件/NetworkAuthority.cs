@@ -25,7 +25,7 @@ namespace Astraia.Net
             if (NetworkManager.Saloon.players.TryGetValue(clientId, out var playerId))
             {
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)Lobby.同步网络数据);
+                writer.WriteByte((byte)Lobby.Info.同步网络数据);
                 writer.WriteInt32(playerId);
                 writer.WriteArraySegment(segment);
                 Instance.SendToServer(writer);
@@ -35,7 +35,7 @@ namespace Astraia.Net
         public override void SendToServer(ArraySegment<byte> segment, int pass = Pass.KCP)
         {
             using var writer = MemoryWriter.Pop();
-            writer.WriteByte((byte)Lobby.同步网络数据);
+            writer.WriteByte((byte)Lobby.Info.同步网络数据);
             writer.WriteInt32(0);
             writer.WriteArraySegment(segment);
             Instance.SendToServer(writer);
@@ -45,7 +45,7 @@ namespace Astraia.Net
         {
             NetworkManager.Saloon.isServer = true;
             using var writer = MemoryWriter.Pop();
-            writer.WriteByte((byte)Lobby.请求创建房间);
+            writer.WriteByte((byte)Lobby.Info.请求创建房间);
             writer.WriteString(NetworkManager.Instance.roomName);
             writer.WriteString(NetworkManager.Instance.roomData);
             writer.WriteInt32(NetworkManager.Instance.maxPlayer);
@@ -59,7 +59,7 @@ namespace Astraia.Net
             {
                 NetworkManager.Saloon.isServer = false;
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)Lobby.请求离开房间);
+                writer.WriteByte((byte)Lobby.Info.请求离开房间);
                 Instance.SendToServer(writer);
             }
         }
@@ -69,7 +69,7 @@ namespace Astraia.Net
             if (NetworkManager.Saloon.players.TryGetValue(clientId, out var playerId))
             {
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)Lobby.请求移除玩家);
+                writer.WriteByte((byte)Lobby.Info.请求移除玩家);
                 writer.WriteInt32(playerId);
                 Instance.SendToServer(writer);
             }
@@ -79,7 +79,7 @@ namespace Astraia.Net
         {
             NetworkManager.Saloon.isClient = true;
             using var writer = MemoryWriter.Pop();
-            writer.WriteByte((byte)Lobby.请求加入房间);
+            writer.WriteByte((byte)Lobby.Info.请求加入房间);
             writer.WriteString(Instance.address);
             Instance.SendToServer(writer);
         }
@@ -90,7 +90,7 @@ namespace Astraia.Net
             {
                 NetworkManager.Saloon.isClient = false;
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)Lobby.请求离开房间);
+                writer.WriteByte((byte)Lobby.Info.请求离开房间);
                 Instance.SendToServer(writer);
             }
         }
@@ -110,23 +110,4 @@ namespace Astraia.Net
         public override void ServerAfterUpdate() { }
     }
 
-    [Serializable]
-    public struct LobbyData
-    {
-        public int Host;
-        public int Count;
-        public int Index;
-        public RoomMode State;
-        public string Id;
-        public string Name;
-        public string Data;
-        public int[] Members;
-    }
-
-    public enum RoomMode : byte
-    {
-        公开,
-        私有,
-        锁定,
-    }
 }

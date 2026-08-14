@@ -102,9 +102,9 @@ namespace Astraia
 
     public readonly struct LobbyUpdate : IEvent
     {
-        public readonly LobbyData[] rooms;
+        public readonly Lobby[] rooms;
 
-        public LobbyUpdate(LobbyData[] rooms)
+        public LobbyUpdate(Lobby[] rooms)
         {
             this.rooms = rooms;
         }

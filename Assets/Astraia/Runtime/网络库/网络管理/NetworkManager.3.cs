@@ -52,15 +52,15 @@ namespace Astraia.Net
             {
                 var texts = await Host.Http.GetStringAsync("http://{0}:{1}/api/compressed/servers".Format(Kcp.address, Kcp.port));
                 var rooms = Zip.Decompress(texts);
-                var jsons = JsonManager.FromJson<LobbyData[]>("{{\"value\":{0}}}".Format(rooms));
+                var jsons = JsonManager.FromJson<Lobby[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
                 Log.Info($"房间信息: {rooms}");
             }
 
-            internal static void Submit(RoomMode roomMode)
+            internal static void Submit( Lobby.Room roomMode)
             {
                 using var writer = MemoryWriter.Pop();
-                writer.WriteByte((byte)Lobby.更新房间数据);
+                writer.WriteByte((byte)Lobby.Info.更新房间数据);
                 writer.WriteString(Instance.roomName);
                 writer.WriteString(Instance.roomData);
                 writer.WriteInt32(Instance.maxPlayer);
@@ -96,27 +96,27 @@ namespace Astraia.Net
                 try
                 {
                     using var reader = MemoryReader.Pop(segment);
-                    var opcode = (Lobby)reader.ReadByte();
-                    if (opcode == Lobby.身份验证成功)
+                    var opcode = (Lobby.Info)reader.ReadByte();
+                    if (opcode == Lobby.Info.身份验证成功)
                     {
                         using var writer = MemoryWriter.Pop();
-                        writer.WriteByte((byte)Lobby.请求进入大厅);
+                        writer.WriteByte((byte)Lobby.Info.请求进入大厅);
                         writer.WriteString(Instance.roomGuid);
                         NetworkAuthority.Instance.SendToServer(writer);
                     }
-                    else if (opcode == Lobby.进入大厅成功)
+                    else if (opcode == Lobby.Info.进入大厅成功)
                     {
                         state = State.连接成功;
                         Update();
                     }
-                    else if (opcode == Lobby.创建房间成功)
+                    else if (opcode == Lobby.Info.创建房间成功)
                     {
                         var index = reader.ReadInt32();
                         var address = reader.ReadString();
                         NetworkAuthority.Instance.address = address;
                         EventManager.Invoke(new LobbyCreateRoom(index, address));
                     }
-                    else if (opcode == Lobby.加入房间成功)
+                    else if (opcode == Lobby.Info.加入房间成功)
                     {
                         if (isServer)
                         {
@@ -132,7 +132,7 @@ namespace Astraia.Net
                             Kcp.client.onConnect(serverId);
                         }
                     }
-                    else if (opcode == Lobby.离开房间成功)
+                    else if (opcode == Lobby.Info.离开房间成功)
                     {
                         if (isClient)
                         {
@@ -140,7 +140,7 @@ namespace Astraia.Net
                             Kcp.client.onDisconnect(serverId);
                         }
                     }
-                    else if (opcode == Lobby.同步网络数据)
+                    else if (opcode == Lobby.Info.同步网络数据)
                     {
                         var message = reader.ReadArraySegment();
                         if (isServer)
@@ -157,7 +157,7 @@ namespace Astraia.Net
                             Kcp.client.onReceive(message, pass);
                         }
                     }
-                    else if (opcode == Lobby.断开玩家连接)
+                    else if (opcode == Lobby.Info.断开玩家连接)
                     {
                         if (isServer)
                         {

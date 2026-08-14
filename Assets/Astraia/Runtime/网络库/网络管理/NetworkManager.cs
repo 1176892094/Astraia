@@ -14,7 +14,6 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-
     [Serializable]
     public sealed partial class NetworkManager : MonoBehaviour
     {
@@ -27,7 +26,7 @@ namespace Astraia.Net
         public string roomGuid;
         public string roomData;
         public string roomName;
-        public RoomMode roomMode;
+        public Lobby.Room roomMode;
 
         [SerializeReference] private Transport connection = new NetworkTransport();
         [SerializeReference] private Transport management = new NetworkAuthority();
@@ -219,7 +218,7 @@ namespace Astraia.Net
             Saloon.Update();
         }
 
-        public static void SubmitRoom(RoomMode roomMode)
+        public static void SubmitRoom(Lobby.Room roomMode)
         {
             if (!isRemote)
             {
