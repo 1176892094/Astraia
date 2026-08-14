@@ -23,11 +23,11 @@ namespace Astraia
 
         private readonly string userName;
         private readonly Stopwatch watch = new();
-        private uint pingTime;
-        private uint nextTime;
-        private uint waitTime;
+        private readonly KcpModule module = new();
+        private int pingTime;
+        private int nextTime;
+        private int waitTime;
         private int userData;
-        private Protocol kcp;
         private State state;
 
         public Action<int> onConnect;
@@ -36,31 +36,30 @@ namespace Astraia
         public Action<ArraySegment<byte>> onSend;
         public Action<ArraySegment<byte>, int> onReceive;
 
-        private uint Time => (uint)watch.ElapsedMilliseconds;
-
         public KcpPeer(string userName)
         {
             this.userName = userName;
         }
 
-        public void Rebuild()
+        public unsafe void Rebuild()
         {
             pingTime = 0;
             nextTime = 0;
             waitTime = Const.WAIT_TIME;
-            kcp = new Protocol(0, SendReliable);
-            kcp.SetData(Const.MTU_DEF - Const.HEAD_SIZE);
-            kcp.SetDelay(Const.INTERVAL, Const.FAST_RESEND);
-            kcp.SetWindow(Const.SED_WIN, Const.REV_WIN, Const.DEAD_LINK);
+            KcpModule.Build(module, SendReliable);
             state = State.正在连接;
             watch.Restart();
         }
 
-        private void SendReliable(byte[] bytes, int count)
+        private unsafe void SendReliable(byte* bytes, int count) // pass(1) + userData(4) + header(24) + opcode(1) + data
         {
             rawSendBuffer[0] = Pass.KCP;
             Common.Encode(rawSendBuffer, 1, userData);
-            Buffer.BlockCopy(bytes, 0, rawSendBuffer, Const.HEAD_SIZE, count);
+            fixed (byte* dest = &rawSendBuffer[Const.HEAD_SIZE])
+            {
+                Buffer.MemoryCopy(bytes, dest, count, count);
+            }
+
             onSend(new ArraySegment<byte>(rawSendBuffer, 0, Const.HEAD_SIZE + count));
         }
 
@@ -74,7 +73,7 @@ namespace Astraia
         {
             segment = default;
             message = Opcode.断连;
-            var count = kcp.PeekSize();
+            var count = module.PeekSize();
             if (count <= 0)
             {
                 return false;
@@ -87,7 +86,7 @@ namespace Astraia
                 return false;
             }
 
-            if (kcp.Receive(kcpDataBuffer, count) < 0)
+            if (module.Receive(kcpDataBuffer, count) < 0)
             {
                 onError(Error.无效接收, "{0}接收网络消息失败。".Format(userName));
                 Disconnect();
@@ -96,7 +95,7 @@ namespace Astraia
 
             message = (Opcode)kcpDataBuffer[0];
             segment = new ArraySegment<byte>(kcpDataBuffer, 1, count - 1);
-            nextTime = Time;
+            nextTime = (int)watch.ElapsedMilliseconds;
             return true;
         }
 
@@ -118,7 +117,7 @@ namespace Astraia
             var message = new ArraySegment<byte>(segment.Array, segment.Offset + Const.HEAD_SIZE, segment.Count - Const.HEAD_SIZE);
             if (pass == Pass.KCP)
             {
-                if (kcp.Input(message.Array, message.Offset, message.Count) != 0)
+                if (module.Input(message.Array, message.Offset, message.Count) != 0)
                 {
                     Log.Warn("{0}发送可靠消息失败。消息大小: {1}", userName, message.Count - 1);
                 }
@@ -128,7 +127,7 @@ namespace Astraia
                 if (state == State.连接成功)
                 {
                     onReceive(message, Pass.UDP);
-                    nextTime = Time;
+                    nextTime = (int)watch.ElapsedMilliseconds;
                 }
             }
         }
@@ -147,7 +146,7 @@ namespace Astraia
                 Buffer.BlockCopy(segment.Array!, segment.Offset, kcpSendBuffer, 1, segment.Count);
             }
 
-            if (kcp.Send(kcpSendBuffer, 0, segment.Count + 1) < 0)
+            if (module.Send(kcpSendBuffer, 0, segment.Count + 1) < 0)
             {
                 onError(Error.无效发送, "{0}发送网络消息失败。消息大小: {1}。".Format(userName, segment.Count));
             }
@@ -201,7 +200,7 @@ namespace Astraia
             try
             {
                 SendReliable(Opcode.断连);
-                kcp.Flush();
+                module.Flush();
             }
             finally
             {
@@ -210,8 +209,9 @@ namespace Astraia
             }
         }
 
-        private void BeforeReceive(uint sinceTime)
+        private void BeforeReceive()
         {
+            var sinceTime = (int)watch.ElapsedMilliseconds;
             if (sinceTime >= nextTime + waitTime)
             {
                 onError(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, waitTime / 1000));
@@ -219,9 +219,9 @@ namespace Astraia
                 return;
             }
 
-            if (kcp.State == unchecked((uint)-1))
+            if (module.State == unchecked((uint)-1))
             {
-                onError(Error.连接超时, "{0}网络消息被重传了{1}次而没有得到确认！".Format(userName, kcp.Death));
+                onError(Error.连接超时, "{0}网络消息被重传了{1}次而没有得到确认！".Format(userName, module.Death));
                 Disconnect();
                 return;
             }
@@ -229,20 +229,19 @@ namespace Astraia
             if (sinceTime >= pingTime + Const.PING_TIME)
             {
                 SendReliable(Opcode.心跳);
-                pingTime = sinceTime;
+                pingTime = (int)watch.ElapsedMilliseconds;
             }
 
-            if (kcp.Count >= 10000)
+            if (module.Count >= 10000)
             {
                 onError(Error.网络拥塞, "{0}断开连接，因为它处理数据的速度不够快！".Format(userName));
-                kcp.Clear();
                 Disconnect();
             }
         }
 
         private void UpdateConnect()
         {
-            BeforeReceive(Time);
+            BeforeReceive();
             if (TryReceive(out var message, out var segment))
             {
                 switch (message)
@@ -269,7 +268,7 @@ namespace Astraia
 
         private void UpdateConnected()
         {
-            BeforeReceive(Time);
+            BeforeReceive();
             while (TryReceive(out var message, out var segment))
             {
                 switch (message)
@@ -329,7 +328,7 @@ namespace Astraia
             {
                 if (state != State.断开连接)
                 {
-                    kcp.Update(Time);
+                    module.Update((uint)watch.ElapsedMilliseconds);
                 }
             }
             catch (SocketException e)

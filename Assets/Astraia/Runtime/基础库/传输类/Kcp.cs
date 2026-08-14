@@ -9,8 +9,6 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -43,24 +41,27 @@ namespace Astraia
         public const uint IKCP_PROBE_LIMIT = 120000;
         public const uint IKCP_FASTACK_LIMIT = 5;
 
+        public static delegate* managed<nuint, void*> ikcp_malloc_hook = null;
+        public static delegate* managed<void*, void> ikcp_free_hook = null;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte* ikcp_encode8u(byte* p, byte c)
         {
-            *(byte*)p++ = c;
+            *p++ = c;
             return p;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte* ikcp_decode8u(byte* p, byte* c)
         {
-            *c = *(byte*)p++;
+            *c = *p++;
             return p;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte* ikcp_encode16u(byte* p, ushort w)
         {
-            memcpy(p, &w, (nuint)2);
+            memcpy(p, &w, 2);
             p += 2;
             return p;
         }
@@ -68,25 +69,23 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte* ikcp_decode16u(byte* p, ushort* w)
         {
-            memcpy(w, p, (nuint)2);
+            memcpy(w, p, 2);
             p += 2;
             return p;
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte* ikcp_encode32u(byte* p, uint l)
         {
-            memcpy(p, &l, (nuint)4);
+            memcpy(p, &l, 4);
             p += 4;
             return p;
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte* ikcp_decode32u(byte* p, uint* l)
         {
-            memcpy(l, p, (nuint)4);
+            memcpy(l, p, 4);
             p += 4;
             return p;
         }
@@ -125,11 +124,8 @@ namespace Astraia
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long _itimediff(uint later, uint earlier)
         {
-            return ((int)(later - earlier));
+            return (int)(later - earlier);
         }
-
-        public static delegate* managed<nuint, void*> ikcp_malloc_hook = null;
-        public static delegate* managed<void*, void> ikcp_free_hook = null;
 
         public static void* ikcp_malloc(nuint size)
         {
@@ -153,12 +149,6 @@ namespace Astraia
             }
         }
 
-        public static void ikcp_allocator(delegate* managed<nuint, void*> new_malloc, delegate* managed<void*, void> new_free)
-        {
-            ikcp_malloc_hook = new_malloc;
-            ikcp_free_hook = new_free;
-        }
-
         public static IKCPSEG* ikcp_segment_new(IKCPCB* kcp, int size)
         {
             return (IKCPSEG*)ikcp_malloc((nuint)(sizeof(IKCPSEG) + size));
@@ -169,20 +159,26 @@ namespace Astraia
             ikcp_free(seg);
         }
 
-        public static void ikcp_output(IKCPCB* kcp, int size, byte[] destination, Action<byte[], int> output)
+        public static int ikcp_output(IKCPCB* kcp, void* data, int size)
         {
-            assert(kcp != null);
-            assert(output != null);
+            if (size == 0)
+            {
+                return 0;
+            }
 
-            if (size == 0) return;
-            output(destination, size);
+            return kcp->output((byte*)data, size, kcp, kcp->user);
         }
 
-        public static IKCPCB* ikcp_create(uint conv, ref byte[] buffer)
+        public static IKCPCB* ikcp_create(uint conv, void* user)
         {
-            IKCPCB* kcp = (IKCPCB*)ikcp_malloc((nuint)sizeof(IKCPCB));
-            if (kcp == null) return null;
+            var kcp = (IKCPCB*)ikcp_malloc((nuint)sizeof(IKCPCB));
+            if (kcp == null)
+            {
+                return null;
+            }
+
             kcp->conv = conv;
+            kcp->user = user;
             kcp->snd_una = 0;
             kcp->snd_nxt = 0;
             kcp->rcv_nxt = 0;
@@ -200,7 +196,12 @@ namespace Astraia
             kcp->mss = kcp->mtu - IKCP_OVERHEAD;
             kcp->stream = 0;
 
-            buffer = new byte[(kcp->mtu + IKCP_OVERHEAD) * 3];
+            kcp->buffer = (byte*)ikcp_malloc((kcp->mtu + IKCP_OVERHEAD) * 3);
+            if (kcp->buffer == null)
+            {
+                ikcp_free(kcp);
+                return null;
+            }
 
             iqueue_init(&kcp->snd_queue);
             iqueue_init(&kcp->rcv_queue);
@@ -229,13 +230,13 @@ namespace Astraia
             kcp->nocwnd = 0;
             kcp->xmit = 0;
             kcp->dead_link = IKCP_DEADLINK;
+            kcp->output = null;
 
             return kcp;
         }
 
         public static void ikcp_release(IKCPCB* kcp)
         {
-            assert(kcp != null);
             if (kcp != null)
             {
                 IKCPSEG* seg;
@@ -267,6 +268,11 @@ namespace Astraia
                     ikcp_segment_delete(kcp, seg);
                 }
 
+                if (kcp->buffer != null)
+                {
+                    ikcp_free(kcp->buffer);
+                }
+
                 if (kcp->acklist != null)
                 {
                     ikcp_free(kcp->acklist);
@@ -277,36 +283,51 @@ namespace Astraia
                 kcp->nrcv_que = 0;
                 kcp->nsnd_que = 0;
                 kcp->ackcount = 0;
+                kcp->buffer = null;
                 kcp->acklist = null;
                 ikcp_free(kcp);
             }
         }
 
+        public static void ikcp_setoutput(IKCPCB* kcp, delegate* managed<byte*, int, IKCPCB*, void*, int> output)
+        {
+            kcp->output = output;
+        }
+
         public static int ikcp_recv(IKCPCB* kcp, byte* buffer, int len)
         {
             IQUEUEHEAD* p;
-            int ispeek = (len < 0) ? 1 : 0;
+            var ispeek = len < 0 ? 1 : 0;
             int peeksize;
-            int recover = 0;
+            var recover = 0;
             IKCPSEG* seg;
-            assert(kcp != null);
 
             if (iqueue_is_empty(&kcp->rcv_queue))
+            {
                 return -1;
+            }
 
-            if (len < 0) len = -len;
+            if (len < 0)
+            {
+                len = -len;
+            }
 
             peeksize = ikcp_peeksize(kcp);
 
             if (peeksize < 0)
+            {
                 return -2;
+            }
 
             if (peeksize > len)
+            {
                 return -3;
+            }
 
             if (kcp->nrcv_que >= kcp->rcv_wnd)
+            {
                 recover = 1;
-
+            }
 
             for (len = 0, p = kcp->rcv_queue.next; p != &kcp->rcv_queue;)
             {
@@ -316,7 +337,7 @@ namespace Astraia
 
                 if (buffer != null)
                 {
-                    memcpy(buffer, seg->data, (nuint)seg->len);
+                    memcpy(buffer, seg->data, seg->len);
                     buffer += seg->len;
                 }
 
@@ -331,11 +352,10 @@ namespace Astraia
                 }
 
                 if (fragment == 0)
+                {
                     break;
+                }
             }
-
-            assert(len == peeksize);
-
 
             while (!iqueue_is_empty(&kcp->rcv_buf))
             {
@@ -354,8 +374,7 @@ namespace Astraia
                 }
             }
 
-
-            if (kcp->nrcv_que < kcp->rcv_wnd && (recover != 0))
+            if (kcp->nrcv_que < kcp->rcv_wnd && recover != 0)
             {
                 kcp->probe |= IKCP_ASK_TELL;
             }
@@ -367,22 +386,32 @@ namespace Astraia
         {
             IQUEUEHEAD* p;
             IKCPSEG* seg;
-            int length = 0;
+            var length = 0;
 
-            assert(kcp != null);
-
-            if (iqueue_is_empty(&kcp->rcv_queue)) return -1;
+            if (iqueue_is_empty(&kcp->rcv_queue))
+            {
+                return -1;
+            }
 
             seg = iqueue_entry<IKCPSEG>(kcp->rcv_queue.next);
-            if (seg->frg == 0) return (int)seg->len;
+            if (seg->frg == 0)
+            {
+                return (int)seg->len;
+            }
 
-            if (kcp->nrcv_que < seg->frg + 1) return -1;
+            if (kcp->nrcv_que < seg->frg + 1)
+            {
+                return -1;
+            }
 
             for (p = kcp->rcv_queue.next; p != &kcp->rcv_queue; p = p->next)
             {
                 seg = iqueue_entry<IKCPSEG>(p);
                 length += (int)seg->len;
-                if (seg->frg == 0) break;
+                if (seg->frg == 0)
+                {
+                    break;
+                }
             }
 
             return length;
@@ -392,29 +421,30 @@ namespace Astraia
         {
             IKCPSEG* seg;
             int count, i;
-            int sent = 0;
+            var sent = 0;
 
-            assert(kcp->mss > 0);
-            if (len < 0) return -1;
+            if (len < 0)
+            {
+                return -1;
+            }
 
             if (kcp->stream != 0)
             {
                 if (!iqueue_is_empty(&kcp->snd_queue))
                 {
-                    IKCPSEG* old = iqueue_entry<IKCPSEG>(kcp->snd_queue.prev);
+                    var old = iqueue_entry<IKCPSEG>(kcp->snd_queue.prev);
                     if (old->len < kcp->mss)
                     {
-                        int capacity = (int)(kcp->mss - old->len);
-                        int extend = (len < capacity) ? len : capacity;
+                        var capacity = (int)(kcp->mss - old->len);
+                        var extend = len < capacity ? len : capacity;
                         seg = ikcp_segment_new(kcp, (int)(old->len + extend));
-                        assert(seg != null);
                         if (seg == null)
                         {
                             return -2;
                         }
 
                         iqueue_add_tail(&seg->node, &kcp->snd_queue);
-                        memcpy(seg->data, old->data, (nuint)old->len);
+                        memcpy(seg->data, old->data, old->len);
                         if (buffer != null)
                         {
                             memcpy(seg->data + old->len, buffer, (nuint)extend);
@@ -436,37 +466,51 @@ namespace Astraia
                 }
             }
 
-            if (len <= (int)kcp->mss) count = 1;
-            else count = (int)((len + kcp->mss - 1) / kcp->mss);
+            if (len <= (int)kcp->mss)
+            {
+                count = 1;
+            }
+            else
+            {
+                count = (int)((len + kcp->mss - 1) / kcp->mss);
+            }
 
-            if (kcp->stream == 0 && count > 255) return -2;
+            if (kcp->stream == 0 && count > 255)
+            {
+                return -2;
+            }
 
             if (count >= (int)kcp->rcv_wnd)
             {
                 if (kcp->stream != 0 && sent > 0)
+                {
                     return sent;
+                }
+
                 return -2;
             }
 
-            if (count == 0) count = 1;
+            if (count == 0)
+            {
+                count = 1;
+            }
 
             for (i = 0; i < count; i++)
             {
-                int size = len > (int)kcp->mss ? (int)kcp->mss : len;
+                var size = len > (int)kcp->mss ? (int)kcp->mss : len;
                 seg = ikcp_segment_new(kcp, size);
-                assert(seg != null);
                 if (seg == null)
                 {
                     return -2;
                 }
 
-                if ((buffer != null) && len > 0)
+                if (buffer != null && len > 0)
                 {
                     memcpy(seg->data, buffer, (nuint)size);
                 }
 
                 seg->len = (uint)size;
-                seg->frg = (uint)((kcp->stream == 0) ? (count - i - 1) : 0);
+                seg->frg = (uint)(kcp->stream == 0 ? count - i - 1 : 0);
                 iqueue_init(&seg->node);
                 iqueue_add_tail(&seg->node, &kcp->snd_queue);
                 kcp->nsnd_que++;
@@ -484,7 +528,7 @@ namespace Astraia
 
         public static void ikcp_update_ack(IKCPCB* kcp, int rtt)
         {
-            int rto = 0;
+            var rto = 0;
             if (kcp->rx_srtt == 0)
             {
                 kcp->rx_srtt = rtt;
@@ -493,10 +537,17 @@ namespace Astraia
             else
             {
                 long delta = rtt - kcp->rx_srtt;
-                if (delta < 0) delta = -delta;
+                if (delta < 0)
+                {
+                    delta = -delta;
+                }
+
                 kcp->rx_rttval = (int)((3 * kcp->rx_rttval + delta) / 4);
                 kcp->rx_srtt = (7 * kcp->rx_srtt + rtt) / 8;
-                if (kcp->rx_srtt < 1) kcp->rx_srtt = 1;
+                if (kcp->rx_srtt < 1)
+                {
+                    kcp->rx_srtt = 1;
+                }
             }
 
             rto = (int)(kcp->rx_srtt + _imax_(kcp->interval, (uint)(4 * kcp->rx_rttval)));
@@ -505,10 +556,10 @@ namespace Astraia
 
         public static void ikcp_shrink_buf(IKCPCB* kcp)
         {
-            IQUEUEHEAD* p = kcp->snd_buf.next;
+            var p = kcp->snd_buf.next;
             if (p != &kcp->snd_buf)
             {
-                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                var seg = iqueue_entry<IKCPSEG>(p);
                 kcp->snd_una = seg->sn;
             }
             else
@@ -522,11 +573,13 @@ namespace Astraia
             IQUEUEHEAD* p, next;
 
             if (_itimediff(sn, kcp->snd_una) < 0 || _itimediff(sn, kcp->snd_nxt) >= 0)
+            {
                 return;
+            }
 
             for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = next)
             {
-                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                var seg = iqueue_entry<IKCPSEG>(p);
                 next = p->next;
                 if (sn == seg->sn)
                 {
@@ -548,7 +601,7 @@ namespace Astraia
             IQUEUEHEAD* p, next;
             for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = next)
             {
-                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                var seg = iqueue_entry<IKCPSEG>(p);
                 next = p->next;
                 if (_itimediff(una, seg->sn) > 0)
                 {
@@ -568,17 +621,20 @@ namespace Astraia
             IQUEUEHEAD* p, next;
 
             if (_itimediff(sn, kcp->snd_una) < 0 || _itimediff(sn, kcp->snd_nxt) >= 0)
+            {
                 return;
+            }
 
             for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = next)
             {
-                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                var seg = iqueue_entry<IKCPSEG>(p);
                 next = p->next;
                 if (_itimediff(sn, seg->sn) < 0)
                 {
                     break;
                 }
-                else if (sn != seg->sn)
+
+                if (sn != seg->sn)
                 {
                     seg->fastack++;
                 }
@@ -587,7 +643,7 @@ namespace Astraia
 
         public static void ikcp_ack_push(IKCPCB* kcp, uint sn, uint ts)
         {
-            uint newsize = kcp->ackcount + 1;
+            var newsize = kcp->ackcount + 1;
             uint* ptr;
 
             if (newsize > kcp->ackblock)
@@ -596,12 +652,7 @@ namespace Astraia
                 uint newblock;
 
                 newblock = newsize <= 8 ? 8 : _iceilpow2_(newsize);
-                acklist = (uint*)ikcp_malloc((nuint)(newblock * sizeof(uint) * 2));
-
-                if (acklist == null)
-                {
-                    assert(acklist != null);
-                }
+                acklist = (uint*)ikcp_malloc(newblock * sizeof(uint) * 2);
 
                 if (kcp->acklist != null)
                 {
@@ -627,18 +678,24 @@ namespace Astraia
 
         public static void ikcp_ack_get(IKCPCB* kcp, int p, uint* sn, uint* ts)
         {
-            if (sn != null) sn[0] = kcp->acklist[p * 2 + 0];
-            if (ts != null) ts[0] = kcp->acklist[p * 2 + 1];
+            if (sn != null)
+            {
+                sn[0] = kcp->acklist[p * 2 + 0];
+            }
+
+            if (ts != null)
+            {
+                ts[0] = kcp->acklist[p * 2 + 1];
+            }
         }
 
         public static void ikcp_parse_data(IKCPCB* kcp, IKCPSEG* newseg)
         {
             IQUEUEHEAD* p, prev;
-            uint sn = newseg->sn;
-            int repeat = 0;
+            var sn = newseg->sn;
+            var repeat = 0;
 
-            if (_itimediff(sn, kcp->rcv_nxt + kcp->rcv_wnd) >= 0 ||
-                _itimediff(sn, kcp->rcv_nxt) < 0)
+            if (_itimediff(sn, kcp->rcv_nxt + kcp->rcv_wnd) >= 0 || _itimediff(sn, kcp->rcv_nxt) < 0)
             {
                 ikcp_segment_delete(kcp, newseg);
                 return;
@@ -646,7 +703,7 @@ namespace Astraia
 
             for (p = kcp->rcv_buf.prev; p != &kcp->rcv_buf; p = prev)
             {
-                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
+                var seg = iqueue_entry<IKCPSEG>(p);
                 prev = p->prev;
                 if (seg->sn == sn)
                 {
@@ -673,7 +730,7 @@ namespace Astraia
 
             while (!iqueue_is_empty(&kcp->rcv_buf))
             {
-                IKCPSEG* seg = iqueue_entry<IKCPSEG>(kcp->rcv_buf.next);
+                var seg = iqueue_entry<IKCPSEG>(kcp->rcv_buf.next);
                 if (seg->sn == kcp->rcv_nxt && kcp->nrcv_que < kcp->rcv_wnd)
                 {
                     iqueue_del(&seg->node);
@@ -691,11 +748,14 @@ namespace Astraia
 
         public static int ikcp_input(IKCPCB* kcp, byte* data, long size)
         {
-            uint prev_una = kcp->snd_una;
+            var prev_una = kcp->snd_una;
             uint maxack = 0, latest_ts = 0;
-            int flag = 0;
+            var flag = 0;
 
-            if (data == null || (int)size < (int)IKCP_OVERHEAD) return -1;
+            if (data == null || (int)size < (int)IKCP_OVERHEAD)
+            {
+                return -1;
+            }
 
             while (true)
             {
@@ -704,10 +764,16 @@ namespace Astraia
                 byte cmd, frg;
                 IKCPSEG* seg;
 
-                if (size < (int)IKCP_OVERHEAD) break;
+                if (size < (int)IKCP_OVERHEAD)
+                {
+                    break;
+                }
 
                 data = ikcp_decode32u(data, &conv);
-                if (conv != kcp->conv) return -1;
+                if (conv != kcp->conv)
+                {
+                    return -1;
+                }
 
                 data = ikcp_decode8u(data, &cmd);
                 data = ikcp_decode8u(data, &frg);
@@ -719,11 +785,15 @@ namespace Astraia
 
                 size -= IKCP_OVERHEAD;
 
-                if ((long)size < (long)len || (int)len < 0) return -2;
+                if (size < len || (int)len < 0)
+                {
+                    return -2;
+                }
 
-                if (cmd != IKCP_CMD_PUSH && cmd != IKCP_CMD_ACK &&
-                    cmd != IKCP_CMD_WASK && cmd != IKCP_CMD_WINS)
+                if (cmd != IKCP_CMD_PUSH && cmd != IKCP_CMD_ACK && cmd != IKCP_CMD_WASK && cmd != IKCP_CMD_WINS)
+                {
                     return -3;
+                }
 
                 kcp->rmt_wnd = wnd;
                 ikcp_parse_una(kcp, una);
@@ -772,7 +842,7 @@ namespace Astraia
 
                             if (len > 0)
                             {
-                                memcpy(seg->data, data, (nuint)len);
+                                memcpy(seg->data, data, len);
                             }
 
                             ikcp_parse_data(kcp, seg);
@@ -783,9 +853,7 @@ namespace Astraia
                 {
                     kcp->probe |= IKCP_ASK_TELL;
                 }
-                else if (cmd == IKCP_CMD_WINS)
-                {
-                }
+                else if (cmd == IKCP_CMD_WINS) { }
                 else
                 {
                     return -3;
@@ -804,7 +872,7 @@ namespace Astraia
             {
                 if (kcp->cwnd < kcp->rmt_wnd)
                 {
-                    uint mss = kcp->mss;
+                    var mss = kcp->mss;
                     if (kcp->cwnd < kcp->ssthresh)
                     {
                         kcp->cwnd++;
@@ -812,11 +880,15 @@ namespace Astraia
                     }
                     else
                     {
-                        if (kcp->incr < mss) kcp->incr = mss;
-                        kcp->incr += (mss * mss) / kcp->incr + (mss / 16);
+                        if (kcp->incr < mss)
+                        {
+                            kcp->incr = mss;
+                        }
+
+                        kcp->incr += mss * mss / kcp->incr + mss / 16;
                         if ((kcp->cwnd + 1) * mss <= kcp->incr)
                         {
-                            kcp->cwnd = (kcp->incr + mss - 1) / ((mss > 0) ? mss : 1);
+                            kcp->cwnd = (kcp->incr + mss - 1) / (mss > 0 ? mss : 1);
                         }
                     }
 
@@ -854,19 +926,23 @@ namespace Astraia
             return 0;
         }
 
-        public static void ikcp_flush(IKCPCB* kcp, byte* buffer, byte[] destination, Action<byte[], int> output)
+        public static void ikcp_flush(IKCPCB* kcp)
         {
-            uint current = kcp->current;
-            byte* ptr = buffer;
+            var current = kcp->current;
+            var buffer = kcp->buffer;
+            var ptr = buffer;
             int count, size, i;
             uint resent, cwnd;
             uint rtomin;
             IQUEUEHEAD* p;
-            int change = 0;
-            int lost = 0;
+            var change = 0;
+            var lost = 0;
             IKCPSEG seg;
 
-            if (kcp->updated == 0) return;
+            if (kcp->updated == 0)
+            {
+                return;
+            }
 
             seg.conv = kcp->conv;
             seg.cmd = IKCP_CMD_ACK;
@@ -883,7 +959,7 @@ namespace Astraia
                 size = (int)(ptr - buffer);
                 if (size + (int)IKCP_OVERHEAD > (int)kcp->mtu)
                 {
-                    ikcp_output(kcp, size, destination, output);
+                    ikcp_output(kcp, buffer, size);
                     ptr = buffer;
                 }
 
@@ -905,10 +981,16 @@ namespace Astraia
                     if (_itimediff(kcp->current, kcp->ts_probe) >= 0)
                     {
                         if (kcp->probe_wait < IKCP_PROBE_INIT)
+                        {
                             kcp->probe_wait = IKCP_PROBE_INIT;
+                        }
+
                         kcp->probe_wait += kcp->probe_wait / 2;
                         if (kcp->probe_wait > IKCP_PROBE_LIMIT)
+                        {
                             kcp->probe_wait = IKCP_PROBE_LIMIT;
+                        }
+
                         kcp->ts_probe = kcp->current + kcp->probe_wait;
                         kcp->probe |= IKCP_ASK_SEND;
                     }
@@ -926,7 +1008,7 @@ namespace Astraia
                 size = (int)(ptr - buffer);
                 if (size + (int)IKCP_OVERHEAD > (int)kcp->mtu)
                 {
-                    ikcp_output(kcp, size, destination, output);
+                    ikcp_output(kcp, buffer, size);
                     ptr = buffer;
                 }
 
@@ -939,7 +1021,7 @@ namespace Astraia
                 size = (int)(ptr - buffer);
                 if (size + (int)IKCP_OVERHEAD > (int)kcp->mtu)
                 {
-                    ikcp_output(kcp, size, destination, output);
+                    ikcp_output(kcp, buffer, size);
                     ptr = buffer;
                 }
 
@@ -949,12 +1031,18 @@ namespace Astraia
             kcp->probe = 0;
 
             cwnd = _imin_(kcp->snd_wnd, kcp->rmt_wnd);
-            if (kcp->nocwnd == 0) cwnd = _imin_(kcp->cwnd, cwnd);
+            if (kcp->nocwnd == 0)
+            {
+                cwnd = _imin_(kcp->cwnd, cwnd);
+            }
 
             while (_itimediff(kcp->snd_nxt, kcp->snd_una + cwnd) < 0)
             {
                 IKCPSEG* newseg;
-                if (iqueue_is_empty(&kcp->snd_queue)) break;
+                if (iqueue_is_empty(&kcp->snd_queue))
+                {
+                    break;
+                }
 
                 newseg = iqueue_entry<IKCPSEG>(kcp->snd_queue.next);
 
@@ -975,13 +1063,13 @@ namespace Astraia
                 newseg->xmit = 0;
             }
 
-            resent = (kcp->fastresend > 0) ? (uint)kcp->fastresend : 0xffffffff;
-            rtomin = (uint)((kcp->nodelay == 0) ? (kcp->rx_rto >> 3) : 0);
+            resent = kcp->fastresend > 0 ? (uint)kcp->fastresend : 0xffffffff;
+            rtomin = (uint)(kcp->nodelay == 0 ? kcp->rx_rto >> 3 : 0);
 
             for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = p->next)
             {
-                IKCPSEG* segment = iqueue_entry<IKCPSEG>(p);
-                int needsend = 0;
+                var segment = iqueue_entry<IKCPSEG>(p);
+                var needsend = 0;
                 if (segment->xmit == 0)
                 {
                     needsend = 1;
@@ -1000,7 +1088,7 @@ namespace Astraia
                     }
                     else
                     {
-                        int step = (kcp->nodelay < 2) ? ((int)(segment->rto)) : kcp->rx_rto;
+                        var step = kcp->nodelay < 2 ? (int)segment->rto : kcp->rx_rto;
                         segment->rto += (uint)(step / 2);
                     }
 
@@ -1009,8 +1097,7 @@ namespace Astraia
                 }
                 else if (segment->fastack >= resent)
                 {
-                    if ((int)segment->xmit <= kcp->fastlimit ||
-                        kcp->fastlimit <= 0)
+                    if ((int)segment->xmit <= kcp->fastlimit || kcp->fastlimit <= 0)
                     {
                         needsend = 1;
                         segment->xmit++;
@@ -1032,7 +1119,7 @@ namespace Astraia
 
                     if (size + need > (int)kcp->mtu)
                     {
-                        ikcp_output(kcp, size, destination, output);
+                        ikcp_output(kcp, buffer, size);
                         ptr = buffer;
                     }
 
@@ -1040,13 +1127,13 @@ namespace Astraia
 
                     if (segment->len > 0)
                     {
-                        memcpy(ptr, segment->data, (nuint)segment->len);
+                        memcpy(ptr, segment->data, segment->len);
                         ptr += segment->len;
                     }
 
                     if (segment->xmit >= kcp->dead_link)
                     {
-                        kcp->state = unchecked((uint)(-1));
+                        kcp->state = unchecked((uint)-1);
                     }
                 }
             }
@@ -1054,15 +1141,18 @@ namespace Astraia
             size = (int)(ptr - buffer);
             if (size > 0)
             {
-                ikcp_output(kcp, size, destination, output);
+                ikcp_output(kcp, buffer, size);
             }
 
             if (change != 0)
             {
-                uint inflight = kcp->snd_nxt - kcp->snd_una;
+                var inflight = kcp->snd_nxt - kcp->snd_una;
                 kcp->ssthresh = inflight / 2;
                 if (kcp->ssthresh < IKCP_THRESH_MIN)
+                {
                     kcp->ssthresh = IKCP_THRESH_MIN;
+                }
+
                 kcp->cwnd = kcp->ssthresh + resent;
                 kcp->incr = kcp->cwnd * kcp->mss;
             }
@@ -1071,7 +1161,10 @@ namespace Astraia
             {
                 kcp->ssthresh = cwnd / 2;
                 if (kcp->ssthresh < IKCP_THRESH_MIN)
+                {
                     kcp->ssthresh = IKCP_THRESH_MIN;
+                }
+
                 kcp->cwnd = 1;
                 kcp->incr = kcp->mss;
             }
@@ -1083,7 +1176,7 @@ namespace Astraia
             }
         }
 
-        public static void ikcp_update(IKCPCB* kcp, uint current, byte* buffer, byte[] destination, Action<byte[], int> output)
+        public static void ikcp_update(IKCPCB* kcp, uint current)
         {
             int slap;
 
@@ -1111,71 +1204,28 @@ namespace Astraia
                     kcp->ts_flush = kcp->current + kcp->interval;
                 }
 
-                ikcp_flush(kcp, buffer, destination, output);
+                ikcp_flush(kcp);
             }
         }
 
-        public static uint ikcp_check(IKCPCB* kcp, uint current)
+        public static int ikcp_setmtu(IKCPCB* kcp, int mtu)
         {
-            uint ts_flush = kcp->ts_flush;
-            int tm_flush = 0x7fffffff;
-            int tm_packet = 0x7fffffff;
-            uint minimal = 0;
-            IQUEUEHEAD* p;
-
-            if (kcp->updated == 0)
-            {
-                return current;
-            }
-
-            if (_itimediff(current, ts_flush) >= 10000 ||
-                _itimediff(current, ts_flush) < -10000)
-            {
-                ts_flush = current;
-            }
-
-            if (_itimediff(current, ts_flush) >= 0)
-            {
-                return current;
-            }
-
-            tm_flush = (int)_itimediff(ts_flush, current);
-
-            for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = p->next)
-            {
-                IKCPSEG* seg = iqueue_entry<IKCPSEG>(p);
-                int diff = (int)_itimediff(seg->resendts, current);
-                if (diff <= 0)
-                {
-                    return current;
-                }
-
-                if (diff < tm_packet) tm_packet = diff;
-            }
-
-            minimal = (uint)(tm_packet < tm_flush ? tm_packet : tm_flush);
-            if (minimal >= kcp->interval) minimal = kcp->interval;
-
-            return current + minimal;
-        }
-
-        public static int ikcp_setmtu(IKCPCB* kcp, int mtu, ref byte[] buffer)
-        {
+            byte* buffer;
             if (mtu < 50 || mtu < (int)IKCP_OVERHEAD)
+            {
                 return -1;
-            buffer = new byte[(mtu + IKCP_OVERHEAD) * 3];
+            }
+
+            buffer = (byte*)ikcp_malloc((nuint)((mtu + IKCP_OVERHEAD) * 3));
             if (buffer == null)
+            {
                 return -2;
+            }
+
             kcp->mtu = (uint)mtu;
             kcp->mss = kcp->mtu - IKCP_OVERHEAD;
-            return 0;
-        }
-
-        public static int ikcp_interval(IKCPCB* kcp, int interval)
-        {
-            if (interval > 5000) interval = 5000;
-            else if (interval < 10) interval = 10;
-            kcp->interval = (uint)interval;
+            ikcp_free(kcp->buffer);
+            kcp->buffer = buffer;
             return 0;
         }
 
@@ -1196,8 +1246,15 @@ namespace Astraia
 
             if (interval >= 0)
             {
-                if (interval > 5000) interval = 5000;
-                else if (interval < 10) interval = 10;
+                if (interval > 5000)
+                {
+                    interval = 5000;
+                }
+                else if (interval < 10)
+                {
+                    interval = 10;
+                }
+
                 kcp->interval = (uint)interval;
             }
 
@@ -1231,18 +1288,6 @@ namespace Astraia
 
             return 0;
         }
-
-        public static int ikcp_waitsnd(IKCPCB* kcp)
-        {
-            return (int)(kcp->nsnd_buf + kcp->nsnd_que);
-        }
-
-        public static uint ikcp_getconv(void* ptr)
-        {
-            uint conv;
-            ikcp_decode32u((byte*)ptr, &conv);
-            return conv;
-        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -1262,7 +1307,10 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T* iqueue_entry<T>(IQUEUEHEAD* ptr) where T : unmanaged => ((T*)(((byte*)((T*)ptr))));
+        public static T* iqueue_entry<T>(IQUEUEHEAD* ptr) where T : unmanaged
+        {
+            return (T*)(byte*)(T*)ptr;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void iqueue_add(IQUEUEHEAD* node, IQUEUEHEAD* head)
@@ -1299,7 +1347,10 @@ namespace Astraia
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool iqueue_is_empty(IQUEUEHEAD* entry) => entry == entry->next;
+        public static bool iqueue_is_empty(IQUEUEHEAD* entry)
+        {
+            return entry == entry->next;
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -1342,9 +1393,12 @@ namespace Astraia
         public uint* acklist;
         public uint ackcount;
         public uint ackblock;
+        public void* user;
+        public byte* buffer;
         public int fastresend;
         public int fastlimit;
         public int nocwnd, stream;
+        public delegate* managed<byte*, int, IKCPCB*, void*, int> output;
     }
 
     internal static unsafe partial class Kcp
@@ -1363,8 +1417,5 @@ namespace Astraia
         {
             Unsafe.CopyBlockUnaligned(dst, src, (uint)size);
         }
-
-        [Conditional("DEBUG")]
-        public static void assert(bool condition) => Debug.Assert(condition);
     }
 }

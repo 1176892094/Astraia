@@ -17,10 +17,10 @@ namespace Astraia
     internal sealed class NetworkWriter
     {
         private readonly Queue<MemoryWriter> writers = new();
-        private readonly uint capacity;
+        private readonly int capacity;
         private MemoryWriter writer;
 
-        public NetworkWriter(uint capacity)
+        public NetworkWriter(int capacity)
         {
             this.capacity = capacity;
         }

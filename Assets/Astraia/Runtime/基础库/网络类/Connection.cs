@@ -72,7 +72,7 @@ namespace Astraia
             DataInternal(copied, pass);
         }
 
-        private uint GetLength(int pass)
+        private int GetLength(int pass)
         {
             return pass == Pass.KCP ? Const.KCP_LEN : Const.UDP_LEN;
         }

@@ -13,6 +13,8 @@ using System.Net.Sockets;
 
 namespace Astraia
 {
+    internal unsafe delegate void SendDelegate(byte* bytes, int count);
+
     internal static class Pass
     {
         public const byte KCP = 1 << 0;
@@ -21,24 +23,21 @@ namespace Astraia
 
     internal static class Const
     {
-        public const uint MTU_DEF = 1200;
-        public const uint SED_WIN = 1024;
-        public const uint REV_WIN = 1024;
+        public const int MTU_DEF = 1200;
+        public const int SED_WIN = 1024 * 4;
+        public const int REV_WIN = 1024 * 4;
 
-        public const uint INTERVAL = 10;
-        public const uint DEAD_LINK = 40;
-        public const uint PING_TIME = 1000;
-        public const uint WAIT_TIME = 10000;
-        public const uint FAST_RESEND = 2;
+        public const int FAST_SEND = 2;
+        public const int DEAD_LINK = 40;
+        public const int STEP_TIME = 10;
+        public const int PING_TIME = 1000;
+        public const int WAIT_TIME = 10000;
+        public const int HEAD_SIZE = sizeof(byte) + sizeof(int);
 
-        public const int HEAD_PASS = sizeof(byte);
-        public const int HEAD_DATA = sizeof(uint);
-        public const int HEAD_META = sizeof(byte);
-        public const int HEAD_SIZE = HEAD_PASS + HEAD_DATA;
-
-        public const uint KCP_DEF = MTU_DEF - HEAD_SIZE - Kcp.IKCP_OVERHEAD;
-        public const uint UDP_LEN = MTU_DEF - HEAD_SIZE;
-        public const uint KCP_LEN = KCP_DEF * (255 - 1) - HEAD_META;
+        public const int MAX_FRG = byte.MaxValue - 1;
+        public const int UDP_LEN = MTU_DEF - HEAD_SIZE;
+        public const int MAX_LEN = MTU_DEF - HEAD_SIZE - (int)Kcp.IKCP_OVERHEAD;
+        public const int KCP_LEN = MAX_LEN * MAX_FRG - sizeof(byte);
     }
 
     internal static class Common
