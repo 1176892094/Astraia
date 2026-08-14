@@ -47,7 +47,7 @@ namespace Astraia
             }
             catch (NotSupportedException e)
             {
-                Log.Warn("服务器不支持双连接模式!\n{0}", e);
+                Log.Warn($"服务器不支持双连接模式!\n{e}");
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -91,7 +91,7 @@ namespace Astraia
             {
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    Log.Info("服务器接收消息失败!\n{0}", e);
+                    Log.Info($"服务器接收消息失败!\n{e}");
                 }
 
                 return false;
@@ -119,7 +119,7 @@ namespace Astraia
 
             void OnConnect(int serverId)
             {
-                Log.Info("客户端 {0} 连接到服务器。", id);
+                Log.Info($"客户端 {id} 连接到服务器。");
                 clients.Add(id, new KcpClient(kcpPeer, endPoint));
                 kcpPeer.Handshake(id);
                 onConnect(id);
@@ -127,7 +127,7 @@ namespace Astraia
 
             void OnDisconnect(int serverId)
             {
-                Log.Info("客户端 {0} 从服务器断开。", id);
+                Log.Info($"客户端 {id} 从服务器断开。");
                 removes.Add(id);
                 onDisconnect(id);
             }
@@ -158,7 +158,7 @@ namespace Astraia
                 {
                     if (e.SocketErrorCode != SocketError.WouldBlock)
                     {
-                        Log.Error("服务器发送消息失败!\n{0}", e);
+                        Log.Error($"服务器发送消息失败!\n{e}");
                     }
                 }
             }

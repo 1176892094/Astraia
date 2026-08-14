@@ -54,7 +54,7 @@ namespace Astraia.Net
                 var rooms = Utils.Decompress(texts);
                 var jsons = JsonManager.FromJson<LobbyData[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
-                Log.Info("房间信息: {0}", rooms);
+                Log.Info($"房间信息: {rooms}");
             }
 
             internal static void Submit(RoomMode roomMode)

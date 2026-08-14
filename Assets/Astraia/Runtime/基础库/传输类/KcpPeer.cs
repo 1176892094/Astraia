@@ -81,14 +81,14 @@ namespace Astraia
 
             if (count > kcpDataBuffer.Length)
             {
-                onError(Error.无效接收, "{0}接收网络消息过大。消息大小: {1} < {2}。".Format(userName, kcpDataBuffer.Length, count));
+                onError(Error.无效接收, $"{userName}接收网络消息过大。消息大小: {kcpDataBuffer.Length} < {count}。");
                 Disconnect();
                 return false;
             }
 
             if (module.Receive(kcpDataBuffer, count) < 0)
             {
-                onError(Error.无效接收, "{0}接收网络消息失败。".Format(userName));
+                onError(Error.无效接收, $"{userName}接收网络消息失败。");
                 Disconnect();
                 return false;
             }
@@ -110,7 +110,7 @@ namespace Astraia
             var readData = Common.Decode(segment.Array, segment.Offset + 1);
             if (state == State.连接成功 && readData != userData)
             {
-                Log.Warn("{0}数据校验失败。旧: {1} 新: {2}", userName, userData, readData);
+                Log.Warn($"{userName}数据校验失败。旧: {userData} 新: {readData}");
                 return;
             }
 
@@ -119,7 +119,7 @@ namespace Astraia
             {
                 if (module.Input(message.Array, message.Offset, message.Count) != 0)
                 {
-                    Log.Warn("{0}发送可靠消息失败。消息大小: {1}", userName, message.Count - 1);
+                    Log.Warn($"{userName}发送可靠消息失败。消息大小: {message.Count - 1}");
                 }
             }
             else if (pass == Pass.UDP)
@@ -136,7 +136,7 @@ namespace Astraia
         {
             if (segment.Count > Const.KCP_LEN)
             {
-                onError(Error.无效发送, "{0}发送网络消息过大。消息大小: {1} < {2}".Format(userName, segment.Count, Const.KCP_LEN));
+                onError(Error.无效发送, $"{userName}发送网络消息过大。消息大小: {segment.Count} < {Const.KCP_LEN}");
                 return;
             }
 
@@ -148,7 +148,7 @@ namespace Astraia
 
             if (module.Send(kcpSendBuffer, 0, segment.Count + 1) < 0)
             {
-                onError(Error.无效发送, "{0}发送网络消息失败。消息大小: {1}。".Format(userName, segment.Count));
+                onError(Error.无效发送, $"{userName}发送网络消息失败。消息大小: {segment.Count}。");
             }
         }
 
@@ -156,7 +156,7 @@ namespace Astraia
         {
             if (segment.Count > Const.UDP_LEN)
             {
-                onError(Error.无效发送, "{0}发送网络消息过大。消息大小: {1} < {2}".Format(userName, segment.Count, Const.UDP_LEN));
+                onError(Error.无效发送, $"{userName}发送网络消息过大。消息大小: {segment.Count} < {Const.UDP_LEN}");
                 return;
             }
 
@@ -174,7 +174,7 @@ namespace Astraia
         {
             if (segment.Count == 0)
             {
-                onError(Error.无效发送, "{0}尝试发送空消息。".Format(userName));
+                onError(Error.无效发送, $"{userName}尝试发送空消息。");
                 Disconnect();
                 return;
             }
@@ -214,14 +214,14 @@ namespace Astraia
             var sinceTime = (int)watch.ElapsedMilliseconds;
             if (sinceTime >= nextTime + waitTime)
             {
-                onError(Error.连接超时, "{0}在{1}秒内没有收到任何消息后的连接超时！".Format(userName, waitTime / 1000));
+                onError(Error.连接超时, $"{userName}在{waitTime / 1000}秒内没有收到任何消息后的连接超时！");
                 Disconnect();
                 return;
             }
 
             if (module.State == unchecked((uint)-1))
             {
-                onError(Error.连接超时, "{0}网络消息被重传了{1}次而没有得到确认！".Format(userName, module.Death));
+                onError(Error.连接超时, $"{userName}网络消息被重传了{module.Death}次而没有得到确认！");
                 Disconnect();
                 return;
             }
@@ -234,7 +234,7 @@ namespace Astraia
 
             if (module.Count >= 10000)
             {
-                onError(Error.网络拥塞, "{0}断开连接，因为它处理数据的速度不够快！".Format(userName));
+                onError(Error.网络拥塞, $"{userName}断开连接，因为它处理数据的速度不够快！");
                 Disconnect();
             }
         }
@@ -247,7 +247,7 @@ namespace Astraia
                 switch (message)
                 {
                     case Opcode.握手 when segment.Count != 4:
-                        onError(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));
+                        onError(Error.无效接收, $"{userName}接收无效的网络消息。消息类型: {message}");
                         Disconnect();
                         return;
                     case Opcode.握手:
@@ -256,7 +256,7 @@ namespace Astraia
                         onConnect(userData);
                         break;
                     case Opcode.数据:
-                        onError(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));
+                        onError(Error.无效接收, $"{userName}接收无效的网络消息。消息类型: {message}");
                         Disconnect();
                         break;
                     case Opcode.断连:
@@ -274,11 +274,11 @@ namespace Astraia
                 switch (message)
                 {
                     case Opcode.握手:
-                        onError(Error.无效接收, "{0}接收无效的网络消息。消息类型: {1}".Format(userName, message));
+                        onError(Error.无效接收, $"{userName}接收无效的网络消息。消息类型: {message}");
                         Disconnect();
                         break;
                     case Opcode.数据 when segment.Count == 0:
-                        onError(Error.无效接收, "{0}收到无效的网络消息。消息类型: {1}".Format(userName, message));
+                        onError(Error.无效接收, $"{userName}接收无效的网络消息。消息类型: {message}");
                         Disconnect();
                         break;
                     case Opcode.数据:
@@ -307,17 +307,17 @@ namespace Astraia
             }
             catch (SocketException e)
             {
-                onError(Error.连接关闭, "{0}网络发生异常，断开连接。\n{1}".Format(userName, e));
+                onError(Error.连接关闭, $"{userName}网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                onError(Error.连接关闭, "{0}网络发生异常，断开连接。\n{1}".Format(userName, e));
+                onError(Error.连接关闭, $"{userName}网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (Exception e)
             {
-                onError(Error.未知异常, "{0}网络发生异常，断开连接。\n{1}".Format(userName, e));
+                onError(Error.未知异常, $"{userName}网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
         }
@@ -333,17 +333,17 @@ namespace Astraia
             }
             catch (SocketException e)
             {
-                onError(Error.连接关闭, "{0}网络发生异常，断开连接。\n{1}".Format(userName, e));
+                onError(Error.连接关闭, $"{userName}网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (ObjectDisposedException e)
             {
-                onError(Error.连接关闭, "{0}网络发生异常，断开连接。\n{1}".Format(userName, e));
+                onError(Error.连接关闭, $"{userName}网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
             catch (Exception e)
             {
-                onError(Error.未知异常, "{0}网络发生异常，断开连接。\n{1}".Format(userName, e));
+                onError(Error.未知异常, $"{userName}网络发生异常，断开连接。\n{e}");
                 Disconnect();
             }
         }

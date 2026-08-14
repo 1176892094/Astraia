@@ -57,13 +57,13 @@ namespace Astraia
         {
             if (error != Error.解析失败 && error != Error.连接超时)
             {
-                Log.Warn("客户端: {0}  错误代码: {1}\n{2}".Format(clientId, error, message));
+                Log.Warn($"客户端: {clientId}  错误代码: {error}\n{message}");
             }
         }
 
         private static void OnClientError(Error error, string message)
         {
-            Log.Warn("错误代码: {0}\n{1}", error, message);
+            Log.Warn($"错误代码: {error}\n{message}");
         }
 
         public override void SendToClient(int clientId, ArraySegment<byte> segment, int pass = Pass.KCP)

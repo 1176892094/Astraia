@@ -159,26 +159,26 @@ namespace Astraia.Net
             {
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Log.Warn("无法为客户端 {0} 同步网络对象: {1}", client.clientId, message.objectId);
+                    Log.Warn($"无法为客户端 {client.clientId} 同步网络对象: {message.objectId}");
                     return;
                 }
 
                 if (!entity)
                 {
-                    Log.Warn("无法为客户端 {0} 同步网络对象: {1}", client.clientId, message.objectId);
+                    Log.Warn($"无法为客户端 {client.clientId} 同步网络对象: {message.objectId}");
                     return;
                 }
 
                 if (entity.client != client)
                 {
-                    Log.Warn("无法为客户端 {0} 同步网络对象: {1}", client.clientId, message.objectId);
+                    Log.Warn($"无法为客户端 {client.clientId} 同步网络对象: {message.objectId}");
                     return;
                 }
 
                 using var reader = MemoryReader.Pop(message.segment);
                 if (!entity.modules.ServerReceive(reader))
                 {
-                    Log.Warn("无法为客户端 {0} 反序列化网络对象: {1}", client.clientId, message.objectId);
+                    Log.Warn($"无法为客户端 {client.clientId} 反序列化网络对象: {message.objectId}");
                     client.Disconnect();
                 }
             }
@@ -188,19 +188,19 @@ namespace Astraia.Net
                 if (!client.isReady)
                 {
                     if (pass != Pass.KCP) return;
-                    Log.Warn("无法为客户端 {0} 进行远程调用，未准备就绪。", client.clientId);
+                    Log.Warn($"无法为客户端 {client.clientId} 进行远程调用，未准备就绪。");
                     return;
                 }
 
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Log.Warn("无法为客户端 {0} 进行远程调用，未找到对象 {1}。", client.clientId, message.objectId);
+                    Log.Warn($"无法为客户端 {client.clientId} 进行远程调用，未找到对象 {message.objectId}。");
                     return;
                 }
 
                 if (NetworkAttribute.HasHook(message.methodId) && entity.client != client)
                 {
-                    Log.Warn("无法为客户端 {0} 进行远程调用，对象无权限 {1}。", client.clientId, message.objectId);
+                    Log.Warn($"无法为客户端 {client.clientId} 进行远程调用，对象无权限 {message.objectId}。");
                     return;
                 }
 
@@ -260,13 +260,13 @@ namespace Astraia.Net
             {
                 if (!clients.TryGetValue(id, out var client))
                 {
-                    Log.Warn("无法为客户端 {0} 进行处理消息。未知客户端。", id);
+                    Log.Warn($"无法为客户端 {id} 进行处理消息。未知客户端。");
                     return;
                 }
 
                 if (!client.AddBatch(segment))
                 {
-                    Log.Warn("无法为客户端 {0} 进行处理消息。", id);
+                    Log.Warn($"无法为客户端 {id} 进行处理消息。");
                     client.Disconnect();
                     return;
                 }
@@ -276,7 +276,7 @@ namespace Astraia.Net
                     using var reader = MemoryReader.Pop(result);
                     if (reader.buffer.Count - reader.position < sizeof(ushort))
                     {
-                        Log.Warn("无法为客户端 {0} 进行处理消息。没有头部。", id);
+                        Log.Warn($"无法为客户端 {id} 进行处理消息。没有头部。");
                         client.Disconnect();
                         return;
                     }
@@ -284,7 +284,7 @@ namespace Astraia.Net
                     var message = reader.ReadUInt16();
                     if (!NetworkMessage.GetValueByServer(message, out var onMessage))
                     {
-                        Log.Warn("无法为客户端 {0} 进行处理消息。未知的消息 {1}。", id, message);
+                        Log.Warn($"无法为客户端 {id} 进行处理消息。未知的消息 {message}。");
                         client.Disconnect();
                         return;
                     }
@@ -294,7 +294,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && client.Count > 0)
                 {
-                    Log.Warn("无法为客户端 {0} 进行处理消息。残留消息: {1}。", id, client.Count);
+                    Log.Warn($"无法为客户端 {id} 进行处理消息。残留消息: {client.Count}。");
                 }
             }
         }
@@ -311,13 +311,13 @@ namespace Astraia.Net
 
                 if (!obj.TryGetComponent(out NetworkEntity entity))
                 {
-                    Log.Error("网络对象 {0} 没有 NetworkEntity 组件", entity);
+                    Log.Error($"网络对象 {entity} 没有 NetworkEntity 组件");
                     return;
                 }
 
                 if (spawns.ContainsKey(entity.objectId))
                 {
-                    Log.Warn("网络对象 {0} 已经生成。", entity);
+                    Log.Warn($"网络对象 {entity} 已经生成。");
                     return;
                 }
 

@@ -39,7 +39,7 @@ namespace Astraia.Net
 
             if (message.mode != mode || message.module != module || message.func != func)
             {
-                Log.Error("远程调用 [{0} {1}] 与 [{2} {3}] 冲突。", module, func.Method.Name, message.module, message.func.Method.Name);
+                Log.Error($"远程调用 [{module} {func.Method.Name}] 与 [{message.module} {message.func.Method.Name}] 冲突。");
             }
         }
 

@@ -72,8 +72,8 @@ namespace Astraia
             }
             catch (SocketException)
             {
-                Log.Info("发送缓冲: {0} => {1} : {2:F}", buffer, sendBuffer, sendBuffer / buffer);
-                Log.Info("接收缓冲: {0} => {1} : {2:F}", buffer, dataBuffer, dataBuffer / buffer);
+                Log.Info($"发送缓冲: {buffer} => {sendBuffer} : {sendBuffer / buffer:F}");
+                Log.Info($"接收缓冲: {buffer} => {dataBuffer} : {dataBuffer / buffer:F}");
             }
         }
     }

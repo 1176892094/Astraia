@@ -133,13 +133,13 @@ namespace Astraia.Net
 
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Log.Warn("无法同步网络对象: {0}", message.objectId);
+                    Log.Warn($"无法同步网络对象: {message.objectId}");
                     return;
                 }
 
                 if (!entity)
                 {
-                    Log.Warn("无法同步网络对象: {0}", message.objectId);
+                    Log.Warn($"无法同步网络对象: {message.objectId}");
                     return;
                 }
 
@@ -151,7 +151,7 @@ namespace Astraia.Net
             {
                 if (!spawns.TryGetValue(message.objectId, out var entity))
                 {
-                    Log.Warn("无法进行远程调用，未找到对象 {0}。", message.objectId);
+                    Log.Warn($"无法进行远程调用，未找到对象 {message.objectId}。");
                     return;
                 }
 
@@ -229,7 +229,7 @@ namespace Astraia.Net
                     var message = reader.ReadUInt16();
                     if (!NetworkMessage.GetValueByClient(message, out var onMessage))
                     {
-                        Log.Warn("无法处理来自服务器的消息。未知的消息{0}", message);
+                        Log.Warn($"无法处理来自服务器的消息。未知的消息{message}");
                         connection.Disconnect();
                         return;
                     }
@@ -239,7 +239,7 @@ namespace Astraia.Net
 
                 if (!isLoadScene && connection.Count > 0)
                 {
-                    Log.Warn("无法处理来自服务器的消息。残留消息: {0}", connection.Count);
+                    Log.Warn($"无法处理来自服务器的消息。残留消息: {connection.Count}");
                 }
             }
         }
@@ -355,19 +355,19 @@ namespace Astraia.Net
                     var prefab = AssetManager.Load<GameObject>(GlobalSetting.PREFAB.Format(message.assetId));
                     if (!prefab.TryGetComponent(out entity))
                     {
-                        Log.Error("无法注册网络对象 {0} 没有网络对象组件。", prefab.name);
+                        Log.Error($"无法注册网络对象 {prefab.name} 没有网络对象组件。");
                         return false;
                     }
 
                     if (entity.sceneId != 0)
                     {
-                        Log.Error("无法注册网络对象 {0}。因为该预置体为场景对象。", entity.name);
+                        Log.Error($"无法注册网络对象 {entity.name}。因为该预置体为场景对象。");
                         return false;
                     }
                 }
                 else if (!scenes.Remove(message.sceneId, out entity))
                 {
-                    Log.Error("无法注册网络对象 {0}。场景标识无效。", message.sceneId);
+                    Log.Error($"无法注册网络对象 {message.sceneId}。场景标识无效。");
                     return false;
                 }
 

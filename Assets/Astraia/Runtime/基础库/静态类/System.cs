@@ -54,65 +54,6 @@ namespace Astraia
             onError(message.ToString());
         }
 
-        public static void Info<T>(string format, T arg1)
-        {
-            onInfo(format.Format(arg1));
-        }
-
-        public static void Info<T1, T2>(string format, T1 arg1, T2 arg2)
-        {
-            onInfo(format.Format(arg1, arg2));
-        }
-
-        public static void Info<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
-        {
-            onInfo(format.Format(arg1, arg2, arg3));
-        }
-
-        public static void Info<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-        {
-            onInfo(format.Format(arg1, arg2, arg3, arg4));
-        }
-
-        public static void Warn<T>(string format, T arg1)
-        {
-            onWarn(format.Format(arg1));
-        }
-
-        public static void Warn<T1, T2>(string format, T1 arg1, T2 arg2)
-        {
-            onWarn(format.Format(arg1, arg2));
-        }
-
-        public static void Warn<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
-        {
-            onWarn(format.Format(arg1, arg2, arg3));
-        }
-
-        public static void Warn<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-        {
-            onWarn(format.Format(arg1, arg2, arg3, arg4));
-        }
-
-        public static void Error<T>(string format, T arg1)
-        {
-            onError(format.Format(arg1));
-        }
-
-        public static void Error<T1, T2>(string format, T1 arg1, T2 arg2)
-        {
-            onError(format.Format(arg1, arg2));
-        }
-
-        public static void Error<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
-        {
-            onError(format.Format(arg1, arg2, arg3));
-        }
-
-        public static void Error<T1, T2, T3, T4>(string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-        {
-            onError(format.Format(arg1, arg2, arg3, arg4));
-        }
     }
 
     public static class Utils

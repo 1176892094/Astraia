@@ -49,13 +49,13 @@ namespace Astraia
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     socket.Blocked();
                     socket.Connect(endPoint);
-                    Log.Info("客户端连接到: {0} : {1}", addresses[0], port);
+                    Log.Info($"客户端连接到: {addresses[0]} : {port}");
                     kcpPeer.Handshake(0);
                 }
             }
             catch (SocketException e)
             {
-                onError(Error.解析失败, "无法解析主机地址: {0}\n{1}".Format(address, e));
+                onError(Error.解析失败, $"无法解析主机地址: {address}\n{e}");
                 onDisconnect(0);
             }
         }
@@ -87,7 +87,7 @@ namespace Astraia
             {
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    Log.Info("客户端接收消息失败!\n{0}", e);
+                    Log.Info($"客户端接收消息失败!\n{e}");
                     kcpPeer.Disconnect();
                 }
 
@@ -137,7 +137,7 @@ namespace Astraia
 
         private void OnError(Error error, string message)
         {
-            onError?.Invoke(error, message);
+            onError(error, message);
         }
 
         private void OnReceive(ArraySegment<byte> segment, int pass)
@@ -161,7 +161,7 @@ namespace Astraia
             {
                 if (e.SocketErrorCode != SocketError.WouldBlock)
                 {
-                    Log.Info("客户端发送消息失败!\n{0}", e);
+                    Log.Info($"客户端发送消息失败!\n{e}");
                 }
             }
         }
