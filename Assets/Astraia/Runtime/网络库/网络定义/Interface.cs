@@ -100,30 +100,6 @@ namespace Astraia
         }
     }
 
-    public readonly struct LobbyUpdate : IEvent
-    {
-        public readonly Lobby[] rooms;
-
-        public LobbyUpdate(Lobby[] rooms)
-        {
-            this.rooms = rooms;
-        }
-    }
-
-    public readonly struct LobbyDisconnect : IEvent { }
-
-    public readonly struct LobbyCreateRoom : IEvent
-    {
-        public readonly int index;
-        public readonly string room;
-
-        public LobbyCreateRoom(int index, string room)
-        {
-            this.index = index;
-            this.room = room;
-        }
-    }
-
     public readonly struct PingUpdate : IEvent
     {
         public readonly double pingTime;

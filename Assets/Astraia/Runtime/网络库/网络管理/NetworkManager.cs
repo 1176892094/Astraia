@@ -19,8 +19,6 @@ namespace Astraia.Net
     {
         public static NetworkManager Instance;
 
-        private static bool isRemote;
-
         public int sendRate = 30;
         public int maxPlayer = 100;
         public string roomGuid;
@@ -29,18 +27,20 @@ namespace Astraia.Net
         public Lobby.Room roomMode;
 
         [SerializeReference] private Transport connection = new NetworkTransport();
-        [SerializeReference] private Transport management = new NetworkAuthority();
         [SerializeReference] private Transport collection = new NetworkTransport();
+        [SerializeReference] private Transport management = new NetworkAuthority();
         [SerializeReference] private NetworkDiscovery discovery;
         [SerializeReference] private NetworkObserving observing;
         public static bool isHost => isServer && isClient;
+        public static bool isRunner => isServer || isClient;
         public static bool isServer => Server.state != State.断开连接;
         public static bool isClient => Client.state != State.断开连接;
-        public static bool isSaloon => Saloon.state != State.断开连接;
+        internal static bool isSaloon => Saloon != null && Saloon.isSaloon;
+        internal static bool isRemote => Saloon != null && Saloon.isRemote;
         internal static double syncRate => 1.0 / Instance.sendRate;
         internal static double syncTime => Time.unscaledTimeAsDouble;
-
-        internal static Transport Kcp => isRemote ? Instance?.management : Instance?.connection;
+        internal static Transport Kcp => isRemote ? Saloon : Instance?.connection;
+        internal static NetworkAuthority Saloon => (NetworkAuthority)Instance?.management;
 
         private void Awake()
         {
@@ -50,8 +50,8 @@ namespace Astraia.Net
             NetworkObserving.Instance = observing;
             NetworkDiscovery.Instance = discovery;
             NetworkAuthority.Instance = collection;
-            connection.Register(false);
-            collection.Register(false);
+            connection.Start(false);
+            collection.Start(false);
         }
 
         private void OnApplicationQuit()
@@ -159,7 +159,7 @@ namespace Astraia.Net
 
         public static void StartHost(bool isHost = true)
         {
-            if (isServer || isClient)
+            if (isRunner)
             {
                 Log.Warn("客户端或服务器已经连接!");
                 return;
@@ -188,7 +188,8 @@ namespace Astraia.Net
                 return;
             }
 
-            Saloon.Start();
+            ApplySaloon();
+            Saloon.Start(true);
         }
 
         public static void StopSaloon()
@@ -204,7 +205,7 @@ namespace Astraia.Net
                 return;
             }
 
-            Saloon.Disconnect(Saloon.serverId);
+            Saloon.Disconnect(0);
         }
 
         public static void UpdateRoom()
@@ -218,36 +219,37 @@ namespace Astraia.Net
             Saloon.Update();
         }
 
-        public static void SubmitRoom(Lobby.Room roomMode)
+        public static void SubmitRoom()
         {
-            if (!isRemote)
+            if (!isRemote || !Saloon.isActive)
             {
                 return;
             }
 
-            if (!Saloon.isServer)
+            if (isRunner && !Saloon.isRunner)
             {
                 Log.Warn("您必须连接到大厅以更新房间信息!");
                 return;
             }
 
-            Saloon.Submit(roomMode);
+            ApplySaloon();
+            Saloon.Submit();
         }
 
-        public static void CreateRoom(int maxPlayer)
+        public static void CreateRoom()
         {
             if (!isRemote || !Saloon.isActive)
             {
                 Log.Warn("没有连接到大厅!");
             }
 
-            if (isServer || isClient || Saloon.isServer || Saloon.isClient)
+            if (isRunner || Saloon.isRunner)
             {
                 Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 
-            Instance.maxPlayer = maxPlayer;
+            ApplySaloon();
             Server.Start(true);
             Client.Start(true);
         }
@@ -259,14 +261,23 @@ namespace Astraia.Net
                 Log.Warn("没有连接到大厅!");
             }
 
-            if (isServer || isClient || Saloon.isServer || Saloon.isClient)
+            if (isRunner || Saloon.isRunner)
             {
                 Log.Warn("客户端或服务器已经连接!");
                 return;
             }
 
-            NetworkAuthority.Instance.address = address;
+            Instance.collection.address = address;
             Client.Start(false);
+        }
+
+        private static void ApplySaloon()
+        {
+            Saloon.roomName = Instance.roomName;
+            Saloon.roomData = Instance.roomData;
+            Saloon.roomGuid = Instance.roomGuid;
+            Saloon.roomMode = Instance.roomMode;
+            Saloon.maxPlayer = Instance.maxPlayer;
         }
     }
 }
