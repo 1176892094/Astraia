@@ -78,7 +78,7 @@ namespace Astraia
 
         public static string Mask(this string result, char mask = '*')
         {
-            return Bad.Invoke(result, mask);
+            return Bad.Filter(result, mask);
         }
 
         public static string Limit(this string result, int count)

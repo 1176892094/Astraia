@@ -61,8 +61,8 @@ namespace Astraia
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
-            Bad.SetUp(GlobalSetting.LoadText(AssetData.BadWord));
             Log.Setup(Debug.Log, Debug.LogWarning, Debug.LogError);
+            Bad.SetUp(Zip.Decompress(GlobalSetting.LoadText(AssetData.BadWord)));
         }
     }
 
