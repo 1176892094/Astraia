@@ -51,7 +51,7 @@ namespace Astraia.Net
             internal static async void Update()
             {
                 var texts = await Host.Http.GetStringAsync("http://{0}:{1}/api/compressed/servers".Format(Kcp.address, Kcp.port));
-                var rooms = Utils.Decompress(texts);
+                var rooms = Zip.Decompress(texts);
                 var jsons = JsonManager.FromJson<LobbyData[]>("{{\"value\":{0}}}".Format(rooms));
                 EventManager.Invoke(new LobbyUpdate(jsons));
                 Log.Info($"房间信息: {rooms}");

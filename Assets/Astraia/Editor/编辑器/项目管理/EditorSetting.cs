@@ -204,7 +204,7 @@ namespace Astraia
             {
                 if (item.Extension == string.Empty)
                 {
-                    var newHash = Utils.ComputeHash(item.FullName);
+                    var newHash = Zip.ComputeHash(item.FullName);
                     package.Bundles.Add(new Bundle(item.Length, item.Name, newHash));
                     File.Copy(item.FullName, Path.Combine(GlobalSetting.BuildVersion, item.Name), true);
                 }
