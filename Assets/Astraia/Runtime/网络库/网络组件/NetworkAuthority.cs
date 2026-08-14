@@ -16,7 +16,7 @@ namespace Astraia.Net
     [Serializable]
     internal sealed class NetworkAuthority : Transport
     {
-        public new static Transport Instance;
+        public static Transport Instance;
 
         public override void Register(bool isRemote) { }
 
