@@ -333,7 +333,7 @@ namespace Astraia.Editor
                 return md;
             }
 
-            var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
+            var extensions = assembly.MainModule.ImportReference(typeof(WriterExtensions));
             var mr = extensions.GetMethod(assembly, "Write" + name, Log, ref failed);
 
             var method = new GenericInstanceMethod(mr);
@@ -468,7 +468,7 @@ namespace Astraia.Editor
                 return md;
             }
 
-            var extensions = assembly.MainModule.ImportReference(typeof(Net.Extensions));
+            var extensions = assembly.MainModule.ImportReference(typeof(ReaderExtensions));
             var mr = extensions.GetMethod(assembly, "Read" + name, Log, ref failed);
 
             var method = new GenericInstanceMethod(mr);

@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public static partial class Extensions
+    public static partial class WriterExtensions
     {
         public static void WriteVector2(this MemoryWriter writer, Vector2 value)
         {

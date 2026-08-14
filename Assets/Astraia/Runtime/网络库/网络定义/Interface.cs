@@ -13,35 +13,6 @@ using Astraia.Net;
 
 namespace Astraia
 {
-    public interface IStartClient
-    {
-        void OnStartClient();
-    }
-
-    public interface IStopClient
-    {
-        void OnStopClient();
-    }
-
-    public interface IStartServer
-    {
-        void OnStartServer();
-    }
-
-    public interface IStopServer
-    {
-        void OnStopServer();
-    }
-
-    public interface IStartAuthority
-    {
-        void OnStartAuthority();
-    }
-
-    public interface IStopAuthority
-    {
-        void OnStopAuthority();
-    }
 
     public readonly struct ServerConnect : IEvent
     {

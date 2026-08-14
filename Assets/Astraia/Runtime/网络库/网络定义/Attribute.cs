@@ -9,49 +9,8 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
-
 namespace Astraia.Net
 {
-    [AttributeUsage(AttributeTargets.Field)]
-    public class SyncVarAttribute : Attribute
-    {
-        public SyncVarAttribute(string func = null)
-        {
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public class ClientRpcAttribute : Attribute
-    {
-        public ClientRpcAttribute(int pass = Pass.KCP)
-        {
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public class ServerRpcAttribute : Attribute
-    {
-        public ServerRpcAttribute(int pass = Pass.KCP)
-        {
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public class TargetRpcAttribute : Attribute
-    {
-        public TargetRpcAttribute(int pass = Pass.KCP)
-        {
-        }
-    }
-
-    public static class Pass
-    {
-        public const byte KCP = 1 << 0;
-        public const byte UDP = 1 << 1;
-        public const byte ANY = 1 << 2;
-    }
-
     internal enum SyncMode : byte
     {
         服务器,
@@ -62,5 +21,12 @@ namespace Astraia.Net
     {
         服务器,
         客户端
+    }
+
+    internal enum State : byte
+    {
+        正在连接 = 0,
+        连接成功 = 1,
+        断开连接 = 2
     }
 }

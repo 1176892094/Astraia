@@ -179,7 +179,7 @@ namespace Astraia.Editor
             InvokeDelegate = Import<HookFunc>().GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             AddArraySegment = Import(typeof(ArraySegment<>)).GetMethod(assembly, Weaver.MED_C1, Log, ref failed);
             GetTypeFromHandle = Import<Type>().GetMethod(assembly, "GetTypeFromHandle", Log, ref failed);
-            ReadNetworkModule = Import(typeof(Net.Extensions)).GetMethod(assembly, ReadModule, Log, ref failed);
+            ReadNetworkModule = Import(typeof(ReaderExtensions)).GetMethod(assembly, ReadModule, Log, ref failed);
 
             Listen = Import(typeof(EventManager)).GetMethod(assembly, nameof(Listen), Log, ref failed);
             Remove = Import(typeof(EventManager)).GetMethod(assembly, nameof(Remove), Log, ref failed);
@@ -230,7 +230,7 @@ namespace Astraia.Editor
 
         private static bool ReadModule(MethodDefinition md)
         {
-            return md.Name == nameof(Net.Extensions.ReadNetworkModule) && md.HasGenericParameters;
+            return md.Name == nameof(ReaderExtensions.ReadNetworkModule) && md.HasGenericParameters;
         }
     }
 

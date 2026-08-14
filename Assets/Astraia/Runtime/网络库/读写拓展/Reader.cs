@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public static partial class Extensions
+    public static partial class ReaderExtensions
     {
         public static Vector2 ReadVector2(this MemoryReader reader)
         {

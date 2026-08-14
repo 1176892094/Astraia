@@ -15,7 +15,7 @@ using System.IO;
 
 namespace Astraia.Net
 {
-    public static partial class Extensions
+    public static partial class ReaderExtensions
     {
         public static byte ReadByte(this MemoryReader reader)
         {
