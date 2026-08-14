@@ -14,6 +14,13 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
+    internal enum State : byte
+    {
+        正在连接 = 0,
+        连接成功 = 1,
+        断开连接 = 2
+    }
+
     [Serializable]
     public sealed partial class NetworkManager : MonoBehaviour
     {

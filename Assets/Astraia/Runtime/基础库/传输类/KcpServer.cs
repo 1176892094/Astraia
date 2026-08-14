@@ -20,10 +20,10 @@ namespace Astraia
     [Serializable]
     internal sealed class KcpServer
     {
-        private Dictionary<int, KcpClient> clients = new Dictionary<int, KcpClient>();
+        private Dictionary<int, KcpClient> clients = new();
         private byte[] buffer = new byte[Const.MTU_DEF];
         private Socket socket;
-        private List<int> removes = new List<int>();
+        private List<int> removes = new();
         private EndPoint endPoint = new IPEndPoint(IPAddress.IPv6Any, 0);
 
         public Action<int> onConnect;

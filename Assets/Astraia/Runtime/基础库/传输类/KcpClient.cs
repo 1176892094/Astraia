@@ -12,6 +12,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using State = Astraia.Async.State;
 
 namespace Astraia
 {
@@ -19,7 +20,7 @@ namespace Astraia
     internal sealed class KcpClient
     {
         private byte[] buffer = new byte[Const.MTU_DEF];
-        private State state = State.断开连接;
+        private State state = State.Failure;
         private Socket socket;
         private KcpPeer kcpPeer;
         private EndPoint endPoint;
@@ -34,7 +35,7 @@ namespace Astraia
         {
             try
             {
-                if (state != State.断开连接)
+                if (state != State.Failure)
                 {
                     Log.Warn("客户端已经连接!");
                     return;
@@ -44,7 +45,7 @@ namespace Astraia
                 if (addresses.Length >= 1)
                 {
                     Register();
-                    state = State.正在连接;
+                    state = State.Running;
                     endPoint = new IPEndPoint(addresses[0], port);
                     socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     socket.Blocked();
@@ -62,7 +63,7 @@ namespace Astraia
 
         public void Send(ArraySegment<byte> segment, int pass)
         {
-            if (state != State.断开连接)
+            if (state != State.Failure)
             {
                 kcpPeer.SendData(segment, pass);
                 onSend?.Invoke(segment);
@@ -97,7 +98,7 @@ namespace Astraia
 
         public void Disconnect()
         {
-            if (state != State.断开连接)
+            if (state != State.Failure)
             {
                 kcpPeer.Disconnect();
             }
@@ -120,15 +121,15 @@ namespace Astraia
 
         private void OnConnect(int serverId)
         {
-            Log.Info("客户端 {0} 连接到服务器。".Format(serverId));
-            state = State.连接成功;
+            Log.Info($"客户端 {serverId} 连接到服务器。");
+            state = State.Success;
             onConnect(serverId);
         }
 
         private void OnDisconnect(int serverId)
         {
-            Log.Info("客户端 {0} 从服务器断开。".Format(serverId));
-            state = State.断开连接;
+            Log.Info($"客户端 {serverId} 从服务器断开。");
+            state = State.Failure;
             socket.Close();
             socket = null;
             endPoint = null;
@@ -168,7 +169,7 @@ namespace Astraia
 
         public void EarlyUpdate()
         {
-            if (state != State.断开连接)
+            if (state != State.Failure)
             {
                 while (TryReceive(out var segment))
                 {
@@ -181,7 +182,7 @@ namespace Astraia
 
         public void AfterUpdate()
         {
-            if (state != State.断开连接)
+            if (state != State.Failure)
             {
                 kcpPeer.AfterUpdate();
             }

@@ -12,6 +12,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using State = Astraia.Async.State;
 
 namespace Astraia
 {
@@ -20,10 +21,10 @@ namespace Astraia
         private readonly byte[] rawSendBuffer = new byte[Const.MTU_DEF];
         private readonly byte[] kcpSendBuffer = new byte[Const.KCP_LEN + 1];
         private readonly byte[] kcpDataBuffer = new byte[Const.KCP_LEN + 1];
-
         private readonly string userName;
         private readonly Stopwatch watch = new();
         private readonly KcpModule module = new();
+
         private int pingTime;
         private int nextTime;
         private int waitTime;
@@ -47,7 +48,7 @@ namespace Astraia
             nextTime = 0;
             waitTime = Const.WAIT_TIME;
             KcpModule.Build(module, SendReliable);
-            state = State.正在连接;
+            state = State.Running;
             watch.Restart();
         }
 
@@ -108,7 +109,7 @@ namespace Astraia
 
             var pass = segment.Array![segment.Offset];
             var readData = Common.Decode(segment.Array, segment.Offset + 1);
-            if (state == State.连接成功 && readData != userData)
+            if (state == State.Success && readData != userData)
             {
                 Log.Warn($"{userName}数据校验失败。旧: {userData} 新: {readData}");
                 return;
@@ -124,7 +125,7 @@ namespace Astraia
             }
             else if (pass == Pass.UDP)
             {
-                if (state == State.连接成功)
+                if (state == State.Success)
                 {
                     onReceive(message, Pass.UDP);
                     nextTime = (int)watch.ElapsedMilliseconds;
@@ -192,7 +193,7 @@ namespace Astraia
 
         public void Disconnect()
         {
-            if (state == State.断开连接)
+            if (state == State.Failure)
             {
                 return;
             }
@@ -204,7 +205,7 @@ namespace Astraia
             }
             finally
             {
-                state = State.断开连接;
+                state = State.Failure;
                 onDisconnect(userData);
             }
         }
@@ -229,7 +230,7 @@ namespace Astraia
             if (sinceTime >= pingTime + Const.PING_TIME)
             {
                 SendReliable(Opcode.心跳);
-                pingTime = (int)watch.ElapsedMilliseconds;
+                pingTime = sinceTime;
             }
 
             if (module.Count >= 10000)
@@ -251,7 +252,7 @@ namespace Astraia
                         Disconnect();
                         return;
                     case Opcode.握手:
-                        state = State.连接成功;
+                        state = State.Success;
                         userData = Common.Decode(segment.Array, segment.Offset);
                         onConnect(userData);
                         break;
@@ -297,10 +298,10 @@ namespace Astraia
             {
                 switch (state)
                 {
-                    case State.正在连接:
+                    case State.Running:
                         UpdateConnect();
                         break;
-                    case State.连接成功:
+                    case State.Success:
                         UpdateConnected();
                         break;
                 }
@@ -326,7 +327,7 @@ namespace Astraia
         {
             try
             {
-                if (state != State.断开连接)
+                if (state != State.Failure)
                 {
                     module.Update((uint)watch.ElapsedMilliseconds);
                 }

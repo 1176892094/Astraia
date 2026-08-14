@@ -89,12 +89,6 @@ namespace Astraia
         未知异常 = 7
     }
 
-    internal enum State : byte
-    {
-        正在连接 = 0,
-        连接成功 = 1,
-        断开连接 = 2
-    }
 
     internal enum Lobby : byte
     {
