@@ -40,14 +40,7 @@ namespace Astraia.Net
         internal static double syncRate => 1.0 / Instance.sendRate;
         internal static double syncTime => Time.unscaledTimeAsDouble;
 
-        internal static Transport Kcp
-        {
-            get
-            {
-                Transport.Instance = isRemote ? Instance?.management : Instance?.connection;
-                return Transport.Instance;
-            }
-        }
+        internal static Transport Kcp => isRemote ? Instance?.management : Instance?.connection;
 
         private void Awake()
         {

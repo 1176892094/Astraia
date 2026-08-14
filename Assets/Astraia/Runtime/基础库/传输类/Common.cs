@@ -13,6 +13,12 @@ using System.Net.Sockets;
 
 namespace Astraia
 {
+    internal static class Pass
+    {
+        public const byte KCP = 1 << 0;
+        public const byte UDP = 1 << 1;
+    }
+
     internal static class Const
     {
         public const uint MTU_DEF = 1200;
@@ -39,8 +45,8 @@ namespace Astraia
     {
         public static void Encode(byte[] p, int offset, int value)
         {
-            p[0 + offset] = (byte)(value >> 0);
-            p[1 + offset] = (byte)(value >> 8);
+            p[0 + offset] = (byte)(value >> 00);
+            p[1 + offset] = (byte)(value >> 08);
             p[2 + offset] = (byte)(value >> 16);
             p[3 + offset] = (byte)(value >> 24);
         }
@@ -49,7 +55,7 @@ namespace Astraia
         {
             var result = 0;
             result |= p[0 + offset];
-            result |= p[1 + offset] << 8;
+            result |= p[1 + offset] << 08;
             result |= p[2 + offset] << 16;
             result |= p[3 + offset] << 24;
             return result;
@@ -71,12 +77,6 @@ namespace Astraia
                 Log.Info("接收缓冲: {0} => {1} : {2:F}", buffer, dataBuffer, dataBuffer / buffer);
             }
         }
-    }
-
-    internal static class Pass
-    {
-        public const byte KCP = 1 << 0;
-        public const byte UDP = 1 << 1;
     }
 
     internal enum Error : byte
