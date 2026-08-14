@@ -23,7 +23,7 @@ namespace Astraia
     [Serializable]
     public class MemoryWriter : IDisposable
     {
-        public byte[] buffer = new byte[1500];
+        public byte[] buffer = new byte[Const.MTU_DEF];
         public int position;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

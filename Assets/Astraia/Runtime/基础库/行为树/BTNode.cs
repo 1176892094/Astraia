@@ -10,238 +10,255 @@
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 
 namespace Astraia
 {
-    public static class Nodes
+    [Serializable]
+    public readonly struct Sequence : INode
     {
-        private static readonly Dictionary<Type, Func<Node, Func<Node, Type>, INode>> Func = new();
+        private readonly int Index;
+        private readonly INode[] Nodes;
 
-        static Nodes()
+        public Sequence(int index, INode[] nodes)
         {
-            Func[typeof(Sequence)] = Sequence;
-            Func[typeof(Selector)] = Selector;
-            Func[typeof(Parallel)] = Parallel;
-            Func[typeof(Randomer)] = Randomer;
-            Func[typeof(Repeater)] = Repeater;
-            Func[typeof(Inverter)] = Inverter;
-            Func[typeof(Success)] = Success;
-            Func[typeof(Failure)] = Failure;
+            Index = index;
+            Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        private static INode Sequence(Node node, Func<Node, Type> func)
+        public async Task<Async.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            return new Sequence(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
-        }
-
-        private static INode Selector(Node node, Func<Node, Type> func)
-        {
-            return new Selector(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
-        }
-
-        private static INode Parallel(Node node, Func<Node, Type> func)
-        {
-            return new Parallel(node.Data == "Any", node.Nodes.Select(i => i.Build(func)).ToArray());
-        }
-
-        private static INode Randomer(Node node, Func<Node, Type> func)
-        {
-            return new Randomer(node.Index, node.Nodes.Select(i => i.Build(func)).ToArray());
-        }
-
-        private static INode Repeater(Node node, Func<Node, Type> func)
-        {
-            return new Repeater(node.Index, int.Parse(node.Data), node.Nodes.Select(i => i.Build(func)).First());
-        }
-
-        private static INode Inverter(Node node, Func<Node, Type> func)
-        {
-            return new Inverter(node.Nodes.Select(i => i.Build(func)).First());
-        }
-
-        private static INode Success(Node node, Func<Node, Type> func)
-        {
-            return new Success(node.Nodes.Select(i => i.Build(func)).First());
-        }
-
-        private static INode Failure(Node node, Func<Node, Type> func)
-        {
-            return new Failure(node.Nodes.Select(i => i.Build(func)).First());
-        }
-
-        public static int Load(string reason, List<Node> nodes)
-        {
-            if (string.IsNullOrEmpty(reason))
+            var current = indices[Index];
+            while (current < Nodes.Length)
             {
-                return -1;
-            }
-
-            var index = nodes.Count;
-            var bracket = FindFirstBracket(reason);
-            if (bracket < 0)
-            {
-                nodes.Add(new Node(reason, index));
-            }
-            else
-            {
-                nodes.Add(new Node(reason.Substring(0, bracket), index));
-                foreach (var child in LoadNode(Checked(reason, bracket)))
+                var state = await Nodes[current].OnTick(indices, root);
+                if (state == Async.State.Running)
                 {
-                    nodes[index].Nodes.Add(nodes[Load(child, nodes)]);
+                    return Async.State.Running;
+                }
+
+                if (state == Async.State.Failure)
+                {
+                    indices[Index] = 0;
+                    return Async.State.Failure;
+                }
+
+                current++;
+                indices[Index] = current;
+            }
+
+            indices[Index] = 0;
+            return Async.State.Success;
+        }
+    }
+
+    [Serializable]
+    public readonly struct Selector : INode
+    {
+        private readonly int Index;
+        private readonly INode[] Nodes;
+
+        public Selector(int index, INode[] nodes)
+        {
+            Index = index;
+            Nodes = nodes ?? Array.Empty<INode>();
+        }
+
+        public async Task<Async.State> OnTick(int[] indices, Blackboard<int> root)
+        {
+            var current = indices[Index];
+            while (current < Nodes.Length)
+            {
+                var state = await Nodes[current].OnTick(indices, root);
+                if (state == Async.State.Running)
+                {
+                    return Async.State.Running;
+                }
+
+                if (state == Async.State.Success)
+                {
+                    indices[Index] = 0;
+                    return Async.State.Success;
+                }
+
+                current++;
+                indices[Index] = current;
+            }
+
+            indices[Index] = 0;
+            return Async.State.Failure;
+        }
+    }
+
+    [Serializable]
+    public readonly struct Parallel : INode
+    {
+        private readonly bool IsAny;
+        private readonly INode[] Nodes;
+
+        public Parallel(bool isAny, INode[] nodes)
+        {
+            IsAny = isAny;
+            Nodes = nodes ?? Array.Empty<INode>();
+        }
+
+        public async Task<Async.State> OnTick(int[] indices, Blackboard<int> root)
+        {
+            if (IsAny)
+            {
+                foreach (var node in Nodes)
+                {
+                    var state = await node.OnTick(indices, root);
+                    if (state == Async.State.Success)
+                    {
+                        return Async.State.Success;
+                    }
+
+                    if (state == Async.State.Failure)
+                    {
+                        return Async.State.Failure;
+                    }
+                }
+
+                return Async.State.Running;
+            }
+
+            var isAll = true;
+            foreach (var node in Nodes)
+            {
+                var state = await node.OnTick(indices, root);
+                if (state == Async.State.Failure)
+                {
+                    return Async.State.Failure;
+                }
+
+                if (state == Async.State.Running)
+                {
+                    isAll = false;
                 }
             }
 
-            return index;
+            return isAll ? Async.State.Success : Async.State.Running;
+        }
+    }
+
+    [Serializable]
+    public readonly struct Randomer : INode
+    {
+        private readonly int Index;
+        private readonly INode[] Nodes;
+
+        public Randomer(int index, INode[] nodes)
+        {
+            Index = index;
+            Nodes = nodes ?? Array.Empty<INode>();
         }
 
-        private static string Checked(string reason, int index)
+        public async Task<Async.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            var depth = 0;
-            var count = index;
-            while (count < reason.Length)
+            if (indices[Index] == 0)
             {
-                if (IsLeftBracket(reason[count]))
-                {
-                    depth++;
-                }
-                else if (IsRightBracket(reason[count]))
-                {
-                    depth--;
-                }
-
-                if (depth == 0)
-                {
-                    break;
-                }
-
-                count++;
+                indices[Index] = Seed.Next(Nodes.Length) + 1;
             }
 
-            return reason.Substring(index + 1, count - index - 1);
+            var state = await Nodes[indices[Index] - 1].OnTick(indices, root);
+            if (state == Async.State.Running)
+            {
+                return Async.State.Running;
+            }
+
+            indices[Index] = 0;
+            return state;
+        }
+    }
+
+    [Serializable]
+    public readonly struct Repeater : INode
+    {
+        private readonly int Index;
+        private readonly int Count;
+        private readonly INode Node;
+
+        public Repeater(int index, int count, INode node)
+        {
+            Node = node;
+            Index = index;
+            Count = count;
         }
 
-        private static List<string> LoadNode(string reason)
+        public async Task<Async.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            var result = new List<string>();
-            var depth = 0;
-            var index = 0;
-
-            for (var i = 0; i < reason.Length; i++)
+            var state = await Node.OnTick(indices, root);
+            if (state == Async.State.Running)
             {
-                var c = reason[i];
-                if (IsLeftBracket(c))
-                {
-                    depth++;
-                }
-                else if (IsRightBracket(c))
-                {
-                    depth--;
-                }
-                else if (depth == 0 && IsSeparator(c))
-                {
-                    result.Add(reason.Substring(index, i - index).Trim());
-                    index = i + 1;
-                }
+                return Async.State.Running;
             }
 
-            result.Add(reason.Substring(index).Trim());
-            return result;
+            indices[Index]++;
+            if (Count < 0 || indices[Index] < Count)
+            {
+                return Async.State.Running;
+            }
+
+            indices[Index] = 0;
+            return Async.State.Success;
+        }
+    }
+
+    [Serializable]
+    public readonly struct Inverter : INode
+    {
+        private readonly INode Node;
+
+        public Inverter(INode node)
+        {
+            Node = node;
         }
 
-        private static int FindFirstBracket(string text)
+        public async Task<Async.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            var englishIndex = text.IndexOf('(');
-            var chineseIndex = text.IndexOf('（');
-
-            if (englishIndex < 0)
+            var state = await Node.OnTick(indices, root);
+            switch (state)
             {
-                return chineseIndex;
+                case Async.State.Success: return Async.State.Failure;
+                case Async.State.Failure: return Async.State.Success;
             }
 
-            if (chineseIndex < 0)
-            {
-                return englishIndex;
-            }
+            return Async.State.Running;
+        }
+    }
 
-            return Math.Min(englishIndex, chineseIndex);
+    [Serializable]
+    public readonly struct Success : INode
+    {
+        private readonly INode Node;
+
+        public Success(INode node)
+        {
+            Node = node;
         }
 
-        private static int FindColon(string text)
+        public async Task<Async.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            var englishIndex = text.IndexOf(':');
-            var chineseIndex = text.IndexOf('：');
+            var state = await Node.OnTick(indices, root);
+            return state == Async.State.Running ? Async.State.Running : Async.State.Success;
+        }
+    }
 
-            if (englishIndex < 0)
-            {
-                return chineseIndex;
-            }
+    [Serializable]
+    public readonly struct Failure : INode
+    {
+        private readonly INode Node;
 
-            if (chineseIndex < 0)
-            {
-                return englishIndex;
-            }
-
-            return Math.Min(englishIndex, chineseIndex);
+        public Failure(INode node)
+        {
+            Node = node;
         }
 
-        private static bool IsLeftBracket(char c)
+        public async Task<Async.State> OnTick(int[] indices, Blackboard<int> root)
         {
-            return c is '(' or '（';
-        }
-
-        private static bool IsRightBracket(char c)
-        {
-            return c is ')' or '）';
-        }
-
-        private static bool IsSeparator(char c)
-        {
-            return c is ',' or '，';
-        }
-
-        [Serializable]
-        public readonly struct Node
-        {
-            public readonly int Index;
-            public readonly string Name;
-            public readonly string Data;
-            public readonly List<Node> Nodes;
-
-            public Node(string name, int index)
-            {
-                var i = FindColon(name);
-                if (i < 0)
-                {
-                    Name = name.Trim();
-                    Data = string.Empty;
-                }
-                else
-                {
-                    Name = name.Trim().Substring(0, i);
-                    Data = name.Trim().Substring(i + 1);
-                }
-
-                Index = index;
-                Nodes = new List<Node>();
-            }
-
-            public INode Build(Func<Node, Type> func)
-            {
-                if (string.IsNullOrEmpty(Name))
-                {
-                    throw new NullReferenceException();
-                }
-
-                var reason = func.Invoke(this);
-                if (Func.TryGetValue(reason, out var result))
-                {
-                    return result.Invoke(this, func);
-                }
-
-                return (INode)Activator.CreateInstance(reason);
-            }
+            var state = await Node.OnTick(indices, root);
+            return state == Async.State.Running ? Async.State.Running : Async.State.Failure;
         }
     }
 }

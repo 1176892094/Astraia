@@ -14,6 +14,7 @@ using System.Collections.Generic;
 
 namespace Astraia
 {
+    [Serializable]
     public abstract class Connection
     {
         private readonly Dictionary<int, NetworkWriter> writers = new();
@@ -60,6 +61,11 @@ namespace Astraia
             AddMessage(writer, pass);
         }
 
+        private int GetLength(int pass)
+        {
+            return pass == Pass.KCP ? Const.KCP_LEN : Const.UDP_LEN;
+        }
+
         private void AddMessage(MemoryWriter writer, int pass)
         {
             if (!writers.TryGetValue(pass, out var copied))
@@ -70,11 +76,6 @@ namespace Astraia
 
             copied.AddMessage(writer);
             DataInternal(copied, pass);
-        }
-
-        private int GetLength(int pass)
-        {
-            return pass == Pass.KCP ? Const.KCP_LEN : Const.UDP_LEN;
         }
 
         internal abstract void SendInternal(MemoryWriter writer, int pass);

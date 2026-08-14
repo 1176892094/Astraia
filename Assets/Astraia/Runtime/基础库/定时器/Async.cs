@@ -78,7 +78,7 @@ namespace Astraia
         int IAsync.Id { get; set; }
         int IAsync.Index { get; set; }
 
-        void IAsync.Update(Fixation elapseTime)
+        void IAsync.Update(float elapseTime)
         {
             if (owner.GetHashCode() == 0)
             {
@@ -112,6 +112,6 @@ namespace Astraia
     {
         int Id { get; set; }
         int Index { get; set; }
-        void Update(Fixation elapseTime);
+        void Update(float elapseTime);
     }
 }
