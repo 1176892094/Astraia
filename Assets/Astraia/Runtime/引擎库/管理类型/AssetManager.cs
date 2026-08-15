@@ -322,8 +322,7 @@ namespace Astraia
 #if UNITY_EDITOR
             foreach (var result in AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(reason.Path, reason.Name))
             {
-                var source = AssetDatabase.LoadAllAssetRepresentationsAtPath(result);
-                return Unsafe.As<Object[], T[]>(ref source);
+                return AssetDatabase.LoadAllAssetRepresentationsAtPath(result).Cast<T>().ToArray();
             }
 #endif
             return null;
