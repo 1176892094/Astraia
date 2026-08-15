@@ -9,20 +9,17 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using System.Collections.Generic;
 
 namespace Astraia.Net
 {
+    [Serializable]
     public sealed class NetworkClient : Connection
     {
         internal readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
-        internal readonly int clientId;
+        internal int clientId;
         internal bool isReady;
-
-        public NetworkClient(int clientId)
-        {
-            this.clientId = clientId;
-        }
 
         internal override void SendInternal(MemoryWriter writer, int pass)
         {

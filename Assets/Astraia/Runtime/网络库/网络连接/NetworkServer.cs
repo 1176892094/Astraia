@@ -9,8 +9,11 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
+
 namespace Astraia.Net
 {
+    [Serializable]
     public sealed class NetworkServer : Connection
     {
         internal int serverId;
@@ -52,7 +55,17 @@ namespace Astraia.Net
         public override void Disconnect()
         {
             isReady = false;
-            NetworkManager.Kcp.StopClient();
+            NetworkManager.Kcp.Disconnect();
+        }
+
+        public static implicit operator int(NetworkServer server)
+        {
+            return server.serverId;
+        }
+
+        public static implicit operator NetworkServer(int id)
+        {
+            return NetworkManager.Client.connection == id ? NetworkManager.Client.connection : null;
         }
     }
 }

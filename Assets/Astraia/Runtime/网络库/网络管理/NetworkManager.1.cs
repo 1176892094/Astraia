@@ -224,7 +224,7 @@ namespace Astraia.Net
                 }
                 else
                 {
-                    clients.Add(id, new NetworkClient(id));
+                    clients.Add(id, new NetworkClient { clientId = id });
                     EventManager.Invoke(new ServerConnect(id));
                 }
             }

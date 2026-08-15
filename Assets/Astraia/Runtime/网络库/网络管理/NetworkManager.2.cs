@@ -178,7 +178,7 @@ namespace Astraia.Net
                 connection.isReady = true;
                 connection.serverId = serverId;
                 connection.Send(new ReadyMessage());
-                EventManager.Invoke(new ClientConnect());
+                EventManager.Invoke(new ClientConnect(serverId));
             }
 
             internal static void Disconnect(int serverId)
@@ -199,7 +199,7 @@ namespace Astraia.Net
                 spawns.Clear();
                 scenes.Clear();
                 isLoadScene = false;
-                EventManager.Invoke(new ClientDisconnect());
+                EventManager.Invoke(new ClientDisconnect(serverId));
             }
 
             internal static void Receive(ArraySegment<byte> segment, int pass)
