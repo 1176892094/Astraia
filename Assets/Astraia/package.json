@@ -1,7 +1,7 @@
 {
   "name": "com.charlotte.astraia",
   "displayName": "Astraia",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "unity": "6000.3",
   "description": "This is the Astraia package",
   "dependencies": {
