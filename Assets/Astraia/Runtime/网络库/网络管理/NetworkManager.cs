@@ -28,8 +28,8 @@ namespace Astraia.Net
         public Lobby.Room roomMode;
 
         [SerializeReference] private Transport connection = new NetworkTransport();
-        [SerializeReference] private Transport collection = new NetworkTransport();
         [SerializeReference] private Transport management = new NetworkAuthority();
+        [SerializeReference] private Transport collection = new NetworkTransport();
         [SerializeReference] private NetworkDiscovery discovery;
         [SerializeReference] private NetworkObserving observing;
         public static bool isHost => isServer && isClient;
@@ -206,7 +206,7 @@ namespace Astraia.Net
                 return;
             }
 
-            Saloon.Disconnect(0);
+            Saloon.Stop();
         }
 
         public static void UpdateRoom()
