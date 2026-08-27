@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
-using System.Runtime.CompilerServices;
+using Unity.Collections.LowLevel.Unsafe;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -322,7 +322,8 @@ namespace Astraia
 #if UNITY_EDITOR
             foreach (var result in AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(reason.Path, reason.Name))
             {
-                return AssetDatabase.LoadAllAssetRepresentationsAtPath(result).Cast<T>().ToArray();
+                var source = AssetDatabase.LoadAllAssetRepresentationsAtPath(result);
+                return UnsafeUtility.As<Object[], T[]>(ref source);
             }
 #endif
             return null;
