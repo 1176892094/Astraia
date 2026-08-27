@@ -8,11 +8,10 @@ TextAsset:
   m_PrefabAsset: {fileID: 0}
   m_Name: TextAsset1
   m_Script: "{\n  \"name\": \"REPLACE\",\n  \"rootNamespace\": \"\",\n  \"references\":
-    [\n    \"GUID:aa053e14409e744ee99695800f09a6fb\",\n    \"GUID:d7b5476ac52be4da88cfdfdc8b8c889a\"\n 
-    ],\n  \"includePlatforms\": [],\n  \"excludePlatforms\": [],\n  \"allowUnsafeCode\":
-    false,\n  \"overrideReferences\": false,\n  \"precompiledReferences\": [],\n 
-    \"autoReferenced\": true,\n  \"defineConstraints\": [],\n  \"versionDefines\":
-    [],\n  \"noEngineReferences\": false\n}"
+    [\n    \"GUID:d7b5476ac52be4da88cfdfdc8b8c889a\"\n  ],\n  \"includePlatforms\":
+    [],\n  \"excludePlatforms\": [],\n  \"allowUnsafeCode\": false,\n  \"overrideReferences\":
+    false,\n  \"precompiledReferences\": [],\n  \"autoReferenced\": true,\n  \"defineConstraints\":
+    [],\n  \"versionDefines\": [],\n  \"noEngineReferences\": false\n}"
 --- !u!49 &-2960232863454612891
 TextAsset:
   m_ObjectHideFlags: 0
