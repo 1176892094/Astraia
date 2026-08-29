@@ -26,12 +26,12 @@ namespace Astraia.Net
         public string roomData;
         public string roomName;
         public Lobby.Room roomMode;
-
+        [SerializeReference] private NetworkObserving observing;
+        [SerializeReference] private NetworkDiscovery discovery;
         [SerializeReference] private Transport connection = new NetworkTransport();
         [SerializeReference] private Transport management = new NetworkAuthority();
         [SerializeReference] private Transport collection = new NetworkTransport();
-        [SerializeReference] private NetworkDiscovery discovery;
-        [SerializeReference] private NetworkObserving observing;
+
         public static bool isHost => isServer && isClient;
         public static bool isRunner => isServer || isClient;
         public static bool isServer => Server.state != State.Failure;
@@ -48,7 +48,6 @@ namespace Astraia.Net
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Application.runInBackground = true;
-            NetworkObserving.Instance = observing;
             NetworkDiscovery.Instance = discovery;
             NetworkAuthority.Instance = collection;
             connection.Start(false);

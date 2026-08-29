@@ -4,14 +4,15 @@ using UnityEngine;
 
 namespace Runtime
 {
-    public class PlayerModule : Module<Player>
+    public class PlayerModule : Export
     {
         private readonly HashSet<Collider2D> previous = new();
         private readonly HashSet<Collider2D> forwards = new();
-        private Rigidbody rigidbody => owner.Machine;
-        private Collider2D collision => rigidbody.collider;
 
-        protected override void Enqueue()
+        [Export] private Rigidbody rigidbody;
+        [Export] private Collider2D collision;
+
+        protected override void OnDestroy()
         {
             previous.Clear();
             forwards.Clear();

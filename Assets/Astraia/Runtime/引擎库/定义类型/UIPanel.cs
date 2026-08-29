@@ -66,7 +66,7 @@ namespace Astraia
 
         protected override void Awake()
         {
-            scroll = ExportManager.Export<ScrollRect>(this, this, nameof(ScrollRect));
+            scroll = ExportManager.Export<ScrollRect>(this, nameof(ScrollRect));
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
                 col = rect.col;

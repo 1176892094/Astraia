@@ -5,41 +5,35 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public class VisibleManager : Singleton<VisibleManager>, IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
+    public class SpaceManager : Singleton<SpaceManager>
     {
-        private readonly SpatialHash<IVisible> visibles = new SpatialHash<IVisible>();
-        private readonly HashSet<IVisible> forwards = new HashSet<IVisible>();
-        private readonly HashSet<IVisible> previous = new HashSet<IVisible>();
-        private readonly List<IVisible> dynamics = new List<IVisible>();
-
-        private Vector2 position;
+        private SpatialHash<IVisible> visibles = new SpatialHash<IVisible>();
+        private HashSet<IVisible> forwards = new HashSet<IVisible>();
+        private HashSet<IVisible> previous = new HashSet<IVisible>();
         private Transform observer;
 
-        [SerializeField] private int extentX = 1;
-        [SerializeField] private int extentY = 1;
-        [SerializeField] private int cellSize = 1;
+        [SerializeField]
+        private int extentX = 1;
 
-        protected override void Enqueue()
+        [SerializeField]
+        private int extentY = 1;
+
+        [SerializeField]
+        private int cellSize = 1;
+
+        [SerializeReference]
+        private List<IVisible> dynamics = new List<IVisible>();
+
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             forwards.Clear();
             previous.Clear();
             dynamics.Clear();
             visibles.Clear();
         }
 
-        protected override void OnShow()
-        {
-            EventManager.Listen<OnAfterUpdate>(this);
-            EventManager.Listen<OnGizmoUpdate>(this);
-        }
-
-        protected override void OnHide()
-        {
-            EventManager.Remove<OnAfterUpdate>(this);
-            EventManager.Remove<OnGizmoUpdate>(this);
-        }
-
-        public void Execute(OnAfterUpdate message)
+        internal void OnUpdate()
         {
             if (observer)
             {
@@ -48,7 +42,7 @@ namespace Astraia
                     visibles.Update(dynamic, WorldToNode(dynamic.transform.position));
                 }
 
-                position = observer.position;
+                var position = observer.position;
                 visibles.Query(WorldToNode(position), extentX, extentY, forwards);
 
                 foreach (var visible in forwards)
@@ -75,7 +69,7 @@ namespace Astraia
             }
         }
 
-        public void Execute(OnGizmoUpdate message)
+        private void OnDrawGizmos()
         {
             Gizmos.color = Color.cyan;
             if (observer)
@@ -133,11 +127,6 @@ namespace Astraia
             this.observer = observer;
         }
 
-        public void SetPosition(Vector2 position)
-        {
-            this.position = position;
-        }
-
         public void SetPosition(IVisible visible)
         {
             visibles.Update(visible, WorldToNode(visible.transform.position));
@@ -146,7 +135,7 @@ namespace Astraia
 
         private bool IsVisible(IVisible visible)
         {
-            var node = WorldToNode(visible.transform.position) - WorldToNode(position);
+            var node = WorldToNode(visible.transform.position) - WorldToNode(observer.position);
             return Mathf.Abs(node.x.FloorToInt()) <= extentX && Mathf.Abs(node.y.FloorToInt()) <= extentY;
         }
 

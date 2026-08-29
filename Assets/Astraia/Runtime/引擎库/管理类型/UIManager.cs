@@ -23,12 +23,25 @@ namespace Astraia
         private Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
         private Dictionary<int, UIStack> stackData = new Dictionary<int, UIStack>();
         private Dictionary<Type, UIPanel> panelData = new Dictionary<Type, UIPanel>();
-        [SerializeField] private Canvas canvas;
 
-        public static Canvas Canvas => Instance.canvas;
-
-        protected override void Enqueue()
+        protected override void Awake()
         {
+            base.Awake();
+            foreach (Transform root in transform)
+            {
+                foreach (Transform child in root)
+                {
+                    if (child.TryGetComponent(out UIPanel panel))
+                    {
+                        AddInternal(panel, panel.GetType());
+                    }
+                }
+            }
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
             stackData.Clear();
             layerData.Clear();
             panelData.Clear();
@@ -102,16 +115,21 @@ namespace Astraia
             asset.gameObject.name = name;
 
             var panel = asset.GetOrAddComponent<UIPanel>(value);
+            var child = asset.GetComponent<RectTransform>();
+            AddInternal(panel, value);
+            SetTransform(child, GetLayer(panel.Layer));
+            return panel;
+        }
+
+        private void AddInternal(UIPanel panel, Type value)
+        {
             if (value.GetAttribute(out UIMaskAttribute mask))
             {
                 panel.Layer = mask.layer;
                 panel.Group = mask.group;
             }
 
-            var child = asset.GetComponent<RectTransform>();
-            SetTransform(child, GetLayer(panel.Layer));
             panelData.Add(value, panel);
-            return panel;
         }
 
         private T ShowInternal<T>() where T : UIPanel
@@ -210,7 +228,7 @@ namespace Astraia
                 var rename = "Pool - Canvas-{0}".Format(value);
                 parent = new GameObject(rename).AddComponent<RectTransform>();
                 parent.gameObject.layer = LayerMask.NameToLayer("UI");
-                SetTransform(parent, canvas.transform);
+                SetTransform(parent, transform);
                 parent.SetSiblingIndex(layerData.Keys.Count(key => key < value));
                 layerData.Add(value, parent);
             }

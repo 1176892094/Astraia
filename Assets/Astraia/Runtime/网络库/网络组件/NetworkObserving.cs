@@ -16,10 +16,8 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkObserving : IEvent<OnAfterUpdate>, IEvent<OnGizmoUpdate>
+    public class NetworkObserving : Singleton<NetworkObserving>
     {
-        public static NetworkObserving Instance;
-
         private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
         private readonly SpatialHash<NetworkClient> visible = new SpatialHash<NetworkClient>();
         private readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
@@ -28,8 +26,14 @@ namespace Astraia.Net
 
         private double waitTime;
 
-        [SerializeField] private Vector2Int extents = Vector2Int.one;
-        [SerializeField] private float cellSize = 1;
+        [SerializeField]
+        private int extentX = 1;
+
+        [SerializeField]
+        private int extentY = 1;
+
+        [SerializeField]
+        private int cellSize = 1;
 
         public void Register(NetworkEntity entity)
         {
@@ -44,7 +48,7 @@ namespace Astraia.Net
             waitTime = NetworkManager.syncTime + 0.2;
         }
 
-        public void Execute(OnAfterUpdate message)
+        private void LateUpdate()
         {
             if (NetworkManager.isServer)
             {
@@ -68,7 +72,7 @@ namespace Astraia.Net
             }
         }
 
-        public void Execute(OnGizmoUpdate message)
+        private void OnDrawGizmos()
         {
             Gizmos.color = Color.cyan;
             foreach (var player in players.Values)
@@ -76,10 +80,10 @@ namespace Astraia.Net
                 if (player)
                 {
                     var center = WorldToNode(player.transform.position);
-                    var minX = center.x.FloorToInt() - extents.x;
-                    var maxX = center.x.FloorToInt() + extents.x;
-                    var minY = center.y.FloorToInt() - extents.y;
-                    var maxY = center.y.FloorToInt() + extents.y;
+                    var minX = center.x.FloorToInt() - extentX;
+                    var maxX = center.x.FloorToInt() + extentX;
+                    var minY = center.y.FloorToInt() - extentY;
+                    var maxY = center.y.FloorToInt() + extentY;
 
                     for (var x = minX; x <= maxX; x++)
                     {
@@ -94,7 +98,7 @@ namespace Astraia.Net
 
         public void Tick(NetworkEntity entity)
         {
-            visible.Query(WorldToNode(entity.transform.position), extents.x, extents.y, clients);
+            visible.Query(WorldToNode(entity.transform.position), extentX, extentY, clients);
 
             if (entity.client != null)
             {
@@ -127,7 +131,7 @@ namespace Astraia.Net
             if (players.TryGetValue(client, out var player) && player && entity != player)
             {
                 var pos = WorldToNode(entity.transform.position) - WorldToNode(player.transform.position);
-                if (Mathf.Abs(pos.x.FloorToInt()) <= extents.x && Mathf.Abs(pos.y.FloorToInt()) <= extents.y)
+                if (Mathf.Abs(pos.x.FloorToInt()) <= extentX && Mathf.Abs(pos.y.FloorToInt()) <= extentY)
                 {
                     NetworkSpawner.Add(entity, client);
                 }

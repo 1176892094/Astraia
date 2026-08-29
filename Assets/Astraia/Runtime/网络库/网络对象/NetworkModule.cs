@@ -16,37 +16,29 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    [Serializable]
-    public abstract class NetworkSingleton<T> : NetworkModule, IModule where T : NetworkSingleton<T>
+    public abstract class NetworkSingleton<T> : NetworkModule where T : NetworkSingleton<T>
     {
-        private static T instance;
-        public static T Instance => instance;
+        public static T Instance { get; private set; }
 
-        void IModule.Dequeue()
+        protected override void Awake()
         {
-            if (instance != this)
-            {
-                instance = (T)this;
-                instance.Dequeue();
-            }
+            Instance = (T)this;
         }
 
-        void IModule.Enqueue()
+        protected override void OnDestroy()
         {
-            if (instance == this)
-            {
-                instance.Enqueue();
-                instance = null;
-            }
+            Instance = null;
         }
     }
 
     [Serializable]
-    public abstract class NetworkModule : Module<NetworkEntity>
+    public abstract class NetworkModule : Export
     {
         [SerializeField] internal SyncMode syncMode;
 
         [SerializeField] internal float syncStep;
+
+        [HideInInspector] public NetworkEntity owner;
 
         internal byte moduleId;
 

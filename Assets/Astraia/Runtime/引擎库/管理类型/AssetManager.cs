@@ -25,15 +25,13 @@ using UnityEditor.SceneManagement;
 
 namespace Astraia
 {
-    [Serializable]
-    public partial class AssetManager : Singleton<AssetManager>
+    public static partial class AssetManager
     {
         private static readonly Dictionary<string, AssetData> assetData = new();
         private static readonly Dictionary<string, AssetBundle> assetPack = new();
         private static Manifest package;
         private static AssetBundleManifest manifest;
 
-        public int version;
         public static event Action<int> OnLoadAsset;
         public static event Action<string> OnAssetUpdate;
         public static event Action<bool> OnAssetComplete;
@@ -41,13 +39,13 @@ namespace Astraia
         public static event Action<float> OnSceneUpdate;
         public static event Action<string> OnSceneComplete;
 
-        internal void SetVersion(Manifest package)
+        private static void SetVersion(Manifest package)
         {
-            version = package.Version;
             AssetManager.package = package;
+            GlobalManager.Instance.version = package.Version;
         }
 
-        protected override void Enqueue()
+        internal static void Dispose()
         {
             OnLoadAsset = null;
             OnAssetUpdate = null;
@@ -107,7 +105,7 @@ namespace Astraia
 
         private static T LoadAsset<T>(string reason) where T : Object
         {
-            if (Instance != null && manifest)
+            if (GlobalManager.Instance && manifest)
             {
                 var asset = LoadFirst<T>(LoadAssetData(reason));
                 return asset ?? LoadSecond<T>(reason);
@@ -121,7 +119,7 @@ namespace Astraia
 
         private static T[] LoadAssetAll<T>(string reason) where T : Object
         {
-            if (Instance != null && manifest)
+            if (GlobalManager.Instance && manifest)
             {
                 var asset = LoadFirstAll<T>(LoadAssetData(reason));
                 return asset ?? LoadSecondAll<T>(reason);
@@ -157,7 +155,7 @@ namespace Astraia
 
         public static async void LoadAssetBundle()
         {
-            if (Instance != null)
+            if (GlobalManager.Instance)
             {
                 var requests = new Dictionary<string, Task<AssetBundle>>();
                 var platform = await LoadAssetBundle(GlobalSetting.TargetPlatform, requests);
@@ -232,11 +230,11 @@ namespace Astraia
         {
             try
             {
-                if (Instance != null)
+                if (GlobalManager.Instance)
                 {
                     OnLoadScene?.Invoke(reason);
                     var request = LoadSceneAsset(GlobalSetting.SCENES.Format(reason));
-                    while (!request.isDone && Instance != null)
+                    while (!request.isDone && GlobalManager.Instance)
                     {
                         OnSceneUpdate?.Invoke(request.progress);
                         await Task.Yield();
@@ -255,7 +253,7 @@ namespace Astraia
         {
             var item = LoadAssetData(reason);
 
-            if (Instance != null && manifest)
+            if (GlobalManager.Instance && manifest)
             {
                 var sceneData = assetPack.GetValueOrDefault(item.Path);
                 var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(path => Path.GetFileNameWithoutExtension(path) == item.Name);

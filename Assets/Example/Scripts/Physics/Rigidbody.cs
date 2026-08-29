@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Runtime
 {
     [Serializable]
-    public partial class Rigidbody : Module<Entity>
+    public partial class Rigidbody : MonoBehaviour
     {
         private const float PIXELATE = 0.0625F;
         private Vector2 smoothStep;
@@ -42,10 +42,10 @@ namespace Runtime
             set => velocity = new Position(velocity.x, value);
         }
 
-        protected override void Dequeue()
+        private void Awake()
         {
-            collider = owner.GetComponent<Collider2D>();
-            MovePosition(owner.transform.position);
+            collider = GetComponent<Collider2D>();
+            MovePosition(transform.position);
         }
 
         public void MovePosition(Vector3 worldPos)
@@ -60,16 +60,16 @@ namespace Runtime
             var worldPos = position.ToVector2();
             worldPos.x = Mathf.Round(worldPos.x / PIXELATE) * PIXELATE;
             worldPos.y = Mathf.Round(worldPos.y / PIXELATE) * PIXELATE;
-            owner.transform.position = worldPos;
+            transform.position = worldPos;
         }
 
         public void SyncTransform()
         {
             var worldPos = syncPosition.ToVector2();
-            worldPos = Vector2.SmoothDamp(owner.transform.position, worldPos, ref smoothStep, Time.fixedDeltaTime);
+            worldPos = Vector2.SmoothDamp(transform.position, worldPos, ref smoothStep, Time.fixedDeltaTime);
             worldPos.x = Mathf.Round(worldPos.x / PIXELATE) * PIXELATE;
             worldPos.y = Mathf.Round(worldPos.y / PIXELATE) * PIXELATE;
-            owner.transform.position = worldPos;
+            transform.position = worldPos;
         }
     }
 }

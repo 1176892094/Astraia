@@ -1,17 +1,9 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Astraia
 {
-    [Serializable]
     public class Entity : Export
     {
-        [SerializeReference]
-        internal List<IModule> moduleList = new List<IModule>();
-
-        internal int state;
-
         internal const int CREATE = 1 << 0;
         internal const int OWNING = 1 << 1;
         internal const int CLIENT = 1 << 2;
@@ -21,24 +13,21 @@ namespace Astraia
         internal const int VISIBLE = 1 << 6;
         internal const int DESTROY = 1 << 7;
 
+        internal int state;
+
+        protected override void Awake()
+        {
+            var modules = GetComponents<IDequeue>();
+            foreach (var module in modules)
+            {
+                module.Dequeue();
+            }
+        }
+
         protected override void OnEnable()
         {
-            if ((state & CREATE) == 0)
-            {
-                foreach (var module in moduleList)
-                {
-                    module.Acquire(this);
-                }
-
-                foreach (var module in moduleList)
-                {
-                    module.Dequeue();
-                }
-
-                state |= CREATE;
-            }
-
-            foreach (var module in moduleList)
+            var modules = GetComponents<IOnShow>();
+            foreach (var module in modules)
             {
                 module.OnShow();
             }
@@ -46,46 +35,35 @@ namespace Astraia
 
         protected override void OnDisable()
         {
-            foreach (var module in moduleList)
+            var modules = GetComponents<IOnHide>();
+            for (var i = modules.Length - 1; i >= 0; i--)
             {
-                module.OnHide();
+                modules[i].OnHide();
             }
         }
 
         protected override void OnDestroy()
         {
-            foreach (var module in moduleList)
+            var modules = GetComponents<IEnqueue>();
+            for (var i = modules.Length - 1; i >= 0; i--)
             {
-                module.Enqueue();
+                modules[i].Enqueue();
             }
+        }
+    }
 
-            foreach (var module in moduleList)
-            {
-                module.Release();
-            }
+    public abstract class Singleton<T> : Export where T : Singleton<T>
+    {
+        public static T Instance { get; private set; }
 
-            moduleList.Clear();
+        protected override void Awake()
+        {
+            Instance = (T)this;
         }
 
-        public T AddComponent<T>()
+        protected override void OnDestroy()
         {
-            var module = (IModule)Activator.CreateInstance<T>();
-            moduleList.Add(module);
-            module.Acquire(this);
-            return (T)module;
-        }
-
-        public T AddComponent<T>(Type item)
-        {
-            var module = (IModule)Activator.CreateInstance(item);
-            moduleList.Add(module);
-            module.Acquire(this);
-            return (T)module;
-        }
-
-        public T GetComponent<T>(int index)
-        {
-            return index < moduleList.Count ? (T)moduleList[index] : default;
+            Instance = null;
         }
     }
 
@@ -98,30 +76,5 @@ namespace Astraia
         protected virtual void OnDisable() { }
 
         protected virtual void OnDestroy() { }
-    }
-
-    [Serializable]
-    public abstract class Singleton<T> : Module<Entity>, IModule where T : Singleton<T>
-    {
-        private static T instance;
-        public static T Instance => instance;
-
-        void IModule.Dequeue()
-        {
-            if (instance != this)
-            {
-                instance = (T)this;
-                instance.Dequeue();
-            }
-        }
-
-        void IModule.Enqueue()
-        {
-            if (instance == this)
-            {
-                instance.Enqueue();
-                instance = null;
-            }
-        }
     }
 }

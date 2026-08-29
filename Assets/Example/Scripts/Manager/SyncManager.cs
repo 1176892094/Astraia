@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Runtime
 {
     [Serializable]
-    public class SyncManager : NetworkSingleton<SyncManager>, IEvent<OnFixedUpdate>
+    public class SyncManager : NetworkSingleton<SyncManager>
     {
         private Dictionary<uint, Position> clientPosition = new Dictionary<uint, Position>();
         private Dictionary<uint, Position> serverPosition = new Dictionary<uint, Position>();
@@ -28,7 +28,7 @@ namespace Runtime
             serverPosition[objectId] = position;
         }
 
-        public void Execute(OnFixedUpdate message)
+        private void FixedUpdate()
         {
             if (!NetworkSystem.Tick(ref sendTime))
             {

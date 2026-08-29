@@ -6,9 +6,10 @@ using UnityEngine.InputSystem;
 namespace Runtime
 {
     [Serializable]
-    public class PlayerAction : Module<Player>
+    public class PlayerAction : Export
     {
-        private PlayerFeature Feature => owner.Feature;
+        [Export] private PlayerFeature Feature;
+        [Export] private PlayerMachine Machine;
         private bool CanFall => (State & State.地面) == 0 && (State & State.冲刺) == 0 && (State & State.平台) != 0;
         private bool CanDash => Feature.DashCount > 0 && Feature.DashInput > Time.fixedTime && Feature.DashCD < Time.fixedTime;
         private bool CanJump => Feature.JumpCount > 0 && Feature.JumpInput > Time.fixedTime && Feature.JumpCD < Time.fixedTime;
@@ -19,14 +20,14 @@ namespace Runtime
             set => Feature.State = value;
         }
 
-        public new void Dequeue()
+        protected override void OnEnable()
         {
             GameManager.Dash.performed += DashButton;
             GameManager.Jump.started += JumpButton;
             GameManager.Jump.canceled += FallButton;
         }
 
-        protected override void Enqueue()
+        protected override void OnDisable()
         {
             GameManager.Dash.performed -= DashButton;
             GameManager.Jump.started -= JumpButton;
@@ -41,7 +42,7 @@ namespace Runtime
 
                 var success = true;
                 Collider2D collider = null;
-                foreach (var hit in owner.Machine.collision.Raycast(move, move.magnitude + 0.5F, LayerConst.GroundAndCollision))
+                foreach (var hit in Machine.collision.Raycast(move, move.magnitude + 0.5F, LayerConst.GroundAndCollision))
                 {
                     if (hit.collider.CompareTag(TagConst.DashQuad))
                     {
@@ -50,7 +51,7 @@ namespace Runtime
                     }
                 }
 
-                foreach (var hit in owner.Machine.collision.Boxcast(move, move.magnitude, LayerConst.GroundAndCollision)) // 防卡墙
+                foreach (var hit in Machine.collision.Boxcast(move, move.magnitude, LayerConst.GroundAndCollision)) // 防卡墙
                 {
                     if (!hit.collider.CompareTag(TagConst.DashQuad))
                     {
@@ -77,7 +78,7 @@ namespace Runtime
             {
                 var success = true;
                 Collider2D collider = null;
-                foreach (var hit in owner.Machine.collision.Boxcast(owner.Machine.velocityY, LayerConst.GroundAndCollision))
+                foreach (var hit in Machine.collision.Boxcast(Machine.velocityY, LayerConst.GroundAndCollision))
                 {
                     if (hit.collider.CompareTag(TagConst.Platform) && CanFall)
                     {

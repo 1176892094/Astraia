@@ -16,14 +16,12 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public class SoundManager : Singleton<SoundManager>, IEvent<OnAfterUpdate>
+    public class SoundManager : Singleton<SoundManager>
     {
-        private static List<AudioSource> audioData = new List<AudioSource>();
-        private static bool isPlaying;
-
         [SerializeField] private AudioSource musicMain;
         [SerializeField] private int musicVolume;
         [SerializeField] private int audioVolume;
+        [SerializeField] private List<AudioSource> audioData = new List<AudioSource>();
 
         public int MusicVolume
         {
@@ -55,31 +53,22 @@ namespace Astraia
             }
         }
 
-        protected override void Dequeue()
+        protected override void Awake()
         {
-            isPlaying = true;
+            base.Awake();
             MusicVolume = JsonManager.Load(nameof(MusicVolume), 100);
             AudioVolume = JsonManager.Load(nameof(AudioVolume), 100);
         }
 
-        protected override void OnShow()
+        protected override void OnDestroy()
         {
-            EventManager.Listen(this);
-        }
-
-        protected override void OnHide()
-        {
-            EventManager.Remove(this);
-        }
-
-        protected override void Enqueue()
-        {
+            base.OnDestroy();
             audioData.Clear();
         }
 
-        public void Execute(OnAfterUpdate message)
+        internal void OnUpdate()
         {
-            if (isPlaying)
+            if (enabled)
             {
                 for (var i = audioData.Count - 1; i >= 0; i--)
                 {
@@ -184,7 +173,7 @@ namespace Astraia
                 source.Play();
             }
 
-            isPlaying = true;
+            enabled = true;
         }
 
         private void PauseAllInternal()
@@ -194,7 +183,7 @@ namespace Astraia
                 source.Pause();
             }
 
-            isPlaying = false;
+            enabled = false;
         }
 
         private void StopAllInternal()

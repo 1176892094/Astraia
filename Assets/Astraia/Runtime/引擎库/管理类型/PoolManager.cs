@@ -20,12 +20,12 @@ namespace Astraia
     {
         private Dictionary<string, Transform> rootData = new Dictionary<string, Transform>();
         private Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
-        [SerializeField] private Transform parent;
-        
+    
         internal ICollection<IPool> Values => poolData.Values;
 
-        protected override void Enqueue()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             foreach (var item in poolData.Values)
             {
                 item.Dispose();
@@ -167,7 +167,7 @@ namespace Astraia
             if (!rootData.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(item.name)).transform;
-                pool.SetParent(parent);
+                pool.SetParent(transform);
                 rootData.Add(item.name, pool);
             }
 
@@ -182,7 +182,7 @@ namespace Astraia
             if (!rootData.TryGetValue(item.name, out var pool))
             {
                 pool = new GameObject("Pool - {0}".Format(item.name)).transform;
-                pool.SetParent(parent);
+                pool.SetParent(transform);
                 rootData.Add(item.name, pool);
             }
 

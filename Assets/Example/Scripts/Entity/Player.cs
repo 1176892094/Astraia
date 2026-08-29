@@ -19,11 +19,11 @@ namespace Runtime
     [Serializable]
     public class Player : NetworkEntity, IEvent<OnPlayerUpdate>
     {
-        public PlayerFeature Feature => GetComponent<PlayerFeature>(0);
-        public PlayerMachine Machine => GetComponent<PlayerMachine>(1);
-        public PlayerSender Sender => GetComponent<PlayerSender>(2);
-        public PlayerModule Module => GetComponent<PlayerModule>(3);
-        public PlayerAction Action => GetComponent<PlayerAction>(4);
+        public PlayerFeature Feature => GetComponent<PlayerFeature>();
+        public PlayerMachine Machine => GetComponent<PlayerMachine>();
+        public PlayerSender Sender => GetComponent<PlayerSender>();
+        public PlayerModule Module => GetComponent<PlayerModule>();
+        public PlayerAction Action => GetComponent<PlayerAction>();
 
         public int Direction
         {

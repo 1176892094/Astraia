@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -24,11 +23,9 @@ namespace Astraia.Net
     [Serializable]
     public class NetworkEntity : Entity
     {
-        [HideInInspector] public uint objectId;
-
         [HideInInspector] public uint assetId;
-
         [HideInInspector] public uint sceneId;
+        [HideInInspector] public uint objectId;
 
         internal int count;
 
@@ -54,9 +51,10 @@ namespace Astraia.Net
         {
             if ((state & CREATE) == 0)
             {
-                modules = moduleList.OfType<NetworkModule>().ToArray();
-                for (byte i = 0; i < modules.Length; ++i)
+                modules = GetComponents<NetworkModule>();
+                for (byte i = 0; i < modules.Length; i++)
                 {
+                    modules[i].owner = this;
                     modules[i].moduleId = i;
                 }
             }

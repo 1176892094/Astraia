@@ -95,11 +95,6 @@ namespace Astraia.Editor
                     {
                         modified |= EntityGenerator.Processed(assembly, td, module, Log);
                     }
-
-                    if (td.IsSubclassOf(typeof(Module<>)))
-                    {
-                        modified |= ModuleGenerator.Processed(assembly, td, module, Log);
-                    }
                 }
 
                 if (failed)

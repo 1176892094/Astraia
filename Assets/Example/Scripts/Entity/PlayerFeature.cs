@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Runtime
 {
     [Serializable]
-    public class PlayerFeature : Module<Player>
+    public class PlayerFeature : MonoBehaviour
     {
         public State State = State.默认;
 
@@ -41,7 +41,7 @@ namespace Runtime
         public Vector2 DashDirection;
         public Vector2 QuadDirection;
 
-        protected override void Dequeue()
+        private void Awake()
         {
             MoveSpeed = 5F / 60;
             FallLimit = 15F / 60;

@@ -81,7 +81,7 @@ namespace Runtime
         public void OnStartAuthority()
         {
             var player = (Player)owner;
-            player.AddComponent<PlayerAction>().Dequeue();
+            player.gameObject.AddComponent<PlayerAction>();
             player.Machine.MovePosition(player.transform.position);
             player.Machine.Create<PlayerIdle>(Animations.Idle);
             player.Machine.Create<PlayerWait>(Animations.Wait);

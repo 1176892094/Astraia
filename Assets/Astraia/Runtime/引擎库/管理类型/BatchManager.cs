@@ -20,7 +20,7 @@ using UnityEngine.Networking;
 
 namespace Astraia
 {
-    public partial class AssetManager
+    public static partial class AssetManager
     {
         public static event Action<long> OnLoadBatch;
         public static event Action<string, long> OnBatchUpdate;
@@ -41,7 +41,7 @@ namespace Astraia
             var serverResult = await LoadManifestFromServerAsync();
 
             var selected = SelectManifest(streamResult, clientResult, serverResult);
-            Instance.SetVersion(selected);
+            SetVersion(selected);
 
             if (!selected.IsLoaded)
             {

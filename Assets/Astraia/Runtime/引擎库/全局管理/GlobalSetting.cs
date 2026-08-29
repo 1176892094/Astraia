@@ -53,7 +53,7 @@ namespace Astraia
         public static string ServerListData => Path.Combine(Instance.RemotePath, TargetPlatform, "{0}");
         public static string ServerDataPath => Path.Combine(Instance.RemotePath, TargetPlatform, Instance.AssetVersion.ToString(), "{0}");
 
-        private static readonly Dictionary<AssetData, TextAsset> TextCache = new Dictionary<AssetData, TextAsset>();
+        private static readonly Dictionary<int, TextAsset> TextCache = new Dictionary<int, TextAsset>();
 
         public static string LoadText(AssetData option)
         {
@@ -62,11 +62,16 @@ namespace Astraia
                 var items = Resources.LoadAll<TextAsset>(nameof(GlobalSetting));
                 for (var i = 0; i < items.Length; i++)
                 {
-                    TextCache[(AssetData)i] = items[i];
+                    TextCache[i] = items[i];
                 }
             }
 
-            return TextCache.GetValueOrDefault(option)?.text;
+            if (TextCache.TryGetValue((int)option, out var result) && result)
+            {
+                return result.text;
+            }
+
+            return string.Empty;
         }
 
 #if UNITY_EDITOR

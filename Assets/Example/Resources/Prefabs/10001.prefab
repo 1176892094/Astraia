@@ -11,6 +11,10 @@ GameObject:
   - component: {fileID: 7478125468919891840}
   - component: {fileID: 4050376154587281838}
   - component: {fileID: 7699375650067373137}
+  - component: {fileID: 2378255168645130865}
+  - component: {fileID: 8119971262115586623}
+  - component: {fileID: 1950026055823169505}
+  - component: {fileID: 9028775816003079015}
   m_Layer: 7
   m_Name: 10001
   m_TagString: Untagged
@@ -92,87 +96,86 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f46525886dd94e1cad6393357b1f3917, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Runtime.Player
-  moduleList:
-  - rid: 915762514025775162
-  - rid: 915762514025775165
-  - rid: 915762514025775163
-  - rid: 5279501486990557413
-  objectId: 0
   assetId: 10001
   sceneId: 0
-  references:
-    version: 2
-    RefIds:
-    - rid: 915762514025775162
-      type: {class: PlayerFeature, ns: Runtime, asm: Assembly-CSharp}
-      data:
-        State: 0
-        platform: {fileID: 0}
-        MoveSpeed:
-          value: 0
-        DashSpeed:
-          value: 0
-        RushSpeed:
-          value: 0
-        JumpForce:
-          value: 0
-        GrabForce:
-          value: 0
-        FallSpeed: 0
-        FallLimit: 0
-        GrabSpeed: 0
-        GrabLimit: 0
-        RushCount: 0
-        RushInput: 0
-        JumpCount: 0
-        JumpInput: 0
-        JumpTimer: 0
-        JumpTime: 0
-        JumpCD: 0
-        JumpDirection: 0
-        JumpPlatform: 0
-        DashCount: 0
-        DashInput: 0
-        DashTimer: 0
-        DashTime: 0.18
-        DashCD: 0
-        DashDirection: {x: 0, y: 0}
-        QuadDirection: {x: 0, y: 0}
-    - rid: 915762514025775163
-      type: {class: PlayerSender, ns: Runtime, asm: Assembly-CSharp}
-      data:
-        syncMode: 0
-        syncStep: 0
-        color:
-          serializedVersion: 2
-          rgba: 0
-    - rid: 915762514025775165
-      type: {class: PlayerMachine, ns: Runtime, asm: Assembly-CSharp}
-      data:
-        collider: {fileID: 0}
-        position:
-          x:
-            value: 0
-          y:
-            value: 0
-        velocity:
-          x:
-            value: 0
-          y:
-            value: 0
-        syncPosition:
-          x:
-            value: 0
-          y:
-            value: 0
-        dashPosition:
-          x:
-            value: 0
-          y:
-            value: 0
-    - rid: 5279501486990557413
-      type: {class: PlayerModule, ns: Runtime, asm: Assembly-CSharp}
-      data: 
+  objectId: 0
+--- !u!114 &2378255168645130865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4745370882994828325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fd9b95e1c674e90872c07ccfbd59887, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Runtime.PlayerFeature
+  State: 0
+  platform: {fileID: 0}
+  FallSpeed: 0
+  FallLimit: 0
+  GrabSpeed: 0
+  GrabLimit: 0
+  RushCount: 0
+  RushInput: 0
+  JumpCount: 0
+  JumpInput: 0
+  JumpTimer: 0
+  JumpTime: 0
+  JumpCD: 0
+  JumpDirection: 0
+  JumpPlatform: 0
+  DashCount: 0
+  DashInput: 0
+  DashTimer: 0
+  DashTime: 0.18
+  DashCD: 0
+  DashDirection: {x: 0, y: 0}
+  QuadDirection: {x: 0, y: 0}
+--- !u!114 &8119971262115586623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4745370882994828325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b41181653b764b159a471809c863eb6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Runtime.PlayerMachine
+  collider: {fileID: 0}
+--- !u!114 &1950026055823169505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4745370882994828325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e075d405bf764693ba124bc31be31bab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Runtime.PlayerModule
+--- !u!114 &9028775816003079015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4745370882994828325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f122b6becd724c3aa63a9ed1203b0597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Runtime.PlayerSender
+  syncMode: 0
+  syncStep: 0
+  owner: {fileID: 0}
+  color:
+    serializedVersion: 2
+    rgba: 0
 --- !u!1 &8948634512323190195
 GameObject:
   m_ObjectHideFlags: 0
@@ -207,7 +210,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &4457367980570895589
 SpriteRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -264,3 +267,4 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+  m_BlendShapeWeights: []

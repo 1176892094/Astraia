@@ -8,21 +8,21 @@ namespace Astraia
 {
     public static class ExportManager
     {
-        public static T Export<T>(Component owner, object obj, string name) where T : Component
+        public static T Export<T>(Component owner, string name) where T : Component
         {
             var child = owner.transform.GetChild(name);
             if (child)
             {
                 var component = child.GetComponent<T>();
-                var method = obj.GetType().GetMethod(name, Search.Instance);
+                var method = owner.GetType().GetMethod(name, Search.Instance);
                 if (method != null)
                 {
-                    if (Button(obj, component, method) || Toggle(obj, component, method) || Slider(obj, component, method))
+                    if (Button(owner, component, method) || Toggle(owner, component, method) || Slider(owner, component, method))
                     {
                         return component;
                     }
 
-                    InputField(obj, component, method);
+                    InputField(owner, component, method);
                 }
 
                 return component;

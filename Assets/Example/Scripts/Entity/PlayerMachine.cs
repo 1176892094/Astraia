@@ -7,7 +7,7 @@ namespace Runtime
     {
         private readonly StateMachine machine = new StateMachine();
 
-        protected override void Enqueue()
+        private void OnDestroy()
         {
             machine.Clear();
         }
@@ -17,14 +17,14 @@ namespace Runtime
             machine.Update();
         }
 
-        public void Update(int value)
+        public void OnUpdate(int value)
         {
             machine.Update(value);
         }
 
         public void Create<T>(int value)
         {
-            machine.Create<T>(owner, value);
+            machine.Create<T>(GetComponent<Player>(), value);
         }
 
         public void Switch(int value)

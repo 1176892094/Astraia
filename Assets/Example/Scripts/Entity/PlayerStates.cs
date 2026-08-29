@@ -16,53 +16,53 @@ namespace Runtime
 
             if (isShuttle)
             {
-                Machine.Update(Animations.Shuttle);
+                Machine.OnUpdate(Animations.Shuttle);
                 return;
             }
 
             if (isHold)
             {
-                Machine.Update(Animations.Hold);
+                Machine.OnUpdate(Animations.Hold);
                 return;
             }
 
             if (isDash)
             {
-                Machine.Update(Animations.Dash);
+                Machine.OnUpdate(Animations.Dash);
                 return;
             }
 
             if (isRush)
             {
-                Machine.Update(Animations.Rush);
+                Machine.OnUpdate(Animations.Rush);
                 return;
             }
 
             if (isJump)
             {
-                Machine.Update(Animations.Jump);
+                Machine.OnUpdate(Animations.Jump);
                 return;
             }
 
             if (isWalk && isPlane)
             {
-                Machine.Update(Animations.Walk);
+                Machine.OnUpdate(Animations.Walk);
                 return;
             }
 
             if (isPlane)
             {
-                Machine.Update(Animations.Wait);
+                Machine.OnUpdate(Animations.Wait);
                 return;
             }
 
             if (isGrab)
             {
-                Machine.Update(Animations.Grab);
+                Machine.OnUpdate(Animations.Grab);
                 return;
             }
 
-            Machine.Update(Animations.Fall);
+            Machine.OnUpdate(Animations.Fall);
         }
     }
 
@@ -316,14 +316,14 @@ namespace Runtime
                         state |= State.横冲;
                         state &= ~State.冲刺;
                         Feature.DashCount = 1;
-                        Machine.Update(Animations.Jump);
+                        Machine.OnUpdate(Animations.Jump);
                     }
                 }
                 else if ((oldState & State.墙顶) != 0)
                 {
                     state |= State.竖冲;
                     state &= ~State.冲刺;
-                    Machine.Update(Animations.Jump);
+                    Machine.OnUpdate(Animations.Jump);
                     velocityY += Feature.JumpForce * 0.5F;
                 }
             }

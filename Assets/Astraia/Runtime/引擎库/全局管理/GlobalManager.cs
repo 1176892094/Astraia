@@ -14,10 +14,13 @@ using UnityEngine;
 namespace Astraia
 {
     [DefaultExecutionOrder(-100)]
-    public sealed class GlobalManager : Entity
+    public sealed class GlobalManager : Singleton<GlobalManager>
     {
+        public int version;
+
         protected override void Awake()
         {
+            base.Awake();
             DontDestroyOnLoad(gameObject);
         }
 
@@ -28,24 +31,18 @@ namespace Astraia
 
         private void Update()
         {
-            EventManager.Invoke(new OnEarlyUpdate());
             TimeManager.RenderUpdate(Time.time);
         }
 
         private void LateUpdate()
         {
-            EventManager.Invoke(new OnAfterUpdate());
+            SoundManager.Instance?.OnUpdate();
+            SpaceManager.Instance?.OnUpdate();
         }
 
         private void FixedUpdate()
         {
-            EventManager.Invoke(new OnFixedUpdate());
             TimeManager.PhysicUpdate(Time.fixedTime);
-        }
-
-        private void OnDrawGizmos()
-        {
-            EventManager.Invoke(new OnGizmoUpdate());
         }
 
         protected override void OnDestroy()
@@ -53,6 +50,7 @@ namespace Astraia
             base.OnDestroy();
             HeapManager.Dispose();
             EventManager.Dispose();
+            AssetManager.Dispose();
         }
 
 #if UNITY_EDITOR
@@ -65,12 +63,4 @@ namespace Astraia
             Bad.SetUp(Zip.Decompress(GlobalSetting.LoadText(AssetData.BadWord)));
         }
     }
-
-    public struct OnEarlyUpdate : IEvent { }
-
-    public struct OnAfterUpdate : IEvent { }
-
-    public struct OnFixedUpdate : IEvent { }
-
-    public struct OnGizmoUpdate : IEvent { }
 }

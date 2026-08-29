@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkTransform : NetworkModule, IEvent<OnEarlyUpdate>, IEvent<OnAfterUpdate>
+    public class NetworkTransform : NetworkModule
     {
         [SerializeField] private Transform target;
 
@@ -78,7 +78,7 @@ namespace Astraia.Net
             }
         }
 
-        protected override void Dequeue()
+        protected override void Awake()
         {
             target = owner.transform;
             position = target.position;
@@ -86,7 +86,7 @@ namespace Astraia.Net
             mutation = target.localScale;
         }
 
-        public void Execute(OnEarlyUpdate message)
+        private void Update()
         {
             if (isServer && !isVerify)
             {
@@ -98,7 +98,7 @@ namespace Astraia.Net
             }
         }
 
-        public void Execute(OnAfterUpdate message)
+        private void LateUpdate()
         {
             if (isServer && isVerify && NetworkManager.isServer && isModify)
             {
