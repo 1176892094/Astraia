@@ -34,12 +34,6 @@ namespace Astraia
             TimeManager.RenderUpdate(Time.time);
         }
 
-        private void LateUpdate()
-        {
-            SoundManager.Instance?.OnUpdate();
-            SpaceManager.Instance?.OnUpdate();
-        }
-
         private void FixedUpdate()
         {
             TimeManager.PhysicUpdate(Time.fixedTime);
