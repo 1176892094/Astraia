@@ -66,7 +66,7 @@ namespace Astraia
             audioData.Clear();
         }
 
-        internal void OnUpdate()
+        private void LateUpdate()
         {
             if (enabled)
             {

@@ -31,7 +31,7 @@ namespace Astraia
             return owner.GetComponent<T>();
         }
 
-        private static bool Button<T>(object obj, T component, MethodInfo method) where T : Component
+        private static bool Button<T>(Component obj, T component, MethodInfo method) where T : Component
         {
             if (component.TryGetComponent(out Button button))
             {
@@ -57,7 +57,7 @@ namespace Astraia
             return false;
         }
 
-        private static bool Toggle<T>(object obj, T component, MethodInfo method) where T : Component
+        private static bool Toggle<T>(Component obj, T component, MethodInfo method) where T : Component
         {
             if (component.TryGetComponent(out Toggle toggle))
             {
@@ -83,7 +83,7 @@ namespace Astraia
             return false;
         }
 
-        private static bool Slider<T>(object obj, T component, MethodInfo method) where T : Component
+        private static bool Slider<T>(Component obj, T component, MethodInfo method) where T : Component
         {
             if (component.TryGetComponent(out Slider slider))
             {
@@ -109,7 +109,7 @@ namespace Astraia
             return false;
         }
 
-        private static void InputField<T>(object obj, T component, MethodInfo method) where T : Component
+        private static void InputField<T>(Component obj, T component, MethodInfo method) where T : Component
         {
             var cacheType = Search.GetType("TMPro.TMP_InputField,Unity.TextMeshPro");
             if (component.TryGetComponent(cacheType, out var inputField))

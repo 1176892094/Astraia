@@ -24,24 +24,6 @@ namespace Astraia
             }
         }
 
-        protected override void OnEnable()
-        {
-            var modules = GetComponents<IOnShow>();
-            foreach (var module in modules)
-            {
-                module.OnShow();
-            }
-        }
-
-        protected override void OnDisable()
-        {
-            var modules = GetComponents<IOnHide>();
-            for (var i = modules.Length - 1; i >= 0; i--)
-            {
-                modules[i].OnHide();
-            }
-        }
-
         protected override void OnDestroy()
         {
             var modules = GetComponents<IEnqueue>();
