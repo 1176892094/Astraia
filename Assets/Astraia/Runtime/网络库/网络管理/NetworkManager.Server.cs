@@ -147,9 +147,8 @@ namespace Astraia.Net
 
                 foreach (var entity in spawns.Values)
                 {
-                    if (NetworkObserver.Instance && (entity.state & Entity.VISIBLE) == 0)
+                    if (NetworkObserver.Instance && entity.visible)
                     {
-                        NetworkObserver.Instance.Add(entity);
                         NetworkObserver.Instance.Tick(entity, client);
                     }
                     else
@@ -336,9 +335,8 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (NetworkObserver.Instance && (entity.state & Entity.VISIBLE) == 0)
+                if (NetworkObserver.Instance && entity.visible)
                 {
-                    NetworkObserver.Instance.Add(entity);
                     NetworkObserver.Instance.Tick(entity);
                 }
                 else
@@ -371,11 +369,6 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        if (NetworkObserver.Instance && (entity.state & Entity.VISIBLE) == 0)
-                        {
-                            NetworkObserver.Instance.Remove(entity);
-                        }
-
                         entity.state |= Entity.DESTROY;
                         UnityEngine.Object.Destroy(entity.gameObject);
                     }

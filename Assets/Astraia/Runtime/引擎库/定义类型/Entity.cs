@@ -10,8 +10,7 @@ namespace Astraia
         internal const int SERVER = 1 << 3;
         internal const int ENABLE = 1 << 4;
         internal const int NOTIFY = 1 << 5;
-        internal const int VISIBLE = 1 << 6;
-        internal const int DESTROY = 1 << 7;
+        internal const int DESTROY = 1 << 6;
 
         internal int state;
 

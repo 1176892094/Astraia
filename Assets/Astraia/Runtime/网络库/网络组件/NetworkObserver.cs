@@ -18,10 +18,8 @@ namespace Astraia.Net
     {
         private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
         private readonly SpatialHash<NetworkClient> visible = new SpatialHash<NetworkClient>();
-        private readonly HashSet<NetworkEntity> entities = new HashSet<NetworkEntity>();
         private readonly HashSet<NetworkClient> clients = new HashSet<NetworkClient>();
         private readonly List<NetworkClient> copies = new List<NetworkClient>();
-
         private double waitTime;
 
         [SerializeField]
@@ -68,9 +66,12 @@ namespace Astraia.Net
                 {
                     waitTime = NetworkManager.syncTime + 0.2;
 
-                    foreach (var entity in entities)
+                    foreach (var entity in NetworkManager.Server.spawns.Values)
                     {
-                        Tick(entity);
+                        if (entity.visible)
+                        {
+                            Tick(entity);
+                        }
                     }
                 }
             }
@@ -84,10 +85,13 @@ namespace Astraia.Net
                 if (player)
                 {
                     var center = WorldToNode(player.transform.position);
-                    var minX = center.x.FloorToInt() - extentX;
-                    var maxX = center.x.FloorToInt() + extentX;
-                    var minY = center.y.FloorToInt() - extentY;
-                    var maxY = center.y.FloorToInt() + extentY;
+                    var centerX = center.x.FloorToInt();
+                    var centerY = center.y.FloorToInt();
+
+                    var minX = centerX - extentX;
+                    var maxX = centerX + extentX;
+                    var minY = centerY - extentY;
+                    var maxY = centerY + extentY;
 
                     for (var x = minX; x <= maxX; x++)
                     {
@@ -128,6 +132,11 @@ namespace Astraia.Net
                     NetworkSpawner.Remove(entity, client);
                 }
             }
+
+            if (entity.clients.Count == 0)
+            {
+                entity.gameObject.SetActive(false);
+            }
         }
 
         public void Tick(NetworkEntity entity, NetworkClient client)
@@ -139,18 +148,17 @@ namespace Astraia.Net
                 {
                     NetworkSpawner.Add(entity, client);
                 }
-                else
-                {
-                    entity.gameObject.SetActive(false);
-                }
+            }
+
+            if (entity.clients.Count == 0)
+            {
+                entity.gameObject.SetActive(false);
             }
         }
 
-        public Position WorldToNode(Vector2 position)
+        private Position WorldToNode(Vector2 position)
         {
-            var x = Mathf.FloorToInt(position.x / cellSize);
-            var y = Mathf.FloorToInt(position.y / cellSize);
-            return new Position(x, y);
+            return new Position(Mathf.FloorToInt(position.x / cellSize), Mathf.FloorToInt(position.y / cellSize));
         }
 
         public void Clear()
@@ -159,17 +167,6 @@ namespace Astraia.Net
             clients.Clear();
             visible.Clear();
             players.Clear();
-            entities.Clear();
-        }
-
-        public void Add(NetworkEntity entity)
-        {
-            entities.Add(entity);
-        }
-
-        public void Remove(NetworkEntity entity)
-        {
-            entities.Remove(entity);
         }
     }
 }

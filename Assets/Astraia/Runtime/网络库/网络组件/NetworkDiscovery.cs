@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    [Serializable]
     public class NetworkDiscovery : Singleton<NetworkDiscovery>
     {
         [SerializeField] private string address;

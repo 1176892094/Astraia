@@ -23,11 +23,13 @@ namespace Astraia.Net
     [Serializable]
     public class NetworkEntity : Entity
     {
-        [HideInInspector, SerializeField] internal uint assetId;
+        [HideInInspector] public uint objectId;
 
-        [HideInInspector, SerializeField] internal uint sceneId;
+        [HideInInspector] public uint assetId;
 
-        [HideInInspector, SerializeField] internal uint objectId;
+        [HideInInspector] public uint sceneId;
+
+        [SerializeField] internal bool visible;
 
         internal int current;
 
