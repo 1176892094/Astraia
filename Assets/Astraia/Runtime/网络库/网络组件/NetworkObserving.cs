@@ -3,20 +3,18 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2025-09-27 21:09:40
-// # Recently: 2025-09-27 21:09:40
+// # History: 2026-08-30 16:08:53
+// # Recently: 2026-08-30 16:28:53
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Astraia.Net
 {
-    [Serializable]
-    public class NetworkObserving : Singleton<NetworkObserving>, IDontDestroy
+    public class NetworkObserving : Singleton<NetworkObserving>
     {
         private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
         private readonly SpatialHash<NetworkClient> visible = new SpatialHash<NetworkClient>();
@@ -34,6 +32,12 @@ namespace Astraia.Net
 
         [SerializeField]
         private int cellSize = 1;
+
+        protected override void OnDestroy()
+        {
+            Clear();
+            base.OnDestroy();
+        }
 
         public void Register(NetworkEntity entity)
         {
@@ -149,7 +153,7 @@ namespace Astraia.Net
             return new Position(x, y);
         }
 
-        public void Dispose()
+        public void Clear()
         {
             copies.Clear();
             clients.Clear();

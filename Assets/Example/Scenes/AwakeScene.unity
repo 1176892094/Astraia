@@ -1608,7 +1608,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1265164157}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b7ebd91d087ac427bab9f4b472ebde57, type: 3}
   m_Name: 
@@ -1631,9 +1631,6 @@ MonoBehaviour:
   roomData: 
   roomName: 
   roomMode: 0
-  observing: {fileID: 0}
-  discovery:
-    rid: -2
   connection:
     rid: 1723852061938024452
   management:
@@ -1643,8 +1640,6 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
     - rid: 1723852061938024452
       type: {class: NetworkTransport, ns: Astraia, asm: Astraia}
       data:

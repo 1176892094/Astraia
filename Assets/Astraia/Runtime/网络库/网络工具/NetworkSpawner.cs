@@ -1,4 +1,14 @@
-using System;
+// *********************************************************************************
+// # Project: Astraia
+// # Unity: 6000.3.5f1
+// # Author: 云谷千羽
+// # Version: 1.0.0
+// # History: 2026-08-30 16:08:44
+// # Recently: 2026-08-30 16:21:44
+// # Copyright: 2024, 云谷千羽
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
 using System.Linq;
 
 namespace Astraia.Net
@@ -15,17 +25,15 @@ namespace Astraia.Net
                     entity.ClearDirty(true);
                 }
 
+                client.entities.Add(entity);
                 using var owner = MemoryWriter.Pop();
                 using var other = MemoryWriter.Pop();
-                ArraySegment<byte> segment = default;
                 if (entity.modules.Length > 0)
                 {
                     entity.modules.ServerSend(owner, other, true);
-                    segment = (ArraySegment<byte>)(entity.client == client ? owner : other);
                 }
 
-                client.entities.Add(entity);
-                client.Send(new SpawnMessage(entity, client, segment));
+                client.Send(new SpawnMessage(entity, client, entity.client == client ? owner : other));
             }
         }
 

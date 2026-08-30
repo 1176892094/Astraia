@@ -16,48 +16,6 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public abstract class NetworkSingleton<T> : NetworkModule where T : NetworkSingleton<T>
-    {
-        private static T instance;
-
-        public static T Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = FindAnyObjectByType<T>();
-                }
-
-                return instance;
-            }
-        }
-
-        protected override void Awake()
-        {
-            if (instance != null && instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            instance = (T)this;
-
-            if (instance is IDontDestroy)
-            {
-                DontDestroyOnLoad(gameObject);
-            }
-        }
-
-        protected override void OnDestroy()
-        {
-            if (instance == this)
-            {
-                instance = null;
-            }
-        }
-    }
-
     [Serializable]
     public abstract class NetworkModule : Export
     {
@@ -65,7 +23,7 @@ namespace Astraia.Net
 
         [SerializeField] internal float syncStep;
 
-        [HideInInspector] public NetworkEntity owner;
+        internal NetworkEntity owner;
 
         internal byte moduleId;
 
@@ -140,7 +98,6 @@ namespace Astraia.Net
             var headerPosition = writer.position;
             writer.WriteByte(0);
             var contentPosition = writer.position;
-
             try
             {
                 OnSerialize(writer, isInit);
@@ -151,18 +108,19 @@ namespace Astraia.Net
             }
 
             var endPosition = writer.position;
-            writer.position = headerPosition;
             var size = endPosition - contentPosition;
-            var safety = (byte)(size & 0xFF);
-            writer.WriteByte(safety);
+
+            writer.position = headerPosition;
+            writer.WriteByte((byte)size);
             writer.position = endPosition;
         }
 
         internal bool Deserialize(MemoryReader reader, bool isInit)
         {
             var result = true;
-            var safety = reader.ReadByte();
+            var expected = reader.ReadByte();
             var startPosition = reader.position;
+
             try
             {
                 OnDeserialize(reader, isInit);
@@ -173,13 +131,13 @@ namespace Astraia.Net
                 result = false;
             }
 
-            var value = reader.position - startPosition;
-            var count = (byte)(value & 0xFF);
-            if (count != safety)
+            var size = reader.position - startPosition;
+            var actual = (byte)size;
+            if (actual != expected)
             {
-                Debug.LogError("反序列化字节不匹配。读取字节: {0} 哈希对比:{1}/{2}".Format(value, count, safety), owner);
-                var cleared = (uint)value & 0xFFFFFF00;
-                reader.position = startPosition + (int)(cleared | safety);
+                Debug.LogError("反序列化字节不匹配。读取长度:{0} 校验:{1}/{2}".Format(size, actual, expected), owner);
+                var corrected = size & ~0xFF;
+                reader.position = startPosition + (corrected | expected);
                 result = false;
             }
 

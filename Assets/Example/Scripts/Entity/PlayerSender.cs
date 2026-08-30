@@ -12,7 +12,7 @@ namespace Runtime
 
         private void OnValueChanged(Color32 oldValue, Color32 newValue)
         {
-            owner.GetComponentInChildren<SpriteRenderer>().color = newValue;
+            GetComponentInChildren<SpriteRenderer>().color = newValue;
         }
 
         [ServerRpc]
@@ -36,7 +36,7 @@ namespace Runtime
         [ClientRpc(Pass.KCP | Pass.ANY)]
         private void SetDirectionClientRpc(int direction)
         {
-            owner.transform.localScale = new Vector3(direction, 1, 1);
+            transform.localScale = new Vector3(direction, 1, 1);
         }
 
         [ServerRpc]
@@ -80,7 +80,7 @@ namespace Runtime
 
         public void OnStartAuthority()
         {
-            var player = (Player)owner;
+            var player = GetComponent<Player>();
             player.gameObject.AddComponent<PlayerAction>();
             player.Machine.MovePosition(player.transform.position);
             player.Machine.Create<PlayerIdle>(Animations.Idle);

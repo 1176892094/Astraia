@@ -35,9 +35,8 @@ namespace Astraia.Net
 
             private static double sendTime;
 
-            private static bool isObserver => NetworkObserving.Instance != null;
-
             public static bool isReady => clients.Values.All(connection => connection.isReady);
+
             public static int connections => clients.Count;
 
             internal static void Start(bool isHost)
@@ -99,7 +98,11 @@ namespace Astraia.Net
 
             private static void SpawnObjects()
             {
-                NetworkObserving.Instance?.Dispose();
+                if (NetworkObserving.Instance)
+                {
+                    NetworkObserving.Instance.Clear();
+                }
+
 #if UNITY_6000_4_OR_NEWER
                 var entities = FindObjectsByType<NetworkEntity>();
 #else
@@ -144,7 +147,7 @@ namespace Astraia.Net
 
                 foreach (var entity in spawns.Values)
                 {
-                    if (isObserver && (entity.state & Entity.VISIBLE) == 0)
+                    if (NetworkObserving.Instance && (entity.state & Entity.VISIBLE) == 0)
                     {
                         NetworkObserving.Instance.Add(entity);
                         NetworkObserving.Instance.Tick(entity, client);
@@ -333,7 +336,7 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (isObserver && (entity.state & Entity.VISIBLE) == 0)
+                if (NetworkObserving.Instance && (entity.state & Entity.VISIBLE) == 0)
                 {
                     NetworkObserving.Instance.Add(entity);
                     NetworkObserving.Instance.Tick(entity);
@@ -368,7 +371,7 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        if (isObserver && (entity.state & Entity.VISIBLE) == 0)
+                        if (NetworkObserving.Instance && (entity.state & Entity.VISIBLE) == 0)
                         {
                             NetworkObserving.Instance.Remove(entity);
                         }
@@ -398,9 +401,9 @@ namespace Astraia.Net
                             {
                                 if (entity)
                                 {
-                                    if (entity.count != Time.frameCount)
+                                    if (entity.current != Time.frameCount)
                                     {
-                                        entity.count = Time.frameCount;
+                                        entity.current = Time.frameCount;
                                         entity.owner.position = 0;
                                         entity.other.position = 0;
                                         entity.modules.ServerSend(entity.owner, entity.other);

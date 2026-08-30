@@ -228,8 +228,16 @@ namespace Astraia.Net
             {
                 if (entity.client == null)
                 {
-                    copies.Add(new EntityData("Client :", "Null"));
-                    copies.Add(new EntityData("Client ID :", "-1"));
+                    if (entity.isOwner)
+                    {
+                        copies.Add(new EntityData("Client :", NetworkManager.Client.connection.ToString()));
+                        copies.Add(new EntityData("Client ID :", NetworkManager.Client.connection.serverId.ToString()));
+                    }
+                    else
+                    {
+                        copies.Add(new EntityData("Client :", "Null"));
+                        copies.Add(new EntityData("Client ID :", "-1"));
+                    }
                 }
                 else
                 {

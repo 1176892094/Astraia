@@ -23,11 +23,13 @@ namespace Astraia.Net
     [Serializable]
     public class NetworkEntity : Entity
     {
-        [HideInInspector] public uint assetId;
-        [HideInInspector] public uint sceneId;
-        [HideInInspector] public uint objectId;
+        [HideInInspector, SerializeField] internal uint assetId;
 
-        internal int count;
+        [HideInInspector, SerializeField] internal uint sceneId;
+
+        [HideInInspector, SerializeField] internal uint objectId;
+
+        internal int current;
 
         internal NetworkClient client;
 
@@ -57,9 +59,9 @@ namespace Astraia.Net
                     modules[i].owner = this;
                     modules[i].moduleId = i;
                 }
-            }
 
-            base.OnEnable();
+                state |= CREATE;
+            }
         }
 
         protected override void OnDestroy()
@@ -95,14 +97,6 @@ namespace Astraia.Net
         protected virtual void OnValidate()
         {
 #if UNITY_EDITOR
-            AssignAssetId();
-#endif
-        }
-#if UNITY_EDITOR
-        private static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
-
-        private void AssignAssetId()
-        {
             uint.TryParse(name, out assetId);
             if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
             {
@@ -128,7 +122,10 @@ namespace Astraia.Net
             }
 
             assetId = sceneId != 0 ? 0 : assetId;
+#endif
         }
+#if UNITY_EDITOR
+        private static readonly Dictionary<uint, GameObject> sceneData = new Dictionary<uint, GameObject>();
 
         private void AssignSceneId()
         {
@@ -149,12 +146,6 @@ namespace Astraia.Net
 
         internal void InvokeMessage(byte moduleId, ushort function, SyncMode mode, MemoryReader reader, NetworkClient client = null)
         {
-            if (!transform)
-            {
-                Log.Warn($"调用了已经删除的网络对象。{mode} [{function}] {objectId}");
-                return;
-            }
-
             if (moduleId >= modules.Length)
             {
                 Log.Warn($"网络对象 {objectId} 没有找到网络行为组件 {moduleId}");

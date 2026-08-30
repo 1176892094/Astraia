@@ -6,14 +6,18 @@ using UnityEngine;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkDiscovery
+    public class NetworkDiscovery : Singleton<NetworkDiscovery>
     {
-        public static NetworkDiscovery Instance;
-
         [SerializeField] private string address;
         [SerializeField] private ushort port = 47777;
         private UdpClient udpClient;
         private UdpClient udpServer;
+
+        protected override void OnDestroy()
+        {
+            StopDiscovery();
+            base.OnDestroy();
+        }
 
         public void StartDiscovery()
         {
@@ -60,9 +64,7 @@ namespace Astraia.Net
                 ArraySegment<byte> segment = writer;
                 udpClient.Send(segment.Array!, segment.Count, endPoint);
             }
-            catch (SocketException)
-            {
-            }
+            catch (SocketException) { }
             catch (Exception e)
             {
                 Log.Error(e);

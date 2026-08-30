@@ -45,9 +45,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkEntity
-  assetId: 10004
-  sceneId: 0
-  objectId: 0
 --- !u!114 &4325889100930320918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60,8 +57,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76d6609801564a919f00811fa29c3edd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Runtime.SyncManager
+  owner: {fileID: 0}
   syncMode: 0
   syncStep: 0
-  owner: {fileID: 0}
   playerReady: 0
   playerCount: 0

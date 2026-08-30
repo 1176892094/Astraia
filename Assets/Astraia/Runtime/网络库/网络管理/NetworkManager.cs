@@ -24,8 +24,7 @@ namespace Astraia.Net
         public string roomData;
         public string roomName;
         public Lobby.Room roomMode;
-        [SerializeReference] private NetworkObserving observing;
-        [SerializeReference] private NetworkDiscovery discovery;
+
         [SerializeReference] private Transport connection = new NetworkTransport();
         [SerializeReference] private Transport management = new NetworkAuthority();
         [SerializeReference] private Transport collection = new NetworkTransport();
@@ -45,7 +44,6 @@ namespace Astraia.Net
         {
             base.Awake();
             Application.runInBackground = true;
-            NetworkDiscovery.Instance = discovery;
             NetworkAuthority.Instance = collection;
             connection.Start(false);
             collection.Start(false);
@@ -67,9 +65,6 @@ namespace Astraia.Net
             {
                 StopServer();
             }
-
-            observing?.Dispose();
-            discovery?.StopDiscovery();
         }
 
         protected override void OnEnable()
