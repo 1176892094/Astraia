@@ -14,15 +14,9 @@ using UnityEngine;
 namespace Astraia
 {
     [DefaultExecutionOrder(-100)]
-    public sealed class GlobalManager : Singleton<GlobalManager>
+    public sealed class GlobalManager : Singleton<GlobalManager>, IDontDestroy
     {
         public int version;
-
-        protected override void Awake()
-        {
-            base.Awake();
-            DontDestroyOnLoad(gameObject);
-        }
 
         private void Start()
         {

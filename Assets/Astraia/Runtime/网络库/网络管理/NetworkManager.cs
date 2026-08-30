@@ -16,10 +16,8 @@ using State = Astraia.Async.State;
 namespace Astraia.Net
 {
     [Serializable]
-    public sealed partial class NetworkManager : MonoBehaviour
+    public sealed partial class NetworkManager : Singleton<NetworkManager>, IDontDestroy
     {
-        public static NetworkManager Instance;
-
         public int sendRate = 30;
         public int maxPlayer = 100;
         public string roomGuid;
@@ -43,10 +41,9 @@ namespace Astraia.Net
         internal static Transport Kcp => isRemote ? Saloon : Instance?.connection;
         internal static NetworkAuthority Saloon => (NetworkAuthority)Instance?.management;
 
-        private void Awake()
+        protected override void Awake()
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            base.Awake();
             Application.runInBackground = true;
             NetworkDiscovery.Instance = discovery;
             NetworkAuthority.Instance = collection;
@@ -75,12 +72,12 @@ namespace Astraia.Net
             discovery?.StopDiscovery();
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
             AssetManager.OnSceneComplete += OnSceneComplete;
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
             AssetManager.OnSceneComplete -= OnSceneComplete;
         }

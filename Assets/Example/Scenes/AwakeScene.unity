@@ -1631,15 +1631,15 @@ MonoBehaviour:
   roomData: 
   roomName: 
   roomMode: 0
+  observing: {fileID: 0}
+  discovery:
+    rid: -2
   connection:
     rid: 1723852061938024452
   management:
     rid: 1723852061938024453
   collection:
     rid: 1723852061938024454
-  discovery:
-    rid: -2
-  observing: {fileID: 0}
   references:
     version: 2
     RefIds:
@@ -8117,8 +8117,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2172374414639714506}
-  - component: {fileID: 4922166085553716503}
   - component: {fileID: 7472387908907569161}
+  - component: {fileID: 7472387908907569163}
+  - component: {fileID: 7472387908907569162}
   m_Layer: 0
   m_Name: GlobalManager
   m_TagString: Untagged
@@ -8156,7 +8157,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3475126292078448597}
-  m_Father: {fileID: 2172374414639714506}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -8405,7 +8406,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1028562136442850890}
   - {fileID: 6878684877293898208}
   - {fileID: 1067190311072405964}
   m_Father: {fileID: 0}
@@ -8712,19 +8712,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 10
   m_TargetDisplay: 0
---- !u!114 &4922166085553716503
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 805633784820901659}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e30cec0d1daa406e817e38155ebe06a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.GlobalManager
-  version: 0
 --- !u!222 &4969712303689890680
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -8891,18 +8878,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7128984712771575606}
   m_CullTransparentMesh: 1
---- !u!114 &5643059259102651280
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8786466838727808763}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3e1f8abe72caf43e888e06f9a892e484, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.PoolManager
 --- !u!1 &5746486302124697543
 GameObject:
   m_ObjectHideFlags: 0
@@ -9127,23 +9102,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 805633784820901659}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fa28742db184016af3fabf1f532df1b, type: 3}
+  m_Script: {fileID: 11500000, guid: e30cec0d1daa406e817e38155ebe06a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Run::Astraia.SpaceManager
-  extentX: 1
-  extentY: 1
-  cellSize: 1
-  dynamics: []
-  references:
-    version: 2
-    RefIds: []
---- !u!114 &7574476737038934986
+  version: 0
+--- !u!114 &7472387908907569162
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8170228767970601022}
+  m_GameObject: {fileID: 805633784820901659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e1f8abe72caf43e888e06f9a892e484, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Run::Astraia.PoolManager
+--- !u!114 &7472387908907569163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805633784820901659}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e3cd1f0043a0c42768c5346a252a616a, type: 3}
@@ -9191,7 +9172,6 @@ GameObject:
   - component: {fileID: 6878684877293898208}
   - component: {fileID: 1401693090961702779}
   - component: {fileID: 7765231809934737122}
-  - component: {fileID: 7574476737038934986}
   m_Layer: 0
   m_Name: AudioSource
   m_TagString: Untagged
@@ -9260,7 +9240,6 @@ GameObject:
   - component: {fileID: 1067190311072405964}
   - component: {fileID: 715222030142224494}
   - component: {fileID: 6815581023873446704}
-  - component: {fileID: 5643059259102651280}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -9294,3 +9273,4 @@ SceneRoots:
   - {fileID: 1809924874}
   - {fileID: 1265164160}
   - {fileID: 2172374414639714506}
+  - {fileID: 1028562136442850890}

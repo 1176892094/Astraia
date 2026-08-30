@@ -18,7 +18,7 @@ using Object = UnityEngine.Object;
 namespace Astraia
 {
     [Serializable]
-    public class UIManager : Singleton<UIManager>
+    public class UIManager : Singleton<UIManager>, IDontDestroy
     {
         private Dictionary<int, RectTransform> layerData = new Dictionary<int, RectTransform>();
         private Dictionary<int, UIStack> stackData = new Dictionary<int, UIStack>();

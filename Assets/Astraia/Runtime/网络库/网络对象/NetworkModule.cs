@@ -18,16 +18,43 @@ namespace Astraia.Net
 {
     public abstract class NetworkSingleton<T> : NetworkModule where T : NetworkSingleton<T>
     {
-        public static T Instance { get; private set; }
+        private static T instance;
+
+        public static T Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = FindAnyObjectByType<T>();
+                }
+
+                return instance;
+            }
+        }
 
         protected override void Awake()
         {
-            Instance = (T)this;
+            if (instance != null && instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            instance = (T)this;
+
+            if (instance is IDontDestroy)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
         }
 
         protected override void OnDestroy()
         {
-            Instance = null;
+            if (instance == this)
+            {
+                instance = null;
+            }
         }
     }
 

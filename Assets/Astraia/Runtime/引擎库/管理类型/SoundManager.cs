@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public class SoundManager : Singleton<SoundManager>
+    public class SoundManager : Singleton<SoundManager>, IDontDestroy
     {
         [SerializeField] private AudioSource musicMain;
         [SerializeField] private int musicVolume;

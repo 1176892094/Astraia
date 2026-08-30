@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Astraia
 {
     [Serializable]
-    public class PoolManager : Singleton<PoolManager>
+    public class PoolManager : Singleton<PoolManager>, IDontDestroy
     {
         private Dictionary<string, Transform> rootData = new Dictionary<string, Transform>();
         private Dictionary<string, IPool> poolData = new Dictionary<string, IPool>();
