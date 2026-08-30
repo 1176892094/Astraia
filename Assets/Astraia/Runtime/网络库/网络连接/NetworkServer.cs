@@ -21,7 +21,7 @@ namespace Astraia.Net
 
         internal override void SendInternal(MemoryWriter writer, int pass)
         {
-            NetworkManager.Kcp.SendToServer(writer, pass);
+            NetworkManager.transport.SendToServer(writer, pass);
         }
 
         internal override void DataInternal(NetworkWriter writer, int pass)
@@ -55,7 +55,7 @@ namespace Astraia.Net
         public override void Disconnect()
         {
             isReady = false;
-            NetworkManager.Kcp.Disconnect();
+            NetworkManager.transport.Disconnect();
         }
 
         public static implicit operator int(NetworkServer server)

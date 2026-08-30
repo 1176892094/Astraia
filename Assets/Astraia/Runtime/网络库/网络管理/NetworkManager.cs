@@ -37,7 +37,7 @@ namespace Astraia.Net
         internal static bool isRemote => Saloon != null && Saloon.isRemote;
         internal static double syncRate => 1.0 / Instance.sendRate;
         internal static double syncTime => Time.unscaledTimeAsDouble;
-        internal static Transport Kcp => isRemote ? Saloon : Instance?.connection;
+        internal static Transport transport => isRemote ? Saloon : Instance?.connection;
         internal static NetworkAuthority Saloon => (NetworkAuthority)Instance?.management;
 
         protected override void Awake()
@@ -96,8 +96,8 @@ namespace Astraia.Net
 
         public static void SetTransport(string address, ushort port)
         {
-            Kcp.address = address;
-            Kcp.port = port;
+            transport.address = address;
+            transport.port = port;
         }
 
         public static void StartServer()

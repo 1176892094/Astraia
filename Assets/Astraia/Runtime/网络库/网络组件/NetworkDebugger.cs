@@ -358,8 +358,8 @@ namespace Astraia.Net
             {
                 GUILayout.BeginHorizontal();
                 var ping = (int)Math.Min(NetworkManager.Client.pingTime * 1000, 999);
-                var peer = NetworkManager.Kcp != null ? NetworkManager.Kcp.address : "127.0.0.1";
-                var port = NetworkManager.Kcp!= null ? NetworkManager.Kcp.port : (ushort)20974;
+                var peer = NetworkManager.transport != null ? NetworkManager.transport.address : "127.0.0.1";
+                var port = NetworkManager.transport!= null ? NetworkManager.transport.port : (ushort)20974;
                 GUILayout.Label("{0} : {1}".Format(peer, port), "Button", GUILayout.Width((ScreenX - 20) / 2), GUILayout.Height(30));
                 GUILayout.Label(NetworkManager.isClient ? "Ping: {0} ms".Format(ping) : "Client is not active!", "Button", GUILayout.Height(30));
                 GUILayout.EndHorizontal();
@@ -990,16 +990,16 @@ namespace Astraia.Net
 
         public static void Enable()
         {
-            if (NetworkManager.Kcp!= null)
+            if (NetworkManager.transport!= null)
             {
-                NetworkManager.Kcp.client.onSend -= OnClientSend;
-                NetworkManager.Kcp.server.onSend -= OnServerSend;
-                NetworkManager.Kcp.client.onReceive -= OnClientReceive;
-                NetworkManager.Kcp.server.onReceive -= OnServerReceive;
-                NetworkManager.Kcp.client.onSend += OnClientSend;
-                NetworkManager.Kcp.server.onSend += OnServerSend;
-                NetworkManager.Kcp.client.onReceive += OnClientReceive;
-                NetworkManager.Kcp.server.onReceive += OnServerReceive;
+                NetworkManager.transport.client.onSend -= OnClientSend;
+                NetworkManager.transport.server.onSend -= OnServerSend;
+                NetworkManager.transport.client.onReceive -= OnClientReceive;
+                NetworkManager.transport.server.onReceive -= OnServerReceive;
+                NetworkManager.transport.client.onSend += OnClientSend;
+                NetworkManager.transport.server.onSend += OnServerSend;
+                NetworkManager.transport.client.onReceive += OnClientReceive;
+                NetworkManager.transport.server.onReceive += OnServerReceive;
             }
 
             isActive = true;

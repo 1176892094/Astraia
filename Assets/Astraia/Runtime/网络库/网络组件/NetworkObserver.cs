@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace Astraia.Net
 {
-    public class NetworkObserving : Singleton<NetworkObserving>
+    public class NetworkObserver : Singleton<NetworkObserver>
     {
         private readonly Dictionary<NetworkClient, NetworkEntity> players = new Dictionary<NetworkClient, NetworkEntity>();
         private readonly SpatialHash<NetworkClient> visible = new SpatialHash<NetworkClient>();

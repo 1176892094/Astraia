@@ -43,7 +43,7 @@ namespace Astraia.Net
             {
                 if (isHost)
                 {
-                    Kcp.StartServer();
+                    transport.StartServer();
                 }
 
                 state = State.Success;
@@ -61,7 +61,7 @@ namespace Astraia.Net
                 }
 
                 state = State.Failure;
-                Kcp.StopServer();
+                transport.StopServer();
                 sendTime = 0;
                 objectId = 0;
                 spawns.Clear();
@@ -98,9 +98,9 @@ namespace Astraia.Net
 
             private static void SpawnObjects()
             {
-                if (NetworkObserving.Instance)
+                if (NetworkObserver.Instance)
                 {
-                    NetworkObserving.Instance.Clear();
+                    NetworkObserver.Instance.Clear();
                 }
 
 #if UNITY_6000_4_OR_NEWER
@@ -122,12 +122,12 @@ namespace Astraia.Net
         {
             private static void AddMessage()
             {
-                Kcp.server.onConnect -= Connect;
-                Kcp.server.onDisconnect -= Disconnect;
-                Kcp.server.onReceive -= Receive;
-                Kcp.server.onConnect += Connect;
-                Kcp.server.onDisconnect += Disconnect;
-                Kcp.server.onReceive += Receive;
+                transport.server.onConnect -= Connect;
+                transport.server.onDisconnect -= Disconnect;
+                transport.server.onReceive -= Receive;
+                transport.server.onConnect += Connect;
+                transport.server.onDisconnect += Disconnect;
+                transport.server.onReceive += Receive;
                 NetworkMessage<PongMessage>.Add<NetworkClient>(PongMessage);
                 NetworkMessage<ReadyMessage>.Add<NetworkClient>(ReadyMessage);
                 NetworkMessage<EntityMessage>.Add<NetworkClient>(EntityMessage);
@@ -147,10 +147,10 @@ namespace Astraia.Net
 
                 foreach (var entity in spawns.Values)
                 {
-                    if (NetworkObserving.Instance && (entity.state & Entity.VISIBLE) == 0)
+                    if (NetworkObserver.Instance && (entity.state & Entity.VISIBLE) == 0)
                     {
-                        NetworkObserving.Instance.Add(entity);
-                        NetworkObserving.Instance.Tick(entity, client);
+                        NetworkObserver.Instance.Add(entity);
+                        NetworkObserver.Instance.Tick(entity, client);
                     }
                     else
                     {
@@ -219,11 +219,11 @@ namespace Astraia.Net
             {
                 if (clients.Count >= Instance.maxPlayer)
                 {
-                    Kcp.Disconnect(id);
+                    transport.Disconnect(id);
                 }
                 else if (clients.ContainsKey(id))
                 {
-                    Kcp.Disconnect(id);
+                    transport.Disconnect(id);
                 }
                 else
                 {
@@ -336,10 +336,10 @@ namespace Astraia.Net
                     entity.OnStartServer();
                 }
 
-                if (NetworkObserving.Instance && (entity.state & Entity.VISIBLE) == 0)
+                if (NetworkObserver.Instance && (entity.state & Entity.VISIBLE) == 0)
                 {
-                    NetworkObserving.Instance.Add(entity);
-                    NetworkObserving.Instance.Tick(entity);
+                    NetworkObserver.Instance.Add(entity);
+                    NetworkObserver.Instance.Tick(entity);
                 }
                 else
                 {
@@ -371,9 +371,9 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        if (NetworkObserving.Instance && (entity.state & Entity.VISIBLE) == 0)
+                        if (NetworkObserver.Instance && (entity.state & Entity.VISIBLE) == 0)
                         {
-                            NetworkObserving.Instance.Remove(entity);
+                            NetworkObserver.Instance.Remove(entity);
                         }
 
                         entity.state |= Entity.DESTROY;
@@ -384,7 +384,7 @@ namespace Astraia.Net
 
             internal static void EarlyUpdate()
             {
-                Kcp?.ServerEarlyUpdate();
+                transport?.ServerEarlyUpdate();
             }
 
             internal static void AfterUpdate()
@@ -432,7 +432,7 @@ namespace Astraia.Net
                     }
                 }
 
-                Kcp?.ServerAfterUpdate();
+                transport?.ServerAfterUpdate();
             }
         }
     }
