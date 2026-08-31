@@ -44,7 +44,7 @@ namespace Astraia
     }
 
     [Serializable]
-    public abstract class UIPanel<T, TGrid> : UIPanel, INeighbor where TGrid : Component, IGrid<T>
+    public abstract class UIPanel<T, TGrid> : UIPanel, IMove where TGrid : Component, IGrid<T>
     {
         private TGrid[] grids;
         private IList<T> items;
@@ -229,11 +229,10 @@ namespace Astraia
                 grid.Select();
             }
 
-            grid.index = i;
-            grid.SetItem(items[i]);
+            grid.SetItem(i, items[i]);
         }
 
-        public void Neighbor(int index, MoveDirection move)
+        public void Move(int index, MoveDirection move)
         {
             var content = scroll.content;
             var pos = content.anchoredPosition;
@@ -261,21 +260,19 @@ namespace Astraia
         }
     }
 
-    public interface INeighbor
+    public interface IMove
     {
-        void Neighbor(int index, MoveDirection move);
+        void Move(int index, MoveDirection move);
     }
 
     public interface IGrid
     {
-        int index { set; }
         void Select();
     }
 
-    public interface IGrid<T> : IGrid
+    public interface IGrid<in T> : IGrid
     {
-        T item { get; }
-        void SetItem(T item);
+        void SetItem(int index, T item);
         void Release();
     }
 }

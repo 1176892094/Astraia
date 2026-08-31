@@ -12,8 +12,6 @@ namespace Astraia
         internal const int NOTIFY = 1 << 5;
         internal const int DESTROY = 1 << 6;
 
-        internal int state;
-
         protected override void Awake()
         {
             var modules = GetComponents<IDequeue>();

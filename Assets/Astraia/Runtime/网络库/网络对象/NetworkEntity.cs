@@ -31,6 +31,8 @@ namespace Astraia.Net
 
         [SerializeField] internal bool visible;
 
+        internal int state;
+
         internal int current;
 
         internal NetworkClient client;
