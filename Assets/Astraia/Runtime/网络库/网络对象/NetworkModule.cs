@@ -541,6 +541,11 @@ namespace Astraia.Net
             field = (T)entity.modules[variable.moduleId];
             return field;
         }
+
+        public static implicit operator NetworkEntity(NetworkModule module)
+        {
+            return module.owner;
+        }
     }
 
     [Serializable]

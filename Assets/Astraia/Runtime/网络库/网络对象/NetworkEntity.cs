@@ -21,13 +21,13 @@ using UnityEditor.SceneManagement;
 namespace Astraia.Net
 {
     [Serializable]
-    public class NetworkEntity : Entity
+    public sealed class NetworkEntity : Entity
     {
-        [HideInInspector] public uint objectId;
+        [SerializeField, HideInInspector] internal uint objectId;
 
-        [HideInInspector] public uint assetId;
+        [SerializeField, HideInInspector] internal uint assetId;
 
-        [HideInInspector] public uint sceneId;
+        [SerializeField, HideInInspector] internal uint sceneId;
 
         [SerializeField] internal bool visible;
 
@@ -53,19 +53,16 @@ namespace Astraia.Net
 
         public bool isClient => (state & CLIENT) != 0 && NetworkManager.isClient;
 
-        protected override void OnEnable()
+        protected override void Awake()
         {
-            if ((state & CREATE) == 0)
+            modules = GetComponents<NetworkModule>();
+            for (byte i = 0; i < modules.Length; i++)
             {
-                modules = GetComponents<NetworkModule>();
-                for (byte i = 0; i < modules.Length; i++)
-                {
-                    modules[i].owner = this;
-                    modules[i].moduleId = i;
-                }
-
-                state |= CREATE;
+                modules[i].owner = this;
+                modules[i].moduleId = i;
             }
+
+            base.Awake();
         }
 
         protected override void OnDestroy()
@@ -88,17 +85,17 @@ namespace Astraia.Net
             base.OnDestroy();
         }
 
-        public virtual void Reset()
+        public void Reset()
         {
+            state = 0;
             objectId = 0;
             client = null;
-            state = CREATE;
             owner.position = 0;
             other.position = 0;
             NetworkSpawner.Clear(this);
         }
 
-        protected virtual void OnValidate()
+        private void OnValidate()
         {
 #if UNITY_EDITOR
             uint.TryParse(name, out assetId);
