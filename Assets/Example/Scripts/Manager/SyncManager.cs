@@ -9,8 +9,8 @@ namespace Runtime
     [Serializable]
     public class SyncManager : NetworkSingleton<SyncManager>
     {
-        private Dictionary<uint, Position> clientPosition = new Dictionary<uint, Position>();
-        private Dictionary<uint, Position> serverPosition = new Dictionary<uint, Position>();
+        private Dictionary<Player, Position> clientPosition = new Dictionary<Player, Position>();
+        private Dictionary<Player, Position> serverPosition = new Dictionary<Player, Position>();
         private List<SyncData> copied = new List<SyncData>();
         private double sendTime;
 
@@ -18,12 +18,12 @@ namespace Runtime
         public int playerReady;
         public int playerCount;
 
-        public void AddPosition(uint objectId, Position position) // 客户端将坐标提交到发送列表
+        public void AddPosition(Player objectId, Position position) // 客户端将坐标提交到发送列表
         {
             clientPosition[objectId] = position;
         }
 
-        public void SetPosition(uint objectId, Position position) // 服务器接收客户端提交的坐标
+        public void SetPosition(Player objectId, Position position) // 服务器接收客户端提交的坐标
         {
             serverPosition[objectId] = position;
         }
@@ -39,10 +39,10 @@ namespace Runtime
             {
                 foreach (var kv in clientPosition)
                 {
-                    var actor = (Player)kv.Key;
+                    var actor = kv.Key;
                     if (actor)
                     {
-                        actor.Sender.SetPositionServerRpc(kv.Value); //上报位置
+                        actor.SetPositionServerRpc(kv.Value); //上报位置
                     }
                 }
 
@@ -69,7 +69,7 @@ namespace Runtime
         {
             foreach (var sync in syncs)
             {
-                var player = (Player)sync.Id;
+                var player = sync.Id;
                 if (player)
                 {
                     if (!player.isOwner)
@@ -88,10 +88,10 @@ namespace Runtime
         [Serializable]
         public struct SyncData
         {
-            public uint Id;
+            public Player Id;
             public Position Position;
 
-            public SyncData(uint id, Position position)
+            public SyncData(Player id, Position position)
             {
                 Id = id;
                 Position = position;

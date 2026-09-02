@@ -10,11 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 7478125468919891840}
   - component: {fileID: 4050376154587281838}
+  - component: {fileID: 2424539048188797884}
   - component: {fileID: 7699375650067373137}
   - component: {fileID: 2378255168645130865}
   - component: {fileID: 8119971262115586623}
   - component: {fileID: 1950026055823169505}
-  - component: {fileID: 9028775816003079015}
   m_Layer: 7
   m_Name: 10001
   m_TagString: Untagged
@@ -84,6 +84,22 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.6, y: 0.8}
   m_EdgeRadius: 0
+--- !u!114 &2424539048188797884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4745370882994828325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkEntity
+  objectId: 0
+  assetId: 10001
+  sceneId: 0
+  visible: 0
 --- !u!114 &7699375650067373137
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,9 +112,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f46525886dd94e1cad6393357b1f3917, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Runtime.Player
-  assetId: 10001
-  sceneId: 0
-  objectId: 0
+  syncMode: 0
+  syncStep: 0
+  color:
+    serializedVersion: 2
+    rgba: 0
 --- !u!114 &2378255168645130865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -158,24 +176,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e075d405bf764693ba124bc31be31bab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Runtime.PlayerModule
---- !u!114 &9028775816003079015
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4745370882994828325}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f122b6becd724c3aa63a9ed1203b0597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Runtime.PlayerSender
-  syncMode: 0
-  syncStep: 0
-  owner: {fileID: 0}
-  color:
-    serializedVersion: 2
-    rgba: 0
 --- !u!1 &8948634512323190195
 GameObject:
   m_ObjectHideFlags: 0
@@ -210,7 +210,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &4457367980570895589
 SpriteRenderer:
-  serializedVersion: 3
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -267,4 +267,3 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
-  m_BlendShapeWeights: []

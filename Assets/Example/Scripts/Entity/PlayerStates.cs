@@ -71,7 +71,7 @@ namespace Runtime
         protected override void OnEnter()
         {
             Feature.RushCount = 0;
-            owner.Sender.SyncColorServerRpc(Color.white);
+            owner.SyncColorServerRpc(Color.white);
         }
 
         protected override void OnUpdate()
@@ -87,7 +87,7 @@ namespace Runtime
         protected override void OnEnter()
         {
             Feature.RushCount = 0;
-            owner.Sender.SyncColorServerRpc(Color.green);
+            owner.SyncColorServerRpc(Color.green);
         }
 
         protected override void OnUpdate()
@@ -103,7 +103,7 @@ namespace Runtime
         protected override void OnEnter()
         {
             Feature.RushCount = 0;
-            owner.Sender.SyncColorServerRpc(Color.red);
+            owner.SyncColorServerRpc(Color.red);
         }
 
         protected override void OnUpdate()
@@ -125,7 +125,7 @@ namespace Runtime
             Feature.JumpCount--;
 
             waitTime = Time.fixedTime + 0.15F;
-            owner.Sender.SyncColorServerRpc(Color.yellow);
+            owner.SyncColorServerRpc(Color.yellow);
 
             if (!isPlane && Feature.JumpTime > Time.fixedTime)
             {
@@ -145,7 +145,7 @@ namespace Runtime
 
             if ((state & State.竖冲) != 0 && stepTime > Time.fixedTime)
             {
-                owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
+                owner.LoadEffectServerRpc(Machine.position, Machine.velocity);
                 Machine.dashPosition = Machine.position;
             }
         }
@@ -162,7 +162,7 @@ namespace Runtime
             {
                 if (Distance(Machine.position, Machine.dashPosition) >= 2.2f)
                 {
-                    owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
+                    owner.LoadEffectServerRpc(Machine.position, Machine.velocity);
                     Machine.dashPosition = Machine.position;
                 }
             }
@@ -196,7 +196,7 @@ namespace Runtime
         {
             state |= State.攀爬;
             Feature.RushCount = 0;
-            owner.Sender.SyncColorServerRpc(Color.magenta);
+            owner.SyncColorServerRpc(Color.magenta);
         }
 
         protected override void OnUpdate()
@@ -222,7 +222,7 @@ namespace Runtime
     {
         protected override void OnEnter()
         {
-            owner.Sender.SyncColorServerRpc(Color.orange);
+            owner.SyncColorServerRpc(Color.orange);
         }
 
         protected override void OnUpdate()
@@ -271,7 +271,7 @@ namespace Runtime
             if (Distance(Machine.position, Machine.dashPosition) >= 1.4f)
             {
                 Machine.dashPosition = Machine.position;
-                owner.Sender.LoadEffectServerRpc(Machine.position);
+                owner.LoadEffectServerRpc(Machine.position);
             }
 
             var normalize = Feature.DashDirection;
@@ -354,7 +354,7 @@ namespace Runtime
             velocityX = Feature.RushInput * (Feature.RushSpeed + Feature.RushCount * Feature.RushSpeed / 5);
             Feature.RushCount++;
             Machine.dashPosition = Machine.position;
-            owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
+            owner.LoadEffectServerRpc(Machine.position, Machine.velocity);
         }
 
         protected override void OnUpdate()
@@ -368,7 +368,7 @@ namespace Runtime
             if (Distance(Machine.position, Machine.dashPosition) >= 3.5f)
             {
                 Machine.dashPosition = Machine.position;
-                owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
+                owner.LoadEffectServerRpc(Machine.position, Machine.velocity);
             }
 
             if (waitTime < Time.fixedTime)
@@ -398,7 +398,7 @@ namespace Runtime
     {
         protected override void OnEnter()
         {
-            owner.Sender.SyncColorServerRpc(Color.skyBlue);
+            owner.SyncColorServerRpc(Color.skyBlue);
             Machine.dashPosition = Machine.position;
         }
 
@@ -407,7 +407,7 @@ namespace Runtime
             if (Distance(Machine.position, Machine.dashPosition) >= 0.5f)
             {
                 Machine.dashPosition = Machine.position;
-                owner.Sender.LoadEffectServerRpc(Machine.position, Machine.velocity);
+                owner.LoadEffectServerRpc(Machine.position, Machine.velocity);
             }
 
             velocityX = Feature.QuadDirection.x * Feature.DashSpeed;

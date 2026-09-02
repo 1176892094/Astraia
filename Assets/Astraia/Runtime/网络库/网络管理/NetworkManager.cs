@@ -56,7 +56,7 @@ namespace Astraia.Net
                 StopSaloon();
             }
 
-            if (Client.isActive)
+            if (isClient)
             {
                 StopClient();
             }
