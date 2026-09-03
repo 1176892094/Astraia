@@ -4,7 +4,7 @@
 // # Author: 云谷千羽
 // # Version: 1.0.0
 // # History: 2026-09-02 15:09:00
-// # Recently: 2026-09-02 15:16:00
+// # Recently: 2026-09-03 14:20:59
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
@@ -170,7 +170,7 @@ namespace Astraia
                 var result = Array.CreateInstance(member, parts.Length);
                 for (var i = 0; i < parts.Length; i++)
                 {
-                    result.SetValue(InputString(parts[i], member), i);
+                    result.SetValue(parts[i].InputString(member), i);
                 }
 
                 return result;
@@ -182,7 +182,7 @@ namespace Astraia
                 var result = Activator.CreateInstance(target);
                 for (var i = 0; i < parts.Length; i++)
                 {
-                    member[i].SetValue(result, InputString(parts[i], member[i].FieldType));
+                    member[i].SetValue(result, parts[i].InputString(member[i].FieldType));
                 }
 
                 return result;
