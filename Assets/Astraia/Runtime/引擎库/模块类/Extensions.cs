@@ -211,22 +211,26 @@ namespace Astraia
 
         public static T GetOrAddComponent<T>(this Component self) where T : Component
         {
-            return self.gameObject.GetComponent<T>() ?? self.gameObject.AddComponent<T>();
+            var component = self.GetComponent<T>();
+            return component ? component : self.gameObject.AddComponent<T>();
         }
 
         public static T GetOrAddComponent<T>(this Component self, Type value) where T : Component
         {
-            return (T)self.gameObject.GetComponent(value) ?? (T)self.gameObject.AddComponent(value);
+            var component = (T)self.GetComponent(value);
+            return component ? component : (T)self.gameObject.AddComponent(value);
         }
 
         public static T GetOrAddComponent<T>(this GameObject self) where T : Component
         {
-            return self.GetComponent<T>() ?? self.AddComponent<T>();
+            var component = self.GetComponent<T>();
+            return component ? component : self.AddComponent<T>();
         }
 
         public static T GetOrAddComponent<T>(this GameObject self, Type value) where T : Component
         {
-            return (T)self.GetComponent(value) ?? (T)self.AddComponent(value);
+            var component = (T)self.GetComponent(value);
+            return component ? component : (T)self.AddComponent(value);
         }
 
         internal static bool HasAttribute<T>(this MemberInfo member) where T : Attribute

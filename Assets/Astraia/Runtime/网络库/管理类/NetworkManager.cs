@@ -32,22 +32,22 @@ namespace Astraia.Net
         [SerializeReference] private NetworkTransport collection = new NetworkTransport();
 
 #if ODIN_INSPECTOR
-        [ReadOnly]
+        [ShowInInspector, ReadOnly]
 #endif
         [SerializeField]
         private Dictionary<uint, NetworkEntity> clientSpawns;
 #if ODIN_INSPECTOR
-        [ReadOnly]
+        [ShowInInspector, ReadOnly]
 #endif
         [SerializeField]
         private Dictionary<uint, NetworkEntity> clientScenes;
 #if ODIN_INSPECTOR
-        [ReadOnly]
+        [ShowInInspector, ReadOnly]
 #endif
         [SerializeField]
         private Dictionary<uint, NetworkEntity> serverSpawns;
 #if ODIN_INSPECTOR
-        [ReadOnly]
+        [ShowInInspector, ReadOnly]
 #endif
         [SerializeField]
         private Dictionary<int, NetworkClient> serverClients;

@@ -237,7 +237,7 @@ namespace Astraia.Net
 
             public 场景()
             {
-                foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
                     foreach (var result in assembly.GetTypes())
                     {
