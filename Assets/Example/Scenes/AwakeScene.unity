@@ -1649,11 +1649,11 @@ MonoBehaviour:
   roomName: 
   roomMode: 0
   connection:
-    rid: 7229393480074920139
+    rid: 7229393481198993609
   management:
-    rid: 7229393480074920140
+    rid: 7229393481198993610
   collection:
-    rid: 7229393480074920141
+    rid: 7229393481198993611
   clientSpawns: []
   clientScenes: []
   serverSpawns: []
@@ -1661,17 +1661,17 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 7229393480074920139
+    - rid: 7229393481198993609
       type: {class: NetworkTransport, ns: Astraia, asm: Astraia}
       data:
         address: localhost
         port: 20974
-    - rid: 7229393480074920140
+    - rid: 7229393481198993610
       type: {class: NetworkAuthority, ns: Astraia, asm: Astraia}
       data:
         address: localhost
         port: 20974
-    - rid: 7229393480074920141
+    - rid: 7229393481198993611
       type: {class: NetworkTransport, ns: Astraia, asm: Astraia}
       data:
         address: localhost

@@ -58,7 +58,7 @@ namespace Astraia.Net
         public static bool isClient => Client.state != State.Failure;
         internal static double syncRate => 1.0 / Instance.sendRate;
         internal static double syncTime => Time.unscaledTimeAsDouble;
-        internal static Transport current => Instance && isRemote ? Instance.management : Instance.connection;
+        internal static Transport current => isRemote ? Instance?.management : Instance?.connection;
         private static bool isSaloon => saloon != null && saloon.isSaloon;
         private static bool isRemote => saloon != null && saloon.isRemote;
         private static NetworkAuthority saloon => Instance ? Instance.management : null;

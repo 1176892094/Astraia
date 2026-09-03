@@ -51,7 +51,7 @@ namespace Astraia.Net
                 ScreenView = GUILayout.BeginScrollView(ScreenView, "Box", GUILayout.Height(ScreenY * 0.4f));
                 for (var i = 0; i < Queue.Count; i++)
                 {
-                    if (Logs.TryGetValue(Queue[i].LogType, out var data) && data.State)
+                    if (Logs.TryGetValue(Queue[i], out var data) && data.State)
                     {
                         GUILayout.BeginHorizontal();
                         GUI.contentColor = data.Color;
@@ -70,7 +70,7 @@ namespace Astraia.Net
                 SecondView = GUILayout.BeginScrollView(SecondView, "Box");
                 if (index != -1)
                 {
-                    GUILayout.Label("{0}\n\n{1}".Format(Queue[index].Message, Queue[index].StackTrace));
+                    GUILayout.Label(Queue[index].GetString());
                 }
 
                 GUILayout.EndScrollView();

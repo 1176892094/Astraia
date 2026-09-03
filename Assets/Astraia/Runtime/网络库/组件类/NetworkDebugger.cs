@@ -27,10 +27,10 @@ namespace Astraia.Net
         private static Vector2 ScreenView;
         private static Vector2 SecondView;
 
-        private float FPSText;
-        private float FPSTime;
-        private Color FPSData = Color.white;
-        private Window Button = Window.控制台;
+        private float fpsText;
+        private float fpsTime;
+        private Color fpsData = Color.white;
+        private Window button = Window.控制台;
 
         private static float Rate => Screen.width / Size.x + Screen.height / Size.y;
         private static float ScreenX => Screen.width / Rate;
@@ -40,8 +40,6 @@ namespace Astraia.Net
         protected override void Awake()
         {
             base.Awake();
-            Logs.Clear();
-            Queue.Clear();
             foreach (var reason in typeof(IWindow).Assembly.GetTypes())
             {
                 if (!reason.IsAbstract && typeof(IWindow).IsAssignableFrom(reason))
@@ -68,12 +66,19 @@ namespace Astraia.Net
             Application.logMessageReceived -= LogReceive;
         }
 
+        protected override void OnDestroy()
+        {
+            Logs.Clear();
+            Queue.Clear();
+            base.OnDestroy();
+        }
+
         private void Update()
         {
-            if (FPSTime < Time.realtimeSinceStartup)
+            if (fpsTime < Time.realtimeSinceStartup)
             {
-                FPSTime = Time.realtimeSinceStartup + 1;
-                FPSText = (int)(1.0 / Time.deltaTime);
+                fpsTime = Time.realtimeSinceStartup + 1;
+                fpsText = (int)(1.0 / Time.deltaTime);
             }
         }
 
@@ -83,11 +88,11 @@ namespace Astraia.Net
             var align1 = GUI.skin.label.alignment;
             var align2 = GUI.skin.textField.alignment;
             GUI.matrix = Matrix;
-            GUI.skin.font = Font;
             GUI.skin.label.alignment = TextAnchor.MiddleLeft;
             GUI.skin.textField.alignment = TextAnchor.MiddleLeft;
             Rect = GUI.Window(0, Rect, OnWindowGUI, "调试器");
             GUI.matrix = matrix;
+            GUI.skin.font = Font;
             GUI.skin.label.alignment = align1;
             GUI.skin.textField.alignment = align2;
         }
@@ -95,18 +100,18 @@ namespace Astraia.Net
         private void OnWindowGUI(int id)
         {
             GUI.DragWindow(new Rect(0, 0, Rect.width, 20));
-            GUI.contentColor = FPSData;
+            GUI.contentColor = fpsData;
             if (Rect.width > 100)
             {
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("FPS: {0}".Format(FPSText), GUILayout.Height(30), GUILayout.Width(80)))
+                if (GUILayout.Button("FPS: {0}".Format(fpsText), GUILayout.Height(30), GUILayout.Width(80)))
                 {
                     Rect.size = Rect.width <= 100 ? new Vector2(ScreenX, ScreenY) : new Vector2(100, 60);
                 }
             }
             else
             {
-                if (GUILayout.Button("FPS: {0}".Format(FPSText), GUILayout.Height(30), GUILayout.Width(80)))
+                if (GUILayout.Button("FPS: {0}".Format(fpsText), GUILayout.Height(30), GUILayout.Width(80)))
                 {
                     Rect.size = Rect.width <= 100 ? new Vector2(ScreenX, ScreenY) : new Vector2(100, 60);
                 }
@@ -114,13 +119,13 @@ namespace Astraia.Net
                 return;
             }
 
-            var copied = Button;
+            var copied = button;
             for (var i = Window.控制台; i <= Window.网络; i++)
             {
-                GUI.contentColor = Button == i ? Color.white : Color.gray;
+                GUI.contentColor = button == i ? Color.white : Color.gray;
                 if (GUILayout.Button(i.ToString(), GUILayout.Height(30)))
                 {
-                    Button = i;
+                    button = i;
                 }
             }
 
@@ -128,23 +133,23 @@ namespace Astraia.Net
             GUILayout.BeginHorizontal();
             for (var i = Window.场景; i <= Window.程序; i++)
             {
-                GUI.contentColor = Button == i ? Color.white : Color.gray;
+                GUI.contentColor = button == i ? Color.white : Color.gray;
                 if (GUILayout.Button(i.ToString(), GUILayout.Height(30)))
                 {
-                    Button = i;
+                    button = i;
                 }
             }
 
             GUILayout.EndHorizontal();
             GUI.contentColor = Color.white;
-            Windows[Button].Execute(Button != copied);
+            Windows[button].Execute(button != copied);
         }
 
         private void LogReceive(string message, string stackTrace, LogType logType)
         {
             if (Queue.Count >= 300)
             {
-                Logs[Queue[0].LogType].Count--;
+                Logs[Queue[0]].Count--;
                 Queue.RemoveAt(0);
             }
 
@@ -154,7 +159,7 @@ namespace Astraia.Net
             {
                 if (item.Count > 0)
                 {
-                    FPSData = item.Color;
+                    fpsData = item.Color;
                     break;
                 }
             }
@@ -297,26 +302,24 @@ namespace Astraia.Net
             }
         }
 
-        [Serializable]
-        private struct LogData
+        private readonly struct LogData
         {
-            public string Message;
-            public string StackTrace;
-            public LogType LogType;
-            public DateTime DateTime;
+            private readonly string message;
+            private readonly string stackTrace;
+            private readonly LogType logType;
+            private readonly DateTime dateTime;
 
             public LogData(string message, string stackTrace, LogType logType)
             {
-                LogType = logType;
-                Message = message;
-                DateTime = DateTime.Now;
-                StackTrace = stackTrace;
+                dateTime = DateTime.Now;
+                this.logType = logType;
+                this.message = message;
+                this.stackTrace = stackTrace;
             }
 
-            public override string ToString()
-            {
-                return "[{0}] [{1}] {2}".Format(DateTime.ToString("HH:mm:ss"), LogType, Message);
-            }
+            public string GetString() => "{0}\n\n{1}".Format(message, stackTrace);
+            public override string ToString() => "[{0}] [{1}] {2}".Format(dateTime.ToString("HH:mm:ss"), logType, message);
+            public static implicit operator LogType(LogData data) => data.logType;
         }
     }
 
