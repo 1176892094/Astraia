@@ -327,9 +327,9 @@ namespace Astraia.Net
 
                 var isHosted = client != null && client.clientId == 0;
                 entity.client = client;
-                entity.state = isHosted ? entity.state | NetworkEntity.State.所有者 : entity.state & ~NetworkEntity.State.所有者;
-                entity.state = isServer ? entity.state | NetworkEntity.State.服务器 : entity.state & ~NetworkEntity.State.服务器;
-                entity.state = isClient ? entity.state | NetworkEntity.State.客户端 : entity.state & ~NetworkEntity.State.客户端;
+                entity.state = isHosted ? entity.state | NetworkEntity.State.Owner : entity.state & ~NetworkEntity.State.Owner;
+                entity.state = isServer ? entity.state | NetworkEntity.State.Server : entity.state & ~NetworkEntity.State.Server;
+                entity.state = isClient ? entity.state | NetworkEntity.State.Client : entity.state & ~NetworkEntity.State.Client;
                 if (entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
@@ -371,7 +371,7 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        entity.state |= NetworkEntity.State.销毁中;
+                        entity.state |= NetworkEntity.State.Remove;
                         UnityEngine.Object.Destroy(entity.gameObject);
                     }
                 }

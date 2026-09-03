@@ -61,11 +61,11 @@ namespace Astraia.Net
 
         public bool isHost => isServer && isClient;
 
-        public bool isOwner => (state & State.所有者) != 0;
+        public bool isOwner => (state & State.Owner) != 0;
 
-        public bool isServer => (state & State.服务器) != 0 && NetworkManager.isServer;
+        public bool isServer => (state & State.Server) != 0 && NetworkManager.isServer;
 
-        public bool isClient => (state & State.客户端) != 0 && NetworkManager.isClient;
+        public bool isClient => (state & State.Client) != 0 && NetworkManager.isClient;
 
         protected override void Awake()
         {
@@ -86,7 +86,7 @@ namespace Astraia.Net
                 NetworkManager.Client.spawns.Remove(objectId);
             }
 
-            if (isServer && (state & State.销毁中) == 0)
+            if (isServer && (state & State.Remove) == 0)
             {
                 NetworkManager.Server.Destroy(gameObject);
             }
@@ -195,7 +195,7 @@ namespace Astraia.Net
 
         internal void OnStartClient()
         {
-            if ((state & State.初始化) == 0)
+            if ((state & State.Create) == 0)
             {
                 foreach (var module in modules)
                 {
@@ -205,13 +205,13 @@ namespace Astraia.Net
                     }
                 }
 
-                state |= State.初始化;
+                state |= State.Create;
             }
         }
 
         internal void OnStopClient()
         {
-            if ((state & State.初始化) != 0)
+            if ((state & State.Create) != 0)
             {
                 foreach (var module in modules)
                 {
@@ -221,7 +221,7 @@ namespace Astraia.Net
                     }
                 }
 
-                state &= ~State.初始化;
+                state &= ~State.Create;
             }
         }
 
@@ -249,7 +249,7 @@ namespace Astraia.Net
 
         internal void OnNotifyAuthority()
         {
-            if ((state & State.序列化) == 0 && isOwner)
+            if ((state & State.Notify) == 0 && isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -259,7 +259,7 @@ namespace Astraia.Net
                     }
                 }
             }
-            else if ((state & State.序列化) != 0 && !isOwner)
+            else if ((state & State.Notify) != 0 && !isOwner)
             {
                 foreach (var module in modules)
                 {
@@ -270,7 +270,7 @@ namespace Astraia.Net
                 }
             }
 
-            state = isOwner ? state | State.序列化 : state & ~State.序列化;
+            state = isOwner ? state | State.Notify : state & ~State.Notify;
         }
 
         public static implicit operator uint(NetworkEntity entity)
@@ -291,12 +291,12 @@ namespace Astraia.Net
         [Flags]
         internal enum State
         {
-            初始化 = 1 << 0,
-            序列化 = 1 << 1,
-            所有者 = 1 << 3,
-            客户端 = 1 << 4,
-            服务器 = 1 << 5,
-            销毁中 = 1 << 2,
+            Create = 1 << 0,
+            Server = 1 << 1,
+            Client = 1 << 2,
+            Owner = 1 << 3,
+            Notify = 1 << 4,
+            Remove = 1 << 5,
         }
     }
 }

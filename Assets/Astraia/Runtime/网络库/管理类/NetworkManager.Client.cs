@@ -277,8 +277,8 @@ namespace Astraia.Net
                     entity.transform.localPosition = message.position;
                     entity.transform.localRotation = Quaternion.Euler(message.rotation);
                     entity.transform.localScale = message.mutation;
-                    entity.state = message.isOwner ? entity.state | NetworkEntity.State.所有者 : entity.state & ~NetworkEntity.State.所有者;
-                    entity.state |= NetworkEntity.State.客户端;
+                    entity.state = message.isOwner ? entity.state | NetworkEntity.State.Owner : entity.state & ~NetworkEntity.State.Owner;
+                    entity.state |= NetworkEntity.State.Client;
 
                     if (message.segment.Count > 0)
                     {
@@ -332,7 +332,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.state &= ~NetworkEntity.State.所有者;
+                    entity.state &= ~NetworkEntity.State.Owner;
                     entity.OnNotifyAuthority();
                     entity.gameObject.SetActive(false);
                     if (!isServer)
@@ -349,7 +349,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.state &= ~NetworkEntity.State.所有者;
+                    entity.state &= ~NetworkEntity.State.Owner;
                     entity.OnNotifyAuthority();
                     if (!isServer)
                     {
@@ -360,7 +360,7 @@ namespace Astraia.Net
                         }
                         else
                         {
-                            entity.state |= NetworkEntity.State.销毁中;
+                            entity.state |= NetworkEntity.State.Remove;
                             Destroy(entity.gameObject);
                         }
                     }
