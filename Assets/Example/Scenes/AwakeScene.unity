@@ -1592,8 +1592,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1265164160}
   - component: {fileID: 1265164161}
-  - component: {fileID: 1265164159}
-  - component: {fileID: 1265164158}
+  - component: {fileID: 1265164162}
+  - component: {fileID: 1265164163}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1601,60 +1601,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1265164158
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1265164157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b7ebd91d087ac427bab9f4b472ebde57, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkDebugger
---- !u!114 &1265164159
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1265164157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55c3b094877074c03a956c8a536c6a66, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkManager
-  sendRate: 30
-  maxPlayer: 100
-  roomGuid: 
-  roomData: 
-  roomName: 
-  roomMode: 0
-  connection:
-    rid: 1723852061938024452
-  management:
-    rid: 1723852061938024453
-  collection:
-    rid: 1723852061938024454
-  references:
-    version: 2
-    RefIds:
-    - rid: 1723852061938024452
-      type: {class: NetworkTransport, ns: Astraia, asm: Astraia}
-      data:
-        address: localhost
-        port: 20974
-    - rid: 1723852061938024453
-      type: {class: NetworkAuthority, ns: Astraia, asm: Astraia}
-      data:
-        address: localhost
-        port: 20974
-    - rid: 1723852061938024454
-      type: {class: NetworkTransport, ns: Astraia, asm: Astraia}
-      data:
-        address: localhost
-        port: 20974
 --- !u!4 &1265164160
 Transform:
   m_ObjectHideFlags: 0
@@ -1684,6 +1630,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d94b321e427045cba50f8d14b392f2f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Runtime.GameManager
+--- !u!114 &1265164162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265164157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 849687e40b4d481e921bce1f7e82dcf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkManager
+  sendRate: 30
+  maxPlayer: 100
+  roomGuid: 
+  roomData: 
+  roomName: 
+  roomMode: 0
+  connection:
+    rid: 7229393480074920139
+  management:
+    rid: 7229393480074920140
+  collection:
+    rid: 7229393480074920141
+  clientSpawns: []
+  clientScenes: []
+  serverSpawns: []
+  serverClients: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 7229393480074920139
+      type: {class: NetworkTransport, ns: Astraia, asm: Astraia}
+      data:
+        address: localhost
+        port: 20974
+    - rid: 7229393480074920140
+      type: {class: NetworkAuthority, ns: Astraia, asm: Astraia}
+      data:
+        address: localhost
+        port: 20974
+    - rid: 7229393480074920141
+      type: {class: NetworkTransport, ns: Astraia, asm: Astraia}
+      data:
+        address: localhost
+        port: 20974
+--- !u!114 &1265164163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265164157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b50ca4aa08740b0b96ae89254aff89f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkDebugger
 --- !u!1 &1296220212
 GameObject:
   m_ObjectHideFlags: 0
@@ -8112,9 +8116,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2172374414639714506}
-  - component: {fileID: 7472387908907569161}
-  - component: {fileID: 7472387908907569163}
-  - component: {fileID: 7472387908907569162}
+  - component: {fileID: 2172374414639714508}
+  - component: {fileID: 2172374414639714507}
+  - component: {fileID: 2172374414639714509}
   m_Layer: 0
   m_Name: GlobalManager
   m_TagString: Untagged
@@ -8386,8 +8390,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "    \u79FB\u52A8\uFF1A \u65B9\u5411\u952E\n    \u8DF3\u8DC3\uFF1A X\n   
-    \u51B2\u523A\uFF1A C\n    \u51B2\u8DF3\uFF1A C + X"
+  m_Text: "    \u79FB\u52A8\uFF1A \u65B9\u5411\u952E\n    \u8DF3\u8DC3\uFF1A X\n    \u51B2\u523A\uFF1A C\n    \u51B2\u8DF3\uFF1A C + X"
 --- !u!4 &2172374414639714506
 Transform:
   m_ObjectHideFlags: 0
@@ -8397,7 +8400,7 @@ Transform:
   m_GameObject: {fileID: 805633784820901659}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 19.67227, y: 2.71017, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -8405,6 +8408,46 @@ Transform:
   - {fileID: 1067190311072405964}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2172374414639714507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805633784820901659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8472811932fa44de961a51dd5379fafd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Run::Astraia.PoolManager
+--- !u!114 &2172374414639714508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805633784820901659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e904ca8da004910a9ff155fa1126bb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Run::Astraia.GlobalManager
+--- !u!114 &2172374414639714509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805633784820901659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9f272e82f64412ca358b4527633f83e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Run::Astraia.SoundManager
+  musicMain: {fileID: 0}
+  musicVolume: 0
+  audioVolume: 0
+  audioData: []
 --- !u!222 &2278451751442323660
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -8413,18 +8456,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5881592137647891747}
   m_CullTransparentMesh: 1
---- !u!114 &2287473928239032410
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4839589470684056143}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c266a004db064629a49931050f15462, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.UIManager
 --- !u!1 &2445407300733430549
 GameObject:
   m_ObjectHideFlags: 0
@@ -8675,7 +8706,7 @@ GameObject:
   - component: {fileID: 4868001165396482315}
   - component: {fileID: 1403992524699166331}
   - component: {fileID: 861832666021794057}
-  - component: {fileID: 2287473928239032410}
+  - component: {fileID: 4868001165396482316}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -8707,6 +8738,18 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 10
   m_TargetDisplay: 0
+--- !u!114 &4868001165396482316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4839589470684056143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0894f0d37d34800abe154fdd35132ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Astraia.Run::Astraia.UIManager
 --- !u!222 &4969712303689890680
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -9088,47 +9131,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &7472387908907569161
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 805633784820901659}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e30cec0d1daa406e817e38155ebe06a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.SpaceManager
-  version: 0
---- !u!114 &7472387908907569162
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 805633784820901659}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3e1f8abe72caf43e888e06f9a892e484, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.PoolManager
---- !u!114 &7472387908907569163
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 805633784820901659}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3cd1f0043a0c42768c5346a252a616a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Astraia.Run::Astraia.SoundManager
-  musicMain: {fileID: 1401693090961702779}
-  musicVolume: 0
-  audioVolume: 0
-  audioData: []
 --- !u!81 &7765231809934737122
 AudioListener:
   m_ObjectHideFlags: 0

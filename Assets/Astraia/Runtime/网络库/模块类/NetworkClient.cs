@@ -12,12 +12,18 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+#if ODIN_INSPECTOR
+using Sirenix.OdinInspector;
+#endif
 
 namespace Astraia.Net
 {
     [Serializable]
     public sealed class NetworkClient : Connection
     {
+#if ODIN_INSPECTOR
+        [LabelText("@\"客户端: \" + clientId")]
+#endif
         [SerializeField]
         internal List<NetworkEntity> entities = new List<NetworkEntity>();
 

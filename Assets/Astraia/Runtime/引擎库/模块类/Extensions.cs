@@ -211,7 +211,7 @@ namespace Astraia
 
         public static T GetOrAddComponent<T>(this Component self) where T : Component
         {
-            return (T)self.gameObject.GetComponent(typeof(T)) ?? (T)self.gameObject.AddComponent(typeof(T));
+            return self.gameObject.GetComponent<T>() ?? self.gameObject.AddComponent<T>();
         }
 
         public static T GetOrAddComponent<T>(this Component self, Type value) where T : Component
@@ -221,7 +221,7 @@ namespace Astraia
 
         public static T GetOrAddComponent<T>(this GameObject self) where T : Component
         {
-            return (T)self.GetComponent(typeof(T)) ?? (T)self.AddComponent(typeof(T));
+            return self.GetComponent<T>() ?? self.AddComponent<T>();
         }
 
         public static T GetOrAddComponent<T>(this GameObject self, Type value) where T : Component

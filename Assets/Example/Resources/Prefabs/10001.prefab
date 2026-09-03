@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7478125468919891840}
   - component: {fileID: 4050376154587281838}
-  - component: {fileID: 2424539048188797884}
+  - component: {fileID: 8189070362757808717}
   - component: {fileID: 7699375650067373137}
   - component: {fileID: 2378255168645130865}
   - component: {fileID: 8119971262115586623}
@@ -84,7 +84,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.6, y: 0.8}
   m_EdgeRadius: 0
---- !u!114 &2424539048188797884
+--- !u!114 &8189070362757808717
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -93,13 +93,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 4745370882994828325}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6672149fe41bd425b93de260546e9d43, type: 3}
+  m_Script: {fileID: 11500000, guid: 5e030617bd814e5b9f45b25ddca48dd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Astraia.Net::Astraia.Net.NetworkEntity
-  objectId: 0
+  visible: 0
   assetId: 10001
   sceneId: 0
-  visible: 0
+  objectId: 0
+  state: 0
+  clients: []
 --- !u!114 &7699375650067373137
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -113,7 +115,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Runtime.Player
   syncMode: 0
-  syncStep: 0
+  syncRate: 0
+  Action: {fileID: 0}
+  Module: {fileID: 0}
+  Feature: {fileID: 0}
+  Machine: {fileID: 0}
   color:
     serializedVersion: 2
     rgba: 0
@@ -210,7 +216,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &4457367980570895589
 SpriteRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -267,3 +273,4 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+  m_BlendShapeWeights: []

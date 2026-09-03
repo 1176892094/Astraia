@@ -32,22 +32,22 @@ namespace Astraia.Net
         [SerializeReference] private NetworkTransport collection = new NetworkTransport();
 
 #if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
+        [ReadOnly]
 #endif
         [SerializeField]
         private Dictionary<uint, NetworkEntity> clientSpawns;
 #if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
+        [ReadOnly]
 #endif
         [SerializeField]
         private Dictionary<uint, NetworkEntity> clientScenes;
 #if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
+        [ReadOnly]
 #endif
         [SerializeField]
         private Dictionary<uint, NetworkEntity> serverSpawns;
 #if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
+        [ReadOnly]
 #endif
         [SerializeField]
         private Dictionary<int, NetworkClient> serverClients;
@@ -56,12 +56,12 @@ namespace Astraia.Net
         public static bool isRunner => isServer || isClient;
         public static bool isServer => Server.state != State.Failure;
         public static bool isClient => Client.state != State.Failure;
-        internal static bool isSaloon => saloon != null && saloon.isSaloon;
-        internal static bool isRemote => saloon != null && saloon.isRemote;
         internal static double syncRate => 1.0 / Instance.sendRate;
         internal static double syncTime => Time.unscaledTimeAsDouble;
         internal static Transport current => Instance && isRemote ? Instance.management : Instance.connection;
-        internal static NetworkAuthority saloon => Instance ? Instance.management : null;
+        private static bool isSaloon => saloon != null && saloon.isSaloon;
+        private static bool isRemote => saloon != null && saloon.isRemote;
+        private static NetworkAuthority saloon => Instance ? Instance.management : null;
 
         protected override void Awake()
         {

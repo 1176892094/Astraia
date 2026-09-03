@@ -28,23 +28,23 @@ namespace Astraia.Net
     {
         [SerializeField] internal bool visible;
 #if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
+        [ReadOnly]
 #endif
         [SerializeField] internal uint assetId;
 #if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
+        [ReadOnly]
 #endif
         [SerializeField] internal uint sceneId;
 #if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
+        [ReadOnly]
 #endif
         [SerializeField] internal uint objectId;
 #if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
+        [ReadOnly]
 #endif
         [SerializeField] internal State state;
 #if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
+        [ReadOnly]
 #endif
         [SerializeField]
         internal List<NetworkClient> clients = new List<NetworkClient>();
