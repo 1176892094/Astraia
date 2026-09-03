@@ -44,8 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9e187ce338348c689fd4464e4bb5568, type: 3}
   m_Name: GlobalSetting
   m_EditorClassIdentifier: Astraia.Run::Astraia.GlobalSetting
-  BuildTarget: 5
-  AssetVersion: 0
+  BuildTarget: 2
+  AssetVersion: 100
   RemotePath: https://cdn.jsdelivr.net/gh/1176892094/AssetBundles@main
   UseSimulate: 1
   TextAssets:

@@ -34,7 +34,13 @@ namespace Astraia
                             stackData.Add(panel.state, new UIStack());
                         }
 
-                        panelData.Add(GetHash(panel.GetType()), panel);
+                        var value = panel.GetType();
+                        if (value.GetAttribute<UIMaskAttribute>(out var mask))
+                        {
+                            panel.state = mask.state;
+                        }
+
+                        panelData.Add(GetHash(value), panel);
                     }
                 }
             }

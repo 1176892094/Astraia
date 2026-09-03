@@ -22,7 +22,7 @@ namespace Astraia.Net
     public sealed class NetworkClient : Connection
     {
 #if ODIN_INSPECTOR
-        [LabelText("@\"客户端: \" + clientId")]
+        [LabelText("@\"Client: \" + clientId")]
 #endif
         [SerializeField]
         internal List<NetworkEntity> entities = new List<NetworkEntity>();
