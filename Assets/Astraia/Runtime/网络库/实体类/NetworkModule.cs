@@ -36,13 +36,13 @@ namespace Astraia.Net
 
         public bool isHost => owner.isHost;
 
+        public bool isReady => owner.isReady;
+
         public bool isOwner => owner.isOwner;
 
         public bool isServer => owner.isServer;
 
         public bool isClient => owner.isClient;
-
-        public bool isReady => NetworkManager.Client.isReady;
 
         public bool isVerify
         {
@@ -63,6 +63,8 @@ namespace Astraia.Net
         }
 
         public NetworkClient client => owner.client;
+
+        public NetworkServer connection => owner.connection;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsDirty()

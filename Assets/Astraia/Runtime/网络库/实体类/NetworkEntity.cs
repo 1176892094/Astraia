@@ -61,11 +61,15 @@ namespace Astraia.Net
 
         public bool isHost => isServer && isClient;
 
+        public bool isReady => NetworkManager.Client.isReady;
+
         public bool isOwner => (state & State.Owner) != 0;
 
         public bool isServer => (state & State.Server) != 0 && NetworkManager.isServer;
 
         public bool isClient => (state & State.Client) != 0 && NetworkManager.isClient;
+
+        public NetworkServer connection => NetworkManager.Client.connection;
 
         protected override void Awake()
         {

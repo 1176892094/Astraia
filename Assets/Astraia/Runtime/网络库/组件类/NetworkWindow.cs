@@ -12,7 +12,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assemblies;
 using UnityEngine.Profiling;
 
 namespace Astraia.Net
@@ -237,7 +236,11 @@ namespace Astraia.Net
 
             public 场景()
             {
+#if UNITY_6000_4_OR_NEWER
+                foreach (var assembly in UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies())
+#else
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+#endif
                 {
                     foreach (var result in assembly.GetTypes())
                     {
