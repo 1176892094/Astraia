@@ -38,12 +38,12 @@ namespace Runtime
         {
             if (NetworkManager.Server.isReady)
             {
-                foreach (var client in NetworkManager.Server.clients.Values)
+                foreach (var client in NetworkManager.Server.connections)
                 {
                     NetworkManager.Server.Spawn(AssetManager.Load<GameObject>("Prefabs/10001"), client);
                 }
 
-                SyncManager.Instance.playerCount = NetworkManager.Server.connections;
+                SyncManager.Instance.playerCount = NetworkManager.Server.connections.Count;
             }
 
             startButton.gameObject.SetActive(false);
@@ -51,7 +51,7 @@ namespace Runtime
 
         public void Execute(ServerReady message)
         {
-            if (NetworkManager.Server.connections == 1)
+            if (NetworkManager.Server.connections.Count == 1)
             {
                 NetworkManager.Server.Spawn(AssetManager.Load<GameObject>("Prefabs/10004"));
             }

@@ -1,0 +1,88 @@
+// *********************************************************************************
+// # Project: Astraia
+// # Unity: 6000.3.5f1
+// # Author: 云谷千羽
+// # Version: 1.0.0
+// # History: 2026-09-02 23:09:51
+// # Recently: 2026-09-02 23:45:51
+// # Copyright: 2024, 云谷千羽
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
+using System;
+using System.Runtime.CompilerServices;
+using UnityEngine;
+using UnityEngine.LowLevel;
+using UnityEngine.PlayerLoop;
+
+namespace Astraia.Net
+{
+    public static class NetworkSystem
+    {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void RuntimeInitializeOnLoad()
+        {
+            var playerLoop = PlayerLoop.GetCurrentPlayerLoop();
+            AddLoopSystem(EarlyUpdate, ref playerLoop, typeof(EarlyUpdate));
+            AddLoopSystem(AfterUpdate, ref playerLoop, typeof(PreLateUpdate));
+            PlayerLoop.SetPlayerLoop(playerLoop);
+        }
+
+        private static void EarlyUpdate()
+        {
+            if (!Application.isPlaying) return;
+            NetworkManager.Server.EarlyUpdate();
+            NetworkManager.Client.EarlyUpdate();
+        }
+
+        private static void AfterUpdate()
+        {
+            if (!Application.isPlaying) return;
+            NetworkManager.Server.AfterUpdate();
+            NetworkManager.Client.AfterUpdate();
+        }
+
+        private static bool AddLoopSystem(PlayerLoopSystem.UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
+        {
+            if (playerLoop.type == systemType)
+            {
+                if (Array.FindIndex(playerLoop.subSystemList, system => system.updateDelegate == function) != -1)
+                {
+                    return true;
+                }
+
+                var oldLength = playerLoop.subSystemList?.Length ?? 0;
+                Array.Resize(ref playerLoop.subSystemList, oldLength + 1);
+                playerLoop.subSystemList[oldLength] = new PlayerLoopSystem { type = typeof(NetworkManager), updateDelegate = function };
+                return true;
+            }
+
+            if (playerLoop.subSystemList != null)
+            {
+                for (var i = 0; i < playerLoop.subSystemList.Length; ++i)
+                {
+                    if (AddLoopSystem(function, ref playerLoop.subSystemList[i], systemType))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Tick(ref double sendTime)
+        {
+            var syncTime = NetworkManager.syncTime;
+            var syncRate = NetworkManager.syncRate;
+            if (sendTime < syncTime - syncRate)
+            {
+                sendTime = (long)(syncTime / syncRate) * syncRate;
+                return true;
+            }
+
+            return false;
+        }
+    }
+}

@@ -1,0 +1,331 @@
+// *********************************************************************************
+// # Project: Astraia
+// # Unity: 6000.3.5f1
+// # Author: 云谷千羽
+// # Version: 1.0.0
+// # History: 2026-09-02 17:09:30
+// # Recently: 2026-09-02 17:21:30
+// # Copyright: 2024, 云谷千羽
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
+using Unity.Collections.LowLevel.Unsafe;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.SceneManagement;
+#endif
+
+namespace Astraia
+{
+    public static partial class AssetManager
+    {
+        private static readonly Dictionary<string, AssetData> assetData = new();
+        private static readonly Dictionary<string, AssetBundle> assetPack = new();
+        private static Verified verified;
+        private static AssetBundleManifest manifest;
+
+        public static int Version => verified.Version;
+        public static event Action<int> OnLoadAsset;
+        public static event Action<string> OnAssetUpdate;
+        public static event Action<bool> OnAssetComplete;
+        public static event Action<string> OnLoadScene;
+        public static event Action<float> OnSceneUpdate;
+        public static event Action<string> OnSceneComplete;
+
+        internal static void Dispose()
+        {
+            OnLoadAsset = null;
+            OnAssetUpdate = null;
+            OnAssetComplete = null;
+            OnLoadScene = null;
+            OnSceneUpdate = null;
+            OnSceneComplete = null;
+            OnLoadBatch = null;
+            OnBatchUpdate = null;
+            OnBatchComplete = null;
+
+            manifest = null;
+            assetData.Clear();
+            assetPack.Clear();
+            AssetBundle.UnloadAllAssetBundles(true);
+        }
+
+        public static T Load<T>(string reason) where T : Object
+        {
+            try
+            {
+                var asset = LoadAsset<T>(reason);
+                if (asset != null)
+                {
+                    return asset;
+                }
+
+                Log.Warn("加载资源 {0} 为空!".Format(reason));
+            }
+            catch (Exception e)
+            {
+                Log.Warn("加载资源 {0} 失败!\n{1}".Format(reason, e));
+            }
+
+            return null;
+        }
+
+        public static T[] LoadAll<T>(string reason) where T : Object
+        {
+            try
+            {
+                var asset = LoadAssetAll<T>(reason);
+                if (asset != null)
+                {
+                    return asset;
+                }
+
+                Log.Warn("加载资源 {0} 为空!".Format(reason));
+            }
+            catch (Exception e)
+            {
+                Log.Warn("加载资源 {0} 失败!\n{1}".Format(reason, e));
+            }
+
+            return null;
+        }
+
+        private static T LoadAsset<T>(string reason) where T : Object
+        {
+            if (GlobalManager.Instance && manifest)
+            {
+                var asset = LoadFirst<T>(LoadAssetData(reason));
+                return asset ?? LoadSecond<T>(reason);
+            }
+            else
+            {
+                var asset = LoadThird<T>(LoadAssetData(reason));
+                return asset ?? LoadSecond<T>(reason);
+            }
+        }
+
+        private static T[] LoadAssetAll<T>(string reason) where T : Object
+        {
+            if (GlobalManager.Instance && manifest)
+            {
+                var asset = LoadFirstAll<T>(LoadAssetData(reason));
+                return asset ?? LoadSecondAll<T>(reason);
+            }
+            else
+            {
+                var asset = LoadThirdAll<T>(LoadAssetData(reason));
+                return asset ?? LoadSecondAll<T>(reason);
+            }
+        }
+
+        private static AssetData LoadAssetData(string reason)
+        {
+            if (!assetData.TryGetValue(reason, out var asset))
+            {
+                var index = reason.LastIndexOf('/');
+                asset = new AssetData();
+                if (index < 0)
+                {
+                    asset.Name = reason;
+                }
+                else
+                {
+                    asset.Path = reason.Substring(0, index).ToLower();
+                    asset.Name = reason.Substring(index + 1);
+                }
+
+                assetData.Add(reason, asset);
+            }
+
+            return asset;
+        }
+
+        public static async void LoadAssetBundle()
+        {
+            if (GlobalManager.Instance)
+            {
+                var requests = new Dictionary<string, Task<AssetBundle>>();
+                var platform = await LoadAssetBundle(GlobalSetting.TargetPlatform, requests);
+
+                if (manifest == null)
+                {
+                    manifest = platform.LoadAsset<AssetBundleManifest>(nameof(AssetBundleManifest));
+                }
+
+                OnLoadAsset?.Invoke(manifest.GetAllAssetBundles().Length);
+
+                var bundles = manifest.GetAllAssetBundles();
+                foreach (var bundle in bundles)
+                {
+                    _ = LoadAssetBundle(bundle, requests);
+                }
+
+                await Task.WhenAll(requests.Values);
+                OnAssetComplete?.Invoke(assetPack.Values.All(bundle => bundle));
+            }
+        }
+
+        public static async Task<AssetBundle> LoadAssetBundle(string reason, Dictionary<string, Task<AssetBundle>> requests)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                return null;
+            }
+
+            if (assetPack.TryGetValue(reason, out var bundle))
+            {
+                return bundle;
+            }
+
+            if (requests.TryGetValue(reason, out var request))
+            {
+                return await request;
+            }
+
+            request = LoadRequest(reason);
+            requests.Add(reason, request);
+            try
+            {
+                bundle = await request;
+                assetPack.Add(reason, bundle);
+                OnAssetUpdate?.Invoke(reason);
+                return bundle;
+            }
+            finally
+            {
+                requests.Remove(reason);
+            }
+        }
+
+        private static async Task<AssetBundle> LoadRequest(string reason)
+        {
+            var result = GlobalSetting.PersistentPath.Format(reason);
+            if (verified.Bundles.TryGetValue(reason, out var bundle))
+            {
+                if (bundle.Hash == Zip.ComputeHash(result))
+                {
+                    var request = AssetBundle.LoadFromFileAsync(result);
+                    await request;
+                    return request.assetBundle;
+                }
+            }
+
+            return null;
+        }
+
+        public static async void LoadScene(string reason)
+        {
+            try
+            {
+                if (GlobalManager.Instance)
+                {
+                    OnLoadScene?.Invoke(reason);
+                    var request = LoadSceneAsset(GlobalSetting.SCENES.Format(reason));
+                    while (!request.isDone && GlobalManager.Instance)
+                    {
+                        OnSceneUpdate?.Invoke(request.progress);
+                        await Task.Yield();
+                    }
+
+                    OnSceneComplete?.Invoke(reason);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Warn("加载场景 {0} 失败!\n{1}".Format(reason, e));
+            }
+        }
+
+        private static AsyncOperation LoadSceneAsset(string reason)
+        {
+            var item = LoadAssetData(reason);
+
+            if (GlobalManager.Instance && manifest)
+            {
+                var sceneData = assetPack.GetValueOrDefault(item.Path);
+                var scenePath = sceneData.GetAllScenePaths().FirstOrDefault(path => Path.GetFileNameWithoutExtension(path) == item.Name);
+                if (!string.IsNullOrEmpty(scenePath))
+                {
+                    return SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
+                }
+            }
+            else
+            {
+#if UNITY_EDITOR
+                var sceneData = LoadThird<SceneAsset>(item);
+                var scenePath = AssetDatabase.GetAssetPath(sceneData);
+                if (!string.IsNullOrEmpty(scenePath))
+                {
+                    return EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Single));
+                }
+#endif
+            }
+
+            var sceneName = reason.Substring(reason.LastIndexOf('/') + 1);
+            return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+        }
+
+        private static T Instantiate<T>(T asset) where T : Object
+        {
+            return asset is GameObject ? Object.Instantiate(asset) : asset;
+        }
+
+        private static T LoadFirst<T>(AssetData reason) where T : Object
+        {
+            return Instantiate(assetPack.GetValueOrDefault(reason.Path)?.LoadAsset<T>(reason.Name));
+        }
+
+        private static T[] LoadFirstAll<T>(AssetData reason) where T : Object
+        {
+            return assetPack.GetValueOrDefault(reason.Path)?.LoadAssetWithSubAssets<T>(reason.Name);
+        }
+
+        private static T LoadSecond<T>(string reason) where T : Object
+        {
+            return Instantiate(Resources.Load<T>(reason));
+        }
+
+        private static T[] LoadSecondAll<T>(string reason) where T : Object
+        {
+            return Resources.LoadAll<T>(reason);
+        }
+
+        private static T LoadThird<T>(AssetData reason) where T : Object
+        {
+#if UNITY_EDITOR
+            foreach (var result in AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(reason.Path, reason.Name))
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<T>(result);
+                if (asset) return Instantiate(asset);
+            }
+#endif
+            return null;
+        }
+
+        private static T[] LoadThirdAll<T>(AssetData reason) where T : Object
+        {
+#if UNITY_EDITOR
+            foreach (var result in AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(reason.Path, reason.Name))
+            {
+                var source = AssetDatabase.LoadAllAssetRepresentationsAtPath(result);
+                return UnsafeUtility.As<Object[], T[]>(ref source);
+            }
+#endif
+            return null;
+        }
+
+        private struct AssetData
+        {
+            public string Name;
+            public string Path;
+        }
+    }
+}

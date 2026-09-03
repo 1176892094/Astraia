@@ -1,0 +1,421 @@
+// *********************************************************************************
+// # Project: Astraia
+// # Unity: 6000.3.5f1
+// # Author: 云谷千羽
+// # Version: 1.0.0
+// # History: 2024-12-21 23:12:50
+// # Recently: 2024-12-22 21:12:48
+// # Copyright: 2024, 云谷千羽
+// # Description: This is an automatically generated comment.
+// *********************************************************************************
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using State = Astraia.Async.State;
+
+namespace Astraia.Net
+{
+    public partial class NetworkManager
+    {
+        public static partial class Client
+        {
+            internal static readonly Dictionary<uint, NetworkEntity> spawns = new Dictionary<uint, NetworkEntity>();
+            internal static readonly Dictionary<uint, NetworkEntity> scenes = new Dictionary<uint, NetworkEntity>();
+            internal static readonly Dictionary<uint, NetworkEntity> copies = new Dictionary<uint, NetworkEntity>();
+            internal static State state = State.Failure;
+            internal static NetworkServer connection;
+            private static bool isLoadScene;
+            private static double sendTime;
+            internal static double pingTime;
+            private static double pongTime;
+
+            public static bool isReady => connection.isReady;
+            public static bool isActive => state == State.Success;
+
+            internal static void Start(bool isHost)
+            {
+                if (isHost)
+                {
+                    AddMessage(true);
+                    connection = new NetworkServer();
+                    Server.Connect(0);
+                    Connect(0);
+                }
+                else
+                {
+                    AddMessage(false);
+                    state = State.Running;
+                    connection = new NetworkServer();
+                    current.StartClient();
+                }
+            }
+
+            private static void Load(string sceneName)
+            {
+                if (!isLoadScene)
+                {
+                    EventManager.Invoke(new ClientLoadScene(sceneName));
+                    if (!isServer)
+                    {
+                        isLoadScene = true;
+                        AssetManager.LoadScene(sceneName);
+                    }
+                }
+            }
+
+            internal static void LoadSceneComplete(string sceneName)
+            {
+                isLoadScene = false;
+                if (isActive && !isReady)
+                {
+                    connection.isReady = true;
+                    connection.Send(new ReadyMessage());
+                }
+
+                EventManager.Invoke(new ClientSceneLoaded(sceneName));
+            }
+        }
+
+        public static partial class Client
+        {
+            private static void AddMessage(bool isHost)
+            {
+                if (!isHost)
+                {
+                    current.client.onConnect -= Connect;
+                    current.client.onDisconnect -= Disconnect;
+                    current.client.onReceive -= Receive;
+                    current.client.onConnect += Connect;
+                    current.client.onDisconnect += Disconnect;
+                    current.client.onReceive += Receive;
+                }
+
+                NetworkMessage<PingMessage>.Add<NetworkServer>(PingMessage);
+                NetworkMessage<SceneMessage>.Add<NetworkServer>(SceneMessage);
+                NetworkMessage<EntityMessage>.Add<NetworkServer>(EntityMessage);
+                NetworkMessage<ClientRpcMessage>.Add<NetworkServer>(ClientRpcMessage);
+                NetworkMessage<SpawnBeginMessage>.Add<NetworkServer>(SpawnBeginMessage);
+                NetworkMessage<SpawnMessage>.Add<NetworkServer>(SpawnMessage);
+                NetworkMessage<DespawnMessage>.Add<NetworkServer>(DespawnMessage);
+                NetworkMessage<DestroyMessage>.Add<NetworkServer>(DestroyMessage);
+            }
+
+            private static void PingMessage(PingMessage message)
+            {
+                if (pingTime <= 0)
+                {
+                    pingTime = syncTime - message.clientTime;
+                }
+                else
+                {
+                    pingTime += 2.0 / (6 + 1) * (syncTime - message.clientTime - pingTime);
+                }
+
+                EventManager.Invoke(new PingUpdate(pingTime));
+            }
+
+            private static void SceneMessage(SceneMessage message)
+            {
+                if (isActive)
+                {
+                    connection.isReady = false;
+                    Load(message.sceneName);
+                }
+            }
+
+            private static void EntityMessage(EntityMessage message)
+            {
+                if (isServer)
+                {
+                    return;
+                }
+
+                if (!spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    Log.Warn($"无法同步网络对象: {message.objectId}");
+                    return;
+                }
+
+                if (!entity)
+                {
+                    Log.Warn($"无法同步网络对象: {message.objectId}");
+                    return;
+                }
+
+                using var reader = MemoryReader.Pop(message.segment);
+                entity.modules.ClientReceive(reader);
+            }
+
+            private static void ClientRpcMessage(ClientRpcMessage message)
+            {
+                if (!spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    Log.Warn($"无法进行远程调用，未找到对象 {message.objectId}。");
+                    return;
+                }
+
+                using var reader = MemoryReader.Pop(message.segment);
+                entity.InvokeMessage(message.moduleId, message.methodId, SyncMode.客户端, reader);
+            }
+        }
+
+        public static partial class Client
+        {
+            private static void Connect(int id)
+            {
+                state = State.Success;
+                connection.isReady = true;
+                connection.serverId = id;
+                connection.Send(new ReadyMessage());
+                EventManager.Invoke(new ClientConnect(id));
+            }
+
+            internal static void Disconnect(int id)
+            {
+                if (!isClient) return;
+                var entities = spawns.Values.Where(entity => entity).ToList();
+                foreach (var entity in entities)
+                {
+                    DestroyMessage(new DestroyMessage(entity.objectId));
+                }
+
+                state = State.Failure;
+                connection.Disconnect();
+                sendTime = 0;
+                pongTime = 0;
+                pingTime = 0;
+                copies.Clear();
+                spawns.Clear();
+                scenes.Clear();
+                isLoadScene = false;
+                EventManager.Invoke(new ClientDisconnect(id));
+            }
+
+            internal static void Receive(ArraySegment<byte> segment, int pass)
+            {
+                if (connection == null)
+                {
+                    Log.Error("没有连接到有效的服务器！");
+                    return;
+                }
+
+                if (!connection.AddBatch(segment))
+                {
+                    Log.Warn("无法处理来自服务器的消息。");
+                    connection.Disconnect();
+                    return;
+                }
+
+                while (!isLoadScene && connection.GetMessage(out var result))
+                {
+                    using var reader = MemoryReader.Pop(result);
+                    if (reader.buffer.Count - reader.position < sizeof(ushort))
+                    {
+                        Log.Warn("无法处理来自服务器的消息。没有头部。");
+                        connection.Disconnect();
+                        return;
+                    }
+
+                    var message = reader.ReadUInt16();
+                    if (!NetworkMessage.GetValueByClient(message, out var onMessage))
+                    {
+                        Log.Warn($"无法处理来自服务器的消息。未知的消息{message}");
+                        connection.Disconnect();
+                        return;
+                    }
+
+                    onMessage(connection, reader, pass);
+                }
+
+                if (!isLoadScene && connection.Count > 0)
+                {
+                    Log.Warn($"无法处理来自服务器的消息。残留消息: {connection.Count}");
+                }
+            }
+        }
+
+        public static partial class Client
+        {
+            private static void SpawnBeginMessage(SpawnBeginMessage message)
+            {
+                if (isServer)
+                {
+                    return;
+                }
+
+                scenes.Clear();
+#if UNITY_6000_4_OR_NEWER
+                var entities = FindObjectsByType<NetworkEntity>();
+#else
+                var entities = FindObjectsByType<NetworkEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#endif
+                foreach (var entity in entities)
+                {
+                    if (entity.sceneId != 0 && entity.objectId == 0)
+                    {
+                        scenes[entity.sceneId] = entity;
+                    }
+                }
+            }
+
+            private static void SpawnMessage(SpawnMessage message)
+            {
+                if (isServer && Server.spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    spawns[message.objectId] = entity;
+                    entity.gameObject.SetActive(true);
+                    entity.OnStartClient();
+                    entity.OnNotifyAuthority();
+                    return;
+                }
+
+                if (copies.Remove(message.objectId, out entity) || SpawnObject(message, out entity))
+                {
+                    entity.objectId = message.objectId;
+                    entity.transform.localPosition = message.position;
+                    entity.transform.localRotation = Quaternion.Euler(message.rotation);
+                    entity.transform.localScale = message.mutation;
+                    entity.state = message.isOwner ? entity.state | NetworkEntity.State.所有者 : entity.state & ~NetworkEntity.State.所有者;
+                    entity.state |= NetworkEntity.State.客户端;
+
+                    if (message.segment.Count > 0)
+                    {
+                        using var reader = MemoryReader.Pop(message.segment);
+                        entity.modules.ClientReceive(reader, true);
+                    }
+
+                    spawns[message.objectId] = entity;
+                    entity.gameObject.SetActive(true);
+                    entity.OnStartClient();
+                    entity.OnNotifyAuthority();
+                }
+            }
+
+            private static bool SpawnObject(SpawnMessage message, out NetworkEntity entity)
+            {
+                if (spawns.TryGetValue(message.objectId, out entity))
+                {
+                    return true;
+                }
+
+                if (message.sceneId != 0)
+                {
+                    if (scenes.Remove(message.sceneId, out entity))
+                    {
+                        return entity;
+                    }
+
+                    Log.Error($"无法注册网络对象 {message.sceneId}。场景标识无效。");
+                    return false;
+                }
+
+                var prefab = AssetManager.Load<GameObject>(GlobalSetting.PREFAB.Format(message.assetId));
+                if (!prefab.TryGetComponent(out entity))
+                {
+                    Log.Error($"无法注册网络对象 {prefab.name} 没有网络对象组件。");
+                    return false;
+                }
+
+                if (entity.sceneId != 0)
+                {
+                    Log.Error($"无法注册网络对象 {entity.name}。因为该预置体为场景对象。");
+                    return false;
+                }
+
+                return entity;
+            }
+
+            private static void DespawnMessage(DespawnMessage message)
+            {
+                if (spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    entity.OnStopClient();
+                    entity.state &= ~NetworkEntity.State.所有者;
+                    entity.OnNotifyAuthority();
+                    entity.gameObject.SetActive(false);
+                    if (!isServer)
+                    {
+                        copies[message.objectId] = entity;
+                    }
+
+                    spawns.Remove(message.objectId);
+                }
+            }
+
+            private static void DestroyMessage(DestroyMessage message)
+            {
+                if (spawns.TryGetValue(message.objectId, out var entity))
+                {
+                    entity.OnStopClient();
+                    entity.state &= ~NetworkEntity.State.所有者;
+                    entity.OnNotifyAuthority();
+                    if (!isServer)
+                    {
+                        if (entity.sceneId != 0)
+                        {
+                            entity.gameObject.SetActive(false);
+                            entity.Reset();
+                        }
+                        else
+                        {
+                            entity.state |= NetworkEntity.State.销毁中;
+                            Destroy(entity.gameObject);
+                        }
+                    }
+
+                    spawns.Remove(message.objectId);
+                }
+            }
+
+            internal static void EarlyUpdate()
+            {
+                current?.ClientEarlyUpdate();
+            }
+
+            internal static void AfterUpdate()
+            {
+                if (isClient && NetworkSystem.Tick(ref sendTime))
+                {
+                    if (!isServer && connection.isReady)
+                    {
+                        foreach (var entity in spawns.Values)
+                        {
+                            using var writer = MemoryWriter.Pop();
+                            entity.modules.ClientSend(writer, entity.isOwner);
+                            if (writer.position > 0)
+                            {
+                                connection.Send(new EntityMessage(entity.objectId, writer));
+                                entity.ClearDirty(false);
+                            }
+                        }
+                    }
+                }
+
+                if (connection != null)
+                {
+                    if (isHost)
+                    {
+                        connection.Update();
+                    }
+                    else
+                    {
+                        if (isActive)
+                        {
+                            if (pongTime < syncTime - 2)
+                            {
+                                pongTime = syncTime;
+                                connection.Send(new PongMessage(pongTime), Pass.UDP);
+                            }
+
+                            connection.Update();
+                        }
+                    }
+                }
+
+                current?.ClientAfterUpdate();
+            }
+        }
+    }
+}

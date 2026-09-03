@@ -33,7 +33,7 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldstr, method.FullName);
-                worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
+                worker.Emit(OpCodes.Ldc_I4, NetworkMessage.Id(method.FullName));
                 worker.Emit(OpCodes.Ldloc_0);
                 worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
                 worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
@@ -75,7 +75,7 @@ namespace Astraia.Editor
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldstr, method.FullName);
-                worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
+                worker.Emit(OpCodes.Ldc_I4, NetworkMessage.Id(method.FullName));
                 worker.Emit(OpCodes.Ldloc_0);
                 worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
                 worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
@@ -118,7 +118,7 @@ namespace Astraia.Editor
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(IsNetworkClient(method) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
                 worker.Emit(OpCodes.Ldstr, method.FullName);
-                worker.Emit(OpCodes.Ldc_I4, (int)NetworkMessage.Id(method.FullName));
+                worker.Emit(OpCodes.Ldc_I4, NetworkMessage.Id(method.FullName));
                 worker.Emit(OpCodes.Ldloc_0);
                 worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
                 worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
