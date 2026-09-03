@@ -23,6 +23,13 @@ namespace Astraia.Net
     [Serializable]
     public sealed class NetworkEntity : Entity
     {
+        internal const int OWNING = 1 << 0;
+        internal const int CLIENT = 1 << 1;
+        internal const int SERVER = 1 << 2;
+        internal const int ENABLE = 1 << 3;
+        internal const int NOTIFY = 1 << 4;
+        internal const int REMOVE = 1 << 5;
+        
         [SerializeField, HideInInspector] internal uint objectId;
 
         [SerializeField, HideInInspector] internal uint assetId;
@@ -72,7 +79,7 @@ namespace Astraia.Net
                 NetworkManager.Client.spawns.Remove(objectId);
             }
 
-            if (isServer && (state & DESTROY) == 0)
+            if (isServer && (state & REMOVE) == 0)
             {
                 NetworkManager.Server.Destroy(gameObject);
             }

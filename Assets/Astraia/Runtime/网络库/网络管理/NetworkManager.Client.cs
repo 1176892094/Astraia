@@ -286,8 +286,8 @@ namespace Astraia.Net
                     entity.transform.localPosition = message.position;
                     entity.transform.localRotation = Quaternion.Euler(message.rotation);
                     entity.transform.localScale = message.mutation;
-                    entity.state = message.isOwner ? entity.state | Entity.OWNING : entity.state & ~Entity.OWNING;
-                    entity.state |= Entity.CLIENT;
+                    entity.state = message.isOwner ? entity.state | NetworkEntity.OWNING : entity.state & ~NetworkEntity.OWNING;
+                    entity.state |= NetworkEntity.CLIENT;
 
                     if (message.segment.Count > 0)
                     {
@@ -307,7 +307,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.state &= ~Entity.OWNING;
+                    entity.state &= ~NetworkEntity.OWNING;
                     entity.OnNotifyAuthority();
                     entity.gameObject.SetActive(false);
                     if (!isServer)
@@ -324,7 +324,7 @@ namespace Astraia.Net
                 if (spawns.TryGetValue(message.objectId, out var entity))
                 {
                     entity.OnStopClient();
-                    entity.state &= ~Entity.OWNING;
+                    entity.state &= ~NetworkEntity.OWNING;
                     entity.OnNotifyAuthority();
                     if (!isServer)
                     {
@@ -335,7 +335,7 @@ namespace Astraia.Net
                         }
                         else
                         {
-                            entity.state |= Entity.DESTROY;
+                            entity.state |= NetworkEntity.REMOVE;
                             Destroy(entity.gameObject);
                         }
                     }

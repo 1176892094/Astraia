@@ -21,7 +21,7 @@ namespace Astraia.Net
     {
         [SerializeField] internal SyncMode syncMode;
 
-        [SerializeField] internal float syncStep;
+        [SerializeField] internal float syncRate;
 
         internal NetworkEntity owner;
 
@@ -66,7 +66,7 @@ namespace Astraia.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsDirty()
         {
-            return syncVarDirty != 0UL && NetworkManager.syncTime - syncVarTime >= syncStep;
+            return syncVarDirty != 0UL && NetworkManager.syncTime - syncVarTime >= syncRate;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -325,9 +325,9 @@ namespace Astraia.Net
                 }
 
                 entity.client = client;
-                entity.state = client?.clientId == 0 ? entity.state | Entity.OWNING : entity.state & ~Entity.OWNING;
-                entity.state = isServer ? entity.state | Entity.SERVER : entity.state & ~Entity.SERVER;
-                entity.state = isClient ? entity.state | Entity.CLIENT : entity.state & ~Entity.CLIENT;
+                entity.state = client?.clientId == 0 ? entity.state | NetworkEntity.OWNING : entity.state & ~NetworkEntity.OWNING;
+                entity.state = isServer ? entity.state | NetworkEntity.SERVER : entity.state & ~NetworkEntity.SERVER;
+                entity.state = isClient ? entity.state | NetworkEntity.CLIENT : entity.state & ~NetworkEntity.CLIENT;
                 if (entity.objectId == 0)
                 {
                     entity.objectId = ++objectId;
@@ -369,7 +369,7 @@ namespace Astraia.Net
                     }
                     else
                     {
-                        entity.state |= Entity.DESTROY;
+                        entity.state |= NetworkEntity.REMOVE;
                         UnityEngine.Object.Destroy(entity.gameObject);
                     }
                 }
