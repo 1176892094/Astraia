@@ -31,11 +31,14 @@ namespace Astraia.Net
         private static void AddHook(Type module, int pass, string name, SyncMode mode, SyncFunc func)
         {
             var id = (ushort)(NetworkMessage.Id(name) & 0xFFFF);
-            if (!messages.TryGetValue(id, out var message))
+            if (messages.TryGetValue(id, out var message))
             {
-                message = new SyncData(pass, mode, func, module);
-                messages[id] = message;
+                Log.Error($"远程调用 [{module} {func.Method.Name}] 与 [{message.module} {message.func.Method.Name}] 冲突。");
+                return;
             }
+
+            message = new SyncData(pass, mode, func, module);
+            messages[id] = message;
 
             if (message.mode != mode || message.module != module || message.func != func)
             {
