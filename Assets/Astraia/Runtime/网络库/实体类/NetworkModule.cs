@@ -66,10 +66,12 @@ namespace Astraia.Net
 
         public NetworkServer connection => owner.connection;
 
+        public ICollection<NetworkClient> observers => owner.observers;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsDirty()
         {
-            return syncVarDirty != 0UL && syncVarTime + syncRate <= NetworkManager.syncTime;
+            return syncVarDirty != 0UL && syncVarTime + syncRate <= NetworkSystem.syncTime;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -94,7 +96,7 @@ namespace Astraia.Net
         public void ClearDirty()
         {
             syncVarDirty = 0UL;
-            syncVarTime = NetworkManager.syncTime;
+            syncVarTime = NetworkSystem.syncTime;
         }
 
         internal void Serialize(MemoryWriter writer, bool isInit)
@@ -210,11 +212,11 @@ namespace Astraia.Net
             using var current = MemoryWriter.Pop();
             current.Invoke(message);
 
-            foreach (var result in owner.clients)
+            foreach (var observer in observers)
             {
-                if (result.isReady && ((pass & Pass.ANY) == 0 || result != client))
+                if (observer.isReady && ((pass & Pass.ANY) == 0 || observer != client))
                 {
-                    result.Send(message, (pass & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
+                    observer.Send(message, (pass & Pass.KCP) != 0 ? Pass.KCP : Pass.UDP);
                 }
             }
         }

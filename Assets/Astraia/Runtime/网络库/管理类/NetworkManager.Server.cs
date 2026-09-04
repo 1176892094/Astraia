@@ -139,7 +139,7 @@ namespace Astraia.Net
             private static void ReadyMessage(NetworkClient client, ReadyMessage message)
             {
                 client.isReady = true;
-                client.Send(new SpawnBeginMessage());
+                client.Send(new ReadyMessage());
                 EventManager.Invoke(new ServerReady(client));
 
                 foreach (var entity in spawns.Values)
@@ -254,8 +254,8 @@ namespace Astraia.Net
                         }
                     }
 
-                    EventManager.Invoke(new ServerDisconnect(id));
                     NetworkSpawner.Clear(client);
+                    EventManager.Invoke(new ServerDisconnect(id));
                     clients.Remove(id);
                 }
             }
@@ -358,7 +358,7 @@ namespace Astraia.Net
                 if (obj.TryGetComponent(out NetworkEntity entity))
                 {
                     spawns.Remove(entity.objectId);
-                    foreach (var client in entity.clients)
+                    foreach (var client in entity.observers)
                     {
                         client.Send(new DestroyMessage(entity.objectId));
                     }

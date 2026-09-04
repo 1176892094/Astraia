@@ -96,7 +96,7 @@ namespace Astraia.Net
                 NetworkMessage<SceneMessage>.Add<NetworkServer>(SceneMessage);
                 NetworkMessage<EntityMessage>.Add<NetworkServer>(EntityMessage);
                 NetworkMessage<ClientRpcMessage>.Add<NetworkServer>(ClientRpcMessage);
-                NetworkMessage<SpawnBeginMessage>.Add<NetworkServer>(SpawnBeginMessage);
+                NetworkMessage<ReadyMessage>.Add<NetworkServer>(ReadyMessage);
                 NetworkMessage<SpawnMessage>.Add<NetworkServer>(SpawnMessage);
                 NetworkMessage<DespawnMessage>.Add<NetworkServer>(DespawnMessage);
                 NetworkMessage<DestroyMessage>.Add<NetworkServer>(DestroyMessage);
@@ -106,11 +106,11 @@ namespace Astraia.Net
             {
                 if (pingTime <= 0)
                 {
-                    pingTime = syncTime - message.clientTime;
+                    pingTime = NetworkSystem.syncTime - message.clientTime;
                 }
                 else
                 {
-                    pingTime += 2.0 / (6 + 1) * (syncTime - message.clientTime - pingTime);
+                    pingTime += 2.0 / (6 + 1) * (NetworkSystem.syncTime - message.clientTime - pingTime);
                 }
 
                 EventManager.Invoke(new PingUpdate(pingTime));
@@ -238,7 +238,7 @@ namespace Astraia.Net
 
         public static partial class Client
         {
-            private static void SpawnBeginMessage(SpawnBeginMessage message)
+            private static void ReadyMessage(ReadyMessage message)
             {
                 if (isServer)
                 {
@@ -403,9 +403,9 @@ namespace Astraia.Net
                     {
                         if (isActive)
                         {
-                            if (pongTime < syncTime - 2)
+                            if (pongTime < NetworkSystem.syncTime - 2)
                             {
-                                pongTime = syncTime;
+                                pongTime = NetworkSystem.syncTime;
                                 connection.Send(new PongMessage(pongTime), Pass.UDP);
                             }
 

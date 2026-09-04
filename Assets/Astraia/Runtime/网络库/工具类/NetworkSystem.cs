@@ -19,6 +19,9 @@ namespace Astraia.Net
 {
     public static class NetworkSystem
     {
+        internal static double syncStep = 1 / 30F;
+        internal static double syncTime => Time.unscaledTimeAsDouble;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {
@@ -33,6 +36,7 @@ namespace Astraia.Net
             if (!Application.isPlaying) return;
             NetworkManager.Server.EarlyUpdate();
             NetworkManager.Client.EarlyUpdate();
+            EventManager.Invoke(new OnEarlyUpdate());
         }
 
         private static void AfterUpdate()
@@ -40,6 +44,7 @@ namespace Astraia.Net
             if (!Application.isPlaying) return;
             NetworkManager.Server.AfterUpdate();
             NetworkManager.Client.AfterUpdate();
+            EventManager.Invoke(new OnAfterUpdate());
         }
 
         private static bool AddLoopSystem(PlayerLoopSystem.UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
@@ -74,11 +79,9 @@ namespace Astraia.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Tick(ref double sendTime)
         {
-            var syncTime = NetworkManager.syncTime;
-            var syncRate = NetworkManager.syncRate;
-            if (sendTime < syncTime - syncRate)
+            if (sendTime < syncTime - syncStep)
             {
-                sendTime = (long)(syncTime / syncRate) * syncRate;
+                sendTime = (long)(syncTime / syncStep) * syncStep;
                 return true;
             }
 

@@ -56,17 +56,16 @@ namespace Astraia.Net
         public static bool isRunner => isServer || isClient;
         public static bool isServer => Server.state != State.Failure;
         public static bool isClient => Client.state != State.Failure;
-        internal static double syncRate => 1.0 / Instance.sendRate;
-        internal static double syncTime => Time.unscaledTimeAsDouble;
-        internal static Transport current => isRemote ? Instance?.management : Instance?.connection;
         private static bool isSaloon => saloon != null && saloon.isSaloon;
         private static bool isRemote => saloon != null && saloon.isRemote;
+        internal static Transport current => isRemote ? Instance?.management : Instance?.connection;
         private static NetworkAuthority saloon => Instance ? Instance.management : null;
 
         protected override void Awake()
         {
             base.Awake();
             Application.runInBackground = true;
+            NetworkSystem.syncStep = 1.0 / sendRate;
             NetworkAuthority.Instance = collection;
 
             clientSpawns = Client.spawns;
@@ -105,7 +104,7 @@ namespace Astraia.Net
             AssetManager.OnSceneComplete -= OnSceneComplete;
         }
 
-        public void OnSceneComplete(string sceneName)
+        private static void OnSceneComplete(string sceneName)
         {
             if (isHost)
             {

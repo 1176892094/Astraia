@@ -47,7 +47,7 @@ namespace Astraia.Net
         {
             players.Remove(client);
             visible.Remove(client);
-            waitTime = NetworkManager.syncTime + 0.2;
+            waitTime = NetworkSystem.syncTime + 0.2;
         }
 
         private void LateUpdate()
@@ -62,9 +62,9 @@ namespace Astraia.Net
                     }
                 }
 
-                if (waitTime < NetworkManager.syncTime)
+                if (waitTime < NetworkSystem.syncTime)
                 {
-                    waitTime = NetworkManager.syncTime + 0.2;
+                    waitTime = NetworkSystem.syncTime + 0.2;
 
                     foreach (var entity in NetworkManager.Server.spawns.Values)
                     {
@@ -113,7 +113,7 @@ namespace Astraia.Net
                 clients.Add(entity.client);
             }
 
-            var copied = entity.clients;
+            var copied = entity.observers;
             foreach (var client in clients)
             {
                 if (client.isReady && !copied.Contains(client))
@@ -133,7 +133,7 @@ namespace Astraia.Net
                 }
             }
 
-            if (entity.clients.Count == 0)
+            if (entity.observers.Count == 0)
             {
                 entity.gameObject.SetActive(false);
             }
@@ -150,7 +150,7 @@ namespace Astraia.Net
                 }
             }
 
-            if (entity.clients.Count == 0)
+            if (entity.observers.Count == 0)
             {
                 entity.gameObject.SetActive(false);
             }

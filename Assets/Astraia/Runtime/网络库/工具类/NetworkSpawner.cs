@@ -18,15 +18,15 @@ namespace Astraia
     {
         public static void Add(NetworkEntity entity, NetworkClient client)
         {
-            var clients = entity.clients;
-            if (!clients.Contains(client))
+            var observers = entity.observers;
+            if (!observers.Contains(client))
             {
-                if (clients.Count == 0)
+                if (observers.Count == 0)
                 {
                     entity.ClearDirty(true);
                 }
 
-                clients.Add(client);
+                observers.Add(client);
                 client.entities.Add(entity);
                 using var owner = MemoryWriter.Pop();
                 using var other = MemoryWriter.Pop();
@@ -41,10 +41,10 @@ namespace Astraia
 
         public static void Remove(NetworkEntity entity, NetworkClient client)
         {
-            var clients = entity.clients;
-            if (clients.Remove(client))
+            var observers = entity.observers;
+            if (observers.Remove(client))
             {
-                if (clients.Count == 0)
+                if (observers.Count == 0)
                 {
                     entity.ClearDirty(true);
                 }
@@ -56,13 +56,13 @@ namespace Astraia
 
         public static void Clear(NetworkEntity entity)
         {
-            var clients = entity.clients;
-            foreach (var client in clients)
+            var observers = entity.observers;
+            foreach (var client in observers)
             {
                 client.entities.Remove(entity);
             }
 
-            clients.Clear();
+            observers.Clear();
         }
 
         public static void Clear(NetworkClient client)
@@ -70,10 +70,10 @@ namespace Astraia
             var entities = client.entities;
             foreach (var entity in entities.ToList())
             {
-                var clients = entity.clients;
-                if (clients.Remove(client))
+                var observers = entity.observers;
+                if (observers.Remove(client))
                 {
-                    if (clients.Count == 0)
+                    if (observers.Count == 0)
                     {
                         entity.ClearDirty(true);
                     }

@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -47,7 +46,7 @@ namespace Astraia.Net
         [ReadOnly]
 #endif
         [SerializeField]
-        internal List<NetworkClient> clients = new List<NetworkClient>();
+        internal List<NetworkClient> observers = new List<NetworkClient>();
 
         internal int current;
 
@@ -148,7 +147,7 @@ namespace Astraia.Net
 
         private void AssignAssetId(string assetPath)
         {
-            if (assetId == 0 && !string.IsNullOrWhiteSpace(assetPath))
+            if (assetId == 0 || !string.IsNullOrWhiteSpace(assetPath))
             {
                 Undo.RecordObject(this, "Assign AssetId");
                 uint.TryParse(name, out assetId);
@@ -165,12 +164,6 @@ namespace Astraia.Net
             }
         }
 #endif
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsDirty(ulong mask, int index)
-        {
-            return (mask & (ulong)(1 << index)) != 0;
-        }
 
         internal void InvokeMessage(byte moduleId, ushort function, SyncMode mode, MemoryReader reader, NetworkClient client = null)
         {

@@ -91,7 +91,6 @@ namespace Astraia
         }
     }
 
-    internal readonly struct SpawnBeginMessage : IMessage { }
 
     internal readonly struct DespawnMessage : IMessage
     {
