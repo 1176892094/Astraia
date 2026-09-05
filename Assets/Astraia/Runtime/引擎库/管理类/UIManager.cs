@@ -177,13 +177,18 @@ namespace Astraia
 
         private static int GetHash(Type value)
         {
-            var result = 23;
-            foreach (var c in value.FullName!)
+            if (value != null)
             {
-                result = result * 31 + c;
+                var result = 23;
+                foreach (var c in value.FullName!)
+                {
+                    result = result * 31 + c;
+                }
+
+                return result;
             }
 
-            return result;
+            return 0;
         }
 
         private static void Modified(UIPanel panel, bool state)
