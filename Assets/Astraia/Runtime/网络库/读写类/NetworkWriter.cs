@@ -3,200 +3,269 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2026-08-30 15:08:49
+// # History: 2026-08-14 22:08:15
 // # Recently: 2026-09-06 15:32:39
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
 using System;
-using UnityEngine;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Astraia.Net
 {
-    public static class WriterExtensions
+    public static partial class WriterExtensions
     {
-        public static void WriteVector2(this MemoryWriter writer, Vector2 value)
+        public static void WriteByte(this MemoryWriter writer, byte value)
         {
             writer.Write(value);
         }
 
-        public static void WriteVector2Nullable(this MemoryWriter writer, Vector2? value)
+        public static void WriteByteNullable(this MemoryWriter writer, byte? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteVector3(this MemoryWriter writer, Vector3 value)
+        public static void WriteSByte(this MemoryWriter writer, sbyte value)
         {
             writer.Write(value);
         }
 
-        public static void WriteVector3Nullable(this MemoryWriter writer, Vector3? value)
+        public static void WriteSByteNullable(this MemoryWriter writer, sbyte? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteVector4(this MemoryWriter writer, Vector4 value)
+        public static void WriteChar(this MemoryWriter writer, char value)
+        {
+            writer.Write((ushort)value);
+        }
+
+        public static void WriteCharNullable(this MemoryWriter writer, char? value)
+        {
+            writer.WriteNullable((ushort?)value);
+        }
+
+        public static void WriteBool(this MemoryWriter writer, bool value)
+        {
+            writer.Write((byte)(value ? 1 : 0));
+        }
+
+        public static void WriteBoolNullable(this MemoryWriter writer, bool? value)
+        {
+            writer.WriteNullable(value.HasValue ? (byte)(value.Value ? 1 : 0) : new byte?());
+        }
+
+        public static void WriteInt16(this MemoryWriter writer, short value)
         {
             writer.Write(value);
         }
 
-        public static void WriteVector4Nullable(this MemoryWriter writer, Vector4? value)
+        public static void WriteInt16Nullable(this MemoryWriter writer, short? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteVector2Int(this MemoryWriter writer, Vector2Int value)
+        public static void WriteUInt16(this MemoryWriter writer, ushort value)
         {
-            writer.WriteInt32(value.x);
-            writer.WriteInt32(value.y);
+            writer.Write(value);
         }
 
-        public static void WriteVector2IntNullable(this MemoryWriter writer, Vector2Int? value)
+        public static void WriteUInt16Nullable(this MemoryWriter writer, ushort? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteVector3Int(this MemoryWriter writer, Vector3Int value)
+        public static void WriteInt32(this MemoryWriter writer, int value)
         {
-            writer.WriteInt32(value.x);
-            writer.WriteInt32(value.y);
-            writer.WriteInt32(value.z);
+            writer.WriteUInt32(Compress.ZigZagEncode(value));
         }
 
-        public static void WriteVector3IntNullable(this MemoryWriter writer, Vector3Int? value)
+        public static void WriteInt32Nullable(this MemoryWriter writer, int? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteQuaternion(this MemoryWriter writer, Quaternion value)
+        public static void WriteUInt32(this MemoryWriter writer, uint value)
         {
-            writer.Write(value);
+            Compress.EncodeUInt32(writer, value);
         }
 
-        public static void WriteQuaternionNullable(this MemoryWriter writer, Quaternion? value)
+        public static void WriteUInt32Nullable(this MemoryWriter writer, uint? value)
         {
             writer.WriteNullable(value);
         }
 
-        public static void WriteColor(this MemoryWriter writer, Color value)
+        public static void WriteInt64(this MemoryWriter writer, long value)
+        {
+            writer.WriteUInt64(Compress.ZigZagEncode(value));
+        }
+
+        public static void WriteInt64Nullable(this MemoryWriter writer, long? value)
+        {
+            writer.WriteNullable(value);
+        }
+
+        public static void WriteUInt64(this MemoryWriter writer, ulong value)
+        {
+            Compress.EncodeUInt64(writer, value);
+        }
+
+        public static void WriteUInt64Nullable(this MemoryWriter writer, ulong? value)
+        {
+            writer.WriteNullable(value);
+        }
+
+        public static void WriteFloat(this MemoryWriter writer, float value)
         {
             writer.Write(value);
         }
 
-        public static void WriteColor32(this MemoryWriter writer, Color32 value)
+        public static void WriteFloatNullable(this MemoryWriter writer, float? value)
+        {
+            writer.WriteNullable(value);
+        }
+
+        public static void WriteDouble(this MemoryWriter writer, double value)
         {
             writer.Write(value);
         }
 
-        public static void WriteRect(this MemoryWriter writer, Rect value)
+        public static void WriteDoubleNullable(this MemoryWriter writer, double? value)
         {
-            writer.WriteVector2(value.position);
-            writer.WriteVector2(value.size);
+            writer.WriteNullable(value);
         }
 
-        public static void WritePlane(this MemoryWriter writer, Plane value)
-        {
-            writer.WriteVector3(value.normal);
-            writer.WriteFloat(value.distance);
-        }
-
-        public static void WriteRay(this MemoryWriter writer, Ray value)
-        {
-            writer.WriteVector3(value.origin);
-            writer.WriteVector3(value.direction);
-        }
-
-        public static void WriteMatrix4x4(this MemoryWriter writer, Matrix4x4 value)
+        public static void WriteDecimal(this MemoryWriter writer, decimal value)
         {
             writer.Write(value);
         }
 
-        public static void WriteNetworkEntity(this MemoryWriter writer, NetworkEntity value)
+        public static void WriteDecimalNullable(this MemoryWriter writer, decimal? value)
+        {
+            writer.WriteNullable(value);
+        }
+
+        public static void WriteString(this MemoryWriter writer, string value)
         {
             if (value == null)
             {
-                writer.WriteUInt32(0);
+                writer.WriteUInt16(0);
                 return;
             }
 
-            if (value.objectId == 0)
+            writer.Resize(writer.position + 2 + Text.GetMaxByteCount(value.Length));
+            var count = Text.GetBytes(value, value.Length, writer.buffer, writer.position + 2);
+            if (count > ushort.MaxValue - 1)
             {
-                Log.Warn("网络对象的网络标识无效。");
-                writer.WriteUInt32(0);
+                throw new EndOfStreamException("写入字符串过长!");
+            }
+
+            writer.WriteUInt16(checked((ushort)(count + 1)));
+            writer.position += count;
+        }
+
+        public static void WriteBytes(this MemoryWriter writer, byte[] value)
+        {
+            if (value == null)
+            {
+                Compress.EncodeUInt32(writer, 0);
                 return;
             }
 
+            Compress.EncodeUInt32(writer, checked((uint)value.Length + 1));
+            writer.WriteBytes(value, 0, value.Length);
+        }
+
+        public static void WriteArraySegment(this MemoryWriter writer, ArraySegment<byte> value)
+        {
+            if (value == default)
+            {
+                Compress.EncodeUInt32(writer, 0);
+                return;
+            }
+
+            Compress.EncodeUInt32(writer, checked((uint)value.Count + 1));
+            writer.WriteBytes(value.Array, value.Offset, value.Count);
+        }
+
+        public static void WriteFixation(this MemoryWriter writer, Fixation value)
+        {
+            writer.WriteInt32(value.value);
+        }
+
+        public static void WritePosition(this MemoryWriter writer, Position value)
+        {
+            writer.WriteInt32(value.x.value);
+            writer.WriteInt32(value.y.value);
+        }
+
+        public static void WriterNetworkVariable(this MemoryWriter writer, NetworkVariable value)
+        {
             writer.WriteUInt32(value.objectId);
-        }
-
-        public static void WriteNetworkModule(this MemoryWriter writer, NetworkModule value)
-        {
-            if (value == null)
-            {
-                writer.WriteUInt32(0);
-                return;
-            }
-
-            writer.WriteNetworkEntity(value.owner);
             writer.WriteByte(value.moduleId);
         }
 
-        public static void WriteTransform(this MemoryWriter writer, Transform value)
+        public static void WriteDateTime(this MemoryWriter writer, DateTime value)
         {
-            if (value == null)
+            writer.WriteDouble(value.ToOADate());
+        }
+
+        public static void WriteList<T>(this MemoryWriter writer, List<T> values)
+        {
+            if (values == null)
             {
-                writer.WriteUInt32(0);
+                Compress.EncodeUInt32(writer, 0);
                 return;
             }
 
-            writer.WriteNetworkEntity(value.GetComponent<NetworkEntity>());
+            Compress.EncodeUInt32(writer, checked((uint)values.Count + 1));
+            foreach (var value in values)
+            {
+                writer.Invoke(value);
+            }
         }
 
-        public static void WriteGameObject(this MemoryWriter writer, GameObject value)
+        public static void WriteHashSet<T>(this MemoryWriter writer, HashSet<T> values)
         {
-            if (value == null)
+            if (values == null)
             {
-                writer.WriteUInt32(0);
+                Compress.EncodeUInt32(writer, 0);
                 return;
             }
 
-            writer.WriteNetworkEntity(value.GetComponent<NetworkEntity>());
+            Compress.EncodeUInt32(writer, checked((uint)values.Count + 1));
+            foreach (var value in values)
+            {
+                writer.Invoke(value);
+            }
         }
 
-        public static void WriteTexture2D(this MemoryWriter writer, Texture2D value)
+        public static void WriteArray<T>(this MemoryWriter writer, T[] values)
         {
-            if (value == null)
+            if (values == null)
             {
-                writer.WriteInt16(-1);
+                Compress.EncodeUInt32(writer, 0);
                 return;
             }
 
-            writer.WriteInt16((short)value.width);
-            writer.WriteInt16((short)value.height);
-            writer.WriteArray(value.GetPixels32());
+            Compress.EncodeUInt32(writer, checked((uint)values.Length + 1));
+            foreach (var value in values)
+            {
+                writer.Invoke(value);
+            }
         }
 
-        public static void WriteSprite(this MemoryWriter writer, Sprite value)
+        public static void WriteUri(this MemoryWriter writer, Uri value)
         {
             if (value == null)
             {
-                writer.WriteTexture2D(null);
+                writer.WriteString(null);
                 return;
             }
 
-            writer.WriteTexture2D(value.texture);
-            writer.WriteRect(value.rect);
-            writer.WriteVector2(value.pivot);
-        }
-
-        public static void WriteArraySegment<T>(this MemoryWriter writer, ArraySegment<T> value)
-        {
-            writer.WriteInt32(value.Count);
-            for (var i = 0; i < value.Count; i++)
-            {
-                writer.Invoke(value.Array![value.Offset + i]);
-            }
+            writer.WriteString(value.ToString());
         }
     }
 }

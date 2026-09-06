@@ -36,6 +36,11 @@ namespace Astraia
 
         public void Dispose()
         {
+            foreach (var definition in Definitions.Values)
+            {
+                definition.Dispose();
+            }
+
             GC.SuppressFinalize(this);
         }
 
