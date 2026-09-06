@@ -100,7 +100,7 @@ namespace Astraia
                     continue;
                 }
 
-                var reason = CustomExtensions.FindBaseMethod(td.BaseType, assembly, name);
+                var reason = FindBaseMethod(td.BaseType, assembly, name);
                 if (reason != null && reason.FullName != call.FullName)
                 {
                     instruction.Operand = reason;
@@ -126,10 +126,7 @@ namespace Astraia
 
             return false;
         }
-    }
 
-    internal static class CustomExtensions
-    {
         public static void InjectField(this MethodDefinition md, MethodReference method, FieldDefinition field)
         {
             var worker = md.Body.GetILProcessor();
@@ -193,10 +190,7 @@ namespace Astraia
                 // 运行时基类程序集已完成织入，方法引用可以正常解析。
                 if (type.Module != ad.MainModule && type.IsSubclassOf<Export>() && WillGenerateMethod(type, name))
                 {
-                    var reason = new MethodReference(name, ad.MainModule.ImportReference(typeof(void)), current)
-                    {
-                        HasThis = true
-                    };
+                    var reason = new MethodReference(name, ad.MainModule.ImportReference(typeof(void)), current) { HasThis = true };
                     return ad.MainModule.ImportReference(reason);
                 }
 
