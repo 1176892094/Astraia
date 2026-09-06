@@ -294,7 +294,7 @@ namespace Astraia.Editor
             return null;
         }
 
-        private static TypeReference GetBaseType(this TypeReference self)
+        internal static TypeReference GetBaseType(this TypeReference self)
         {
             var parent = self.Resolve().BaseType;
             if (parent is GenericInstanceType git)
