@@ -24,16 +24,6 @@ namespace Astraia
                 return false;
             }
 
-            // 程序集内的元数据顺序不保证基类在前。若基类的 Awake 由 IL 织入生成，
-            // 而派生类先被处理，GetMethod 会在基类链上直接找到更上层的 Export.Awake。
-            // 因此先递归处理当前程序集中的基类，确保派生类能找到最近的一层 Awake。
-            var parent = td.BaseType?.Resolve();
-            var modified = false;
-            if (parent != null && parent.Module == assembly.MainModule && parent.IsSubclassOf<Export>())
-            {
-                modified = Processed(assembly, parent, module, Log);
-            }
-
             var changed = false;
             // 显式声明的 Awake 里的 base.Awake() 在编译期只能引用当前存在的基类方法，
             // 跨程序集织入的 Actor.Awake 需要在这里把调用重定向到最终会生成的方法。
@@ -76,7 +66,7 @@ namespace Astraia
                 td.Methods.Add(method);
             }
 
-            return modified || changed;
+            return changed;
         }
 
         private static bool RepairLifecycle(AssemblyDefinition assembly, TypeDefinition td, string name)
@@ -184,11 +174,10 @@ namespace Astraia
                     return ad.MainModule.ImportReference(result);
                 }
 
-                // 基类在另一个程序集中时，Unity ILPP 会并行处理各程序集，
-                // 因此织入基类生成的 Awake/OnEnable 等方法在这里还看不到。
-                // 但既然基类同样会被织入，直接引用这个尚不存在的方法即可，
-                // 运行时基类程序集已完成织入，方法引用可以正常解析。
-                if (type.Module != ad.MainModule && type.IsSubclassOf<Export>() && WillGenerateMethod(type, name))
+                // Weaver 会沿继承链处理 Export 派生类，而跨程序集的 ILPP 也独立运行，
+                // 因此基类的 Awake/OnEnable 在这里可能还未生成。
+                // 直接引用这个尚不存在的方法即可，运行时所有程序集都完成织入后可以正常解析。
+                if (type.IsSubclassOf<Export>() && WillGenerateMethod(type, name))
                 {
                     var reason = new MethodReference(name, ad.MainModule.ImportReference(typeof(void)), current) { HasThis = true };
                     return ad.MainModule.ImportReference(reason);

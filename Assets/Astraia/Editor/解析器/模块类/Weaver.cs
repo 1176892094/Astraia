@@ -91,7 +91,17 @@ namespace Astraia
 
                     if (td.IsSubclassOf<Export>())
                     {
-                        modified |= EntityGenerator.Processed(assembly, td, module, debugger);
+                        var current = td;
+                        while (current != null)
+                        {
+                            if (current.Is<Export>())
+                            {
+                                break;
+                            }
+
+                            modified |= EntityGenerator.Processed(assembly, current, module, debugger);
+                            current = current.BaseType?.Resolve();
+                        }
                     }
                 }
 
