@@ -16,7 +16,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;
 
-namespace Astraia.Editor
+namespace Astraia
 {
     internal sealed class NetworkModuleGen
     {
@@ -26,7 +26,7 @@ namespace Astraia.Editor
         private readonly SyncVarAccess access;
         private readonly TypeDefinition create;
         private readonly NetworkSyncVar syncList;
-        private readonly ILogPostProcessor debugger;
+        private readonly AssemblyDebugger debugger;
         private readonly AssemblyDefinition assembly;
         private readonly SyncVarList<FieldDefinition> syncVars = new SyncVarList<FieldDefinition>();
         private readonly List<(MethodDefinition, int)> serverV1List = new List<(MethodDefinition, int)>();
@@ -36,7 +36,7 @@ namespace Astraia.Editor
         private readonly List<(MethodDefinition, int)> targetV1List = new List<(MethodDefinition, int)>();
         private readonly List<MethodDefinition> targetV2List = new List<MethodDefinition>();
 
-        public NetworkModuleGen(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader, ILogPostProcessor debugger, TypeDefinition create)
+        public NetworkModuleGen(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader, AssemblyDebugger debugger, TypeDefinition create)
         {
             this.create = create;
             this.module = module;

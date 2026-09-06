@@ -16,16 +16,16 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;
 
-namespace Astraia.Editor
+namespace Astraia
 {
     internal class NetworkSyncVar
     {
         private readonly Module module;
         private readonly SyncVarAccess access;
-        private readonly ILogPostProcessor debugger;
+        private readonly AssemblyDebugger debugger;
         private readonly AssemblyDefinition assembly;
 
-        public NetworkSyncVar(AssemblyDefinition assembly, SyncVarAccess access, Module module, ILogPostProcessor debugger)
+        public NetworkSyncVar(AssemblyDefinition assembly, SyncVarAccess access, Module module, AssemblyDebugger debugger)
         {
             this.access = access;
             this.module = module;

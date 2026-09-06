@@ -21,11 +21,11 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using Astraia.Net;
 
-namespace Astraia.Editor
+namespace Astraia
 {
     internal static class NetworkMemberGen
     {
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
         {
             ProcessAssembly(assembly, resolver, Log, writer, reader, ref failed);
             return ProcessProperty(assembly, assembly, Log, writer, reader, ref failed);
@@ -47,7 +47,7 @@ namespace Astraia.Editor
             create.Methods.Add(method);
         }
 
-        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
+        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
         {
             var ar = assembly.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == Weaver.WEAVER);
             AssemblyDefinition network = null;
@@ -117,7 +117,7 @@ namespace Astraia.Editor
             });
         }
 
-        private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition network, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
+        private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition network, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
         {
             var modified = ProcessExtensions(assembly.MainModule, network, writer, reader);
             modified |= ProcessMessages(assembly.MainModule, network, writer, reader, ref failed);
@@ -234,10 +234,10 @@ namespace Astraia.Editor
         private readonly Dictionary<string, MethodReference> genericMethods = new Dictionary<string, MethodReference>();
         protected readonly Module module;
         protected readonly TypeDefinition create;
-        protected readonly ILogPostProcessor Log;
+        protected readonly AssemblyDebugger Log;
         protected readonly AssemblyDefinition assembly;
 
-        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor Log)
+        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger Log)
         {
             this.Log = Log;
             this.module = module;
@@ -382,7 +382,7 @@ namespace Astraia.Editor
 
     internal class Writer : Stream
     {
-        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor debugger) : base(assembly, module, create, debugger)
+        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger debugger) : base(assembly, module, create, debugger)
         {
         }
 
@@ -515,7 +515,7 @@ namespace Astraia.Editor
 
     internal class Reader : Stream
     {
-        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor debugger) : base(assembly, module, create, debugger)
+        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger debugger) : base(assembly, module, create, debugger)
         {
         }
 
