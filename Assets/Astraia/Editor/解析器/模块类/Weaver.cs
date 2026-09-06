@@ -20,7 +20,7 @@ namespace Astraia
     using MA = MethodAttributes;
 
     [Serializable]
-    internal sealed class Weaver
+    internal static class Weaver
     {
         public const string WEAVER = "Astraia.Net";
         public const string MED_V1 = "V1";
@@ -29,8 +29,8 @@ namespace Astraia
         public const string MED_C2 = ".cctor";
         public const string MED_S1 = "SerializeSyncVars";
         public const string MED_S2 = "DeserializeSyncVars";
-        public const string MED_T2 = nameof(EntityGenerator);
-        public const string MED_T1 = nameof(AssemblyProcessor);
+        public const string MED_T2 = "EntityProcessor";
+        public const string MED_T1 = "NetworkProcessor";
         public const MA GEN_V1 = MA.HideBySig | MA.Family | MA.Static;
         public const MA GEN_V2 = MA.HideBySig | MA.Public | MA.Static;
         public const MA GEN_S1 = MA.HideBySig | MA.Public | MA.Virtual;
@@ -39,39 +39,38 @@ namespace Astraia
         public const MA GEN_C2 = MA.HideBySig | MA.Static | MA.SpecialName | MA.Private | MA.RTSpecialName;
         public const TA GEN_T1 = TA.AutoClass | TA.Public | TA.Class | TA.AnsiClass | TA.Abstract | TA.Sealed | TA.BeforeFieldInit;
 
-        public bool Weave(AssemblyDefinition assembly, AssemblyDebugger debugger, IAssemblyResolver resolver, bool success, out bool modified)
+        public static bool Weave(AssemblyDefinition assembly, AssemblyDebugger debugger, IAssemblyResolver resolver, bool network)
         {
-            modified = false;
             try
             {
-                var change = false;
+                var modify = false;
                 var failed = false;
                 var module = new Module(assembly, debugger, ref failed);
+
                 Writer writer = null;
                 Reader reader = null;
                 SyncVarAccess access = null;
-                TypeDefinition create = null;
+                TypeDefinition member = null;
 
-                if (success)
+                if (network)
                 {
                     if (assembly.MainModule.Types.Any(td => td.Namespace == WEAVER && td.Name == MED_T1))
                     {
-                        success = false;
+                        network = false;
                     }
                     else
                     {
                         access = new SyncVarAccess();
-                        create = new TypeDefinition(WEAVER, MED_T1, GEN_T1, module.Import<object>());
-                        writer = new Writer(assembly, module, create, debugger);
-                        reader = new Reader(assembly, module, create, debugger);
-                        change = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
+                        member = new TypeDefinition(WEAVER, MED_T1, GEN_T1, module.Import<object>());
+                        writer = new Writer(assembly, module, member, debugger);
+                        reader = new Reader(assembly, module, member, debugger);
+                        modify = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
                     }
                 }
 
-                var mainModule = assembly.MainModule;
-                foreach (var td in mainModule.Types)
+                foreach (var td in assembly.MainModule.Types)
                 {
-                    if (success)
+                    if (network)
                     {
                         if (td.IsSubclassOf<NetworkModule>())
                         {
@@ -83,7 +82,7 @@ namespace Astraia
                                     break;
                                 }
 
-                                change |= new NetworkModuleGen(assembly, access, module, writer, reader, debugger, current).Process(ref failed);
+                                modify |= new NetworkModuleGen(assembly, access, module, writer, reader, debugger, current).Process(ref failed);
                                 current = current.BaseType?.Resolve();
                             }
                         }
@@ -99,7 +98,7 @@ namespace Astraia
                                 break;
                             }
 
-                            modified |= EntityGenerator.Processed(assembly, current, module, debugger);
+                            modify |= EntityGenerator.Processed(assembly, current, module, debugger);
                             current = current.BaseType?.Resolve();
                         }
                     }
@@ -110,15 +109,14 @@ namespace Astraia
                     return false;
                 }
 
-                if (success && change)
+                if (network && modify)
                 {
-                    SyncVarReplace.Process(mainModule, access);
-                    mainModule.Types.Add(create);
-                    NetworkMemberGen.Processed(assembly, module, writer, reader, create);
+                    SyncVarReplace.Process(assembly.MainModule, access);
+                    assembly.MainModule.Types.Add(member);
+                    NetworkMemberGen.Processed(assembly, module, writer, reader, member);
                 }
 
-                modified |= change;
-                return true;
+                return modify;
             }
             catch (Exception e)
             {

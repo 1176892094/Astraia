@@ -64,27 +64,22 @@ namespace Astraia
             using var assembly = AssemblyDefinition.ReadAssembly(peData, readParams);
             resolver.SetAssemblyDefinitionForCompiledAssembly(assembly);
 
-            var opcode = 0;
+            var modified = false;
+            var verified = false;
             foreach (var r in assembly.MainModule.AssemblyReferences)
             {
                 switch (r.Name)
                 {
                     case "Astraia":
-                        opcode |= 1 << 0;
+                        modified = true;
                         break;
                     case "Astraia.Net":
-                        opcode |= 1 << 1;
+                        verified = true;
                         break;
                 }
             }
 
-            if (opcode == 0)
-            {
-                return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, debugger);
-            }
-
-            var result = compiledAssembly.Name == "Astraia.Net" || (opcode & 2) != 0;
-            if (new Weaver().Weave(assembly, debugger, resolver, result, out var modified) && modified)
+            if (modified && Weaver.Weave(assembly, debugger, resolver, verified | compiledAssembly.Name == "Astraia.Net"))
             {
                 var module = assembly.MainModule;
                 if (module.AssemblyReferences.Any(r => r.Name == assembly.Name.Name))

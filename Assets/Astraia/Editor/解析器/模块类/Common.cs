@@ -46,42 +46,22 @@ namespace Astraia
         public static bool IsSubclassOf(this TypeReference self, Type t)
         {
             var td = self.Resolve();
-            if (!td.IsClass)
+            while (td != null && td.IsClass)
             {
-                return false;
-            }
-
-            var tr = td.BaseType;
-            if (tr == null)
-            {
-                return false;
-            }
-
-            if (tr.Is(t))
-            {
-                return true;
-            }
-
-            return tr.CanResolve() && tr.Resolve().IsSubclassOf(t);
-        }
-
-        private static bool CanResolve(this TypeReference self)
-        {
-            while (self != null)
-            {
-                if (self.Scope.Name == "Windows")
+                var parent = td.BaseType;
+                if (parent == null)
                 {
                     return false;
                 }
 
-                if (self.Scope.Name == "mscorlib")
+                if (parent.Is(t))
                 {
-                    return self.Resolve() != null;
+                    return true;
                 }
 
                 try
                 {
-                    self = self.Resolve().BaseType;
+                    td = parent.Resolve();
                 }
                 catch
                 {
@@ -89,7 +69,7 @@ namespace Astraia
                 }
             }
 
-            return true;
+            return false;
         }
 
         public static bool HasAttribute<T>(this ICustomAttributeProvider self)
@@ -132,14 +112,9 @@ namespace Astraia
             return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Weaver.MED_C1 && md.Resolve().IsPublic && md.Parameters.Count == 0);
         }
 
-        private static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match)
-        {
-            return tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
-        }
-
         public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match, AssemblyDebugger Log, ref bool failed)
         {
-            var mr = tr.GetMethod(ad, match);
+            var mr = tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
             if (mr == null)
             {
                 Log.Error("在类型 {0} 中没有找到方法".Format(tr), tr);
@@ -151,7 +126,7 @@ namespace Astraia
 
         public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, string name, AssemblyDebugger Log, ref bool failed)
         {
-            var mr = tr.GetMethod(ad, method => method.Name == name);
+            var mr = tr.Resolve().Methods.Where(method => method.Name == name).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
             if (mr == null)
             {
                 Log.Error("在类型 {0} 中没有找到名称 {1} 的方法".Format(tr, name), tr);
