@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Astraia;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;
@@ -24,10 +23,10 @@ namespace Astraia
 {
     internal static class StreamProcess
     {
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, AssemblyDebugger debugger, Writer writer, Reader reader, ref bool failed)
         {
-            ProcessAssembly(assembly, resolver, Log, writer, reader, ref failed);
-            return ProcessProperty(assembly, assembly, Log, writer, reader, ref failed);
+            ProcessAssembly(assembly, resolver, debugger, writer, reader, ref failed);
+            return ProcessProperty(assembly, assembly, debugger, writer, reader, ref failed);
         }
 
         public static void Processed(AssemblyDefinition assembly, Module module, Writer writer, Reader reader, TypeDefinition create)
@@ -46,28 +45,28 @@ namespace Astraia
             create.Methods.Add(method);
         }
 
-        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
+        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, AssemblyDebugger debugger, Writer writer, Reader reader, ref bool failed)
         {
             var ar = assembly.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == Weaver.WEAVER);
             if (ar == null)
             {
-                Log.Error("没有找到 Astraia.Net 程序集");
+                debugger.Error("没有找到 Astraia.Net 程序集");
             }
             else
             {
                 var network = resolver.Resolve(ar);
                 if (network == null)
                 {
-                    Log.Error("网络程序集解析失败: {0}".Format(ar));
+                    debugger.Error("网络程序集解析失败: {0}".Format(ar));
                 }
                 else
                 {
-                    ProcessProperty(assembly, network, Log, writer, reader, ref failed);
+                    ProcessProperty(assembly, network, debugger, writer, reader, ref failed);
                 }
             }
         }
 
-        private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition network, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
+        private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition network, AssemblyDebugger debugger, Writer writer, Reader reader, ref bool failed)
         {
             var modified = false;
             foreach (var td in network.MainModule.Types.Where(td => td.IsAbstract && td.IsSealed))
@@ -162,12 +161,12 @@ namespace Astraia
         protected readonly Dictionary<TypeReference, MethodReference> methods = new Dictionary<TypeReference, MethodReference>(new Comparer());
         protected readonly Module module;
         protected readonly TypeDefinition create;
-        protected readonly AssemblyDebugger Log;
+        protected readonly AssemblyDebugger debugger;
         protected readonly AssemblyDefinition assembly;
 
-        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger Log)
+        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger debugger)
         {
-            this.Log = Log;
+            this.debugger = debugger;
             this.module = module;
             this.create = create;
             this.assembly = assembly;
@@ -192,7 +191,7 @@ namespace Astraia
             {
                 if (tr is ArrayType array && array.Rank > 1)
                 {
-                    Log.Error("无法为多维数组 {0} 生成代码".Format(tr.Name), tr);
+                    debugger.Error("无法为多维数组 {0} 生成代码".Format(tr.Name), tr);
                     failed = true;
                     return null;
                 }
@@ -203,14 +202,14 @@ namespace Astraia
             var td = tr.Resolve();
             if (td == null)
             {
-                Log.Error("无法为空类型 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为空类型 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.IsByReference) // ref and out
             {
-                Log.Error("无法为引用 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为引用 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
@@ -242,35 +241,35 @@ namespace Astraia
 
             if (td.IsSubclassOf<Component>())
             {
-                Log.Error("无法为组件 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为组件 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (tr.Is<Object>())
             {
-                Log.Error("无法为对象 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为对象 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.HasGenericParameters)
             {
-                Log.Error("无法为泛型参数 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为泛型参数 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsInterface)
             {
-                Log.Error("无法为接口 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为接口 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
 
             if (td.IsAbstract)
             {
-                Log.Error("无法为抽象或泛型 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为抽象或泛型 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return null;
             }
@@ -328,13 +327,13 @@ namespace Astraia
 
             if (func == null)
             {
-                Log.Error("无法为 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return md;
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(WriterExtensions));
-            var mr = extensions.GetMethod(assembly, "Write" + name, Log, ref failed);
+            var mr = extensions.GetMethod(assembly, "Write" + name, debugger, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -463,13 +462,13 @@ namespace Astraia
 
             if (func == null)
             {
-                Log.Error("无法为 {0} 生成代码".Format(tr.Name), tr);
+                debugger.Error("无法为 {0} 生成代码".Format(tr.Name), tr);
                 failed = true;
                 return md;
             }
 
             var extensions = assembly.MainModule.ImportReference(typeof(ReaderExtensions));
-            var mr = extensions.GetMethod(assembly, "Read" + name, Log, ref failed);
+            var mr = extensions.GetMethod(assembly, "Read" + name, debugger, ref failed);
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -507,7 +506,7 @@ namespace Astraia
                 var ctor = tr.GetConstructor();
                 if (ctor == null)
                 {
-                    Log.Error("{0} 不能被反序列化，因为它没有默认的构造函数".Format(tr.Name), tr);
+                    debugger.Error("{0} 不能被反序列化，因为它没有默认的构造函数".Format(tr.Name), tr);
                     failed = true;
                 }
                 else
@@ -533,7 +532,7 @@ namespace Astraia
                 }
                 else
                 {
-                    Log.Error("{0} 有不受支持的类型".Format(field.Name), field);
+                    debugger.Error("{0} 有不受支持的类型".Format(field.Name), field);
                     failed = true;
                 }
 

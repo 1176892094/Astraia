@@ -18,12 +18,12 @@ namespace Astraia
  
     internal static class RemoteProcess
     {
-        public static MethodDefinition ClientRpcV1(Module module, Writer writer, AssemblyDebugger Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
+        public static MethodDefinition ClientRpcV1(Module module, Writer writer, AssemblyDebugger debugger, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
-            var result = InvokeV1(Log, create, method, ref failed);
+            var result = InvokeV1(debugger, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
             ModuleProcess.WriterDequeue(worker, module);
-            if (ArgumentWriter(worker, writer, Log, method, InvokeMode.ClientRpc, ref failed))
+            if (ArgumentWriter(worker, writer, debugger, method, InvokeMode.ClientRpc, ref failed))
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldstr, method.FullName);
@@ -39,7 +39,7 @@ namespace Astraia
             return null;
         }
 
-        public static MethodDefinition ClientRpcV2(Module module, Reader reader, AssemblyDebugger Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ClientRpcV2(Module module, Reader reader, AssemblyDebugger debugger, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
             var result = new MethodDefinition(method.GetName(Weaver.MED_V2), Weaver.GEN_V1, module.Import(typeof(void)));
             var worker = result.Body.GetILProcessor();
@@ -48,7 +48,7 @@ namespace Astraia
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, create);
 
-            if (ArgumentReader(worker, reader, Log, method, InvokeMode.ClientRpc, ref failed))
+            if (ArgumentReader(worker, reader, debugger, method, InvokeMode.ClientRpc, ref failed))
             {
                 worker.Emit(OpCodes.Callvirt, func);
                 worker.Emit(OpCodes.Ret);
@@ -60,12 +60,12 @@ namespace Astraia
             return null;
         }
 
-        public static MethodDefinition ServerRpcV1(Module module, Writer writer, AssemblyDebugger Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
+        public static MethodDefinition ServerRpcV1(Module module, Writer writer, AssemblyDebugger debugger, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
-            var result = InvokeV1(Log, create, method, ref failed);
+            var result = InvokeV1(debugger, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
             ModuleProcess.WriterDequeue(worker, module);
-            if (ArgumentWriter(worker, writer, Log, method, InvokeMode.ServerRpc, ref failed))
+            if (ArgumentWriter(worker, writer, debugger, method, InvokeMode.ServerRpc, ref failed))
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(OpCodes.Ldstr, method.FullName);
@@ -81,7 +81,7 @@ namespace Astraia
             return null;
         }
 
-        public static MethodDefinition ServerRpcV2(Module module, Reader reader, AssemblyDebugger Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
+        public static MethodDefinition ServerRpcV2(Module module, Reader reader, AssemblyDebugger debugger, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
             var result = new MethodDefinition(method.GetName(Weaver.MED_V2), Weaver.GEN_V1, module.Import(typeof(void)));
             var worker = result.Body.GetILProcessor();
@@ -90,7 +90,7 @@ namespace Astraia
             worker.Emit(OpCodes.Ldarg_0);
             worker.Emit(OpCodes.Castclass, create);
 
-            if (ArgumentReader(worker, reader, Log, method, InvokeMode.ServerRpc, ref failed))
+            if (ArgumentReader(worker, reader, debugger, method, InvokeMode.ServerRpc, ref failed))
             {
                 worker.Emit(OpCodes.Callvirt, func);
                 worker.Emit(OpCodes.Ret);
@@ -102,12 +102,12 @@ namespace Astraia
             return null;
         }
 
-        public static MethodDefinition TargetRpcV1(Module module, Writer writer, AssemblyDebugger Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
+        public static MethodDefinition TargetRpcV1(Module module, Writer writer, AssemblyDebugger debugger, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
-            var result = InvokeV1(Log, create, method, ref failed);
+            var result = InvokeV1(debugger, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
             ModuleProcess.WriterDequeue(worker, module);
-            if (ArgumentWriter(worker, writer, Log, method, InvokeMode.TargetRpc, ref failed))
+            if (ArgumentWriter(worker, writer, debugger, method, InvokeMode.TargetRpc, ref failed))
             {
                 worker.Emit(OpCodes.Ldarg_0);
                 worker.Emit(IsNetworkClient(method) ? OpCodes.Ldarg_1 : OpCodes.Ldnull);
@@ -124,7 +124,7 @@ namespace Astraia
             return null;
         }
 
-        public static MethodDefinition TargetRpcV2(Module module, Reader reader, AssemblyDebugger Log, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
+        public static MethodDefinition TargetRpcV2(Module module, Reader reader, AssemblyDebugger debugger, TypeDefinition create, MethodDefinition method, MethodDefinition func, ref bool failed)
         {
             var result = new MethodDefinition(method.GetName(Weaver.MED_V2), Weaver.GEN_V1, module.Import(typeof(void)));
             var worker = result.Body.GetILProcessor();
@@ -138,7 +138,7 @@ namespace Astraia
                 worker.Emit(OpCodes.Ldnull);
             }
 
-            if (ArgumentReader(worker, reader, Log, method, InvokeMode.TargetRpc, ref failed))
+            if (ArgumentReader(worker, reader, debugger, method, InvokeMode.TargetRpc, ref failed))
             {
                 worker.Emit(OpCodes.Callvirt, func);
                 worker.Emit(OpCodes.Ret);
@@ -217,7 +217,7 @@ namespace Astraia
             }
         }
 
-        private static bool ArgumentWriter(ILProcessor worker, Writer writer, AssemblyDebugger Log, MethodDefinition md, InvokeMode mode, ref bool failed)
+        private static bool ArgumentWriter(ILProcessor worker, Writer writer, AssemblyDebugger debugger, MethodDefinition md, InvokeMode mode, ref bool failed)
         {
             var counter = 1;
             var skipped = mode == InvokeMode.TargetRpc && IsNetworkClient(md);
@@ -232,7 +232,7 @@ namespace Astraia
                 var func = writer.GetFunction(pd.ParameterType, ref failed);
                 if (func == null)
                 {
-                    Log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(md.Name, pd, pd.ParameterType), md);
+                    debugger.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(md.Name, pd, pd.ParameterType), md);
                     failed = true;
                     return false;
                 }
@@ -246,7 +246,7 @@ namespace Astraia
             return true;
         }
 
-        private static bool ArgumentReader(ILProcessor worker, Reader reader, AssemblyDebugger Log, MethodDefinition md, InvokeMode mode, ref bool failed)
+        private static bool ArgumentReader(ILProcessor worker, Reader reader, AssemblyDebugger debugger, MethodDefinition md, InvokeMode mode, ref bool failed)
         {
             var counter = 1;
             var skipped = mode == InvokeMode.TargetRpc && IsNetworkClient(md);
@@ -261,7 +261,7 @@ namespace Astraia
                 var func = reader.GetFunction(pd.ParameterType, ref failed);
                 if (func == null)
                 {
-                    Log.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(md.Name, pd, pd.ParameterType), md);
+                    debugger.Error("{0} 有无效的参数 {1}。不支持类型 {2}。".Format(md.Name, pd, pd.ParameterType), md);
                     failed = true;
                     return false;
                 }

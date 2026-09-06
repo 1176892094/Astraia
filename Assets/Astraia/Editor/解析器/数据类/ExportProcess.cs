@@ -17,7 +17,7 @@ namespace Astraia
 {
     internal static class ExportProcess
     {
-        public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, AssemblyDebugger Log)
+        public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, AssemblyDebugger debugger)
         {
             if (td.Methods.Any(m => m.Name == Weaver.MED_T2))
             {
