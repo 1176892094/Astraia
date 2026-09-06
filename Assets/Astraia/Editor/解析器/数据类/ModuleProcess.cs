@@ -18,14 +18,14 @@ using UnityEngine;
 
 namespace Astraia
 {
-    internal sealed class NetworkModuleGen
+    internal sealed class ModuleProcess
     {
         private readonly Module module;
         private readonly Writer writer;
         private readonly Reader reader;
         private readonly SyncVarAccess access;
         private readonly TypeDefinition create;
-        private readonly NetworkSyncVar syncList;
+        private readonly SyncVarProcess syncList;
         private readonly AssemblyDebugger debugger;
         private readonly AssemblyDefinition assembly;
         private readonly SyncVarList<FieldDefinition> syncVars = new SyncVarList<FieldDefinition>();
@@ -36,7 +36,7 @@ namespace Astraia
         private readonly List<(MethodDefinition, int)> targetV1List = new List<(MethodDefinition, int)>();
         private readonly List<MethodDefinition> targetV2List = new List<MethodDefinition>();
 
-        public NetworkModuleGen(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader, AssemblyDebugger debugger, TypeDefinition create)
+        public ModuleProcess(AssemblyDefinition assembly, SyncVarAccess access, Module module, Writer writer, Reader reader, AssemblyDebugger debugger, TypeDefinition create)
         {
             this.create = create;
             this.module = module;
@@ -45,7 +45,7 @@ namespace Astraia
             this.reader = reader;
             this.debugger = debugger;
             this.assembly = assembly;
-            syncList = new NetworkSyncVar(assembly, access, module, debugger);
+            syncList = new SyncVarProcess(assembly, access, module, debugger);
         }
 
         public bool Process(ref bool failed)
@@ -209,22 +209,22 @@ namespace Astraia
             if (mode == InvokeMode.ServerRpc)
             {
                 serverV1List.Add((md, source.GetArgument<int>()));
-                var funcV1 = NetworkMethodGen.ServerRpcV1(module, writer, debugger, create, md, source, ref failed);
-                var funcV2 = NetworkMethodGen.ServerRpcV2(module, reader, debugger, create, md, funcV1, ref failed);
+                var funcV1 = RemoteProcess.ServerRpcV1(module, writer, debugger, create, md, source, ref failed);
+                var funcV2 = RemoteProcess.ServerRpcV2(module, reader, debugger, create, md, funcV1, ref failed);
                 if (funcV2 != null) serverV2List.Add(funcV2);
             }
             else if (mode == InvokeMode.ClientRpc)
             {
                 clientV1List.Add((md, source.GetArgument<int>()));
-                var funcV1 = NetworkMethodGen.ClientRpcV1(module, writer, debugger, create, md, source, ref failed);
-                var funcV2 = NetworkMethodGen.ClientRpcV2(module, reader, debugger, create, md, funcV1, ref failed);
+                var funcV1 = RemoteProcess.ClientRpcV1(module, writer, debugger, create, md, source, ref failed);
+                var funcV2 = RemoteProcess.ClientRpcV2(module, reader, debugger, create, md, funcV1, ref failed);
                 if (funcV2 != null) clientV2List.Add(funcV2);
             }
             else if (mode == InvokeMode.TargetRpc)
             {
                 targetV1List.Add((md, source.GetArgument<int>()));
-                var funcV1 = NetworkMethodGen.TargetRpcV1(module, writer, debugger, create, md, source, ref failed);
-                var funcV2 = NetworkMethodGen.TargetRpcV2(module, reader, debugger, create, md, funcV1, ref failed);
+                var funcV1 = RemoteProcess.TargetRpcV1(module, writer, debugger, create, md, source, ref failed);
+                var funcV2 = RemoteProcess.TargetRpcV2(module, reader, debugger, create, md, funcV1, ref failed);
                 if (funcV2 != null) targetV2List.Add(funcV2);
             }
         }
@@ -501,49 +501,6 @@ namespace Astraia
                 worker.Emit(OpCodes.Call, func);
                 worker.Emit(OpCodes.Call, module.SyncVarGetterGeneral.MakeGeneric(assembly.MainModule, syncVar.FieldType));
             }
-        }
-    }
-
-    internal class SyncVarAccess
-    {
-        public readonly IDictionary<FieldDefinition, MethodDefinition> getter = new Dictionary<FieldDefinition, MethodDefinition>();
-        public readonly IDictionary<FieldDefinition, MethodDefinition> setter = new Dictionary<FieldDefinition, MethodDefinition>();
-        private readonly IDictionary<string, int> syncVars = new Dictionary<string, int>();
-
-        public int GetSyncVar(string className)
-        {
-            return syncVars.TryGetValue(className, out var value) ? value : 0;
-        }
-
-        public void SetSyncVar(string className, int index)
-        {
-            syncVars[className] = index;
-        }
-    }
-
-    internal class SyncVarList<T>
-    {
-        private readonly Dictionary<T, T> syncMaps = new Dictionary<T, T>();
-        private readonly List<T> syncVars = new List<T>();
-        public ICollection<T> Keys => syncVars;
-        public ICollection<T> Values => syncMaps.Values;
-        public int Count => syncVars.Count;
-
-        public T this[T key]
-        {
-            get => syncMaps[key];
-            set => syncMaps[key] = value;
-        }
-
-        public void Add(T key)
-        {
-            syncVars.Add(key);
-        }
-
-        public void Clear()
-        {
-            syncVars.Clear();
-            syncMaps.Clear();
         }
     }
 }

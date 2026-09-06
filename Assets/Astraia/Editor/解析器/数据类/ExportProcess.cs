@@ -15,7 +15,7 @@ using Mono.Cecil.Cil;
 
 namespace Astraia
 {
-    internal static class EntityGenerator
+    internal static class ExportProcess
     {
         public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, AssemblyDebugger Log)
         {
@@ -25,8 +25,6 @@ namespace Astraia
             }
 
             var changed = false;
-            // 显式声明的 Awake 里的 base.Awake() 在编译期只能引用当前存在的基类方法，
-            // 跨程序集织入的 Actor.Awake 需要在这里把调用重定向到最终会生成的方法。
             changed |= RepairLifecycle(assembly, td, "Awake");
             changed |= RepairLifecycle(assembly, td, "OnEnable");
             changed |= RepairLifecycle(assembly, td, "OnDisable");
@@ -117,7 +115,7 @@ namespace Astraia
             return false;
         }
 
-        public static void InjectField(this MethodDefinition md, MethodReference method, FieldDefinition field)
+        private static void InjectField(this MethodDefinition md, MethodReference method, FieldDefinition field)
         {
             var worker = md.Body.GetILProcessor();
             var target = md.Body.Instructions[0];
@@ -128,7 +126,7 @@ namespace Astraia
             worker.InsertBefore(target, worker.Create(OpCodes.Stfld, field));
         }
 
-        public static void InjectEvent(this MethodDefinition md, MethodReference method)
+        private static void InjectEvent(this MethodDefinition md, MethodReference method)
         {
             var worker = md.Body.GetILProcessor();
             var target = md.Body.Instructions[0];
@@ -136,7 +134,7 @@ namespace Astraia
             worker.InsertBefore(target, worker.Create(OpCodes.Call, method));
         }
 
-        public static MethodDefinition GetMethod(this TypeDefinition td, AssemblyDefinition ad, MethodAttributes attrs, string name)
+        private static MethodDefinition GetMethod(this TypeDefinition td, AssemblyDefinition ad, MethodAttributes attrs, string name)
         {
             var method = td.Methods.FirstOrDefault(m => m.Name == name && m.Parameters.Count == 0);
             if (method == null)
@@ -157,7 +155,7 @@ namespace Astraia
             return method;
         }
 
-        internal static MethodReference FindBaseMethod(TypeReference current, AssemblyDefinition ad, string name)
+        private static MethodReference FindBaseMethod(TypeReference current, AssemblyDefinition ad, string name)
         {
             while (current != null)
             {
@@ -173,13 +171,11 @@ namespace Astraia
 
                     return ad.MainModule.ImportReference(result);
                 }
-
-                // Weaver 会沿继承链处理 Export 派生类，而跨程序集的 ILPP 也独立运行，
-                // 因此基类的 Awake/OnEnable 在这里可能还未生成。
-                // 直接引用这个尚不存在的方法即可，运行时所有程序集都完成织入后可以正常解析。
+                
                 if (type.IsSubclassOf<Export>() && WillGenerateMethod(type, name))
                 {
-                    var reason = new MethodReference(name, ad.MainModule.ImportReference(typeof(void)), current) { HasThis = true };
+                    var reason = new MethodReference(name, ad.MainModule.ImportReference(typeof(void)), current);
+                    reason.HasThis = true;
                     return ad.MainModule.ImportReference(reason);
                 }
 

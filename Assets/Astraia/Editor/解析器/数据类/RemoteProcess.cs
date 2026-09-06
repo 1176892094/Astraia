@@ -15,20 +15,14 @@ using Mono.Cecil.Cil;
 
 namespace Astraia
 {
-    internal enum InvokeMode : byte
-    {
-        ServerRpc,
-        ClientRpc,
-        TargetRpc,
-    }
-
-    internal static class NetworkMethodGen
+ 
+    internal static class RemoteProcess
     {
         public static MethodDefinition ClientRpcV1(Module module, Writer writer, AssemblyDebugger Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
         {
             var result = InvokeV1(Log, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
-            NetworkModuleGen.WriterDequeue(worker, module);
+            ModuleProcess.WriterDequeue(worker, module);
             if (ArgumentWriter(worker, writer, Log, method, InvokeMode.ClientRpc, ref failed))
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -37,7 +31,7 @@ namespace Astraia
                 worker.Emit(OpCodes.Ldloc_0);
                 worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
                 worker.Emit(OpCodes.Callvirt, module.SendClientRpcInternal);
-                NetworkModuleGen.WriterEnqueue(worker, module);
+                ModuleProcess.WriterEnqueue(worker, module);
                 worker.Emit(OpCodes.Ret);
                 return result;
             }
@@ -58,7 +52,7 @@ namespace Astraia
             {
                 worker.Emit(OpCodes.Callvirt, func);
                 worker.Emit(OpCodes.Ret);
-                NetworkModuleGen.AddParameters(module, result.Parameters);
+                ModuleProcess.AddParameters(module, result.Parameters);
                 create.Methods.Add(result);
                 return result;
             }
@@ -70,7 +64,7 @@ namespace Astraia
         {
             var result = InvokeV1(Log, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
-            NetworkModuleGen.WriterDequeue(worker, module);
+            ModuleProcess.WriterDequeue(worker, module);
             if (ArgumentWriter(worker, writer, Log, method, InvokeMode.ServerRpc, ref failed))
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -79,7 +73,7 @@ namespace Astraia
                 worker.Emit(OpCodes.Ldloc_0);
                 worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
                 worker.Emit(OpCodes.Call, module.SendServerRpcInternal);
-                NetworkModuleGen.WriterEnqueue(worker, module);
+                ModuleProcess.WriterEnqueue(worker, module);
                 worker.Emit(OpCodes.Ret);
                 return result;
             }
@@ -100,7 +94,7 @@ namespace Astraia
             {
                 worker.Emit(OpCodes.Callvirt, func);
                 worker.Emit(OpCodes.Ret);
-                NetworkModuleGen.AddParameters(module, result.Parameters);
+                ModuleProcess.AddParameters(module, result.Parameters);
                 create.Methods.Add(result);
                 return result;
             }
@@ -112,7 +106,7 @@ namespace Astraia
         {
             var result = InvokeV1(Log, create, method, ref failed);
             var worker = method.Body.GetILProcessor();
-            NetworkModuleGen.WriterDequeue(worker, module);
+            ModuleProcess.WriterDequeue(worker, module);
             if (ArgumentWriter(worker, writer, Log, method, InvokeMode.TargetRpc, ref failed))
             {
                 worker.Emit(OpCodes.Ldarg_0);
@@ -122,7 +116,7 @@ namespace Astraia
                 worker.Emit(OpCodes.Ldloc_0);
                 worker.Emit(OpCodes.Ldc_I4, args.GetArgument<int>());
                 worker.Emit(OpCodes.Callvirt, module.SendTargetRpcInternal);
-                NetworkModuleGen.WriterEnqueue(worker, module);
+                ModuleProcess.WriterEnqueue(worker, module);
                 worker.Emit(OpCodes.Ret);
                 return result;
             }
@@ -148,7 +142,7 @@ namespace Astraia
             {
                 worker.Emit(OpCodes.Callvirt, func);
                 worker.Emit(OpCodes.Ret);
-                NetworkModuleGen.AddParameters(module, result.Parameters);
+                ModuleProcess.AddParameters(module, result.Parameters);
                 create.Methods.Add(result);
                 return result;
             }

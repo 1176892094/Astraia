@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Astraia;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;
@@ -23,7 +22,7 @@ using Astraia.Net;
 
 namespace Astraia
 {
-    internal static class NetworkMemberGen
+    internal static class StreamProcess
     {
         public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
         {
@@ -103,18 +102,19 @@ namespace Astraia
 
         private static AssemblyDefinition ReadPlugin(IAssemblyResolver resolver)
         {
+#if UNITY_6000_4_OR_NEWER
+            var location = typeof(MemoryReader).Assembly.GetLoadedAssemblyPath();
+#else
             var location = typeof(MemoryReader).Assembly.Location;
+#endif
+
             if (string.IsNullOrEmpty(location) || !File.Exists(location))
             {
                 return null;
             }
 
             using var stream = new FileStream(location, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            return AssemblyDefinition.ReadAssembly(stream, new ReaderParameters
-            {
-                AssemblyResolver = resolver,
-                ReadingMode = ReadingMode.Immediate
-            });
+            return AssemblyDefinition.ReadAssembly(stream, new ReaderParameters { AssemblyResolver = resolver, ReadingMode = ReadingMode.Immediate });
         }
 
         private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition network, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
@@ -382,9 +382,7 @@ namespace Astraia
 
     internal class Writer : Stream
     {
-        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger debugger) : base(assembly, module, create, debugger)
-        {
-        }
+        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger debugger) : base(assembly, module, create, debugger) { }
 
         protected override MethodDefinition AddEnum(TypeReference tr, ref bool failed)
         {
@@ -515,9 +513,7 @@ namespace Astraia
 
     internal class Reader : Stream
     {
-        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger debugger) : base(assembly, module, create, debugger)
-        {
-        }
+        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger debugger) : base(assembly, module, create, debugger) { }
 
         protected override MethodDefinition AddEnum(TypeReference tr, ref bool failed)
         {

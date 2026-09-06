@@ -19,7 +19,7 @@ using System.IO;
 using UnityEditor.Android;
 
 [InitializeOnLoad]
-public class AndroidManifestHelper : IPreprocessBuildWithReport, IPostprocessBuildWithReport, IPostGenerateGradleAndroidProject
+internal class AndroidManifestHelper : IPreprocessBuildWithReport, IPostprocessBuildWithReport, IPostGenerateGradleAndroidProject
 {
     public int callbackOrder => 99999;
 

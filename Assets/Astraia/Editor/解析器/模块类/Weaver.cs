@@ -16,8 +16,8 @@ using Astraia.Net;
 
 namespace Astraia
 {
-    using TA = TypeAttributes;
-    using MA = MethodAttributes;
+    using T = TypeAttributes;
+    using M = MethodAttributes;
 
     [Serializable]
     internal static class Weaver
@@ -31,19 +31,19 @@ namespace Astraia
         public const string MED_S2 = "DeserializeSyncVars";
         public const string MED_T2 = "EntityProcessor";
         public const string MED_T1 = "NetworkProcessor";
-        public const MA GEN_V1 = MA.HideBySig | MA.Family | MA.Static;
-        public const MA GEN_V2 = MA.HideBySig | MA.Public | MA.Static;
-        public const MA GEN_S1 = MA.HideBySig | MA.Public | MA.Virtual;
-        public const MA GEN_S2 = MA.HideBySig | MA.Family | MA.Virtual;
-        public const MA GEN_S3 = MA.HideBySig | MA.Public | MA.SpecialName;
-        public const MA GEN_C2 = MA.HideBySig | MA.Static | MA.SpecialName | MA.Private | MA.RTSpecialName;
-        public const TA GEN_T1 = TA.AutoClass | TA.Public | TA.Class | TA.AnsiClass | TA.Abstract | TA.Sealed | TA.BeforeFieldInit;
+        public const M GEN_V1 = M.HideBySig | M.Family | M.Static;
+        public const M GEN_V2 = M.HideBySig | M.Public | M.Static;
+        public const M GEN_S1 = M.HideBySig | M.Public | M.Virtual;
+        public const M GEN_S2 = M.HideBySig | M.Family | M.Virtual;
+        public const M GEN_S3 = M.HideBySig | M.Public | M.SpecialName;
+        public const M GEN_C2 = M.HideBySig | M.Static | M.SpecialName | M.Private | M.RTSpecialName;
+        public const T GEN_T1 = T.AutoClass | T.Public | T.Class | T.AnsiClass | T.Abstract | T.Sealed | T.BeforeFieldInit;
 
-        public static bool Weave(AssemblyDefinition assembly, AssemblyDebugger debugger, IAssemblyResolver resolver, bool network)
+        public static bool Weave(AssemblyDefinition assembly, AssemblyDebugger debugger, IAssemblyResolver resolver, bool verified)
         {
             try
             {
-                var modify = false;
+                var change = false;
                 var failed = false;
                 var module = new Module(assembly, debugger, ref failed);
 
@@ -52,11 +52,11 @@ namespace Astraia
                 SyncVarAccess access = null;
                 TypeDefinition member = null;
 
-                if (network)
+                if (verified)
                 {
                     if (assembly.MainModule.Types.Any(td => td.Namespace == WEAVER && td.Name == MED_T1))
                     {
-                        network = false;
+                        verified = false;
                     }
                     else
                     {
@@ -64,13 +64,13 @@ namespace Astraia
                         member = new TypeDefinition(WEAVER, MED_T1, GEN_T1, module.Import<object>());
                         writer = new Writer(assembly, module, member, debugger);
                         reader = new Reader(assembly, module, member, debugger);
-                        modify = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
+                        change = StreamProcess.Process(assembly, resolver, debugger, writer, reader, ref failed);
                     }
                 }
 
                 foreach (var td in assembly.MainModule.Types)
                 {
-                    if (network)
+                    if (verified)
                     {
                         if (td.IsSubclassOf<NetworkModule>())
                         {
@@ -82,7 +82,7 @@ namespace Astraia
                                     break;
                                 }
 
-                                modify |= new NetworkModuleGen(assembly, access, module, writer, reader, debugger, current).Process(ref failed);
+                                change |= new ModuleProcess(assembly, access, module, writer, reader, debugger, current).Process(ref failed);
                                 current = current.BaseType?.Resolve();
                             }
                         }
@@ -98,7 +98,7 @@ namespace Astraia
                                 break;
                             }
 
-                            modify |= EntityGenerator.Processed(assembly, current, module, debugger);
+                            change |= ExportProcess.Processed(assembly, current, module, debugger);
                             current = current.BaseType?.Resolve();
                         }
                     }
@@ -109,14 +109,14 @@ namespace Astraia
                     return false;
                 }
 
-                if (network && modify)
+                if (verified && change)
                 {
                     SyncVarReplace.Process(assembly.MainModule, access);
                     assembly.MainModule.Types.Add(member);
-                    NetworkMemberGen.Processed(assembly, module, writer, reader, member);
+                    StreamProcess.Processed(assembly, module, writer, reader, member);
                 }
 
-                return modify;
+                return change;
             }
             catch (Exception e)
             {
@@ -124,5 +124,12 @@ namespace Astraia
                 return false;
             }
         }
+    }
+
+    internal enum InvokeMode : byte
+    {
+        ServerRpc,
+        ClientRpc,
+        TargetRpc,
     }
 }

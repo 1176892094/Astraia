@@ -9,6 +9,7 @@
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
+using System;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
@@ -17,6 +18,7 @@ using Unity.CompilationPipeline.Common.ILPostProcessing;
 
 namespace Astraia
 {
+    [Serializable]
     internal sealed class AssemblyProcessor : ILPostProcessor
     {
         public override ILPostProcessor GetInstance() => this;
