@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Astraia;
@@ -49,36 +50,98 @@ namespace Astraia.Editor
         private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
         {
             var ar = assembly.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == Weaver.WEAVER);
+            AssemblyDefinition network = null;
             if (ar == null)
             {
                 Log.Error("没有找到 Astraia.Net 程序集");
             }
             else
             {
-                var network = resolver.Resolve(ar);
+                network = resolver.Resolve(ar);
                 if (network == null)
                 {
                     Log.Error("网络程序集解析失败: {0}".Format(ar));
                 }
                 else
                 {
-                    ProcessProperty(assembly, network, Log, writer, reader, ref failed);
+                    ProcessExtensions(assembly.MainModule, network, writer, reader);
                 }
             }
+
+            // Astraia.dll 插件里的 L.读写类 提供基础序列化方法，
+            // 需要单独扫描，避免只处理 Astraia.Net 程序集里的 Unity 专用方法。
+            var core = ResolveAssembly(assembly, resolver, "Astraia");
+            core ??= ReadPlugin(resolver);
+            if (core != null)
+            {
+                ProcessExtensions(assembly.MainModule, core, writer, reader);
+            }
+
+            if (network != null)
+            {
+                ProcessMessages(assembly.MainModule, network, writer, reader, ref failed);
+            }
+        }
+
+        private static AssemblyDefinition ResolveAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, string name)
+        {
+            var reference = assembly.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == name);
+            if (reference != null)
+            {
+                return resolver.Resolve(reference);
+            }
+
+            try
+            {
+                return resolver.Resolve(new AssemblyNameReference(name, new Version(0, 0, 0, 0)));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static AssemblyDefinition ReadPlugin(IAssemblyResolver resolver)
+        {
+            var location = typeof(MemoryReader).Assembly.Location;
+            if (string.IsNullOrEmpty(location) || !File.Exists(location))
+            {
+                return null;
+            }
+
+            using var stream = new FileStream(location, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            return AssemblyDefinition.ReadAssembly(stream, new ReaderParameters
+            {
+                AssemblyResolver = resolver,
+                ReadingMode = ReadingMode.Immediate
+            });
         }
 
         private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition network, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
         {
+            var modified = ProcessExtensions(assembly.MainModule, network, writer, reader);
+            modified |= ProcessMessages(assembly.MainModule, network, writer, reader, ref failed);
+            return modified;
+        }
+
+        private static bool ProcessExtensions(ModuleDefinition module, AssemblyDefinition source, Writer writer, Reader reader)
+        {
             var modified = false;
-            foreach (var td in network.MainModule.Types.Where(td => td.IsAbstract && td.IsSealed))
+            foreach (var td in source.MainModule.Types.Where(td => td.IsAbstract && td.IsSealed))
             {
-                modified |= ProcessWriter(assembly.MainModule, td, writer);
-                modified |= ProcessReader(assembly.MainModule, td, reader);
+                modified |= ProcessWriter(module, td, writer);
+                modified |= ProcessReader(module, td, reader);
             }
 
-            foreach (var td in network.MainModule.Types)
+            return modified;
+        }
+
+        private static bool ProcessMessages(ModuleDefinition module, AssemblyDefinition source, Writer writer, Reader reader, ref bool failed)
+        {
+            var modified = false;
+            foreach (var td in source.MainModule.Types)
             {
-                modified |= ProcessMessage(assembly.MainModule, td, writer, reader, ref failed);
+                modified |= ProcessMessage(module, td, writer, reader, ref failed);
             }
 
             return modified;
@@ -102,7 +165,11 @@ namespace Astraia.Editor
                     continue;
 
                 if (md.HasGenericParameters)
+                {
+                    writer.RegisterGeneric(md.Name, module.ImportReference(md));
+                    modified = true;
                     continue;
+                }
 
                 writer.Register(md.Parameters[1].ParameterType, module.ImportReference(md));
                 modified = true;
@@ -129,7 +196,11 @@ namespace Astraia.Editor
                     continue;
 
                 if (md.HasGenericParameters)
+                {
+                    reader.RegisterGeneric(md.Name, module.ImportReference(md));
+                    modified = true;
                     continue;
+                }
 
                 reader.Register(md.ReturnType, module.ImportReference(md));
                 modified = true;
@@ -160,6 +231,7 @@ namespace Astraia.Editor
     internal abstract class Stream
     {
         protected readonly Dictionary<TypeReference, MethodReference> methods = new Dictionary<TypeReference, MethodReference>(new Comparer());
+        private readonly Dictionary<string, MethodReference> genericMethods = new Dictionary<string, MethodReference>();
         protected readonly Module module;
         protected readonly TypeDefinition create;
         protected readonly ILogPostProcessor Log;
@@ -179,6 +251,16 @@ namespace Astraia.Editor
             {
                 methods[assembly.MainModule.ImportReference(tr)] = mr;
             }
+        }
+
+        public void RegisterGeneric(string name, MethodReference mr)
+        {
+            genericMethods[name] = mr;
+        }
+
+        public MethodReference GetGenericMethod(string name)
+        {
+            return genericMethods.TryGetValue(name, out var method) ? method : null;
         }
 
         public MethodReference GetFunction(TypeReference tr, ref bool failed)
@@ -333,8 +415,13 @@ namespace Astraia.Editor
                 return md;
             }
 
-            var extensions = assembly.MainModule.ImportReference(typeof(WriterExtensions));
-            var mr = extensions.GetMethod(assembly, "Write" + name, Log, ref failed);
+            var mr = GetGenericMethod("Write" + name);
+            if (mr == null)
+            {
+                Log.Error("没有找到 {0} 的拓展方法".Format("Write" + name));
+                failed = true;
+                return md;
+            }
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);
@@ -468,8 +555,13 @@ namespace Astraia.Editor
                 return md;
             }
 
-            var extensions = assembly.MainModule.ImportReference(typeof(ReaderExtensions));
-            var mr = extensions.GetMethod(assembly, "Read" + name, Log, ref failed);
+            var mr = GetGenericMethod("Read" + name);
+            if (mr == null)
+            {
+                Log.Error("没有找到 {0} 的拓展方法".Format("Read" + name));
+                failed = true;
+                return md;
+            }
 
             var method = new GenericInstanceMethod(mr);
             method.GenericArguments.Add(element);

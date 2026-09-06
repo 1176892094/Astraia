@@ -3,259 +3,162 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2026-08-14 22:08:15
+// # History: 2026-08-30 15:08:49
 // # Recently: 2026-09-06 15:32:39
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.IO;
+using UnityEngine;
 
 namespace Astraia.Net
 {
-    public static partial class ReaderExtensions
+    public static class ReaderExtensions
     {
-        public static byte ReadByte(this MemoryReader reader)
+        public static Vector2 ReadVector2(this MemoryReader reader)
         {
-            return reader.Read<byte>();
+            return reader.Read<Vector2>();
         }
 
-        public static byte? ReadByteNullable(this MemoryReader reader)
+        public static Vector2? ReadVector2Nullable(this MemoryReader reader)
         {
-            return reader.ReadNullable<byte>();
+            return reader.ReadNullable<Vector2>();
         }
 
-        public static sbyte ReadSByte(this MemoryReader reader)
+        public static Vector3 ReadVector3(this MemoryReader reader)
         {
-            return reader.Read<sbyte>();
+            return reader.Read<Vector3>();
         }
 
-        public static sbyte? ReadSByteNullable(this MemoryReader reader)
+        public static Vector3? ReadVector3Nullable(this MemoryReader reader)
         {
-            return reader.ReadNullable<sbyte>();
+            return reader.ReadNullable<Vector3>();
         }
 
-        public static char ReadChar(this MemoryReader reader)
+        public static Vector4 ReadVector4(this MemoryReader reader)
         {
-            return (char)reader.Read<ushort>();
+            return reader.Read<Vector4>();
         }
 
-        public static char? ReadCharNullable(this MemoryReader reader)
+        public static Vector4? ReadVector4Nullable(this MemoryReader reader)
         {
-            return (char?)reader.ReadNullable<ushort>();
+            return reader.ReadNullable<Vector4>();
         }
 
-        public static bool ReadBool(this MemoryReader reader)
+        public static Vector2Int ReadVector2Int(this MemoryReader reader)
         {
-            return reader.Read<byte>() != 0;
+            var x = reader.ReadInt32();
+            var y = reader.ReadInt32();
+            return new Vector2Int(x, y);
         }
 
-        public static bool? ReadBoolNullable(this MemoryReader reader)
+        public static Vector2Int? ReadVector2IntNullable(this MemoryReader reader)
         {
-            var value = reader.ReadNullable<byte>();
-            return value.HasValue ? value.Value != 0 : default(bool?);
+            return reader.ReadNullable<Vector2Int>();
         }
 
-        public static short ReadInt16(this MemoryReader reader)
+        public static Vector3Int ReadVector3Int(this MemoryReader reader)
         {
-            return reader.Read<short>();
+            var x = reader.ReadInt32();
+            var y = reader.ReadInt32();
+            var z = reader.ReadInt32();
+            return new Vector3Int(x, y, z);
         }
 
-        public static short? ReadInt16Nullable(this MemoryReader reader)
+        public static Vector3Int? ReadVector3IntNullable(this MemoryReader reader)
         {
-            return reader.ReadNullable<short>();
+            return reader.ReadNullable<Vector3Int>();
         }
 
-        public static ushort ReadUInt16(this MemoryReader reader)
+        public static Quaternion ReadQuaternion(this MemoryReader reader)
         {
-            return reader.Read<ushort>();
+            return reader.Read<Quaternion>();
         }
 
-        public static ushort? ReadUInt16Nullable(this MemoryReader reader)
+        public static Quaternion? ReadQuaternionNullable(this MemoryReader reader)
         {
-            return reader.ReadNullable<ushort>();
+            return reader.ReadNullable<Quaternion>();
         }
 
-        public static int ReadInt32(this MemoryReader reader)
+        public static Color ReadColor(this MemoryReader reader)
         {
-            return Compress.ZigZagDecode(reader.ReadUInt32());
+            return reader.Read<Color>();
         }
 
-        public static int? ReadInt32Nullable(this MemoryReader reader)
+        public static Color32 ReadColor32(this MemoryReader reader)
         {
-            return reader.ReadNullable<int>();
+            return reader.Read<Color32>();
         }
 
-        public static uint ReadUInt32(this MemoryReader reader)
+        public static Rect ReadRect(this MemoryReader reader)
         {
-            return Compress.DecodeUInt32(reader);
+            return new Rect(reader.ReadVector2(), reader.ReadVector2());
         }
 
-        public static uint? ReadUInt32Nullable(this MemoryReader reader)
+        public static Plane ReadPlane(this MemoryReader reader)
         {
-            return reader.ReadNullable<uint>();
+            return new Plane(reader.ReadVector3(), reader.ReadFloat());
         }
 
-        public static long ReadInt64(this MemoryReader reader)
+        public static Ray ReadRay(this MemoryReader reader)
         {
-            return Compress.ZigZagDecode(reader.ReadUInt64());
+            return new Ray(reader.ReadVector3(), reader.ReadVector3());
         }
 
-        public static long? ReadInt64Nullable(this MemoryReader reader)
+        public static Matrix4x4 ReadMatrix4x4(this MemoryReader reader)
         {
-            return reader.ReadNullable<long>();
+            return reader.Read<Matrix4x4>();
         }
 
-        public static ulong ReadUInt64(this MemoryReader reader)
+        public static NetworkEntity ReadNetworkEntity(this MemoryReader reader)
         {
-            return Compress.DecodeUInt64(reader);
+            var objectId = reader.ReadUInt32();
+            return objectId != 0 ? (NetworkEntity)objectId : null;
         }
 
-        public static ulong? ReadUInt64Nullable(this MemoryReader reader)
+        public static NetworkModule ReadNetworkModule(this MemoryReader reader)
         {
-            return reader.ReadNullable<ulong>();
+            var entity = reader.ReadNetworkEntity();
+            return entity ? entity.modules[reader.ReadByte()] : null;
         }
 
-        public static float ReadFloat(this MemoryReader reader)
+        public static Transform ReadTransform(this MemoryReader reader)
         {
-            return reader.Read<float>();
+            var entity = reader.ReadNetworkEntity();
+            return entity ? entity.transform : null;
         }
 
-        public static float? ReadFloatNullable(this MemoryReader reader)
+        public static GameObject ReadGameObject(this MemoryReader reader)
         {
-            return reader.ReadNullable<float>();
+            var entity = reader.ReadNetworkEntity();
+            return entity ? entity.gameObject : null;
         }
 
-        public static double ReadDouble(this MemoryReader reader)
+        public static Texture2D ReadTexture2D(this MemoryReader reader)
         {
-            return reader.Read<double>();
-        }
-
-        public static double? ReadDoubleNullable(this MemoryReader reader)
-        {
-            return reader.ReadNullable<double>();
-        }
-
-        public static decimal ReadDecimal(this MemoryReader reader)
-        {
-            return reader.Read<decimal>();
-        }
-
-        public static decimal? ReadDecimalNullable(this MemoryReader reader)
-        {
-            return reader.ReadNullable<decimal>();
-        }
-
-        public static string ReadString(this MemoryReader reader)
-        {
-            var count = reader.ReadUInt16();
-            if (count == 0)
+            var width = reader.ReadInt16();
+            if (width < 0)
             {
                 return null;
             }
 
-            count = (ushort)(count - 1);
-            if (count > ushort.MaxValue - 1)
-            {
-                throw new EndOfStreamException("读取字符串过长!");
-            }
-
-            var segment = reader.ReadArraySegment(count);
-            return Text.GetString(segment.Array, segment.Offset, segment.Count);
+            var height = reader.ReadInt16();
+            var texture = new Texture2D(width, height);
+            var pixels = reader.ReadArray<Color32>();
+            texture.SetPixels32(pixels);
+            texture.Apply();
+            return texture;
         }
 
-        public static byte[] ReadBytes(this MemoryReader reader)
+        public static Sprite ReadSprite(this MemoryReader reader)
         {
-            var count = Compress.DecodeUInt32(reader);
-            if (count == 0)
-            {
-                return null;
-            }
-
-            var bytes = new byte[count - 1];
-            reader.ReadBytes(bytes, checked((int)(count - 1)));
-            return bytes;
+            var texture = reader.ReadTexture2D();
+            return texture == null ? null : Sprite.Create(texture, reader.ReadRect(), reader.ReadVector2());
         }
 
-        public static ArraySegment<byte> ReadArraySegment(this MemoryReader reader)
+        public static T ReadNetworkModule<T>(this MemoryReader reader) where T : NetworkModule
         {
-            var count = Compress.DecodeUInt32(reader);
-            return count == 0 ? default : reader.ReadArraySegment(checked((int)(count - 1)));
-        }
-
-        public static Fixation ReadFixation(this MemoryReader reader)
-        {
-            return new Fixation(reader.ReadInt32());
-        }
-
-        public static Position ReadPosition(this MemoryReader reader)
-        {
-            var x = new Fixation(reader.ReadInt32());
-            var y = new Fixation(reader.ReadInt32());
-            return new Position(x, y);
-        }
-
-        public static NetworkVariable ReadNetworkVariable(this MemoryReader reader)
-        {
-            return new NetworkVariable(reader.ReadUInt32(), reader.ReadByte());
-        }
-
-        public static DateTime ReadDateTime(this MemoryReader reader)
-        {
-            return DateTime.FromOADate(reader.ReadDouble());
-        }
-
-        public static List<T> ReadList<T>(this MemoryReader reader)
-        {
-            var count = Compress.DecodeUInt32(reader);
-            if (count == 0) return null;
-
-            count--;
-            var result = new List<T>(checked((int)count));
-            for (var i = 0; i < count; i++)
-            {
-                result.Add(reader.Invoke<T>());
-            }
-
-            return result;
-        }
-
-        public static HashSet<T> ReadHashSet<T>(this MemoryReader reader)
-        {
-            var count = Compress.DecodeUInt32(reader);
-            if (count == 0) return null;
-
-            count--;
-            var result = new HashSet<T>(checked((int)count));
-            for (var i = 0; i < count; i++)
-            {
-                result.Add(reader.Invoke<T>());
-            }
-
-            return result;
-        }
-
-        public static T[] ReadArray<T>(this MemoryReader reader)
-        {
-            var count = Compress.DecodeUInt32(reader);
-            if (count == 0) return null;
-
-            count--;
-            var result = new T[count];
-            for (var i = 0; i < count; i++)
-            {
-                result[i] = reader.Invoke<T>();
-            }
-
-            return result;
-        }
-
-        public static Uri ReadUri(this MemoryReader reader)
-        {
-            var uri = reader.ReadString();
-            return string.IsNullOrWhiteSpace(uri) ? null : new Uri(uri);
+            return reader.ReadNetworkModule() as T;
         }
     }
 }
