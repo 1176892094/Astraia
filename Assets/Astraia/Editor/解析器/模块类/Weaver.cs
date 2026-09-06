@@ -39,14 +39,14 @@ namespace Astraia
         public const MA GEN_C2 = MA.HideBySig | MA.Static | MA.SpecialName | MA.Private | MA.RTSpecialName;
         public const TA GEN_T1 = TA.AutoClass | TA.Public | TA.Class | TA.AnsiClass | TA.Abstract | TA.Sealed | TA.BeforeFieldInit;
 
-        public bool Weave(AssemblyDefinition assembly, AssemblyDebugger Log, IAssemblyResolver resolver, bool success, out bool modified)
+        public bool Weave(AssemblyDefinition assembly, AssemblyDebugger debugger, IAssemblyResolver resolver, bool success, out bool modified)
         {
             modified = false;
             try
             {
                 var change = false;
                 var failed = false;
-                var module = new Module(assembly, Log, ref failed);
+                var module = new Module(assembly, debugger, ref failed);
                 Writer writer = null;
                 Reader reader = null;
                 SyncVarAccess access = null;
@@ -62,9 +62,9 @@ namespace Astraia
                     {
                         access = new SyncVarAccess();
                         create = new TypeDefinition(WEAVER, MED_T1, GEN_T1, module.Import<object>());
-                        writer = new Writer(assembly, module, create, Log);
-                        reader = new Reader(assembly, module, create, Log);
-                        change = NetworkMemberGen.Process(assembly, resolver, Log, writer, reader, ref failed);
+                        writer = new Writer(assembly, module, create, debugger);
+                        reader = new Reader(assembly, module, create, debugger);
+                        change = NetworkMemberGen.Process(assembly, resolver, debugger, writer, reader, ref failed);
                     }
                 }
 
@@ -83,7 +83,7 @@ namespace Astraia
                                     break;
                                 }
 
-                                change |= new NetworkModuleGen(assembly, access, module, writer, reader, Log, current).Process(ref failed);
+                                change |= new NetworkModuleGen(assembly, access, module, writer, reader, debugger, current).Process(ref failed);
                                 current = current.BaseType?.Resolve();
                             }
                         }
@@ -91,7 +91,7 @@ namespace Astraia
 
                     if (td.IsSubclassOf<Export>())
                     {
-                        modified |= EntityGenerator.Processed(assembly, td, module, Log);
+                        modified |= EntityGenerator.Processed(assembly, td, module, debugger);
                     }
                 }
 
@@ -112,7 +112,7 @@ namespace Astraia
             }
             catch (Exception e)
             {
-                Log.Error(e.ToString());
+                debugger.Error(e.ToString());
                 return false;
             }
         }

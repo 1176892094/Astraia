@@ -38,16 +38,12 @@ namespace Astraia
                 return false;
             }
 
-            foreach (var r in compiledAssembly.References)
+            if (compiledAssembly.Name == "Astraia.Fog")
             {
-                var name = Path.GetFileNameWithoutExtension(r);
-                if (name is "Astraia" or "Astraia.Net")
-                {
-                    return true;
-                }
+                return false;
             }
 
-            return false;
+            return compiledAssembly.References.Any(r => Path.GetFileNameWithoutExtension(r) == "Astraia");
         }
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
@@ -69,9 +65,9 @@ namespace Astraia
             resolver.SetAssemblyDefinitionForCompiledAssembly(assembly);
 
             var opcode = 0;
-            foreach (var ar in assembly.MainModule.AssemblyReferences)
+            foreach (var r in assembly.MainModule.AssemblyReferences)
             {
-                switch (ar.Name)
+                switch (r.Name)
                 {
                     case "Astraia":
                         opcode |= 1 << 0;
@@ -82,30 +78,33 @@ namespace Astraia
                 }
             }
 
-            if (opcode != 0)
+            if (opcode == 0)
             {
-                if (new Weaver().Weave(assembly, debugger, resolver, (opcode & 2) != 0, out var modified) && modified)
-                {
-                    var module = assembly.MainModule;
-                    if (module.AssemblyReferences.Any(r => r.Name == assembly.Name.Name))
-                    {
-                        var name = module.AssemblyReferences.First(r => r.Name == assembly.Name.Name);
-                        module.AssemblyReferences.Remove(name);
-                    }
-
-                    using var peStream = new MemoryStream();
-                    using var pdbStream = new MemoryStream();
-
-                    var writeParams = new WriterParameters();
-                    writeParams.SymbolStream = pdbStream;
-                    writeParams.SymbolWriterProvider = new PortablePdbWriterProvider();
-                    writeParams.WriteSymbols = true;
-                    assembly.Write(peStream, writeParams);
-
-                    return new ILPostProcessResult(new InMemoryAssembly(peStream.ToArray(), pdbStream.ToArray()), debugger);
-                }
+                return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, debugger);
             }
-          
+
+            var result = compiledAssembly.Name == "Astraia.Net" || (opcode & 2) != 0;
+            if (new Weaver().Weave(assembly, debugger, resolver, result, out var modified) && modified)
+            {
+                var module = assembly.MainModule;
+                if (module.AssemblyReferences.Any(r => r.Name == assembly.Name.Name))
+                {
+                    var name = module.AssemblyReferences.First(r => r.Name == assembly.Name.Name);
+                    module.AssemblyReferences.Remove(name);
+                }
+
+                using var peStream = new MemoryStream();
+                using var pdbStream = new MemoryStream();
+
+                var writeParams = new WriterParameters();
+                writeParams.SymbolStream = pdbStream;
+                writeParams.SymbolWriterProvider = new PortablePdbWriterProvider();
+                writeParams.WriteSymbols = true;
+                assembly.Write(peStream, writeParams);
+
+                return new ILPostProcessResult(new InMemoryAssembly(peStream.ToArray(), pdbStream.ToArray()), debugger);
+            }
+
             return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, debugger);
         }
     }
