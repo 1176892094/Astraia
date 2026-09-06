@@ -3,8 +3,8 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2026-07-06 15:07:22
-// # Recently: 2026-09-06 15:32:39
+// # History: 2026-09-06 23:09:10
+// # Recently: 2026-09-06 23:12:10
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
@@ -13,131 +13,22 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Astraia;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Unity.CompilationPipeline.Common.Diagnostics;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
 
-namespace Astraia.Editor
+namespace Astraia
 {
-    internal sealed class NetworkProcessor : ILPostProcessor
-    {
-        private static readonly HashSet<string> IgnoreAssemblies = new HashSet<string>
-        {
-            "Astraia.Run",
-            "Astraia.Editor",
-            "Assembly-CSharp-firstpass",
-            "Assembly-CSharp-Editor",
-            "Assembly-CSharp-Editor-firstpass",
-        };
-
-        public override ILPostProcessor GetInstance() => this;
-
-        public override bool WillProcess(ICompiledAssembly compiledAssembly)
-        {
-            if (compiledAssembly.Name == Weaver.WEAVER)
-            {
-                return true;
-            }
-
-            if (compiledAssembly.Name.StartsWith("Unity"))
-            {
-                return false;
-            }
-
-            if (IgnoreAssemblies.Contains(compiledAssembly.Name))
-            {
-                return false;
-            }
-
-            return compiledAssembly.References.Any(r => Path.GetFileNameWithoutExtension(r).StartsWith("Astraia"));
-        }
-
-        public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
-        {
-            var Log = new LogPostProcessor();
-            using var resolver = new AssemblyResolver(compiledAssembly, Log);
-            using var peData = new MemoryStream(compiledAssembly.InMemoryAssembly.PeData);
-            using var pdbData = new MemoryStream(compiledAssembly.InMemoryAssembly.PdbData);
-            using var assembly = AssemblyDefinition.ReadAssembly(peData, new ReaderParameters
-            {
-                SymbolStream = pdbData,
-                SymbolReaderProvider = new PortablePdbReaderProvider(),
-                ReadSymbols = true,
-                AssemblyResolver = resolver,
-                ReflectionImporterProvider = new ReflectionProvider(),
-                ReadingMode = ReadingMode.Immediate
-            });
-            resolver.SetAssemblyDefinitionForCompiledAssembly(assembly);
-            var network = compiledAssembly.Name == Weaver.WEAVER || compiledAssembly.References.Any(r => Path.GetFileNameWithoutExtension(r) == Weaver.WEAVER);
-            if (new Weaver().Weave(assembly, Log, resolver, network, out var modified) && modified)
-            {
-                var module = assembly.MainModule;
-                if (module.AssemblyReferences.Any(reference => reference.Name == assembly.Name.Name))
-                {
-                    var name = module.AssemblyReferences.First(reference => reference.Name == assembly.Name.Name);
-                    module.AssemblyReferences.Remove(name);
-                }
-
-                using var peStream = new MemoryStream();
-                using var pdbStream = new MemoryStream();
-                assembly.Write(peStream, new WriterParameters { SymbolStream = pdbStream, SymbolWriterProvider = new PortablePdbWriterProvider(), WriteSymbols = true });
-                return new ILPostProcessResult(new InMemoryAssembly(peStream.ToArray(), pdbStream.ToArray()), Log.messages);
-            }
-
-            return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, Log.messages);
-        }
-    }
-
-    internal interface ILogPostProcessor
-    {
-        void Warn(object message, MemberReference member = null);
-        void Error(object message, MemberReference member = null);
-    }
-
-    public class LogPostProcessor : ILogPostProcessor
-    {
-        public readonly List<DiagnosticMessage> messages = new List<DiagnosticMessage>();
-
-        public void Warn(object message, MemberReference member = null)
-        {
-            Add(message, member, DiagnosticType.Warning);
-        }
-
-        public void Error(object message, MemberReference member = null)
-        {
-            Add(message, member, DiagnosticType.Error);
-        }
-
-        private void Add(object message, MemberReference member, DiagnosticType mode)
-        {
-            var reason = message.ToString();
-            if (member != null)
-            {
-                reason = "{0} [{1}]".Format(reason, member.ToString().Color("G"));
-            }
-
-            var source = reason.Split('\n');
-            foreach (var result in source)
-            {
-                messages.Add(new DiagnosticMessage { DiagnosticType = mode, MessageData = result, File = string.Empty, });
-            }
-        }
-    }
-
     internal sealed class AssemblyResolver : IAssemblyResolver
     {
         private readonly ConcurrentDictionary<string, AssemblyDefinition> Definitions = new ConcurrentDictionary<string, AssemblyDefinition>();
         private readonly ConcurrentDictionary<string, string> Assemblies = new ConcurrentDictionary<string, string>();
         private readonly ICompiledAssembly Assembly;
-        private readonly ILogPostProcessor Debugger;
+        private readonly AssemblyDebugger Debugger;
         private AssemblyDefinition Definition;
 
-        public AssemblyResolver(ICompiledAssembly assembly, ILogPostProcessor debugger)
+        public AssemblyResolver(ICompiledAssembly assembly, AssemblyDebugger debugger)
         {
             Debugger = debugger;
             Assembly = assembly;
@@ -145,6 +36,11 @@ namespace Astraia.Editor
 
         public void Dispose()
         {
+            foreach (var definition in Definitions.Values)
+            {
+                definition.Dispose();
+            }
+
             GC.SuppressFinalize(this);
         }
 

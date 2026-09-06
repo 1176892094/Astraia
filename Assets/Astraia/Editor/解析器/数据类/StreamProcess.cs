@@ -22,9 +22,9 @@ using Astraia.Net;
 
 namespace Astraia.Editor
 {
-    internal static class NetworkMemberGen
+    internal static class StreamProcess
     {
-        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
+        public static bool Process(AssemblyDefinition assembly, IAssemblyResolver resolver, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
         {
             ProcessAssembly(assembly, resolver, Log, writer, reader, ref failed);
             return ProcessProperty(assembly, assembly, Log, writer, reader, ref failed);
@@ -46,7 +46,7 @@ namespace Astraia.Editor
             create.Methods.Add(method);
         }
 
-        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
+        private static void ProcessAssembly(AssemblyDefinition assembly, IAssemblyResolver resolver, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
         {
             var ar = assembly.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == Weaver.WEAVER);
             if (ar == null)
@@ -67,7 +67,7 @@ namespace Astraia.Editor
             }
         }
 
-        private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition network, ILogPostProcessor Log, Writer writer, Reader reader, ref bool failed)
+        private static bool ProcessProperty(AssemblyDefinition assembly, AssemblyDefinition network, AssemblyDebugger Log, Writer writer, Reader reader, ref bool failed)
         {
             var modified = false;
             foreach (var td in network.MainModule.Types.Where(td => td.IsAbstract && td.IsSealed))
@@ -162,10 +162,10 @@ namespace Astraia.Editor
         protected readonly Dictionary<TypeReference, MethodReference> methods = new Dictionary<TypeReference, MethodReference>(new Comparer());
         protected readonly Module module;
         protected readonly TypeDefinition create;
-        protected readonly ILogPostProcessor Log;
+        protected readonly AssemblyDebugger Log;
         protected readonly AssemblyDefinition assembly;
 
-        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor Log)
+        protected Stream(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger Log)
         {
             this.Log = Log;
             this.module = module;
@@ -300,7 +300,7 @@ namespace Astraia.Editor
 
     internal class Writer : Stream
     {
-        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor debugger) : base(assembly, module, create, debugger)
+        public Writer(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger debugger) : base(assembly, module, create, debugger)
         {
         }
 
@@ -428,7 +428,7 @@ namespace Astraia.Editor
 
     internal class Reader : Stream
     {
-        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition create, ILogPostProcessor debugger) : base(assembly, module, create, debugger)
+        public Reader(AssemblyDefinition assembly, Module module, TypeDefinition create, AssemblyDebugger debugger) : base(assembly, module, create, debugger)
         {
         }
 

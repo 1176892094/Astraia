@@ -15,9 +15,9 @@ using Mono.Cecil.Cil;
 
 namespace Astraia.Editor
 {
-    internal static class EntityGenerator
+    internal static class EntityProcess
     {
-        public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, ILogPostProcessor Log)
+        public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, AssemblyDebugger Log)
         {
             if (td.Methods.Any(m => m.Name == Weaver.MED_T2))
             {
