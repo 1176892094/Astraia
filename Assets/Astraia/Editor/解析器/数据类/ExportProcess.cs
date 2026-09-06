@@ -13,9 +13,9 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace Astraia.Editor
+namespace Astraia
 {
-    internal static class EntityProcess
+    internal static class ExportProcess
     {
         public static bool Processed(AssemblyDefinition assembly, TypeDefinition td, Module module, AssemblyDebugger Log)
         {
@@ -24,19 +24,7 @@ namespace Astraia.Editor
                 return false;
             }
 
-            // 程序集内的元数据顺序不保证基类在前。若基类的 Awake 由 IL 织入生成，
-            // 而派生类先被处理，GetMethod 会在基类链上直接找到更上层的 Export.Awake。
-            // 因此先递归处理当前程序集中的基类，确保派生类能找到最近的一层 Awake。
-            var parent = td.BaseType?.Resolve();
-            var modified = false;
-            if (parent != null && parent.Module == assembly.MainModule && parent.IsSubclassOf<Export>())
-            {
-                modified = Processed(assembly, parent, module, Log);
-            }
-
             var changed = false;
-            // 显式声明的 Awake 里的 base.Awake() 在编译期只能引用当前存在的基类方法，
-            // 跨程序集织入的 Actor.Awake 需要在这里把调用重定向到最终会生成的方法。
             changed |= RepairLifecycle(assembly, td, "Awake");
             changed |= RepairLifecycle(assembly, td, "OnEnable");
             changed |= RepairLifecycle(assembly, td, "OnDisable");
@@ -76,7 +64,7 @@ namespace Astraia.Editor
                 td.Methods.Add(method);
             }
 
-            return modified || changed;
+            return changed;
         }
 
         private static bool RepairLifecycle(AssemblyDefinition assembly, TypeDefinition td, string name)
@@ -100,7 +88,7 @@ namespace Astraia.Editor
                     continue;
                 }
 
-                var reason = CustomExtensions.FindBaseMethod(td.BaseType, assembly, name);
+                var reason = FindBaseMethod(td.BaseType, assembly, name);
                 if (reason != null && reason.FullName != call.FullName)
                 {
                     instruction.Operand = reason;
@@ -126,11 +114,8 @@ namespace Astraia.Editor
 
             return false;
         }
-    }
 
-    internal static class CustomExtensions
-    {
-        public static void InjectField(this MethodDefinition md, MethodReference method, FieldDefinition field)
+        private static void InjectField(this MethodDefinition md, MethodReference method, FieldDefinition field)
         {
             var worker = md.Body.GetILProcessor();
             var target = md.Body.Instructions[0];
@@ -141,7 +126,7 @@ namespace Astraia.Editor
             worker.InsertBefore(target, worker.Create(OpCodes.Stfld, field));
         }
 
-        public static void InjectEvent(this MethodDefinition md, MethodReference method)
+        private static void InjectEvent(this MethodDefinition md, MethodReference method)
         {
             var worker = md.Body.GetILProcessor();
             var target = md.Body.Instructions[0];
@@ -149,7 +134,7 @@ namespace Astraia.Editor
             worker.InsertBefore(target, worker.Create(OpCodes.Call, method));
         }
 
-        public static MethodDefinition GetMethod(this TypeDefinition td, AssemblyDefinition ad, MethodAttributes attrs, string name)
+        private static MethodDefinition GetMethod(this TypeDefinition td, AssemblyDefinition ad, MethodAttributes attrs, string name)
         {
             var method = td.Methods.FirstOrDefault(m => m.Name == name && m.Parameters.Count == 0);
             if (method == null)
@@ -170,7 +155,7 @@ namespace Astraia.Editor
             return method;
         }
 
-        internal static MethodReference FindBaseMethod(TypeReference current, AssemblyDefinition ad, string name)
+        private static MethodReference FindBaseMethod(TypeReference current, AssemblyDefinition ad, string name)
         {
             while (current != null)
             {
@@ -186,17 +171,11 @@ namespace Astraia.Editor
 
                     return ad.MainModule.ImportReference(result);
                 }
-
-                // 基类在另一个程序集中时，Unity ILPP 会并行处理各程序集，
-                // 因此织入基类生成的 Awake/OnEnable 等方法在这里还看不到。
-                // 但既然基类同样会被织入，直接引用这个尚不存在的方法即可，
-                // 运行时基类程序集已完成织入，方法引用可以正常解析。
-                if (type.Module != ad.MainModule && type.IsSubclassOf<Export>() && WillGenerateMethod(type, name))
+                
+                if (type.IsSubclassOf<Export>() && WillGenerateMethod(type, name))
                 {
-                    var reason = new MethodReference(name, ad.MainModule.ImportReference(typeof(void)), current)
-                    {
-                        HasThis = true
-                    };
+                    var reason = new MethodReference(name, ad.MainModule.ImportReference(typeof(void)), current);
+                    reason.HasThis = true;
                     return ad.MainModule.ImportReference(reason);
                 }
 

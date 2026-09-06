@@ -3,8 +3,8 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2026-09-06 23:09:25
-// # Recently: 2026-09-06 23:20:25
+// # History: 2026-09-06 22:09:09
+// # Recently: 2026-09-06 22:02:09
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
@@ -14,7 +14,7 @@ using Mono.Cecil;
 
 namespace Astraia
 {
-    internal class SyncVarAccess
+    internal sealed class SyncVarAccess
     {
         public readonly IDictionary<FieldDefinition, MethodDefinition> getter = new Dictionary<FieldDefinition, MethodDefinition>();
         public readonly IDictionary<FieldDefinition, MethodDefinition> setter = new Dictionary<FieldDefinition, MethodDefinition>();
@@ -31,7 +31,7 @@ namespace Astraia
         }
     }
 
-    internal class SyncVarList<T>
+    internal sealed class SyncVarList<T>
     {
         private readonly Dictionary<T, T> syncMaps = new Dictionary<T, T>();
         private readonly List<T> syncVars = new List<T>();

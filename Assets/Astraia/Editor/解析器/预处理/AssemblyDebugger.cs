@@ -3,8 +3,8 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2026-09-06 23:09:16
-// # Recently: 2026-09-06 23:11:16
+// # History: 2026-09-06 18:09:55
+// # Recently: 2026-09-06 18:36:55
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
@@ -15,19 +15,9 @@ using Unity.CompilationPipeline.Common.Diagnostics;
 
 namespace Astraia
 {
-    public sealed class AssemblyDebugger
+    internal sealed class AssemblyDebugger
     {
         private readonly List<DiagnosticMessage> messages = new List<DiagnosticMessage>();
-
-        public void Warn(object message, MemberReference member = null)
-        {
-            Add(message, member, DiagnosticType.Warning);
-        }
-
-        public void Error(object message, MemberReference member = null)
-        {
-            Add(message, member, DiagnosticType.Error);
-        }
 
         private void Add(object message, MemberReference member, DiagnosticType mode)
         {
@@ -47,9 +37,19 @@ namespace Astraia
             }
         }
 
-        public static implicit operator List<DiagnosticMessage>(AssemblyDebugger debugger)
+        public void Warn(object message, MemberReference member = null)
         {
-            return debugger.messages;
+            Add(message, member, DiagnosticType.Warning);
+        }
+
+        public void Error(object message, MemberReference member = null)
+        {
+            Add(message, member, DiagnosticType.Error);
+        }
+
+        public static implicit operator List<DiagnosticMessage>(AssemblyDebugger processor)
+        {
+            return processor.messages;
         }
     }
 }

@@ -16,7 +16,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;
 
-namespace Astraia.Editor
+namespace Astraia
 {
     internal sealed class ModuleProcess
     {
@@ -503,6 +503,4 @@ namespace Astraia.Editor
             }
         }
     }
-
-    
 }

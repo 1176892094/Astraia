@@ -3,8 +3,8 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2026-09-06 23:09:10
-// # Recently: 2026-09-06 23:12:10
+// # History: 2026-09-06 18:09:11
+// # Recently: 2026-09-06 18:36:11
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
@@ -36,11 +36,6 @@ namespace Astraia
 
         public void Dispose()
         {
-            foreach (var definition in Definitions.Values)
-            {
-                definition.Dispose();
-            }
-
             GC.SuppressFinalize(this);
         }
 
@@ -106,11 +101,11 @@ namespace Astraia
                 }
             }
 
-            var caches = new HashSet<string>();
+            var copied = new HashSet<string>();
             foreach (var reference in Assembly.References)
             {
                 var filePath = Path.GetDirectoryName(reference);
-                if (filePath != null && caches.Add(filePath))
+                if (filePath != null && copied.Add(filePath))
                 {
                     var fileName = Path.Combine(filePath, name + ".dll");
                     if (File.Exists(fileName))

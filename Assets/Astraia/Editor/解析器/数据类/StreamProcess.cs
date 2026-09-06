@@ -20,7 +20,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using Astraia.Net;
 
-namespace Astraia.Editor
+namespace Astraia
 {
     internal static class StreamProcess
     {

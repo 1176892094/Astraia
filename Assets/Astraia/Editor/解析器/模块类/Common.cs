@@ -3,21 +3,105 @@
 // # Unity: 6000.3.5f1
 // # Author: 云谷千羽
 // # Version: 1.0.0
-// # History: 2026-09-06 23:09:48
-// # Recently: 2026-09-06 23:15:48
+// # History: 2026-08-14 22:08:19
+// # Recently: 2026-09-06 15:32:39
 // # Copyright: 2024, 云谷千羽
 // # Description: This is an automatically generated comment.
 // *********************************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using Mono.Cecil;
 
 namespace Astraia
 {
     internal static class Common
     {
+        public static T GetArgument<T>(this ICustomAttribute self)
+        {
+            return (T)self.ConstructorArguments[0].Value;
+        }
+
+        public static string GetName(this MethodDefinition self, string name)
+        {
+            return self.Name + name;
+        }
+
+        public static bool Is(this TypeReference self, Type t)
+        {
+            return t.IsGenericType ? self.GetElementType().FullName == t.FullName : self.FullName == t.FullName;
+        }
+
+        public static bool Is<T>(this TypeReference self)
+        {
+            return self.Is(typeof(T));
+        }
+
+        public static bool IsSubclassOf<T>(this TypeReference self)
+        {
+            return self.IsSubclassOf(typeof(T));
+        }
+
+        public static bool IsSubclassOf(this TypeReference self, Type t)
+        {
+            var td = self.Resolve();
+            while (td != null && td.IsClass)
+            {
+                var parent = td.BaseType;
+                if (parent == null)
+                {
+                    return false;
+                }
+
+                if (parent.Is(t))
+                {
+                    return true;
+                }
+
+                try
+                {
+                    td = parent.Resolve();
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAttribute<T>(this ICustomAttributeProvider self)
+        {
+            return self.CustomAttributes.Any(custom => custom.AttributeType.Is<T>());
+        }
+
+        public static CustomAttribute GetAttribute<T>(this ICustomAttributeProvider self)
+        {
+            return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<T>());
+        }
+
+        public static FieldDefinition GetField(this TypeDefinition self)
+        {
+            return self.Fields.FirstOrDefault(fd => !fd.IsStatic);
+        }
+
+        public static IEnumerable<MethodDefinition> GetConstructors(this TypeDefinition self)
+        {
+            return self.Methods.Where(method => method.IsConstructor);
+        }
+
+        public static MethodDefinition GetMethod(this TypeDefinition self, string name)
+        {
+            return self.Methods.FirstOrDefault(md => md.Name == name);
+        }
+
+        public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
+        {
+            return self.Methods.Where(md => md.Name == name);
+        }
+
         public static MethodReference GetProperty(this TypeReference tr, AssemblyDefinition ad, string name)
         {
             return tr.Resolve().Properties.Where(pd => pd.Name == name).Select(pd => ad.MainModule.ImportReference(pd.GetMethod)).FirstOrDefault();
@@ -28,14 +112,9 @@ namespace Astraia
             return tr.Resolve().Methods.FirstOrDefault(md => md.Name == Weaver.MED_C1 && md.Resolve().IsPublic && md.Parameters.Count == 0);
         }
 
-        private static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match)
-        {
-            return tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
-        }
-
         public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, Predicate<MethodDefinition> match, AssemblyDebugger Log, ref bool failed)
         {
-            var mr = tr.GetMethod(ad, match);
+            var mr = tr.Resolve().Methods.Where(match.Invoke).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
             if (mr == null)
             {
                 Log.Error("在类型 {0} 中没有找到方法".Format(tr), tr);
@@ -47,7 +126,7 @@ namespace Astraia
 
         public static MethodReference GetMethod(this TypeReference tr, AssemblyDefinition ad, string name, AssemblyDebugger Log, ref bool failed)
         {
-            var mr = tr.GetMethod(ad, method => method.Name == name);
+            var mr = tr.Resolve().Methods.Where(method => method.Name == name).Select(md => ad.MainModule.ImportReference(md)).FirstOrDefault();
             if (mr == null)
             {
                 Log.Error("在类型 {0} 中没有找到名称 {1} 的方法".Format(tr, name), tr);
@@ -116,113 +195,6 @@ namespace Astraia
             }
 
             return parent;
-        }
-    }
-
-    internal static class Extensions
-    {
-        public static T GetArgument<T>(this ICustomAttribute self)
-        {
-            return (T)self.ConstructorArguments[0].Value;
-        }
-
-        public static string GetName(this MethodDefinition self, string name)
-        {
-            return self.Name + name;
-        }
-
-        public static bool Is(this TypeReference self, Type t)
-        {
-            return t.IsGenericType ? self.GetElementType().FullName == t.FullName : self.FullName == t.FullName;
-        }
-
-        public static bool Is<T>(this TypeReference self)
-        {
-            return self.Is(typeof(T));
-        }
-
-        public static bool IsSubclassOf<T>(this TypeReference self)
-        {
-            return self.IsSubclassOf(typeof(T));
-        }
-
-        public static bool IsSubclassOf(this TypeReference self, Type t)
-        {
-            var td = self.Resolve();
-            if (!td.IsClass)
-            {
-                return false;
-            }
-
-            var tr = td.BaseType;
-            if (tr == null)
-            {
-                return false;
-            }
-
-            if (tr.Is(t))
-            {
-                return true;
-            }
-
-            return tr.CanResolve() && tr.Resolve().IsSubclassOf(t);
-        }
-
-        private static bool CanResolve(this TypeReference self)
-        {
-            while (self != null)
-            {
-                if (self.Scope.Name == "Windows")
-                {
-                    return false;
-                }
-
-                if (self.Scope.Name == "mscorlib")
-                {
-                    return self.Resolve() != null;
-                }
-
-                try
-                {
-                    self = self.Resolve().BaseType;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public static bool HasAttribute<T>(this ICustomAttributeProvider self)
-        {
-            return self.CustomAttributes.Any(custom => custom.AttributeType.Is<T>());
-        }
-
-        public static CustomAttribute GetAttribute<T>(this ICustomAttributeProvider self)
-        {
-            return self.CustomAttributes.FirstOrDefault(custom => custom.AttributeType.Is<T>());
-        }
-
-        public static FieldDefinition GetField(this TypeDefinition self)
-        {
-            return self.Fields.FirstOrDefault(fd => !fd.IsStatic);
-        }
-
-        public static MethodDefinition GetMethod(this TypeDefinition self, string name)
-        {
-            return self.Methods.FirstOrDefault(md => md.Name == name);
-        }
-
-        public static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition self, string name)
-        {
-            return self.Methods.Where(md => md.Name == name);
-        }
-
-        public static IEnumerable<MethodDefinition> GetConstructors(this TypeDefinition self)
-        {
-            return self.Methods.Where(method => method.IsConstructor);
         }
 
         public static bool HasInterface(this TypeReference self, Type t)

@@ -13,15 +13,9 @@ using Astraia.Net;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace Astraia.Editor
+namespace Astraia
 {
-    internal enum InvokeMode : byte
-    {
-        ServerRpc,
-        ClientRpc,
-        TargetRpc,
-    }
-
+ 
     internal static class RemoteProcess
     {
         public static MethodDefinition ClientRpcV1(Module module, Writer writer, AssemblyDebugger Log, TypeDefinition create, MethodDefinition method, CustomAttribute args, ref bool failed)
