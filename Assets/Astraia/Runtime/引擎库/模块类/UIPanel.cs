@@ -28,6 +28,11 @@ namespace Astraia
         protected virtual void OnShow() { }
 
         protected virtual void OnHide() { }
+
+        public static implicit operator bool(UIPanel panel)
+        {
+            return panel != null && panel.isActiveAndEnabled;
+        }
     }
 
     public abstract class UIPanel<T, TGrid> : UIPanel, IMove where TGrid : Component, IGrid<T>
@@ -48,7 +53,7 @@ namespace Astraia
         public float width;
         public float height;
         public ScrollRect scroll;
-        public Action<IGrid> OnMove;
+        public Action<TGrid> OnMove;
 
         protected override void Awake()
         {
@@ -156,7 +161,7 @@ namespace Astraia
 
         private void Unload()
         {
-            for (var i = grids.Length - 1; i >= 0; i--)
+            for (var i = 0; i < grids.Length; i++)
             {
                 Unload(i);
             }
@@ -215,6 +220,11 @@ namespace Astraia
                 grid.Select();
             }
 
+            if (grid.TryGetComponent(out IItem<T> result))
+            {
+                result.SetItem(items);
+            }
+
             grid.SetItem(i, items[i]);
         }
 
@@ -260,5 +270,10 @@ namespace Astraia
     {
         void SetItem(int index, T item);
         void Release();
+    }
+
+    public interface IItem<T> : IGrid
+    {
+        void SetItem(IList<T> items);
     }
 }

@@ -226,7 +226,7 @@ namespace Astraia
                     return;
                 }
 
-                if (current)
+                if (current != null)
                 {
                     Modified(current, false);
                     reverse = current;
@@ -243,9 +243,9 @@ namespace Astraia
                     return;
                 }
 
-                if (reverse)
+                if (reverse != null)
                 {
-                    if (current)
+                    if (current != null)
                     {
                         Modified(current, false);
                     }
@@ -257,7 +257,7 @@ namespace Astraia
 
             public void Hide()
             {
-                if (current)
+                if (current != null)
                 {
                     Modified(current, false);
                 }
