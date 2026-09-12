@@ -25,7 +25,7 @@ namespace Astraia.Net
             internal static readonly Dictionary<int, NetworkClient> clients = new Dictionary<int, NetworkClient>();
             internal static readonly List<NetworkClient> copies = new List<NetworkClient>();
             internal static State state = State.Failure;
-            private static bool isLoadScene;
+            internal static bool isLoadScene;
             private static double sendTime;
             private static uint objectId;
 

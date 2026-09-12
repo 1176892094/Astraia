@@ -56,6 +56,7 @@ namespace Astraia.Net
         public static bool isRunner => isServer || isClient;
         public static bool isServer => Server.state != State.Failure;
         public static bool isClient => Client.state != State.Failure;
+        public static bool isLoadScene => Server.isLoadScene || Client.isLoadScene;
         private static bool isSaloon => saloon != null && saloon.isSaloon;
         private static bool isRemote => saloon != null && saloon.isRemote;
         internal static Transport current => isRemote ? Instance?.management : Instance?.connection;

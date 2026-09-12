@@ -26,7 +26,7 @@ namespace Astraia.Net
             internal static readonly Dictionary<uint, NetworkEntity> copies = new Dictionary<uint, NetworkEntity>();
             internal static State state = State.Failure;
             internal static NetworkServer connection;
-            private static bool isLoadScene;
+            internal static bool isLoadScene;
             private static double sendTime;
             internal static double pingTime;
             private static double pongTime;
