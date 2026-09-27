@@ -19,6 +19,10 @@ namespace Astraia
 {
     public abstract class UIPanel : Export
     {
+        protected const int ROTATION = 1 << 0;
+        protected const int SELECTED = 1 << 1;
+        protected const int REVERSED = 1 << 2;
+
         public int state;
 
         internal void ShowInternal() => OnShow();
@@ -43,9 +47,11 @@ namespace Astraia
         private int col;
         private int roc;
         private int cor;
+
         private int minIndex;
         private int maxIndex;
         private bool rotation;
+        private bool reversed;
         private bool selected;
         private string assetName;
         private string assetPath;
@@ -64,8 +70,10 @@ namespace Astraia
                 row = rect.row;
                 width = rect.width;
                 height = rect.height;
-                rotation = rect.rotation;
-                selected = rect.selected;
+                rotation = (rect.opcode & ROTATION) == 0;
+                selected = (rect.opcode & SELECTED) != 0;
+                reversed = (rect.opcode & REVERSED) != 0;
+
                 if (scroll.viewport)
                 {
                     scroll.viewport.anchorMin = Vector2.zero;
@@ -208,6 +216,19 @@ namespace Astraia
             {
                 var posX = rotation ? i % col : i / row;
                 var posY = rotation ? i / col : i % row;
+
+                if (reversed)
+                {
+                    if (rotation)
+                    {
+                        posX = col - 1 - posX;
+                    }
+                    else
+                    {
+                        posY = row - 1 - posY;
+                    }
+                }
+
                 rect.pivot = Vector2.up;
                 rect.anchorMin = Vector2.up;
                 rect.anchorMax = Vector2.up;
