@@ -48,9 +48,9 @@ namespace Astraia
         private int roc;
         private int cor;
 
+        private int current;
         private int minIndex;
         private int maxIndex;
-        private bool rotation;
         private bool reversed;
         private bool selected;
         private string assetName;
@@ -58,32 +58,40 @@ namespace Astraia
 
         public float width;
         public float height;
-        public ScrollRect scroll;
-        public Action<TGrid> OnMove;
+        public ScrollRect owner;
+
+        private bool rotation => owner.vertical;
 
         protected override void Awake()
         {
-            scroll = ExportManager.Export<ScrollRect>(this, nameof(ScrollRect));
+            owner = ExportManager.Export<ScrollRect>(this, "ScrollRect");
+
             if (GetType().GetAttribute(out UIRectAttribute rect))
             {
                 col = rect.col;
                 row = rect.row;
                 width = rect.width;
                 height = rect.height;
-                rotation = (rect.opcode & ROTATION) == 0;
                 selected = (rect.opcode & SELECTED) != 0;
                 reversed = (rect.opcode & REVERSED) != 0;
 
-                if (scroll.viewport)
+                if (owner.viewport)
                 {
-                    scroll.viewport.anchorMin = Vector2.zero;
-                    scroll.viewport.anchorMax = Vector2.one;
-                    scroll.viewport.offsetMin = new Vector2(rect.offset, rect.offset);
-                    scroll.viewport.offsetMax = new Vector2(-rect.offset, -rect.offset);
+                    owner.viewport.anchorMin = Vector2.zero;
+                    owner.viewport.anchorMax = Vector2.one;
+                    owner.viewport.offsetMin = new Vector2(rect.offset, rect.offset);
+                    owner.viewport.offsetMax = -new Vector2(rect.offset, rect.offset);
                 }
 
-                scroll.vertical = rotation;
-                scroll.horizontal = !rotation;
+                if (owner.content)
+                {
+                    owner.content.pivot = Vector2.up;
+                    owner.content.anchorMin = Vector2.up;
+                    owner.content.anchorMax = Vector2.up;
+                }
+
+                owner.vertical = (rect.opcode & ROTATION) == 0;
+                owner.horizontal = (rect.opcode & ROTATION) != 0;
             }
 
             assetName = GlobalSetting.PREFAB.Format(typeof(TGrid).Name);
@@ -92,10 +100,6 @@ namespace Astraia
             {
                 assetPath = GlobalSetting.PREFAB.Format(path.asset);
             }
-
-            scroll.content.pivot = Vector2.up;
-            scroll.content.anchorMin = Vector2.up;
-            scroll.content.anchorMax = Vector2.up;
 
             col = rotation ? col : col + 1;
             row = rotation ? row + 1 : row;
@@ -106,98 +110,116 @@ namespace Astraia
 
         protected override void OnEnable()
         {
-            scroll.onValueChanged.AddListener(ScrollView);
+            owner.onValueChanged.AddListener(ScrollView);
         }
 
         protected override void OnDisable()
         {
             Unload();
-            scroll.onValueChanged.RemoveListener(ScrollView);
+            owner.onValueChanged.RemoveListener(ScrollView);
         }
 
         protected override void OnDestroy()
         {
             items = null;
             grids = null;
-            OnMove = null;
-            scroll = null;
+        }
+
+        private void LateUpdate()
+        {
+            if (items != null && current != items.Count)
+            {
+                for (var i = 0; i < current; i++)
+                {
+                    if (i < items.Count)
+                    {
+                        Reload(i);
+                    }
+                    else
+                    {
+                        Unload(i);
+                    }
+                }
+
+                current = items.Count;
+            }
         }
 
         private void ScrollView(Vector2 position)
         {
-            if (items != null && items.Count != 0)
+            if (items != null && current != 0)
             {
-                var pos = scroll.content.anchoredPosition;
-                var min = Mathf.Max(Mathf.FloorToInt(rotation ? pos.y / height : -pos.x / width) * cor, 0);
-                var max = Mathf.Min(min + roc * cor - 1, items.Count - 1);
-
-                if (min != minIndex || max != maxIndex)
+                var index = GetIndex();
+                if (index.x == minIndex && index.y == maxIndex)
                 {
-                    for (var i = minIndex; i < min; i++)
-                    {
-                        Unload(i % grids.Length);
-                    }
-
-                    for (var i = maxIndex; i > max; i--)
-                    {
-                        Unload(i % grids.Length);
-                    }
-
-                    Reload(min, max);
+                    return;
                 }
+
+                for (var i = minIndex; i < index.x; i++)
+                {
+                    Unload(i);
+                }
+
+                for (var i = maxIndex; i > index.y; i--)
+                {
+                    Unload(i);
+                }
+
+                Reload(index);
             }
         }
 
         public void SetItem(params T[] item)
         {
-            SetItem((IList<T>)item);
+            Unload();
+            Resize(item);
+            Reload(GetIndex(), selected);
         }
 
         public void SetItem(IList<T> item)
         {
             Unload();
+            Resize(item);
+            Reload(GetIndex(), selected);
+        }
+
+        private void Resize(IList<T> item)
+        {
             items = item ?? Array.Empty<T>();
-            var c = rotation ? Mathf.CeilToInt((float)items.Count / col) : row;
-            var r = rotation ? col : Mathf.CeilToInt((float)items.Count / row);
-            scroll.content.sizeDelta = new Vector2(r * width, c * height);
-
-            var pos = scroll.content.anchoredPosition;
-            var min = Mathf.Max(Mathf.FloorToInt(rotation ? pos.y / height : -pos.x / width) * cor, 0);
-            var max = Mathf.Min(min + roc * cor - 1, items.Count - 1);
-            Reload(min, max, selected);
+            current = items.Count;
+            var x = rotation ? col : Mathf.CeilToInt((float)current / row);
+            var y = rotation ? Mathf.CeilToInt((float)current / col) : row;
+            owner.content.sizeDelta = new Vector2(x * width, y * height);
         }
 
-        private void Unload()
+        private Vector2Int GetIndex()
         {
-            for (var i = 0; i < grids.Length; i++)
-            {
-                Unload(i);
-            }
-
-            items = null;
+            var pos = owner.content.anchoredPosition;
+            var idx = rotation ? pos.y / height : -pos.x / width;
+            var min = Mathf.Max(Mathf.FloorToInt(idx) * cor, 0);
+            var max = Mathf.Min(min + roc * cor - 1, current - 1);
+            return new Vector2Int(min, max);
         }
 
-        private void Unload(int i)
+        private void Reload(Vector2Int index, bool selected = false)
         {
-            var grid = grids[i];
-            if (grid)
-            {
-                grids[i] = null;
-                grid.Release();
-                PoolManager.Hide(grid);
-                OnMove?.Invoke(grid);
-            }
-        }
-
-        private void Reload(int min, int max, bool selected = false)
-        {
-            for (var i = min; i <= max; i++)
+            for (var i = index.x; i <= index.y; i++)
             {
                 Reload(i, selected);
             }
 
-            minIndex = min;
-            maxIndex = max;
+            minIndex = index.x;
+            maxIndex = index.y;
+        }
+
+        private void Reload(int i)
+        {
+            var index = i % grids.Length;
+            var grid = grids[index];
+            if (grid)
+            {
+                grid.SetItem(i, items[i]);
+            }
         }
 
         private void Reload(int i, bool selected)
@@ -209,7 +231,7 @@ namespace Astraia
                 return;
             }
 
-            grid = PoolManager.Show<TGrid>(assetPath, assetName, scroll.content);
+            grid = PoolManager.Show<TGrid>(assetPath, assetName, owner.content);
             grids[index] = grid;
 
             if (grid.TryGetComponent(out RectTransform rect))
@@ -249,9 +271,32 @@ namespace Astraia
             grid.SetItem(i, items[i]);
         }
 
+        private void Unload()
+        {
+            for (var i = 0; i < grids.Length; i++)
+            {
+                Unload(i);
+            }
+
+            items = null;
+        }
+
+        private void Unload(int i)
+        {
+            var index = i % grids.Length;
+            var grid = grids[index];
+            if (grid)
+            {
+                grids[index] = null;
+                grid.Release();
+                Move(grid);
+                PoolManager.Hide(grid);
+            }
+        }
+
         public void Move(int index, MoveDirection move)
         {
-            var content = scroll.content;
+            var content = owner.content;
             var pos = content.anchoredPosition;
             switch (move)
             {
@@ -275,6 +320,8 @@ namespace Astraia
             pos.y = Mathf.Clamp(pos.y, 0, content.rect.height - Mathf.Min(r, content.rect.height / height) * height);
             content.anchoredPosition = pos;
         }
+
+        protected virtual void Move(IGrid grid) { }
     }
 
     public interface IMove
