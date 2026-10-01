@@ -41,7 +41,7 @@ namespace Astraia
 
     public abstract class UIPanel<T, TGrid> : UIPanel, IMove where TGrid : Component, IGrid<T>
     {
-        private TGrid[] grids;
+        protected TGrid[] grids;
         private IList<T> items;
         private int row;
         private int col;
@@ -125,11 +125,12 @@ namespace Astraia
             grids = null;
         }
 
-        private void LateUpdate()
+        protected virtual void Update()
         {
-            if (items != null && current != items.Count)
+            if (items != null && current != items.Count) // 0 != 1
             {
-                for (var i = 0; i < current; i++)
+                var count = Math.Max(current, items.Count); //1
+                for (var i = 0; i < count; i++)
                 {
                     if (i < items.Count)
                     {
@@ -219,7 +220,10 @@ namespace Astraia
             if (grid)
             {
                 grid.SetItem(i, items[i]);
+                return;
             }
+
+            Reload(i, index, false);
         }
 
         private void Reload(int i, bool selected)
@@ -231,7 +235,12 @@ namespace Astraia
                 return;
             }
 
-            grid = PoolManager.Show<TGrid>(assetPath, assetName, owner.content);
+            Reload(i, index, selected);
+        }
+
+        private void Reload(int i, int index, bool selected)
+        {
+            var grid = PoolManager.Show<TGrid>(assetPath, assetName, owner.content);
             grids[index] = grid;
 
             if (grid.TryGetComponent(out RectTransform rect))
