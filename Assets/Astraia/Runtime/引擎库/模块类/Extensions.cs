@@ -24,13 +24,13 @@ namespace Astraia
 
         static EntityExtensions()
         {
-            colors['R'] = "#FF6969";
-            colors['G'] = "#69F569";
-            colors['B'] = "#69CDFF";
-            colors['Y'] = "#FFE169";
-            colors['O'] = "#FF9169";
-            colors['S'] = "#69E1FF";
-            colors['P'] = "#FF87FF";
+            colors['R'] = "#FF4B4B";
+            colors['O'] = "#FFAF4B";
+            colors['Y'] = "#FFE14B";
+            colors['G'] = "#7DF54B";
+            colors['S'] = "#4BEBFF";
+            colors['B'] = "#4BCDFF";
+            colors['P'] = "#FF9BFF";
             colors['W'] = "#FFFFFF";
             parsers[typeof(Vector2)] = new Func<string, Vector2>(InputVector2);
             parsers[typeof(Vector3)] = new Func<string, Vector3>(InputVector3);

@@ -135,12 +135,15 @@ namespace Astraia.Net
                 if (prefab)
                 {
                     AssignAssetId(AssetDatabase.GetAssetPath(prefab));
+                    return;
                 }
 
+                assetId = 0;
                 AssignSceneId();
             }
             else
             {
+                assetId = 0;
                 AssignSceneId();
             }
         }
