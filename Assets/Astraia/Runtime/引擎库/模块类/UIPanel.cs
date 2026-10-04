@@ -277,7 +277,10 @@ namespace Astraia
                 result.SetItem(items);
             }
 
-            grid.SetItem(i, items[i]);
+            if (i < items.Count)
+            {
+                grid.SetItem(i, items[i]);
+            }
         }
 
         private void Unload()
