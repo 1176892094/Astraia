@@ -25,13 +25,9 @@ namespace Astraia
 
         public int state;
 
-        internal void ShowInternal() => OnShow();
+        public virtual void OnShow() { }
 
-        internal void HideInternal() => OnHide();
-
-        protected virtual void OnShow() { }
-
-        protected virtual void OnHide() { }
+        public virtual void OnHide() { }
 
         public static implicit operator bool(UIPanel panel)
         {
@@ -152,8 +148,6 @@ namespace Astraia
 
         protected virtual void Reloaded() { }
 
-        protected virtual void Unloaded(IGrid grid) { }
-
         private void Modified(bool force)
         {
             var count = items.Count;
@@ -172,7 +166,7 @@ namespace Astraia
 
                 foreach (var kv in grids)
                 {
-                    ReloadInternal(kv.Key, kv.Value);
+                    Reload(kv.Key, kv.Value);
                 }
 
                 current = count;
@@ -253,10 +247,10 @@ namespace Astraia
             }
 
             grids.Add(i, grid);
-            ReloadInternal(i, grid);
+            Reload(i, grid);
         }
 
-        private void ReloadInternal(int i, TGrid grid)
+        private void Reload(int i, TGrid grid)
         {
             if (grid is IItem<T> item)
             {
@@ -280,7 +274,7 @@ namespace Astraia
             {
                 grid.Release();
                 PoolManager.Hide(grid);
-                Unloaded(grid);
+                Reloaded();
             }
         }
 

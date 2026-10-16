@@ -199,15 +199,15 @@ namespace Astraia
                 if (state)
                 {
                     owner.SetActive(true);
-                    panel.ShowInternal();
+                    panel.OnShow();
                 }
                 else if (panel is ITween)
                 {
-                    panel.HideInternal();
+                    panel.OnHide();
                 }
                 else
                 {
-                    panel.HideInternal();
+                    panel.OnHide();
                     owner.SetActive(false);
                 }
             }
