@@ -73,7 +73,7 @@ namespace Astraia.Net
         protected override void Awake()
         {
             modules = GetComponents<NetworkModule>();
-            for (byte i = 0; i < modules.Length; i++)
+            for (byte i = 0; i < modules.Length && i < 64; i++)
             {
                 modules[i].owner = this;
                 modules[i].moduleId = i;

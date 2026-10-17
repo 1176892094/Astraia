@@ -18,7 +18,7 @@ namespace Astraia.Net
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsDirty(ulong mask, int index)
         {
-            return (mask & (ulong)(1 << index)) != 0;
+            return (mask & (1UL << index)) != 0;
         }
 
         public static void ServerSend(this NetworkModule[] modules, MemoryWriter owner, MemoryWriter other, bool isInit = false)
