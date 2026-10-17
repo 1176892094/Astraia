@@ -421,6 +421,8 @@ namespace Astraia.Net
                                     }
                                 }
                             }
+                            
+                            // TODO: client.Send(new SnapshotMessage(Time.frameCount));
                         }
 
                         client.Update();
