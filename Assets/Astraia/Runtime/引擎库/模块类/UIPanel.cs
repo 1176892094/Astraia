@@ -169,6 +169,12 @@ namespace Astraia
                     Reload(kv.Key, kv.Value);
                 }
 
+                if (count == 0)
+                {
+                    minIndex = -1;
+                    maxIndex = -1;
+                }
+
                 current = count;
             }
         }
@@ -252,9 +258,9 @@ namespace Astraia
 
         private void Reload(int i, TGrid grid)
         {
-            if (grid is IItem<T> item)
+            if (grid is IForm<T> form)
             {
-                item.SetItem(items);
+                form.SetItem(items);
             }
 
             if (i < items.Count)
@@ -339,7 +345,13 @@ namespace Astraia
         void Release();
     }
 
-    public interface IItem<T> : IGrid
+    public interface IItem<T> : IGrid<T>
+    {
+        T item { get; }
+        int index { get; }
+    }
+
+    public interface IForm<T> : IItem<T>
     {
         void SetItem(IList<T> items);
     }

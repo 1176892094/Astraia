@@ -36,7 +36,6 @@ namespace Astraia.Net
             if (!Application.isPlaying) return;
             NetworkManager.Server.EarlyUpdate();
             NetworkManager.Client.EarlyUpdate();
-            EventManager.Invoke(new OnEarlyUpdate());
         }
 
         private static void AfterUpdate()
@@ -44,7 +43,6 @@ namespace Astraia.Net
             if (!Application.isPlaying) return;
             NetworkManager.Server.AfterUpdate();
             NetworkManager.Client.AfterUpdate();
-            EventManager.Invoke(new OnAfterUpdate());
         }
 
         private static bool AddLoopSystem(PlayerLoopSystem.UpdateFunction function, ref PlayerLoopSystem playerLoop, Type systemType)
@@ -58,7 +56,7 @@ namespace Astraia.Net
 
                 var oldLength = playerLoop.subSystemList?.Length ?? 0;
                 Array.Resize(ref playerLoop.subSystemList, oldLength + 1);
-                playerLoop.subSystemList[oldLength] = new PlayerLoopSystem { type = typeof(NetworkManager), updateDelegate = function };
+                playerLoop.subSystemList[oldLength] = new PlayerLoopSystem { type = typeof(NetworkSystem), updateDelegate = function };
                 return true;
             }
 
