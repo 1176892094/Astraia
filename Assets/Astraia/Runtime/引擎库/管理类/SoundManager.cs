@@ -122,7 +122,12 @@ namespace Astraia
 
         public static AudioSource Load(string name)
         {
-            return Instance?.LoadInternal(name);
+            return Instance?.LoadInternal(name, false);
+        }
+
+        public static AudioSource Once(string name)
+        {
+            return Instance?.LoadInternal(name, true);
         }
 
         public static AudioSource Loop(string name)
@@ -130,16 +135,12 @@ namespace Astraia
             return Instance?.LoopInternal(name);
         }
 
-        public static AudioSource Load(string name, float cooldown)
-        {
-            return Instance?.LoadInternal(name, cooldown);
-        }
-
-        private AudioSource PlayInternal(string name, float cooldown)
+        private AudioSource PlayInternal(string name, bool once)
         {
             var result = GlobalSetting.AUDIOS.Format(name);
-            var source = PoolManager.Show<AudioSource>(result, cooldown);
-            source.clip = AssetManager.Load<AudioClip>(result);
+            var reason = AssetManager.Load<AudioClip>(result);
+            var source = PoolManager.Show<AudioSource>(result, once ? reason.length : 0);
+            source.clip = reason;
             source.volume = AudioVolume * 0.01F;
             source.Play();
             audioData.Add(source);
@@ -203,23 +204,16 @@ namespace Astraia
             audioData.Remove(source);
         }
 
-        private AudioSource LoadInternal(string name)
-        {
-            var source = PlayInternal(name, 0);
-            source.loop = false;
-            return source;
-        }
-
         private AudioSource LoopInternal(string name)
         {
-            var source = PlayInternal(name, 0);
+            var source = PlayInternal(name, false);
             source.loop = true;
             return source;
         }
 
-        private AudioSource LoadInternal(string name, float cooldown)
+        private AudioSource LoadInternal(string name, bool once)
         {
-            var source = PlayInternal(name, cooldown);
+            var source = PlayInternal(name, once);
             source.loop = false;
             return source;
         }
