@@ -50,7 +50,7 @@ flowchart LR
 ## 核心能力
 
 - **运行时**：AssetBundle 资源加载、场景加载、UI 管理、数据表、对象/引用池、音频、Json 持久化、`Export` 自动绑定。
-- **网络**：Host / Server / Client / 在线大厅；`NetworkEntity` / `NetworkModu[README.md](README.md)le` 对象同步；`[SyncVar]`、`[ServerRpc]`、`[ClientRpc]`、`[TargetRpc]`；场景与观察者同步。
+- **网络**：Host / Server / Client / 在线大厅；`NetworkEntity` / `NetworkModule[README.md](README.md)` 对象同步；`[SyncVar]`、`[ServerRpc]`、`[ClientRpc]`、`[TargetRpc]`；场景与观察者同步。
 - **工具链**：Excel/表格导入并生成脚本；基于 Mono.Cecil 的 IL 织入，自动生成网络序列化与 RPC 分发代码。
 - **跨端复用**：确定性类型、消息协议与传输层都来自核心 DLL，Unity 客户端与 .NET 服务器使用同一份定义。
 
