@@ -12,9 +12,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using State = Astraia.Async.State;
-#if ODIN_INSPECTOR
-using Sirenix.OdinInspector;
-#endif
 
 namespace Astraia.Net
 {
@@ -30,27 +27,11 @@ namespace Astraia.Net
         [SerializeReference] private NetworkTransport connection = new NetworkTransport();
         [SerializeReference] private NetworkAuthority management = new NetworkAuthority();
         [SerializeReference] private NetworkTransport collection = new NetworkTransport();
-
-#if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
-#endif
-        [SerializeField]
-        private Dictionary<uint, NetworkEntity> clientSpawns;
-#if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
-#endif
-        [SerializeField]
-        private Dictionary<uint, NetworkEntity> clientScenes;
-#if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
-#endif
-        [SerializeField]
-        private Dictionary<uint, NetworkEntity> serverSpawns;
-#if ODIN_INSPECTOR
-        [ShowInInspector, ReadOnly]
-#endif
-        [SerializeField]
-        private Dictionary<int, NetworkClient> serverClients;
+        
+        [SerializeField] private Dictionary<uint, NetworkEntity> clientSpawns;
+        [SerializeField] private Dictionary<uint, NetworkEntity> clientScenes;
+        [SerializeField] private Dictionary<uint, NetworkEntity> serverSpawns;
+        [SerializeField] private Dictionary<int, NetworkClient> serverClients;
 
         public static bool isHost => isServer && isClient;
         public static bool isRunner => isServer || isClient;

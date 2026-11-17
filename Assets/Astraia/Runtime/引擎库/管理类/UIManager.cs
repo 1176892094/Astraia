@@ -29,17 +29,19 @@ namespace Astraia
                 {
                     if (child.TryGetComponent(out UIPanel panel))
                     {
-                        if (!stackData.ContainsKey(panel.state) && panel.state != 0)
-                        {
-                            stackData.Add(panel.state, new UIStack());
-                        }
-
                         var value = panel.GetType();
                         if (value.GetAttribute<UIMaskAttribute>(out var mask))
                         {
                             panel.state = mask.state;
                         }
 
+                        if (!stackData.TryGetValue(panel.state, out var stack))
+                        {
+                            stack = new UIStack();
+                            stackData.Add(panel.state, stack);
+                        }
+
+                        stack.panels.Add(panel);
                         panelData.Add(GetHash(value), panel);
                     }
                 }
@@ -48,6 +50,11 @@ namespace Astraia
 
         protected override void OnDestroy()
         {
+            foreach (var stack in stackData.Values)
+            {
+                stack.panels.Clear();
+            }
+
             stackData.Clear();
             panelData.Clear();
             base.OnDestroy();
@@ -86,6 +93,11 @@ namespace Astraia
         public static void Hide(int value)
         {
             Instance?.HideInternal(value);
+        }
+
+        public static void Release()
+        {
+            Instance?.ReleaseInternal();
         }
 
         private T ShowInternal<T>() where T : UIPanel
@@ -138,9 +150,20 @@ namespace Astraia
 
         private void HideInternal(int index)
         {
-            if (stackData.TryGetValue(index, out var panel))
+            if (stackData.TryGetValue(index, out var stack))
             {
-                panel.Hide();
+                stack.Hide();
+            }
+        }
+
+        private void ReleaseInternal()
+        {
+            foreach (var index in stackData.Keys)
+            {
+                if (stackData.TryGetValue(index, out var stack))
+                {
+                    stack.Hide();
+                }
             }
         }
 
@@ -216,6 +239,7 @@ namespace Astraia
         [Serializable]
         private sealed class UIStack
         {
+            public List<UIPanel> panels = new List<UIPanel>();
             public UIPanel current;
             public UIPanel reverse;
 
@@ -257,9 +281,9 @@ namespace Astraia
 
             public void Hide()
             {
-                if (current != null)
+                foreach (var panel in panels)
                 {
-                    Modified(current, false);
+                    Modified(panel, false);
                 }
 
                 reverse = null;
