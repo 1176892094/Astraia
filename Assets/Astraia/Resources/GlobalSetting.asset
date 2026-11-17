@@ -69,9 +69,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9e187ce338348c689fd4464e4bb5568, type: 3}
   m_Name: GlobalSetting
   m_EditorClassIdentifier: Astraia.Run::Astraia.GlobalSetting
-  BuildTarget: 2
+  BuildTarget: 9
   AssetVersion: 100
-  RemotePath: http://192.168.0.6:8000/Documents/GitHub/Astraia-Game/AssetBundles
+  RemotePath: http://192.168.0.2:8000/Documents/GitHub/Astraia-Game/AssetBundles
   UseSimulate: 1
   TextAssets:
   - {fileID: 8449695024802945918}
@@ -84,10 +84,10 @@ MonoBehaviour:
   BuildOptions: 256
   ignoreAssets: []
   sceneAssets:
+  - {fileID: 102900000, guid: cf8d1b98809204add8bc69863ece5491, type: 3}
   - {fileID: 102900000, guid: d997d30491f12460a83474cffc127ae4, type: 3}
   - {fileID: 102900000, guid: 7ee700e87bf3541bdadae33287525107, type: 3}
   - {fileID: 102900000, guid: 40d95e4e2b8594e018558d8d142f3b06, type: 3}
-  - {fileID: 102900000, guid: cf8d1b98809204add8bc69863ece5491, type: 3}
   - {fileID: 0}
 --- !u!49 &8449695024802945918
 TextAsset:
