@@ -38,9 +38,7 @@ namespace Astraia
             EventManager.Dispose();
             AssetManager.Dispose();
         }
-#if UNITY_EDITOR
-        [UnityEditor.InitializeOnLoadMethod]
-#endif
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInitializeOnLoad()
         {

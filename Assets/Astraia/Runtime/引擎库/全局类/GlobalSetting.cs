@@ -64,15 +64,13 @@ namespace Astraia
         public static string ServerDataPath => Path.Combine(Instance.RemotePath, TargetPlatform, Instance.AssetVersion.ToString(), "{0}");
         public static string LoadText(TextAsset asset) => Instance.TextAssets[(int)asset].text;
 #if UNITY_EDITOR
-        public const string OWNING = "Astraia.Table";
-        public const string SCRIPT = "Assets/Scripts/程序集B";
         public const string TABLES = BUNDLE + "/" + SHEETS + "DataTable.asset";
-        public const string ASMDEF = SCRIPT + "/" + DEFINE + ".asmdef";
-        public const string PATH_A = SCRIPT + "/枚举类/{0}.cs";
-        public const string PATH_B = SCRIPT + "/结构体/{0}.cs";
-        public const string PATH_C = SCRIPT + "/数据表/{0}DataTable.cs";
-        public const string NAME_A = OWNING + ".{0}Data" + "," + DEFINE;
-        public const string NAME_B = OWNING + ".{0}DataTable";
+        public const string ASMDEF = "Assets/Scripts/程序集B/" + DEFINE + ".asmdef";
+        public const string PATH_A = "Assets/Scripts/程序集B/枚举类/{0}.cs";
+        public const string PATH_B = "Assets/Scripts/程序集B/结构体/{0}.cs";
+        public const string PATH_C = "Assets/Scripts/程序集B/数据表/{0}DataTable.cs";
+        public const string NAME_A = "Astraia.Table.{0}Data" + "," + DEFINE;
+        public const string NAME_B = "Astraia.Table.{0}DataTable";
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
